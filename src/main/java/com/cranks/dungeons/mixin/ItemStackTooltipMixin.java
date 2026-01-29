@@ -1,6 +1,5 @@
 package com.cranks.dungeons.mixin;
 
-import com.cranks.dungeons.equipment.EquipmentStatApplier;
 import com.cranks.dungeons.equipment.EquipmentType;
 import com.cranks.dungeons.equipment.ItemStatManager;
 import com.cranks.dungeons.item.CustomRarity;
@@ -9,13 +8,11 @@ import com.cranks.dungeons.stat.StatRegistry;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.AttributeModifiersComponent;
 import net.minecraft.entity.attribute.EntityAttribute;
-import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import org.spongepowered.asm.mixin.Mixin;
@@ -26,12 +23,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.text.DecimalFormat;
 import java.util.*;
 
-/**
- * Custom tooltip formatter that shows:
- * - Item Name [ Rarity ]
- * - Base stats (Attack Damage, Attack Speed, etc.)
- * - Runic Stats (custom stats with tier info)
- */
 @Mixin(ItemStack.class)
 public abstract class ItemStackTooltipMixin {
 
@@ -221,7 +212,7 @@ public abstract class ItemStackTooltipMixin {
 
         List<ItemStatManager.ItemStat> stats = ItemStatManager.getStats(stack);
         if (!stats.isEmpty()) {
-            tooltip.add(Text.literal("Runic Stats:").formatted(Formatting.AQUA, Formatting.BOLD));
+            tooltip.add(Text.literal("Runes:").formatted(Formatting.AQUA, Formatting.BOLD));
 
             for (ItemStatManager.ItemStat itemStat : stats) {
                 CustomStat stat = StatRegistry.getStat(itemStat.statId);
