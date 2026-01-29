@@ -1,0 +1,22 @@
+{
+  "description": {
+    "translate": "enchantment.minecraft.durability_bonus"
+  },
+  "supported_items": "#minecraft:enchantable/durability_tools",
+  "weight": 5,
+  "max_level": 1,
+  "min_cost": { "base": 10, "per_level_above_first": 0 },
+  "max_cost": { "base": 30, "per_level_above_first": 0 },
+  "anvil_cost": 2,
+  "slots": ["any"],
+  "effects": {
+    "minecraft:attributes": [
+      {
+        "id": "minecraft:enchantment.durability_bonus",
+        "attribute": "cranks-dungeons:durability_bonus",
+        "amount": { "type": "minecraft:linear", "base": 0.3, "per_level_above_first": 0.0 },
+        "operation": "add_value"
+      }
+    ]
+  }
+}

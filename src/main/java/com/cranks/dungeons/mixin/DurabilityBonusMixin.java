@@ -15,11 +15,28 @@ public class DurabilityBonusMixin {
         ItemStack stack = (ItemStack) (Object) this;
 
         double durabilityBonus = ToolStatHelper.getDurabilityBonus(stack);
+        durabilityBonus += getDurabilityBonusFromEnchantments(stack);
+
 
         if (durabilityBonus > 0) {
             int baseDurability = cir.getReturnValue();
             int newDurability = (int) (baseDurability * (1.0 + durabilityBonus));
             cir.setReturnValue(newDurability);
         }
+    }
+
+    private double getDurabilityBonusFromEnchantments(ItemStack stack) {
+        var enchantments = stack.getEnchantments();
+        double total = 0.0;
+
+        for (var entry : enchantments.getEnchantmentEntries()) {
+            String enchantId = entry.getKey().getKey().get().getValue().toString();
+
+            if (enchantId.equals("minecraft:durability_bonus")) {
+                total += 0.3;
+            }
+        }
+
+        return total;
     }
 }

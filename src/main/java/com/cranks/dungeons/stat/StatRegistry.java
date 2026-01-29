@@ -1565,8 +1565,8 @@ public class StatRegistry {
                 "Mining Speed",
                 EquipmentType.PICKAXE,
                 ModAttributes.MINING_EFFICIENCY,
-                new double[]{0.08, 0.15, 0.23, 0.32, 0.42},
-                new double[]{0.12, 0.22, 0.32, 0.45, 0.60},
+                new double[]{0.5, 1.0, 1.5, 2.0, 2.5},
+                new double[]{1.0, 1.5, 2.00, 2.50, 3.0},
                 true,
                 true,
                 Formatting.WHITE
@@ -1625,8 +1625,8 @@ public class StatRegistry {
                 "Chopping Speed",
                 EquipmentType.AXE,
                 ModAttributes.MINING_EFFICIENCY,
-                new double[]{0.08, 0.15, 0.23, 0.32, 0.42},
-                new double[]{0.12, 0.22, 0.32, 0.45, 0.60},
+                new double[]{0.5, 1.0, 1.5, 2.0, 2.5},
+                new double[]{1.0, 1.5, 2.00, 2.50, 3.0},
                 true,
                 true,
                 Formatting.GRAY

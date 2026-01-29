@@ -76,5 +76,11 @@
   "enchantment.minecraft.experience_bonus": "+30% Experience Bonus",
   "enchantment.minecraft.luck_bonus": "+2 Luck",
   "enchantment.minecraft.movement_speed_bonus": "+40% Movement Speed",
-  "enchantment.minecraft.feather_falling_bonus": "+30% Feather Falling"
+  "enchantment.minecraft.feather_falling_bonus": "+30% Feather Falling",
+  "enchantment.minecraft.mining_efficiency": "+50% Efficiency",
+  "enchantment.minecraft.ore_fortune": "+25% Ore Fortune",
+  "enchantment.minecraft.durability_bonus": "+30% Durability Bonus",
+  "enchantment.minecraft.repair_chance": "+15% Repair Chance",
+  "enchantment.minecraft.breaking_range": "+1 Breaking Range",
+  "enchantment.minecraft.crop_fortune": "+25% Crop Fortune"
 }

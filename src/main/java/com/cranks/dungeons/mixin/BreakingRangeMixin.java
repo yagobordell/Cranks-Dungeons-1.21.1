@@ -1,6 +1,7 @@
 package com.cranks.dungeons.mixin;
 
 import com.cranks.dungeons.equipment.ToolStatHelper;
+import com.cranks.dungeons.registry.ModAttributes;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
@@ -19,6 +20,7 @@ public class BreakingRangeMixin {
         // Get breaking range from the tool in main hand
         ItemStack tool = player.getMainHandStack();
         double rangeBonus = ToolStatHelper.getBreakingRange(tool);
+        rangeBonus += player.getAttributeValue(ModAttributes.BREAKING_RANGE);
 
         cir.setReturnValue(baseRange + rangeBonus);
     }

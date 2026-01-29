@@ -37,6 +37,12 @@
     "minecraft:experience_bonus",
     "minecraft:luck_bonus",
     "minecraft:movement_speed_bonus",
-    "minecraft:feather_falling_bonus"
+    "minecraft:feather_falling_bonus",
+    "minecraft:mining_efficiency",
+    "minecraft:ore_fortune",
+    "minecraft:durability_bonus",
+    "minecraft:repair_chance",
+    "minecraft:breaking_range",
+    "minecraft:crop_fortune"
   ]
 }
