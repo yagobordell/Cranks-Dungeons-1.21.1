@@ -16,5 +16,30 @@
 
   "enchantment.cranks-dungeons.wind_burst": "Wind Burst",
   "enchantment.cranks-dungeons.wind_burst.desc": "Causes a powerful upward knockback effect",
-  "enchantment.cranks-dungeons.wind_burst.desc2": "upon smash attack, does not negate fall damage"
+  "enchantment.cranks-dungeons.wind_burst.desc2": "upon smash attack, does not negate fall damage",
+
+
+  "enchantment.cranks-dungeons.infinity": "Infinity",
+  "enchantment.cranks-dungeons.infinity.desc": "Prevents consumption of arrows, except for",
+  "enchantment.cranks-dungeons.infinity.desc2": "spectral arrows or tipped arrows",
+
+  "enchantment.cranks-dungeons.multishot": "Multishot",
+  "enchantment.cranks-dungeons.multishot.desc": "Fires three shots for the price of one in a fixed spread,",
+  "enchantment.cranks-dungeons.multishot.desc2": "consuming extra durability per shot.",
+
+  "enchantment.cranks-dungeons.silk_touch": "Silk Touch",
+  "enchantment.cranks-dungeons.silk_touch.desc": "Causes certain blocks to drop themselves",
+  "enchantment.cranks-dungeons.silk_touch.desc2": "instead of their normal drops",
+
+  "enchantment.cranks-dungeons.frost_walker": "Frost Walker",
+  "enchantment.cranks-dungeons.frost_walker.desc": "Turns water into frosted ice beneath the user's feet,",
+  "enchantment.cranks-dungeons.frost_walker.desc2": "provides immunity to campfire and magma block damage",
+
+  "enchantment.cranks-dungeons.loyalty": "Loyalty",
+  "enchantment.cranks-dungeons.loyalty.desc": "Causes a thrown trident to fly back to the player after it lands",
+
+  "enchantment.minecraft.fire_damage": "+6 Fire Damage",
+  "enchantment.minecraft.cold_damage": "+6 Cold Damage",
+  "enchantment.minecraft.lightning_damage": "+6 Lightning Damage",
+  "enchantment.minecraft.void_damage": "+6 Void Damage"
 }

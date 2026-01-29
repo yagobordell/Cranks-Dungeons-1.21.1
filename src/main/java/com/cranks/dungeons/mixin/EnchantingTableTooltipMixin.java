@@ -33,7 +33,6 @@ public class EnchantingTableTooltipMixin {
             if (descKeys != null) {
                 for (String descKey : descKeys) {
                     Text desc = Text.translatable(descKey).formatted(Formatting.GRAY, Formatting.ITALIC);
-                    // Only add if translation exists (not the key itself)
                     if (!desc.getString().equals(descKey)) {
                         newTooltip.add(desc);
                     }
@@ -63,6 +62,41 @@ public class EnchantingTableTooltipMixin {
             return new String[]{
                     "enchantment.cranks-dungeons.wind_burst.desc",
                     "enchantment.cranks-dungeons.wind_burst.desc2"
+            };
+        }
+
+        if (lower.contains("infinity")) {
+            return new String[]{
+                    "enchantment.cranks-dungeons.infinity.desc",
+                    "enchantment.cranks-dungeons.infinity.desc2"
+            };
+        }
+
+        if (lower.contains("multishot")) {
+            return new String[]{
+                    "enchantment.cranks-dungeons.multishot.desc",
+                    "enchantment.cranks-dungeons.multishot.desc2"
+            };
+        }
+
+        if (lower.contains("silk touch")) {
+            return new String[]{
+                    "enchantment.cranks-dungeons.silk_touch.desc",
+                    "enchantment.cranks-dungeons.silk_touch.desc2"
+            };
+        }
+
+        if (lower.contains("frost walker")) {
+            return new String[]{
+                    "enchantment.cranks-dungeons.frost_walker.desc",
+                    "enchantment.cranks-dungeons.frost_walker.desc2"
+            };
+        }
+
+        if (lower.contains("loyalty")) {
+            return new String[]{
+                    "enchantment.cranks-dungeons.loyalty.desc",
+                    "enchantment.cranks-dungeons.loyalty.desc2"
             };
         }
 

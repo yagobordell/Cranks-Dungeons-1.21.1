@@ -32,17 +32,14 @@ public abstract class ElementalDamageMixin {
 
     @Inject(method = "damage", at = @At("RETURN"))
     private void applyElementalDamageOnHit(ServerWorld world, DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
-        // Only process if damage was successful
         if (!cir.getReturnValue()) {
             return;
         }
 
-        // Skip if this damage is FROM elemental sources (to prevent infinite recursion)
         if (cranks$processingElementalDamage.get()) {
             return;
         }
 
-        // Only apply elemental damage from player attacks
         if (!(source.getAttacker() instanceof PlayerEntity attacker)) {
             return;
         }
@@ -54,19 +51,29 @@ public abstract class ElementalDamageMixin {
         try {
             cranks$processingElementalDamage.set(true);
 
-            // Get elemental damage from WEAPON
+            // Get elemental damage from WEAPON (stats)
             double fireDamageFromWeapon = EquipmentStatApplier.getItemStatValue(weapon, "fire_damage");
             double coldDamageFromWeapon = EquipmentStatApplier.getItemStatValue(weapon, "cold_damage");
             double lightningDamageFromWeapon = EquipmentStatApplier.getItemStatValue(weapon, "lightning_damage");
             double voidDamageFromWeapon = EquipmentStatApplier.getItemStatValue(weapon, "void_damage");
+
+            // Get elemental damage from CHESTPLATE (stats)
             double fireDamageFromChestplate = EquipmentStatApplier.getItemStatValue(chestplate, "fire_damage");
             double coldDamageFromChestplate = EquipmentStatApplier.getItemStatValue(chestplate, "cold_damage");
             double lightningDamageFromChestplate = EquipmentStatApplier.getItemStatValue(chestplate, "lightning_damage");
             double voidDamageFromChestplate = EquipmentStatApplier.getItemStatValue(chestplate, "void_damage");
-            double fireDamage = fireDamageFromWeapon + fireDamageFromChestplate;
-            double coldDamage = coldDamageFromWeapon + coldDamageFromChestplate;
-            double lightningDamage = lightningDamageFromWeapon + lightningDamageFromChestplate;
-            double voidDamage = voidDamageFromWeapon + voidDamageFromChestplate;
+
+            // ADD: Get elemental damage from ENCHANTMENTS (attributes on player)
+            double fireDamageFromEnchants = attacker.getAttributeValue(ModAttributes.FIRE_DAMAGE);
+            double coldDamageFromEnchants = attacker.getAttributeValue(ModAttributes.COLD_DAMAGE);
+            double lightningDamageFromEnchants = attacker.getAttributeValue(ModAttributes.LIGHTNING_DAMAGE);
+            double voidDamageFromEnchants = attacker.getAttributeValue(ModAttributes.VOID_DAMAGE);
+
+            // Combine all sources
+            double fireDamage = fireDamageFromWeapon + fireDamageFromChestplate + fireDamageFromEnchants;
+            double coldDamage = coldDamageFromWeapon + coldDamageFromChestplate + coldDamageFromEnchants;
+            double lightningDamage = lightningDamageFromWeapon + lightningDamageFromChestplate + lightningDamageFromEnchants;
+            double voidDamage = voidDamageFromWeapon + voidDamageFromChestplate + voidDamageFromEnchants;
 
             double totalElementalDamage = 0;
 

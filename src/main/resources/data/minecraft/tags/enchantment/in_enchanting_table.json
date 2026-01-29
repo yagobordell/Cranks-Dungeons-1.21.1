@@ -13,6 +13,10 @@
     "minecraft:riptide",
     "minecraft:respiration",
     "minecraft:depth_strider",
-    "minecraft:lunge"
+    "minecraft:lunge",
+    "minecraft:fire_damage",
+    "minecraft:cold_damage",
+    "minecraft:lightning_damage",
+    "minecraft:void_damage"
   ]
 }

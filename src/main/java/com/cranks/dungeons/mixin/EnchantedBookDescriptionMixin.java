@@ -50,21 +50,17 @@ public class EnchantedBookDescriptionMixin {
                     String line = tooltip.get(i).getString();
 
                     if (line.equals(displayName)) {
-                        // Add first line
                         Text description1 = Text.translatable(descKey1).formatted(Formatting.GRAY, Formatting.ITALIC);
                         tooltip.add(i + 1 + descriptionsAdded, description1);
                         descriptionsAdded++;
 
-                        // Add second line if it exists
                         try {
                             Text description2 = Text.translatable(descKey2).formatted(Formatting.GRAY, Formatting.ITALIC);
-                            // Only add if translation exists (won't be the key itself)
                             if (!description2.getString().equals(descKey2)) {
                                 tooltip.add(i + 1 + descriptionsAdded, description2);
                                 descriptionsAdded++;
                             }
                         } catch (Exception e) {
-                            // No second line, that's fine
                         }
 
                         break;
@@ -77,6 +73,11 @@ public class EnchantedBookDescriptionMixin {
     private boolean isCustomEnchantment(String name) {
         return name.equals("lunge") ||
                 name.equals("riptide") ||
+                name.equals("infinity") ||
+                name.equals("multishot") ||
+                name.equals("silk_touch") ||
+                name.equals("frost_walker") ||
+                name.equals("loyalty") ||
                 name.equals("wind_burst");
     }
 }
