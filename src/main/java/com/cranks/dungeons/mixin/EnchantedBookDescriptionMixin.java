@@ -73,6 +73,7 @@ public class EnchantedBookDescriptionMixin {
     private boolean isCustomEnchantment(String name) {
         return name.equals("lunge") ||
                 name.equals("riptide") ||
+                name.equals("channeling") ||
                 name.equals("infinity") ||
                 name.equals("multishot") ||
                 name.equals("silk_touch") ||

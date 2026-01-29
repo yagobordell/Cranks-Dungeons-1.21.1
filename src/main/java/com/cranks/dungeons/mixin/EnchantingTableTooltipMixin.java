@@ -25,11 +25,30 @@ public class EnchantingTableTooltipMixin {
         List<Text> newTooltip = new ArrayList<>();
 
         for (Text line : tooltip) {
-            newTooltip.add(line);
-
             String lineText = line.getString();
-            String[] descKeys = getDescriptionKeys(lineText);
+            String lowerLine = lineText.toLowerCase();
 
+            boolean isLevelCost = (lowerLine.contains("level") || lowerLine.contains("cost") || lowerLine.contains("xp"))
+                    && !lowerLine.contains("lapis");
+
+            boolean isLapisCost = lowerLine.contains("lapis");
+
+            if (isLevelCost) {
+                continue;
+            }
+            else if (isLapisCost) {
+                String modifiedLine = lineText.replaceFirst("\\d+", "16");
+                newTooltip.add(Text.literal(modifiedLine).setStyle(line.getStyle()));
+            }
+            else {
+                String cleanedLine = lineText.replace(" . . . ?", "").replace("... ?", "").trim();
+
+                if (!cleanedLine.isEmpty()) {
+                    newTooltip.add(Text.literal(cleanedLine).setStyle(line.getStyle()));
+                }
+            }
+
+            String[] descKeys = getDescriptionKeys(lineText);
             if (descKeys != null) {
                 for (String descKey : descKeys) {
                     Text desc = Text.translatable(descKey).formatted(Formatting.GRAY, Formatting.ITALIC);
@@ -69,6 +88,13 @@ public class EnchantingTableTooltipMixin {
             return new String[]{
                     "enchantment.cranks-dungeons.infinity.desc",
                     "enchantment.cranks-dungeons.infinity.desc2"
+            };
+        }
+
+        if (lower.contains("channeling")) {
+            return new String[]{
+                    "enchantment.cranks-dungeons.channeling.desc",
+                    "enchantment.cranks-dungeons.channeling.desc2"
             };
         }
 

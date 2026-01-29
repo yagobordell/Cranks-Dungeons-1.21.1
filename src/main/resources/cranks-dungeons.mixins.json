@@ -36,6 +36,8 @@
 		"ItemStackMixin",
 		"SingleEnchantMixin",
 		"EnchantedBookDescriptionMixin",
+		"EnchantmentRandomizerMixin",
+		"FreeEnchantingMixin",
 		"FeatherFallingMixin"
 	],
 	"client": [

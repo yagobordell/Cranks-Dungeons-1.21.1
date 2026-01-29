@@ -18,6 +18,9 @@
   "enchantment.cranks-dungeons.wind_burst.desc": "Causes a powerful upward knockback effect",
   "enchantment.cranks-dungeons.wind_burst.desc2": "upon smash attack, does not negate fall damage",
 
+  "enchantment.cranks-dungeons.channeling": "Channeling",
+  "enchantment.cranks-dungeons.channeling.desc": "Causes a lightning strike when thrown at an entity",
+  "enchantment.cranks-dungeons.channeling.desc2": "or lightning rod during a thunderstorm",
 
   "enchantment.cranks-dungeons.infinity": "Infinity",
   "enchantment.cranks-dungeons.infinity.desc": "Prevents consumption of arrows, except for",
