@@ -17,7 +17,7 @@ public class AttackRangeMixin {
         PlayerEntity player = (PlayerEntity) (Object) this;
         double baseRange = cir.getReturnValue();
 
-        // Get attack range from ARMOR (player attributes)
+        // Get attack range from ENCHANTMENT
         double attackRangeBonus = player.getAttributeValue(ModAttributes.ATTACK_RANGE);
 
         // Add attack range from WEAPON

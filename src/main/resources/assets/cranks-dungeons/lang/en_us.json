@@ -13,7 +13,6 @@
   "enchantment.cranks-dungeons.riptide.desc": "Launches the user when used in water or rain,",
   "enchantment.cranks-dungeons.riptide.desc2": "replacing the trident's ability to be thrown",
 
-
   "enchantment.cranks-dungeons.wind_burst": "Wind Burst",
   "enchantment.cranks-dungeons.wind_burst.desc": "Causes a powerful upward knockback effect",
   "enchantment.cranks-dungeons.wind_burst.desc2": "upon smash attack, does not negate fall damage",
@@ -41,8 +40,41 @@
   "enchantment.cranks-dungeons.loyalty": "Loyalty",
   "enchantment.cranks-dungeons.loyalty.desc": "Causes a thrown trident to fly back to the player after it lands",
 
+  "enchantment.cranks-dungeons.depth_strider": "Depth Strider",
+  "enchantment.cranks-dungeons.depth_strider.desc": "Removes underwater movement speed penalty",
+
+  "enchantment.cranks-dungeons.respiration": "Respiration",
+  "enchantment.cranks-dungeons.respiration.desc": "Extends underwater breathing time by 45 seconds",
+
+  "enchantment.cranks-dungeons.soul_speed": "Soul Speed",
+  "enchantment.cranks-dungeons.soul_speed.desc": "+60% Movement speed on soul sand and soul soil,",
+  "enchantment.cranks-dungeons.soul_speed.desc2": "draining durability in the process",
+
+  "enchantment.cranks-dungeons.aqua_affinity": "Aqua Affinity",
+  "enchantment.cranks-dungeons.aqua_affinity.desc": "Removes the mining speed reduction that occurs when underwater",
+
   "enchantment.minecraft.fire_damage": "+6 Fire Damage",
   "enchantment.minecraft.cold_damage": "+6 Cold Damage",
   "enchantment.minecraft.lightning_damage": "+6 Lightning Damage",
-  "enchantment.minecraft.void_damage": "+6 Void Damage"
+  "enchantment.minecraft.void_damage": "+6 Void Damage",
+  "enchantment.minecraft.attack_damage": "+6 Attack Damage",
+  "enchantment.minecraft.attack_speed": "+30% Attack Speed",
+  "enchantment.minecraft.crit_chance": "+10% Critical Strike Chance",
+  "enchantment.minecraft.chance_to_burn": "+25% Chance To Burn",
+  "enchantment.minecraft.life_steal": "+8% Life Steal",
+  "enchantment.minecraft.bonus_knockback": "+60% Knockback",
+  "enchantment.minecraft.attack_range": "+0.5 Attack Range",
+  "enchantment.minecraft.max_health_bonus": "+5 Max Health",
+  "enchantment.minecraft.life_regeneration": "+0.8 Life Regeneration",
+  "enchantment.minecraft.bonus_armor": "+5 Armor",
+  "enchantment.minecraft.bonus_armor_toughness": "+2 Armor Toughness",
+  "enchantment.minecraft.knockback_resistance": "+25% Knockback Resistance",
+  "enchantment.minecraft.fire_resistance": "+10% Fire Resistance",
+  "enchantment.minecraft.cold_resistance": "+10% Cold Resistance",
+  "enchantment.minecraft.lightning_resistance": "+10% Lightning Resistance",
+  "enchantment.minecraft.void_resistance": "+10% Void Resistance",
+  "enchantment.minecraft.experience_bonus": "+30% Experience Bonus",
+  "enchantment.minecraft.luck_bonus": "+2 Luck",
+  "enchantment.minecraft.movement_speed_bonus": "+40% Movement Speed",
+  "enchantment.minecraft.feather_falling_bonus": "+30% Feather Falling"
 }

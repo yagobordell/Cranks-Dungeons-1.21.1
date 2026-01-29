@@ -28,7 +28,7 @@ public class EnchantingTableTooltipMixin {
             String lineText = line.getString();
             String lowerLine = lineText.toLowerCase();
 
-            boolean isLevelCost = (lowerLine.contains("level") || lowerLine.contains("cost") || lowerLine.contains("xp"))
+            boolean isLevelCost = (lowerLine.contains("level") || lowerLine.contains("cost"))
                     && !lowerLine.contains("lapis");
 
             boolean isLapisCost = lowerLine.contains("lapis");
@@ -123,6 +123,34 @@ public class EnchantingTableTooltipMixin {
             return new String[]{
                     "enchantment.cranks-dungeons.loyalty.desc",
                     "enchantment.cranks-dungeons.loyalty.desc2"
+            };
+        }
+
+        if (lower.contains("depth strider")) {
+            return new String[]{
+                    "enchantment.cranks-dungeons.depth_strider.desc",
+                    "enchantment.cranks-dungeons.depth_strider.desc2"
+            };
+        }
+
+        if (lower.contains("respiration")) {
+            return new String[]{
+                    "enchantment.cranks-dungeons.respiration.desc",
+                    "enchantment.cranks-dungeons.respiration.desc2"
+            };
+        }
+
+        if (lower.contains("soul speed")) {
+            return new String[]{
+                    "enchantment.cranks-dungeons.soul_speed.desc",
+                    "enchantment.cranks-dungeons.soul_speed.desc2"
+            };
+        }
+
+        if (lower.contains("aqua affinity")) {
+            return new String[]{
+                    "enchantment.cranks-dungeons.aqua_affinity.desc",
+                    "enchantment.cranks-dungeons.aqua_affinity.desc2"
             };
         }
 

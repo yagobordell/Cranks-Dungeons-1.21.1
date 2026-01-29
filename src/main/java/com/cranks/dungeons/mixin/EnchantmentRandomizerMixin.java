@@ -30,18 +30,24 @@ public class EnchantmentRandomizerMixin {
 
         if (pool.isEmpty()) return;
 
-        int currentSlot = slotCounter.get();
-        slotCounter.set((currentSlot + 1) % 3);
-
+        // 1. STABLE SEEDING
+        // We use a fixed seed so the shuffle is ALWAYS the same for this item.
         long stableSeed = stack.hashCode();
         java.util.Collections.shuffle(pool, new java.util.Random(stableSeed));
 
-        int safeIndex = currentSlot % pool.size();
-        RegistryEntry<Enchantment> selectedEnchant = pool.get(safeIndex);
+        // 2. CONSISTENT INDEXING
+        // 'level' is the bookshelf-based power level (e.g., 2, 8, 30).
+        // Because Slot 1, 2, and 3 always have different power levels,
+        // they will always pick different, consistent indices from the pool.
+        int index = Math.abs(level) % pool.size();
+        RegistryEntry<Enchantment> selectedEnchant = pool.get(index);
 
+        // 3. GENERATE RESULT
         List<net.minecraft.enchantment.EnchantmentLevelEntry> result = new ArrayList<>();
         int maxLvl = selectedEnchant.value().getMaxLevel();
-        int enchantedLevel = maxLvl > 1 ? 1 + new java.util.Random(stableSeed + currentSlot).nextInt(maxLvl) : 1;
+
+        // We use the level here too to keep the enchantment level consistent
+        int enchantedLevel = maxLvl > 1 ? 1 + (Math.abs(level * 31) % maxLvl) : 1;
 
         result.add(new net.minecraft.enchantment.EnchantmentLevelEntry(selectedEnchant, enchantedLevel));
 

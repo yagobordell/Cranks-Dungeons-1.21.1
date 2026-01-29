@@ -17,6 +17,26 @@
     "minecraft:fire_damage",
     "minecraft:cold_damage",
     "minecraft:lightning_damage",
-    "minecraft:void_damage"
+    "minecraft:void_damage",
+    "minecraft:attack_damage",
+    "minecraft:attack_speed",
+    "minecraft:crit_chance",
+    "minecraft:chance_to_burn",
+    "minecraft:life_steal",
+    "minecraft:bonus_knockback",
+    "minecraft:attack_range",
+    "minecraft:max_health_bonus",
+    "minecraft:life_regeneration",
+    "minecraft:bonus_armor",
+    "minecraft:bonus_armor_toughness",
+    "minecraft:knockback_resistance",
+    "minecraft:fire_resistance",
+    "minecraft:cold_resistance",
+    "minecraft:lightning_resistance",
+    "minecraft:void_resistance",
+    "minecraft:experience_bonus",
+    "minecraft:luck_bonus",
+    "minecraft:movement_speed_bonus",
+    "minecraft:feather_falling_bonus"
   ]
 }

@@ -79,6 +79,10 @@ public class EnchantedBookDescriptionMixin {
                 name.equals("silk_touch") ||
                 name.equals("frost_walker") ||
                 name.equals("loyalty") ||
+                name.equals("depth_strider") ||
+                name.equals("respiration") ||
+                name.equals("soul_speed") ||
+                name.equals("aqua_affinity") ||
                 name.equals("wind_burst");
     }
 }

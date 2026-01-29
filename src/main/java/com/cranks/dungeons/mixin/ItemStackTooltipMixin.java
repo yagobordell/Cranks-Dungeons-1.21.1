@@ -61,6 +61,17 @@ public abstract class ItemStackTooltipMixin {
         } else {
             handleNormalTooltip(tooltip, stack, equipType.orElse(null));
         }
+
+
+        cir.getReturnValue().removeIf(text -> {
+            String raw = text.getString().toLowerCase().trim();
+
+            return raw.contains("when worn") ||
+                    raw.contains("on body") ||
+                    raw.contains("when on") ||
+                    raw.startsWith("attribute.modifier") ||
+                    raw.isEmpty();
+        });
     }
 
     private void handleShieldTooltip(List<Text> tooltip, ItemStack stack) {
@@ -104,7 +115,8 @@ public abstract class ItemStackTooltipMixin {
             String line = tooltip.get(i).getString();
             if ((line.contains("When in Main Hand:") || line.contains("When in Offhand:") ||
                     line.contains("When on Body:") || line.contains("When on Head:") ||
-                    line.contains("When on Legs:") || line.contains("When on Feet:"))) {
+                    line.contains("When on Legs:") ||  line.contains("When worn:") ||
+                    line.contains("When on Chest:") || line.contains("When on Feet:"))) {
                 attributeSectionStart = i;
             }
 

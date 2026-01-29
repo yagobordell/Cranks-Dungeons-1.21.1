@@ -8,6 +8,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -15,27 +16,33 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(PlayerEntity.class)
 public class MovementSpeedMixin {
 
+    @Unique
+    private static final Identifier MODIFIER_ID = Identifier.of(CranksDungeons.MOD_ID, "movement_speed_bonus");
+
+    @Unique
+    private double lastSpeedBonus = -1.0;
+
     @Inject(method = "tick", at = @At("HEAD"))
     private void applyMovementSpeed(CallbackInfo ci) {
         PlayerEntity player = (PlayerEntity) (Object) this;
 
-        // Only run on server side
         if (!(player instanceof ServerPlayerEntity)) return;
 
-        // Get movement speed bonus from custom attribute
+        if (player.age % 20 != 0) return;
+
         double speedBonus = player.getAttributeValue(ModAttributes.MOVEMENT_SPEED);
+
+        if (Math.abs(speedBonus - lastSpeedBonus) < 0.001) return;
+
+        lastSpeedBonus = speedBonus;
 
         var speedAttr = player.getAttributeInstance(EntityAttributes.MOVEMENT_SPEED);
         if (speedAttr != null) {
-            Identifier modifierId = Identifier.of(CranksDungeons.MOD_ID, "movement_speed_bonus");
+            speedAttr.removeModifier(MODIFIER_ID);
 
-            // Remove old modifier
-            speedAttr.removeModifier(modifierId);
-
-            // Add new modifier if bonus exists
-            if (speedBonus > 0) {
+            if (speedBonus > 0.001) {
                 EntityAttributeModifier modifier = new EntityAttributeModifier(
-                        modifierId,
+                        MODIFIER_ID,
                         speedBonus,
                         EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE
                 );

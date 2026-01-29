@@ -120,7 +120,8 @@ public abstract class ElementalDamageMixin {
 
             double lifeStealFromWeapon = EquipmentStatApplier.getItemStatValue(weapon, "life_steal");
             double lifeStealFromChestplate = EquipmentStatApplier.getItemStatValue(chestplate, "life_steal");
-            double lifeSteal = lifeStealFromWeapon + lifeStealFromChestplate;
+            double LifeStealFromEnchantment = attacker.getAttributeValue(ModAttributes.LIFE_STEAL);
+            double lifeSteal = lifeStealFromWeapon + lifeStealFromChestplate + LifeStealFromEnchantment;
 
 
             if (lifeSteal > 0) {
@@ -130,10 +131,11 @@ public abstract class ElementalDamageMixin {
                 attacker.heal(healAmount);
             }
 
-            // Chance to burn from weapon + chestplate
+            // Chance to burn from weapon + chestplate + Enchantment
             double chanceToBurnFromWeapon = EquipmentStatApplier.getItemStatValue(weapon, "chance_to_burn");
             double chanceToBurnFromChestplate = EquipmentStatApplier.getItemStatValue(chestplate, "chance_to_burn");
-            double chanceToBurn = chanceToBurnFromWeapon + chanceToBurnFromChestplate;
+            double chanceToBurnFromEnchantment = attacker.getAttributeValue(ModAttributes.CHANCE_TO_BURN);
+            double chanceToBurn = chanceToBurnFromWeapon + chanceToBurnFromChestplate + chanceToBurnFromEnchantment;
 
             if (chanceToBurn > 0) {
                 double roll = Math.random();
