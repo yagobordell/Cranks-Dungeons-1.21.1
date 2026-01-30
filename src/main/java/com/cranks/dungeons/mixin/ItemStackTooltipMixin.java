@@ -163,8 +163,29 @@ public abstract class ItemStackTooltipMixin {
         );
 
         Map<RegistryEntry<EntityAttribute>, Double> attributeTotals = new HashMap<>();
+
         for (var entry : attributes.modifiers()) {
             attributeTotals.merge(entry.attribute(), entry.modifier().value(), Double::sum);
+        }
+
+        var enchantments = stack.getEnchantments();
+        for (var enchEntry : enchantments.getEnchantmentEntries()) {
+            var enchantment = enchEntry.getKey().value();
+
+            String enchantId = enchEntry.getKey().getKey().get().getValue().toString();
+
+            if (enchantId.equals("minecraft:bonus_armor")) {
+                attributeTotals.merge(EntityAttributes.ARMOR, 5.0, Double::sum);
+            }
+            if (enchantId.equals("minecraft:bonus_armor_toughness")) {
+                attributeTotals.merge(EntityAttributes.ARMOR_TOUGHNESS, 2.0, Double::sum);
+            }
+            if (enchantId.equals("minecraft:attack_damage")) {
+                attributeTotals.merge(EntityAttributes.ATTACK_DAMAGE, 6.0, Double::sum);
+            }
+            if (enchantId.equals("minecraft:attack_speed")) {
+                attributeTotals.merge(EntityAttributes.ATTACK_SPEED, 0.3, Double::sum);
+            }
         }
 
         DecimalFormat df = new DecimalFormat("#.##");
