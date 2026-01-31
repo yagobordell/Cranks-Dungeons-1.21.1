@@ -15,18 +15,30 @@ public class AttackSpeedMixin {
     @Inject(method = "getAttackCooldownProgress", at = @At("RETURN"), cancellable = true)
     private void modifyAttackSpeed(float baseTime, CallbackInfoReturnable<Float> cir) {
         PlayerEntity player = (PlayerEntity) (Object) this;
+        net.minecraft.util.Identifier syncId = net.minecraft.util.Identifier.of("cranks-dungeons", "speed_sync");
+        var vanillaSpeed = player.getAttributeInstance(net.minecraft.entity.attribute.EntityAttributes.ATTACK_SPEED);
 
-        // Get attack speed from ARMOR (player attributes)
-        double attackSpeed = player.getAttributeValue(ModAttributes.ATTACK_SPEED);
+        double weaponBonus = EquipmentStatApplier.getItemStatValue(player.getMainHandStack(), "attack_speed");
 
-        // Add attack speed from WEAPON
-        ItemStack weapon = player.getMainHandStack();
-        attackSpeed += EquipmentStatApplier.getItemStatValue(weapon, "attack_speed");
+        double armorBonus = EquipmentStatApplier.getItemStatValue(player.getEquippedStack(net.minecraft.entity.EquipmentSlot.CHEST), "attack_speed");
 
-        if (attackSpeed > 0) {
+        double attrBonus = player.getAttributeValue(ModAttributes.ATTACK_SPEED);
+
+        double totalBonus = weaponBonus + armorBonus + attrBonus;
+
+        if (vanillaSpeed != null) {
+            vanillaSpeed.removeModifier(syncId);
+        }
+
+        if (totalBonus > 0) {
             float currentProgress = cir.getReturnValue();
-            float newProgress = currentProgress * (float) (1.0 + attackSpeed);
-            cir.setReturnValue(Math.min(newProgress, 1.0f));
+            cir.setReturnValue(Math.min(currentProgress * (float) (1.0 + totalBonus), 1.0f));
+
+            if (vanillaSpeed != null) {
+                vanillaSpeed.addTemporaryModifier(new net.minecraft.entity.attribute.EntityAttributeModifier(
+                        syncId, totalBonus, net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_VALUE
+                ));
+            }
         }
     }
 }

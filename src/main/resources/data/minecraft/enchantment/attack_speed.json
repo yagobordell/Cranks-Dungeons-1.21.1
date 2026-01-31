@@ -12,7 +12,7 @@
   "effects": {
     "minecraft:attributes": [
       {
-        "id": "minecraft:enchantment.attack_speed",
+        "id": "cranks-dungeons:enchantment_attack_speed",
         "attribute": "cranks-dungeons:attack_speed",
         "amount": { "type": "minecraft:linear", "base": 0.3, "per_level_above_first": 0.0 },
         "operation": "add_value"

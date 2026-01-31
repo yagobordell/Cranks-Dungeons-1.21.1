@@ -354,9 +354,10 @@ public class StatRegistry {
                 "Knockback",
                 EquipmentType.CHESTPLATE,
                 ModAttributes.KNOCKBACK,
-                new double[]{0.1, 0.3, 0.6, 0.9, 1.2},
-                new double[]{0.2, 0.5, 0.8, 1.1, 1.4},
-                false,
+                new double[]{0.1, 0.2, 0.4, 0.7, 1.0},
+                new double[]{0.2, 0.4, 0.6, 0.8, 1.2},
+                true,
+                true,
                 Formatting.GRAY
         ));
 

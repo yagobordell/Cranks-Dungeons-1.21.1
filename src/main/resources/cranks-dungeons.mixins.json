@@ -27,7 +27,6 @@
 		"CropFortuneBlockMixin",
 		"CriticalHitMixin",
 		"NoImmunityMixin",
-		"AttackCooldownMixin",
 		"ClearAllTradesMixin",
 		"KnockbackProcessorMixin",
 		"AnvilSlotLimitMixin",
@@ -43,7 +42,9 @@
 	"client": [
 		"ClientPlayerMixin",
 		"EnchantingTableTooltipMixin",
-		"ClientAttackMixin"
+		"InventoryScreenStatsMixin",
+		"ScreenAccessor",
+		"HandledScreenAccessor"
 	],
 	"injectors": {
 		"defaultRequire": 1

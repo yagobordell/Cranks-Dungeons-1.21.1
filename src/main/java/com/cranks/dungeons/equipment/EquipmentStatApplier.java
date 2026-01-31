@@ -29,22 +29,24 @@ public class EquipmentStatApplier {
 
     /**
      * Updates player stats from equipped armor.
-     * This method only handles ARMOR because armor stats are applied to the player entity.
-     * Item tooltip updates are now handled by updateItemAttributes() when stats are added.
+     * FIXED: Now ignores items that already have these stats applied via updateItemAttributes
+     * to prevent doubling.
      */
     public static void updatePlayerStats(PlayerEntity player) {
         removeAllModifiers(player);
 
-        // Get all equipped armor pieces
         List<ItemStack> armorItems = new ArrayList<>();
         for (EquipmentSlot slot : ARMOR_SLOTS) {
             ItemStack stack = player.getEquippedStack(slot);
             if (!stack.isEmpty()) {
-                armorItems.add(stack);
+                // If the item has custom attributes set, Minecraft applies them automatically.
+                // We ONLY add stats here if they AREN'T already in the item's component.
+                if (!stack.contains(DataComponentTypes.ATTRIBUTE_MODIFIERS)) {
+                    armorItems.add(stack);
+                }
             }
         }
 
-        // Calculate total custom stats from armor
         Map<String, Double> totalArmorStats = new HashMap<>();
 
         for (ItemStack stack : armorItems) {
@@ -54,7 +56,6 @@ public class EquipmentStatApplier {
             }
         }
 
-        // Apply armor custom stats to player
         for (Map.Entry<String, Double> entry : totalArmorStats.entrySet()) {
             String statId = entry.getKey();
             double totalValue = entry.getValue();
@@ -68,8 +69,6 @@ public class EquipmentStatApplier {
 
     /**
      * Updates an item's attribute modifiers based on its custom stats.
-     * This is used for WEAPONS, TOOLS, and ARMOR - their stats must be added as item attributes.
-     * Call this whenever stats are added/removed from an item.
      */
     public static void updateItemAttributes(ItemStack stack) {
         Optional<EquipmentType> equipType = EquipmentType.getTypeForItem(stack);
@@ -80,26 +79,19 @@ public class EquipmentStatApplier {
         EquipmentType type = equipType.get();
         List<ItemStatManager.ItemStat> stats = ItemStatManager.getStats(stack);
 
-        // Get the item's ORIGINAL default attributes
         ItemStack defaultStack = new ItemStack(stack.getItem());
         AttributeModifiersComponent originalDefaults = defaultStack.getOrDefault(
                 DataComponentTypes.ATTRIBUTE_MODIFIERS,
                 AttributeModifiersComponent.DEFAULT
         );
 
-        for (var entry : originalDefaults.modifiers()) {
-            System.out.println("  - " + entry.attribute().getIdAsString() + ": " + entry.modifier().value() + " (slot: " + entry.slot() + ")");
-        }
-
         if (stats.isEmpty()) {
-            stack.set(DataComponentTypes.ATTRIBUTE_MODIFIERS, originalDefaults);
+            stack.remove(DataComponentTypes.ATTRIBUTE_MODIFIERS);
             return;
         }
 
         AttributeModifierSlot slot = getSlotForEquipmentType(type);
-
         AttributeModifiersComponent.Builder builder = AttributeModifiersComponent.builder();
-
         Set<RegistryEntry<EntityAttribute>> customStatAttributes = new HashSet<>();
 
         for (ItemStatManager.ItemStat itemStat : stats) {
@@ -139,19 +131,11 @@ public class EquipmentStatApplier {
                         EntityAttributeModifier.Operation.ADD_VALUE
                 );
 
-                builder.add(
-                        stat.getAttribute(),
-                        modifier,
-                        modifierSlot
-                );
+                builder.add(stat.getAttribute(), modifier, modifierSlot);
             }
         }
 
-        AttributeModifiersComponent component = builder.build();
-        stack.set(DataComponentTypes.ATTRIBUTE_MODIFIERS, component);
-
-        for (var entry : component.modifiers()) {
-        }
+        stack.set(DataComponentTypes.ATTRIBUTE_MODIFIERS, builder.build());
     }
 
     private static AttributeModifierSlot getSlotForEquipmentType(EquipmentType type) {
@@ -177,28 +161,17 @@ public class EquipmentStatApplier {
         if (stack.isEmpty()) {
             return 0.0;
         }
-
         List<ItemStatManager.ItemStat> stats = ItemStatManager.getStats(stack);
-
-        // Try direct match first (for backwards compatibility)
         for (ItemStatManager.ItemStat itemStat : stats) {
-            if (itemStat.statId.equals(baseStatId)) {
+            if (itemStat.statId.equals(baseStatId) || itemStat.statId.endsWith("_" + baseStatId)) {
                 return itemStat.value;
             }
         }
-
-        for (ItemStatManager.ItemStat itemStat : stats) {
-            if (itemStat.statId.endsWith("_" + baseStatId)) {
-                return itemStat.value;
-            }
-        }
-
         return 0.0;
     }
 
     private static void applyStatModifier(PlayerEntity player, CustomStat stat, double value) {
         Identifier modifierId = Identifier.of(CranksDungeons.MOD_ID, "equipment_" + stat.getId());
-
         EntityAttributeModifier modifier = new EntityAttributeModifier(
                 modifierId,
                 value,
@@ -209,7 +182,6 @@ public class EquipmentStatApplier {
         if (attributeInstance != null) {
             attributeInstance.removeModifier(modifierId);
             attributeInstance.addTemporaryModifier(modifier);
-
             appliedModifiers.computeIfAbsent(player.getUuid(), k -> new HashSet<>()).add(modifierId);
         }
     }
@@ -222,13 +194,11 @@ public class EquipmentStatApplier {
 
         for (CustomStat stat : StatRegistry.getAllStats()) {
             Identifier modifierId = Identifier.of(CranksDungeons.MOD_ID, "equipment_" + stat.getId());
-
             var attributeInstance = player.getAttributeInstance(stat.getAttribute());
             if (attributeInstance != null) {
                 attributeInstance.removeModifier(modifierId);
             }
         }
-
         modifiers.clear();
     }
 
