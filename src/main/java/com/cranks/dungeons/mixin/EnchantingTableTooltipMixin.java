@@ -37,7 +37,7 @@ public class EnchantingTableTooltipMixin {
                 continue;
             }
             else if (isLapisCost) {
-                String modifiedLine = lineText.replaceFirst("\\d+", "16");
+                String modifiedLine = lineText.replaceFirst("\\d+", "32");
                 newTooltip.add(Text.literal(modifiedLine).setStyle(line.getStyle()));
             }
             else {

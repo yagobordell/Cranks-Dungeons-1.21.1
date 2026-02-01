@@ -30,7 +30,7 @@ public class FreeEnchantingMixin {
             player.totalExperience = storedTotalXP;
 
             int vanillaTook = id + 1;
-            int totalTarget = 16;
+            int totalTarget = 32;
             int extraToTake = totalTarget - vanillaTook;
 
             if (extraToTake > 0 && !player.getAbilities().creativeMode) {
