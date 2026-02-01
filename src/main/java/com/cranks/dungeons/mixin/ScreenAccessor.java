@@ -9,6 +9,8 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 import org.spongepowered.asm.mixin.gen.Invoker;
 
+import java.util.List;
+
 @Mixin(Screen.class)
 public interface ScreenAccessor {
     @Accessor("textRenderer")
@@ -16,4 +18,13 @@ public interface ScreenAccessor {
 
     @Invoker("addDrawableChild")
     <T extends Element & Drawable & Selectable> T invokeAddDrawableChild(T drawableElement);
+
+    @Accessor("children")
+    List<? extends Element> getChildren();
+
+    @Accessor("drawables")
+    List<? extends Drawable> getDrawables();
+
+    @Accessor("selectables")
+    List<? extends Selectable> getSelectables();
 }

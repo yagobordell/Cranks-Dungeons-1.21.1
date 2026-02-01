@@ -6,10 +6,11 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.InventoryScreen;
-import net.minecraft.client.gui.widget.ButtonWidget;
+import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.item.ItemStack;
 import net.minecraft.text.Text;
+import net.minecraft.component.DataComponentTypes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -21,285 +22,183 @@ public abstract class InventoryScreenStatsMixin {
 
     @Unique
     private boolean statsVisible = false;
-
-    @Unique
-    private ButtonWidget toggleButton;
-
-    @Unique
-    private ButtonWidget scrollUpButton;
-
-    @Unique
-    private ButtonWidget scrollDownButton;
-
     @Unique
     private int scrollOffset = 0;
-
     @Unique
     private int maxScrollOffset = 0;
-
     @Unique
     private boolean draggingScrollbar = false;
 
-    @Unique
-    private int lastMouseX = -1;
-
-    @Unique
-    private int lastMouseY = -1;
-
-    @Inject(method = "init", at = @At("TAIL"))
-    private void addStatsButton(CallbackInfo ci) {
-        InventoryScreen screen = (InventoryScreen) (Object) this;
-        int x = ((HandledScreenAccessor) screen).getX();
-        int y = ((HandledScreenAccessor) screen).getY();
-
-        toggleButton = ButtonWidget.builder(
-                Text.literal(statsVisible ? "◀" : "▶"),
-                button -> {
-                    statsVisible = !statsVisible;
-                    button.setMessage(Text.literal(statsVisible ? "◀" : "▶"));
-                    scrollOffset = 0;
-                    button.setFocused(false); // Remove focus after click
-                }
-        ).dimensions(x + 160, y + 4, 12, 12).build();
-
-        ((ScreenAccessor) screen).invokeAddDrawableChild(toggleButton);
-
-        // Scroll buttons - initially hidden
-        scrollUpButton = ButtonWidget.builder(
-                Text.literal("▲"),
-                button -> {
-                    scrollOffset = Math.max(0, scrollOffset - 15);
-                    button.setFocused(false); // Remove focus after click
-                }
-        ).dimensions(x + 176 + 115, y + 4, 12, 12).build();
-        scrollUpButton.visible = false;
-
-        scrollDownButton = ButtonWidget.builder(
-                Text.literal("▼"),
-                button -> {
-                    scrollOffset = Math.min(maxScrollOffset, scrollOffset + 15);
-                    button.setFocused(false); // Remove focus after click
-                }
-        ).dimensions(x + 176 + 115, y + 150, 12, 12).build();
-        scrollDownButton.visible = false;
-
-        ((ScreenAccessor) screen).invokeAddDrawableChild(scrollUpButton);
-        ((ScreenAccessor) screen).invokeAddDrawableChild(scrollDownButton);
-    }
-
-    @Inject(method = "render", at = @At("HEAD"))
-    private void updateButtonsBeforeRender(DrawContext context, int mouseX, int mouseY, float delta, CallbackInfo ci) {
-        // Update button visibility at the start of render
-        if (scrollUpButton != null) scrollUpButton.visible = statsVisible && maxScrollOffset > 0;
-        if (scrollDownButton != null) scrollDownButton.visible = statsVisible && maxScrollOffset > 0;
-    }
-
     @Inject(method = "render", at = @At("TAIL"))
     private void renderStatsPanel(DrawContext context, int mouseX, int mouseY, float delta, CallbackInfo ci) {
-        if (!statsVisible) return;
-
         InventoryScreen screen = (InventoryScreen) (Object) this;
-        int x = ((HandledScreenAccessor) screen).getX();
-        int y = ((HandledScreenAccessor) screen).getY();
 
-        int panelX = x + 176;
-        int panelY = y;
-        int panelWidth = 130;
-        int panelHeight = 166;
+        try {
+            int x = ((HandledScreenAccessor) screen).getX();
+            int y = ((HandledScreenAccessor) screen).getY();
+            int backgroundWidth = ((HandledScreenAccessor) screen).getBackgroundWidth();
 
-        // Draw panel background
-        context.fill(panelX, panelY, panelX + panelWidth, panelY + panelHeight, 0xC0202020);
+            // --- TOGGLE BUTTON ---
+            int buttonX = x + backgroundWidth - 20;
+            int buttonY = y + 6;
+            int buttonWidth = 14;
+            int buttonHeight = 14;
 
-        // Draw border
-        int borderColor = 0xFF8B8B8B;
-        context.fill(panelX, panelY, panelX + panelWidth, panelY + 1, borderColor);
-        context.fill(panelX, panelY + panelHeight - 1, panelX + panelWidth, panelY + panelHeight, borderColor);
-        context.fill(panelX, panelY, panelX + 1, panelY + panelHeight, borderColor);
-        context.fill(panelX + panelWidth - 1, panelY, panelX + panelWidth, panelY + panelHeight, borderColor);
+            boolean isHovering = mouseX >= buttonX && mouseX <= buttonX + buttonWidth &&
+                    mouseY >= buttonY && mouseY <= buttonY + buttonHeight;
 
-        TextRenderer tr = MinecraftClient.getInstance().textRenderer;
-        var player = MinecraftClient.getInstance().player;
-        if (player == null) return;
+            int buttonColor = isHovering ? 0xFF666666 : 0xFF444444;
+            context.fill(buttonX, buttonY, buttonX + buttonWidth, buttonY + buttonHeight, buttonColor);
+            context.fill(buttonX, buttonY, buttonX + buttonWidth, buttonY + 1, 0xFFAAAAAA);
+            context.fill(buttonX, buttonY, buttonX + 1, buttonY + buttonHeight, 0xFFAAAAAA);
+            context.fill(buttonX + buttonWidth - 1, buttonY, buttonX + buttonWidth, buttonY + buttonHeight, 0xFF222222);
+            context.fill(buttonX, buttonY + buttonHeight - 1, buttonX + buttonWidth, buttonY + buttonHeight, 0xFF222222);
 
-        // Enable scissor to clip content
-        context.enableScissor(panelX + 1, panelY + 1, panelX + panelWidth - 1, panelY + panelHeight - 1);
+            TextRenderer tr = MinecraftClient.getInstance().textRenderer;
+            String buttonText = statsVisible ? "◀" : "▶";
+            context.drawText(tr, buttonText, buttonX + (buttonWidth - tr.getWidth(buttonText)) / 2, buttonY + (buttonHeight - 8) / 2, 0xFFFFFFFF, false);
 
-        ItemStack weapon = player.getMainHandStack();
-        ItemStack tool = player.getMainHandStack();
+            boolean leftClick = org.lwjgl.glfw.GLFW.glfwGetMouseButton(
+                    MinecraftClient.getInstance().getWindow().getHandle(),
+                    org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_LEFT
+            ) == org.lwjgl.glfw.GLFW.GLFW_PRESS;
 
-        int curY = panelY + 5 - scrollOffset;
-
-        // --- OFFENSIVE STATS ---
-        context.drawTextWithShadow(tr, Text.literal("⚔ Offensive"), panelX + 5, curY, 0xFFFF5555);
-        curY += 11;
-
-        double baseDamage = player.getAttributeValue(EntityAttributes.ATTACK_DAMAGE);
-        double weaponBonusDmg = EquipmentStatApplier.getItemStatValue(weapon, "bonus_attack_damage");
-        double totalBonusDmg = player.getAttributeValue(ModAttributes.BONUS_ATTACK_DAMAGE) + weaponBonusDmg;
-        curY = drawStat(context, tr, panelX, curY, "Attack Damage", baseDamage + totalBonusDmg, "");
-
-        double totalSpeed = EquipmentStatApplier.getItemStatValue(player.getMainHandStack(), "attack_speed") + EquipmentStatApplier.getItemStatValue(player.getEquippedStack(net.minecraft.entity.EquipmentSlot.CHEST), "attack_speed");
-        curY = drawStat(context, tr, panelX, curY, "Attack Speed", totalSpeed * 100, "%");
-
-        double totalCrit = player.getAttributeValue(ModAttributes.CRIT_CHANCE) + EquipmentStatApplier.getItemStatValue(weapon, "crit_chance");
-        curY = drawStat(context, tr, panelX, curY, "Critical Chance", totalCrit * 100, "%");
-
-        curY = drawStat(context, tr, panelX, curY, "Bonus Damage", totalBonusDmg, "");
-
-        double totalFireDmg = player.getAttributeValue(ModAttributes.FIRE_DAMAGE) + EquipmentStatApplier.getItemStatValue(weapon, "fire_damage");
-        curY = drawStat(context, tr, panelX, curY, "Fire Damage", totalFireDmg, "");
-
-        double totalColdDmg = player.getAttributeValue(ModAttributes.COLD_DAMAGE) + EquipmentStatApplier.getItemStatValue(weapon, "cold_damage");
-        curY = drawStat(context, tr, panelX, curY, "Cold Damage", totalColdDmg, "");
-
-        double totalLightningDmg = player.getAttributeValue(ModAttributes.LIGHTNING_DAMAGE) + EquipmentStatApplier.getItemStatValue(weapon, "lightning_damage");
-        curY = drawStat(context, tr, panelX, curY, "Lightning Damage", totalLightningDmg, "");
-
-        double totalVoidDmg = player.getAttributeValue(ModAttributes.VOID_DAMAGE) + EquipmentStatApplier.getItemStatValue(weapon, "void_damage");
-        curY = drawStat(context, tr, panelX, curY, "Void Damage", totalVoidDmg, "");
-
-        double totalLifeSteal = player.getAttributeValue(ModAttributes.LIFE_STEAL) + EquipmentStatApplier.getItemStatValue(weapon, "life_steal");
-        curY = drawStat(context, tr, panelX, curY, "Life Steal", totalLifeSteal * 100, "%");
-
-        double totalBurn = player.getAttributeValue(ModAttributes.CHANCE_TO_BURN) + EquipmentStatApplier.getItemStatValue(weapon, "chance_to_burn");
-        curY = drawStat(context, tr, panelX, curY, "Burn Chance", totalBurn * 100, "%");
-
-        double totalRange = player.getAttributeValue(ModAttributes.ATTACK_RANGE) + EquipmentStatApplier.getItemStatValue(weapon, "attack_range");
-        curY = drawStat(context, tr, panelX, curY, "Attack Range", totalRange, " blocks");
-
-        double totalKnockback = player.getAttributeValue(ModAttributes.KNOCKBACK) + EquipmentStatApplier.getItemStatValue(weapon, "knockback");
-        curY = drawStat(context, tr, panelX, curY, "Knockback", totalKnockback * 100, "%");
-
-        curY += 4;
-
-        // --- DEFENSIVE STATS ---
-        context.drawTextWithShadow(tr, Text.literal("🛡 Defensive"), panelX + 5, curY, 0xFF5555FF);
-        curY += 11;
-
-        curY = drawStat(context, tr, panelX, curY, "Max Health", player.getAttributeValue(EntityAttributes.MAX_HEALTH), " HP");
-        curY = drawStat(context, tr, panelX, curY, "Armor", player.getAttributeValue(EntityAttributes.ARMOR), "");
-
-        double toughness = player.getAttributeValue(EntityAttributes.ARMOR_TOUGHNESS);
-        curY = drawStat(context, tr, panelX, curY, "Armor Toughness", toughness, "");
-
-        double lifeRegen = player.getAttributeValue(ModAttributes.LIFE_REGENERATION);
-        curY = drawStat(context, tr, panelX, curY, "Life Regeneration", lifeRegen, " HP/s");
-
-        double fireRes = player.getAttributeValue(ModAttributes.FIRE_RESISTANCE);
-        curY = drawStat(context, tr, panelX, curY, "Fire Resistance", fireRes * 100, "%");
-
-        double coldRes = player.getAttributeValue(ModAttributes.COLD_RESISTANCE);
-        curY = drawStat(context, tr, panelX, curY, "Cold Resistance", coldRes * 100, "%");
-
-        double lightningRes = player.getAttributeValue(ModAttributes.LIGHTNING_RESISTANCE);
-        curY = drawStat(context, tr, panelX, curY, "Lightning Resistance", lightningRes * 100, "%");
-
-        double voidRes = player.getAttributeValue(ModAttributes.VOID_RESISTANCE);
-        curY = drawStat(context, tr, panelX, curY, "Void Resistance", voidRes * 100, "%");
-
-        double kbRes = player.getAttributeValue(ModAttributes.KNOCKBACK_RESISTANCE);
-        curY = drawStat(context, tr, panelX, curY, "Knockback Resistance", kbRes * 100, "%");
-
-        double featherFall = player.getAttributeValue(ModAttributes.FEATHER_FALLING);
-        curY = drawStat(context, tr, panelX, curY, "Feather Falling", featherFall * 100, "%");
-
-        curY += 4;
-
-        // --- UTILITY STATS ---
-        context.drawTextWithShadow(tr, Text.literal("✦ Utility"), panelX + 5, curY, 0xFF55FF55);
-        curY += 11;
-
-        double speed = player.getAttributeValue(ModAttributes.MOVEMENT_SPEED);
-        curY = drawStat(context, tr, panelX, curY, "Movement Speed", speed * 100, "%");
-
-        double luck = player.getAttributeValue(ModAttributes.LUCK);
-        curY = drawStat(context, tr, panelX, curY, "Luck", luck, "");
-
-        double expBonus = player.getAttributeValue(ModAttributes.EXPERIENCE_BONUS);
-        curY = drawStat(context, tr, panelX, curY, "Experience Bonus", expBonus * 100, "%");
-
-        double miningEff = EquipmentStatApplier.getItemStatValue(tool, "mining_efficiency");
-        curY = drawStat(context, tr, panelX, curY, "Mining Efficiency", miningEff * 100, "%");
-
-        double fortune = EquipmentStatApplier.getItemStatValue(tool, "fortune");
-        curY = drawStat(context, tr, panelX, curY, "Fortune Chance", fortune * 100, "%");
-
-        double precision = EquipmentStatApplier.getItemStatValue(tool, "precision_mining");
-        curY = drawStat(context, tr, panelX, curY, "Precision Mining", precision * 100, "%");
-
-        double breakRange = EquipmentStatApplier.getItemStatValue(tool, "breaking_range");
-        curY = drawStat(context, tr, panelX, curY, "Breaking Range", breakRange, " blocks");
-
-        // Calculate total content height and max scroll
-        int totalContentHeight = (curY + scrollOffset) - (panelY + 5);
-        maxScrollOffset = Math.max(0, totalContentHeight - panelHeight + 10);
-
-        context.disableScissor();
-
-        // Draw scrollbar if content is scrollable
-        if (maxScrollOffset > 0) {
-            int scrollbarX = panelX + panelWidth - 5;
-            int scrollbarTrackHeight = panelHeight - 24;
-
-            // Scrollbar track
-            context.fill(scrollbarX, panelY + 2, scrollbarX + 3, panelY + panelHeight - 2, 0xFF404040);
-
-            // Scrollbar thumb
-            float scrollPercent = (float) scrollOffset / maxScrollOffset;
-            int thumbY = panelY + 2 + (int) (scrollPercent * scrollbarTrackHeight);
-            context.fill(scrollbarX, thumbY, scrollbarX + 3, thumbY + 20, 0xFF8B8B8B);
-
-            // Handle scrollbar interaction - check if mouse is in scrollbar area
-            boolean isOverScrollbar = mouseX >= scrollbarX && mouseX <= scrollbarX + 3 &&
-                    mouseY >= panelY + 2 && mouseY <= panelY + panelHeight - 2;
-
-            // Get current mouse button state
-            boolean leftButtonDown = MinecraftClient.getInstance().mouse.wasLeftButtonClicked();
-
-            // Start dragging on click
-            if (leftButtonDown && isOverScrollbar && !draggingScrollbar) {
-                // Check if clicked on thumb
-                if (mouseY >= thumbY && mouseY <= thumbY + 20) {
-                    draggingScrollbar = true;
-                } else {
-                    // Clicked on track - jump to position
-                    int relativeY = mouseY - panelY - 12;
-                    float newScrollPercent = Math.max(0, Math.min(1, (float) relativeY / scrollbarTrackHeight));
-                    scrollOffset = (int) (newScrollPercent * maxScrollOffset);
-                    draggingScrollbar = true;
-                }
+            if (isHovering && leftClick && !draggingScrollbar) {
+                statsVisible = !statsVisible;
+                scrollOffset = 0;
             }
 
-            // Continue dragging
-            if (draggingScrollbar && leftButtonDown) {
-                int relativeY = mouseY - panelY - 12;
-                float newScrollPercent = Math.max(0, Math.min(1, (float) relativeY / scrollbarTrackHeight));
-                scrollOffset = (int) (newScrollPercent * maxScrollOffset);
+            if (!statsVisible) return;
+
+            // --- PANEL SETUP ---
+            int panelX = x + backgroundWidth;
+            int panelY = y;
+            int panelWidth = 130;
+            int panelHeight = 166;
+
+            context.fill(panelX, panelY, panelX + panelWidth, panelY + panelHeight, 0xC0202020);
+            int borderColor = 0xFF8B8B8B;
+            context.fill(panelX, panelY, panelX + panelWidth, panelY + 1, borderColor);
+            context.fill(panelX, panelY + panelHeight - 1, panelX + panelWidth, panelY + panelHeight, borderColor);
+            context.fill(panelX, panelY, panelX + 1, panelY + panelHeight, borderColor);
+            context.fill(panelX + panelWidth - 1, panelY, panelX + panelWidth, panelY + panelHeight, borderColor);
+
+            var player = MinecraftClient.getInstance().player;
+            if (player == null) return;
+
+            context.enableScissor(panelX + 1, panelY + 1, panelX + panelWidth - 1, panelY + panelHeight - 1);
+
+            int curY = panelY + 5 - scrollOffset;
+
+            // --- CATEGORY 1: COMBAT (⚔) ---
+            context.drawTextWithShadow(tr, Text.literal("⚔ Combat"), panelX + 5, curY, 0xFFFFCC00);
+            curY += 11;
+
+            // Manual Attack Damage: Base + Weapon + Chestplate
+            double finalAtkDmg = player.getAttributeBaseValue(EntityAttributes.ATTACK_DAMAGE);
+            finalAtkDmg += getModifierFromStack(player.getMainHandStack(), EntityAttributes.ATTACK_DAMAGE);
+            finalAtkDmg += getModifierFromStack(player.getEquippedStack(EquipmentSlot.CHEST), EntityAttributes.ATTACK_DAMAGE);
+            finalAtkDmg += player.getAttributeValue(ModAttributes.BONUS_ATTACK_DAMAGE);
+
+            curY = drawStat(context, tr, panelX, curY, "Attack Damage", finalAtkDmg, "");
+            curY = drawStat(context, tr, panelX, curY, "Attack Speed", player.getAttributeValue(EntityAttributes.ATTACK_SPEED), "");
+            curY = drawStat(context, tr, panelX, curY, "Crit Chance", player.getAttributeValue(ModAttributes.CRIT_CHANCE) * 100, "%");
+            curY = drawStat(context, tr, panelX, curY, "Attack Range", player.getAttributeValue(ModAttributes.ATTACK_RANGE), " blocks");
+            curY = drawStat(context, tr, panelX, curY, "Knockback", player.getAttributeValue(ModAttributes.KNOCKBACK) * 100, "%");
+            curY += 6;
+
+            // --- CATEGORY 2: ELEMENTAL (✨) ---
+            context.drawTextWithShadow(tr, Text.literal("✨ Elemental"), panelX + 5, curY, 0xFFAA00FF);
+            curY += 11;
+            curY = drawStat(context, tr, panelX, curY, "Fire Damage", player.getAttributeValue(ModAttributes.FIRE_DAMAGE), "");
+            curY = drawStat(context, tr, panelX, curY, "Burn Chance", player.getAttributeValue(ModAttributes.CHANCE_TO_BURN) * 100, "%");
+            curY = drawStat(context, tr, panelX, curY, "Cold Damage", player.getAttributeValue(ModAttributes.COLD_DAMAGE), "");
+            curY = drawStat(context, tr, panelX, curY, "Lightning Dmg", player.getAttributeValue(ModAttributes.LIGHTNING_DAMAGE), "");
+            curY = drawStat(context, tr, panelX, curY, "Void Damage", player.getAttributeValue(ModAttributes.VOID_DAMAGE), "");
+            curY += 6;
+
+            // --- CATEGORY 3: SURVIVAL (❤️) ---
+            context.drawTextWithShadow(tr, Text.literal("❤️ Survival"), panelX + 5, curY, 0xFFFF5555);
+            curY += 11;
+            curY = drawStat(context, tr, panelX, curY, "Max Health", player.getAttributeValue(EntityAttributes.MAX_HEALTH), " HP");
+            curY = drawStat(context, tr, panelX, curY, "Regeneration", player.getAttributeValue(ModAttributes.LIFE_REGENERATION), " HP/s");
+            curY = drawStat(context, tr, panelX, curY, "Life Steal", player.getAttributeValue(ModAttributes.LIFE_STEAL) * 100, "%");
+            curY = drawStat(context, tr, panelX, curY, "Armor", player.getAttributeValue(EntityAttributes.ARMOR), "");
+            curY = drawStat(context, tr, panelX, curY, "Toughness", player.getAttributeValue(EntityAttributes.ARMOR_TOUGHNESS), "");
+            curY += 6;
+
+            // --- CATEGORY 4: RESISTANCES (🛡) ---
+            context.drawTextWithShadow(tr, Text.literal("🛡 Resistances"), panelX + 5, curY, 0xFF5555FF);
+            curY += 11;
+            curY = drawStat(context, tr, panelX, curY, "Fire Res", player.getAttributeValue(ModAttributes.FIRE_RESISTANCE) * 100, "%");
+            curY = drawStat(context, tr, panelX, curY, "Cold Res", player.getAttributeValue(ModAttributes.COLD_RESISTANCE) * 100, "%");
+            curY = drawStat(context, tr, panelX, curY, "Lightning Res", player.getAttributeValue(ModAttributes.LIGHTNING_RESISTANCE) * 100, "%");
+            curY = drawStat(context, tr, panelX, curY, "Void Res", player.getAttributeValue(ModAttributes.VOID_RESISTANCE) * 100, "%");
+            curY = drawStat(context, tr, panelX, curY, "K.B. Res", player.getAttributeValue(ModAttributes.KNOCKBACK_RESISTANCE) * 100, "%");
+            curY += 6;
+
+            // --- CATEGORY 5: UTILITY (✦) ---
+            context.drawTextWithShadow(tr, Text.literal("✦ Utility"), panelX + 5, curY, 0xFF55FF55);
+            curY += 11;
+            curY = drawStat(context, tr, panelX, curY, "Move Speed", player.getAttributeValue(ModAttributes.MOVEMENT_SPEED) * 100, "%");
+            curY = drawStat(context, tr, panelX, curY, "Luck", player.getAttributeValue(ModAttributes.LUCK), "");
+            curY = drawStat(context, tr, panelX, curY, "Exp Bonus", player.getAttributeValue(ModAttributes.EXPERIENCE_BONUS) * 100, "%");
+
+            // Mining sub-section
+            curY += 4;
+            context.drawTextWithShadow(tr, Text.literal("Efficiency:"), panelX + 5, curY, 0xFFAAAAAA);
+            curY += 10;
+            ItemStack tool = player.getMainHandStack();
+            curY = drawStat(context, tr, panelX, curY, "Efficiency", EquipmentStatApplier.getItemStatValue(tool, "mining_efficiency") * 100, "%");
+            curY = drawStat(context, tr, panelX, curY, "Ore Fortune", EquipmentStatApplier.getItemStatValue(tool, "fortune") * 100, "%");
+            curY = drawStat(context, tr, panelX, curY, "Breaking Range", EquipmentStatApplier.getItemStatValue(tool, "breaking_range"), " blocks");
+
+            int totalContentHeight = (curY + scrollOffset) - (panelY + 5);
+            maxScrollOffset = Math.max(0, totalContentHeight - panelHeight + 10);
+            context.disableScissor();
+
+            // --- SCROLLBAR LOGIC ---
+            if (maxScrollOffset > 0) {
+                renderScrollbar(context, tr, panelX, panelY, panelWidth, panelHeight, mouseX, mouseY, leftClick);
             }
 
-            // Stop dragging when mouse released
-            if (!leftButtonDown) {
-                draggingScrollbar = false;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Unique
+    private double getModifierFromStack(ItemStack stack, net.minecraft.registry.entry.RegistryEntry<net.minecraft.entity.attribute.EntityAttribute> attr) {
+        double val = 0;
+        var comp = stack.get(DataComponentTypes.ATTRIBUTE_MODIFIERS);
+        if (comp != null) {
+            for (var entry : comp.modifiers()) {
+                if (entry.attribute().equals(attr)) val += entry.modifier().value();
+            }
+        }
+        return val;
+    }
+
+    @Unique
+    private void renderScrollbar(DrawContext context, TextRenderer tr, int panelX, int panelY, int panelWidth, int panelHeight, int mouseX, int mouseY, boolean leftClick) {
+        int sbX = panelX + panelWidth - 5;
+        int trackH = panelHeight - 40;
+        context.fill(sbX, panelY + 20, sbX + 3, panelY + panelHeight - 20, 0xFF404040);
+
+        float scrollPercent = (float) scrollOffset / maxScrollOffset;
+        int thumbY = panelY + 20 + (int) (scrollPercent * trackH);
+        context.fill(sbX, thumbY, sbX + 3, thumbY + 20, 0xFF8B8B8B);
+
+        if (leftClick) {
+            if (!draggingScrollbar && mouseX >= sbX && mouseX <= sbX + 3 && mouseY >= panelY + 20 && mouseY <= panelY + panelHeight - 20) {
+                draggingScrollbar = true;
+            }
+            if (draggingScrollbar) {
+                float newPercent = Math.max(0, Math.min(1, (float) (mouseY - panelY - 30) / trackH));
+                scrollOffset = (int) (newPercent * maxScrollOffset);
             }
         } else {
             draggingScrollbar = false;
-        }
-
-        // Store last mouse position for next frame
-        lastMouseX = mouseX;
-        lastMouseY = mouseY;
-
-        // Draw scroll buttons AFTER the panel so they appear on top
-        if (scrollUpButton != null && scrollDownButton != null) {
-            scrollUpButton.visible = statsVisible && maxScrollOffset > 0;
-            scrollDownButton.visible = statsVisible && maxScrollOffset > 0;
-
-            if (scrollUpButton.visible) {
-                scrollUpButton.render(context, mouseX, mouseY, delta);
-            }
-            if (scrollDownButton.visible) {
-                scrollDownButton.render(context, mouseX, mouseY, delta);
-            }
         }
     }
 
