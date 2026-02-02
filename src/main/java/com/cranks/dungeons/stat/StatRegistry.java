@@ -14,6 +14,18 @@ public class StatRegistry {
     public static void registerStats() {
         // ===== HELMET STATS =====
         register(new CustomStat(
+                "helmet_durability_bonus",
+                "Durability Bonus",
+                EquipmentType.HELMET,
+                ModAttributes.DURABILITY_BONUS,
+                new double[]{0.10, 0.18, 0.28, 0.40, 0.55},
+                new double[]{0.15, 0.25, 0.38, 0.55, 0.75},
+                true,
+                true,
+                Formatting.WHITE
+        ));
+
+        register(new CustomStat(
                 "helmet_max_health",
                 "Max Health",
                 EquipmentType.HELMET,
@@ -142,6 +154,18 @@ public class StatRegistry {
         ));
 
         // ===== CHESTPLATE STATS =====
+        register(new CustomStat(
+                "chestplate_durability_bonus",
+                "Durability Bonus",
+                EquipmentType.CHESTPLATE,
+                ModAttributes.DURABILITY_BONUS,
+                new double[]{0.10, 0.18, 0.28, 0.40, 0.55},
+                new double[]{0.15, 0.25, 0.38, 0.55, 0.75},
+                true,
+                true,
+                Formatting.WHITE
+        ));
+
         register(new CustomStat(
                 "chestplate_max_health",
                 "Max Health",
@@ -387,6 +411,18 @@ public class StatRegistry {
 
         // ===== LEGGINGS STATS =====
         register(new CustomStat(
+                "leggings_durability_bonus",
+                "Durability Bonus",
+                EquipmentType.LEGGINGS,
+                ModAttributes.DURABILITY_BONUS,
+                new double[]{0.10, 0.18, 0.28, 0.40, 0.55},
+                new double[]{0.15, 0.25, 0.38, 0.55, 0.75},
+                true,
+                true,
+                Formatting.WHITE
+        ));
+
+        register(new CustomStat(
                 "leggings_max_health",
                 "Max Health",
                 EquipmentType.LEGGINGS,
@@ -515,6 +551,18 @@ public class StatRegistry {
         ));
 
         // ===== BOOTS STATS =====
+        register(new CustomStat(
+                "boots_durability_bonus",
+                "Durability Bonus",
+                EquipmentType.BOOTS,
+                ModAttributes.DURABILITY_BONUS,
+                new double[]{0.10, 0.18, 0.28, 0.40, 0.55},
+                new double[]{0.15, 0.25, 0.38, 0.55, 0.75},
+                true,
+                true,
+                Formatting.WHITE
+        ));
+
         register(new CustomStat(
                 "boots_max_health",
                 "Max Health",
@@ -669,6 +717,18 @@ public class StatRegistry {
 
         // ===== SWORD STATS =====
         register(new CustomStat(
+                "sword_durability_bonus",
+                "Durability Bonus",
+                EquipmentType.SWORD,
+                ModAttributes.DURABILITY_BONUS,
+                new double[]{0.10, 0.18, 0.28, 0.40, 0.55},
+                new double[]{0.15, 0.25, 0.38, 0.55, 0.75},
+                true,
+                true,
+                Formatting.WHITE
+        ));
+
+        register(new CustomStat(
                 "sword_attack_damage",
                 "Attack Damage",
                 EquipmentType.SWORD,
@@ -795,6 +855,18 @@ public class StatRegistry {
         ));
 
         // ===== SPEAR STATS =====
+        register(new CustomStat(
+                "spear_durability_bonus",
+                "Durability Bonus",
+                EquipmentType.SPEAR,
+                ModAttributes.DURABILITY_BONUS,
+                new double[]{0.10, 0.18, 0.28, 0.40, 0.55},
+                new double[]{0.15, 0.25, 0.38, 0.55, 0.75},
+                true,
+                true,
+                Formatting.WHITE
+        ));
+
         register(new CustomStat(
                 "spear_attack_range",
                 "Attack Range",
@@ -923,6 +995,18 @@ public class StatRegistry {
 
         // ===== MACE STATS =====
         register(new CustomStat(
+                "mace_durability_bonus",
+                "Durability Bonus",
+                EquipmentType.MACE,
+                ModAttributes.DURABILITY_BONUS,
+                new double[]{0.10, 0.18, 0.28, 0.40, 0.55},
+                new double[]{0.15, 0.25, 0.38, 0.55, 0.75},
+                true,
+                true,
+                Formatting.WHITE
+        ));
+
+        register(new CustomStat(
                 "mace_attack_damage",
                 "Attack Damage",
                 EquipmentType.MACE,
@@ -1049,6 +1133,18 @@ public class StatRegistry {
         ));
 
         // ===== TRIDENT STATS =====
+        register(new CustomStat(
+                "trident_durability_bonus",
+                "Durability Bonus",
+                EquipmentType.TRIDENT,
+                ModAttributes.DURABILITY_BONUS,
+                new double[]{0.10, 0.18, 0.28, 0.40, 0.55},
+                new double[]{0.15, 0.25, 0.38, 0.55, 0.75},
+                true,
+                true,
+                Formatting.WHITE
+        ));
+
         register(new CustomStat(
                 "trident_attack_damage",
                 "Attack Damage",
@@ -1177,6 +1273,18 @@ public class StatRegistry {
 
         // ===== BOW STATS =====
         register(new CustomStat(
+                "bow_durability_bonus",
+                "Durability Bonus",
+                EquipmentType.BOW,
+                ModAttributes.DURABILITY_BONUS,
+                new double[]{0.10, 0.18, 0.28, 0.40, 0.55},
+                new double[]{0.15, 0.25, 0.38, 0.55, 0.75},
+                true,
+                true,
+                Formatting.WHITE
+        ));
+
+        register(new CustomStat(
                 "bow_attack_damage",
                 "Attack Damage",
                 EquipmentType.BOW,
@@ -1280,6 +1388,18 @@ public class StatRegistry {
         ));
 
         // ===== CROSSBOW STATS ====
+        register(new CustomStat(
+                "crossbow_durability_bonus",
+                "Durability Bonus",
+                EquipmentType.CROSSBOW,
+                ModAttributes.DURABILITY_BONUS,
+                new double[]{0.10, 0.18, 0.28, 0.40, 0.55},
+                new double[]{0.15, 0.25, 0.38, 0.55, 0.75},
+                true,
+                true,
+                Formatting.WHITE
+        ));
+
         register(new CustomStat(
                 "crossbow_attack_damage",
                 "Attack Damage",
@@ -1385,6 +1505,18 @@ public class StatRegistry {
 
         // ===== SHIELD STATS =====
         register(new CustomStat(
+                "shield_durability_bonus",
+                "Durability Bonus",
+                EquipmentType.SHIELD,
+                ModAttributes.DURABILITY_BONUS,
+                new double[]{0.10, 0.18, 0.28, 0.40, 0.55},
+                new double[]{0.15, 0.25, 0.38, 0.55, 0.75},
+                true,
+                true,
+                Formatting.WHITE
+        ));
+
+        register(new CustomStat(
                 "shield_max_health",
                 "Max Health",
                 EquipmentType.SHIELD,
@@ -1489,6 +1621,18 @@ public class StatRegistry {
         ));
 
         // ===== ELYTRA STATS =====
+        register(new CustomStat(
+                "elytra_durability_bonus",
+                "Durability Bonus",
+                EquipmentType.ELYTRA,
+                ModAttributes.DURABILITY_BONUS,
+                new double[]{0.10, 0.18, 0.28, 0.40, 0.55},
+                new double[]{0.15, 0.25, 0.38, 0.55, 0.75},
+                true,
+                true,
+                Formatting.WHITE
+        ));
+
         register(new CustomStat(
                 "elytra_life_regeneration",
                 "Life Regeneration",

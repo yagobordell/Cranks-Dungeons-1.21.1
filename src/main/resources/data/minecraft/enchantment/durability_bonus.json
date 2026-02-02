@@ -2,7 +2,7 @@
   "description": {
     "translate": "enchantment.minecraft.durability_bonus"
   },
-  "supported_items": "#minecraft:enchantable/durability_tools",
+  "supported_items": "#minecraft:enchantable/durability_equipment",
   "weight": 5,
   "max_level": 1,
   "min_cost": { "base": 10, "per_level_above_first": 0 },

@@ -180,10 +180,10 @@ public abstract class InventoryScreenStatsMixin {
             // --- CATEGORY 2: ELEMENTAL ---
             context.drawText(tr, Text.literal("✨ Elemental"), panelX + 8, curY, 0xFF404040, false);
             curY += 11;
-            curY = drawStat(context, tr, panelX, curY, "Fire Damage", player.getAttributeValue(ModAttributes.FIRE_DAMAGE), "");
             curY = drawStat(context, tr, panelX, curY, "Burn Chance", player.getAttributeValue(ModAttributes.CHANCE_TO_BURN) * 100, "%");
+            curY = drawStat(context, tr, panelX, curY, "Fire Damage", player.getAttributeValue(ModAttributes.FIRE_DAMAGE), "");
             curY = drawStat(context, tr, panelX, curY, "Cold Damage", player.getAttributeValue(ModAttributes.COLD_DAMAGE), "");
-            curY = drawStat(context, tr, panelX, curY, "Lightning Dmg", player.getAttributeValue(ModAttributes.LIGHTNING_DAMAGE), "");
+            curY = drawStat(context, tr, panelX, curY, "Lightning Damage", player.getAttributeValue(ModAttributes.LIGHTNING_DAMAGE), "");
             curY = drawStat(context, tr, panelX, curY, "Void Damage", player.getAttributeValue(ModAttributes.VOID_DAMAGE), "");
             curY += 6;
 
@@ -216,7 +216,7 @@ public abstract class InventoryScreenStatsMixin {
 
             // Mining sub-section
             curY += 4;
-            context.drawText(tr, Text.literal("Mining:"), panelX + 8, curY, 0xFF555555, false);
+            context.drawText(tr, Text.literal("⚒ Gathering:"), panelX + 8, curY, 0xFF555555, false);
             curY += 10;
             ItemStack tool = player.getMainHandStack();
             // 1. Get the base reach (usually 3.0 or 4.5)
@@ -225,8 +225,9 @@ public abstract class InventoryScreenStatsMixin {
             double weaponRangeBonus = EquipmentStatApplier.getItemStatValue(tool, "breaking_range");
 
             double totalRangeBonus = baseRange + weaponRangeBonus;
-            curY = drawStat(context, tr, panelX, curY, "Speed", EquipmentStatApplier.getItemStatValue(tool, "mining_efficiency") * 100, "%");
-            curY = drawStat(context, tr, panelX, curY, "Ore Fortune", EquipmentStatApplier.getItemStatValue(tool, "fortune") * 100, "%");
+            curY = drawStat(context, tr, panelX, curY, "Speed", player.getAttributeValue(ModAttributes.MINING_EFFICIENCY) * 100, "%");
+            curY = drawStat(context, tr, panelX, curY, "Ore Fortune", player.getAttributeValue(ModAttributes.FORTUNE) * 100, "%");
+            curY = drawStat(context, tr, panelX, curY, "Crop Fortune", player.getAttributeValue(ModAttributes.CROP_FORTUNE) * 100, "%");
             curY = drawStat(context, tr, panelX, curY, "Range", totalRangeBonus, " blocks");
 
             int totalContentHeight = (curY + scrollOffset) - (panelY + 8);
