@@ -18,24 +18,25 @@ public abstract class BonusArmorMixin {
     @Inject(method = "tick", at = @At("HEAD"))
     private void applyBonusArmor(CallbackInfo ci) {
         PlayerEntity player = (PlayerEntity) (Object) this;
-
-        if (!(player instanceof ServerPlayerEntity)) return;
+        if (!(player instanceof ServerPlayerEntity serverPlayer)) return;
 
         double bonusArmor = player.getAttributeValue(ModAttributes.BONUS_ARMOR);
-
         var armorAttr = player.getAttributeInstance(EntityAttributes.ARMOR);
+
         if (armorAttr != null) {
             Identifier modifierId = Identifier.of(CranksDungeons.MOD_ID, "bonus_armor");
 
-            armorAttr.removeModifier(modifierId);
-
-            if (bonusArmor > 0) {
-                EntityAttributeModifier modifier = new EntityAttributeModifier(
-                        modifierId,
-                        bonusArmor,
-                        EntityAttributeModifier.Operation.ADD_VALUE
-                );
-                armorAttr.addTemporaryModifier(modifier);
+            // Only update if the value changed to save performance
+            EntityAttributeModifier currentMod = armorAttr.getModifier(modifierId);
+            if (currentMod == null || currentMod.value() != bonusArmor) {
+                armorAttr.removeModifier(modifierId);
+                if (bonusArmor > 0) {
+                    armorAttr.addTemporaryModifier(new EntityAttributeModifier(
+                            modifierId,
+                            bonusArmor,
+                            EntityAttributeModifier.Operation.ADD_VALUE
+                    ));
+                }
             }
         }
     }

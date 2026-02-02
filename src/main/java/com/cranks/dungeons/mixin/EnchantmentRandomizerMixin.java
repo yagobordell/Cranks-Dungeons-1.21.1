@@ -62,10 +62,10 @@ public class EnchantmentRandomizerMixin {
         if (nbt.contains(levelKey)) {
             index = nbt.getInt(levelKey).orElse(0);
         } else {
-            // Find the next available index not already assigned to another level
+            // Collect all already assigned indices
             List<Integer> assignedIndices = new ArrayList<>();
             for (String key : nbt.getKeys()) {
-                if (key.startsWith(LEVEL_TO_INDEX_KEY)) {
+                if (key.startsWith(LEVEL_TO_INDEX_KEY) && !key.equals(levelKey)) {
                     assignedIndices.add(nbt.getInt(key).orElse(-1));
                 }
             }
@@ -76,9 +76,29 @@ public class EnchantmentRandomizerMixin {
                 index++;
             }
 
-            // If we've run out of indices, wrap around
+            // If we've exhausted all unique indices, use a deterministic approach based on level
             if (index >= pool.size()) {
-                index = index % pool.size();
+                // Use level-based seeding to get a consistent but different index
+                java.util.Random levelRng = new java.util.Random(itemSeed ^ level);
+
+                // Keep trying until we find an index that isn't already taken
+                int attempts = 0;
+                do {
+                    index = levelRng.nextInt(pool.size());
+                    attempts++;
+                } while (assignedIndices.contains(index) && attempts < pool.size() * 2);
+
+                // Final fallback: if still duplicated, just take the next available sequential index
+                if (assignedIndices.contains(index)) {
+                    index = 0;
+                    while (assignedIndices.contains(index) && index < pool.size()) {
+                        index++;
+                    }
+                    // Absolute last resort: modulo
+                    if (index >= pool.size()) {
+                        index = level % pool.size();
+                    }
+                }
             }
 
             // Store this mapping permanently
