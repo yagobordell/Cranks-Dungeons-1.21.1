@@ -1622,6 +1622,18 @@ public class StatRegistry {
 
         // ===== ELYTRA STATS =====
         register(new CustomStat(
+                "elytra_flying_speed",
+                "Flying Speed",
+                EquipmentType.ELYTRA,
+                ModAttributes.FLYING_SPEED,
+                new double[]{0.05, 0.10, 0.15, 0.20, 0.30},
+                new double[]{0.08, 0.15, 0.22, 0.30, 0.45},
+                true,
+                true,
+                Formatting.AQUA
+        ));
+
+        register(new CustomStat(
                 "elytra_durability_bonus",
                 "Durability Bonus",
                 EquipmentType.ELYTRA,
@@ -1818,8 +1830,8 @@ public class StatRegistry {
                 "Digging Speed",
                 EquipmentType.SHOVEL,
                 ModAttributes.MINING_EFFICIENCY,
-                new double[]{0.08, 0.15, 0.23, 0.32, 0.42},
-                new double[]{0.12, 0.22, 0.32, 0.45, 0.60},
+                new double[]{0.5, 1.0, 1.5, 2.0, 2.5},
+                new double[]{1.0, 1.5, 2.00, 2.50, 3.0},
                 true,
                 true,
                 Formatting.GRAY

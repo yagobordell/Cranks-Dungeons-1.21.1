@@ -225,9 +225,9 @@ public abstract class InventoryScreenStatsMixin {
             double weaponRangeBonus = EquipmentStatApplier.getItemStatValue(tool, "breaking_range");
 
             double totalRangeBonus = baseRange + weaponRangeBonus;
-            curY = drawStat(context, tr, panelX, curY, "Speed", player.getAttributeValue(ModAttributes.MINING_EFFICIENCY) * 100, "%");
+            curY = drawStat(context, tr, panelX, curY, "Gathering Speed", player.getAttributeValue(ModAttributes.MINING_EFFICIENCY) * 100, "%");
             curY = drawStat(context, tr, panelX, curY, "Ore Fortune", player.getAttributeValue(ModAttributes.FORTUNE) * 100, "%");
-            curY = drawStat(context, tr, panelX, curY, "Crop Fortune", player.getAttributeValue(ModAttributes.CROP_FORTUNE) * 100, "%");
+            curY = drawStat(context, tr, panelX, curY, "Crop Fortune", EquipmentStatApplier.getItemStatValue(tool, "crop_fortune") * 100, "%");
             curY = drawStat(context, tr, panelX, curY, "Range", totalRangeBonus, " blocks");
 
             int totalContentHeight = (curY + scrollOffset) - (panelY + 8);

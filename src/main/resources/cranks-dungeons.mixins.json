@@ -39,6 +39,8 @@
 		"ArmorDamageMixin",
 		"RemoveArmorCapMixin",
 		"GrindstoneNerfMixin",
+		"ElytraFlyingSpeedMixin",
+		"EntityAccessor",
 		"FeatherFallingMixin"
 	],
 	"client": [
