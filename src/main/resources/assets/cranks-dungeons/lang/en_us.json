@@ -53,6 +53,10 @@
   "enchantment.cranks-dungeons.aqua_affinity": "Aqua Affinity",
   "enchantment.cranks-dungeons.aqua_affinity.desc": "Removes the mining speed reduction that occurs when underwater",
 
+  "enchantment.cranks_dungeons.vein_mining": "Vein Mining",
+  "enchantment.cranks-dungeons.vein_mining.desc": "Allows to break matching connected ores",
+  "enchantment.cranks-dungeons.vein_mining.desc2": "by only breaking one",
+
   "enchantment.minecraft.fire_damage": "+6 Fire Damage",
   "enchantment.minecraft.cold_damage": "+6 Cold Damage",
   "enchantment.minecraft.lightning_damage": "+6 Lightning Damage",

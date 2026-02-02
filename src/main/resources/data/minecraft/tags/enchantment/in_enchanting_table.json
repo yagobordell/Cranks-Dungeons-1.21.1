@@ -43,6 +43,7 @@
     "minecraft:durability_bonus",
     "minecraft:repair_chance",
     "minecraft:breaking_range",
-    "minecraft:crop_fortune"
+    "minecraft:crop_fortune",
+    "cranks-dungeons:vein_mining"
   ]
 }

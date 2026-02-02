@@ -83,6 +83,7 @@ public class EnchantedBookDescriptionMixin {
                 name.equals("respiration") ||
                 name.equals("soul_speed") ||
                 name.equals("aqua_affinity") ||
-                name.equals("wind_burst");
+                name.equals("wind_burst") ||
+                name.equals("vein_mining");
     }
 }

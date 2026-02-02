@@ -1,0 +1,21 @@
+{
+  "description": {
+    "translate": "enchantment.cranks_dungeons.vein_mining"
+  },
+  "supported_items": "#minecraft:pickaxes",
+  "primary_items": "#minecraft:pickaxes",
+  "weight": 5,
+  "max_level": 1,
+  "min_cost": {
+    "base": 10,
+    "per_level_above_first": 0
+  },
+  "max_cost": {
+    "base": 30,
+    "per_level_above_first": 0
+  },
+  "anvil_cost": 4,
+  "slots": [
+    "mainhand"
+  ]
+}

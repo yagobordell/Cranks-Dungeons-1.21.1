@@ -154,6 +154,13 @@ public class EnchantingTableTooltipMixin {
             };
         }
 
+        if (lower.contains("vein mining")) {
+            return new String[]{
+                    "enchantment.cranks-dungeons.vein_mining.desc",
+                    "enchantment.cranks-dungeons.vein_mining.desc2"
+            };
+        }
+
         return null;
     }
 }

@@ -5,6 +5,7 @@ import com.cranks.dungeons.block.entity.ModBlockEntities;
 import com.cranks.dungeons.item.ModItems;
 import com.cranks.dungeons.loot.RunicTomeLootHandler;
 import com.cranks.dungeons.registry.ModAttributes;
+import com.cranks.dungeons.registry.ModEnchantments;
 import com.cranks.dungeons.screen.ModScreenHandlers;
 import com.cranks.dungeons.stat.StatRegistry;
 import net.fabricmc.api.ModInitializer;

@@ -16,7 +16,6 @@ public class ElytraFlyingSpeedMixin {
     private void boostElytraSpeed(Vec3d movementInput, CallbackInfo ci) {
         LivingEntity entity = (LivingEntity) (Object) this;
 
-        // Check if entity is fall flying using accessor
         boolean isFallFlying = ((EntityAccessor) entity).invokeGetFlag(7);
 
         if (isFallFlying && entity instanceof PlayerEntity player) {
@@ -24,7 +23,6 @@ public class ElytraFlyingSpeedMixin {
 
             if (flyingSpeedBonus > 0) {
                 Vec3d velocity = entity.getVelocity();
-                // Only boost horizontal movement to avoid weird falling behavior
                 entity.setVelocity(new Vec3d(
                         velocity.x * (1.0 + flyingSpeedBonus * 0.1),
                         velocity.y,

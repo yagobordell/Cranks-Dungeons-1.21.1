@@ -41,6 +41,7 @@
 		"GrindstoneNerfMixin",
 		"ElytraFlyingSpeedMixin",
 		"EntityAccessor",
+		"VeinMiningMixin",
 		"FeatherFallingMixin"
 	],
 	"client": [
