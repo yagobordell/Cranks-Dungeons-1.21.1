@@ -9,6 +9,7 @@ import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.tag.BlockTags;
+import net.minecraft.registry.tag.TagKey;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
@@ -39,27 +40,28 @@ public class VeinMiningMixin {
 
         if (veinLevel <= 0) return;
 
-        if (!isOre(state)) return;
+        TagKey<Block> oreTag = getOreTag(state);
+        if (oreTag == null) return;
 
-        veinMine(serverWorld, pos, state, serverPlayer, tool);
+        veinMine(serverWorld, pos, state, serverPlayer, tool, oreTag);
     }
 
     @Unique
-    private boolean isOre(BlockState state) {
-        return state.isIn(BlockTags.COAL_ORES) ||
-                state.isIn(BlockTags.IRON_ORES) ||
-                state.isIn(BlockTags.GOLD_ORES) ||
-                state.isIn(BlockTags.DIAMOND_ORES) ||
-                state.isIn(BlockTags.EMERALD_ORES) ||
-                state.isIn(BlockTags.COPPER_ORES) ||
-                state.isIn(BlockTags.LAPIS_ORES) ||
-                state.isIn(BlockTags.REDSTONE_ORES);
+    private TagKey<Block> getOreTag(BlockState state) {
+        // Return the ore tag for this block, or null if it's not an ore
+        if (state.isIn(BlockTags.COAL_ORES)) return BlockTags.COAL_ORES;
+        if (state.isIn(BlockTags.IRON_ORES)) return BlockTags.IRON_ORES;
+        if (state.isIn(BlockTags.GOLD_ORES)) return BlockTags.GOLD_ORES;
+        if (state.isIn(BlockTags.DIAMOND_ORES)) return BlockTags.DIAMOND_ORES;
+        if (state.isIn(BlockTags.EMERALD_ORES)) return BlockTags.EMERALD_ORES;
+        if (state.isIn(BlockTags.COPPER_ORES)) return BlockTags.COPPER_ORES;
+        if (state.isIn(BlockTags.LAPIS_ORES)) return BlockTags.LAPIS_ORES;
+        if (state.isIn(BlockTags.REDSTONE_ORES)) return BlockTags.REDSTONE_ORES;
+        return null;
     }
 
     @Unique
-    private void veinMine(ServerWorld world, BlockPos origin, BlockState originState, ServerPlayerEntity player, ItemStack tool) {
-        Block targetBlock = originState.getBlock();
-
+    private void veinMine(ServerWorld world, BlockPos origin, BlockState originState, ServerPlayerEntity player, ItemStack tool, TagKey<Block> oreTag) {
         int maxBlocks = 31;
 
         Set<BlockPos> visited = new HashSet<>();
@@ -84,8 +86,8 @@ public class VeinMiningMixin {
 
                         BlockState neighborState = world.getBlockState(neighbor);
 
-                        // Check if it's the same ore type
-                        if (neighborState.getBlock() == targetBlock) {
+                        // Check if it's the same ore TYPE (using tags)
+                        if (neighborState.isIn(oreTag)) {
                             toBreak.add(neighbor);
                             toCheck.add(neighbor);
                         }
@@ -100,7 +102,7 @@ public class VeinMiningMixin {
         for (BlockPos pos : toBreak) {
             BlockState state = world.getBlockState(pos);
 
-            if (state.isAir() || state.getBlock() != targetBlock) continue;
+            if (state.isAir() || !state.isIn(oreTag)) continue;
 
             Block.dropStacks(state, world, pos, world.getBlockEntity(pos), player, tool);
 

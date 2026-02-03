@@ -42,6 +42,7 @@
 		"ElytraFlyingSpeedMixin",
 		"EntityAccessor",
 		"VeinMiningMixin",
+		"ItemDefaultComponentsMixin",
 		"FeatherFallingMixin"
 	],
 	"client": [
