@@ -43,6 +43,8 @@
 		"EntityAccessor",
 		"VeinMiningMixin",
 		"ItemDefaultComponentsMixin",
+		"EvasionMixin",
+		"EnergyShieldMixin",
 		"FeatherFallingMixin"
 	],
 	"client": [
@@ -50,6 +52,7 @@
 		"EnchantingTableTooltipMixin",
 		"InventoryScreenStatsMixin",
 		"ScreenAccessor",
+		"EnergyShieldRenderMixin",
 		"HandledScreenAccessor"
 	],
 	"injectors": {

@@ -90,7 +90,6 @@ public class RunicEnhancementAltarBlockEntity extends BlockEntity implements Nam
     public void clear() {
         inventory.clear();
     }
-
     @Override
     protected void writeData(WriteView view) {
         super.writeData(view);

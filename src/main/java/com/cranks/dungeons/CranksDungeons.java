@@ -34,8 +34,14 @@ public class CranksDungeons implements ModInitializer {
 		com.cranks.dungeons.command.CheckStatsCommand.register();
 		com.cranks.dungeons.event.FortuneEventHandler.register();
 		RunicTomeLootHandler.register();
-		FabricDefaultAttributeRegistry.register(EntityType.PLAYER, PlayerEntity.createPlayerAttributes().add(ModAttributes.CROP_FORTUNE, 0.0));
-		FabricDefaultAttributeRegistry.register(EntityType.PLAYER, PlayerEntity.createPlayerAttributes().add(ModAttributes.FLYING_SPEED));
+		FabricDefaultAttributeRegistry.register(
+				EntityType.PLAYER,
+				PlayerEntity.createPlayerAttributes()
+						.add(ModAttributes.CROP_FORTUNE, 0.0)
+						.add(ModAttributes.FLYING_SPEED)
+						.add(ModAttributes.EVASION_RATING, 0.0)
+						.add(ModAttributes.ENERGY_SHIELD, 20.0)
+		);
 
 		registerCreativeTabItems();
 

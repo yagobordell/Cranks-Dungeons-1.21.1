@@ -48,6 +48,16 @@ public class StatRegistry {
         ));
 
         register(new CustomStat(
+                "helmet_evasion_rating",
+                "Evasion Rating",
+                EquipmentType.HELMET,
+                ModAttributes.EVASION_RATING,
+                new double[]{10.0, 25.0, 50.0, 100.0, 200.0},
+                new double[]{20.0, 40.0, 80.0, 140.0, 250.0},
+                false, Formatting.DARK_AQUA
+        ));
+
+        register(new CustomStat(
                 "helmet_armor",
                 "Armor",
                 EquipmentType.HELMET,
@@ -186,6 +196,16 @@ public class StatRegistry {
                 new double[]{0.2, 0.45, 0.75, 1.2, 2.0},
                 false,
                 Formatting.DARK_RED
+        ));
+
+        register(new CustomStat(
+                "chestplate_evasion_rating",
+                "Evasion Rating",
+                EquipmentType.CHESTPLATE,
+                ModAttributes.EVASION_RATING,
+                new double[]{10.0, 25.0, 50.0, 100.0, 200.0},
+                new double[]{20.0, 40.0, 80.0, 140.0, 250.0},
+                false, Formatting.DARK_AQUA
         ));
 
         register(new CustomStat(
@@ -445,6 +465,16 @@ public class StatRegistry {
         ));
 
         register(new CustomStat(
+                "leggings_evasion_rating",
+                "Evasion Rating",
+                EquipmentType.LEGGINGS,
+                ModAttributes.EVASION_RATING,
+                new double[]{10.0, 25.0, 50.0, 100.0, 200.0},
+                new double[]{20.0, 40.0, 80.0, 140.0, 250.0},
+                false, Formatting.DARK_AQUA
+        ));
+
+        register(new CustomStat(
                 "leggings_armor",
                 "Armor",
                 EquipmentType.LEGGINGS,
@@ -583,6 +613,16 @@ public class StatRegistry {
                 new double[]{0.2, 0.45, 0.75, 1.2, 2.0},
                 false,
                 Formatting.DARK_RED
+        ));
+
+        register(new CustomStat(
+                "boots_evasion_rating",
+                "Evasion Rating",
+                EquipmentType.BOOTS,
+                ModAttributes.EVASION_RATING,
+                new double[]{10.0, 25.0, 50.0, 100.0, 200.0},
+                new double[]{20.0, 40.0, 80.0, 140.0, 250.0},
+                false, Formatting.DARK_AQUA
         ));
 
         register(new CustomStat(

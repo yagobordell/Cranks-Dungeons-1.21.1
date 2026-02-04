@@ -20,7 +20,9 @@ public class ModAttributes {
     public static final RegistryEntry<EntityAttribute> BONUS_ARMOR = register("bonus_armor", 0.0, 0.0, 120.0);
     public static final RegistryEntry<EntityAttribute> BONUS_ARMOR_TOUGHNESS = register("bonus_armor_toughness", 0.0, 0.0, 120.0);
     public static final RegistryEntry<EntityAttribute> LIFE_REGENERATION = register("life_regeneration", 0.0, 0.0, 100.0);
-    public static final RegistryEntry<EntityAttribute> MAX_HEALTH_BONUS = register("max_health_bonus", 0.0, 0.0, 100.0);
+    public static final RegistryEntry<EntityAttribute> MAX_HEALTH_BONUS = register("max_health_bonus", 0.0, 0.0, 1024.0);
+    public static final RegistryEntry<EntityAttribute> EVASION_RATING = register("evasion_rating", 0.0, 0.0, 2000.0);
+    public static final RegistryEntry<EntityAttribute> ENERGY_SHIELD = register("energy_shield", 0.0, 0.0, 1024.0);
 
     // Offensive stats
     public static final RegistryEntry<EntityAttribute> CRIT_CHANCE = register("crit_chance", 0.05, 0.0, 1.0);

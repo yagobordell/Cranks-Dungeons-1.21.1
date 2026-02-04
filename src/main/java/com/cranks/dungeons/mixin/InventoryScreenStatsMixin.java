@@ -193,6 +193,7 @@ public abstract class InventoryScreenStatsMixin {
             curY = drawStat(context, tr, panelX, curY, "Max Health", player.getAttributeValue(EntityAttributes.MAX_HEALTH), " HP");
             curY = drawStat(context, tr, panelX, curY, "Regeneration", player.getAttributeValue(ModAttributes.LIFE_REGENERATION), " HP/s");
             curY = drawStat(context, tr, panelX, curY, "Life Steal", player.getAttributeValue(ModAttributes.LIFE_STEAL) * 100, "%");
+            curY = drawStat(context, tr, panelX, curY, "Evasion Rating", player.getAttributeValue(ModAttributes.EVASION_RATING), "");
             curY = drawStat(context, tr, panelX, curY, "Armor", player.getAttributeValue(EntityAttributes.ARMOR), "");
             curY = drawStat(context, tr, panelX, curY, "Toughness", player.getAttributeValue(EntityAttributes.ARMOR_TOUGHNESS), "");
             curY += 6;
