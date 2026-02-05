@@ -44,7 +44,10 @@
 		"VeinMiningMixin",
 		"ItemDefaultComponentsMixin",
 		"EvasionMixin",
-		"EnergyShieldMixin",
+		"EnergyShieldDataMixin",
+		"EnergyShieldInitMixin",
+		"EnergyShieldDamageMixin",
+		"EnergyShieldRegenMixin",
 		"FeatherFallingMixin"
 	],
 	"client": [
