@@ -65,8 +65,8 @@ public class EnergyShieldRegenMixin {
                         self.getZ(),
                         SoundEvents.BLOCK_ENCHANTMENT_TABLE_USE,
                         SoundCategory.PLAYERS,
-                        0.5f,
-                        1.5f
+                        0.25f,
+                        2.0f
                 );
             }
         }

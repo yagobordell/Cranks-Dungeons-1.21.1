@@ -190,6 +190,7 @@ public abstract class InventoryScreenStatsMixin {
             // --- CATEGORY 3: SURVIVAL ---
             context.drawText(tr, Text.literal("❤ Survival"), panelX + 8, curY, 0xFF404040, false);
             curY += 11;
+            curY = drawStat(context, tr, panelX, curY, "Energy Shield", player.getAttributeValue(ModAttributes.ENERGY_SHIELD), "");
             curY = drawStat(context, tr, panelX, curY, "Max Health", player.getAttributeValue(EntityAttributes.MAX_HEALTH), " HP");
             curY = drawStat(context, tr, panelX, curY, "Regeneration", player.getAttributeValue(ModAttributes.LIFE_REGENERATION), " HP/s");
             curY = drawStat(context, tr, panelX, curY, "Life Steal", player.getAttributeValue(ModAttributes.LIFE_STEAL) * 100, "%");

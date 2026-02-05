@@ -68,6 +68,8 @@
   "enchantment.minecraft.life_steal": "+8% Life Steal",
   "enchantment.minecraft.bonus_knockback": "+60% Knockback",
   "enchantment.minecraft.attack_range": "+0.5 Attack Range",
+  "enchantment.minecraft.evasion_rating": "+50 Evasion Rating",
+  "enchantment.minecraft.energy_shield": "+5 Energy Shield",
   "enchantment.minecraft.max_health_bonus": "+5 Max Health",
   "enchantment.minecraft.life_regeneration": "+0.8 Life Regeneration",
   "enchantment.minecraft.bonus_armor": "+5 Armor",

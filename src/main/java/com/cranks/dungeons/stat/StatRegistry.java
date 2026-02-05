@@ -26,6 +26,17 @@ public class StatRegistry {
         ));
 
         register(new CustomStat(
+                "helmet_energy_shield",
+                "Energy Shield",
+                EquipmentType.HELMET,
+                ModAttributes.ENERGY_SHIELD,
+                new double[]{1.0, 2.0, 4.5, 5.5, 8.0},
+                new double[]{1.5, 3.0, 5.0, 7.5, 12.0},
+                false,
+                Formatting.BLUE
+        ));
+
+        register(new CustomStat(
                 "helmet_max_health",
                 "Max Health",
                 EquipmentType.HELMET,
@@ -52,8 +63,8 @@ public class StatRegistry {
                 "Evasion Rating",
                 EquipmentType.HELMET,
                 ModAttributes.EVASION_RATING,
-                new double[]{10.0, 25.0, 50.0, 100.0, 200.0},
-                new double[]{20.0, 40.0, 80.0, 140.0, 250.0},
+                new double[]{10.0, 25.0, 50.0, 100.0, 150.0},
+                new double[]{20.0, 40.0, 80.0, 140.0, 200.0},
                 false, Formatting.DARK_AQUA
         ));
 
@@ -140,6 +151,18 @@ public class StatRegistry {
         ));
 
         register(new CustomStat(
+                "helmet_crit_chance",
+                "Critical Strike Chance",
+                EquipmentType.HELMET,
+                ModAttributes.CRIT_CHANCE,
+                new double[]{0.01, 0.03, 0.06, 0.10, 0.15},
+                new double[]{0.02, 0.05, 0.09, 0.14, 0.22},
+                true,
+                true,
+                Formatting.GOLD
+        ));
+
+        register(new CustomStat(
                 "helmet_experience_bonus",
                 "Experience Bonus",
                 EquipmentType.HELMET,
@@ -177,6 +200,17 @@ public class StatRegistry {
         ));
 
         register(new CustomStat(
+                "chestplate_energy_shield",
+                "Energy Shield",
+                EquipmentType.CHESTPLATE,
+                ModAttributes.ENERGY_SHIELD,
+                new double[]{1.0, 2.0, 4.5, 5.5, 8.0},
+                new double[]{1.5, 3.0, 5.0, 7.5, 12.0},
+                false,
+                Formatting.BLUE
+        ));
+
+        register(new CustomStat(
                 "chestplate_max_health",
                 "Max Health",
                 EquipmentType.CHESTPLATE,
@@ -203,8 +237,8 @@ public class StatRegistry {
                 "Evasion Rating",
                 EquipmentType.CHESTPLATE,
                 ModAttributes.EVASION_RATING,
-                new double[]{10.0, 25.0, 50.0, 100.0, 200.0},
-                new double[]{20.0, 40.0, 80.0, 140.0, 250.0},
+                new double[]{10.0, 25.0, 50.0, 100.0, 150.0},
+                new double[]{20.0, 40.0, 80.0, 140.0, 200.0},
                 false, Formatting.DARK_AQUA
         ));
 
@@ -443,6 +477,17 @@ public class StatRegistry {
         ));
 
         register(new CustomStat(
+                "leggings_energy_shield",
+                "Energy Shield",
+                EquipmentType.LEGGINGS,
+                ModAttributes.ENERGY_SHIELD,
+                new double[]{1.0, 2.0, 4.5, 5.5, 8.0},
+                new double[]{1.5, 3.0, 5.0, 7.5, 12.0},
+                false,
+                Formatting.BLUE
+        ));
+
+        register(new CustomStat(
                 "leggings_max_health",
                 "Max Health",
                 EquipmentType.LEGGINGS,
@@ -469,8 +514,8 @@ public class StatRegistry {
                 "Evasion Rating",
                 EquipmentType.LEGGINGS,
                 ModAttributes.EVASION_RATING,
-                new double[]{10.0, 25.0, 50.0, 100.0, 200.0},
-                new double[]{20.0, 40.0, 80.0, 140.0, 250.0},
+                new double[]{10.0, 25.0, 50.0, 100.0, 150.0},
+                new double[]{20.0, 40.0, 80.0, 140.0, 200.0},
                 false, Formatting.DARK_AQUA
         ));
 
@@ -594,6 +639,17 @@ public class StatRegistry {
         ));
 
         register(new CustomStat(
+                "boots_energy_shield",
+                "Energy Shield",
+                EquipmentType.BOOTS,
+                ModAttributes.ENERGY_SHIELD,
+                new double[]{1.0, 2.0, 4.5, 5.5, 8.0},
+                new double[]{1.5, 3.0, 5.0, 7.5, 12.0},
+                false,
+                Formatting.BLUE
+        ));
+
+        register(new CustomStat(
                 "boots_max_health",
                 "Max Health",
                 EquipmentType.BOOTS,
@@ -620,8 +676,8 @@ public class StatRegistry {
                 "Evasion Rating",
                 EquipmentType.BOOTS,
                 ModAttributes.EVASION_RATING,
-                new double[]{10.0, 25.0, 50.0, 100.0, 200.0},
-                new double[]{20.0, 40.0, 80.0, 140.0, 250.0},
+                new double[]{10.0, 25.0, 50.0, 100.0, 150.0},
+                new double[]{20.0, 40.0, 80.0, 140.0, 200.0},
                 false, Formatting.DARK_AQUA
         ));
 

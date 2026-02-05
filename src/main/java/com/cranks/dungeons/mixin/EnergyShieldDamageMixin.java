@@ -66,42 +66,38 @@ public class EnergyShieldDamageMixin {
                     self.getZ(),
                     SoundEvents.ITEM_SHIELD_BLOCK,
                     SoundCategory.PLAYERS,
-                    0.8f,
-                    1.2f
+                    0.1f,
+                    2.0f
             );
 
             if (newShield <= 0) {
-                self.sendMessage(Text.literal("Shield Broken!").formatted(Formatting.BLUE, Formatting.BOLD), true);
                 world.playSound(
                         null,
                         self.getX(),
                         self.getY(),
                         self.getZ(),
-                        SoundEvents.ITEM_SHIELD_BREAK,
+                        SoundEvents.ITEM_OMINOUS_BOTTLE_DISPOSE,
                         SoundCategory.PLAYERS,
                         1.0f,
-                        1.0f
+                        1.25f
                 );
             }
 
             cir.setReturnValue(false); // No damage to health
         } else {
-            // Shield breaks but damage doesn't overflow
             provider.cranksdungeons$setCurrentEnergyShield(0);
 
-            // SYNC TO CLIENT
             ServerPlayNetworking.send(serverPlayer, new EnergyShieldSyncPacket(0));
 
-            self.sendMessage(Text.literal("Shield Broken!").formatted(Formatting.BLUE, Formatting.BOLD), true);
             world.playSound(
                     null,
                     self.getX(),
                     self.getY(),
                     self.getZ(),
-                    SoundEvents.ITEM_SHIELD_BREAK,
+                    SoundEvents.ITEM_OMINOUS_BOTTLE_DISPOSE,
                     SoundCategory.PLAYERS,
                     1.0f,
-                    1.0f
+                    1.25f
             );
 
             cir.setReturnValue(false); // No damage to health

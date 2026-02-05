@@ -43,7 +43,7 @@ public class CranksDungeons implements ModInitializer {
 						.add(ModAttributes.CROP_FORTUNE, 0.0)
 						.add(ModAttributes.FLYING_SPEED)
 						.add(ModAttributes.EVASION_RATING, 0.0)
-						.add(ModAttributes.ENERGY_SHIELD, 20.0)
+						.add(ModAttributes.ENERGY_SHIELD, 0.0)
 		);
 
 		registerCreativeTabItems();

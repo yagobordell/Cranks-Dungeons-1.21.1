@@ -30,6 +30,8 @@
     "minecraft:durability_bonus",
     "minecraft:repair_chance",
     "minecraft:breaking_range",
+    "minecraft:energy_shield",
+    "minecraft:evasion_rating",
     "minecraft:crop_fortune"
   ]
 }
