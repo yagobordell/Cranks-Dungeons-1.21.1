@@ -18,8 +18,8 @@ public class StatRegistry {
                 "Durability Bonus",
                 EquipmentType.HELMET,
                 ModAttributes.DURABILITY_BONUS,
-                new double[]{0.10, 0.18, 0.28, 0.40, 0.55},
-                new double[]{0.15, 0.25, 0.38, 0.55, 0.75},
+                new double[]{0.10, 0.18, 0.28, 0.40, 0.56},
+                new double[]{0.18, 0.26, 0.36, 0.55, 0.76},
                 true,
                 true,
                 Formatting.WHITE
@@ -30,8 +30,8 @@ public class StatRegistry {
                 "Energy Shield",
                 EquipmentType.HELMET,
                 ModAttributes.ENERGY_SHIELD,
-                new double[]{1.0, 2.0, 4.5, 5.5, 8.0},
-                new double[]{1.5, 3.0, 5.0, 7.5, 12.0},
+                new double[]{1.0, 2.0, 3.0, 5.0, 7.0},
+                new double[]{2.0, 3.0, 5.0, 7.0, 10.0},
                 false,
                 Formatting.BLUE
         ));
@@ -41,8 +41,8 @@ public class StatRegistry {
                 "Max Health",
                 EquipmentType.HELMET,
                 EntityAttributes.MAX_HEALTH,
-                new double[]{1.0, 2.0, 4.5, 5.5, 8.0},
-                new double[]{1.5, 3.0, 5.0, 7.5, 12.0},
+                new double[]{1.0, 2.0, 3.0, 5.0, 7.0},
+                new double[]{2.0, 3.0, 5.0, 7.0, 10.0},
                 false,
                 Formatting.DARK_RED
         ));
@@ -65,7 +65,7 @@ public class StatRegistry {
                 ModAttributes.EVASION_RATING,
                 new double[]{10.0, 25.0, 50.0, 100.0, 150.0},
                 new double[]{20.0, 40.0, 80.0, 140.0, 200.0},
-                false, Formatting.DARK_AQUA
+                false, Formatting.GRAY
         ));
 
         register(new CustomStat(
@@ -95,8 +95,8 @@ public class StatRegistry {
                 "Knockback Resistance",
                 EquipmentType.HELMET,
                 ModAttributes.KNOCKBACK_RESISTANCE,
-                new double[]{0.05, 0.12, 0.20, 0.30, 0.42},
-                new double[]{0.10, 0.18, 0.28, 0.40, 0.60},
+                new double[]{0.05, 0.10, 0.15, 0.20, 0.25},
+                new double[]{0.10, 0.15, 0.20, 0.25, 0.35},
                 true,
                 true,
                 Formatting.GRAY
@@ -107,8 +107,8 @@ public class StatRegistry {
                 "Fire Resistance",
                 EquipmentType.HELMET,
                 ModAttributes.FIRE_RESISTANCE,
-                new double[]{0.18, 0.20, 0.23, 0.26, 0.30},
-                new double[]{0.22, 0.25, 0.28, 0.32, 0.38},
+                new double[]{0.15, 0.19, 0.23, 0.26, 0.30},
+                new double[]{0.19, 0.23, 0.26, 0.30, 0.38},
                 true,
                 true,
                 Formatting.RED
@@ -119,8 +119,8 @@ public class StatRegistry {
                 "Cold Resistance",
                 EquipmentType.HELMET,
                 ModAttributes.COLD_RESISTANCE,
-                new double[]{0.18, 0.20, 0.23, 0.26, 0.30},
-                new double[]{0.22, 0.25, 0.28, 0.32, 0.38},
+                new double[]{0.15, 0.19, 0.23, 0.26, 0.30},
+                new double[]{0.19, 0.23, 0.26, 0.30, 0.38},
                 true,
                 true,
                 Formatting.AQUA
@@ -131,8 +131,8 @@ public class StatRegistry {
                 "Lightning Resistance",
                 EquipmentType.HELMET,
                 ModAttributes.LIGHTNING_RESISTANCE,
-                new double[]{0.18, 0.20, 0.23, 0.26, 0.30},
-                new double[]{0.22, 0.25, 0.28, 0.32, 0.38},
+                new double[]{0.15, 0.19, 0.23, 0.26, 0.30},
+                new double[]{0.19, 0.23, 0.26, 0.30, 0.38},
                 true,
                 true,
                 Formatting.DARK_BLUE
@@ -143,8 +143,8 @@ public class StatRegistry {
                 "Void Resistance",
                 EquipmentType.HELMET,
                 ModAttributes.VOID_RESISTANCE,
-                new double[]{0.18, 0.20, 0.23, 0.26, 0.30},
-                new double[]{0.22, 0.25, 0.28, 0.32, 0.38},
+                new double[]{0.15, 0.19, 0.23, 0.26, 0.30},
+                new double[]{0.19, 0.23, 0.26, 0.30, 0.38},
                 true,
                 true,
                 Formatting.DARK_PURPLE
@@ -192,8 +192,8 @@ public class StatRegistry {
                 "Durability Bonus",
                 EquipmentType.CHESTPLATE,
                 ModAttributes.DURABILITY_BONUS,
-                new double[]{0.10, 0.18, 0.28, 0.40, 0.55},
-                new double[]{0.15, 0.25, 0.38, 0.55, 0.75},
+                new double[]{0.10, 0.18, 0.28, 0.40, 0.56},
+                new double[]{0.18, 0.26, 0.36, 0.55, 0.76},
                 true,
                 true,
                 Formatting.WHITE
@@ -204,8 +204,8 @@ public class StatRegistry {
                 "Energy Shield",
                 EquipmentType.CHESTPLATE,
                 ModAttributes.ENERGY_SHIELD,
-                new double[]{1.0, 2.0, 4.5, 5.5, 8.0},
-                new double[]{1.5, 3.0, 5.0, 7.5, 12.0},
+                new double[]{1.0, 2.0, 3.0, 5.0, 7.0},
+                new double[]{2.0, 3.0, 5.0, 7.0, 10.0},
                 false,
                 Formatting.BLUE
         ));
@@ -215,8 +215,8 @@ public class StatRegistry {
                 "Max Health",
                 EquipmentType.CHESTPLATE,
                 EntityAttributes.MAX_HEALTH,
-                new double[]{1.0, 2.0, 4.5, 5.5, 8.0},
-                new double[]{1.5, 3.0, 5.0, 7.5, 12.0},
+                new double[]{1.0, 2.0, 3.0, 5.0, 7.0},
+                new double[]{2.0, 3.0, 5.0, 7.0, 10.0},
                 false,
                 Formatting.DARK_RED
         ));
@@ -239,7 +239,7 @@ public class StatRegistry {
                 ModAttributes.EVASION_RATING,
                 new double[]{10.0, 25.0, 50.0, 100.0, 150.0},
                 new double[]{20.0, 40.0, 80.0, 140.0, 200.0},
-                false, Formatting.DARK_AQUA
+                false, Formatting.GRAY
         ));
 
         register(new CustomStat(
@@ -269,8 +269,8 @@ public class StatRegistry {
                 "Knockback Resistance",
                 EquipmentType.CHESTPLATE,
                 ModAttributes.KNOCKBACK_RESISTANCE,
-                new double[]{0.05, 0.12, 0.20, 0.30, 0.42},
-                new double[]{0.10, 0.18, 0.28, 0.40, 0.60},
+                new double[]{0.05, 0.10, 0.15, 0.20, 0.25},
+                new double[]{0.10, 0.15, 0.20, 0.25, 0.35},
                 true,
                 true,
                 Formatting.GRAY
@@ -281,8 +281,8 @@ public class StatRegistry {
                 "Fire Resistance",
                 EquipmentType.CHESTPLATE,
                 ModAttributes.FIRE_RESISTANCE,
-                new double[]{0.18, 0.20, 0.23, 0.26, 0.30},
-                new double[]{0.22, 0.25, 0.28, 0.32, 0.38},
+                new double[]{0.15, 0.19, 0.23, 0.26, 0.30},
+                new double[]{0.19, 0.23, 0.26, 0.30, 0.38},
                 true,
                 true,
                 Formatting.RED
@@ -293,8 +293,8 @@ public class StatRegistry {
                 "Cold Resistance",
                 EquipmentType.CHESTPLATE,
                 ModAttributes.COLD_RESISTANCE,
-                new double[]{0.18, 0.20, 0.23, 0.26, 0.30},
-                new double[]{0.22, 0.25, 0.28, 0.32, 0.38},
+                new double[]{0.15, 0.19, 0.23, 0.26, 0.30},
+                new double[]{0.19, 0.23, 0.26, 0.30, 0.38},
                 true,
                 true,
                 Formatting.AQUA
@@ -305,8 +305,8 @@ public class StatRegistry {
                 "Lightning Resistance",
                 EquipmentType.CHESTPLATE,
                 ModAttributes.LIGHTNING_RESISTANCE,
-                new double[]{0.18, 0.20, 0.23, 0.26, 0.30},
-                new double[]{0.22, 0.25, 0.28, 0.32, 0.38},
+                new double[]{0.15, 0.19, 0.23, 0.26, 0.30},
+                new double[]{0.19, 0.23, 0.26, 0.30, 0.38},
                 true,
                 true,
                 Formatting.DARK_BLUE
@@ -317,8 +317,8 @@ public class StatRegistry {
                 "Void Resistance",
                 EquipmentType.CHESTPLATE,
                 ModAttributes.VOID_RESISTANCE,
-                new double[]{0.18, 0.20, 0.23, 0.26, 0.30},
-                new double[]{0.22, 0.25, 0.28, 0.32, 0.38},
+                new double[]{0.15, 0.19, 0.23, 0.26, 0.30},
+                new double[]{0.19, 0.23, 0.26, 0.30, 0.38},
                 true,
                 true,
                 Formatting.DARK_PURPLE
@@ -469,8 +469,8 @@ public class StatRegistry {
                 "Durability Bonus",
                 EquipmentType.LEGGINGS,
                 ModAttributes.DURABILITY_BONUS,
-                new double[]{0.10, 0.18, 0.28, 0.40, 0.55},
-                new double[]{0.15, 0.25, 0.38, 0.55, 0.75},
+                new double[]{0.10, 0.18, 0.28, 0.40, 0.56},
+                new double[]{0.18, 0.26, 0.36, 0.55, 0.76},
                 true,
                 true,
                 Formatting.WHITE
@@ -481,8 +481,8 @@ public class StatRegistry {
                 "Energy Shield",
                 EquipmentType.LEGGINGS,
                 ModAttributes.ENERGY_SHIELD,
-                new double[]{1.0, 2.0, 4.5, 5.5, 8.0},
-                new double[]{1.5, 3.0, 5.0, 7.5, 12.0},
+                new double[]{1.0, 2.0, 3.0, 5.0, 7.0},
+                new double[]{2.0, 3.0, 5.0, 7.0, 10.0},
                 false,
                 Formatting.BLUE
         ));
@@ -492,8 +492,8 @@ public class StatRegistry {
                 "Max Health",
                 EquipmentType.LEGGINGS,
                 EntityAttributes.MAX_HEALTH,
-                new double[]{1.0, 2.0, 4.5, 5.5, 8.0},
-                new double[]{1.5, 3.0, 5.0, 7.5, 12.0},
+                new double[]{1.0, 2.0, 3.0, 5.0, 7.0},
+                new double[]{2.0, 3.0, 5.0, 7.0, 10.0},
                 false,
                 Formatting.DARK_RED
         ));
@@ -516,7 +516,7 @@ public class StatRegistry {
                 ModAttributes.EVASION_RATING,
                 new double[]{10.0, 25.0, 50.0, 100.0, 150.0},
                 new double[]{20.0, 40.0, 80.0, 140.0, 200.0},
-                false, Formatting.DARK_AQUA
+                false, Formatting.GRAY
         ));
 
         register(new CustomStat(
@@ -546,8 +546,8 @@ public class StatRegistry {
                 "Knockback Resistance",
                 EquipmentType.LEGGINGS,
                 ModAttributes.KNOCKBACK_RESISTANCE,
-                new double[]{0.05, 0.12, 0.20, 0.30, 0.42},
-                new double[]{0.10, 0.18, 0.28, 0.40, 0.60},
+                new double[]{0.05, 0.10, 0.15, 0.20, 0.25},
+                new double[]{0.10, 0.15, 0.20, 0.25, 0.35},
                 true,
                 true,
                 Formatting.GRAY
@@ -558,8 +558,8 @@ public class StatRegistry {
                 "Fire Resistance",
                 EquipmentType.LEGGINGS,
                 ModAttributes.FIRE_RESISTANCE,
-                new double[]{0.18, 0.20, 0.23, 0.26, 0.30},
-                new double[]{0.22, 0.25, 0.28, 0.32, 0.38},
+                new double[]{0.15, 0.19, 0.23, 0.26, 0.30},
+                new double[]{0.19, 0.23, 0.26, 0.30, 0.38},
                 true,
                 true,
                 Formatting.RED
@@ -570,8 +570,8 @@ public class StatRegistry {
                 "Cold Resistance",
                 EquipmentType.LEGGINGS,
                 ModAttributes.COLD_RESISTANCE,
-                new double[]{0.18, 0.20, 0.23, 0.26, 0.30},
-                new double[]{0.22, 0.25, 0.28, 0.32, 0.38},
+                new double[]{0.15, 0.19, 0.23, 0.26, 0.30},
+                new double[]{0.19, 0.23, 0.26, 0.30, 0.38},
                 true,
                 true,
                 Formatting.AQUA
@@ -582,8 +582,8 @@ public class StatRegistry {
                 "Lightning Resistance",
                 EquipmentType.LEGGINGS,
                 ModAttributes.LIGHTNING_RESISTANCE,
-                new double[]{0.18, 0.20, 0.23, 0.26, 0.30},
-                new double[]{0.22, 0.25, 0.28, 0.32, 0.38},
+                new double[]{0.15, 0.19, 0.23, 0.26, 0.30},
+                new double[]{0.19, 0.23, 0.26, 0.30, 0.38},
                 true,
                 true,
                 Formatting.DARK_BLUE
@@ -594,8 +594,8 @@ public class StatRegistry {
                 "Void Resistance",
                 EquipmentType.LEGGINGS,
                 ModAttributes.VOID_RESISTANCE,
-                new double[]{0.18, 0.20, 0.23, 0.26, 0.30},
-                new double[]{0.22, 0.25, 0.28, 0.32, 0.38},
+                new double[]{0.15, 0.19, 0.23, 0.26, 0.30},
+                new double[]{0.19, 0.23, 0.26, 0.30, 0.38},
                 true,
                 true,
                 Formatting.DARK_PURPLE
@@ -631,8 +631,8 @@ public class StatRegistry {
                 "Durability Bonus",
                 EquipmentType.BOOTS,
                 ModAttributes.DURABILITY_BONUS,
-                new double[]{0.10, 0.18, 0.28, 0.40, 0.55},
-                new double[]{0.15, 0.25, 0.38, 0.55, 0.75},
+                new double[]{0.10, 0.18, 0.28, 0.40, 0.56},
+                new double[]{0.18, 0.26, 0.36, 0.55, 0.76},
                 true,
                 true,
                 Formatting.WHITE
@@ -643,8 +643,8 @@ public class StatRegistry {
                 "Energy Shield",
                 EquipmentType.BOOTS,
                 ModAttributes.ENERGY_SHIELD,
-                new double[]{1.0, 2.0, 4.5, 5.5, 8.0},
-                new double[]{1.5, 3.0, 5.0, 7.5, 12.0},
+                new double[]{1.0, 2.0, 3.0, 5.0, 7.0},
+                new double[]{2.0, 3.0, 5.0, 7.0, 10.0},
                 false,
                 Formatting.BLUE
         ));
@@ -654,8 +654,8 @@ public class StatRegistry {
                 "Max Health",
                 EquipmentType.BOOTS,
                 EntityAttributes.MAX_HEALTH,
-                new double[]{1.0, 2.0, 4.5, 5.5, 8.0},
-                new double[]{1.5, 3.0, 5.0, 7.5, 12.0},
+                new double[]{1.0, 2.0, 3.0, 5.0, 7.0},
+                new double[]{2.0, 3.0, 5.0, 7.0, 10.0},
                 false,
                 Formatting.DARK_RED
         ));
@@ -678,7 +678,7 @@ public class StatRegistry {
                 ModAttributes.EVASION_RATING,
                 new double[]{10.0, 25.0, 50.0, 100.0, 150.0},
                 new double[]{20.0, 40.0, 80.0, 140.0, 200.0},
-                false, Formatting.DARK_AQUA
+                false, Formatting.GRAY
         ));
 
         register(new CustomStat(
@@ -708,8 +708,8 @@ public class StatRegistry {
                 "Knockback Resistance",
                 EquipmentType.BOOTS,
                 ModAttributes.KNOCKBACK_RESISTANCE,
-                new double[]{0.05, 0.12, 0.20, 0.30, 0.42},
-                new double[]{0.10, 0.18, 0.28, 0.40, 0.60},
+                new double[]{0.05, 0.10, 0.15, 0.20, 0.25},
+                new double[]{0.10, 0.15, 0.20, 0.25, 0.35},
                 true,
                 true,
                 Formatting.GRAY
@@ -720,8 +720,8 @@ public class StatRegistry {
                 "Fire Resistance",
                 EquipmentType.BOOTS,
                 ModAttributes.FIRE_RESISTANCE,
-                new double[]{0.18, 0.20, 0.23, 0.26, 0.30},
-                new double[]{0.22, 0.25, 0.28, 0.32, 0.38},
+                new double[]{0.15, 0.19, 0.23, 0.26, 0.30},
+                new double[]{0.19, 0.23, 0.26, 0.30, 0.38},
                 true,
                 true,
                 Formatting.RED
@@ -732,8 +732,8 @@ public class StatRegistry {
                 "Cold Resistance",
                 EquipmentType.BOOTS,
                 ModAttributes.COLD_RESISTANCE,
-                new double[]{0.18, 0.20, 0.23, 0.26, 0.30},
-                new double[]{0.22, 0.25, 0.28, 0.32, 0.38},
+                new double[]{0.15, 0.19, 0.23, 0.26, 0.30},
+                new double[]{0.19, 0.23, 0.26, 0.30, 0.38},
                 true,
                 true,
                 Formatting.AQUA
@@ -744,8 +744,8 @@ public class StatRegistry {
                 "Lightning Resistance",
                 EquipmentType.BOOTS,
                 ModAttributes.LIGHTNING_RESISTANCE,
-                new double[]{0.18, 0.20, 0.23, 0.26, 0.30},
-                new double[]{0.22, 0.25, 0.28, 0.32, 0.38},
+                new double[]{0.15, 0.19, 0.23, 0.26, 0.30},
+                new double[]{0.19, 0.23, 0.26, 0.30, 0.38},
                 true,
                 true,
                 Formatting.DARK_BLUE
@@ -756,8 +756,8 @@ public class StatRegistry {
                 "Void Resistance",
                 EquipmentType.BOOTS,
                 ModAttributes.VOID_RESISTANCE,
-                new double[]{0.18, 0.20, 0.23, 0.26, 0.30},
-                new double[]{0.22, 0.25, 0.28, 0.32, 0.38},
+                new double[]{0.15, 0.19, 0.23, 0.26, 0.30},
+                new double[]{0.19, 0.23, 0.26, 0.30, 0.38},
                 true,
                 true,
                 Formatting.DARK_PURPLE
@@ -817,8 +817,8 @@ public class StatRegistry {
                 "Durability Bonus",
                 EquipmentType.SWORD,
                 ModAttributes.DURABILITY_BONUS,
-                new double[]{0.10, 0.18, 0.28, 0.40, 0.55},
-                new double[]{0.15, 0.25, 0.38, 0.55, 0.75},
+                new double[]{0.10, 0.18, 0.28, 0.40, 0.56},
+                new double[]{0.18, 0.26, 0.36, 0.55, 0.76},
                 true,
                 true,
                 Formatting.WHITE
@@ -956,8 +956,8 @@ public class StatRegistry {
                 "Durability Bonus",
                 EquipmentType.SPEAR,
                 ModAttributes.DURABILITY_BONUS,
-                new double[]{0.10, 0.18, 0.28, 0.40, 0.55},
-                new double[]{0.15, 0.25, 0.38, 0.55, 0.75},
+                new double[]{0.10, 0.18, 0.28, 0.40, 0.56},
+                new double[]{0.18, 0.26, 0.36, 0.55, 0.76},
                 true,
                 true,
                 Formatting.WHITE
@@ -1095,8 +1095,8 @@ public class StatRegistry {
                 "Durability Bonus",
                 EquipmentType.MACE,
                 ModAttributes.DURABILITY_BONUS,
-                new double[]{0.10, 0.18, 0.28, 0.40, 0.55},
-                new double[]{0.15, 0.25, 0.38, 0.55, 0.75},
+                new double[]{0.10, 0.18, 0.28, 0.40, 0.56},
+                new double[]{0.18, 0.26, 0.36, 0.55, 0.76},
                 true,
                 true,
                 Formatting.WHITE
@@ -1234,8 +1234,8 @@ public class StatRegistry {
                 "Durability Bonus",
                 EquipmentType.TRIDENT,
                 ModAttributes.DURABILITY_BONUS,
-                new double[]{0.10, 0.18, 0.28, 0.40, 0.55},
-                new double[]{0.15, 0.25, 0.38, 0.55, 0.75},
+                new double[]{0.10, 0.18, 0.28, 0.40, 0.56},
+                new double[]{0.18, 0.26, 0.36, 0.55, 0.76},
                 true,
                 true,
                 Formatting.WHITE
@@ -1373,8 +1373,8 @@ public class StatRegistry {
                 "Durability Bonus",
                 EquipmentType.BOW,
                 ModAttributes.DURABILITY_BONUS,
-                new double[]{0.10, 0.18, 0.28, 0.40, 0.55},
-                new double[]{0.15, 0.25, 0.38, 0.55, 0.75},
+                new double[]{0.10, 0.18, 0.28, 0.40, 0.56},
+                new double[]{0.18, 0.26, 0.36, 0.55, 0.76},
                 true,
                 true,
                 Formatting.WHITE
@@ -1489,8 +1489,8 @@ public class StatRegistry {
                 "Durability Bonus",
                 EquipmentType.CROSSBOW,
                 ModAttributes.DURABILITY_BONUS,
-                new double[]{0.10, 0.18, 0.28, 0.40, 0.55},
-                new double[]{0.15, 0.25, 0.38, 0.55, 0.75},
+                new double[]{0.10, 0.18, 0.28, 0.40, 0.56},
+                new double[]{0.18, 0.26, 0.36, 0.55, 0.76},
                 true,
                 true,
                 Formatting.WHITE
@@ -1605,33 +1605,11 @@ public class StatRegistry {
                 "Durability Bonus",
                 EquipmentType.SHIELD,
                 ModAttributes.DURABILITY_BONUS,
-                new double[]{0.10, 0.18, 0.28, 0.40, 0.55},
-                new double[]{0.15, 0.25, 0.38, 0.55, 0.75},
+                new double[]{0.10, 0.18, 0.28, 0.40, 0.56},
+                new double[]{0.18, 0.26, 0.36, 0.55, 0.76},
                 true,
                 true,
                 Formatting.WHITE
-        ));
-
-        register(new CustomStat(
-                "shield_max_health",
-                "Max Health",
-                EquipmentType.SHIELD,
-                EntityAttributes.MAX_HEALTH,
-                new double[]{1.0, 2.0, 4.5, 5.5, 8.0},
-                new double[]{1.5, 3.0, 5.0, 7.5, 12.0},
-                false,
-                Formatting.DARK_RED
-        ));
-
-        register(new CustomStat(
-                "shield_life_regeneration",
-                "Life Regeneration",
-                EquipmentType.SHIELD,
-                ModAttributes.LIFE_REGENERATION,
-                new double[]{0.1, 0.25, 0.5, 0.8, 1.2},
-                new double[]{0.2, 0.45, 0.75, 1.2, 2.0},
-                false,
-                Formatting.DARK_RED
         ));
 
         register(new CustomStat(
@@ -1661,8 +1639,8 @@ public class StatRegistry {
                 "Knockback Resistance",
                 EquipmentType.SHIELD,
                 ModAttributes.KNOCKBACK_RESISTANCE,
-                new double[]{0.05, 0.12, 0.20, 0.30, 0.42},
-                new double[]{0.10, 0.18, 0.28, 0.40, 0.60},
+                new double[]{0.05, 0.10, 0.15, 0.20, 0.25},
+                new double[]{0.10, 0.15, 0.20, 0.25, 0.35},
                 true,
                 true,
                 Formatting.GRAY
@@ -1673,8 +1651,8 @@ public class StatRegistry {
                 "Fire Resistance",
                 EquipmentType.SHIELD,
                 ModAttributes.FIRE_RESISTANCE,
-                new double[]{0.18, 0.20, 0.23, 0.26, 0.30},
-                new double[]{0.22, 0.25, 0.28, 0.32, 0.38},
+                new double[]{0.15, 0.19, 0.23, 0.26, 0.30},
+                new double[]{0.19, 0.23, 0.26, 0.30, 0.38},
                 true,
                 true,
                 Formatting.RED
@@ -1685,8 +1663,8 @@ public class StatRegistry {
                 "Cold Resistance",
                 EquipmentType.SHIELD,
                 ModAttributes.COLD_RESISTANCE,
-                new double[]{0.18, 0.20, 0.23, 0.26, 0.30},
-                new double[]{0.22, 0.25, 0.28, 0.32, 0.38},
+                new double[]{0.15, 0.19, 0.23, 0.26, 0.30},
+                new double[]{0.19, 0.23, 0.26, 0.30, 0.38},
                 true,
                 true,
                 Formatting.AQUA
@@ -1697,8 +1675,8 @@ public class StatRegistry {
                 "Lightning Resistance",
                 EquipmentType.SHIELD,
                 ModAttributes.LIGHTNING_RESISTANCE,
-                new double[]{0.18, 0.20, 0.23, 0.26, 0.30},
-                new double[]{0.22, 0.25, 0.28, 0.32, 0.38},
+                new double[]{0.15, 0.19, 0.23, 0.26, 0.30},
+                new double[]{0.19, 0.23, 0.26, 0.30, 0.38},
                 true,
                 true,
                 Formatting.DARK_BLUE
@@ -1709,8 +1687,8 @@ public class StatRegistry {
                 "Void Resistance",
                 EquipmentType.SHIELD,
                 ModAttributes.VOID_RESISTANCE,
-                new double[]{0.18, 0.20, 0.23, 0.26, 0.30},
-                new double[]{0.22, 0.25, 0.28, 0.32, 0.38},
+                new double[]{0.15, 0.19, 0.23, 0.26, 0.30},
+                new double[]{0.19, 0.23, 0.26, 0.30, 0.38},
                 true,
                 true,
                 Formatting.DARK_PURPLE
@@ -1734,11 +1712,22 @@ public class StatRegistry {
                 "Durability Bonus",
                 EquipmentType.ELYTRA,
                 ModAttributes.DURABILITY_BONUS,
-                new double[]{0.10, 0.18, 0.28, 0.40, 0.55},
-                new double[]{0.15, 0.25, 0.38, 0.55, 0.75},
+                new double[]{0.10, 0.18, 0.28, 0.40, 0.56},
+                new double[]{0.18, 0.26, 0.36, 0.55, 0.76},
                 true,
                 true,
                 Formatting.WHITE
+        ));
+
+        register(new CustomStat(
+                "elytra_energy_shield",
+                "Energy Shield",
+                EquipmentType.ELYTRA,
+                ModAttributes.ENERGY_SHIELD,
+                new double[]{1.0, 2.0, 3.0, 5.0, 7.0},
+                new double[]{2.0, 3.0, 5.0, 7.0, 10.0},
+                false,
+                Formatting.BLUE
         ));
 
         register(new CustomStat(
@@ -1842,8 +1831,8 @@ public class StatRegistry {
                 "Durability Bonus",
                 EquipmentType.PICKAXE,
                 ModAttributes.DURABILITY_BONUS,
-                new double[]{0.10, 0.18, 0.28, 0.40, 0.55},
-                new double[]{0.15, 0.25, 0.38, 0.55, 0.75},
+                new double[]{0.10, 0.18, 0.28, 0.40, 0.56},
+                new double[]{0.18, 0.26, 0.36, 0.55, 0.76},
                 true,
                 true,
                 Formatting.WHITE
@@ -1890,8 +1879,8 @@ public class StatRegistry {
                 "Durability Bonus",
                 EquipmentType.AXE,
                 ModAttributes.DURABILITY_BONUS,
-                new double[]{0.10, 0.18, 0.28, 0.40, 0.55},
-                new double[]{0.15, 0.25, 0.38, 0.55, 0.75},
+                new double[]{0.10, 0.18, 0.28, 0.40, 0.56},
+                new double[]{0.18, 0.26, 0.36, 0.55, 0.76},
                 true,
                 true,
                 Formatting.BLUE
@@ -1938,8 +1927,8 @@ public class StatRegistry {
                 "Durability Bonus",
                 EquipmentType.SHOVEL,
                 ModAttributes.DURABILITY_BONUS,
-                new double[]{0.10, 0.18, 0.28, 0.40, 0.55},
-                new double[]{0.15, 0.25, 0.38, 0.55, 0.75},
+                new double[]{0.10, 0.18, 0.28, 0.40, 0.56},
+                new double[]{0.18, 0.26, 0.36, 0.55, 0.76},
                 true,
                 true,
                 Formatting.BLUE
@@ -1974,8 +1963,8 @@ public class StatRegistry {
                 "Durability Bonus",
                 EquipmentType.HOE,
                 ModAttributes.DURABILITY_BONUS,
-                new double[]{0.10, 0.18, 0.28, 0.40, 0.55},
-                new double[]{0.15, 0.25, 0.38, 0.55, 0.75},
+                new double[]{0.10, 0.18, 0.28, 0.40, 0.56},
+                new double[]{0.18, 0.26, 0.36, 0.55, 0.76},
                 true,
                 true,
                 Formatting.BLUE

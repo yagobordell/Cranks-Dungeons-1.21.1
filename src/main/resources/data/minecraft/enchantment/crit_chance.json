@@ -2,7 +2,7 @@
   "description": {
     "translate": "enchantment.minecraft.crit_chance"
   },
-  "supported_items": "#minecraft:enchantable/weapon_chest_and_boots",
+  "supported_items": "#minecraft:enchantable/crit_equipment",
   "weight": 5,
   "max_level": 1,
   "min_cost": { "base": 10, "per_level_above_first": 0 },
