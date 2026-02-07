@@ -6,6 +6,7 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
@@ -26,9 +27,15 @@ public abstract class KnockbackProcessorMixin {
 
         // 1. Apply Attacker's Bonus first (Multiplicative is recommended)
         if (attacker instanceof PlayerEntity player) {
-            double knockbackBonus = player.getAttributeValue(ModAttributes.KNOCKBACK);
             ItemStack weapon = player.getMainHandStack();
+            ItemStack chestplate = player.getEquippedStack(net.minecraft.entity.EquipmentSlot.CHEST);
+
+            double knockbackBonus = player.getAttributeValue(ModAttributes.KNOCKBACK);
             knockbackBonus += EquipmentStatApplier.getItemStatValue(weapon, "knockback");
+
+            // Add enchantment bonuses
+            knockbackBonus += getEnchantmentValue(weapon, "minecraft:bonus_knockback", 0.5);
+            knockbackBonus += getEnchantmentValue(chestplate, "minecraft:bonus_knockback", 0.5);
 
             // Using multiplier to keep it from being "rocket-powered"
             finalStrength *= (1.0 + knockbackBonus);
@@ -42,9 +49,18 @@ public abstract class KnockbackProcessorMixin {
 
         finalStrength *= resistanceMultiplier;
 
-        // Logging for your balancing
-        // System.out.println("Knockback Logic: Base " + strength + " -> Final " + finalStrength);
-
         return finalStrength;
+    }
+
+    @Unique
+    private double getEnchantmentValue(ItemStack stack, String enchantmentId, double baseValue) {
+        var enchantments = stack.getEnchantments();
+        for (var entry : enchantments.getEnchantmentEntries()) {
+            String id = entry.getKey().getKey().get().getValue().toString();
+            if (id.equals(enchantmentId)) {
+                return baseValue;
+            }
+        }
+        return 0.0;
     }
 }

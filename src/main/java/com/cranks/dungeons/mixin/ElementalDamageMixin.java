@@ -52,19 +52,18 @@ public abstract class ElementalDamageMixin {
             cranks$processingElementalDamage.set(true);
 
             // === FIRE DAMAGE ===
-            // Get base damage from attribute (already includes weapon/chestplate/enchants)
             double fireBaseDamage = attacker.getAttributeValue(ModAttributes.FIRE_DAMAGE);
+            fireBaseDamage += getEnchantmentValue(weapon, "minecraft:fire_damage", 6.0);
 
-            // Get percentage multipliers from items
             double firePercentFromWeapon = EquipmentStatApplier.getItemStatValue(weapon, "fire_damage_percent");
             double firePercentFromChestplate = EquipmentStatApplier.getItemStatValue(chestplate, "fire_damage_percent");
             double fireTotalPercent = firePercentFromWeapon + firePercentFromChestplate;
 
-            // Apply percentage to base damage
             double fireDamage = fireBaseDamage * (1.0 + fireTotalPercent);
 
             // === COLD DAMAGE ===
             double coldBaseDamage = attacker.getAttributeValue(ModAttributes.COLD_DAMAGE);
+            coldBaseDamage += getEnchantmentValue(weapon, "minecraft:cold_damage", 6.0);
 
             double coldPercentFromWeapon = EquipmentStatApplier.getItemStatValue(weapon, "cold_damage_percent");
             double coldPercentFromChestplate = EquipmentStatApplier.getItemStatValue(chestplate, "cold_damage_percent");
@@ -74,6 +73,7 @@ public abstract class ElementalDamageMixin {
 
             // === LIGHTNING DAMAGE ===
             double lightningBaseDamage = attacker.getAttributeValue(ModAttributes.LIGHTNING_DAMAGE);
+            lightningBaseDamage += getEnchantmentValue(weapon, "minecraft:lightning_damage", 6.0);
 
             double lightningPercentFromWeapon = EquipmentStatApplier.getItemStatValue(weapon, "lightning_damage_percent");
             double lightningPercentFromChestplate = EquipmentStatApplier.getItemStatValue(chestplate, "lightning_damage_percent");
@@ -83,6 +83,7 @@ public abstract class ElementalDamageMixin {
 
             // === VOID DAMAGE ===
             double voidBaseDamage = attacker.getAttributeValue(ModAttributes.VOID_DAMAGE);
+            voidBaseDamage += getEnchantmentValue(weapon, "minecraft:void_damage", 6.0);
 
             double voidPercentFromWeapon = EquipmentStatApplier.getItemStatValue(weapon, "void_damage_percent");
             double voidPercentFromChestplate = EquipmentStatApplier.getItemStatValue(chestplate, "void_damage_percent");
@@ -95,7 +96,6 @@ public abstract class ElementalDamageMixin {
             if (fireDamage > 0) {
                 double resistance = target.getAttributeValue(ModAttributes.FIRE_RESISTANCE);
                 double finalDamage = fireDamage * (1.0 - resistance);
-                System.out.println("Fire: " + fireDamage + " * (1 - " + resistance + ") = " + finalDamage);
                 if (finalDamage > 0) {
                     target.setHealth(target.getHealth() - (float) finalDamage);
                     totalElementalDamage += finalDamage;
@@ -105,7 +105,6 @@ public abstract class ElementalDamageMixin {
             if (coldDamage > 0) {
                 double resistance = target.getAttributeValue(ModAttributes.COLD_RESISTANCE);
                 double finalDamage = coldDamage * (1.0 - resistance);
-                System.out.println("Cold: " + coldDamage + " * (1 - " + resistance + ") = " + finalDamage);
                 if (finalDamage > 0) {
                     target.setHealth(target.getHealth() - (float) finalDamage);
                     totalElementalDamage += finalDamage;
@@ -115,7 +114,6 @@ public abstract class ElementalDamageMixin {
             if (lightningDamage > 0) {
                 double resistance = target.getAttributeValue(ModAttributes.LIGHTNING_RESISTANCE);
                 double finalDamage = lightningDamage * (1.0 - resistance);
-                System.out.println("Lightning: " + lightningDamage + " * (1 - " + resistance + ") = " + finalDamage);
                 if (finalDamage > 0) {
                     target.setHealth(target.getHealth() - (float) finalDamage);
                     totalElementalDamage += finalDamage;
@@ -125,32 +123,37 @@ public abstract class ElementalDamageMixin {
             if (voidDamage > 0) {
                 double resistance = target.getAttributeValue(ModAttributes.VOID_RESISTANCE);
                 double finalDamage = voidDamage * (1.0 - resistance);
-                System.out.println("Void: " + voidDamage + " * (1 - " + resistance + ") = " + finalDamage);
                 if (finalDamage > 0) {
                     target.setHealth(target.getHealth() - (float) finalDamage);
                     totalElementalDamage += finalDamage;
                 }
             }
 
-
+            // Life Steal with enchantments
             double lifeStealFromWeapon = EquipmentStatApplier.getItemStatValue(weapon, "life_steal");
             double lifeStealFromChestplate = EquipmentStatApplier.getItemStatValue(chestplate, "life_steal");
-            double LifeStealFromEnchantment = attacker.getAttributeValue(ModAttributes.LIFE_STEAL);
-            double lifeSteal = lifeStealFromWeapon + lifeStealFromChestplate + LifeStealFromEnchantment;
+            double lifeStealFromAttribute = attacker.getAttributeValue(ModAttributes.LIFE_STEAL);
+            double lifeStealFromEnchantWeapon = getEnchantmentValue(weapon, "minecraft:life_steal", 0.08);
+            double lifeStealFromEnchantChest = getEnchantmentValue(chestplate, "minecraft:life_steal", 0.08);
 
+            double lifeSteal = lifeStealFromWeapon + lifeStealFromChestplate + lifeStealFromAttribute +
+                    lifeStealFromEnchantWeapon + lifeStealFromEnchantChest;
 
             if (lifeSteal > 0) {
                 float totalDamage = amount + (float) totalElementalDamage;
                 float healAmount = (float) (totalDamage * lifeSteal);
-                System.out.println("Healing: " + totalDamage + " * " + lifeSteal + " = " + healAmount);
                 attacker.heal(healAmount);
             }
 
-            // Chance to burn from weapon + chestplate + Enchantment
+            // Chance to burn with enchantments
             double chanceToBurnFromWeapon = EquipmentStatApplier.getItemStatValue(weapon, "chance_to_burn");
             double chanceToBurnFromChestplate = EquipmentStatApplier.getItemStatValue(chestplate, "chance_to_burn");
-            double chanceToBurnFromEnchantment = attacker.getAttributeValue(ModAttributes.CHANCE_TO_BURN);
-            double chanceToBurn = chanceToBurnFromWeapon + chanceToBurnFromChestplate + chanceToBurnFromEnchantment;
+            double chanceToBurnFromAttribute = attacker.getAttributeValue(ModAttributes.CHANCE_TO_BURN);
+            double chanceToBurnFromEnchantWeapon = getEnchantmentValue(weapon, "minecraft:chance_to_burn", 0.25);
+            double chanceToBurnFromEnchantChest = getEnchantmentValue(chestplate, "minecraft:chance_to_burn", 0.25);
+
+            double chanceToBurn = chanceToBurnFromWeapon + chanceToBurnFromChestplate + chanceToBurnFromAttribute +
+                    chanceToBurnFromEnchantWeapon + chanceToBurnFromEnchantChest;
 
             if (chanceToBurn > 0) {
                 double roll = Math.random();
@@ -159,9 +162,20 @@ public abstract class ElementalDamageMixin {
                 }
             }
 
-
         } finally {
             cranks$processingElementalDamage.set(false);
         }
+    }
+
+    @Unique
+    private double getEnchantmentValue(ItemStack stack, String enchantmentId, double baseValue) {
+        var enchantments = stack.getEnchantments();
+        for (var entry : enchantments.getEnchantmentEntries()) {
+            String id = entry.getKey().getKey().get().getValue().toString();
+            if (id.equals(enchantmentId)) {
+                return baseValue;
+            }
+        }
+        return 0.0;
     }
 }

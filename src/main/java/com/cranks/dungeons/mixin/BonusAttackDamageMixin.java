@@ -9,6 +9,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.world.ServerWorld;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
@@ -23,14 +24,16 @@ public class BonusAttackDamageMixin {
     )
     private float applyBonusAttackDamage(float amount, ServerWorld world, DamageSource source) {
         if (source.getAttacker() instanceof PlayerEntity attacker) {
-            // Get bonus attack damage from ARMOR (player attributes)
-            double bonusDamage = attacker.getAttributeValue(ModAttributes.BONUS_ATTACK_DAMAGE);
-
-            // Add bonus attack damage from WEAPON
             ItemStack weapon = attacker.getMainHandStack();
             ItemStack chestplate = attacker.getEquippedStack(EquipmentSlot.CHEST);
 
+            // Get bonus attack damage from attributes + stats
+            double bonusDamage = attacker.getAttributeValue(ModAttributes.BONUS_ATTACK_DAMAGE);
             bonusDamage += EquipmentStatApplier.getItemStatValue(weapon, "bonus_attack_damage");
+
+            // Add bonus attack damage from weapon/chestplate enchantments
+            bonusDamage += getEnchantmentValue(weapon, "minecraft:attack_damage", 6.0);
+            bonusDamage += getEnchantmentValue(chestplate, "minecraft:attack_damage", 6.0);
 
             // Apply flat bonus first
             float damageWithBonus = amount + (float) bonusDamage;
@@ -41,16 +44,21 @@ public class BonusAttackDamageMixin {
             double totalPercent = percentFromWeapon + percentFromChestplate;
 
             // Apply percentage to total damage (base + bonus)
-            float finalDamage = (float) (damageWithBonus * (1.0 + totalPercent));
-
-            System.out.println("Base damage: " + amount);
-            System.out.println("After bonus: " + damageWithBonus);
-            System.out.println("Attack damage %: " + (totalPercent * 100) + "%");
-            System.out.println("Final damage: " + finalDamage);
-
-            return finalDamage;
+            return (float) (damageWithBonus * (1.0 + totalPercent));
         }
 
         return amount;
+    }
+
+    @Unique
+    private double getEnchantmentValue(ItemStack stack, String enchantmentId, double baseValue) {
+        var enchantments = stack.getEnchantments();
+        for (var entry : enchantments.getEnchantmentEntries()) {
+            String id = entry.getKey().getKey().get().getValue().toString();
+            if (id.equals(enchantmentId)) {
+                return baseValue;
+            }
+        }
+        return 0.0;
     }
 }

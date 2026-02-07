@@ -9,14 +9,5 @@
   "max_cost": { "base": 30, "per_level_above_first": 0 },
   "anvil_cost": 2,
   "slots": ["mainhand"],
-  "effects": {
-    "minecraft:attributes": [
-      {
-        "id": "minecraft:enchantment.crit_chance",
-        "attribute": "cranks-dungeons:crit_chance",
-        "amount": { "type": "minecraft:linear", "base": 0.1, "per_level_above_first": 0.0 },
-        "operation": "add_value"
-      }
-    ]
-  }
+  "effects": {}
 }

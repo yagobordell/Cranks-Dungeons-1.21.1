@@ -166,39 +166,66 @@ public abstract class InventoryScreenStatsMixin {
 
             ItemStack weapon = player.getMainHandStack();
             ItemStack chestplate = player.getEquippedStack(EquipmentSlot.CHEST);
+            ItemStack helmet = player.getEquippedStack(EquipmentSlot.HEAD);
+            ItemStack leggings = player.getEquippedStack(EquipmentSlot.LEGS);
+            ItemStack boots = player.getEquippedStack(EquipmentSlot.FEET);
 
-// Manual Attack Damage: Base + Weapon + Chestplate + Bonus
+            // Attack Damage with enchantments
             double baseAttackDamage = player.getAttributeBaseValue(EntityAttributes.ATTACK_DAMAGE);
             baseAttackDamage += getModifierFromStack(weapon, EntityAttributes.ATTACK_DAMAGE);
             baseAttackDamage += getModifierFromStack(chestplate, EntityAttributes.ATTACK_DAMAGE);
             baseAttackDamage += player.getAttributeValue(ModAttributes.BONUS_ATTACK_DAMAGE);
+            baseAttackDamage += getEnchantmentValue(weapon, "minecraft:attack_damage", 6.0);
+            baseAttackDamage += getEnchantmentValue(chestplate, "minecraft:attack_damage", 6.0);
 
-// Apply percentage multiplier
             double attackDamagePercentFromWeapon = EquipmentStatApplier.getItemStatValue(weapon, "attack_damage_percent");
             double attackDamagePercentFromChestplate = EquipmentStatApplier.getItemStatValue(chestplate, "attack_damage_percent");
             double totalAttackDamagePercent = attackDamagePercentFromWeapon + attackDamagePercentFromChestplate;
             double finalAtkDmg = baseAttackDamage * (1.0 + totalAttackDamagePercent);
 
             curY = drawStat(context, tr, panelX, curY, "Attack Damage", finalAtkDmg, "");
-            curY = drawStat(context, tr, panelX, curY, "Attack Speed", player.getAttributeValue(EntityAttributes.ATTACK_SPEED), "");
-            curY = drawStat(context, tr, panelX, curY, "Crit Chance", player.getAttributeValue(ModAttributes.CRIT_CHANCE) * 100, "%");
-            curY = drawStat(context, tr, panelX, curY, "Attack Range", player.getAttributeValue(ModAttributes.ATTACK_RANGE), " blocks");
-            curY = drawStat(context, tr, panelX, curY, "Knockback", player.getAttributeValue(ModAttributes.KNOCKBACK) * 100, "%");
+
+            // Attack Speed with enchantments
+            double attackSpeed = player.getAttributeValue(EntityAttributes.ATTACK_SPEED);
+            attackSpeed += getEnchantmentValue(weapon, "minecraft:attack_speed", 0.3);
+            attackSpeed += getEnchantmentValue(chestplate, "minecraft:attack_speed", 0.3);
+            curY = drawStat(context, tr, panelX, curY, "Attack Speed", attackSpeed, "");
+
+            // Crit Chance with enchantments
+            double critChance = player.getAttributeValue(ModAttributes.CRIT_CHANCE);
+            critChance += getEnchantmentValue(weapon, "minecraft:crit_chance", 0.15);
+            critChance += getEnchantmentValue(chestplate, "minecraft:crit_chance", 0.15);
+            critChance += getEnchantmentValue(helmet, "minecraft:crit_chance", 0.15);
+            critChance += getEnchantmentValue(leggings, "minecraft:crit_chance", 0.15);
+            critChance += getEnchantmentValue(boots, "minecraft:crit_chance", 0.15);
+            curY = drawStat(context, tr, panelX, curY, "Crit Chance", critChance * 100, "%");
+
+            // Attack Range with enchantments
+            double attackRange = player.getAttributeValue(ModAttributes.ATTACK_RANGE);
+            attackRange += getEnchantmentValue(weapon, "minecraft:attack_range", 1.0);
+            curY = drawStat(context, tr, panelX, curY, "Attack Range", attackRange, " blocks");
+
+            // Knockback with enchantments
+            double knockback = player.getAttributeValue(ModAttributes.KNOCKBACK);
+            knockback += getEnchantmentValue(weapon, "minecraft:bonus_knockback", 0.5);
+            knockback += getEnchantmentValue(chestplate, "minecraft:bonus_knockback", 0.5);
+            curY = drawStat(context, tr, panelX, curY, "Knockback", knockback * 100, "%");
             curY += 6;
 
             // --- CATEGORY 2: ELEMENTAL ---
             context.drawText(tr, Text.literal("✨ Elemental"), panelX + 8, curY, 0xFF404040, false);
             curY += 11;
-            curY = drawStat(context, tr, panelX, curY, "Burn Chance", player.getAttributeValue(ModAttributes.CHANCE_TO_BURN) * 100, "%");
 
-            // Calculate final elemental damage with percentage multipliers
-            weapon = player.getMainHandStack();
-            chestplate = player.getEquippedStack(EquipmentSlot.CHEST);
+            // Chance to Burn with enchantments
+            double chanceToBurn = player.getAttributeValue(ModAttributes.CHANCE_TO_BURN);
+            chanceToBurn += getEnchantmentValue(weapon, "minecraft:chance_to_burn", 0.25);
+            chanceToBurn += getEnchantmentValue(chestplate, "minecraft:chance_to_burn", 0.25);
+            curY = drawStat(context, tr, panelX, curY, "Burn Chance", chanceToBurn * 100, "%");
 
-            curY = drawStat(context, tr, panelX, curY, "Fire Damage", calculateFinalElementalDamage(player, weapon, chestplate, "fire_damage", "fire_damage_percent", ModAttributes.FIRE_DAMAGE), "");
-            curY = drawStat(context, tr, panelX, curY, "Cold Damage", calculateFinalElementalDamage(player, weapon, chestplate, "cold_damage", "cold_damage_percent", ModAttributes.COLD_DAMAGE), "");
-            curY = drawStat(context, tr, panelX, curY, "Lightning Damage", calculateFinalElementalDamage(player, weapon, chestplate, "lightning_damage", "lightning_damage_percent", ModAttributes.LIGHTNING_DAMAGE), "");
-            curY = drawStat(context, tr, panelX, curY, "Void Damage", calculateFinalElementalDamage(player, weapon, chestplate, "void_damage", "void_damage_percent", ModAttributes.VOID_DAMAGE), "");
+            curY = drawStat(context, tr, panelX, curY, "Fire Damage", calculateFinalElementalDamage(player, weapon, chestplate, "fire_damage_percent", ModAttributes.FIRE_DAMAGE, "minecraft:fire_damage"), "");
+            curY = drawStat(context, tr, panelX, curY, "Cold Damage", calculateFinalElementalDamage(player, weapon, chestplate, "cold_damage_percent", ModAttributes.COLD_DAMAGE, "minecraft:cold_damage"), "");
+            curY = drawStat(context, tr, panelX, curY, "Lightning Damage", calculateFinalElementalDamage(player, weapon, chestplate, "lightning_damage_percent", ModAttributes.LIGHTNING_DAMAGE, "minecraft:lightning_damage"), "");
+            curY = drawStat(context, tr, panelX, curY, "Void Damage", calculateFinalElementalDamage(player, weapon, chestplate, "void_damage_percent", ModAttributes.VOID_DAMAGE, "minecraft:void_damage"), "");
             curY += 6;
 
             // --- CATEGORY 3: SURVIVAL ---
@@ -207,7 +234,13 @@ public abstract class InventoryScreenStatsMixin {
             curY = drawStat(context, tr, panelX, curY, "Energy Shield", player.getAttributeValue(ModAttributes.ENERGY_SHIELD), "");
             curY = drawStat(context, tr, panelX, curY, "Max Health", player.getAttributeValue(EntityAttributes.MAX_HEALTH), " HP");
             curY = drawStat(context, tr, panelX, curY, "Regeneration", player.getAttributeValue(ModAttributes.LIFE_REGENERATION), " HP/s");
-            curY = drawStat(context, tr, panelX, curY, "Life Steal", player.getAttributeValue(ModAttributes.LIFE_STEAL) * 100, "%");
+
+            // Life Steal with enchantments
+            double lifeSteal = player.getAttributeValue(ModAttributes.LIFE_STEAL);
+            lifeSteal += getEnchantmentValue(weapon, "minecraft:life_steal", 0.08);
+            lifeSteal += getEnchantmentValue(chestplate, "minecraft:life_steal", 0.08);
+            curY = drawStat(context, tr, panelX, curY, "Life Steal", lifeSteal * 100, "%");
+
             curY = drawStat(context, tr, panelX, curY, "Evasion Rating", player.getAttributeValue(ModAttributes.EVASION_RATING), "");
             curY = drawStat(context, tr, panelX, curY, "Armor", player.getAttributeValue(EntityAttributes.ARMOR), "");
             curY = drawStat(context, tr, panelX, curY, "Toughness", player.getAttributeValue(EntityAttributes.ARMOR_TOUGHNESS), "");
@@ -235,12 +268,10 @@ public abstract class InventoryScreenStatsMixin {
             context.drawText(tr, Text.literal("⚒ Gathering:"), panelX + 8, curY, 0xFF555555, false);
             curY += 10;
             ItemStack tool = player.getMainHandStack();
-            // 1. Get the base reach (usually 3.0 or 4.5)
             double baseRange = player.getAttributeBaseValue(EntityAttributes.ENTITY_INTERACTION_RANGE);
-
             double weaponRangeBonus = EquipmentStatApplier.getItemStatValue(tool, "breaking_range");
-
             double totalRangeBonus = baseRange + weaponRangeBonus;
+
             curY = drawStat(context, tr, panelX, curY, "Gathering Speed", player.getAttributeValue(ModAttributes.MINING_EFFICIENCY) * 100, "%");
             curY = drawStat(context, tr, panelX, curY, "Ore Fortune", player.getAttributeValue(ModAttributes.FORTUNE) * 100, "%");
             curY = drawStat(context, tr, panelX, curY, "Crop Fortune", EquipmentStatApplier.getItemStatValue(tool, "crop_fortune") * 100, "%");
@@ -261,16 +292,29 @@ public abstract class InventoryScreenStatsMixin {
     }
 
     @Unique
+    private double getEnchantmentValue(ItemStack stack, String enchantmentId, double baseValue) {
+        var enchantments = stack.getEnchantments();
+        for (var entry : enchantments.getEnchantmentEntries()) {
+            String id = entry.getKey().getKey().get().getValue().toString();
+            if (id.equals(enchantmentId)) {
+                return baseValue;
+            }
+        }
+        return 0.0;
+    }
+
+    @Unique
     private double calculateFinalElementalDamage(
             net.minecraft.entity.player.PlayerEntity player,
             ItemStack weapon,
             ItemStack chestplate,
-            String damageStatName,
             String percentStatName,
-            net.minecraft.registry.entry.RegistryEntry<net.minecraft.entity.attribute.EntityAttribute> damageAttribute
+            net.minecraft.registry.entry.RegistryEntry<net.minecraft.entity.attribute.EntityAttribute> damageAttribute,
+            String enchantmentId
     ) {
-        // Just use the attribute value - it already includes weapon/chestplate stats!
+        // Get base damage from attribute + weapon enchantment
         double baseDamage = player.getAttributeValue(damageAttribute);
+        baseDamage += getEnchantmentValue(weapon, enchantmentId, 6.0);
 
         // Get percentage multipliers from items
         double percentFromWeapon = EquipmentStatApplier.getItemStatValue(weapon, percentStatName);
@@ -285,7 +329,6 @@ public abstract class InventoryScreenStatsMixin {
     private int drawStat(DrawContext context, TextRenderer tr, int x, int y, String name, double val, String suffix) {
         String valStr = String.format("%.1f", val);
         String text = name + ": " + valStr + suffix;
-        // Draw text once, clean and readable
         context.drawText(tr, Text.literal(text), x + 12, y, 0xFF404040, false);
         return y + 10;
     }
@@ -308,26 +351,20 @@ public abstract class InventoryScreenStatsMixin {
         int sbY = panelY + 18;
         int sbHeight = panelHeight - 36;
 
-        // Scrollbar track (darker gray like vanilla)
         context.fill(sbX, sbY, sbX + 6, sbY + sbHeight, 0xFF8B8B8B);
 
-        // Scrollbar thumb
         float scrollPercent = (float) scrollOffset / maxScrollOffset;
         int thumbHeight = Math.max(20, sbHeight / 4);
         int thumbY = sbY + (int) (scrollPercent * (sbHeight - thumbHeight));
 
-        // Thumb with vanilla 3D effect
         context.fill(sbX, thumbY, sbX + 6, thumbY + thumbHeight, 0xFFC6C6C6);
 
-        // Light border (top/left)
         context.fill(sbX, thumbY, sbX + 6, thumbY + 1, 0xFFFFFFFF);
         context.fill(sbX, thumbY, sbX + 1, thumbY + thumbHeight, 0xFFFFFFFF);
 
-        // Dark border (bottom/right)
         context.fill(sbX + 5, thumbY + 1, sbX + 6, thumbY + thumbHeight, 0xFF555555);
         context.fill(sbX + 1, thumbY + thumbHeight - 1, sbX + 6, thumbY + thumbHeight, 0xFF555555);
 
-        // Handle dragging
         if (leftClick) {
             if (!draggingScrollbar && mouseX >= sbX && mouseX <= sbX + 6 && mouseY >= sbY && mouseY <= sbY + sbHeight) {
                 draggingScrollbar = true;

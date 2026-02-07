@@ -181,12 +181,6 @@ public abstract class ItemStackTooltipMixin {
             if (enchantId.equals("minecraft:bonus_armor_toughness")) {
                 attributeTotals.merge(EntityAttributes.ARMOR_TOUGHNESS, 2.0, Double::sum);
             }
-            if (enchantId.equals("minecraft:attack_damage")) {
-                attributeTotals.merge(EntityAttributes.ATTACK_DAMAGE, 6.0, Double::sum);
-            }
-            if (enchantId.equals("minecraft:attack_speed")) {
-                attributeTotals.merge(EntityAttributes.ATTACK_SPEED, 0.3, Double::sum);
-            }
         }
 
         DecimalFormat df = new DecimalFormat("#.##");
@@ -201,9 +195,11 @@ public abstract class ItemStackTooltipMixin {
                 tooltip.add(Text.literal("Armor Toughness: " + df.format(attributeTotals.get(EntityAttributes.ARMOR_TOUGHNESS))).formatted(Formatting.WHITE));
             }
         } else {
-            // Calculate attack damage with percentage multiplier
             if (attributeTotals.containsKey(EntityAttributes.ATTACK_DAMAGE)) {
                 double baseAttackDamage = PLAYER_BASE_ATTACK_DAMAGE + attributeTotals.get(EntityAttributes.ATTACK_DAMAGE);
+
+                // Add attack damage from enchantments
+                baseAttackDamage += getEnchantmentValue(stack, "minecraft:attack_damage", 6.0);
 
                 // Get attack damage percentage from this weapon's stats
                 double attackDamagePercent = EquipmentStatApplier.getItemStatValue(stack, "attack_damage_percent");
@@ -214,7 +210,9 @@ public abstract class ItemStackTooltipMixin {
                 tooltip.add(Text.literal("Attack Damage: " + df.format(finalAttackDamage)).formatted(Formatting.WHITE));
             }
             if (attributeTotals.containsKey(EntityAttributes.ATTACK_SPEED)) {
-                tooltip.add(Text.literal("Attack Speed: " + df.format(PLAYER_BASE_ATTACK_SPEED + attributeTotals.get(EntityAttributes.ATTACK_SPEED))).formatted(Formatting.WHITE));
+                double attackSpeed = PLAYER_BASE_ATTACK_SPEED + attributeTotals.get(EntityAttributes.ATTACK_SPEED);
+                attackSpeed += getEnchantmentValue(stack, "minecraft:attack_speed", 0.3);
+                tooltip.add(Text.literal("Attack Speed: " + df.format(attackSpeed)).formatted(Formatting.WHITE));
             }
         }
 
@@ -278,5 +276,16 @@ public abstract class ItemStackTooltipMixin {
                 .append(Text.literal(" "))
                 .append(Text.literal("[ " + rarity.getName() + " ]")
                         .formatted(rarity.getColor(), Formatting.BOLD));
+    }
+
+    private double getEnchantmentValue(ItemStack stack, String enchantmentId, double baseValue) {
+        var enchantments = stack.getEnchantments();
+        for (var entry : enchantments.getEnchantmentEntries()) {
+            String id = entry.getKey().getKey().get().getValue().toString();
+            if (id.equals(enchantmentId)) {
+                return baseValue;
+            }
+        }
+        return 0.0;
     }
 }

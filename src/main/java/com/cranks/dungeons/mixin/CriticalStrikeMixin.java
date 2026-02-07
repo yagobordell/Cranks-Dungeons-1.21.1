@@ -10,7 +10,6 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.Formatting;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -34,6 +33,9 @@ public abstract class CriticalStrikeMixin {
             LivingEntity target = (LivingEntity) (Object) this;
             ItemStack weapon = attacker.getMainHandStack();
             ItemStack chest = attacker.getEquippedStack(EquipmentSlot.CHEST);
+            ItemStack helmet = attacker.getEquippedStack(EquipmentSlot.HEAD);
+            ItemStack leggings = attacker.getEquippedStack(EquipmentSlot.LEGS);
+            ItemStack boots = attacker.getEquippedStack(EquipmentSlot.FEET);
 
             float fire = getModifiedElement(weapon, chest, "fire_damage", target, ModAttributes.FIRE_RESISTANCE);
             float cold = getModifiedElement(weapon, chest, "cold_damage", target, ModAttributes.COLD_RESISTANCE);
@@ -44,8 +46,14 @@ public abstract class CriticalStrikeMixin {
 
             float combinedBase = amount + totalElemental;
 
+            // Crit Chance with enchantments from all armor pieces
             double critChance = attacker.getAttributeValue(ModAttributes.CRIT_CHANCE);
             critChance += EquipmentStatApplier.getItemStatValue(weapon, "crit_chance");
+            critChance += getEnchantmentValue(weapon, "minecraft:crit_chance", 0.15);
+            critChance += getEnchantmentValue(chest, "minecraft:crit_chance", 0.15);
+            critChance += getEnchantmentValue(helmet, "minecraft:crit_chance", 0.15);
+            critChance += getEnchantmentValue(leggings, "minecraft:crit_chance", 0.15);
+            critChance += getEnchantmentValue(boots, "minecraft:crit_chance", 0.15);
 
             float finalAmount = combinedBase;
             boolean isCrit = false;
@@ -80,6 +88,18 @@ public abstract class CriticalStrikeMixin {
         if (dmg <= 0) return 0;
         double res = target.getAttributeValue(resAttr);
         return (float) (dmg * (1.0 - res));
+    }
+
+    @Unique
+    private double getEnchantmentValue(ItemStack stack, String enchantmentId, double baseValue) {
+        var enchantments = stack.getEnchantments();
+        for (var entry : enchantments.getEnchantmentEntries()) {
+            String id = entry.getKey().getKey().get().getValue().toString();
+            if (id.equals(enchantmentId)) {
+                return baseValue;
+            }
+        }
+        return 0.0;
     }
 
     @Unique
