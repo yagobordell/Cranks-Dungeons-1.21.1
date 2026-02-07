@@ -1,5 +1,6 @@
 package com.cranks.dungeons.mixin;
 
+import com.cranks.dungeons.equipment.EquipmentStatApplier;
 import com.cranks.dungeons.equipment.EquipmentType;
 import com.cranks.dungeons.equipment.ItemStatManager;
 import com.cranks.dungeons.item.CustomRarity;
@@ -200,8 +201,17 @@ public abstract class ItemStackTooltipMixin {
                 tooltip.add(Text.literal("Armor Toughness: " + df.format(attributeTotals.get(EntityAttributes.ARMOR_TOUGHNESS))).formatted(Formatting.WHITE));
             }
         } else {
+            // Calculate attack damage with percentage multiplier
             if (attributeTotals.containsKey(EntityAttributes.ATTACK_DAMAGE)) {
-                tooltip.add(Text.literal("Attack Damage: " + df.format(PLAYER_BASE_ATTACK_DAMAGE + attributeTotals.get(EntityAttributes.ATTACK_DAMAGE))).formatted(Formatting.WHITE));
+                double baseAttackDamage = PLAYER_BASE_ATTACK_DAMAGE + attributeTotals.get(EntityAttributes.ATTACK_DAMAGE);
+
+                // Get attack damage percentage from this weapon's stats
+                double attackDamagePercent = EquipmentStatApplier.getItemStatValue(stack, "attack_damage_percent");
+
+                // Apply percentage multiplier
+                double finalAttackDamage = baseAttackDamage * (1.0 + attackDamagePercent);
+
+                tooltip.add(Text.literal("Attack Damage: " + df.format(finalAttackDamage)).formatted(Formatting.WHITE));
             }
             if (attributeTotals.containsKey(EntityAttributes.ATTACK_SPEED)) {
                 tooltip.add(Text.literal("Attack Speed: " + df.format(PLAYER_BASE_ATTACK_SPEED + attributeTotals.get(EntityAttributes.ATTACK_SPEED))).formatted(Formatting.WHITE));

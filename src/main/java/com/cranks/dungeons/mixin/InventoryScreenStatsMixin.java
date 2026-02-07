@@ -164,11 +164,20 @@ public abstract class InventoryScreenStatsMixin {
             context.drawText(tr, Text.literal("⚔ Combat"), panelX + 8, curY, 0xFF404040, false);
             curY += 11;
 
-            // Manual Attack Damage: Base + Weapon + Chestplate
-            double finalAtkDmg = player.getAttributeBaseValue(EntityAttributes.ATTACK_DAMAGE);
-            finalAtkDmg += getModifierFromStack(player.getMainHandStack(), EntityAttributes.ATTACK_DAMAGE);
-            finalAtkDmg += getModifierFromStack(player.getEquippedStack(EquipmentSlot.CHEST), EntityAttributes.ATTACK_DAMAGE);
-            finalAtkDmg += player.getAttributeValue(ModAttributes.BONUS_ATTACK_DAMAGE);
+            ItemStack weapon = player.getMainHandStack();
+            ItemStack chestplate = player.getEquippedStack(EquipmentSlot.CHEST);
+
+// Manual Attack Damage: Base + Weapon + Chestplate + Bonus
+            double baseAttackDamage = player.getAttributeBaseValue(EntityAttributes.ATTACK_DAMAGE);
+            baseAttackDamage += getModifierFromStack(weapon, EntityAttributes.ATTACK_DAMAGE);
+            baseAttackDamage += getModifierFromStack(chestplate, EntityAttributes.ATTACK_DAMAGE);
+            baseAttackDamage += player.getAttributeValue(ModAttributes.BONUS_ATTACK_DAMAGE);
+
+// Apply percentage multiplier
+            double attackDamagePercentFromWeapon = EquipmentStatApplier.getItemStatValue(weapon, "attack_damage_percent");
+            double attackDamagePercentFromChestplate = EquipmentStatApplier.getItemStatValue(chestplate, "attack_damage_percent");
+            double totalAttackDamagePercent = attackDamagePercentFromWeapon + attackDamagePercentFromChestplate;
+            double finalAtkDmg = baseAttackDamage * (1.0 + totalAttackDamagePercent);
 
             curY = drawStat(context, tr, panelX, curY, "Attack Damage", finalAtkDmg, "");
             curY = drawStat(context, tr, panelX, curY, "Attack Speed", player.getAttributeValue(EntityAttributes.ATTACK_SPEED), "");
@@ -181,10 +190,15 @@ public abstract class InventoryScreenStatsMixin {
             context.drawText(tr, Text.literal("✨ Elemental"), panelX + 8, curY, 0xFF404040, false);
             curY += 11;
             curY = drawStat(context, tr, panelX, curY, "Burn Chance", player.getAttributeValue(ModAttributes.CHANCE_TO_BURN) * 100, "%");
-            curY = drawStat(context, tr, panelX, curY, "Fire Damage", player.getAttributeValue(ModAttributes.FIRE_DAMAGE), "");
-            curY = drawStat(context, tr, panelX, curY, "Cold Damage", player.getAttributeValue(ModAttributes.COLD_DAMAGE), "");
-            curY = drawStat(context, tr, panelX, curY, "Lightning Damage", player.getAttributeValue(ModAttributes.LIGHTNING_DAMAGE), "");
-            curY = drawStat(context, tr, panelX, curY, "Void Damage", player.getAttributeValue(ModAttributes.VOID_DAMAGE), "");
+
+            // Calculate final elemental damage with percentage multipliers
+            weapon = player.getMainHandStack();
+            chestplate = player.getEquippedStack(EquipmentSlot.CHEST);
+
+            curY = drawStat(context, tr, panelX, curY, "Fire Damage", calculateFinalElementalDamage(player, weapon, chestplate, "fire_damage", "fire_damage_percent", ModAttributes.FIRE_DAMAGE), "");
+            curY = drawStat(context, tr, panelX, curY, "Cold Damage", calculateFinalElementalDamage(player, weapon, chestplate, "cold_damage", "cold_damage_percent", ModAttributes.COLD_DAMAGE), "");
+            curY = drawStat(context, tr, panelX, curY, "Lightning Damage", calculateFinalElementalDamage(player, weapon, chestplate, "lightning_damage", "lightning_damage_percent", ModAttributes.LIGHTNING_DAMAGE), "");
+            curY = drawStat(context, tr, panelX, curY, "Void Damage", calculateFinalElementalDamage(player, weapon, chestplate, "void_damage", "void_damage_percent", ModAttributes.VOID_DAMAGE), "");
             curY += 6;
 
             // --- CATEGORY 3: SURVIVAL ---
@@ -244,6 +258,27 @@ public abstract class InventoryScreenStatsMixin {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    @Unique
+    private double calculateFinalElementalDamage(
+            net.minecraft.entity.player.PlayerEntity player,
+            ItemStack weapon,
+            ItemStack chestplate,
+            String damageStatName,
+            String percentStatName,
+            net.minecraft.registry.entry.RegistryEntry<net.minecraft.entity.attribute.EntityAttribute> damageAttribute
+    ) {
+        // Just use the attribute value - it already includes weapon/chestplate stats!
+        double baseDamage = player.getAttributeValue(damageAttribute);
+
+        // Get percentage multipliers from items
+        double percentFromWeapon = EquipmentStatApplier.getItemStatValue(weapon, percentStatName);
+        double percentFromChestplate = EquipmentStatApplier.getItemStatValue(chestplate, percentStatName);
+        double totalPercent = percentFromWeapon + percentFromChestplate;
+
+        // Apply percentage to base damage
+        return baseDamage * (1.0 + totalPercent);
     }
 
     @Unique

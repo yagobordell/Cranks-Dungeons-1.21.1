@@ -5,8 +5,6 @@
     "#minecraft:enchantable/crossbow",
     "#minecraft:enchantable/trident",
     "#minecraft:enchantable/mace",
-    "#minecraft:enchantable/chest_armor",
-    "#minecraft:head_armor",
     "#minecraft:spears"
   ]
 }

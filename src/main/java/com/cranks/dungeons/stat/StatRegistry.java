@@ -836,6 +836,18 @@ public class StatRegistry {
         ));
 
         register(new CustomStat(
+                "sword_attack_damage_percent",
+                "Increased Attack Damage",
+                EquipmentType.SWORD,
+                ModAttributes.ATTACK_DAMAGE_PERCENT,
+                new double[]{0.05, 0.10, 0.15, 0.22, 0.30},
+                new double[]{0.08, 0.15, 0.22, 0.30, 0.45},
+                true,
+                true,
+                Formatting.WHITE
+        ));
+
+        register(new CustomStat(
                 "sword_attack_speed",
                 "Attack Speed",
                 EquipmentType.SWORD,
@@ -879,6 +891,18 @@ public class StatRegistry {
                 new double[]{0.5, 1.5, 3.0, 5.0, 8.0},
                 new double[]{1.0, 3.0, 5.5, 9.0, 14.0},
                 false,
+                Formatting.RED
+        ));
+
+        register(new CustomStat(
+                "sword_fire_damage_percent",
+                "Increased Fire Damage",
+                EquipmentType.SWORD,
+                ModAttributes.FIRE_DAMAGE_PERCENT,
+                new double[]{0.05, 0.10, 0.15, 0.22, 0.30},
+                new double[]{0.08, 0.15, 0.22, 0.30, 0.45},
+                true,
+                true,
                 Formatting.RED
         ));
 

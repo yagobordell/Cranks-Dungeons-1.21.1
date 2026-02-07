@@ -33,8 +33,9 @@ public abstract class EnergyShieldRenderMixin {
         if (maxShield <= 0) { shieldRowCount = 0; return; }
 
         int maxHealthHearts = (int) Math.ceil(maxHealth / 2.0f);
+        int absorptionHearts = (int) Math.ceil(absorption / 2.0f); // Add absorption hearts count
         int totalShieldHearts = (int) Math.ceil(maxShield / 2.0);
-        int totalHearts = maxHealthHearts + totalShieldHearts;
+        int totalHearts = maxHealthHearts + absorptionHearts + totalShieldHearts; // Include absorption
         int totalRows = (int) Math.ceil(totalHearts / 10.0);
         shieldRowCount = totalRows - lines;
     }
@@ -53,9 +54,11 @@ public abstract class EnergyShieldRenderMixin {
         int fullShieldHearts = (int) (currentShield / 2.0);
         boolean hasHalfShield = (currentShield % 2.0f) >= 1.0f;
         int maxHealthHearts = (int) Math.ceil(maxHealth / 2.0f);
+        int absorptionHearts = (int) Math.ceil(absorption / 2.0f); // Calculate absorption hearts
 
         for (int i = 0; i < totalShieldHearts; i++) {
-            int heartIndex = maxHealthHearts + i;
+            // Shield hearts start after health hearts AND absorption hearts
+            int heartIndex = maxHealthHearts + absorptionHearts + i;
             int row = heartIndex / 10;
             int col = heartIndex % 10;
             int heartX = x + col * 8;

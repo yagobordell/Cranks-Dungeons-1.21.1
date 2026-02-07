@@ -51,29 +51,44 @@ public abstract class ElementalDamageMixin {
         try {
             cranks$processingElementalDamage.set(true);
 
-            // Get elemental damage from WEAPON (stats)
-            double fireDamageFromWeapon = EquipmentStatApplier.getItemStatValue(weapon, "fire_damage");
-            double coldDamageFromWeapon = EquipmentStatApplier.getItemStatValue(weapon, "cold_damage");
-            double lightningDamageFromWeapon = EquipmentStatApplier.getItemStatValue(weapon, "lightning_damage");
-            double voidDamageFromWeapon = EquipmentStatApplier.getItemStatValue(weapon, "void_damage");
+            // === FIRE DAMAGE ===
+            // Get base damage from attribute (already includes weapon/chestplate/enchants)
+            double fireBaseDamage = attacker.getAttributeValue(ModAttributes.FIRE_DAMAGE);
 
-            // Get elemental damage from CHESTPLATE (stats)
-            double fireDamageFromChestplate = EquipmentStatApplier.getItemStatValue(chestplate, "fire_damage");
-            double coldDamageFromChestplate = EquipmentStatApplier.getItemStatValue(chestplate, "cold_damage");
-            double lightningDamageFromChestplate = EquipmentStatApplier.getItemStatValue(chestplate, "lightning_damage");
-            double voidDamageFromChestplate = EquipmentStatApplier.getItemStatValue(chestplate, "void_damage");
+            // Get percentage multipliers from items
+            double firePercentFromWeapon = EquipmentStatApplier.getItemStatValue(weapon, "fire_damage_percent");
+            double firePercentFromChestplate = EquipmentStatApplier.getItemStatValue(chestplate, "fire_damage_percent");
+            double fireTotalPercent = firePercentFromWeapon + firePercentFromChestplate;
 
-            // ADD: Get elemental damage from ENCHANTMENTS (attributes on player)
-            double fireDamageFromEnchants = attacker.getAttributeValue(ModAttributes.FIRE_DAMAGE);
-            double coldDamageFromEnchants = attacker.getAttributeValue(ModAttributes.COLD_DAMAGE);
-            double lightningDamageFromEnchants = attacker.getAttributeValue(ModAttributes.LIGHTNING_DAMAGE);
-            double voidDamageFromEnchants = attacker.getAttributeValue(ModAttributes.VOID_DAMAGE);
+            // Apply percentage to base damage
+            double fireDamage = fireBaseDamage * (1.0 + fireTotalPercent);
 
-            // Combine all sources
-            double fireDamage = fireDamageFromWeapon + fireDamageFromChestplate + fireDamageFromEnchants;
-            double coldDamage = coldDamageFromWeapon + coldDamageFromChestplate + coldDamageFromEnchants;
-            double lightningDamage = lightningDamageFromWeapon + lightningDamageFromChestplate + lightningDamageFromEnchants;
-            double voidDamage = voidDamageFromWeapon + voidDamageFromChestplate + voidDamageFromEnchants;
+            // === COLD DAMAGE ===
+            double coldBaseDamage = attacker.getAttributeValue(ModAttributes.COLD_DAMAGE);
+
+            double coldPercentFromWeapon = EquipmentStatApplier.getItemStatValue(weapon, "cold_damage_percent");
+            double coldPercentFromChestplate = EquipmentStatApplier.getItemStatValue(chestplate, "cold_damage_percent");
+            double coldTotalPercent = coldPercentFromWeapon + coldPercentFromChestplate;
+
+            double coldDamage = coldBaseDamage * (1.0 + coldTotalPercent);
+
+            // === LIGHTNING DAMAGE ===
+            double lightningBaseDamage = attacker.getAttributeValue(ModAttributes.LIGHTNING_DAMAGE);
+
+            double lightningPercentFromWeapon = EquipmentStatApplier.getItemStatValue(weapon, "lightning_damage_percent");
+            double lightningPercentFromChestplate = EquipmentStatApplier.getItemStatValue(chestplate, "lightning_damage_percent");
+            double lightningTotalPercent = lightningPercentFromWeapon + lightningPercentFromChestplate;
+
+            double lightningDamage = lightningBaseDamage * (1.0 + lightningTotalPercent);
+
+            // === VOID DAMAGE ===
+            double voidBaseDamage = attacker.getAttributeValue(ModAttributes.VOID_DAMAGE);
+
+            double voidPercentFromWeapon = EquipmentStatApplier.getItemStatValue(weapon, "void_damage_percent");
+            double voidPercentFromChestplate = EquipmentStatApplier.getItemStatValue(chestplate, "void_damage_percent");
+            double voidTotalPercent = voidPercentFromWeapon + voidPercentFromChestplate;
+
+            double voidDamage = voidBaseDamage * (1.0 + voidTotalPercent);
 
             double totalElementalDamage = 0;
 
