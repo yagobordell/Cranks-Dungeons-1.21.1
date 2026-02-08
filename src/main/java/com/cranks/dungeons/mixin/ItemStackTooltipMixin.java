@@ -4,8 +4,10 @@ import com.cranks.dungeons.equipment.EquipmentStatApplier;
 import com.cranks.dungeons.equipment.EquipmentType;
 import com.cranks.dungeons.equipment.ItemStatManager;
 import com.cranks.dungeons.item.CustomRarity;
+import com.cranks.dungeons.registry.ModAttributes;
 import com.cranks.dungeons.stat.CustomStat;
 import com.cranks.dungeons.stat.StatRegistry;
+import com.cranks.dungeons.util.ArmorSetType;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.AttributeModifiersComponent;
 import net.minecraft.entity.attribute.EntityAttribute;
@@ -17,6 +19,7 @@ import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
@@ -53,7 +56,6 @@ public abstract class ItemStackTooltipMixin {
         } else {
             handleNormalTooltip(tooltip, stack, equipType.orElse(null));
         }
-
 
         cir.getReturnValue().removeIf(text -> {
             String raw = text.getString().toLowerCase().trim();
@@ -171,8 +173,6 @@ public abstract class ItemStackTooltipMixin {
 
         var enchantments = stack.getEnchantments();
         for (var enchEntry : enchantments.getEnchantmentEntries()) {
-            var enchantment = enchEntry.getKey().value();
-
             String enchantId = enchEntry.getKey().getKey().get().getValue().toString();
 
             if (enchantId.equals("minecraft:bonus_armor")) {
@@ -184,17 +184,159 @@ public abstract class ItemStackTooltipMixin {
         }
 
         DecimalFormat df = new DecimalFormat("#.##");
+        DecimalFormat percentFormat = new DecimalFormat("#.#");
         boolean isArmor = type == EquipmentType.HELMET || type == EquipmentType.CHESTPLATE ||
                 type == EquipmentType.LEGGINGS || type == EquipmentType.BOOTS || type == EquipmentType.ELYTRA;
 
         if (isArmor) {
-            if (attributeTotals.containsKey(EntityAttributes.ARMOR)) {
-                tooltip.add(Text.literal("Armor: " + df.format(attributeTotals.get(EntityAttributes.ARMOR))).formatted(Formatting.WHITE));
-            }
-            if (attributeTotals.containsKey(EntityAttributes.ARMOR_TOUGHNESS)) {
-                tooltip.add(Text.literal("Armor Toughness: " + df.format(attributeTotals.get(EntityAttributes.ARMOR_TOUGHNESS))).formatted(Formatting.WHITE));
+            String itemName = stack.getItem().toString().toLowerCase();
+            ArmorSetType armorType = getArmorSetType(itemName);
+
+            switch (armorType) {
+                case LEATHER:
+                    // Evasion Rating + Movement Speed
+                    if (attributeTotals.containsKey(ModAttributes.EVASION_RATING)) {
+                        tooltip.add(Text.literal("Evasion Rating: " + df.format(attributeTotals.get(ModAttributes.EVASION_RATING)))
+                                .formatted(Formatting.WHITE));
+                    }
+                    if (attributeTotals.containsKey(ModAttributes.MOVEMENT_SPEED)) {
+                        double moveSpeed = attributeTotals.get(ModAttributes.MOVEMENT_SPEED) * 100;
+                        tooltip.add(Text.literal("Movement Speed: +" + df.format(moveSpeed) + "%")
+                                .formatted(Formatting.WHITE));
+                    }
+                    break;
+
+                case GOLD:
+                    // Energy Shield + Luck
+                    if (attributeTotals.containsKey(ModAttributes.ENERGY_SHIELD)) {
+                        tooltip.add(Text.literal("Energy Shield: " + df.format(attributeTotals.get(ModAttributes.ENERGY_SHIELD)))
+                                .formatted(Formatting.WHITE));
+                    }
+                    if (attributeTotals.containsKey(ModAttributes.LUCK)) {
+                        tooltip.add(Text.literal("Luck: " + df.format(attributeTotals.get(ModAttributes.LUCK)))
+                                .formatted(Formatting.WHITE));
+                    }
+                    break;
+
+                case CHAINMAIL:
+                    // Evasion Rating + Energy Shield + Attack Speed
+                    if (attributeTotals.containsKey(ModAttributes.EVASION_RATING)) {
+                        tooltip.add(Text.literal("Evasion Rating: " + df.format(attributeTotals.get(ModAttributes.EVASION_RATING)))
+                                .formatted(Formatting.WHITE));
+                    }
+                    if (attributeTotals.containsKey(ModAttributes.ENERGY_SHIELD)) {
+                        tooltip.add(Text.literal("Energy Shield: " + df.format(attributeTotals.get(ModAttributes.ENERGY_SHIELD)))
+                                .formatted(Formatting.WHITE));
+                    }
+                    if (attributeTotals.containsKey(EntityAttributes.ATTACK_SPEED)) {
+                        tooltip.add(Text.literal("Attack Speed: +" + df.format(attributeTotals.get(EntityAttributes.ATTACK_SPEED) * 100) + "%")
+                                .formatted(Formatting.WHITE));
+                    }
+                    break;
+
+                case COPPER:
+                    // Armor + Elemental Resistances
+                    if (attributeTotals.containsKey(EntityAttributes.ARMOR)) {
+                        tooltip.add(Text.literal("Armor: " + df.format(attributeTotals.get(EntityAttributes.ARMOR)))
+                                .formatted(Formatting.WHITE));
+                    }
+                    if (attributeTotals.containsKey(ModAttributes.FIRE_RESISTANCE)) {
+                        double resistance = attributeTotals.get(ModAttributes.FIRE_RESISTANCE) * 100;
+                        tooltip.add(Text.literal("Fire Resistance: " + df.format(resistance) + "%")
+                                .formatted(Formatting.WHITE));
+                    }
+
+                    if (attributeTotals.containsKey(ModAttributes.COLD_RESISTANCE)) {
+                        double resistance = attributeTotals.get(ModAttributes.COLD_RESISTANCE) * 100;
+                        tooltip.add(Text.literal("Cold Resistance: " + df.format(resistance) + "%")
+                                .formatted(Formatting.WHITE));
+                    }
+
+                    if (attributeTotals.containsKey(ModAttributes.LIGHTNING_RESISTANCE)) {
+                        double resistance = attributeTotals.get(ModAttributes.LIGHTNING_RESISTANCE) * 100;
+                        tooltip.add(Text.literal("Lightning Resistance: " + df.format(resistance) + "%")
+                                .formatted(Formatting.WHITE));
+                    }
+
+                    if (attributeTotals.containsKey(ModAttributes.VOID_RESISTANCE)) {
+                        double resistance = attributeTotals.get(ModAttributes.VOID_RESISTANCE) * 100;
+                        tooltip.add(Text.literal("Void Resistance: " + df.format(resistance) + "%")
+                                .formatted(Formatting.WHITE));
+                    }
+
+                    break;
+
+                case IRON:
+                    // Armor + Armor Toughness + Knockback Resistance
+                    if (attributeTotals.containsKey(EntityAttributes.ARMOR)) {
+                        tooltip.add(Text.literal("Armor: " + df.format(attributeTotals.get(EntityAttributes.ARMOR)))
+                                .formatted(Formatting.WHITE));
+                    }
+                    if (attributeTotals.containsKey(EntityAttributes.ARMOR_TOUGHNESS)) {
+                        tooltip.add(Text.literal("Armor Toughness: " + df.format(attributeTotals.get(EntityAttributes.ARMOR_TOUGHNESS)))
+                                .formatted(Formatting.WHITE));
+                    }
+                    if (attributeTotals.containsKey(ModAttributes.KNOCKBACK_RESISTANCE)) {
+                        double kbRes = attributeTotals.get(ModAttributes.KNOCKBACK_RESISTANCE) * 100;
+                        tooltip.add(Text.literal("Knockback Resistance: " + df.format(kbRes) + "%")
+                                .formatted(Formatting.WHITE));
+                    }
+                    break;
+
+                case DIAMOND:
+                    // Armor + Armor Toughness + HP + HP Regen
+                    if (attributeTotals.containsKey(EntityAttributes.ARMOR)) {
+                        tooltip.add(Text.literal("Armor: " + df.format(attributeTotals.get(EntityAttributes.ARMOR)))
+                                .formatted(Formatting.WHITE));
+                    }
+                    if (attributeTotals.containsKey(EntityAttributes.ARMOR_TOUGHNESS)) {
+                        tooltip.add(Text.literal("Armor Toughness: " + df.format(attributeTotals.get(EntityAttributes.ARMOR_TOUGHNESS)))
+                                .formatted(Formatting.WHITE));
+                    }
+                    if (attributeTotals.containsKey(EntityAttributes.MAX_HEALTH)) {
+                        tooltip.add(Text.literal("Max Health: +" + df.format(attributeTotals.get(EntityAttributes.MAX_HEALTH)))
+                                .formatted(Formatting.WHITE));
+                    }
+                    if (attributeTotals.containsKey(ModAttributes.LIFE_REGENERATION)) {
+                        tooltip.add(Text.literal("HP Regen: +" + df.format(attributeTotals.get(ModAttributes.LIFE_REGENERATION)))
+                                .formatted(Formatting.WHITE));
+                    }
+                    break;
+
+                case NETHERITE:
+                    // Armor + Armor Toughness + Attack Damage
+                    if (attributeTotals.containsKey(EntityAttributes.ARMOR)) {
+                        tooltip.add(Text.literal("Armor: " + df.format(attributeTotals.get(EntityAttributes.ARMOR)))
+                                .formatted(Formatting.WHITE));
+                    }
+                    if (attributeTotals.containsKey(EntityAttributes.ARMOR_TOUGHNESS)) {
+                        tooltip.add(Text.literal("Armor Toughness: " + df.format(attributeTotals.get(EntityAttributes.ARMOR_TOUGHNESS)))
+                                .formatted(Formatting.WHITE));
+                    }
+                    if (attributeTotals.containsKey(ModAttributes.BONUS_ATTACK_DAMAGE)) {
+                        double attack = attributeTotals.get(ModAttributes.BONUS_ATTACK_DAMAGE);
+                        if (attributeTotals.containsKey(EntityAttributes.ATTACK_DAMAGE)) {
+                            attack += attributeTotals.get(EntityAttributes.ATTACK_DAMAGE);
+                        }
+                        tooltip.add(Text.literal("Attack Damage: +" + df.format(attack))
+                                .formatted(Formatting.WHITE));
+                    }
+                    break;
+
+                case NONE:
+                    // Default fallback
+                    if (attributeTotals.containsKey(EntityAttributes.ARMOR)) {
+                        tooltip.add(Text.literal("Armor: " + df.format(attributeTotals.get(EntityAttributes.ARMOR)))
+                                .formatted(Formatting.WHITE));
+                    }
+                    if (attributeTotals.containsKey(EntityAttributes.ARMOR_TOUGHNESS)) {
+                        tooltip.add(Text.literal("Armor Toughness: " + df.format(attributeTotals.get(EntityAttributes.ARMOR_TOUGHNESS)))
+                                .formatted(Formatting.WHITE));
+                    }
+                    break;
             }
         } else {
+            // Weapon stats
             if (attributeTotals.containsKey(EntityAttributes.ATTACK_DAMAGE)) {
                 double baseAttackDamage = PLAYER_BASE_ATTACK_DAMAGE + attributeTotals.get(EntityAttributes.ATTACK_DAMAGE);
 
@@ -212,7 +354,14 @@ public abstract class ItemStackTooltipMixin {
             if (attributeTotals.containsKey(EntityAttributes.ATTACK_SPEED)) {
                 double attackSpeed = PLAYER_BASE_ATTACK_SPEED + attributeTotals.get(EntityAttributes.ATTACK_SPEED);
                 attackSpeed += getEnchantmentValue(stack, "minecraft:attack_speed", 0.3);
-                tooltip.add(Text.literal("Attack Speed: " + df.format(attackSpeed)).formatted(Formatting.WHITE));
+
+                // Get attack speed percentage from runes
+                double attackSpeedPercent = EquipmentStatApplier.getItemStatValue(stack, "attack_speed_percent");
+
+                // Apply percentage multiplier
+                double finalAttackSpeed = attackSpeed * (1.0 + attackSpeedPercent);
+
+                tooltip.add(Text.literal("Attack Speed: " + df.format(finalAttackSpeed)).formatted(Formatting.WHITE));
             }
         }
 
@@ -250,6 +399,18 @@ public abstract class ItemStackTooltipMixin {
                 }
             }
         }
+    }
+
+    @Unique
+    private ArmorSetType getArmorSetType(String itemName) {
+        if (itemName.contains("leather")) return ArmorSetType.LEATHER;
+        if (itemName.contains("golden")) return ArmorSetType.GOLD;
+        if (itemName.contains("chainmail")) return ArmorSetType.CHAINMAIL;
+        if (itemName.contains("copper")) return ArmorSetType.COPPER;
+        if (itemName.contains("iron")) return ArmorSetType.IRON;
+        if (itemName.contains("diamond")) return ArmorSetType.DIAMOND;
+        if (itemName.contains("netherite")) return ArmorSetType.NETHERITE;
+        return ArmorSetType.NONE;
     }
 
     private Text createRunicStatLine(CustomStat stat, double value, int tier) {

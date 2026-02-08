@@ -170,10 +170,13 @@ public abstract class InventoryScreenStatsMixin {
             ItemStack leggings = player.getEquippedStack(EquipmentSlot.LEGS);
             ItemStack boots = player.getEquippedStack(EquipmentSlot.FEET);
 
-            // Attack Damage with enchantments
+            // Attack Damage with enchantments (including from all armor pieces - netherite gives attack damage!)
             double baseAttackDamage = player.getAttributeBaseValue(EntityAttributes.ATTACK_DAMAGE);
             baseAttackDamage += getModifierFromStack(weapon, EntityAttributes.ATTACK_DAMAGE);
             baseAttackDamage += getModifierFromStack(chestplate, EntityAttributes.ATTACK_DAMAGE);
+            baseAttackDamage += getModifierFromStack(helmet, EntityAttributes.ATTACK_DAMAGE);
+            baseAttackDamage += getModifierFromStack(leggings, EntityAttributes.ATTACK_DAMAGE);
+            baseAttackDamage += getModifierFromStack(boots, EntityAttributes.ATTACK_DAMAGE);
             baseAttackDamage += player.getAttributeValue(ModAttributes.BONUS_ATTACK_DAMAGE);
             baseAttackDamage += getEnchantmentValue(weapon, "minecraft:attack_damage", 6.0);
             baseAttackDamage += getEnchantmentValue(chestplate, "minecraft:attack_damage", 6.0);
@@ -185,10 +188,15 @@ public abstract class InventoryScreenStatsMixin {
 
             curY = drawStat(context, tr, panelX, curY, "Attack Damage", finalAtkDmg, "");
 
-            // Attack Speed with enchantments
+            // Attack Speed with enchantments (from weapon and all armor pieces - chainmail gives attack speed!)
             double attackSpeed = player.getAttributeValue(EntityAttributes.ATTACK_SPEED);
             attackSpeed += getEnchantmentValue(weapon, "minecraft:attack_speed", 0.3);
             attackSpeed += getEnchantmentValue(chestplate, "minecraft:attack_speed", 0.3);
+            attackSpeed += getEnchantmentValue(helmet, "minecraft:attack_speed", 0.3);
+            attackSpeed += getEnchantmentValue(leggings, "minecraft:attack_speed", 0.3);
+            attackSpeed += getEnchantmentValue(boots, "minecraft:attack_speed", 0.3);
+
+            // Display as attacks per second (the actual value)
             curY = drawStat(context, tr, panelX, curY, "Attack Speed", attackSpeed, "");
 
             // Crit Chance with enchantments
@@ -231,9 +239,17 @@ public abstract class InventoryScreenStatsMixin {
             // --- CATEGORY 3: SURVIVAL ---
             context.drawText(tr, Text.literal("❤ Survival"), panelX + 8, curY, 0xFF404040, false);
             curY += 11;
+
+            // Energy Shield (from gold and chainmail armor!)
             curY = drawStat(context, tr, panelX, curY, "Energy Shield", player.getAttributeValue(ModAttributes.ENERGY_SHIELD), "");
+
+            // Max Health (from diamond armor!)
             curY = drawStat(context, tr, panelX, curY, "Max Health", player.getAttributeValue(EntityAttributes.MAX_HEALTH), " HP");
-            curY = drawStat(context, tr, panelX, curY, "Regeneration", player.getAttributeValue(ModAttributes.LIFE_REGENERATION), " HP/s");
+
+            // HP Regeneration (from diamond armor!)
+            double hpRegen = player.getAttributeValue(ModAttributes.LIFE_REGENERATION);
+            hpRegen += player.getAttributeValue(ModAttributes.LIFE_REGENERATION);
+            curY = drawStat(context, tr, panelX, curY, "Regeneration", hpRegen, " HP/s");
 
             // Life Steal with enchantments
             double lifeSteal = player.getAttributeValue(ModAttributes.LIFE_STEAL);
@@ -241,7 +257,9 @@ public abstract class InventoryScreenStatsMixin {
             lifeSteal += getEnchantmentValue(chestplate, "minecraft:life_steal", 0.08);
             curY = drawStat(context, tr, panelX, curY, "Life Steal", lifeSteal * 100, "%");
 
+            // Evasion Rating (from leather and chainmail armor!)
             curY = drawStat(context, tr, panelX, curY, "Evasion Rating", player.getAttributeValue(ModAttributes.EVASION_RATING), "");
+
             curY = drawStat(context, tr, panelX, curY, "Armor", player.getAttributeValue(EntityAttributes.ARMOR), "");
             curY = drawStat(context, tr, panelX, curY, "Toughness", player.getAttributeValue(EntityAttributes.ARMOR_TOUGHNESS), "");
             curY += 6;
@@ -249,18 +267,27 @@ public abstract class InventoryScreenStatsMixin {
             // --- CATEGORY 4: RESISTANCES ---
             context.drawText(tr, Text.literal("🛡 Resistances"), panelX + 8, curY, 0xFF404040, false);
             curY += 11;
+
+            // Elemental resistances (copper armor gives all 4!)
             curY = drawStat(context, tr, panelX, curY, "Fire Res", player.getAttributeValue(ModAttributes.FIRE_RESISTANCE) * 100, "%");
             curY = drawStat(context, tr, panelX, curY, "Cold Res", player.getAttributeValue(ModAttributes.COLD_RESISTANCE) * 100, "%");
             curY = drawStat(context, tr, panelX, curY, "Lightning Res", player.getAttributeValue(ModAttributes.LIGHTNING_RESISTANCE) * 100, "%");
             curY = drawStat(context, tr, panelX, curY, "Void Res", player.getAttributeValue(ModAttributes.VOID_RESISTANCE) * 100, "%");
+
+            // Knockback Resistance (from iron armor!)
             curY = drawStat(context, tr, panelX, curY, "Knockback Res", player.getAttributeValue(ModAttributes.KNOCKBACK_RESISTANCE) * 100, "%");
             curY += 6;
 
             // --- CATEGORY 5: UTILITY ---
             context.drawText(tr, Text.literal("✦ Utility"), panelX + 8, curY, 0xFF404040, false);
             curY += 11;
-            curY = drawStat(context, tr, panelX, curY, "Move Speed", player.getAttributeValue(ModAttributes.MOVEMENT_SPEED) * 100, "%");
+
+            double moveSpeed = player.getAttributeValue(ModAttributes.MOVEMENT_SPEED);
+            curY = drawStat(context, tr, panelX, curY, "Move Speed", moveSpeed * 100, "%");
+
+            // Luck (from gold armor!)
             curY = drawStat(context, tr, panelX, curY, "Luck", player.getAttributeValue(ModAttributes.LUCK), "");
+
             curY = drawStat(context, tr, panelX, curY, "Exp Bonus", player.getAttributeValue(ModAttributes.EXPERIENCE_BONUS) * 100, "%");
 
             // Mining sub-section
