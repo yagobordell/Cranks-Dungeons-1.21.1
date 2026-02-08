@@ -413,11 +413,11 @@ public abstract class InventoryScreenStatsMixin {
             case "Void Res" -> "Reduces void damage taken";
             case "Knockback Res" -> "Resistance to being pushed";
             case "Move Speed" -> "Movement speed modifier";
-            case "Luck" -> "Increases rare loot drops";
+            case "Luck" -> "Increases rarity of drops";
             case "Exp Bonus" -> "Extra experience gained";
             case "Gathering Speed" -> "Mining and harvesting speed";
-            case "Ore Fortune" -> "Extra drops from ores";
-            case "Crop Fortune" -> "Extra drops from crops";
+            case "Ore Fortune" -> "Chance to double drops from ores";
+            case "Crop Fortune" -> "Chance to double drops from crops";
             case "Range" -> "Block interaction distance";
             default -> null;
         };

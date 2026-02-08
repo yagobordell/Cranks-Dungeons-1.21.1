@@ -47,17 +47,22 @@ public class ItemDefaultComponentsMixin {
                     );
 
                     // Add armor toughness for sets that use it
-                    double toughness = getToughnessBonus(itemName);
-                    if (toughness > 0) {
-                        builder.add(
-                                EntityAttributes.ARMOR_TOUGHNESS,
-                                new EntityAttributeModifier(
-                                        Identifier.of("minecraft", "armor.toughness." + getArmorSlot(itemName)),
-                                        toughness,
-                                        EntityAttributeModifier.Operation.ADD_VALUE
-                                ),
-                                entry.slot()
-                        );
+                    if (usesTraditionalArmorToughness(itemName)) {
+                        double toughness = getToughnessBonus(itemName);
+                        if (toughness > 0) {
+                            builder.add(
+                                    EntityAttributes.ARMOR_TOUGHNESS,
+                                    new EntityAttributeModifier(
+                                            Identifier.of("minecraft", "armor.toughness." + getArmorSlot(itemName)),
+                                            toughness,
+                                            EntityAttributeModifier.Operation.ADD_VALUE
+                                    ),
+                                    entry.slot()
+                            );
+                        }
+                    }
+                    else {
+
                     }
                 } else {
                     // For leather/gold/chainmail: DON'T add the armor attribute at all
@@ -331,6 +336,10 @@ public class ItemDefaultComponentsMixin {
     private boolean usesTraditionalArmor(String itemName) {
         return itemName.contains("copper") || itemName.contains("iron") ||
                 itemName.contains("diamond") || itemName.contains("netherite");
+    }
+
+    private boolean usesTraditionalArmorToughness(String itemName) {
+        return  itemName.contains("iron") || itemName.contains("diamond") || itemName.contains("netherite");
     }
 
     private double getArmorMultiplier(String itemName) {
