@@ -60,8 +60,9 @@ public class ItemDefaultComponentsMixin {
                         );
                     }
                 } else {
-                    // Keep original armor value but don't boost it
-                    builder.add(entry.attribute(), entry.modifier(), entry.slot());
+                    // For leather/gold/chainmail: DON'T add the armor attribute at all
+                    // This effectively removes their armor value
+                    // (we skip the builder.add call)
                 }
 
                 // Add unique bonuses based on armor type (this applies to ALL armor types)

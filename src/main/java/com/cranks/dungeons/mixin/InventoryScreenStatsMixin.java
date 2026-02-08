@@ -30,6 +30,12 @@ public abstract class InventoryScreenStatsMixin {
     private boolean draggingScrollbar = false;
     @Unique
     private boolean lastClickState = false;
+    @Unique
+    private String hoveredStat = null;
+    @Unique
+    private int tooltipX = 0;
+    @Unique
+    private int tooltipY = 0;
 
     @Inject(method = "render", at = @At("TAIL"))
     private void renderStatsPanel(DrawContext context, int mouseX, int mouseY, float delta, CallbackInfo ci) {
@@ -156,6 +162,9 @@ public abstract class InventoryScreenStatsMixin {
             var player = MinecraftClient.getInstance().player;
             if (player == null) return;
 
+            // Reset hovered stat each frame
+            hoveredStat = null;
+
             context.enableScissor(panelX + 4, panelY + 4, panelX + panelWidth - 4, panelY + panelHeight - 4);
 
             int curY = panelY + 8 - scrollOffset;
@@ -186,7 +195,7 @@ public abstract class InventoryScreenStatsMixin {
             double totalAttackDamagePercent = attackDamagePercentFromWeapon + attackDamagePercentFromChestplate;
             double finalAtkDmg = baseAttackDamage * (1.0 + totalAttackDamagePercent);
 
-            curY = drawStat(context, tr, panelX, curY, "Attack Damage", finalAtkDmg, "");
+            curY = drawStatWithTooltip(context, tr, panelX, curY, "Attack Damage", finalAtkDmg, "", mouseX, mouseY, panelX, panelWidth);
 
             // Attack Speed with enchantments (from weapon and all armor pieces - chainmail gives attack speed!)
             double attackSpeed = player.getAttributeValue(EntityAttributes.ATTACK_SPEED);
@@ -196,8 +205,14 @@ public abstract class InventoryScreenStatsMixin {
             attackSpeed += getEnchantmentValue(leggings, "minecraft:attack_speed", 0.3);
             attackSpeed += getEnchantmentValue(boots, "minecraft:attack_speed", 0.3);
 
+            // Apply attack speed percentage from runes
+            double attackSpeedPercentFromWeapon = EquipmentStatApplier.getItemStatValue(weapon, "attack_speed_percent");
+            double attackSpeedPercentFromChestplate = EquipmentStatApplier.getItemStatValue(chestplate, "attack_speed_percent");
+            double totalAttackSpeedPercent = attackSpeedPercentFromWeapon + attackSpeedPercentFromChestplate;
+            double finalAttackSpeed = attackSpeed * (1.0 + totalAttackSpeedPercent);
+
             // Display as attacks per second (the actual value)
-            curY = drawStat(context, tr, panelX, curY, "Attack Speed", attackSpeed, "");
+            curY = drawStatWithTooltip(context, tr, panelX, curY, "Attack Speed", finalAttackSpeed, "", mouseX, mouseY, panelX, panelWidth);
 
             // Crit Chance with enchantments
             double critChance = player.getAttributeValue(ModAttributes.CRIT_CHANCE);
@@ -206,18 +221,18 @@ public abstract class InventoryScreenStatsMixin {
             critChance += getEnchantmentValue(helmet, "minecraft:crit_chance", 0.15);
             critChance += getEnchantmentValue(leggings, "minecraft:crit_chance", 0.15);
             critChance += getEnchantmentValue(boots, "minecraft:crit_chance", 0.15);
-            curY = drawStat(context, tr, panelX, curY, "Crit Chance", critChance * 100, "%");
+            curY = drawStatWithTooltip(context, tr, panelX, curY, "Crit Chance", critChance * 100, "%", mouseX, mouseY, panelX, panelWidth);
 
             // Attack Range with enchantments
             double attackRange = player.getAttributeValue(ModAttributes.ATTACK_RANGE);
             attackRange += getEnchantmentValue(weapon, "minecraft:attack_range", 1.0);
-            curY = drawStat(context, tr, panelX, curY, "Attack Range", attackRange, " blocks");
+            curY = drawStatWithTooltip(context, tr, panelX, curY, "Attack Range", attackRange, " blocks", mouseX, mouseY, panelX, panelWidth);
 
             // Knockback with enchantments
             double knockback = player.getAttributeValue(ModAttributes.KNOCKBACK);
             knockback += getEnchantmentValue(weapon, "minecraft:bonus_knockback", 0.5);
             knockback += getEnchantmentValue(chestplate, "minecraft:bonus_knockback", 0.5);
-            curY = drawStat(context, tr, panelX, curY, "Knockback", knockback * 100, "%");
+            curY = drawStatWithTooltip(context, tr, panelX, curY, "Knockback", knockback * 100, "%", mouseX, mouseY, panelX, panelWidth);
             curY += 6;
 
             // --- CATEGORY 2: ELEMENTAL ---
@@ -228,12 +243,12 @@ public abstract class InventoryScreenStatsMixin {
             double chanceToBurn = player.getAttributeValue(ModAttributes.CHANCE_TO_BURN);
             chanceToBurn += getEnchantmentValue(weapon, "minecraft:chance_to_burn", 0.25);
             chanceToBurn += getEnchantmentValue(chestplate, "minecraft:chance_to_burn", 0.25);
-            curY = drawStat(context, tr, panelX, curY, "Burn Chance", chanceToBurn * 100, "%");
+            curY = drawStatWithTooltip(context, tr, panelX, curY, "Burn Chance", chanceToBurn * 100, "%", mouseX, mouseY, panelX, panelWidth);
 
-            curY = drawStat(context, tr, panelX, curY, "Fire Damage", calculateFinalElementalDamage(player, weapon, chestplate, "fire_damage_percent", ModAttributes.FIRE_DAMAGE, "minecraft:fire_damage"), "");
-            curY = drawStat(context, tr, panelX, curY, "Cold Damage", calculateFinalElementalDamage(player, weapon, chestplate, "cold_damage_percent", ModAttributes.COLD_DAMAGE, "minecraft:cold_damage"), "");
-            curY = drawStat(context, tr, panelX, curY, "Lightning Damage", calculateFinalElementalDamage(player, weapon, chestplate, "lightning_damage_percent", ModAttributes.LIGHTNING_DAMAGE, "minecraft:lightning_damage"), "");
-            curY = drawStat(context, tr, panelX, curY, "Void Damage", calculateFinalElementalDamage(player, weapon, chestplate, "void_damage_percent", ModAttributes.VOID_DAMAGE, "minecraft:void_damage"), "");
+            curY = drawStatWithTooltip(context, tr, panelX, curY, "Fire Damage", calculateFinalElementalDamage(player, weapon, chestplate, "fire_damage_percent", ModAttributes.FIRE_DAMAGE, "minecraft:fire_damage"), "", mouseX, mouseY, panelX, panelWidth);
+            curY = drawStatWithTooltip(context, tr, panelX, curY, "Cold Damage", calculateFinalElementalDamage(player, weapon, chestplate, "cold_damage_percent", ModAttributes.COLD_DAMAGE, "minecraft:cold_damage"), "", mouseX, mouseY, panelX, panelWidth);
+            curY = drawStatWithTooltip(context, tr, panelX, curY, "Lightning Damage", calculateFinalElementalDamage(player, weapon, chestplate, "lightning_damage_percent", ModAttributes.LIGHTNING_DAMAGE, "minecraft:lightning_damage"), "", mouseX, mouseY, panelX, panelWidth);
+            curY = drawStatWithTooltip(context, tr, panelX, curY, "Void Damage", calculateFinalElementalDamage(player, weapon, chestplate, "void_damage_percent", ModAttributes.VOID_DAMAGE, "minecraft:void_damage"), "", mouseX, mouseY, panelX, panelWidth);
             curY += 6;
 
             // --- CATEGORY 3: SURVIVAL ---
@@ -241,27 +256,27 @@ public abstract class InventoryScreenStatsMixin {
             curY += 11;
 
             // Energy Shield (from gold and chainmail armor!)
-            curY = drawStat(context, tr, panelX, curY, "Energy Shield", player.getAttributeValue(ModAttributes.ENERGY_SHIELD), "");
+            curY = drawStatWithTooltip(context, tr, panelX, curY, "Energy Shield", player.getAttributeValue(ModAttributes.ENERGY_SHIELD), "", mouseX, mouseY, panelX, panelWidth);
 
             // Max Health (from diamond armor!)
-            curY = drawStat(context, tr, panelX, curY, "Max Health", player.getAttributeValue(EntityAttributes.MAX_HEALTH), " HP");
+            curY = drawStatWithTooltip(context, tr, panelX, curY, "Max Health", player.getAttributeValue(EntityAttributes.MAX_HEALTH), " HP", mouseX, mouseY, panelX, panelWidth);
 
             // HP Regeneration (from diamond armor!)
             double hpRegen = player.getAttributeValue(ModAttributes.LIFE_REGENERATION);
             hpRegen += player.getAttributeValue(ModAttributes.LIFE_REGENERATION);
-            curY = drawStat(context, tr, panelX, curY, "Regeneration", hpRegen, " HP/s");
+            curY = drawStatWithTooltip(context, tr, panelX, curY, "Regeneration", hpRegen, " HP/s", mouseX, mouseY, panelX, panelWidth);
 
             // Life Steal with enchantments
             double lifeSteal = player.getAttributeValue(ModAttributes.LIFE_STEAL);
             lifeSteal += getEnchantmentValue(weapon, "minecraft:life_steal", 0.08);
             lifeSteal += getEnchantmentValue(chestplate, "minecraft:life_steal", 0.08);
-            curY = drawStat(context, tr, panelX, curY, "Life Steal", lifeSteal * 100, "%");
+            curY = drawStatWithTooltip(context, tr, panelX, curY, "Life Steal", lifeSteal * 100, "%", mouseX, mouseY, panelX, panelWidth);
 
             // Evasion Rating (from leather and chainmail armor!)
-            curY = drawStat(context, tr, panelX, curY, "Evasion Rating", player.getAttributeValue(ModAttributes.EVASION_RATING), "");
+            curY = drawStatWithTooltip(context, tr, panelX, curY, "Evasion Rating", player.getAttributeValue(ModAttributes.EVASION_RATING), "", mouseX, mouseY, panelX, panelWidth);
 
-            curY = drawStat(context, tr, panelX, curY, "Armor", player.getAttributeValue(EntityAttributes.ARMOR), "");
-            curY = drawStat(context, tr, panelX, curY, "Toughness", player.getAttributeValue(EntityAttributes.ARMOR_TOUGHNESS), "");
+            curY = drawStatWithTooltip(context, tr, panelX, curY, "Armor", player.getAttributeValue(EntityAttributes.ARMOR), "", mouseX, mouseY, panelX, panelWidth);
+            curY = drawStatWithTooltip(context, tr, panelX, curY, "Toughness", player.getAttributeValue(EntityAttributes.ARMOR_TOUGHNESS), "", mouseX, mouseY, panelX, panelWidth);
             curY += 6;
 
             // --- CATEGORY 4: RESISTANCES ---
@@ -269,26 +284,30 @@ public abstract class InventoryScreenStatsMixin {
             curY += 11;
 
             // Elemental resistances (copper armor gives all 4!)
-            curY = drawStat(context, tr, panelX, curY, "Fire Res", player.getAttributeValue(ModAttributes.FIRE_RESISTANCE) * 100, "%");
-            curY = drawStat(context, tr, panelX, curY, "Cold Res", player.getAttributeValue(ModAttributes.COLD_RESISTANCE) * 100, "%");
-            curY = drawStat(context, tr, panelX, curY, "Lightning Res", player.getAttributeValue(ModAttributes.LIGHTNING_RESISTANCE) * 100, "%");
-            curY = drawStat(context, tr, panelX, curY, "Void Res", player.getAttributeValue(ModAttributes.VOID_RESISTANCE) * 100, "%");
+            curY = drawStatWithTooltip(context, tr, panelX, curY, "Fire Res", player.getAttributeValue(ModAttributes.FIRE_RESISTANCE) * 100, "%", mouseX, mouseY, panelX, panelWidth);
+            curY = drawStatWithTooltip(context, tr, panelX, curY, "Cold Res", player.getAttributeValue(ModAttributes.COLD_RESISTANCE) * 100, "%", mouseX, mouseY, panelX, panelWidth);
+            curY = drawStatWithTooltip(context, tr, panelX, curY, "Lightning Res", player.getAttributeValue(ModAttributes.LIGHTNING_RESISTANCE) * 100, "%", mouseX, mouseY, panelX, panelWidth);
+            curY = drawStatWithTooltip(context, tr, panelX, curY, "Void Res", player.getAttributeValue(ModAttributes.VOID_RESISTANCE) * 100, "%", mouseX, mouseY, panelX, panelWidth);
 
             // Knockback Resistance (from iron armor!)
-            curY = drawStat(context, tr, panelX, curY, "Knockback Res", player.getAttributeValue(ModAttributes.KNOCKBACK_RESISTANCE) * 100, "%");
+            curY = drawStatWithTooltip(context, tr, panelX, curY, "Knockback Res", player.getAttributeValue(ModAttributes.KNOCKBACK_RESISTANCE) * 100, "%", mouseX, mouseY, panelX, panelWidth);
             curY += 6;
 
             // --- CATEGORY 5: UTILITY ---
             context.drawText(tr, Text.literal("✦ Utility"), panelX + 8, curY, 0xFF404040, false);
             curY += 11;
 
-            double moveSpeed = player.getAttributeValue(ModAttributes.MOVEMENT_SPEED);
-            curY = drawStat(context, tr, panelX, curY, "Move Speed", moveSpeed * 100, "%");
+            // Movement Speed (from leather armor!)
+            // Armor adds to EntityAttributes.MOVEMENT_SPEED with small decimals (0.015 = 1.5%)
+            double moveSpeed = player.getAttributeValue(EntityAttributes.MOVEMENT_SPEED);
+            double baseMoveSpeed = 0.1; // Default player base movement speed
+            double moveSpeedBonus = (moveSpeed - baseMoveSpeed) * 100; // Convert difference to percentage
+            curY = drawStatWithTooltip(context, tr, panelX, curY, "Move Speed", moveSpeedBonus, "%", mouseX, mouseY, panelX, panelWidth);
 
             // Luck (from gold armor!)
-            curY = drawStat(context, tr, panelX, curY, "Luck", player.getAttributeValue(ModAttributes.LUCK), "");
+            curY = drawStatWithTooltip(context, tr, panelX, curY, "Luck", player.getAttributeValue(EntityAttributes.LUCK), "", mouseX, mouseY, panelX, panelWidth);
 
-            curY = drawStat(context, tr, panelX, curY, "Exp Bonus", player.getAttributeValue(ModAttributes.EXPERIENCE_BONUS) * 100, "%");
+            curY = drawStatWithTooltip(context, tr, panelX, curY, "Exp Bonus", player.getAttributeValue(ModAttributes.EXPERIENCE_BONUS) * 100, "%", mouseX, mouseY, panelX, panelWidth);
 
             // Mining sub-section
             curY += 4;
@@ -299,10 +318,10 @@ public abstract class InventoryScreenStatsMixin {
             double weaponRangeBonus = EquipmentStatApplier.getItemStatValue(tool, "breaking_range");
             double totalRangeBonus = baseRange + weaponRangeBonus;
 
-            curY = drawStat(context, tr, panelX, curY, "Gathering Speed", player.getAttributeValue(ModAttributes.MINING_EFFICIENCY) * 100, "%");
-            curY = drawStat(context, tr, panelX, curY, "Ore Fortune", player.getAttributeValue(ModAttributes.FORTUNE) * 100, "%");
-            curY = drawStat(context, tr, panelX, curY, "Crop Fortune", EquipmentStatApplier.getItemStatValue(tool, "crop_fortune") * 100, "%");
-            curY = drawStat(context, tr, panelX, curY, "Range", totalRangeBonus, " blocks");
+            curY = drawStatWithTooltip(context, tr, panelX, curY, "Gathering Speed", player.getAttributeValue(ModAttributes.MINING_EFFICIENCY) * 100, "%", mouseX, mouseY, panelX, panelWidth);
+            curY = drawStatWithTooltip(context, tr, panelX, curY, "Ore Fortune", player.getAttributeValue(ModAttributes.FORTUNE) * 100, "%", mouseX, mouseY, panelX, panelWidth);
+            curY = drawStatWithTooltip(context, tr, panelX, curY, "Crop Fortune", EquipmentStatApplier.getItemStatValue(tool, "crop_fortune") * 100, "%", mouseX, mouseY, panelX, panelWidth);
+            curY = drawStatWithTooltip(context, tr, panelX, curY, "Range", totalRangeBonus, " blocks", mouseX, mouseY, panelX, panelWidth);
 
             int totalContentHeight = (curY + scrollOffset) - (panelY + 8);
             maxScrollOffset = Math.max(0, totalContentHeight - panelHeight + 16);
@@ -313,9 +332,126 @@ public abstract class InventoryScreenStatsMixin {
                 renderScrollbar(context, tr, panelX, panelY, panelWidth, panelHeight, mouseX, mouseY, leftClick);
             }
 
+            // --- RENDER TOOLTIP AFTER EVERYTHING ELSE ---
+            if (hoveredStat != null) {
+                renderStatTooltip(context, tr, hoveredStat, tooltipX, tooltipY);
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    @Unique
+    private void renderStatTooltip(DrawContext context, TextRenderer tr, String statName, int x, int y) {
+        String description = getStatDescription(statName);
+        if (description == null) return;
+
+        Text text = Text.literal(description);
+        int textWidth = tr.getWidth(text);
+
+        // Positioning
+        int tx = x + 12;
+        int ty = y - 12;
+        int w = textWidth;
+        int h = 8; // standard text height
+
+        // 1. THE OUTER BLACK BOX (The "Shell")
+        // This creates the black outline. Notice the notched corners.
+        context.fill(tx - 3, ty - 5, tx + w + 3, ty + h + 5, 0xFF000000); // Main vertical
+        context.fill(tx - 5, ty - 3, tx + w + 5, ty + h + 3, 0xFF000000); // Main horizontal
+        context.fill(tx - 4, ty - 4, tx + w + 4, ty + h + 4, 0xFF000000); // Corner fillers
+
+        // 2. THE INNER DARK BACKGROUND
+        context.fill(tx - 4, ty - 3, tx + w + 4, ty + h + 3, 0xF0100010);
+
+        // 3. THE DEEP PURPLE BORDER (The Sheen)
+        // Values matched to vanilla modern tooltips
+        int pTop = 0x505000FF;    // Deep Purple
+        int pBottom = 0x5028007F; // Dark Indigo
+
+        // Left & Right Vertical Gradients
+        context.fillGradient(tx - 4, ty - 3, tx - 3, ty + h + 3, pTop, pBottom);
+        context.fillGradient(tx + w + 3, ty - 3, tx + w + 4, ty + h + 3, pTop, pBottom);
+
+        // Top & Bottom Horizontal Lines
+        context.fill(tx - 3, ty - 4, tx + w + 3, ty - 3, pTop);
+        context.fill(tx - 3, ty + h + 3, tx + w + 3, ty + h + 4, pBottom);
+
+        // 4. THE VERTICAL BLACK CAPS (The final detail)
+        // These cap the purple gradient on the far left/right
+        context.fill(tx - 5, ty - 3, tx - 4, ty + h + 3, 0xFF000000);
+        context.fill(tx + w + 4, ty - 3, tx + w + 5, ty + h + 3, 0xFF000000);
+
+        // 5. RENDER TEXT
+        context.drawText(tr, text, tx, ty, 0xFFFFFFFF, true);
+    }
+
+    @Unique
+    private String getStatDescription(String statName) {
+        return switch (statName) {
+            case "Attack Damage" -> "Physical damage dealt per hit";
+            case "Attack Speed" -> "Number of attacks per second";
+            case "Crit Chance" -> "Chance to deal critical damage";
+            case "Attack Range" -> "Maximum melee attack distance";
+            case "Knockback" -> "How far enemies are pushed back";
+            case "Burn Chance" -> "Chance to ignite enemies on hit";
+            case "Fire Damage" -> "Bonus fire damage per hit";
+            case "Cold Damage" -> "Bonus cold damage per hit";
+            case "Lightning Damage" -> "Bonus lightning damage per hit";
+            case "Void Damage" -> "Bonus void damage per hit";
+            case "Energy Shield" -> "Absorbs damage before health";
+            case "Max Health" -> "Maximum health points";
+            case "Regeneration" -> "Health restored per second";
+            case "Life Steal" -> "% of damage converted to health";
+            case "Evasion Rating" -> calculateEvasionDescription();
+            case "Armor" -> calculateArmorDescription();
+            case "Toughness" -> "Reduces damage from big hits";
+            case "Fire Res" -> "Reduces fire damage taken";
+            case "Cold Res" -> "Reduces cold damage taken";
+            case "Lightning Res" -> "Reduces lightning damage taken";
+            case "Void Res" -> "Reduces void damage taken";
+            case "Knockback Res" -> "Resistance to being pushed";
+            case "Move Speed" -> "Movement speed modifier";
+            case "Luck" -> "Increases rare loot drops";
+            case "Exp Bonus" -> "Extra experience gained";
+            case "Gathering Speed" -> "Mining and harvesting speed";
+            case "Ore Fortune" -> "Extra drops from ores";
+            case "Crop Fortune" -> "Extra drops from crops";
+            case "Range" -> "Block interaction distance";
+            default -> null;
+        };
+    }
+
+    @Unique
+    private String calculateEvasionDescription() {
+        var player = MinecraftClient.getInstance().player;
+        if (player == null) return "Chance to dodge attacks";
+
+        double rating = player.getAttributeValue(ModAttributes.EVASION_RATING);
+        double armor = player.getAttributeValue(EntityAttributes.ARMOR);
+
+        double k = 400.0;
+        double dodgeChance = rating / (rating + k + (armor * 5.0));
+
+        int dodgePercent = (int) (dodgeChance * 100);
+
+        return dodgePercent + "% chance to dodge";
+    }
+
+    @Unique
+    private String calculateArmorDescription() {
+        var player = MinecraftClient.getInstance().player;
+        if (player == null) return "Reduces damage taken";
+
+        double armor = player.getAttributeValue(EntityAttributes.ARMOR);
+
+        // Minecraft's armor formula: reduction = min(20, max(armor/5, armor - damage/(2+toughness/4)))
+        // For display, show the maximum possible reduction at current armor
+        double maxReduction = Math.min(20.0, armor / 5.0);
+        int reductionPercent = (int) (maxReduction * 5); // Each point = 5% reduction (capped at 100%)
+
+        return reductionPercent + "% Reduced attack damage taken";
     }
 
     @Unique
@@ -356,7 +492,35 @@ public abstract class InventoryScreenStatsMixin {
     private int drawStat(DrawContext context, TextRenderer tr, int x, int y, String name, double val, String suffix) {
         String valStr = String.format("%.1f", val);
         String text = name + ": " + valStr + suffix;
-        context.drawText(tr, Text.literal(text), x + 12, y, 0xFF404040, false);
+
+        int textWidth = tr.getWidth(text);
+        int statX = x + 12;
+        int statY = y;
+
+        context.drawText(tr, Text.literal(text), statX, statY, 0xFF404040, false);
+
+        return y + 10;
+    }
+
+    @Unique
+    private int drawStatWithTooltip(DrawContext context, TextRenderer tr, int x, int y, String name, double val, String suffix, int mouseX, int mouseY, int panelX, int panelWidth) {
+        String valStr = String.format("%.1f", val);
+        String text = name + ": " + valStr + suffix;
+
+        int textWidth = tr.getWidth(text);
+        int statX = x + 12;
+        int statY = y;
+
+        // Check if mouse is hovering over this stat
+        if (mouseX >= statX && mouseX <= statX + textWidth &&
+                mouseY >= statY && mouseY <= statY + 9) {
+            hoveredStat = name;
+            tooltipX = mouseX;
+            tooltipY = mouseY;
+        }
+
+        context.drawText(tr, Text.literal(text), statX, statY, 0xFF404040, false);
+
         return y + 10;
     }
 
