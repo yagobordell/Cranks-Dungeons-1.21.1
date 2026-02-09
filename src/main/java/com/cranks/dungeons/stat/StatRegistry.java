@@ -836,18 +836,6 @@ public class StatRegistry {
         ));
 
         register(new CustomStat(
-                "sword_attack_damage_percent",
-                "Increased Attack Damage",
-                EquipmentType.SWORD,
-                ModAttributes.ATTACK_DAMAGE_PERCENT,
-                new double[]{0.05, 0.10, 0.15, 0.22, 0.30},
-                new double[]{0.08, 0.15, 0.22, 0.30, 0.45},
-                true,
-                true,
-                Formatting.WHITE
-        ));
-
-        register(new CustomStat(
                 "sword_attack_speed",
                 "Attack Speed",
                 EquipmentType.SWORD,
@@ -925,6 +913,18 @@ public class StatRegistry {
                 new double[]{1.0, 3.0, 5.5, 9.0, 14.0},
                 false,
                 Formatting.DARK_PURPLE
+        ));
+
+        register(new CustomStat(
+                "sword_attack_damage_percent",
+                "Increased Attack Damage",
+                EquipmentType.SWORD,
+                ModAttributes.ATTACK_DAMAGE_PERCENT,
+                new double[]{-1.01, 0.20, 0.40, 0.60, 1.10},
+                new double[]{-1.20, 0.40, 0.60, 1.00, 1.65},
+                true,
+                true,
+                Formatting.WHITE
         ));
 
         register(new CustomStat(
@@ -1126,6 +1126,18 @@ public class StatRegistry {
         ));
 
         register(new CustomStat(
+                "spear_attack_damage_percent",
+                "Increased Attack Damage",
+                EquipmentType.SPEAR,
+                ModAttributes.ATTACK_DAMAGE_PERCENT,
+                new double[]{-1.01, 0.20, 0.40, 0.60, 1.10},
+                new double[]{-1.20, 0.40, 0.60, 1.00, 1.65},
+                true,
+                true,
+                Formatting.WHITE
+        ));
+
+        register(new CustomStat(
                 "spear_fire_damage_percent",
                 "Increased Fire Damage",
                 EquipmentType.SPEAR,
@@ -1299,6 +1311,18 @@ public class StatRegistry {
                 new double[]{1.0, 3.0, 5.5, 9.0, 14.0},
                 false,
                 Formatting.DARK_PURPLE
+        ));
+
+        register(new CustomStat(
+                "mace_attack_damage_percent",
+                "Increased Attack Damage",
+                EquipmentType.MACE,
+                ModAttributes.ATTACK_DAMAGE_PERCENT,
+                new double[]{-1.01, 0.20, 0.40, 0.60, 1.10},
+                new double[]{-1.20, 0.40, 0.60, 1.00, 1.65},
+                true,
+                true,
+                Formatting.WHITE
         ));
 
         register(new CustomStat(
@@ -1489,6 +1513,18 @@ public class StatRegistry {
         ));
 
         register(new CustomStat(
+                "trident_attack_damage_percent",
+                "Increased Attack Damage",
+                EquipmentType.TRIDENT,
+                ModAttributes.ATTACK_DAMAGE_PERCENT,
+                new double[]{-1.01, 0.20, 0.40, 0.60, 1.10},
+                new double[]{-1.20, 0.40, 0.60, 1.00, 1.65},
+                true,
+                true,
+                Formatting.WHITE
+        ));
+
+        register(new CustomStat(
                 "trident_fire_damage_percent",
                 "Increased Fire Damage",
                 EquipmentType.TRIDENT,
@@ -1664,6 +1700,18 @@ public class StatRegistry {
         ));
 
         register(new CustomStat(
+                "bow_attack_damage_percent",
+                "Increased Attack Damage",
+                EquipmentType.BOW,
+                ModAttributes.ATTACK_DAMAGE_PERCENT,
+                new double[]{-1.01, 0.20, 0.40, 0.60, 1.10},
+                new double[]{-1.20, 0.40, 0.60, 1.00, 1.65},
+                true,
+                true,
+                Formatting.WHITE
+        ));
+
+        register(new CustomStat(
                 "bow_fire_damage_percent",
                 "Increased Fire Damage",
                 EquipmentType.BOW,
@@ -1825,6 +1873,18 @@ public class StatRegistry {
                 new double[]{1.0, 3.0, 5.5, 9.0, 14.0},
                 false,
                 Formatting.DARK_PURPLE
+        ));
+
+        register(new CustomStat(
+                "crossbow_attack_damage_percent",
+                "Increased Attack Damage",
+                EquipmentType.CROSSBOW,
+                ModAttributes.ATTACK_DAMAGE_PERCENT,
+                new double[]{-1.01, 0.20, 0.40, 0.60, 1.10},
+                new double[]{-1.20, 0.40, 0.60, 1.00, 1.65},
+                true,
+                true,
+                Formatting.WHITE
         ));
 
         register(new CustomStat(
