@@ -895,18 +895,6 @@ public class StatRegistry {
         ));
 
         register(new CustomStat(
-                "sword_fire_damage_percent",
-                "Increased Fire Damage",
-                EquipmentType.SWORD,
-                ModAttributes.FIRE_DAMAGE_PERCENT,
-                new double[]{0.05, 0.10, 0.15, 0.22, 0.30},
-                new double[]{0.08, 0.15, 0.22, 0.30, 0.45},
-                true,
-                true,
-                Formatting.RED
-        ));
-
-        register(new CustomStat(
                 "sword_cold_damage",
                 "Cold Damage",
                 EquipmentType.SWORD,
@@ -936,6 +924,54 @@ public class StatRegistry {
                 new double[]{0.5, 1.5, 3.0, 5.0, 8.0},
                 new double[]{1.0, 3.0, 5.5, 9.0, 14.0},
                 false,
+                Formatting.DARK_PURPLE
+        ));
+
+        register(new CustomStat(
+                "sword_fire_damage_percent",
+                "Increased Fire Damage",
+                EquipmentType.SWORD,
+                ModAttributes.FIRE_DAMAGE_PERCENT,
+                new double[]{0.01, 0.20, 0.40, 0.60, 1.10},
+                new double[]{0.20, 0.40, 0.60, 1.00, 1.65},
+                true,
+                true,
+                Formatting.RED
+        ));
+
+        register(new CustomStat(
+                "sword_cold_damage_percent",
+                "Increased Cold Damage",
+                EquipmentType.SWORD,
+                ModAttributes.COLD_DAMAGE_PERCENT,
+                new double[]{0.01, 0.20, 0.40, 0.60, 1.10},
+                new double[]{0.20, 0.40, 0.60, 1.00, 1.65},
+                true,
+                true,
+                Formatting.AQUA
+        ));
+
+        register(new CustomStat(
+                "sword_lightning_damage_percent",
+                "Increased Lightning Damage",
+                EquipmentType.SWORD,
+                ModAttributes.LIGHTNING_DAMAGE_PERCENT,
+                new double[]{0.01, 0.20, 0.40, 0.60, 1.10},
+                new double[]{0.20, 0.40, 0.60, 1.00, 1.65},
+                true,
+                true,
+                Formatting.DARK_BLUE
+        ));
+
+        register(new CustomStat(
+                "sword_void_damage_percent",
+                "Increased Void Damage",
+                EquipmentType.SWORD,
+                ModAttributes.VOID_DAMAGE_PERCENT,
+                new double[]{0.01, 0.20, 0.40, 0.60, 1.10},
+                new double[]{0.20, 0.40, 0.60, 1.00, 1.65},
+                true,
+                true,
                 Formatting.DARK_PURPLE
         ));
 
@@ -1090,6 +1126,54 @@ public class StatRegistry {
         ));
 
         register(new CustomStat(
+                "spear_fire_damage_percent",
+                "Increased Fire Damage",
+                EquipmentType.SPEAR,
+                ModAttributes.FIRE_DAMAGE_PERCENT,
+                new double[]{0.01, 0.20, 0.40, 0.60, 1.10},
+                new double[]{0.20, 0.40, 0.60, 1.00, 1.65},
+                true,
+                true,
+                Formatting.RED
+        ));
+
+        register(new CustomStat(
+                "spear_cold_damage_percent",
+                "Increased Cold Damage",
+                EquipmentType.SPEAR,
+                ModAttributes.COLD_DAMAGE_PERCENT,
+                new double[]{0.01, 0.20, 0.40, 0.60, 1.10},
+                new double[]{0.20, 0.40, 0.60, 1.00, 1.65},
+                true,
+                true,
+                Formatting.AQUA
+        ));
+
+        register(new CustomStat(
+                "spear_lightning_damage_percent",
+                "Increased Lightning Damage",
+                EquipmentType.SPEAR,
+                ModAttributes.LIGHTNING_DAMAGE_PERCENT,
+                new double[]{0.01, 0.20, 0.40, 0.60, 1.10},
+                new double[]{0.20, 0.40, 0.60, 1.00, 1.65},
+                true,
+                true,
+                Formatting.DARK_BLUE
+        ));
+
+        register(new CustomStat(
+                "spear_void_damage_percent",
+                "Increased Void Damage",
+                EquipmentType.SPEAR,
+                ModAttributes.VOID_DAMAGE_PERCENT,
+                new double[]{0.01, 0.20, 0.40, 0.60, 1.10},
+                new double[]{0.20, 0.40, 0.60, 1.00, 1.65},
+                true,
+                true,
+                Formatting.DARK_PURPLE
+        ));
+
+        register(new CustomStat(
                 "spear_life_steal",
                 "Life Steal",
                 EquipmentType.SPEAR,
@@ -1214,6 +1298,54 @@ public class StatRegistry {
                 new double[]{0.5, 1.5, 3.0, 5.0, 8.0},
                 new double[]{1.0, 3.0, 5.5, 9.0, 14.0},
                 false,
+                Formatting.DARK_PURPLE
+        ));
+
+        register(new CustomStat(
+                "mace_fire_damage_percent",
+                "Increased Fire Damage",
+                EquipmentType.MACE,
+                ModAttributes.FIRE_DAMAGE_PERCENT,
+                new double[]{0.01, 0.20, 0.40, 0.60, 1.10},
+                new double[]{0.20, 0.40, 0.60, 1.00, 1.65},
+                true,
+                true,
+                Formatting.RED
+        ));
+
+        register(new CustomStat(
+                "mace_cold_damage_percent",
+                "Increased Cold Damage",
+                EquipmentType.MACE,
+                ModAttributes.COLD_DAMAGE_PERCENT,
+                new double[]{0.01, 0.20, 0.40, 0.60, 1.10},
+                new double[]{0.20, 0.40, 0.60, 1.00, 1.65},
+                true,
+                true,
+                Formatting.AQUA
+        ));
+
+        register(new CustomStat(
+                "mace_lightning_damage_percent",
+                "Increased Lightning Damage",
+                EquipmentType.MACE,
+                ModAttributes.LIGHTNING_DAMAGE_PERCENT,
+                new double[]{0.01, 0.20, 0.40, 0.60, 1.10},
+                new double[]{0.20, 0.40, 0.60, 1.00, 1.65},
+                true,
+                true,
+                Formatting.DARK_BLUE
+        ));
+
+        register(new CustomStat(
+                "mace_void_damage_percent",
+                "Increased Void Damage",
+                EquipmentType.MACE,
+                ModAttributes.VOID_DAMAGE_PERCENT,
+                new double[]{0.01, 0.20, 0.40, 0.60, 1.10},
+                new double[]{0.20, 0.40, 0.60, 1.00, 1.65},
+                true,
+                true,
                 Formatting.DARK_PURPLE
         ));
 
@@ -1357,6 +1489,54 @@ public class StatRegistry {
         ));
 
         register(new CustomStat(
+                "trident_fire_damage_percent",
+                "Increased Fire Damage",
+                EquipmentType.TRIDENT,
+                ModAttributes.FIRE_DAMAGE_PERCENT,
+                new double[]{0.01, 0.20, 0.40, 0.60, 1.10},
+                new double[]{0.20, 0.40, 0.60, 1.00, 1.65},
+                true,
+                true,
+                Formatting.RED
+        ));
+
+        register(new CustomStat(
+                "trident_cold_damage_percent",
+                "Increased Cold Damage",
+                EquipmentType.TRIDENT,
+                ModAttributes.COLD_DAMAGE_PERCENT,
+                new double[]{0.01, 0.20, 0.40, 0.60, 1.10},
+                new double[]{0.20, 0.40, 0.60, 1.00, 1.65},
+                true,
+                true,
+                Formatting.AQUA
+        ));
+
+        register(new CustomStat(
+                "trident_lightning_damage_percent",
+                "Increased Lightning Damage",
+                EquipmentType.TRIDENT,
+                ModAttributes.LIGHTNING_DAMAGE_PERCENT,
+                new double[]{0.01, 0.20, 0.40, 0.60, 1.10},
+                new double[]{0.20, 0.40, 0.60, 1.00, 1.65},
+                true,
+                true,
+                Formatting.DARK_BLUE
+        ));
+
+        register(new CustomStat(
+                "trident_void_damage_percent",
+                "Increased Void Damage",
+                EquipmentType.TRIDENT,
+                ModAttributes.VOID_DAMAGE_PERCENT,
+                new double[]{0.01, 0.20, 0.40, 0.60, 1.10},
+                new double[]{0.20, 0.40, 0.60, 1.00, 1.65},
+                true,
+                true,
+                Formatting.DARK_PURPLE
+        ));
+
+        register(new CustomStat(
                 "trident_life_steal",
                 "Life Steal",
                 EquipmentType.TRIDENT,
@@ -1484,6 +1664,54 @@ public class StatRegistry {
         ));
 
         register(new CustomStat(
+                "bow_fire_damage_percent",
+                "Increased Fire Damage",
+                EquipmentType.BOW,
+                ModAttributes.FIRE_DAMAGE_PERCENT,
+                new double[]{0.01, 0.20, 0.40, 0.60, 1.10},
+                new double[]{0.20, 0.40, 0.60, 1.00, 1.65},
+                true,
+                true,
+                Formatting.RED
+        ));
+
+        register(new CustomStat(
+                "bow_cold_damage_percent",
+                "Increased Cold Damage",
+                EquipmentType.BOW,
+                ModAttributes.COLD_DAMAGE_PERCENT,
+                new double[]{0.01, 0.20, 0.40, 0.60, 1.10},
+                new double[]{0.20, 0.40, 0.60, 1.00, 1.65},
+                true,
+                true,
+                Formatting.AQUA
+        ));
+
+        register(new CustomStat(
+                "bow_lightning_damage_percent",
+                "Increased Lightning Damage",
+                EquipmentType.BOW,
+                ModAttributes.LIGHTNING_DAMAGE_PERCENT,
+                new double[]{0.01, 0.20, 0.40, 0.60, 1.10},
+                new double[]{0.20, 0.40, 0.60, 1.00, 1.65},
+                true,
+                true,
+                Formatting.DARK_BLUE
+        ));
+
+        register(new CustomStat(
+                "bow_void_damage_percent",
+                "Increased Void Damage",
+                EquipmentType.BOW,
+                ModAttributes.VOID_DAMAGE_PERCENT,
+                new double[]{0.01, 0.20, 0.40, 0.60, 1.10},
+                new double[]{0.20, 0.40, 0.60, 1.00, 1.65},
+                true,
+                true,
+                Formatting.DARK_PURPLE
+        ));
+
+        register(new CustomStat(
                 "bow_life_steal",
                 "Life Steal",
                 EquipmentType.BOW,
@@ -1596,6 +1824,54 @@ public class StatRegistry {
                 new double[]{0.5, 1.5, 3.0, 5.0, 8.0},
                 new double[]{1.0, 3.0, 5.5, 9.0, 14.0},
                 false,
+                Formatting.DARK_PURPLE
+        ));
+
+        register(new CustomStat(
+                "crossbow_fire_damage_percent",
+                "Increased Fire Damage",
+                EquipmentType.CROSSBOW,
+                ModAttributes.FIRE_DAMAGE_PERCENT,
+                new double[]{0.01, 0.20, 0.40, 0.60, 1.10},
+                new double[]{0.20, 0.40, 0.60, 1.00, 1.65},
+                true,
+                true,
+                Formatting.RED
+        ));
+
+        register(new CustomStat(
+                "crossbow_cold_damage_percent",
+                "Increased Cold Damage",
+                EquipmentType.CROSSBOW,
+                ModAttributes.COLD_DAMAGE_PERCENT,
+                new double[]{0.01, 0.20, 0.40, 0.60, 1.10},
+                new double[]{0.20, 0.40, 0.60, 1.00, 1.65},
+                true,
+                true,
+                Formatting.AQUA
+        ));
+
+        register(new CustomStat(
+                "crossbow_lightning_damage_percent",
+                "Increased Lightning Damage",
+                EquipmentType.CROSSBOW,
+                ModAttributes.LIGHTNING_DAMAGE_PERCENT,
+                new double[]{0.01, 0.20, 0.40, 0.60, 1.10},
+                new double[]{0.20, 0.40, 0.60, 1.00, 1.65},
+                true,
+                true,
+                Formatting.DARK_BLUE
+        ));
+
+        register(new CustomStat(
+                "crossbow_void_damage_percent",
+                "Increased Void Damage",
+                EquipmentType.CROSSBOW,
+                ModAttributes.VOID_DAMAGE_PERCENT,
+                new double[]{0.01, 0.20, 0.40, 0.60, 1.10},
+                new double[]{0.20, 0.40, 0.60, 1.00, 1.65},
+                true,
+                true,
                 Formatting.DARK_PURPLE
         ));
 
