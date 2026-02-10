@@ -48,6 +48,8 @@
 		"EnergyShieldInitMixin",
 		"EnergyShieldDamageMixin",
 		"EnergyShieldRegenMixin",
+		"DisableEnchantmentWhileSneakingMixin",
+		"ShiftingPreviewMixin",
 		"FeatherFallingMixin"
 	],
 	"client": [

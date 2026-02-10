@@ -4,6 +4,7 @@ import com.cranks.dungeons.equipment.ToolStatHelper;
 import com.cranks.dungeons.registry.ModAttributes;
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.minecraft.block.Block;
+import net.minecraft.component.DataComponentTypes;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.world.ServerWorld;
 
@@ -11,25 +12,27 @@ public class FortuneEventHandler {
 
     public static void register() {
         PlayerBlockBreakEvents.BEFORE.register((world, player, pos, state, blockEntity) -> {
+            if (!(world instanceof ServerWorld serverWorld)) return true;
 
-            if (world instanceof ServerWorld serverWorld) {
-                String blockId = state.getBlock().getTranslationKey().toLowerCase();
-                boolean isOre = blockId.contains("ore") || blockId.contains("debris");
+            boolean isOre = state.streamTags().anyMatch(tag -> tag.id().getPath().contains("ores"));
+            if (!isOre) return true;
 
-                if (isOre) {
-                    // Get fortune from the tool being used
-                    ItemStack tool = player.getMainHandStack();
-                    double fortuneChance = ToolStatHelper.getFortune(tool);
-                    fortuneChance += player.getAttributeValue(ModAttributes.FORTUNE);
+            ItemStack tool = player.getMainHandStack();
+            if (tool.isEmpty()) return true;
 
-                    if (fortuneChance > 0 && player.getRandom().nextDouble() < fortuneChance) {
+            var enchants = tool.get(DataComponentTypes.ENCHANTMENTS);
+            boolean hasSilkTouch = enchants != null && enchants.getEnchantments().stream()
+                    .anyMatch(e -> e.getKey().get().getValue().toString().equals("minecraft:silk_touch"));
 
-                        Block.dropStacks(state, serverWorld, pos, blockEntity, player, tool);
+            // If sneaking, Silk Touch is "disabled", allowing fortune to trigger
+            if (player.isSneaking()) hasSilkTouch = false;
 
-                        serverWorld.playSound(null, pos,
-                                net.minecraft.sound.SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP,
-                                net.minecraft.sound.SoundCategory.BLOCKS, 0.5f, 1.5f);
-                    }
+            if (!hasSilkTouch) {
+                double fortuneChance = ToolStatHelper.getFortune(tool) + player.getAttributeValue(ModAttributes.FORTUNE);
+
+                if (fortuneChance > 0 && player.getRandom().nextDouble() < fortuneChance) {
+                    Block.dropStacks(state, serverWorld, pos, blockEntity, player, tool);
+                    serverWorld.playSound(null, pos, net.minecraft.sound.SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, net.minecraft.sound.SoundCategory.BLOCKS, 0.5f, 1.5f);
                 }
             }
             return true;
