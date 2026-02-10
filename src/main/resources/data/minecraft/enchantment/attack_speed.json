@@ -2,7 +2,7 @@
   "description": {
     "translate": "enchantment.minecraft.attack_speed"
   },
-  "supported_items": "#minecraft:enchantable/weapon_no_chest",
+  "supported_items": "#minecraft:enchantable/weapon_and_chest",
   "weight": 5,
   "max_level": 1,
   "min_cost": { "base": 10, "per_level_above_first": 0 },
