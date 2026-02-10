@@ -187,8 +187,8 @@ public abstract class InventoryScreenStatsMixin {
             baseAttackDamage += getModifierFromStack(leggings, EntityAttributes.ATTACK_DAMAGE);
             baseAttackDamage += getModifierFromStack(boots, EntityAttributes.ATTACK_DAMAGE);
             baseAttackDamage += player.getAttributeValue(ModAttributes.BONUS_ATTACK_DAMAGE);
-            baseAttackDamage += getEnchantmentValue(weapon, "minecraft:attack_damage", 6.0);
-            baseAttackDamage += getEnchantmentValue(chestplate, "minecraft:attack_damage", 6.0);
+            baseAttackDamage += getEnchantmentValue(weapon, "minecraft:attack_damage", 4.0);
+            baseAttackDamage += getEnchantmentValue(chestplate, "minecraft:attack_damage", 4.0);
 
             double attackDamagePercentFromWeapon = EquipmentStatApplier.getItemStatValue(weapon, "attack_damage_percent");
             double attackDamagePercentFromChestplate = EquipmentStatApplier.getItemStatValue(chestplate, "attack_damage_percent");
@@ -199,11 +199,11 @@ public abstract class InventoryScreenStatsMixin {
 
             // Attack Speed with enchantments (from weapon and all armor pieces - chainmail gives attack speed!)
             double attackSpeed = player.getAttributeValue(EntityAttributes.ATTACK_SPEED);
-            attackSpeed += getEnchantmentValue(weapon, "minecraft:attack_speed", 0.3);
-            attackSpeed += getEnchantmentValue(chestplate, "minecraft:attack_speed", 0.3);
-            attackSpeed += getEnchantmentValue(helmet, "minecraft:attack_speed", 0.3);
-            attackSpeed += getEnchantmentValue(leggings, "minecraft:attack_speed", 0.3);
-            attackSpeed += getEnchantmentValue(boots, "minecraft:attack_speed", 0.3);
+            attackSpeed += getEnchantmentValue(weapon, "minecraft:attack_speed", 0.2);
+            attackSpeed += getEnchantmentValue(chestplate, "minecraft:attack_speed", 0.2);
+            attackSpeed += getEnchantmentValue(helmet, "minecraft:attack_speed", 0.2);
+            attackSpeed += getEnchantmentValue(leggings, "minecraft:attack_speed", 0.2);
+            attackSpeed += getEnchantmentValue(boots, "minecraft:attack_speed", 0.2);
 
             // Apply attack speed percentage from runes
             double attackSpeedPercentFromWeapon = EquipmentStatApplier.getItemStatValue(weapon, "attack_speed_percent");
@@ -216,11 +216,11 @@ public abstract class InventoryScreenStatsMixin {
 
             // Crit Chance with enchantments
             double critChance = player.getAttributeValue(ModAttributes.CRIT_CHANCE);
-            critChance += getEnchantmentValue(weapon, "minecraft:crit_chance", 0.15);
-            critChance += getEnchantmentValue(chestplate, "minecraft:crit_chance", 0.15);
-            critChance += getEnchantmentValue(helmet, "minecraft:crit_chance", 0.15);
-            critChance += getEnchantmentValue(leggings, "minecraft:crit_chance", 0.15);
-            critChance += getEnchantmentValue(boots, "minecraft:crit_chance", 0.15);
+            critChance += getEnchantmentValue(weapon, "minecraft:crit_chance", 0.075);
+            critChance += getEnchantmentValue(chestplate, "minecraft:crit_chance", 0.075);
+            critChance += getEnchantmentValue(helmet, "minecraft:crit_chance", 0.075);
+            critChance += getEnchantmentValue(leggings, "minecraft:crit_chance", 0.075);
+            critChance += getEnchantmentValue(boots, "minecraft:crit_chance", 0.075);
             curY = drawStatWithTooltip(context, tr, panelX, curY, "Crit Chance", critChance * 100, "%", mouseX, mouseY, panelX, panelWidth);
 
             // Attack Range with enchantments
@@ -230,8 +230,8 @@ public abstract class InventoryScreenStatsMixin {
 
             // Knockback with enchantments
             double knockback = player.getAttributeValue(ModAttributes.KNOCKBACK);
-            knockback += getEnchantmentValue(weapon, "minecraft:bonus_knockback", 0.5);
-            knockback += getEnchantmentValue(chestplate, "minecraft:bonus_knockback", 0.5);
+            knockback += getEnchantmentValue(weapon, "minecraft:bonus_knockback", 0.35);
+            knockback += getEnchantmentValue(chestplate, "minecraft:bonus_knockback", 0.35);
             curY = drawStatWithTooltip(context, tr, panelX, curY, "Knockback", knockback * 100, "%", mouseX, mouseY, panelX, panelWidth);
             curY += 6;
 
@@ -241,8 +241,8 @@ public abstract class InventoryScreenStatsMixin {
 
             // Chance to Burn with enchantments
             double chanceToBurn = player.getAttributeValue(ModAttributes.CHANCE_TO_BURN);
-            chanceToBurn += getEnchantmentValue(weapon, "minecraft:chance_to_burn", 0.25);
-            chanceToBurn += getEnchantmentValue(chestplate, "minecraft:chance_to_burn", 0.25);
+            chanceToBurn += getEnchantmentValue(weapon, "minecraft:chance_to_burn", 0.2);
+            chanceToBurn += getEnchantmentValue(chestplate, "minecraft:chance_to_burn", 0.2);
             curY = drawStatWithTooltip(context, tr, panelX, curY, "Burn Chance", chanceToBurn * 100, "%", mouseX, mouseY, panelX, panelWidth);
 
             curY = drawStatWithTooltip(context, tr, panelX, curY, "Fire Damage", calculateFinalElementalDamage(player, weapon, chestplate, "fire_damage_percent", ModAttributes.FIRE_DAMAGE, "minecraft:fire_damage"), "", mouseX, mouseY, panelX, panelWidth);
@@ -268,8 +268,8 @@ public abstract class InventoryScreenStatsMixin {
 
             // Life Steal with enchantments
             double lifeSteal = player.getAttributeValue(ModAttributes.LIFE_STEAL);
-            lifeSteal += getEnchantmentValue(weapon, "minecraft:life_steal", 0.08);
-            lifeSteal += getEnchantmentValue(chestplate, "minecraft:life_steal", 0.08);
+            lifeSteal += getEnchantmentValue(weapon, "minecraft:life_steal", 0.06);
+            lifeSteal += getEnchantmentValue(chestplate, "minecraft:life_steal", 0.06);
             curY = drawStatWithTooltip(context, tr, panelX, curY, "Life Steal", lifeSteal * 100, "%", mouseX, mouseY, panelX, panelWidth);
 
             // Evasion Rating (from leather and chainmail armor!)
@@ -477,7 +477,7 @@ public abstract class InventoryScreenStatsMixin {
     ) {
         // Get base damage from attribute + weapon enchantment
         double baseDamage = player.getAttributeValue(damageAttribute);
-        baseDamage += getEnchantmentValue(weapon, enchantmentId, 6.0);
+        baseDamage += getEnchantmentValue(weapon, enchantmentId, 4.0);
 
         // Get percentage multipliers from items
         double percentFromWeapon = EquipmentStatApplier.getItemStatValue(weapon, percentStatName);
