@@ -34,8 +34,8 @@ public abstract class KnockbackProcessorMixin {
             knockbackBonus += EquipmentStatApplier.getItemStatValue(weapon, "knockback");
 
             // Add enchantment bonuses
-            knockbackBonus += getEnchantmentValue(weapon, "minecraft:bonus_knockback", 0.5);
-            knockbackBonus += getEnchantmentValue(chestplate, "minecraft:bonus_knockback", 0.5);
+            knockbackBonus += getEnchantmentValue(weapon, "minecraft:bonus_knockback", 0.35);
+            knockbackBonus += getEnchantmentValue(chestplate, "minecraft:bonus_knockback", 0.35);
 
             // Using multiplier to keep it from being "rocket-powered"
             finalStrength *= (1.0 + knockbackBonus);

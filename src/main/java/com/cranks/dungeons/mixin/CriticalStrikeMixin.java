@@ -49,11 +49,11 @@ public abstract class CriticalStrikeMixin {
             // Crit Chance with enchantments from all armor pieces
             double critChance = attacker.getAttributeValue(ModAttributes.CRIT_CHANCE);
             critChance += EquipmentStatApplier.getItemStatValue(weapon, "crit_chance");
-            critChance += getEnchantmentValue(weapon, "minecraft:crit_chance", 0.15);
-            critChance += getEnchantmentValue(chest, "minecraft:crit_chance", 0.15);
-            critChance += getEnchantmentValue(helmet, "minecraft:crit_chance", 0.15);
-            critChance += getEnchantmentValue(leggings, "minecraft:crit_chance", 0.15);
-            critChance += getEnchantmentValue(boots, "minecraft:crit_chance", 0.15);
+            critChance += getEnchantmentValue(weapon, "minecraft:crit_chance", 0.075);
+            critChance += getEnchantmentValue(chest, "minecraft:crit_chance", 0.075);
+            critChance += getEnchantmentValue(helmet, "minecraft:crit_chance", 0.075);
+            critChance += getEnchantmentValue(leggings, "minecraft:crit_chance", 0.075);
+            critChance += getEnchantmentValue(boots, "minecraft:crit_chance", 0.075);
 
             float finalAmount = combinedBase;
             boolean isCrit = false;

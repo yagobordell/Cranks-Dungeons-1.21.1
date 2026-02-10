@@ -14,7 +14,7 @@
       {
         "id": "minecraft:enchantment.life_regeneration",
         "attribute": "cranks-dungeons:life_regeneration",
-        "amount": { "type": "minecraft:linear", "base": 0.8, "per_level_above_first": 0.0 },
+        "amount": { "type": "minecraft:linear", "base": 0.6, "per_level_above_first": 0.0 },
         "operation": "add_value"
       }
     ]

@@ -14,7 +14,7 @@
       {
         "id": "minecraft:enchantment.movement_speed_bonus",
         "attribute": "cranks-dungeons:movement_speed",
-        "amount": { "type": "minecraft:linear", "base": 0.4, "per_level_above_first": 0.0 },
+        "amount": { "type": "minecraft:linear", "base": 0.25, "per_level_above_first": 0.0 },
         "operation": "add_value"
       }
     ]

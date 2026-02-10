@@ -14,7 +14,7 @@
       {
         "id": "minecraft:enchantment.feather_falling_bonus",
         "attribute": "cranks-dungeons:feather_falling",
-        "amount": { "type": "minecraft:linear", "base": 0.3, "per_level_above_first": 0.0 },
+        "amount": { "type": "minecraft:linear", "base": 0.2, "per_level_above_first": 0.0 },
         "operation": "add_value"
       }
     ]

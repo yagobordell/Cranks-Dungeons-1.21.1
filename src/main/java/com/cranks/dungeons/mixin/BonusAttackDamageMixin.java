@@ -32,8 +32,8 @@ public class BonusAttackDamageMixin {
             bonusDamage += EquipmentStatApplier.getItemStatValue(weapon, "bonus_attack_damage");
 
             // Add bonus attack damage from weapon/chestplate enchantments
-            bonusDamage += getEnchantmentValue(weapon, "minecraft:attack_damage", 6.0);
-            bonusDamage += getEnchantmentValue(chestplate, "minecraft:attack_damage", 6.0);
+            bonusDamage += getEnchantmentValue(weapon, "minecraft:attack_damage", 4.0);
+            bonusDamage += getEnchantmentValue(chestplate, "minecraft:attack_damage", 4.0);
 
             // Apply flat bonus first
             float damageWithBonus = amount + (float) bonusDamage;

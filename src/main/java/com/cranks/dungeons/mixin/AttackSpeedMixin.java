@@ -27,8 +27,8 @@ public class AttackSpeedMixin {
         double attrBonus = player.getAttributeValue(ModAttributes.ATTACK_SPEED);
 
         // Add enchantment bonuses
-        double enchantWeaponBonus = getEnchantmentValue(weapon, "minecraft:attack_speed", 0.3);
-        double enchantChestBonus = getEnchantmentValue(chestplate, "minecraft:attack_speed", 0.3);
+        double enchantWeaponBonus = getEnchantmentValue(weapon, "minecraft:attack_speed", 0.2);
+        double enchantChestBonus = getEnchantmentValue(chestplate, "minecraft:attack_speed", 0.2);
 
         double totalBonus = weaponBonus + armorBonus + attrBonus + enchantWeaponBonus + enchantChestBonus;
 

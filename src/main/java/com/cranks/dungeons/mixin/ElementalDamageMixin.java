@@ -53,7 +53,7 @@ public abstract class ElementalDamageMixin {
 
             // === FIRE DAMAGE ===
             double fireBaseDamage = attacker.getAttributeValue(ModAttributes.FIRE_DAMAGE);
-            fireBaseDamage += getEnchantmentValue(weapon, "minecraft:fire_damage", 6.0);
+            fireBaseDamage += getEnchantmentValue(weapon, "minecraft:fire_damage", 4.0);
 
             double firePercentFromWeapon = EquipmentStatApplier.getItemStatValue(weapon, "fire_damage_percent");
             double firePercentFromChestplate = EquipmentStatApplier.getItemStatValue(chestplate, "fire_damage_percent");
@@ -63,7 +63,7 @@ public abstract class ElementalDamageMixin {
 
             // === COLD DAMAGE ===
             double coldBaseDamage = attacker.getAttributeValue(ModAttributes.COLD_DAMAGE);
-            coldBaseDamage += getEnchantmentValue(weapon, "minecraft:cold_damage", 6.0);
+            coldBaseDamage += getEnchantmentValue(weapon, "minecraft:cold_damage", 4.0);
 
             double coldPercentFromWeapon = EquipmentStatApplier.getItemStatValue(weapon, "cold_damage_percent");
             double coldPercentFromChestplate = EquipmentStatApplier.getItemStatValue(chestplate, "cold_damage_percent");
@@ -73,7 +73,7 @@ public abstract class ElementalDamageMixin {
 
             // === LIGHTNING DAMAGE ===
             double lightningBaseDamage = attacker.getAttributeValue(ModAttributes.LIGHTNING_DAMAGE);
-            lightningBaseDamage += getEnchantmentValue(weapon, "minecraft:lightning_damage", 6.0);
+            lightningBaseDamage += getEnchantmentValue(weapon, "minecraft:lightning_damage", 4.0);
 
             double lightningPercentFromWeapon = EquipmentStatApplier.getItemStatValue(weapon, "lightning_damage_percent");
             double lightningPercentFromChestplate = EquipmentStatApplier.getItemStatValue(chestplate, "lightning_damage_percent");
@@ -83,7 +83,7 @@ public abstract class ElementalDamageMixin {
 
             // === VOID DAMAGE ===
             double voidBaseDamage = attacker.getAttributeValue(ModAttributes.VOID_DAMAGE);
-            voidBaseDamage += getEnchantmentValue(weapon, "minecraft:void_damage", 6.0);
+            voidBaseDamage += getEnchantmentValue(weapon, "minecraft:void_damage", 4.0);
 
             double voidPercentFromWeapon = EquipmentStatApplier.getItemStatValue(weapon, "void_damage_percent");
             double voidPercentFromChestplate = EquipmentStatApplier.getItemStatValue(chestplate, "void_damage_percent");
@@ -133,8 +133,8 @@ public abstract class ElementalDamageMixin {
             double lifeStealFromWeapon = EquipmentStatApplier.getItemStatValue(weapon, "life_steal");
             double lifeStealFromChestplate = EquipmentStatApplier.getItemStatValue(chestplate, "life_steal");
             double lifeStealFromAttribute = attacker.getAttributeValue(ModAttributes.LIFE_STEAL);
-            double lifeStealFromEnchantWeapon = getEnchantmentValue(weapon, "minecraft:life_steal", 0.08);
-            double lifeStealFromEnchantChest = getEnchantmentValue(chestplate, "minecraft:life_steal", 0.08);
+            double lifeStealFromEnchantWeapon = getEnchantmentValue(weapon, "minecraft:life_steal", 0.06);
+            double lifeStealFromEnchantChest = getEnchantmentValue(chestplate, "minecraft:life_steal", 0.06);
 
             double lifeSteal = lifeStealFromWeapon + lifeStealFromChestplate + lifeStealFromAttribute +
                     lifeStealFromEnchantWeapon + lifeStealFromEnchantChest;
@@ -149,8 +149,8 @@ public abstract class ElementalDamageMixin {
             double chanceToBurnFromWeapon = EquipmentStatApplier.getItemStatValue(weapon, "chance_to_burn");
             double chanceToBurnFromChestplate = EquipmentStatApplier.getItemStatValue(chestplate, "chance_to_burn");
             double chanceToBurnFromAttribute = attacker.getAttributeValue(ModAttributes.CHANCE_TO_BURN);
-            double chanceToBurnFromEnchantWeapon = getEnchantmentValue(weapon, "minecraft:chance_to_burn", 0.25);
-            double chanceToBurnFromEnchantChest = getEnchantmentValue(chestplate, "minecraft:chance_to_burn", 0.25);
+            double chanceToBurnFromEnchantWeapon = getEnchantmentValue(weapon, "minecraft:chance_to_burn", 0.2);
+            double chanceToBurnFromEnchantChest = getEnchantmentValue(chestplate, "minecraft:chance_to_burn", 0.2);
 
             double chanceToBurn = chanceToBurnFromWeapon + chanceToBurnFromChestplate + chanceToBurnFromAttribute +
                     chanceToBurnFromEnchantWeapon + chanceToBurnFromEnchantChest;
