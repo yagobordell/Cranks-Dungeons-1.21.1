@@ -341,7 +341,7 @@ public abstract class ItemStackTooltipMixin {
                 double baseAttackDamage = PLAYER_BASE_ATTACK_DAMAGE + attributeTotals.get(EntityAttributes.ATTACK_DAMAGE);
 
                 // Add attack damage from enchantments
-                baseAttackDamage += getEnchantmentValue(stack, "minecraft:attack_damage", 6.0);
+                baseAttackDamage += getEnchantmentValue(stack, "minecraft:attack_damage", 4.0);
 
                 // Get attack damage percentage from this weapon's stats
                 double attackDamagePercent = EquipmentStatApplier.getItemStatValue(stack, "attack_damage_percent");
@@ -353,7 +353,7 @@ public abstract class ItemStackTooltipMixin {
             }
             if (attributeTotals.containsKey(EntityAttributes.ATTACK_SPEED)) {
                 double attackSpeed = PLAYER_BASE_ATTACK_SPEED + attributeTotals.get(EntityAttributes.ATTACK_SPEED);
-                attackSpeed += getEnchantmentValue(stack, "minecraft:attack_speed", 0.3);
+                attackSpeed += getEnchantmentValue(stack, "minecraft:attack_speed", 0.2);
 
                 // Get attack speed percentage from runes
                 double attackSpeedPercent = EquipmentStatApplier.getItemStatValue(stack, "attack_speed_percent");
