@@ -5,6 +5,7 @@ import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.entity.Entity;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class DamageNumberRenderer {
@@ -35,6 +36,9 @@ public class DamageNumberRenderer {
         double halfHeight = Math.tan(fov / 2.0);
         double halfWidth = halfHeight * aspectRatio;
 
+        // Track already-used screen positions this frame to stack overlapping numbers
+        List<int[]> usedSpots = new ArrayList<>();
+
         for (DamageNumber number : numbers) {
             if (number.isExpired()) continue;
 
@@ -58,25 +62,24 @@ public class DamageNumberRenderer {
             double viewY = rotY * cosPitch - rotZ * sinPitch;
             double viewZ = rotY * sinPitch + rotZ * cosPitch;
 
-            // Behind camera
             if (viewZ >= 0) {
-                continue;
+                continue; // behind camera
             }
 
             double depth = -viewZ;
 
-            // Slight clamp to avoid crazy projection when extremely close
+            // Avoid crazy projection when extremely close
             double projDepth = Math.max(depth, 0.5);
 
             double ndcX = viewX / (halfWidth * projDepth);
             double ndcY = viewY / (halfHeight * projDepth);
 
-            // Target screen position (float)
+            // Target screen position
             float targetSX = (float) ((ndcX + 1.0) / 2.0 * screenWidth);
             float targetSY = (float) ((1.0 - ndcY) / 2.0 * screenHeight);
 
-            // Screen-space smoothing to reduce shaking
-            float lerpFactor = 0.1f; // higher = snappier, lower = smoother
+            // Screen-space smoothing to reduce shake
+            float lerpFactor = 0.6f; // 0..1; lower = smoother
             if (Float.isNaN(number.lastScreenX)) {
                 number.lastScreenX = targetSX;
                 number.lastScreenY = targetSY;
@@ -99,8 +102,23 @@ public class DamageNumberRenderer {
             int colorWithAlpha = (alphaInt << 24) | (number.color & 0x00FFFFFF);
 
             int textWidth = textRenderer.getWidth(text);
+            int rowSpacing = textRenderer.fontHeight + 2;
+
+            // Compute stack index: how many numbers are already near this screen position
+            int stackIndex = 0;
+            for (int[] spot : usedSpots) {
+                int prevX = spot[0];
+                int prevY = spot[1];
+                if (Math.abs(prevX - sX) < textWidth   // roughly same horizontal area
+                        && Math.abs(prevY - sY) < rowSpacing) { // roughly same vertical row
+                    stackIndex++;
+                }
+            }
+            usedSpots.add(new int[]{sX, sY});
+
             int drawX = sX - textWidth / 2;
-            int drawY = sY - textRenderer.fontHeight / 2;
+            // Stack upwards: each additional number goes one row higher
+            int drawY = sY - textRenderer.fontHeight / 2 - stackIndex * rowSpacing;
 
             context.drawText(
                     textRenderer,
