@@ -21,9 +21,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class InventoryScreenStatsMixin {
 
     @Unique
-    private boolean statsVisible = false;
+    private static boolean statsVisible = false;
     @Unique
-    private int scrollOffset = 0;
+    private static int scrollOffset = 0;
     @Unique
     private int maxScrollOffset = 0;
     @Unique
@@ -36,6 +36,40 @@ public abstract class InventoryScreenStatsMixin {
     private int tooltipX = 0;
     @Unique
     private int tooltipY = 0;
+
+    // Override mouseScrolled to handle scrolling in stats panel
+    public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+        if (statsVisible && maxScrollOffset > 0) {
+            InventoryScreen screen = (InventoryScreen) (Object) this;
+
+            try {
+                int x = ((HandledScreenAccessor) screen).getX();
+                int y = ((HandledScreenAccessor) screen).getY();
+                int backgroundWidth = ((HandledScreenAccessor) screen).getBackgroundWidth();
+
+                int panelX = x + backgroundWidth + 2;
+                int panelY = y;
+                int panelWidth = 147;
+                int panelHeight = 166;
+
+                // Check if mouse is over the stats panel
+                if (mouseX >= panelX && mouseX <= panelX + panelWidth &&
+                        mouseY >= panelY && mouseY <= panelY + panelHeight) {
+
+                    // Scroll by 10 pixels per scroll notch
+                    scrollOffset -= (int)(verticalAmount * 10);
+                    scrollOffset = Math.max(0, Math.min(scrollOffset, maxScrollOffset));
+
+                    return true; // Consume the scroll event
+                }
+            } catch (Exception e) {
+                // Ignore errors
+            }
+        }
+
+        // Call parent's mouseScrolled if we didn't handle it
+        return ((net.minecraft.client.gui.screen.ingame.HandledScreen) (Object) this).mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
+    }
 
     @Inject(method = "render", at = @At("TAIL"))
     private void renderStatsPanel(DrawContext context, int mouseX, int mouseY, float delta, CallbackInfo ci) {
@@ -65,6 +99,13 @@ public abstract class InventoryScreenStatsMixin {
             if (isHovering && leftClick && !lastClickState && !draggingScrollbar) {
                 statsVisible = !statsVisible;
                 scrollOffset = 0;
+                // Play click sound
+                MinecraftClient.getInstance().getSoundManager().play(
+                        net.minecraft.client.sound.PositionedSoundInstance.ui(
+                                net.minecraft.sound.SoundEvents.UI_BUTTON_CLICK,
+                                1.0F
+                        )
+                );
             }
             lastClickState = leftClick;
 
@@ -311,7 +352,7 @@ public abstract class InventoryScreenStatsMixin {
 
             // Mining sub-section
             curY += 4;
-            context.drawText(tr, Text.literal("⚒ Gathering:"), panelX + 8, curY, 0xFF555555, false);
+            context.drawText(tr, Text.literal("⚒ Gathering:"), panelX + 8, curY, 0xFF404040, false);
             curY += 10;
             ItemStack tool = player.getMainHandStack();
             double baseRange = player.getAttributeBaseValue(EntityAttributes.ENTITY_INTERACTION_RANGE);
@@ -325,6 +366,11 @@ public abstract class InventoryScreenStatsMixin {
 
             int totalContentHeight = (curY + scrollOffset) - (panelY + 8);
             maxScrollOffset = Math.max(0, totalContentHeight - panelHeight + 16);
+            int maxScrollOffsetCache = maxScrollOffset; // Cache for mouse scroll handler
+
+            // Clamp scrollOffset to valid range (in case it was changed by mouse wheel)
+            scrollOffset = Math.max(0, Math.min(scrollOffset, maxScrollOffset));
+
             context.disableScissor();
 
             // --- SCROLLBAR LOGIC (Vanilla 3D style) ---
