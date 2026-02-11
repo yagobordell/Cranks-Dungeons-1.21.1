@@ -2,13 +2,12 @@ package com.cranks.dungeons.mixin;
 
 import com.cranks.dungeons.equipment.EquipmentStatApplier;
 import com.cranks.dungeons.registry.ModAttributes;
+import com.cranks.dungeons.util.CriticalHitState;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.world.ServerWorld;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -29,6 +28,9 @@ public abstract class CriticalStrikeMixin {
             argsOnly = true
     )
     private float applyTotalCalculatedDamage(float amount, ServerWorld world, DamageSource source) {
+        // Reset crit state
+        CriticalHitState.reset();
+
         if (source.getAttacker() instanceof PlayerEntity attacker) {
             LivingEntity target = (LivingEntity) (Object) this;
             ItemStack weapon = attacker.getMainHandStack();
@@ -36,15 +38,6 @@ public abstract class CriticalStrikeMixin {
             ItemStack helmet = attacker.getEquippedStack(EquipmentSlot.HEAD);
             ItemStack leggings = attacker.getEquippedStack(EquipmentSlot.LEGS);
             ItemStack boots = attacker.getEquippedStack(EquipmentSlot.FEET);
-
-            float fire = getModifiedElement(weapon, chest, "fire_damage", target, ModAttributes.FIRE_RESISTANCE);
-            float cold = getModifiedElement(weapon, chest, "cold_damage", target, ModAttributes.COLD_RESISTANCE);
-            float light = getModifiedElement(weapon, chest, "lightning_damage", target, ModAttributes.LIGHTNING_RESISTANCE);
-            float voidDmg = getModifiedElement(weapon, chest, "void_damage", target, ModAttributes.VOID_RESISTANCE);
-
-            float totalElemental = fire + cold + light + voidDmg;
-
-            float combinedBase = amount + totalElemental;
 
             // Crit Chance with enchantments from all armor pieces
             double critChance = attacker.getAttributeValue(ModAttributes.CRIT_CHANCE);
@@ -55,12 +48,13 @@ public abstract class CriticalStrikeMixin {
             critChance += getEnchantmentValue(leggings, "minecraft:crit_chance", 0.075);
             critChance += getEnchantmentValue(boots, "minecraft:crit_chance", 0.075);
 
-            float finalAmount = combinedBase;
+            float finalAmount = amount;
             boolean isCrit = false;
 
             if (critChance > 0 && attacker.getRandom().nextFloat() < critChance) {
-                finalAmount = combinedBase * 1.5f;
+                finalAmount = amount * 1.5f;
                 isCrit = true;
+                CriticalHitState.setCriticalHit(true);
                 spawnCriticalEffects(world, target);
             }
 
@@ -72,22 +66,14 @@ public abstract class CriticalStrikeMixin {
                 attacker.heal(healAmount);
             }
 
-            if (isCrit || totalElemental > 0) {
-                System.out.println(String.format("[Dungeons] Base: %.1f | Element: +%.1f | Crit: %b | Total: %.1f",
-                        amount, totalElemental, isCrit, finalAmount));
+            if (isCrit) {
+                System.out.println(String.format("[Dungeons] Base: %.1f | Crit: %b | Physical: %.1f",
+                        amount, isCrit, finalAmount));
             }
 
             return finalAmount;
         }
         return amount;
-    }
-
-    @Unique
-    private float getModifiedElement(ItemStack w, ItemStack c, String key, LivingEntity target, RegistryEntry<EntityAttribute> resAttr) {
-        double dmg = EquipmentStatApplier.getItemStatValue(w, key) + EquipmentStatApplier.getItemStatValue(c, key);
-        if (dmg <= 0) return 0;
-        double res = target.getAttributeValue(resAttr);
-        return (float) (dmg * (1.0 - res));
     }
 
     @Unique

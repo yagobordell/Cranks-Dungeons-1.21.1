@@ -1,12 +1,15 @@
 package com.cranks.dungeons.mixin;
 
 import com.cranks.dungeons.equipment.EquipmentStatApplier;
+import com.cranks.dungeons.network.DamageNumberSender;
 import com.cranks.dungeons.registry.ModAttributes;
+import com.cranks.dungeons.util.CriticalHitState;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -26,6 +29,12 @@ public abstract class ElementalDamageMixin {
 
     @Shadow
     public abstract double getAttributeValue(net.minecraft.registry.entry.RegistryEntry<net.minecraft.entity.attribute.EntityAttribute> attribute);
+
+    @Shadow
+    public abstract float getHealth();
+
+    @Shadow
+    public abstract float getMaxHealth();
 
     @Unique
     private static final ThreadLocal<Boolean> cranks$processingElementalDamage = ThreadLocal.withInitial(() -> false);
@@ -48,6 +57,13 @@ public abstract class ElementalDamageMixin {
         ItemStack weapon = attacker.getMainHandStack();
         ItemStack chestplate = attacker.getEquippedStack(EquipmentSlot.CHEST);
 
+        // Check if this hit was a critical strike
+        boolean isCrit = CriticalHitState.isCriticalHit();
+        float critMultiplier = isCrit ? 1.5f : 1.0f;
+
+        // The amount parameter already has crit applied to physical damage
+        float physicalDamage = amount;
+
         try {
             cranks$processingElementalDamage.set(true);
 
@@ -59,7 +75,7 @@ public abstract class ElementalDamageMixin {
             double firePercentFromChestplate = EquipmentStatApplier.getItemStatValue(chestplate, "fire_damage_percent");
             double fireTotalPercent = firePercentFromWeapon + firePercentFromChestplate;
 
-            double fireDamage = fireBaseDamage * (1.0 + fireTotalPercent);
+            double fireDamage = fireBaseDamage * (1.0 + fireTotalPercent) * critMultiplier;
 
             // === COLD DAMAGE ===
             double coldBaseDamage = attacker.getAttributeValue(ModAttributes.COLD_DAMAGE);
@@ -69,7 +85,7 @@ public abstract class ElementalDamageMixin {
             double coldPercentFromChestplate = EquipmentStatApplier.getItemStatValue(chestplate, "cold_damage_percent");
             double coldTotalPercent = coldPercentFromWeapon + coldPercentFromChestplate;
 
-            double coldDamage = coldBaseDamage * (1.0 + coldTotalPercent);
+            double coldDamage = coldBaseDamage * (1.0 + coldTotalPercent) * critMultiplier;
 
             // === LIGHTNING DAMAGE ===
             double lightningBaseDamage = attacker.getAttributeValue(ModAttributes.LIGHTNING_DAMAGE);
@@ -79,7 +95,7 @@ public abstract class ElementalDamageMixin {
             double lightningPercentFromChestplate = EquipmentStatApplier.getItemStatValue(chestplate, "lightning_damage_percent");
             double lightningTotalPercent = lightningPercentFromWeapon + lightningPercentFromChestplate;
 
-            double lightningDamage = lightningBaseDamage * (1.0 + lightningTotalPercent);
+            double lightningDamage = lightningBaseDamage * (1.0 + lightningTotalPercent) * critMultiplier;
 
             // === VOID DAMAGE ===
             double voidBaseDamage = attacker.getAttributeValue(ModAttributes.VOID_DAMAGE);
@@ -89,9 +105,14 @@ public abstract class ElementalDamageMixin {
             double voidPercentFromChestplate = EquipmentStatApplier.getItemStatValue(chestplate, "void_damage_percent");
             double voidTotalPercent = voidPercentFromWeapon + voidPercentFromChestplate;
 
-            double voidDamage = voidBaseDamage * (1.0 + voidTotalPercent);
+            double voidDamage = voidBaseDamage * (1.0 + voidTotalPercent) * critMultiplier;
 
             double totalElementalDamage = 0;
+
+            double finalFireDamage = 0;
+            double finalColdDamage = 0;
+            double finalLightningDamage = 0;
+            double finalVoidDamage = 0;
 
             if (fireDamage > 0) {
                 double resistance = target.getAttributeValue(ModAttributes.FIRE_RESISTANCE);
@@ -99,6 +120,7 @@ public abstract class ElementalDamageMixin {
                 if (finalDamage > 0) {
                     target.setHealth(target.getHealth() - (float) finalDamage);
                     totalElementalDamage += finalDamage;
+                    finalFireDamage = finalDamage;
                 }
             }
 
@@ -108,6 +130,7 @@ public abstract class ElementalDamageMixin {
                 if (finalDamage > 0) {
                     target.setHealth(target.getHealth() - (float) finalDamage);
                     totalElementalDamage += finalDamage;
+                    finalColdDamage = finalDamage;
                 }
             }
 
@@ -117,6 +140,7 @@ public abstract class ElementalDamageMixin {
                 if (finalDamage > 0) {
                     target.setHealth(target.getHealth() - (float) finalDamage);
                     totalElementalDamage += finalDamage;
+                    finalLightningDamage = finalDamage;
                 }
             }
 
@@ -126,7 +150,20 @@ public abstract class ElementalDamageMixin {
                 if (finalDamage > 0) {
                     target.setHealth(target.getHealth() - (float) finalDamage);
                     totalElementalDamage += finalDamage;
+                    finalVoidDamage = finalDamage;
                 }
+            }
+
+            // === SEND DAMAGE NUMBERS ===
+            if (attacker instanceof ServerPlayerEntity serverPlayer) {
+                DamageNumberSender.send(
+                        serverPlayer, target,
+                        physicalDamage,  // Use the amount parameter directly as physical damage
+                        finalFireDamage,
+                        finalColdDamage,
+                        finalLightningDamage,
+                        finalVoidDamage
+                );
             }
 
             // Life Steal with enchantments
@@ -140,7 +177,7 @@ public abstract class ElementalDamageMixin {
                     lifeStealFromEnchantWeapon + lifeStealFromEnchantChest;
 
             if (lifeSteal > 0) {
-                float totalDamage = amount + (float) totalElementalDamage;
+                float totalDamage = physicalDamage + (float) totalElementalDamage;
                 float healAmount = (float) (totalDamage * lifeSteal);
                 attacker.heal(healAmount);
             }

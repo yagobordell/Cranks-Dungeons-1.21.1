@@ -5,6 +5,7 @@ import com.cranks.dungeons.block.entity.ModBlockEntities;
 import com.cranks.dungeons.item.ModItems;
 import com.cranks.dungeons.loot.RunicTomeLootHandler;
 import com.cranks.dungeons.network.EnergyShieldSyncPacket;
+import com.cranks.dungeons.network.ModNetworking;
 import com.cranks.dungeons.registry.ModAttributes;
 import com.cranks.dungeons.registry.ModEnchantments;
 import com.cranks.dungeons.screen.ModScreenHandlers;
@@ -34,6 +35,7 @@ public class CranksDungeons implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		ModBlocks.register();
+		ModNetworking.registerServer();
 		ModBlockEntities.register();
 		ModItems.registerModItems();
 		ModScreenHandlers.register();
