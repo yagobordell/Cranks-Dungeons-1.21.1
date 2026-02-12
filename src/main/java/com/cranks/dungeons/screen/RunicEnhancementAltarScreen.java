@@ -36,7 +36,7 @@ public class RunicEnhancementAltarScreen extends HandledScreen<RunicEnhancementA
 
     public RunicEnhancementAltarScreen(RunicEnhancementAltarScreenHandler handler, PlayerInventory inventory, Text title) {
         super(handler, inventory, title);
-        this.backgroundHeight = 165;
+        this.backgroundHeight = 166;
         this.backgroundWidth = 176;
         this.playerInventoryTitleY = this.backgroundHeight - 94;
     }
@@ -51,7 +51,7 @@ public class RunicEnhancementAltarScreen extends HandledScreen<RunicEnhancementA
         int buttonWidth = 48;
         int buttonHeight = 14;
         int buttonX = this.x + 28;
-        int buttonY = this.y + 36;
+        int buttonY = this.y + 32;
 
         if (this.enhanceButton != null) {
             this.remove(this.enhanceButton);

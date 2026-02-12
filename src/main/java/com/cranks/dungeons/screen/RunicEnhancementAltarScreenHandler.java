@@ -30,7 +30,7 @@ public class RunicEnhancementAltarScreenHandler extends ScreenHandler {
         inventory.onOpen(playerInventory.player);
 
         // Equipment slot - Adjusted to fit the top gray box
-        this.addSlot(new Slot(inventory, RunicEnhancementAltarBlockEntity.EQUIPMENT_SLOT, 44, 17) {
+        this.addSlot(new Slot(inventory, RunicEnhancementAltarBlockEntity.EQUIPMENT_SLOT, 44, 10) {
             @Override
             public boolean canInsert(ItemStack stack) {
                 return EquipmentType.getTypeForItem(stack).isPresent();
@@ -38,7 +38,7 @@ public class RunicEnhancementAltarScreenHandler extends ScreenHandler {
         });
 
         // Tome slot - Adjusted to fit the bottom gray box
-        this.addSlot(new Slot(inventory, RunicEnhancementAltarBlockEntity.TOME_SLOT, 44, 53) {
+        this.addSlot(new Slot(inventory, RunicEnhancementAltarBlockEntity.TOME_SLOT, 44, 52) {
             @Override
             public boolean canInsert(ItemStack stack) {
                 return stack.getItem() instanceof RunicTomeItem;
@@ -46,7 +46,7 @@ public class RunicEnhancementAltarScreenHandler extends ScreenHandler {
         });
 
         // Result slot - Centered inside the blue circle
-        this.addSlot(new Slot(inventory, RunicEnhancementAltarBlockEntity.RESULT_SLOT, 116, 35) {
+        this.addSlot(new Slot(inventory, RunicEnhancementAltarBlockEntity.RESULT_SLOT, 116, 31) {
             @Override
             public boolean canInsert(ItemStack stack) {
                 return false;
