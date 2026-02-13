@@ -15,7 +15,8 @@ public class ElementalTomeItem extends Item {
         FIRE("Fire", Formatting.RED),
         COLD("Cold", Formatting.AQUA),
         LIGHTNING("Lightning", Formatting.DARK_BLUE),
-        VOID("Void", Formatting.DARK_PURPLE);
+        VOID("Void", Formatting.DARK_PURPLE),
+        PHYSICAL("Physical", Formatting.WHITE);
 
         private final String displayName;
         private final Formatting color;
@@ -28,27 +29,18 @@ public class ElementalTomeItem extends Item {
         public String getDisplayName() { return displayName; }
         public Formatting getColor() { return color; }
 
-        /**
-         * Returns the suffix used in stat IDs for flat damage.
-         * e.g., "fire_damage", "cold_damage"
-         */
         public String getDamageSuffix() {
+            if (this == PHYSICAL) return "attack_damage";
             return name().toLowerCase() + "_damage";
         }
 
-        /**
-         * Returns the suffix used in stat IDs for resistance.
-         * e.g., "fire_resistance", "cold_resistance"
-         */
         public String getResistanceSuffix() {
+            if (this == PHYSICAL) return "armor";
             return name().toLowerCase() + "_resistance";
         }
 
-        /**
-         * Returns the suffix used in stat IDs for percent damage.
-         * e.g., "fire_damage_percent", "cold_damage_percent"
-         */
         public String getDamagePercentSuffix() {
+            if (this == PHYSICAL) return "attack_damage_percent";
             return name().toLowerCase() + "_damage_percent";
         }
     }
@@ -76,10 +68,6 @@ public class ElementalTomeItem extends Item {
         return customRarity;
     }
 
-    /**
-     * Get the equipment type prefix used in stat IDs.
-     * e.g., SWORD -> "sword", HELMET -> "helmet"
-     */
     private static String getEquipmentPrefix(EquipmentType equipType) {
         return equipType.name().toLowerCase();
     }
@@ -93,11 +81,11 @@ public class ElementalTomeItem extends Item {
         String prefix = getEquipmentPrefix(equipType);
 
         if (isGreater) {
-            // Greater tomes: elemental damage percent, weapons only
+            // Greater tomes: percent damage, weapons only
             if (!isWeapon(equipType)) return null;
             return prefix + "_" + element.getDamagePercentSuffix();
         } else {
-            // Normal elemental tomes: damage for weapons, resistance for armor
+            // Normal tomes: damage for weapons, resistance/armor for armor
             if (isWeapon(equipType)) {
                 return prefix + "_" + element.getDamageSuffix();
             } else if (isArmor(equipType)) {
@@ -127,7 +115,7 @@ public class ElementalTomeItem extends Item {
         // Greater tomes are weapon-only
         if (isGreater && !isWeapon(equipType)) return false;
 
-        // Normal elemental tomes work on weapons and armor
+        // Normal tomes work on weapons and armor
         if (!isGreater && !isWeapon(equipType) && !isArmor(equipType)) return false;
 
         // Check if can add more stats
@@ -203,6 +191,21 @@ public class ElementalTomeItem extends Item {
         }
 
         super.appendTooltip(stack, context, displayComponent, textConsumer, type);
+    }
+
+    private String getWeaponDisplayName() {
+        if (element == Element.PHYSICAL) return "Attack Damage";
+        return element.getDisplayName() + " Damage";
+    }
+
+    private String getArmorDisplayName() {
+        if (element == Element.PHYSICAL) return "Armor";
+        return element.getDisplayName() + " Resistance";
+    }
+
+    private String getGreaterDisplayName() {
+        if (element == Element.PHYSICAL) return "Increased Attack Damage";
+        return "Increased " + element.getDisplayName() + " Damage";
     }
 
     private void addTierBreakdown(Consumer<Text> textConsumer, String statName, Formatting statColor) {
