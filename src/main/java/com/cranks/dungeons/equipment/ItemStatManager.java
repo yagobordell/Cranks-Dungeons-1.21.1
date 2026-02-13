@@ -137,9 +137,69 @@ public class ItemStatManager {
         return true;
     }
 
-    public static void addStatsToTooltip(ItemStack stack, List<Text> tooltip) {
-        // Tooltip is now handled entirely by ItemStackTooltipMixin
-        // This method is kept for backwards compatibility but does nothing
+    /**
+     * Add a specific stat to an item at the given tier.
+     * Used by elemental tomes that grant a predetermined stat.
+     */
+    public static boolean addSpecificStat(ItemStack stack, String statId, int tier) {
+        if (!canAddStat(stack)) {
+            return false;
+        }
+
+        Optional<EquipmentType> equipType = EquipmentType.getTypeForItem(stack);
+        if (equipType.isEmpty()) {
+            return false;
+        }
+
+        CustomStat stat = StatRegistry.getStat(statId);
+        if (stat == null) {
+            System.out.println("Unknown stat ID: " + statId);
+            return false;
+        }
+
+        // Check if item already has this stat or one with the same attribute
+        List<ItemStat> existingStats = getStats(stack);
+        boolean alreadyHasStat = existingStats.stream()
+                .anyMatch(s -> {
+                    CustomStat existingStat = StatRegistry.getStat(s.statId);
+                    if (existingStat == null) return false;
+                    if (s.statId.equals(statId)) return true;
+                    if (existingStat.getAttribute().equals(stat.getAttribute())) return true;
+                    return false;
+                });
+
+        if (alreadyHasStat) {
+            return false;
+        }
+
+        double value = stat.rollValue(tier);
+
+        NbtCompound nbt = stack.getOrDefault(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,
+                net.minecraft.component.type.NbtComponent.DEFAULT).copyNbt();
+
+        NbtList statsList;
+        Optional<NbtList> statsListOpt = nbt.getList(STATS_KEY);
+        if (statsListOpt.isPresent()) {
+            statsList = statsListOpt.get();
+        } else {
+            statsList = new NbtList();
+        }
+
+        NbtCompound newStat = new NbtCompound();
+        newStat.putString("id", statId);
+        newStat.putDouble("value", value);
+        newStat.putInt("tier", tier);
+        statsList.add(newStat);
+
+        nbt.put(STATS_KEY, statsList);
+        stack.set(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,
+                net.minecraft.component.type.NbtComponent.of(nbt));
+
+        // Update item attributes
+        EquipmentStatApplier.updateItemAttributes(stack);
+
+        System.out.println("Successfully added specific stat: " + statId + " at tier " + tier);
+        return true;
     }
 
     private static Text createStatTooltip(CustomStat stat, double value, int tier) {

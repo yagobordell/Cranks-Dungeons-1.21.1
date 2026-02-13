@@ -71,6 +71,14 @@ public class CranksDungeons implements ModInitializer {
 			content.add(ModItems.RUNIC_TOME_T3);
 			content.add(ModItems.RUNIC_TOME_T4);
 			content.add(ModItems.RUNIC_TOME_T5);
+			content.add(ModItems.TOME_OF_FIRE);
+			content.add(ModItems.TOME_OF_COLD);
+			content.add(ModItems.TOME_OF_LIGHTNING);
+			content.add(ModItems.TOME_OF_VOID);
+			content.add(ModItems.GREATER_TOME_OF_FIRE);
+			content.add(ModItems.GREATER_TOME_OF_COLD);
+			content.add(ModItems.GREATER_TOME_OF_LIGHTNING);
+			content.add(ModItems.GREATER_TOME_OF_VOID);
 		});
 	}
 }

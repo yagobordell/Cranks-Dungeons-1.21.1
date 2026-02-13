@@ -2,6 +2,7 @@ package com.cranks.dungeons.block.entity;
 
 import com.cranks.dungeons.equipment.EquipmentType;
 import com.cranks.dungeons.equipment.ItemStatManager;
+import com.cranks.dungeons.item.ElementalTomeItem;
 import com.cranks.dungeons.item.RunicTomeItem;
 import com.cranks.dungeons.screen.RunicEnhancementAltarScreenHandler;
 import net.minecraft.block.BlockState;
@@ -90,6 +91,7 @@ public class RunicEnhancementAltarBlockEntity extends BlockEntity implements Nam
     public void clear() {
         inventory.clear();
     }
+
     @Override
     protected void writeData(WriteView view) {
         super.writeData(view);
@@ -102,7 +104,6 @@ public class RunicEnhancementAltarBlockEntity extends BlockEntity implements Nam
         Inventories.readData(view, inventory);
     }
 
-    // SidedInventory implementation (optional, allows hoppers to interact)
     @Override
     public int[] getAvailableSlots(Direction side) {
         return new int[]{EQUIPMENT_SLOT, TOME_SLOT, RESULT_SLOT};
@@ -115,7 +116,7 @@ public class RunicEnhancementAltarBlockEntity extends BlockEntity implements Nam
             return EquipmentType.getTypeForItem(stack).isPresent();
         }
         if (slot == TOME_SLOT) {
-            return stack.getItem() instanceof RunicTomeItem;
+            return stack.getItem() instanceof RunicTomeItem || stack.getItem() instanceof ElementalTomeItem;
         }
         return false;
     }
@@ -133,10 +134,6 @@ public class RunicEnhancementAltarBlockEntity extends BlockEntity implements Nam
             return false;
         }
 
-        if (!(tome.getItem() instanceof RunicTomeItem runicTome)) {
-            return false;
-        }
-
         if (EquipmentType.getTypeForItem(equipment).isEmpty()) {
             return false;
         }
@@ -145,6 +142,53 @@ public class RunicEnhancementAltarBlockEntity extends BlockEntity implements Nam
             return false;
         }
 
+        // Handle Elemental Tomes
+        if (tome.getItem() instanceof ElementalTomeItem elementalTome) {
+            return tryElementalEnhance(equipment, tome, elementalTome);
+        }
+
+        // Handle Regular Runic Tomes
+        if (tome.getItem() instanceof RunicTomeItem runicTome) {
+            return tryRunicEnhance(equipment, tome, runicTome);
+        }
+
+        return false;
+    }
+
+    private boolean tryElementalEnhance(ItemStack equipment, ItemStack tome, ElementalTomeItem elementalTome) {
+        EquipmentType equipType = EquipmentType.getTypeForItem(equipment).get();
+
+        // Check if this tome can be applied to this equipment
+        if (!elementalTome.canApplyTo(equipment)) {
+            return false;
+        }
+
+        String statId = elementalTome.getStatIdForEquipment(equipType);
+        if (statId == null) {
+            return false;
+        }
+
+        // Calculate tier based on current stat count
+        int currentStatCount = ItemStatManager.getStats(equipment).size();
+        int tier = ElementalTomeItem.getTierForStatCount(currentStatCount);
+
+        // Create a copy for the result
+        ItemStack result = equipment.copy();
+
+        boolean success = ItemStatManager.addSpecificStat(result, statId, tier);
+
+        if (success) {
+            setStack(RESULT_SLOT, result);
+            equipment.decrement(1);
+            tome.decrement(1);
+            markDirty();
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean tryRunicEnhance(ItemStack equipment, ItemStack tome, RunicTomeItem runicTome) {
         // Create a copy for the result
         ItemStack result = equipment.copy();
 
@@ -155,13 +199,9 @@ public class RunicEnhancementAltarBlockEntity extends BlockEntity implements Nam
         }
 
         if (success) {
-            // Set the result
             setStack(RESULT_SLOT, result);
-
-            // Consume inputs
             equipment.decrement(1);
             tome.decrement(1);
-
             markDirty();
             return true;
         }

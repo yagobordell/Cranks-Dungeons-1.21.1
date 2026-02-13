@@ -2,6 +2,7 @@ package com.cranks.dungeons.screen;
 
 import com.cranks.dungeons.block.entity.RunicEnhancementAltarBlockEntity;
 import com.cranks.dungeons.equipment.EquipmentType;
+import com.cranks.dungeons.item.ElementalTomeItem;
 import com.cranks.dungeons.item.RunicTomeItem;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -30,7 +31,7 @@ public class RunicEnhancementAltarScreenHandler extends ScreenHandler {
         inventory.onOpen(playerInventory.player);
 
         // Equipment slot - Adjusted to fit the top gray box
-        this.addSlot(new Slot(inventory, RunicEnhancementAltarBlockEntity.EQUIPMENT_SLOT, 44, 10) {
+        this.addSlot(new Slot(inventory, RunicEnhancementAltarBlockEntity.EQUIPMENT_SLOT, 44, 9) {
             @Override
             public boolean canInsert(ItemStack stack) {
                 return EquipmentType.getTypeForItem(stack).isPresent();
@@ -38,10 +39,10 @@ public class RunicEnhancementAltarScreenHandler extends ScreenHandler {
         });
 
         // Tome slot - Adjusted to fit the bottom gray box
-        this.addSlot(new Slot(inventory, RunicEnhancementAltarBlockEntity.TOME_SLOT, 44, 52) {
+        this.addSlot(new Slot(inventory, RunicEnhancementAltarBlockEntity.TOME_SLOT, 44, 53) {
             @Override
             public boolean canInsert(ItemStack stack) {
-                return stack.getItem() instanceof RunicTomeItem;
+                return stack.getItem() instanceof RunicTomeItem || stack.getItem() instanceof ElementalTomeItem;
             }
         });
 
@@ -88,9 +89,15 @@ public class RunicEnhancementAltarScreenHandler extends ScreenHandler {
                     return ItemStack.EMPTY;
                 }
                 clickedSlot.onQuickTransfer(clickedStack, newStack);
+            } else if (slot == RunicEnhancementAltarBlockEntity.EQUIPMENT_SLOT
+                    || slot == RunicEnhancementAltarBlockEntity.TOME_SLOT) {
+                // From equipment or tome slot -> send back to player inventory
+                if (!this.insertItem(clickedStack, 3, 39, true)) {
+                    return ItemStack.EMPTY;
+                }
             } else if (slot >= 3) {
                 // From player inventory
-                if (clickedStack.getItem() instanceof RunicTomeItem) {
+                if (clickedStack.getItem() instanceof RunicTomeItem || clickedStack.getItem() instanceof ElementalTomeItem) {
                     if (!this.insertItem(clickedStack, RunicEnhancementAltarBlockEntity.TOME_SLOT, RunicEnhancementAltarBlockEntity.TOME_SLOT + 1, false)) {
                         return ItemStack.EMPTY;
                     }
@@ -105,8 +112,6 @@ public class RunicEnhancementAltarScreenHandler extends ScreenHandler {
                 } else if (!this.insertItem(clickedStack, 3, 30, false)) {
                     return ItemStack.EMPTY;
                 }
-            } else if (!this.insertItem(clickedStack, 3, 39, false)) {
-                return ItemStack.EMPTY;
             }
 
             if (clickedStack.isEmpty()) {
