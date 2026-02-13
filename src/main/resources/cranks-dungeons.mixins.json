@@ -49,6 +49,7 @@
 		"EnergyShieldRegenMixin",
 		"DisableEnchantmentWhileSneakingMixin",
 		"ShiftingPreviewMixin",
+		"EnchantmentFilterMixin",
 		"FeatherFallingMixin"
 	],
 	"client": [
