@@ -44,7 +44,7 @@ public class ModItems {
         RegistryKey<Item> key = RegistryKey.of(RegistryKeys.ITEM, id);
 
         return Registry.register(Registries.ITEM, key,
-                new ElementalTomeItem(element, isGreater, rarity, new Item.Settings().registryKey(key).maxCount(1)));
+                new ElementalTomeItem(element, isGreater, rarity, new Item.Settings().registryKey(key)));
     }
 
     public static void registerModItems() {
