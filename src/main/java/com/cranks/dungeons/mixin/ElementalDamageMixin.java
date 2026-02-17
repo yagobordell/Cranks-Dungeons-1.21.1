@@ -3,6 +3,7 @@ package com.cranks.dungeons.mixin;
 import com.cranks.dungeons.equipment.EquipmentStatApplier;
 import com.cranks.dungeons.network.DamageNumberSender;
 import com.cranks.dungeons.registry.ModAttributes;
+import com.cranks.dungeons.registry.ModSounds;
 import com.cranks.dungeons.util.CriticalHitState;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
@@ -11,6 +12,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.SoundCategory;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -163,6 +165,53 @@ public abstract class ElementalDamageMixin {
                         finalColdDamage,
                         finalLightningDamage,
                         finalVoidDamage
+                );
+            }
+
+            // ... after finalFireDamage, finalColdDamage, finalLightningDamage, finalVoidDamage have been computed
+
+// Play per-element hit sounds (ServerWorld world is passed in, target is the victim)
+            if (finalFireDamage > 0) {
+                world.playSoundFromEntity(
+                        null,
+                        target,
+                        ModSounds.ELEMENTAL_FIRE_HIT,
+                        SoundCategory.PLAYERS,
+                        1.2f,
+                        1.0f
+                );
+            }
+
+            if (finalColdDamage > 0) {
+                world.playSoundFromEntity(
+                        null,
+                        target,
+                        ModSounds.ELEMENTAL_COLD_HIT,
+                        SoundCategory.PLAYERS,
+                        1.0f,
+                        1.0f
+                );
+            }
+
+            if (finalLightningDamage > 0) {
+                world.playSoundFromEntity(
+                        null,
+                        target,
+                        ModSounds.ELEMENTAL_LIGHTNING_HIT,
+                        SoundCategory.PLAYERS,
+                        0.8f,
+                        1.0f
+                );
+            }
+
+            if (finalVoidDamage > 0) {
+                world.playSoundFromEntity(
+                        null,
+                        target,
+                        ModSounds.ELEMENTAL_VOID_HIT,
+                        SoundCategory.PLAYERS,
+                        0.8f,
+                        1.0f
                 );
             }
 

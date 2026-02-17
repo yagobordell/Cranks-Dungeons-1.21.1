@@ -46,20 +46,18 @@ public class CranksDungeonsClient implements ClientModInitializer {
                 System.out.println("[DamageNumbers CLIENT] Processing at " + pos);
 
                 int count = payload.entries().size();
-                for (int i = 0; i < payload.entries().size(); i++) {
+                for (int i = 0; i < count; i++) {
                     DamageNumberPayload.DamageEntry entry = payload.entries().get(i);
 
-                    // Spread numbers in a circle pattern
                     double offsetX = 0;
                     double offsetZ = 0;
                     if (count > 1) {
                         double angle = (2.0 * Math.PI * i) / count;
-                        double spread = 0.25; // Reduced spread for tighter grouping
+                        double spread = 0.25;
                         offsetX = Math.cos(angle) * spread;
                         offsetZ = Math.sin(angle) * spread;
                     }
 
-                    // Add small random offset for natural look
                     offsetX += (Math.random() - 0.5) * 0.1;
                     offsetZ += (Math.random() - 0.5) * 0.1;
 
@@ -68,10 +66,10 @@ public class CranksDungeonsClient implements ClientModInitializer {
                             entry.color(),
                             pos,
                             offsetX,
-                            offsetZ
+                            offsetZ,
+                            i   // NEW: rowIndex
                     );
                     DamageNumberManager.addDamageNumber(damageNumber);
-                    System.out.println("[DamageNumbers CLIENT] Added number: " + entry.damage() + " color=0x" + Integer.toHexString(entry.color()));
                 }
                 System.out.println("[DamageNumbers CLIENT] Active numbers: " + DamageNumberManager.getActiveNumbers().size());
             });

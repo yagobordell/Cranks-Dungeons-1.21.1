@@ -2,6 +2,7 @@ package com.cranks.dungeons.mixin;
 
 import com.cranks.dungeons.equipment.EquipmentStatApplier;
 import com.cranks.dungeons.registry.ModAttributes;
+import com.cranks.dungeons.registry.ModSounds;
 import com.cranks.dungeons.util.CriticalHitState;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
@@ -9,6 +10,7 @@ import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.SoundCategory;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -100,15 +102,16 @@ public abstract class CriticalStrikeMixin {
             double angle = i * (Math.PI * 2 / 12);
             double vx = Math.cos(angle) * 0.2;
             double vz = Math.sin(angle) * 0.2;
-            world.spawnParticles(
-                    net.minecraft.particle.ParticleTypes.CRIT,
-                    target.getX(), target.getY() + target.getHeight() / 2, target.getZ(),
-                    0, vx, 0.1, vz, 0.5
-            );
         }
 
-        world.playSound(null, target.getBlockPos(),
-                net.minecraft.sound.SoundEvents.ENTITY_PLAYER_ATTACK_CRIT,
-                net.minecraft.sound.SoundCategory.PLAYERS, 1.0f, 1.2f);
+        // Use your custom critical hit sound instead of vanilla
+        world.playSound(
+                null,
+                target.getBlockPos(),
+                ModSounds.CRITICAL_HIT,
+                SoundCategory.PLAYERS,
+                1.0f,
+                1.0f
+        );
     }
 }

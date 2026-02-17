@@ -4,11 +4,14 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.entity.Entity;
+import net.minecraft.util.math.MathHelper;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class DamageNumberRenderer {
+
+    // Smoothing factor: lower = smoother, less jitter
+    private static final float SMOOTHING = 0.1f;
 
     public static void renderHud(DrawContext context, float tickDelta) {
         MinecraftClient client = MinecraftClient.getInstance();
@@ -29,15 +32,12 @@ public class DamageNumberRenderer {
         double camZ = cameraEntity.getZ();
 
         float yawRad = (float) Math.toRadians(cameraEntity.getYaw() + 180);
-        float pitchRad = (float) Math.toRadians(cameraEntity.getPitch()); // no minus
+        float pitchRad = (float) Math.toRadians(cameraEntity.getPitch());
 
         double fov = Math.toRadians(client.options.getFov().getValue());
         double aspectRatio = (double) screenWidth / (double) screenHeight;
         double halfHeight = Math.tan(fov / 2.0);
         double halfWidth = halfHeight * aspectRatio;
-
-        // Track already-used screen positions this frame to stack overlapping numbers
-        List<int[]> usedSpots = new ArrayList<>();
 
         for (DamageNumber number : numbers) {
             if (number.isExpired()) continue;
@@ -62,30 +62,24 @@ public class DamageNumberRenderer {
             double viewY = rotY * cosPitch - rotZ * sinPitch;
             double viewZ = rotY * sinPitch + rotZ * cosPitch;
 
-            if (viewZ >= 0) {
-                continue; // behind camera
-            }
+            if (viewZ >= 0) continue; // behind camera
 
             double depth = -viewZ;
-
-            // Avoid crazy projection when extremely close
             double projDepth = Math.max(depth, 0.5);
 
             double ndcX = viewX / (halfWidth * projDepth);
             double ndcY = viewY / (halfHeight * projDepth);
 
-            // Target screen position
             float targetSX = (float) ((ndcX + 1.0) / 2.0 * screenWidth);
             float targetSY = (float) ((1.0 - ndcY) / 2.0 * screenHeight);
 
-            // Screen-space smoothing to reduce shake
-            float lerpFactor = 0.6f; // 0..1; lower = smoother
+            // Screen-space smoothing
             if (Float.isNaN(number.lastScreenX)) {
                 number.lastScreenX = targetSX;
                 number.lastScreenY = targetSY;
             } else {
-                number.lastScreenX += (targetSX - number.lastScreenX) * lerpFactor;
-                number.lastScreenY += (targetSY - number.lastScreenY) * lerpFactor;
+                number.lastScreenX = MathHelper.lerp(SMOOTHING, number.lastScreenX, targetSX);
+                number.lastScreenY = MathHelper.lerp(SMOOTHING, number.lastScreenY, targetSY);
             }
 
             int sX = Math.round(number.lastScreenX);
@@ -104,21 +98,9 @@ public class DamageNumberRenderer {
             int textWidth = textRenderer.getWidth(text);
             int rowSpacing = textRenderer.fontHeight + 2;
 
-            // Compute stack index: how many numbers are already near this screen position
-            int stackIndex = 0;
-            for (int[] spot : usedSpots) {
-                int prevX = spot[0];
-                int prevY = spot[1];
-                if (Math.abs(prevX - sX) < textWidth   // roughly same horizontal area
-                        && Math.abs(prevY - sY) < rowSpacing) { // roughly same vertical row
-                    stackIndex++;
-                }
-            }
-            usedSpots.add(new int[]{sX, sY});
-
             int drawX = sX - textWidth / 2;
-            // Stack upwards: each additional number goes one row higher
-            int drawY = sY - textRenderer.fontHeight / 2 - stackIndex * rowSpacing;
+            // Stack using stable rowIndex instead of dynamic overlap
+            int drawY = sY - textRenderer.fontHeight / 2 - number.rowIndex * rowSpacing;
 
             context.drawText(
                     textRenderer,

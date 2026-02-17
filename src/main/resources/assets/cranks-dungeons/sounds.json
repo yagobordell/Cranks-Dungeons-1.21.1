@@ -23,5 +23,31 @@
     "sounds": [
       { "name": "cranks-dungeons:energy_shield_regen", "volume": 1.0, "pitch": 1.0 }
     ]
+  },
+
+  "fire_hit": {
+    "sounds": [
+      { "name": "cranks-dungeons:fire_hit", "volume": 1.0, "pitch": 1.0 }
+    ]
+  },
+  "cold_hit": {
+    "sounds": [
+      { "name": "cranks-dungeons:cold_hit", "volume": 1.0, "pitch": 1.0 }
+    ]
+  },
+  "lightning_hit": {
+    "sounds": [
+      { "name": "cranks-dungeons:lightning_hit", "volume": 1.0, "pitch": 1.0 }
+    ]
+  },
+  "void_hit": {
+    "sounds": [
+      { "name": "cranks-dungeons:void_hit", "volume": 1.0, "pitch": 1.0 }
+    ]
+  },
+  "critical_hit": {
+    "sounds": [
+      { "name": "cranks-dungeons:critical_hit", "volume": 1.0, "pitch": 1.0 }
+    ]
   }
 }

@@ -53,7 +53,6 @@
 		"FeatherFallingMixin"
 	],
 	"client": [
-		"ClientPlayerMixin",
 		"HideArmorAttributeMixin",
 		"EnchantingTableTooltipMixin",
 		"InventoryScreenStatsMixin",

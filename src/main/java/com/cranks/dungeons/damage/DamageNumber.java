@@ -13,17 +13,21 @@ public class DamageNumber {
     public static final long LIFETIME = 1500;
     public static final double FLOAT_HEIGHT = 0.4;
 
+    // NEW: fixed vertical stack row for this number
+    public final int rowIndex;
+
     // client-side, for smoothing in screen space
     public float lastScreenX = Float.NaN;
     public float lastScreenY = Float.NaN;
 
-    public DamageNumber(double damage, int color, Vec3d position, double offsetX, double offsetZ) {
+    public DamageNumber(double damage, int color, Vec3d position, double offsetX, double offsetZ, int rowIndex) {
         this.damage = damage;
         this.color = color;
         this.position = position;
         this.spawnTime = System.currentTimeMillis();
         this.offsetX = offsetX;
         this.offsetZ = offsetZ;
+        this.rowIndex = rowIndex;
     }
 
     public boolean isExpired() {
