@@ -49,7 +49,7 @@ public class StatRegistry {
 
         register(new CustomStat(
                 "helmet_life_regeneration",
-                "Life Regeneration",
+                "Health Regeneration",
                 EquipmentType.HELMET,
                 ModAttributes.LIFE_REGENERATION,
                 new double[]{0.1, 0.25, 0.5, 0.8, 1.2},
@@ -223,7 +223,7 @@ public class StatRegistry {
 
         register(new CustomStat(
                 "chestplate_life_regeneration",
-                "Life Regeneration",
+                "Health Regeneration",
                 EquipmentType.CHESTPLATE,
                 ModAttributes.LIFE_REGENERATION,
                 new double[]{0.1, 0.25, 0.5, 0.8, 1.2},
@@ -500,7 +500,7 @@ public class StatRegistry {
 
         register(new CustomStat(
                 "leggings_life_regeneration",
-                "Life Regeneration",
+                "Health Regeneration",
                 EquipmentType.LEGGINGS,
                 ModAttributes.LIFE_REGENERATION,
                 new double[]{0.1, 0.25, 0.5, 0.8, 1.2},
@@ -662,7 +662,7 @@ public class StatRegistry {
 
         register(new CustomStat(
                 "boots_life_regeneration",
-                "Life Regeneration",
+                "Health Regeneration",
                 EquipmentType.BOOTS,
                 ModAttributes.LIFE_REGENERATION,
                 new double[]{0.1, 0.25, 0.5, 0.8, 1.2},
@@ -2092,7 +2092,7 @@ public class StatRegistry {
 
         register(new CustomStat(
                 "elytra_life_regeneration",
-                "Life Regeneration",
+                "Health Regeneration",
                 EquipmentType.ELYTRA,
                 ModAttributes.LIFE_REGENERATION,
                 new double[]{0.1, 0.25, 0.5, 0.8, 1.2},

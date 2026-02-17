@@ -1,51 +1,52 @@
 package com.cranks.dungeons.screen;
 
 import com.cranks.dungeons.CranksDungeons;
+import com.cranks.dungeons.registry.ModSounds;
 import com.cranks.dungeons.stat.CustomStat;
 import com.cranks.dungeons.stat.StatRegistry;
+import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
-import net.minecraft.client.gui.widget.ButtonWidget;
+import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 
 public class ArtificialEnhancementAltarScreen extends HandledScreen<ArtificialEnhancementAltarScreenHandler> {
     private static final Identifier TEXTURE = Identifier.of(CranksDungeons.MOD_ID, "textures/gui/artificial_enhancement_altar.png");
 
-    private ButtonWidget[] optionButtons = new ButtonWidget[3];
+    private static final int BUTTON_WIDTH = 160;
+    private static final int BUTTON_HEIGHT = 16;
+
+    private final int[] buttonXPositions = new int[3];
+    private final int[] buttonYPositions = new int[3];
+    private final boolean[] buttonActive = new boolean[3];
+
+    private final String[] displayNames = new String[3];
+    private final int[] displayTiers = new int[3];
+    private boolean hasOptions = false;
 
     public ArtificialEnhancementAltarScreen(ArtificialEnhancementAltarScreenHandler handler, PlayerInventory inventory, Text title) {
         super(handler, inventory, title);
         this.backgroundWidth = 176;
-        this.backgroundHeight = 166;
+        this.backgroundHeight = 180;
     }
 
     @Override
     protected void init() {
         super.init();
-        titleX = (backgroundWidth - textRenderer.getWidth(title)) / 2;
-        titleY = -10;
-        playerInventoryTitleY = 73;
+        this.titleX = (backgroundWidth - textRenderer.getWidth(title)) / 2;
+        this.titleY = -10;
+        this.playerInventoryTitleY = 87;
 
-        int buttonWidth = 150;
-        int buttonHeight = 16;
-        int startX = this.x + (backgroundWidth - buttonWidth) / 2;
-        int startY = this.y + 30;
-
+        // Absolute button positions in screen coordinates
         for (int i = 0; i < 3; i++) {
-            final int optionIndex = i;
-            optionButtons[i] = ButtonWidget.builder(
-                    Text.literal("???"),
-                    button -> {
-                        if (this.client != null && this.client.interactionManager != null) {
-                            this.client.interactionManager.clickButton(handler.syncId, optionIndex);
-                            handler.clearClientOptions();
-                        }
-                    }
-            ).dimensions(startX, startY + (i * (buttonHeight + 2)), buttonWidth, buttonHeight).build();
-            addDrawableChild(optionButtons[i]);
+            buttonXPositions[i] = this.x + 8;
+            buttonYPositions[i] = this.y + 30 + (i * (BUTTON_HEIGHT + 2));
+            buttonActive[i] = false;
+            displayNames[i] = "";
+            displayTiers[i] = 0;
         }
     }
 
@@ -53,52 +54,127 @@ public class ArtificialEnhancementAltarScreen extends HandledScreen<ArtificialEn
     public void handledScreenTick() {
         super.handledScreenTick();
 
-        boolean hasOptions = handler.hasClientOptions();
+        hasOptions = handler.hasClientOptions();
 
         for (int i = 0; i < 3; i++) {
             if (hasOptions) {
                 String statId = handler.getClientStatId(i);
-                int tier = handler.getClientTier(i);
-
-                if (statId != null && !statId.isEmpty()) {
+                buttonActive[i] = statId != null && !statId.isEmpty();
+                if (buttonActive[i]) {
                     CustomStat stat = StatRegistry.getStat(statId);
-                    String displayName = stat != null ? stat.getDisplayName() : "???";
-                    Formatting tierColor = getTierColor(tier);
-
-                    optionButtons[i].setMessage(
-                            Text.literal(displayName + " ")
-                                    .formatted(Formatting.WHITE)
-                                    .append(Text.literal("[T" + tier + "]").formatted(tierColor))
-                    );
-                    optionButtons[i].active = true;
-                } else {
-                    optionButtons[i].setMessage(Text.literal("???").formatted(Formatting.DARK_GRAY));
-                    optionButtons[i].active = false;
+                    displayNames[i] = stat != null ? stat.getDisplayName() : "???";
+                    displayTiers[i] = handler.getClientTier(i);
                 }
             } else {
-                optionButtons[i].setMessage(Text.literal("Insert equipment with cryptic stat").formatted(Formatting.DARK_GRAY));
-                optionButtons[i].active = false;
+                buttonActive[i] = false;
+                displayNames[i] = "";
+                displayTiers[i] = 0;
             }
-
-            // Reset focus/hover state so buttons don't look pressed
-            optionButtons[i].setFocused(false);
         }
     }
 
     @Override
-    protected void drawBackground(DrawContext context, float delta, int mouseX, int mouseY) {
-        int x = (this.width - this.backgroundWidth) / 2;
-        int y = (this.height - this.backgroundHeight) / 2;
+    public boolean mouseClicked(Click click, boolean moved) {
+        int mouseX = (int) click.x();
+        int mouseY = (int) click.y();
+        int button = click.button();
 
+        if (button == 0) {
+            for (int i = 0; i < 3; i++) {
+                if (buttonActive[i] && isMouseOverButton(i, mouseX, mouseY)) {
+                    if (this.client != null && this.client.interactionManager != null) {
+
+                        // Play your custom sound
+                        this.client.getSoundManager().play(
+                                PositionedSoundInstance.ui(
+                                        ModSounds.ARTIFICIAL_ALTAR_CLICK,  // custom sound
+                                        1.0F                                // volume
+                                )
+                        );
+
+                        // Send selection to server
+                        this.client.interactionManager.clickButton(handler.syncId, i);
+                        handler.clearClientOptions();
+                        return true;
+                    }
+                }
+            }
+        }
+        return super.mouseClicked(click, moved);
+    }
+
+    private boolean isMouseOverButton(int index, int mouseX, int mouseY) {
+        int bx = buttonXPositions[index];
+        int by = buttonYPositions[index];
+        return mouseX >= bx && mouseX < bx + BUTTON_WIDTH
+                && mouseY >= by && mouseY < by + BUTTON_HEIGHT;
+    }
+
+    @Override
+    protected void drawBackground(DrawContext context, float delta, int mouseX, int mouseY) {
+        int guiX = (this.width - this.backgroundWidth) / 2;
+        int guiY = (this.height - this.backgroundHeight) / 2;
+
+        // GUI texture
         context.drawTexture(
                 net.minecraft.client.gl.RenderPipelines.GUI_TEXTURED,
                 TEXTURE,
-                x, y,
+                guiX, guiY,
                 0.0f, 0.0f,
                 this.backgroundWidth,
                 this.backgroundHeight,
-                176, 166
+                176, 180
         );
+
+        // Button backgrounds (absolute coordinates)
+        for (int i = 0; i < 3; i++) {
+            int bx = buttonXPositions[i];
+            int by = buttonYPositions[i];
+            boolean hovered = isMouseOverButton(i, mouseX, mouseY);
+
+            if (!buttonActive[i]) {
+                context.fill(bx, by, bx + BUTTON_WIDTH, by + BUTTON_HEIGHT, 0xFF1A1A2E);
+                drawBorder(context, bx, by, BUTTON_WIDTH, BUTTON_HEIGHT, 0xFF0D0D1A);
+            } else if (hovered) {
+                context.fill(bx, by, bx + BUTTON_WIDTH, by + BUTTON_HEIGHT, 0xFF2B4A2B);
+                drawBorder(context, bx, by, BUTTON_WIDTH, BUTTON_HEIGHT, 0xFF4AFF4A);
+            } else {
+                context.fill(bx, by, bx + BUTTON_WIDTH, by + BUTTON_HEIGHT, 0xFF1E1E2E);
+                drawBorder(context, bx, by, BUTTON_WIDTH, BUTTON_HEIGHT, 0xFF2A5A2A);
+            }
+        }
+    }
+
+    @Override
+    protected void drawForeground(DrawContext context, int mouseX, int mouseY) {
+        // Draw title (local coordinates)
+        context.drawText(this.textRenderer, this.title, this.titleX, this.titleY, 0xFF404040, false);
+
+        // Text for buttons in local GUI coordinates (0,0 is top-left of GUI)
+        for (int i = 0; i < 3; i++) {
+            int bxLocal = 8;
+            int byLocal = 30 + (i * (BUTTON_HEIGHT + 2));
+            int textY = byLocal + (BUTTON_HEIGHT - 8) / 2;
+
+            if (hasOptions && buttonActive[i]) {
+                String name = displayNames[i];
+                int tier = displayTiers[i];
+
+                String full = name + " [T" + tier + "]";
+                int totalWidth = this.textRenderer.getWidth(full);
+                int textX = bxLocal + (BUTTON_WIDTH - totalWidth) / 2;
+
+                // Name in white
+                context.drawTextWithShadow(this.textRenderer, name + " ", textX, textY, 0xFFFFFFFF);
+                int nameWidth = this.textRenderer.getWidth(name + " ");
+                // Tier in colored [T#]
+                context.drawTextWithShadow(this.textRenderer, "[T" + tier + "]", textX + nameWidth, textY, getTierColorInt(tier));
+            } else {
+                String txt = "";
+                int textX = bxLocal + (BUTTON_WIDTH - this.textRenderer.getWidth(txt)) / 2;
+                context.drawTextWithShadow(this.textRenderer, txt, textX, textY, 0xFF666666);
+            }
+        }
     }
 
     @Override
@@ -108,12 +184,19 @@ public class ArtificialEnhancementAltarScreen extends HandledScreen<ArtificialEn
         drawMouseoverTooltip(context, mouseX, mouseY);
     }
 
-    private static Formatting getTierColor(int tier) {
+    private void drawBorder(DrawContext context, int x, int y, int w, int h, int color) {
+        context.fill(x, y, x + w, y + 1, color);
+        context.fill(x, y + h - 1, x + w, y + h, color);
+        context.fill(x, y, x + 1, y + h, color);
+        context.fill(x + w - 1, y, x + w, y + h, color);
+    }
+
+    private static int getTierColorInt(int tier) {
         return switch (tier) {
-            case 1, 2 -> Formatting.GRAY;
-            case 3, 4 -> Formatting.GREEN;
-            case 5 -> Formatting.GOLD;
-            default -> Formatting.WHITE;
+            case 1, 2 -> 0xFFAAAAAA;
+            case 3, 4 -> 0xFF55FF55;
+            case 5 -> 0xFFFFAA00;
+            default -> 0xFFFFFFFF;
         };
     }
 }

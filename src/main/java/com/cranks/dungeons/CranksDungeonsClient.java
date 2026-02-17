@@ -1,6 +1,7 @@
 package com.cranks.dungeons;
 
 import com.cranks.dungeons.EnergyShieldProvider;
+import com.cranks.dungeons.client.ClientShieldEffects;
 import com.cranks.dungeons.damage.DamageNumber;
 import com.cranks.dungeons.damage.DamageNumberManager;
 import com.cranks.dungeons.damage.DamageNumberRenderer;
@@ -36,6 +37,7 @@ public class CranksDungeonsClient implements ClientModInitializer {
                 }
             });
         });
+        ClientShieldEffects.init();
         // Register the payload receiver
         ClientPlayNetworking.registerGlobalReceiver(DamageNumberPayload.ID, (payload, context) -> {
             System.out.println("[DamageNumbers CLIENT] Received packet with " + payload.entries().size() + " entries");
@@ -74,6 +76,11 @@ public class CranksDungeonsClient implements ClientModInitializer {
                 System.out.println("[DamageNumbers CLIENT] Active numbers: " + DamageNumberManager.getActiveNumbers().size());
             });
         });
+
+        ClientPlayNetworking.registerGlobalReceiver(
+                EnergyShieldSyncPacket.ID,
+                (payload, context) -> EnergyShieldSyncPacket.handle(payload, context.client())
+        );
 
         // Register tick event for cleanup
         ClientTickEvents.END_CLIENT_TICK.register(client -> {

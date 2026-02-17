@@ -5,6 +5,7 @@ import com.cranks.dungeons.equipment.ItemStatManager;
 import com.cranks.dungeons.item.ArtificialTomeItem;
 import com.cranks.dungeons.item.ElementalTomeItem;
 import com.cranks.dungeons.item.RunicTomeItem;
+import com.cranks.dungeons.registry.ModSounds;
 import com.cranks.dungeons.screen.RunicEnhancementAltarScreenHandler;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
@@ -15,6 +16,7 @@ import net.minecraft.inventory.SidedInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.screen.ScreenHandler;
+import net.minecraft.sound.SoundCategory;
 import net.minecraft.storage.ReadView;
 import net.minecraft.storage.WriteView;
 import net.minecraft.text.Text;
@@ -164,17 +166,14 @@ public class RunicEnhancementAltarBlockEntity extends BlockEntity implements Nam
     }
 
     private boolean tryArtificialEnhance(ItemStack equipment, ItemStack tome) {
-        // Can't have multiple artificial stats
         if (ItemStatManager.hasArtificialStat(equipment)) {
             return false;
         }
 
-        // Can't already have a cryptic stat
         if (ItemStatManager.hasCrypticStat(equipment)) {
             return false;
         }
 
-        // Create a copy for the result
         ItemStack result = equipment.copy();
 
         boolean success = ItemStatManager.addCrypticStat(result);
@@ -184,6 +183,7 @@ public class RunicEnhancementAltarBlockEntity extends BlockEntity implements Nam
             equipment.decrement(1);
             tome.decrement(1);
             markDirty();
+            playEnhanceSound();   // ← here
             return true;
         }
 
@@ -193,7 +193,6 @@ public class RunicEnhancementAltarBlockEntity extends BlockEntity implements Nam
     private boolean tryElementalEnhance(ItemStack equipment, ItemStack tome, ElementalTomeItem elementalTome) {
         EquipmentType equipType = EquipmentType.getTypeForItem(equipment).get();
 
-        // Check if this tome can be applied to this equipment
         if (!elementalTome.canApplyTo(equipment)) {
             return false;
         }
@@ -203,11 +202,9 @@ public class RunicEnhancementAltarBlockEntity extends BlockEntity implements Nam
             return false;
         }
 
-        // Calculate tier based on current stat count
         int currentStatCount = ItemStatManager.getStats(equipment).size();
         int tier = ElementalTomeItem.getTierForStatCount(currentStatCount);
 
-        // Create a copy for the result
         ItemStack result = equipment.copy();
 
         boolean success = ItemStatManager.addSpecificStat(result, statId, tier);
@@ -217,6 +214,7 @@ public class RunicEnhancementAltarBlockEntity extends BlockEntity implements Nam
             equipment.decrement(1);
             tome.decrement(1);
             markDirty();
+            playEnhanceSound();   // ← here
             return true;
         }
 
@@ -224,10 +222,8 @@ public class RunicEnhancementAltarBlockEntity extends BlockEntity implements Nam
     }
 
     private boolean tryRunicEnhance(ItemStack equipment, ItemStack tome, RunicTomeItem runicTome) {
-        // Create a copy for the result
         ItemStack result = equipment.copy();
 
-        // Try to add the stat
         boolean success = false;
         for (int attempts = 0; attempts < 10 && !success; attempts++) {
             success = ItemStatManager.addRandomStat(result, runicTome.getTier());
@@ -238,6 +234,7 @@ public class RunicEnhancementAltarBlockEntity extends BlockEntity implements Nam
             equipment.decrement(1);
             tome.decrement(1);
             markDirty();
+            playEnhanceSound();   // ← here
             return true;
         }
 
@@ -250,6 +247,19 @@ public class RunicEnhancementAltarBlockEntity extends BlockEntity implements Nam
             player.getInventory().offerOrDrop(result);
             setStack(RESULT_SLOT, ItemStack.EMPTY);
             markDirty();
+        }
+    }
+
+    private void playEnhanceSound() {
+        if (this.world != null && !this.world.isClient()) {
+            this.world.playSound(
+                    null,                    // all nearby players
+                    this.pos,                // altar position
+                    ModSounds.RUNIC_ALTAR_CLICK,
+                    SoundCategory.BLOCKS,
+                    0.6F,                    // volume
+                    1.0F                     // pitch
+            );
         }
     }
 }

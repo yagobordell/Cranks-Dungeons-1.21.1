@@ -9,6 +9,7 @@ import com.cranks.dungeons.network.ModNetworking;
 import com.cranks.dungeons.network.StatOptionsSyncPacket;
 import com.cranks.dungeons.registry.ModAttributes;
 import com.cranks.dungeons.registry.ModEnchantments;
+import com.cranks.dungeons.registry.ModSounds;
 import com.cranks.dungeons.screen.ModScreenHandlers;
 import com.cranks.dungeons.stat.StatRegistry;
 import com.mojang.serialization.Codec;
@@ -41,6 +42,7 @@ public class CranksDungeons implements ModInitializer {
 		ModItems.registerModItems();
 		ModScreenHandlers.register();
 		ModAttributes.registerAttributes();
+		ModSounds.registerSounds();
 		PayloadTypeRegistry.playS2C().register(StatOptionsSyncPacket.ID, StatOptionsSyncPacket.CODEC);
 		PayloadTypeRegistry.playS2C().register(EnergyShieldSyncPacket.ID, EnergyShieldSyncPacket.CODEC);
 		StatRegistry.registerStats();

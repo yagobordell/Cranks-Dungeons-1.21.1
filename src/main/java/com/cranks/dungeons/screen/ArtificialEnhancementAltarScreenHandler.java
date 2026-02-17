@@ -27,12 +27,12 @@ public class ArtificialEnhancementAltarScreenHandler extends ScreenHandler {
 
     private final Map<Integer, Integer> sourceSlots = new HashMap<>();
 
-    private static final int PLAYER_INV_START = 2;
-    private static final int PLAYER_INV_END = 38;
+    private static final int PLAYER_INV_START = 1;
+    private static final int PLAYER_INV_END = 37;
 
     // Client constructor
     public ArtificialEnhancementAltarScreenHandler(int syncId, PlayerInventory playerInventory) {
-        this(syncId, playerInventory, new SimpleInventory(2), new ArrayPropertyDelegate(4));
+        this(syncId, playerInventory, new SimpleInventory(1), new ArrayPropertyDelegate(4));
     }
 
     // Server constructor
@@ -49,37 +49,29 @@ public class ArtificialEnhancementAltarScreenHandler extends ScreenHandler {
         this.blockEntity = inventory instanceof ArtificialEnhancementAltarBlockEntity be ? be : null;
         this.propertyDelegate = propertyDelegate;
 
-        checkSize(inventory, 2);
+        checkSize(inventory, 1);
         inventory.onOpen(playerInventory.player);
         this.addProperties(propertyDelegate);
 
-        // Equipment slot
-        this.addSlot(new Slot(inventory, ArtificialEnhancementAltarBlockEntity.EQUIPMENT_SLOT, 80, 10) {
+        // Equipment slot - closer to top
+        this.addSlot(new Slot(inventory, ArtificialEnhancementAltarBlockEntity.EQUIPMENT_SLOT, 80, 6) {
             @Override
             public boolean canInsert(ItemStack stack) {
-                return EquipmentType.getTypeForItem(stack).isPresent() && ItemStatManager.hasCrypticStat(stack);
+                return EquipmentType.getTypeForItem(stack).isPresent();
             }
         });
 
-        // Result slot
-        this.addSlot(new Slot(inventory, ArtificialEnhancementAltarBlockEntity.RESULT_SLOT, 80, 58) {
-            @Override
-            public boolean canInsert(ItemStack stack) {
-                return false;
-            }
-        });
-
-        // Player inventory
+// Player inventory
         int inventoryX = 8;
         for (int i = 0; i < 3; ++i) {
             for (int j = 0; j < 9; ++j) {
-                this.addSlot(new Slot(playerInventory, j + i * 9 + 9, inventoryX + j * 18, 84 + i * 18));
+                this.addSlot(new Slot(playerInventory, j + i * 9 + 9, inventoryX + j * 18, 98 + i * 18));
             }
         }
 
-        // Player hotbar
+// Player hotbar
         for (int i = 0; i < 9; ++i) {
-            this.addSlot(new Slot(playerInventory, i, inventoryX + i * 18, 142));
+            this.addSlot(new Slot(playerInventory, i, inventoryX + i * 18, 156));
         }
     }
 
@@ -97,16 +89,7 @@ public class ArtificialEnhancementAltarScreenHandler extends ScreenHandler {
             ItemStack clickedStack = clickedSlot.getStack();
             newStack = clickedStack.copy();
 
-            if (slot == ArtificialEnhancementAltarBlockEntity.RESULT_SLOT) {
-                // Result is the revealed equipment, return to equipment's original slot
-                if (!tryReturnToSourceSlot(ArtificialEnhancementAltarBlockEntity.EQUIPMENT_SLOT, clickedStack)) {
-                    if (!this.insertItem(clickedStack, PLAYER_INV_START, PLAYER_INV_END, true)) {
-                        return ItemStack.EMPTY;
-                    }
-                }
-                sourceSlots.remove(ArtificialEnhancementAltarBlockEntity.EQUIPMENT_SLOT);
-                clickedSlot.onQuickTransfer(clickedStack, newStack);
-            } else if (slot == ArtificialEnhancementAltarBlockEntity.EQUIPMENT_SLOT) {
+            if (slot == ArtificialEnhancementAltarBlockEntity.EQUIPMENT_SLOT) {
                 if (!tryReturnToSourceSlot(slot, clickedStack)) {
                     if (!this.insertItem(clickedStack, PLAYER_INV_START, PLAYER_INV_END, true)) {
                         return ItemStack.EMPTY;
@@ -114,15 +97,15 @@ public class ArtificialEnhancementAltarScreenHandler extends ScreenHandler {
                 }
                 sourceSlots.remove(slot);
             } else if (slot >= PLAYER_INV_START) {
-                if (EquipmentType.getTypeForItem(clickedStack).isPresent() && ItemStatManager.hasCrypticStat(clickedStack)) {
+                if (EquipmentType.getTypeForItem(clickedStack).isPresent()) {
                     if (!tryInsertAndTrack(clickedStack, ArtificialEnhancementAltarBlockEntity.EQUIPMENT_SLOT, slot)) {
                         return ItemStack.EMPTY;
                     }
-                } else if (slot < 29) {
-                    if (!this.insertItem(clickedStack, 29, PLAYER_INV_END, false)) {
+                } else if (slot < 28) {
+                    if (!this.insertItem(clickedStack, 28, PLAYER_INV_END, false)) {
                         return ItemStack.EMPTY;
                     }
-                } else if (!this.insertItem(clickedStack, PLAYER_INV_START, 29, false)) {
+                } else if (!this.insertItem(clickedStack, PLAYER_INV_START, 28, false)) {
                     return ItemStack.EMPTY;
                 }
             }
@@ -174,18 +157,10 @@ public class ArtificialEnhancementAltarScreenHandler extends ScreenHandler {
     public void onClosed(PlayerEntity player) {
         super.onClosed(player);
 
-        // Return equipment slot item
         ItemStack equipment = inventory.getStack(ArtificialEnhancementAltarBlockEntity.EQUIPMENT_SLOT);
         if (!equipment.isEmpty()) {
             inventory.setStack(ArtificialEnhancementAltarBlockEntity.EQUIPMENT_SLOT, ItemStack.EMPTY);
             returnToPlayerInventory(player, equipment, ArtificialEnhancementAltarBlockEntity.EQUIPMENT_SLOT);
-        }
-
-        // Return result slot item
-        ItemStack result = inventory.getStack(ArtificialEnhancementAltarBlockEntity.RESULT_SLOT);
-        if (!result.isEmpty()) {
-            inventory.setStack(ArtificialEnhancementAltarBlockEntity.RESULT_SLOT, ItemStack.EMPTY);
-            returnToPlayerInventory(player, result, ArtificialEnhancementAltarBlockEntity.EQUIPMENT_SLOT);
         }
 
         this.inventory.onClose(player);
@@ -193,7 +168,6 @@ public class ArtificialEnhancementAltarScreenHandler extends ScreenHandler {
     }
 
     private void returnToPlayerInventory(PlayerEntity player, ItemStack stack, int altarSlot) {
-        // Try original slot first
         Integer sourceSlot = sourceSlots.get(altarSlot);
         if (sourceSlot != null && sourceSlot >= PLAYER_INV_START && sourceSlot < PLAYER_INV_END) {
             Slot target = this.slots.get(sourceSlot);
@@ -204,7 +178,6 @@ public class ArtificialEnhancementAltarScreenHandler extends ScreenHandler {
             }
         }
 
-        // Fall back to any available slot
         if (!player.getInventory().insertStack(stack)) {
             player.dropItem(stack, false);
         }

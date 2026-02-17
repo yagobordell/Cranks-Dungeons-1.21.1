@@ -2,11 +2,13 @@ package com.cranks.dungeons.screen;
 
 import com.cranks.dungeons.CranksDungeons;
 import com.cranks.dungeons.block.entity.RunicEnhancementAltarBlockEntity;
+import com.cranks.dungeons.registry.ModSounds;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.gui.widget.ButtonWidget;
+import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -59,6 +61,7 @@ public class RunicEnhancementAltarScreen extends HandledScreen<RunicEnhancementA
 
         this.enhanceButton = ButtonWidget.builder(Text.literal("Enhance"), button -> {
                     if (this.client != null && this.client.interactionManager != null) {
+                        // Only send the button click to the server
                         this.client.interactionManager.clickButton(this.handler.syncId, 0);
 
                         // Recreate the button to reset its state
@@ -76,19 +79,15 @@ public class RunicEnhancementAltarScreen extends HandledScreen<RunicEnhancementA
         int x = (this.width - this.backgroundWidth) / 2;
         int y = (this.height - this.backgroundHeight) / 2;
 
-        // Check if equipment slot has an item
         boolean hasEquipment = !handler.getSlot(RunicEnhancementAltarBlockEntity.EQUIPMENT_SLOT).getStack().isEmpty();
 
         Identifier textureToUse;
 
         if (hasEquipment) {
-            // Show standard texture when equipment is present
             textureToUse = STANDARD_TEXTURE;
-            // Reset rotation when equipment is added
             tickCounter = 0;
             currentTextureIndex = 0;
         } else {
-            // Rotate through textures when slots are empty
             tickCounter++;
             if (tickCounter >= TICKS_PER_TEXTURE) {
                 tickCounter = 0;

@@ -1,0 +1,27 @@
+{
+  "artificial_altar_click": {
+    "sounds": [
+      { "name": "cranks-dungeons:artificial_altar_click", "volume": 1.0, "pitch": 1.0 }
+    ]
+  },
+  "runic_altar_click": {
+    "sounds": [
+      { "name": "cranks-dungeons:runic_altar_click", "volume": 1.0, "pitch": 1.0 }
+    ]
+  },
+  "energy_shield_hit": {
+    "sounds": [
+      { "name": "cranks-dungeons:energy_shield_hit", "volume": 1.0, "pitch": 1.0 }
+    ]
+  },
+  "energy_shield_break": {
+    "sounds": [
+      { "name": "cranks-dungeons:energy_shield_break", "volume": 1.0, "pitch": 1.0 }
+    ]
+  },
+  "energy_shield_regen": {
+    "sounds": [
+      { "name": "cranks-dungeons:energy_shield_regen", "volume": 1.0, "pitch": 1.0 }
+    ]
+  }
+}

@@ -304,7 +304,6 @@ public abstract class InventoryScreenStatsMixin {
 
             // HP Regeneration (from diamond armor!)
             double hpRegen = player.getAttributeValue(ModAttributes.LIFE_REGENERATION);
-            hpRegen += player.getAttributeValue(ModAttributes.LIFE_REGENERATION);
             curY = drawStatWithTooltip(context, tr, panelX, curY, "Regeneration", hpRegen, " HP/s", mouseX, mouseY, panelX, panelWidth);
 
             // Life Steal with enchantments

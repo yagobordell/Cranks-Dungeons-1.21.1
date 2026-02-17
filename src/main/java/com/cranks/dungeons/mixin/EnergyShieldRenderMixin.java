@@ -72,7 +72,7 @@ public abstract class EnergyShieldRenderMixin {
 
     @Unique
     private void drawShieldHeart(DrawContext context, int x, int y, boolean filled, boolean half) {
-        int outline = 0xFF000000;
+        int outline = 0xFFFFFFFF;
         int heartBlue = 0xFF527FBF;
         int white = 0xFFFFFFFF;
         int bgInside = 0xFF222222;

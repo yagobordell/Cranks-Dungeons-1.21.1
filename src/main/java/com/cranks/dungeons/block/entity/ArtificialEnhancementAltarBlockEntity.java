@@ -30,10 +30,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class ArtificialEnhancementAltarBlockEntity extends BlockEntity implements NamedScreenHandlerFactory, SidedInventory {
-    private final DefaultedList<ItemStack> inventory = DefaultedList.ofSize(2, ItemStack.EMPTY);
+    private final DefaultedList<ItemStack> inventory = DefaultedList.ofSize(1, ItemStack.EMPTY);
 
     public static final int EQUIPMENT_SLOT = 0;
-    public static final int RESULT_SLOT = 1;
 
     private String[] statOptions = new String[3];
     private int[] tierOptions = new int[3];
@@ -173,12 +172,11 @@ public class ArtificialEnhancementAltarBlockEntity extends BlockEntity implement
 
     @Override
     public int[] getAvailableSlots(Direction side) {
-        return new int[]{EQUIPMENT_SLOT, RESULT_SLOT};
+        return new int[]{EQUIPMENT_SLOT};
     }
 
     @Override
     public boolean canInsert(int slot, ItemStack stack, @Nullable Direction dir) {
-        if (slot == RESULT_SLOT) return false;
         if (slot == EQUIPMENT_SLOT) {
             return EquipmentType.getTypeForItem(stack).isPresent() && ItemStatManager.hasCrypticStat(stack);
         }
@@ -187,19 +185,14 @@ public class ArtificialEnhancementAltarBlockEntity extends BlockEntity implement
 
     @Override
     public boolean canExtract(int slot, ItemStack stack, Direction dir) {
-        return slot == RESULT_SLOT;
+        return slot == EQUIPMENT_SLOT;
     }
 
-    /**
-     * Load stored options from the item, or generate new ones if first time.
-     */
     private void generateOrLoadOptions(ItemStack equipment) {
-        // Try to load previously rolled options from the item
         String[] storedStatIds = ItemStatManager.getStoredCrypticStatIds(equipment);
         int[] storedTiers = ItemStatManager.getStoredCrypticTiers(equipment);
 
         if (storedStatIds != null && storedTiers != null) {
-            // Use the stored options - no re-rolling
             for (int i = 0; i < 3; i++) {
                 statOptions[i] = storedStatIds[i];
                 tierOptions[i] = storedTiers[i];
@@ -209,7 +202,6 @@ public class ArtificialEnhancementAltarBlockEntity extends BlockEntity implement
             return;
         }
 
-        // First time - generate new options and store them on the item
         Optional<EquipmentType> equipTypeOpt = EquipmentType.getTypeForItem(equipment);
         if (equipTypeOpt.isEmpty()) return;
 
@@ -244,10 +236,7 @@ public class ArtificialEnhancementAltarBlockEntity extends BlockEntity implement
         }
 
         optionsGenerated = true;
-
-        // Store the rolled options on the item so they persist
         ItemStatManager.storeCrypticOptions(equipment, statOptions, tierOptions);
-
         markDirty();
     }
 
@@ -285,16 +274,11 @@ public class ArtificialEnhancementAltarBlockEntity extends BlockEntity implement
 
         if (statId == null) return false;
 
-        ItemStack result = equipment.copy();
-
-        // Remove stored cryptic options before revealing
-        ItemStatManager.removeCrypticOptions(result);
-
-        boolean success = ItemStatManager.revealCrypticStat(result, statId, tier);
+        // Modify the item in place instead of creating a copy
+        ItemStatManager.removeCrypticOptions(equipment);
+        boolean success = ItemStatManager.revealCrypticStat(equipment, statId, tier);
 
         if (success) {
-            setStack(EQUIPMENT_SLOT, ItemStack.EMPTY);
-            setStack(RESULT_SLOT, result);
             clearOptions();
             syncClearToOpenPlayers();
             markDirty();
@@ -302,15 +286,6 @@ public class ArtificialEnhancementAltarBlockEntity extends BlockEntity implement
         }
 
         return false;
-    }
-
-    public void takeResult(PlayerEntity player) {
-        ItemStack result = getStack(RESULT_SLOT);
-        if (!result.isEmpty()) {
-            player.getInventory().offerOrDrop(result);
-            setStack(RESULT_SLOT, ItemStack.EMPTY);
-            markDirty();
-        }
     }
 
     public void syncOptionsToPlayer(ServerPlayerEntity player, int syncId) {
@@ -324,7 +299,6 @@ public class ArtificialEnhancementAltarBlockEntity extends BlockEntity implement
                             tierOptions[0], tierOptions[1], tierOptions[2]
                     ));
         } else {
-            // Send empty/clear packet
             ServerPlayNetworking.send(player,
                     new StatOptionsSyncPacket(syncId, "", "", "", 0, 0, 0));
         }

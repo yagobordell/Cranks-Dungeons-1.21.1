@@ -3,16 +3,15 @@ package com.cranks.dungeons.mixin;
 import com.cranks.dungeons.EnergyShieldProvider;
 import com.cranks.dungeons.network.EnergyShieldSyncPacket;
 import com.cranks.dungeons.registry.ModAttributes;
+import com.cranks.dungeons.registry.ModSounds;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.particle.ParticleTypes;
 import net.minecraft.registry.tag.DamageTypeTags;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -20,6 +19,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(PlayerEntity.class)
 public class EnergyShieldDamageMixin {
+
+    // Time between shield hits in ticks (10 = half a second at 20 TPS)
+    private static final long SHIELD_COOLDOWN_TICKS = 10L;
 
     @Inject(method = "damage", at = @At("HEAD"), cancellable = true)
     private void absorbDamageWithEnergyShield(ServerWorld world, DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
@@ -32,75 +34,113 @@ public class EnergyShieldDamageMixin {
         double maxShield = self.getAttributeValue(ModAttributes.ENERGY_SHIELD);
         float currentShield = provider.cranksdungeons$getCurrentEnergyShield();
 
-        // Bypass shield for creative/void damage
+        long currentTime = world.getTime();
+        long timeSinceLastHit = currentTime - provider.cranksdungeons$getLastDamageTime();
+
+        // Bypass shield for creative/void/etc.
         if (source.isIn(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
-            provider.cranksdungeons$setLastDamageTime(world.getTime());
+            provider.cranksdungeons$setLastDamageTime(currentTime);
             return;
         }
 
+        // No shield available: just update time and let vanilla handle health
         if (currentShield <= 0 || maxShield <= 0) {
-            provider.cranksdungeons$setLastDamageTime(world.getTime());
+            provider.cranksdungeons$setLastDamageTime(currentTime);
             return;
         }
 
-        // Void damage deals 2x to shields
+        // Shield cooldown (i-frames for shield)
+        if (timeSinceLastHit < SHIELD_COOLDOWN_TICKS) {
+            // Do NOT update lastDamageTime here – so cooldown can actually expire
+            cir.setReturnValue(false);
+            return;
+        }
+
+        float prevShield = currentShield;
+
+        // Compute shield damage
         float damageToShield = amount;
         if (source.isIn(DamageTypeTags.BYPASSES_ARMOR)) {
             damageToShield *= 2.0f;
         }
-
-        provider.cranksdungeons$setLastDamageTime(world.getTime());
+        // Ensure a hit always costs at least 1 shield unit
+        if (damageToShield < 1.0f) {
+            damageToShield = 1.0f;
+        }
 
         if (currentShield >= damageToShield) {
-            // Shield absorbs all damage
+            // Shield fully absorbs this hit
             float newShield = currentShield - damageToShield;
-            provider.cranksdungeons$setCurrentEnergyShield(newShield);
 
-            // SYNC TO CLIENT
+            provider.cranksdungeons$setCurrentEnergyShield(newShield);
+            provider.cranksdungeons$setLastDamageTime(currentTime);
+
+            // Sync shield to client
             ServerPlayNetworking.send(serverPlayer, new EnergyShieldSyncPacket(newShield));
 
-            world.playSound(
+            // Hit sound
+            world.playSoundFromEntity(
                     null,
-                    self.getX(),
-                    self.getY(),
-                    self.getZ(),
-                    SoundEvents.ITEM_SHIELD_BLOCK,
+                    self,
+                    ModSounds.ENERGY_SHIELD_HIT,
                     SoundCategory.PLAYERS,
-                    0.1f,
-                    2.0f
+                    1.0f,
+                    1.0f
             );
 
-            if (newShield <= 0) {
-                world.playSound(
+            // BREAK if hearts go from >=1 to <1
+            if (prevShield >= 1.0f && newShield < 1.0f) {
+                world.playSoundFromEntity(
                         null,
-                        self.getX(),
-                        self.getY(),
-                        self.getZ(),
-                        SoundEvents.ITEM_OMINOUS_BOTTLE_DISPOSE,
+                        self,
+                        ModSounds.ENERGY_SHIELD_BREAK,
                         SoundCategory.PLAYERS,
                         1.0f,
-                        1.25f
+                        1.0f
+                );
+
+                world.spawnParticles(
+                        ParticleTypes.END_ROD,
+                        self.getX(),
+                        self.getY() + 1.0,
+                        self.getZ(),
+                        30,
+                        0.5, 0.5, 0.5,
+                        0.1
                 );
             }
 
-            cir.setReturnValue(false); // No damage to health
+            // Cancel vanilla damage: no health lost when shield fully absorbs
+            cir.setReturnValue(false);
         } else {
-            provider.cranksdungeons$setCurrentEnergyShield(0);
+            // Shield cannot fully absorb: it breaks and health takes damage
+            provider.cranksdungeons$setCurrentEnergyShield(0.0f);
+            provider.cranksdungeons$setLastDamageTime(currentTime);
+            ServerPlayNetworking.send(serverPlayer, new EnergyShieldSyncPacket(0.0f));
 
-            ServerPlayNetworking.send(serverPlayer, new EnergyShieldSyncPacket(0));
+            // Only play break if we actually had at least 1 heart before
+            if (prevShield >= 1.0f) {
+                world.playSoundFromEntity(
+                        null,
+                        self,
+                        ModSounds.ENERGY_SHIELD_BREAK,
+                        SoundCategory.PLAYERS,
+                        1.0f,
+                        1.0f
+                );
 
-            world.playSound(
-                    null,
-                    self.getX(),
-                    self.getY(),
-                    self.getZ(),
-                    SoundEvents.ITEM_OMINOUS_BOTTLE_DISPOSE,
-                    SoundCategory.PLAYERS,
-                    1.0f,
-                    1.25f
-            );
+                world.spawnParticles(
+                        ParticleTypes.END_ROD,
+                        self.getX(),
+                        self.getY() + 1.0,
+                        self.getZ(),
+                        30,
+                        0.5, 0.5, 0.5,
+                        0.1
+                );
+            }
 
-            cir.setReturnValue(false); // No damage to health
+            // Do NOT cancel here – let vanilla damage reduce health & hearts
         }
     }
 }

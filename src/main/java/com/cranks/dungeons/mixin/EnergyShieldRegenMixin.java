@@ -3,12 +3,12 @@ package com.cranks.dungeons.mixin;
 import com.cranks.dungeons.EnergyShieldProvider;
 import com.cranks.dungeons.network.EnergyShieldSyncPacket;
 import com.cranks.dungeons.registry.ModAttributes;
+import com.cranks.dungeons.registry.ModSounds;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -53,15 +53,13 @@ public class EnergyShieldRegenMixin {
         if (timeSinceLastDamage >= 80 && currentShield < maxShield) {
             // Play sound when regeneration STARTS (wasn't regenerating before, but is now)
             if (!wasRegenerating) {
-                world.playSound(
+                world.playSoundFromEntity(
                         null,
-                        self.getX(),
-                        self.getY(),
-                        self.getZ(),
-                        SoundEvents.BLOCK_ENCHANTMENT_TABLE_USE,
+                        self,
+                        ModSounds.ENERGY_SHIELD_REGEN,
                         SoundCategory.PLAYERS,
-                        0.5f,
-                        2.0f
+                        1.0f,
+                        1.0f
                 );
                 wasRegenerating = true;
             }
@@ -70,6 +68,7 @@ public class EnergyShieldRegenMixin {
             float regenPerTick = (float) (maxShield * 0.006);
 
             float newShield = Math.min(currentShield + regenPerTick, (float) maxShield);
+
             provider.cranksdungeons$setCurrentEnergyShield(newShield);
 
             // Sync to client every tick during regen

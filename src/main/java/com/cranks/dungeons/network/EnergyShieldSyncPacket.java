@@ -28,7 +28,15 @@ public record EnergyShieldSyncPacket(float currentShield) implements CustomPaylo
     public static void handle(EnergyShieldSyncPacket packet, net.minecraft.client.MinecraftClient client) {
         client.execute(() -> {
             if (client.player instanceof EnergyShieldProvider provider) {
-                provider.cranksdungeons$setCurrentEnergyShield(packet.currentShield());
+                float old = provider.cranksdungeons$getCurrentEnergyShield();
+                float now = packet.currentShield();
+
+                provider.cranksdungeons$setCurrentEnergyShield(now);
+
+                // Trigger camera shake only when shield actually loses value (hit/break), not regen
+                if (now < old - 0.05f) { // small epsilon
+                    com.cranks.dungeons.client.ClientShieldEffects.triggerShake();
+                }
             }
         });
     }
