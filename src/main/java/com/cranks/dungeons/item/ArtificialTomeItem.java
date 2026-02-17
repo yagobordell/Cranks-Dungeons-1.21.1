@@ -33,21 +33,7 @@ public class ArtificialTomeItem extends Item {
                               net.minecraft.component.type.TooltipDisplayComponent displayComponent,
                               Consumer<Text> textConsumer, net.minecraft.item.tooltip.TooltipType type) {
 
-        textConsumer.accept(Text.literal("Artificial Enchantment Tome").formatted(Formatting.DARK_GREEN, Formatting.ITALIC));
-        textConsumer.accept(Text.empty());
-        textConsumer.accept(Text.literal("▶ Step 1:").formatted(Formatting.WHITE, Formatting.BOLD));
-        textConsumer.accept(Text.literal("  Use on the Runic Enhancement Altar").formatted(Formatting.GRAY));
-        textConsumer.accept(Text.literal("  to apply a ").formatted(Formatting.GRAY)
-                .append(Text.literal("Cryptic Stat").formatted(Formatting.DARK_GREEN))
-                .append(Text.literal(" to equipment").formatted(Formatting.GRAY)));
-        textConsumer.accept(Text.empty());
-        textConsumer.accept(Text.literal("▶ Step 2:").formatted(Formatting.WHITE, Formatting.BOLD));
-        textConsumer.accept(Text.literal("  Place the item in the").formatted(Formatting.GRAY));
-        textConsumer.accept(Text.literal("  Artificial Enhancement Altar").formatted(Formatting.DARK_GREEN));
-        textConsumer.accept(Text.literal("  to choose from 3 random stats").formatted(Formatting.GRAY));
-        textConsumer.accept(Text.empty());
-        textConsumer.accept(Text.literal("Only one artificial stat per item").formatted(Formatting.DARK_GRAY, Formatting.ITALIC));
-
+        textConsumer.accept(Text.literal("A synthetic echo of a forgotten craft").formatted(Formatting.DARK_GREEN, Formatting.ITALIC));
         super.appendTooltip(stack, context, displayComponent, textConsumer, type);
     }
 }
