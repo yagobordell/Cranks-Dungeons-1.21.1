@@ -9,6 +9,7 @@ import net.minecraft.util.Identifier;
 
 public class ModBlockEntities {
     public static BlockEntityType<RunicEnhancementAltarBlockEntity> RUNIC_ALTAR_BE;
+    public static BlockEntityType<ArtificialEnhancementAltarBlockEntity> ARTIFICIAL_ALTAR_BE;
 
     public static void register() {
         RUNIC_ALTAR_BE = Registry.register(
@@ -16,8 +17,16 @@ public class ModBlockEntities {
                 Identifier.of(CranksDungeons.MOD_ID, "runic_altar_be"),
                 FabricBlockEntityTypeBuilder.create(
                         RunicEnhancementAltarBlockEntity::new,
-                        // Use a direct registry lookup to avoid class-loading loops
                         Registries.BLOCK.get(Identifier.of(CranksDungeons.MOD_ID, "runic_enhancement_altar"))
+                ).build()
+        );
+
+        ARTIFICIAL_ALTAR_BE = Registry.register(
+                Registries.BLOCK_ENTITY_TYPE,
+                Identifier.of(CranksDungeons.MOD_ID, "artificial_altar_be"),
+                FabricBlockEntityTypeBuilder.create(
+                        ArtificialEnhancementAltarBlockEntity::new,
+                        Registries.BLOCK.get(Identifier.of(CranksDungeons.MOD_ID, "artificial_enhancement_altar"))
                 ).build()
         );
     }

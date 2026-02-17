@@ -6,6 +6,7 @@ import com.cranks.dungeons.item.ModItems;
 import com.cranks.dungeons.loot.RunicTomeLootHandler;
 import com.cranks.dungeons.network.EnergyShieldSyncPacket;
 import com.cranks.dungeons.network.ModNetworking;
+import com.cranks.dungeons.network.StatOptionsSyncPacket;
 import com.cranks.dungeons.registry.ModAttributes;
 import com.cranks.dungeons.registry.ModEnchantments;
 import com.cranks.dungeons.screen.ModScreenHandlers;
@@ -40,6 +41,7 @@ public class CranksDungeons implements ModInitializer {
 		ModItems.registerModItems();
 		ModScreenHandlers.register();
 		ModAttributes.registerAttributes();
+		PayloadTypeRegistry.playS2C().register(StatOptionsSyncPacket.ID, StatOptionsSyncPacket.CODEC);
 		PayloadTypeRegistry.playS2C().register(EnergyShieldSyncPacket.ID, EnergyShieldSyncPacket.CODEC);
 		StatRegistry.registerStats();
 		com.cranks.dungeons.command.ApplyStatCommand.register();
@@ -63,6 +65,7 @@ public class CranksDungeons implements ModInitializer {
 	private void registerCreativeTabItems() {
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.FUNCTIONAL).register(content -> {
 			content.add(ModBlocks.RUNIC_ENHANCEMENT_ALTAR);
+			content.add(ModBlocks.ARTIFICIAL_ENHANCEMENT_ALTAR);
 		});
 
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.INGREDIENTS).register(content -> {
@@ -81,6 +84,7 @@ public class CranksDungeons implements ModInitializer {
 			content.add(ModItems.GREATER_TOME_OF_LIGHTNING);
 			content.add(ModItems.GREATER_TOME_OF_VOID);
 			content.add(ModItems.GREATER_TOME_OF_PHYSICALITY);
+			content.add(ModItems.ARTIFICIAL_TOME);
 		});
 	}
 }

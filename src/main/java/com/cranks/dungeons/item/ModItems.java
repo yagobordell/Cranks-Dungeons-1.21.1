@@ -31,6 +31,9 @@ public class ModItems {
     public static final Item GREATER_TOME_OF_VOID = registerElementalTome("greater_void_tome", Element.VOID, true, CustomRarity.UNIQUE);
     public static final Item GREATER_TOME_OF_PHYSICALITY = registerElementalTome("greater_physicality_tome", Element.PHYSICAL, true, CustomRarity.UNIQUE);
 
+    // Artificial Tome
+    public static final Item ARTIFICIAL_TOME = registerArtificialTome("artificial_tome", CustomRarity.UNIQUE);
+
     private static Item registerRunicTome(String name, int tier, CustomRarity rarity) {
         Identifier id = Identifier.of(CranksDungeons.MOD_ID, name);
         RegistryKey<Item> key = RegistryKey.of(RegistryKeys.ITEM, id);
@@ -45,6 +48,14 @@ public class ModItems {
 
         return Registry.register(Registries.ITEM, key,
                 new ElementalTomeItem(element, isGreater, rarity, new Item.Settings().registryKey(key)));
+    }
+
+    private static Item registerArtificialTome(String name, CustomRarity rarity) {
+        Identifier id = Identifier.of(CranksDungeons.MOD_ID, name);
+        RegistryKey<Item> key = RegistryKey.of(RegistryKeys.ITEM, id);
+
+        return Registry.register(Registries.ITEM, key,
+                new ArtificialTomeItem(rarity, new Item.Settings().registryKey(key)));
     }
 
     public static void registerModItems() {

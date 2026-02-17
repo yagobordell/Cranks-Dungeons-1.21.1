@@ -2,6 +2,7 @@ package com.cranks.dungeons.block.entity;
 
 import com.cranks.dungeons.equipment.EquipmentType;
 import com.cranks.dungeons.equipment.ItemStatManager;
+import com.cranks.dungeons.item.ArtificialTomeItem;
 import com.cranks.dungeons.item.ElementalTomeItem;
 import com.cranks.dungeons.item.RunicTomeItem;
 import com.cranks.dungeons.screen.RunicEnhancementAltarScreenHandler;
@@ -116,7 +117,9 @@ public class RunicEnhancementAltarBlockEntity extends BlockEntity implements Nam
             return EquipmentType.getTypeForItem(stack).isPresent();
         }
         if (slot == TOME_SLOT) {
-            return stack.getItem() instanceof RunicTomeItem || stack.getItem() instanceof ElementalTomeItem;
+            return stack.getItem() instanceof RunicTomeItem
+                    || stack.getItem() instanceof ElementalTomeItem
+                    || stack.getItem() instanceof ArtificialTomeItem;
         }
         return false;
     }
@@ -142,6 +145,11 @@ public class RunicEnhancementAltarBlockEntity extends BlockEntity implements Nam
             return false;
         }
 
+        // Handle Artificial Tomes
+        if (tome.getItem() instanceof ArtificialTomeItem) {
+            return tryArtificialEnhance(equipment, tome);
+        }
+
         // Handle Elemental Tomes
         if (tome.getItem() instanceof ElementalTomeItem elementalTome) {
             return tryElementalEnhance(equipment, tome, elementalTome);
@@ -150,6 +158,33 @@ public class RunicEnhancementAltarBlockEntity extends BlockEntity implements Nam
         // Handle Regular Runic Tomes
         if (tome.getItem() instanceof RunicTomeItem runicTome) {
             return tryRunicEnhance(equipment, tome, runicTome);
+        }
+
+        return false;
+    }
+
+    private boolean tryArtificialEnhance(ItemStack equipment, ItemStack tome) {
+        // Can't have multiple artificial stats
+        if (ItemStatManager.hasArtificialStat(equipment)) {
+            return false;
+        }
+
+        // Can't already have a cryptic stat
+        if (ItemStatManager.hasCrypticStat(equipment)) {
+            return false;
+        }
+
+        // Create a copy for the result
+        ItemStack result = equipment.copy();
+
+        boolean success = ItemStatManager.addCrypticStat(result);
+
+        if (success) {
+            setStack(RESULT_SLOT, result);
+            equipment.decrement(1);
+            tome.decrement(1);
+            markDirty();
+            return true;
         }
 
         return false;

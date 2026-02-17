@@ -6,6 +6,9 @@ import com.cranks.dungeons.damage.DamageNumberManager;
 import com.cranks.dungeons.damage.DamageNumberRenderer;
 import com.cranks.dungeons.network.EnergyShieldSyncPacket;
 import com.cranks.dungeons.network.DamageNumberPayload;
+import com.cranks.dungeons.network.StatOptionsSyncPacket;
+import com.cranks.dungeons.screen.ArtificialEnhancementAltarScreen;
+import com.cranks.dungeons.screen.ArtificialEnhancementAltarScreenHandler;
 import com.cranks.dungeons.screen.ModScreenHandlers;
 import com.cranks.dungeons.screen.RunicEnhancementAltarScreen;
 import net.fabricmc.api.ClientModInitializer;
@@ -20,16 +23,19 @@ public class CranksDungeonsClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         HandledScreens.register(ModScreenHandlers.RUNIC_ENHANCEMENT_ALTAR, RunicEnhancementAltarScreen::new);
-        ClientPlayNetworking.registerGlobalReceiver(
-                EnergyShieldSyncPacket.ID,
-                (payload, context) -> {
-                    context.client().execute(() -> {
-                        if (context.player() instanceof EnergyShieldProvider provider) {
-                            provider.cranksdungeons$setCurrentEnergyShield(payload.currentShield());
-                        }
-                    });
+        HandledScreens.register(ModScreenHandlers.ARTIFICIAL_ENHANCEMENT_ALTAR, ArtificialEnhancementAltarScreen::new);
+        ClientPlayNetworking.registerGlobalReceiver(StatOptionsSyncPacket.ID, (payload, context) -> {
+            context.client().execute(() -> {
+                if (context.client().player != null && context.client().player.currentScreenHandler instanceof ArtificialEnhancementAltarScreenHandler handler) {
+                    if (handler.syncId == payload.syncId()) {
+                        handler.setClientStatOptions(
+                                new String[]{payload.stat0(), payload.stat1(), payload.stat2()},
+                                new int[]{payload.tier0(), payload.tier1(), payload.tier2()}
+                        );
+                    }
                 }
-        );
+            });
+        });
         // Register the payload receiver
         ClientPlayNetworking.registerGlobalReceiver(DamageNumberPayload.ID, (payload, context) -> {
             System.out.println("[DamageNumbers CLIENT] Received packet with " + payload.entries().size() + " entries");

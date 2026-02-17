@@ -69,21 +69,26 @@ public abstract class ItemStackTooltipMixin {
     }
 
     private void handleShieldTooltip(List<Text> tooltip, ItemStack stack) {
-        // Apply rarity to the name line
         Text itemName = modifyItemNameWithRarity(stack, tooltip.get(0));
 
         List<Text> newTooltip = new ArrayList<>();
         newTooltip.add(itemName);
 
         List<ItemStatManager.ItemStat> stats = ItemStatManager.getStats(stack);
-        if (!stats.isEmpty()) {
-            newTooltip.add(Text.literal("RUNIC STATS:").formatted(Formatting.AQUA, Formatting.BOLD));
+        if (!stats.isEmpty() || ItemStatManager.hasCrypticStat(stack)) {
+            newTooltip.add(Text.literal("RUNES:").formatted(Formatting.AQUA, Formatting.BOLD));
 
             for (ItemStatManager.ItemStat itemStat : stats) {
                 CustomStat stat = StatRegistry.getStat(itemStat.statId);
                 if (stat != null) {
-                    newTooltip.add(createRunicStatLine(stat, itemStat.value, itemStat.tier));
+                    newTooltip.add(createRunicStatLine(stat, itemStat.value, itemStat.tier, itemStat.isArtificial));
                 }
+            }
+
+            if (ItemStatManager.hasCrypticStat(stack)) {
+                newTooltip.add(Text.literal("??").formatted(Formatting.DARK_GREEN, Formatting.OBFUSCATED)
+                        .append(Text.literal(" Cryptic Stat ").formatted(Formatting.DARK_GREEN))
+                        .append(Text.literal("??").formatted(Formatting.DARK_GREEN, Formatting.OBFUSCATED)));
             }
         }
 
@@ -99,7 +104,6 @@ public abstract class ItemStackTooltipMixin {
     }
 
     private void handleNormalTooltip(List<Text> tooltip, ItemStack stack, EquipmentType equipType) {
-        // Apply rarity to the name line
         Text itemName = modifyItemNameWithRarity(stack, tooltip.get(0));
 
         int attributeSectionStart = -1;
@@ -109,7 +113,7 @@ public abstract class ItemStackTooltipMixin {
             String line = tooltip.get(i).getString();
             if ((line.contains("When in Main Hand:") || line.contains("When in Offhand:") ||
                     line.contains("When on Body:") || line.contains("When on Head:") ||
-                    line.contains("When on Legs:") ||  line.contains("When worn:") ||
+                    line.contains("When on Legs:") || line.contains("When worn:") ||
                     line.contains("When on Chest:") || line.contains("When on Feet:"))) {
                 attributeSectionStart = i;
             }
@@ -194,7 +198,6 @@ public abstract class ItemStackTooltipMixin {
 
             switch (armorType) {
                 case LEATHER:
-                    // Evasion Rating + Movement Speed
                     if (attributeTotals.containsKey(ModAttributes.EVASION_RATING)) {
                         tooltip.add(Text.literal("Evasion Rating: " + df.format(attributeTotals.get(ModAttributes.EVASION_RATING)))
                                 .formatted(Formatting.WHITE));
@@ -207,7 +210,6 @@ public abstract class ItemStackTooltipMixin {
                     break;
 
                 case GOLD:
-                    // Energy Shield + Luck
                     if (attributeTotals.containsKey(ModAttributes.ENERGY_SHIELD)) {
                         tooltip.add(Text.literal("Energy Shield: " + df.format(attributeTotals.get(ModAttributes.ENERGY_SHIELD)))
                                 .formatted(Formatting.WHITE));
@@ -219,7 +221,6 @@ public abstract class ItemStackTooltipMixin {
                     break;
 
                 case CHAINMAIL:
-                    // Evasion Rating + Energy Shield + Attack Speed
                     if (attributeTotals.containsKey(ModAttributes.EVASION_RATING)) {
                         tooltip.add(Text.literal("Evasion Rating: " + df.format(attributeTotals.get(ModAttributes.EVASION_RATING)))
                                 .formatted(Formatting.WHITE));
@@ -235,7 +236,6 @@ public abstract class ItemStackTooltipMixin {
                     break;
 
                 case COPPER:
-                    // Armor + Elemental Resistances
                     if (attributeTotals.containsKey(EntityAttributes.ARMOR)) {
                         tooltip.add(Text.literal("Armor: " + df.format(attributeTotals.get(EntityAttributes.ARMOR)))
                                 .formatted(Formatting.WHITE));
@@ -245,29 +245,24 @@ public abstract class ItemStackTooltipMixin {
                         tooltip.add(Text.literal("Fire Resistance: " + df.format(resistance) + "%")
                                 .formatted(Formatting.WHITE));
                     }
-
                     if (attributeTotals.containsKey(ModAttributes.COLD_RESISTANCE)) {
                         double resistance = attributeTotals.get(ModAttributes.COLD_RESISTANCE) * 100;
                         tooltip.add(Text.literal("Cold Resistance: " + df.format(resistance) + "%")
                                 .formatted(Formatting.WHITE));
                     }
-
                     if (attributeTotals.containsKey(ModAttributes.LIGHTNING_RESISTANCE)) {
                         double resistance = attributeTotals.get(ModAttributes.LIGHTNING_RESISTANCE) * 100;
                         tooltip.add(Text.literal("Lightning Resistance: " + df.format(resistance) + "%")
                                 .formatted(Formatting.WHITE));
                     }
-
                     if (attributeTotals.containsKey(ModAttributes.VOID_RESISTANCE)) {
                         double resistance = attributeTotals.get(ModAttributes.VOID_RESISTANCE) * 100;
                         tooltip.add(Text.literal("Void Resistance: " + df.format(resistance) + "%")
                                 .formatted(Formatting.WHITE));
                     }
-
                     break;
 
                 case IRON:
-                    // Armor + Armor Toughness + Knockback Resistance
                     if (attributeTotals.containsKey(EntityAttributes.ARMOR)) {
                         tooltip.add(Text.literal("Armor: " + df.format(attributeTotals.get(EntityAttributes.ARMOR)))
                                 .formatted(Formatting.WHITE));
@@ -284,7 +279,6 @@ public abstract class ItemStackTooltipMixin {
                     break;
 
                 case DIAMOND:
-                    // Armor + Armor Toughness + HP + HP Regen
                     if (attributeTotals.containsKey(EntityAttributes.ARMOR)) {
                         tooltip.add(Text.literal("Armor: " + df.format(attributeTotals.get(EntityAttributes.ARMOR)))
                                 .formatted(Formatting.WHITE));
@@ -304,7 +298,6 @@ public abstract class ItemStackTooltipMixin {
                     break;
 
                 case NETHERITE:
-                    // Armor + Armor Toughness + Attack Damage
                     if (attributeTotals.containsKey(EntityAttributes.ARMOR)) {
                         tooltip.add(Text.literal("Armor: " + df.format(attributeTotals.get(EntityAttributes.ARMOR)))
                                 .formatted(Formatting.WHITE));
@@ -324,7 +317,6 @@ public abstract class ItemStackTooltipMixin {
                     break;
 
                 case NONE:
-                    // Default fallback
                     if (attributeTotals.containsKey(EntityAttributes.ARMOR)) {
                         tooltip.add(Text.literal("Armor: " + df.format(attributeTotals.get(EntityAttributes.ARMOR)))
                                 .formatted(Formatting.WHITE));
@@ -336,31 +328,18 @@ public abstract class ItemStackTooltipMixin {
                     break;
             }
         } else {
-            // Weapon stats
             if (attributeTotals.containsKey(EntityAttributes.ATTACK_DAMAGE)) {
                 double baseAttackDamage = PLAYER_BASE_ATTACK_DAMAGE + attributeTotals.get(EntityAttributes.ATTACK_DAMAGE);
-
-                // Add attack damage from enchantments
                 baseAttackDamage += getEnchantmentValue(stack, "minecraft:attack_damage", 4.0);
-
-                // Get attack damage percentage from this weapon's stats
                 double attackDamagePercent = EquipmentStatApplier.getItemStatValue(stack, "attack_damage_percent");
-
-                // Apply percentage multiplier
                 double finalAttackDamage = baseAttackDamage * (1.0 + attackDamagePercent);
-
                 tooltip.add(Text.literal("Attack Damage: " + df.format(finalAttackDamage)).formatted(Formatting.WHITE));
             }
             if (attributeTotals.containsKey(EntityAttributes.ATTACK_SPEED)) {
                 double attackSpeed = PLAYER_BASE_ATTACK_SPEED + attributeTotals.get(EntityAttributes.ATTACK_SPEED);
                 attackSpeed += getEnchantmentValue(stack, "minecraft:attack_speed", 0.2);
-
-                // Get attack speed percentage from runes
                 double attackSpeedPercent = EquipmentStatApplier.getItemStatValue(stack, "attack_speed_percent");
-
-                // Apply percentage multiplier
                 double finalAttackSpeed = attackSpeed * (1.0 + attackSpeedPercent);
-
                 tooltip.add(Text.literal("Attack Speed: " + df.format(finalAttackSpeed)).formatted(Formatting.WHITE));
             }
         }
@@ -388,15 +367,23 @@ public abstract class ItemStackTooltipMixin {
             }
         }
 
+        // Runes section - single loop handling both normal and artificial stats
         List<ItemStatManager.ItemStat> stats = ItemStatManager.getStats(stack);
-        if (!stats.isEmpty()) {
-            tooltip.add(Text.literal("Runes:").formatted(Formatting.AQUA, Formatting.BOLD));
+        if (!stats.isEmpty() || ItemStatManager.hasCrypticStat(stack)) {
+            tooltip.add(Text.literal("RUNES:").formatted(Formatting.AQUA, Formatting.BOLD));
 
             for (ItemStatManager.ItemStat itemStat : stats) {
                 CustomStat stat = StatRegistry.getStat(itemStat.statId);
                 if (stat != null) {
-                    tooltip.add(createRunicStatLine(stat, itemStat.value, itemStat.tier));
+                    tooltip.add(createRunicStatLine(stat, itemStat.value, itemStat.tier, itemStat.isArtificial));
                 }
+            }
+
+            // Cryptic stat indicator
+            if (ItemStatManager.hasCrypticStat(stack)) {
+                tooltip.add(Text.literal("??").formatted(Formatting.DARK_GREEN, Formatting.OBFUSCATED)
+                        .append(Text.literal(" Cryptic Stat ").formatted(Formatting.DARK_GREEN))
+                        .append(Text.literal("??").formatted(Formatting.DARK_GREEN, Formatting.OBFUSCATED)));
             }
         }
     }
@@ -413,13 +400,21 @@ public abstract class ItemStackTooltipMixin {
         return ArmorSetType.NONE;
     }
 
-    private Text createRunicStatLine(CustomStat stat, double value, int tier) {
+    @Unique
+    private Text createRunicStatLine(CustomStat stat, double value, int tier, boolean isArtificial) {
         DecimalFormat df = new DecimalFormat("#.##");
         String valueStr = stat.formatValue(value).contains("%") ? df.format(value * 100) + "%" : df.format(value);
+
+        if (isArtificial) {
+            return Text.literal(stat.getDisplayName() + ": " + valueStr + " ").formatted(Formatting.DARK_GREEN)
+                    .append(Text.literal("[T" + tier + "]").formatted(getTierColor(tier)));
+        }
+
         return Text.literal(stat.getDisplayName() + ": " + valueStr + " ").formatted(Formatting.WHITE)
                 .append(Text.literal("[T" + tier + "]").formatted(getTierColor(tier)));
     }
 
+    @Unique
     private Formatting getTierColor(int tier) {
         return switch (tier) {
             case 1, 2 -> Formatting.GRAY;
@@ -429,6 +424,7 @@ public abstract class ItemStackTooltipMixin {
         };
     }
 
+    @Unique
     private Text modifyItemNameWithRarity(ItemStack stack, Text originalName) {
         CustomRarity rarity = CustomRarity.getRarity(stack);
 
@@ -439,6 +435,7 @@ public abstract class ItemStackTooltipMixin {
                         .formatted(rarity.getColor(), Formatting.BOLD));
     }
 
+    @Unique
     private double getEnchantmentValue(ItemStack stack, String enchantmentId, double baseValue) {
         var enchantments = stack.getEnchantments();
         for (var entry : enchantments.getEnchantmentEntries()) {

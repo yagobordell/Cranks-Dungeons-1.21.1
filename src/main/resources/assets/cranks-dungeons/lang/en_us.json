@@ -14,9 +14,14 @@
   "item.cranks-dungeons.greater_lightning_tome": "Greater Tome of Lightning",
   "item.cranks-dungeons.greater_void_tome": "Greater Tome of Void",
   "item.cranks-dungeons.greater_physicality_tome": "Greater Tome of Physicality",
+  "item.cranks-dungeons.artificial_tome": "Artificial Tome",
 
   "item.cranks-dungeons.runic_enhancement_altar": "Runic Enhancement Altar",
   "block.cranks-dungeons.runic_enhancement_altar": "Runic Enhancement Altar",
+
+  "item.cranks-dungeons.artificial_enhancement_altar": "Artificial Enhancement Altar",
+  "block.cranks-dungeons.artificial_enhancement_altar": "Artificial Enhancement Altar",
+
   "enchantment.cranks-dungeons.lunge": "Lunge",
   "enchantment.cranks-dungeons.lunge.desc": "Jab attacks propel the wielder forward",
 

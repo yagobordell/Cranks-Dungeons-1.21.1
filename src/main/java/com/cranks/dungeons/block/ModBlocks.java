@@ -14,38 +14,55 @@ import net.minecraft.util.Identifier;
 
 public class ModBlocks {
     public static Block RUNIC_ENHANCEMENT_ALTAR;
+    public static Block ARTIFICIAL_ENHANCEMENT_ALTAR;
 
     public static void register() {
+        // Runic Enhancement Altar
+        Identifier runicId = Identifier.of(CranksDungeons.MOD_ID, "runic_enhancement_altar");
+        RegistryKey<Block> runicBlockKey = RegistryKey.of(RegistryKeys.BLOCK, runicId);
 
-        Identifier id = Identifier.of(CranksDungeons.MOD_ID, "runic_enhancement_altar");
-
-        // ─── Key change: create RegistryKey ───
-        RegistryKey<Block> blockKey = RegistryKey.of(RegistryKeys.BLOCK, id);
-
-        AbstractBlock.Settings blockSettings = AbstractBlock.Settings.create()
+        AbstractBlock.Settings runicBlockSettings = AbstractBlock.Settings.create()
                 .strength(3.5f)
                 .requiresTool()
                 .sounds(BlockSoundGroup.STONE)
-                .nonOpaque() // <--- Add this line
-                .registryKey(blockKey);
+                .nonOpaque()
+                .registryKey(runicBlockKey);
 
         RUNIC_ENHANCEMENT_ALTAR = Registry.register(
                 Registries.BLOCK,
-                id,
-                new RunicEnhancementAltarBlock(blockSettings)
+                runicId,
+                new RunicEnhancementAltarBlock(runicBlockSettings)
         );
 
-        // Same for the item
-        RegistryKey<Item> itemKey = RegistryKey.of(RegistryKeys.ITEM, id);
-
-        Item.Settings itemSettings = new Item.Settings()
-                .registryKey(itemKey);  // ← required for items too!
-
+        RegistryKey<Item> runicItemKey = RegistryKey.of(RegistryKeys.ITEM, runicId);
         Registry.register(
                 Registries.ITEM,
-                id,
-                new BlockItem(RUNIC_ENHANCEMENT_ALTAR, itemSettings)
+                runicId,
+                new BlockItem(RUNIC_ENHANCEMENT_ALTAR, new Item.Settings().registryKey(runicItemKey))
         );
 
+        // Artificial Enhancement Altar
+        Identifier artificialId = Identifier.of(CranksDungeons.MOD_ID, "artificial_enhancement_altar");
+        RegistryKey<Block> artificialBlockKey = RegistryKey.of(RegistryKeys.BLOCK, artificialId);
+
+        AbstractBlock.Settings artificialBlockSettings = AbstractBlock.Settings.create()
+                .strength(3.5f)
+                .requiresTool()
+                .sounds(BlockSoundGroup.STONE)
+                .nonOpaque()
+                .registryKey(artificialBlockKey);
+
+        ARTIFICIAL_ENHANCEMENT_ALTAR = Registry.register(
+                Registries.BLOCK,
+                artificialId,
+                new ArtificialEnhancementAltarBlock(artificialBlockSettings)
+        );
+
+        RegistryKey<Item> artificialItemKey = RegistryKey.of(RegistryKeys.ITEM, artificialId);
+        Registry.register(
+                Registries.ITEM,
+                artificialId,
+                new BlockItem(ARTIFICIAL_ENHANCEMENT_ALTAR, new Item.Settings().registryKey(artificialItemKey))
+        );
     }
 }
