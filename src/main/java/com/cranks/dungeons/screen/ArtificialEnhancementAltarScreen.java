@@ -19,6 +19,16 @@ public class ArtificialEnhancementAltarScreen extends HandledScreen<ArtificialEn
     private static final int BUTTON_WIDTH = 160;
     private static final int BUTTON_HEIGHT = 16;
 
+    // End portal color palette
+    private static final int COLOR_INACTIVE_FILL   = 0xFF050A0A; // near-black void
+    private static final int COLOR_INACTIVE_BORDER = 0xFF0A1A14; // dark teal shadow
+
+    private static final int COLOR_ACTIVE_FILL     = 0xFF071A15; // deep portal green-black
+    private static final int COLOR_ACTIVE_BORDER   = 0xFF1A7A4A; // muted end-green border
+
+    private static final int COLOR_HOVERED_FILL    = 0xFF0D2E22; // brightened portal dark green
+    private static final int COLOR_HOVERED_BORDER  = 0xFF00FFA0; // vivid cyan-green glow (end portal frame highlight)
+
     private final int[] buttonXPositions = new int[3];
     private final int[] buttonYPositions = new int[3];
     private final boolean[] buttonActive = new boolean[3];
@@ -133,14 +143,14 @@ public class ArtificialEnhancementAltarScreen extends HandledScreen<ArtificialEn
             boolean hovered = isMouseOverButton(i, mouseX, mouseY);
 
             if (!buttonActive[i]) {
-                context.fill(bx, by, bx + BUTTON_WIDTH, by + BUTTON_HEIGHT, 0xFF1A1A2E);
-                drawBorder(context, bx, by, BUTTON_WIDTH, BUTTON_HEIGHT, 0xFF0D0D1A);
+                context.fill(bx, by, bx + BUTTON_WIDTH, by + BUTTON_HEIGHT, COLOR_INACTIVE_FILL);
+                drawBorder(context, bx, by, BUTTON_WIDTH, BUTTON_HEIGHT, COLOR_INACTIVE_BORDER);
             } else if (hovered) {
-                context.fill(bx, by, bx + BUTTON_WIDTH, by + BUTTON_HEIGHT, 0xFF2B4A2B);
-                drawBorder(context, bx, by, BUTTON_WIDTH, BUTTON_HEIGHT, 0xFF4AFF4A);
+                context.fill(bx, by, bx + BUTTON_WIDTH, by + BUTTON_HEIGHT, COLOR_HOVERED_FILL);
+                drawBorder(context, bx, by, BUTTON_WIDTH, BUTTON_HEIGHT, COLOR_HOVERED_BORDER);
             } else {
-                context.fill(bx, by, bx + BUTTON_WIDTH, by + BUTTON_HEIGHT, 0xFF1E1E2E);
-                drawBorder(context, bx, by, BUTTON_WIDTH, BUTTON_HEIGHT, 0xFF2A5A2A);
+                context.fill(bx, by, bx + BUTTON_WIDTH, by + BUTTON_HEIGHT, COLOR_ACTIVE_FILL);
+                drawBorder(context, bx, by, BUTTON_WIDTH, BUTTON_HEIGHT, COLOR_ACTIVE_BORDER);
             }
         }
     }
@@ -172,7 +182,7 @@ public class ArtificialEnhancementAltarScreen extends HandledScreen<ArtificialEn
             } else {
                 String txt = "";
                 int textX = bxLocal + (BUTTON_WIDTH - this.textRenderer.getWidth(txt)) / 2;
-                context.drawTextWithShadow(this.textRenderer, txt, textX, textY, 0xFF666666);
+                context.drawTextWithShadow(this.textRenderer, txt, textX, textY, 0xFF1A4A30);
             }
         }
     }

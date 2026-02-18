@@ -2,13 +2,11 @@ package com.cranks.dungeons.screen;
 
 import com.cranks.dungeons.CranksDungeons;
 import com.cranks.dungeons.block.entity.RunicEnhancementAltarBlockEntity;
-import com.cranks.dungeons.registry.ModSounds;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -38,8 +36,8 @@ public class RunicEnhancementAltarScreen extends HandledScreen<RunicEnhancementA
 
     public RunicEnhancementAltarScreen(RunicEnhancementAltarScreenHandler handler, PlayerInventory inventory, Text title) {
         super(handler, inventory, title);
-        this.backgroundHeight = 166;
         this.backgroundWidth = 176;
+        this.backgroundHeight = 166; // standard container height
         this.playerInventoryTitleY = this.backgroundHeight - 94;
     }
 
@@ -61,9 +59,7 @@ public class RunicEnhancementAltarScreen extends HandledScreen<RunicEnhancementA
 
         this.enhanceButton = ButtonWidget.builder(Text.literal("Enhance"), button -> {
                     if (this.client != null && this.client.interactionManager != null) {
-                        // Only send the button click to the server
                         this.client.interactionManager.clickButton(this.handler.syncId, 0);
-
                         // Recreate the button to reset its state
                         this.client.execute(this::createButton);
                     }
@@ -96,6 +92,7 @@ public class RunicEnhancementAltarScreen extends HandledScreen<RunicEnhancementA
             textureToUse = TEXTURES[currentTextureIndex];
         }
 
+        // IMPORTANT: texture width/height match drawn width/height (no scaling)
         context.drawTexture(
                 net.minecraft.client.gl.RenderPipelines.GUI_TEXTURED,
                 textureToUse,
@@ -103,7 +100,8 @@ public class RunicEnhancementAltarScreen extends HandledScreen<RunicEnhancementA
                 0.0f, 0.0f,
                 this.backgroundWidth,
                 this.backgroundHeight,
-                176, 165
+                this.backgroundWidth,
+                this.backgroundHeight
         );
     }
 

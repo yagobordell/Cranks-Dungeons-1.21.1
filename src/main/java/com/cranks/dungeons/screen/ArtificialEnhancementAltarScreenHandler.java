@@ -54,7 +54,7 @@ public class ArtificialEnhancementAltarScreenHandler extends ScreenHandler {
         this.addProperties(propertyDelegate);
 
         // Equipment slot - closer to top
-        this.addSlot(new Slot(inventory, ArtificialEnhancementAltarBlockEntity.EQUIPMENT_SLOT, 80, 6) {
+        this.addSlot(new Slot(inventory, ArtificialEnhancementAltarBlockEntity.EQUIPMENT_SLOT, 80, 10) {
             @Override
             public boolean canInsert(ItemStack stack) {
                 return EquipmentType.getTypeForItem(stack).isPresent();

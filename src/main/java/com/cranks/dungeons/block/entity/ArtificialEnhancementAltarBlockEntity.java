@@ -72,7 +72,7 @@ public class ArtificialEnhancementAltarBlockEntity extends BlockEntity implement
 
     @Override
     public Text getDisplayName() {
-        return Text.literal("Artificial Enhancement Altar");
+        return Text.literal("");
     }
 
     @Nullable
