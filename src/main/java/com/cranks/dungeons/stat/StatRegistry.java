@@ -440,6 +440,18 @@ public class StatRegistry {
         ));
 
         register(new CustomStat(
+                "chestplate_reload_speed",
+                "Reload Speed",
+                EquipmentType.CHESTPLATE,
+                ModAttributes.RELOAD_SPEED,
+                new double[]{0.2, 0.4, 0.6, 0.8, 1.0},
+                new double[]{0.4, 0.6, 0.8, 1.0, 1.27},
+                true,
+                true,
+                Formatting.YELLOW
+        ));
+
+        register(new CustomStat(
                 "chestplate_experience_bonus",
                 "Experience Bonus",
                 EquipmentType.CHESTPLATE,
@@ -1783,6 +1795,18 @@ public class StatRegistry {
                 Formatting.GRAY
         ));
 
+        register(new CustomStat(
+                "bow_reload_speed",
+                "Reload Speed",
+                EquipmentType.BOW,
+                ModAttributes.RELOAD_SPEED,
+                new double[]{0.2, 0.4, 0.6, 0.8, 1.0},
+                new double[]{0.4, 0.6, 0.8, 1.0, 1.27},
+                true,
+                true,
+                Formatting.YELLOW
+        ));
+
         // ===== CROSSBOW STATS ====
         register(new CustomStat(
                 "crossbow_durability_bonus",
@@ -1957,6 +1981,18 @@ public class StatRegistry {
                 true,
                 true,
                 Formatting.GRAY
+        ));
+
+        register(new CustomStat(
+                "crossbow_reload_speed",
+                "Reload Speed",
+                EquipmentType.CROSSBOW,
+                ModAttributes.RELOAD_SPEED,
+                new double[]{0.2, 0.4, 0.6, 0.8, 1.0},
+                new double[]{0.4, 0.6, 0.8, 1.0, 1.27},
+                true,
+                true,
+                Formatting.YELLOW
         ));
 
         // ===== SHIELD STATS =====

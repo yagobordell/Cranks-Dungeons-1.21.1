@@ -32,6 +32,7 @@
     "minecraft:breaking_range",
     "minecraft:energy_shield",
     "minecraft:evasion_rating",
+    "minecraft:reload_speed",
     "minecraft:crop_fortune"
   ]
 }

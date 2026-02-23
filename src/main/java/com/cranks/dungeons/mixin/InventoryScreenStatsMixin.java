@@ -216,6 +216,11 @@ public abstract class InventoryScreenStatsMixin {
             knockback += getEnchantmentValue(weapon, "minecraft:bonus_knockback", 0.35);
             knockback += getEnchantmentValue(chestplate, "minecraft:bonus_knockback", 0.35);
             curY = drawStatWithTooltip(context, tr, panelX, curY, "Knockback", knockback * 100, "%", mouseX, mouseY, panelX, panelWidth);
+
+            // Reload Speed — sourced from weapon (bow/crossbow) and chestplate
+            double reloadSpeed = player.getAttributeValue(ModAttributes.RELOAD_SPEED);
+            curY = drawStatWithTooltip(context, tr, panelX, curY, "Reload Speed", reloadSpeed * 100, "%", mouseX, mouseY, panelX, panelWidth);
+
             curY += 6;
 
             // --- CATEGORY 2: ELEMENTAL ---
@@ -229,7 +234,7 @@ public abstract class InventoryScreenStatsMixin {
 
             curY = drawStatWithTooltip(context, tr, panelX, curY, "Fire Damage", calculateFinalElementalDamage(player, weapon, chestplate, "fire_damage_percent", ModAttributes.FIRE_DAMAGE, "minecraft:fire_damage"), "", mouseX, mouseY, panelX, panelWidth);
             curY = drawStatWithTooltip(context, tr, panelX, curY, "Cold Damage", calculateFinalElementalDamage(player, weapon, chestplate, "cold_damage_percent", ModAttributes.COLD_DAMAGE, "minecraft:cold_damage"), "", mouseX, mouseY, panelX, panelWidth);
-            curY = drawStatWithTooltip(context, tr, panelX, curY, "Lightning Dmg", calculateFinalElementalDamage(player, weapon, chestplate, "lightning_damage_percent", ModAttributes.LIGHTNING_DAMAGE, "minecraft:lightning_damage"), "", mouseX, mouseY, panelX, panelWidth);
+            curY = drawStatWithTooltip(context, tr, panelX, curY, "Lightning Damage", calculateFinalElementalDamage(player, weapon, chestplate, "lightning_damage_percent", ModAttributes.LIGHTNING_DAMAGE, "minecraft:lightning_damage"), "", mouseX, mouseY, panelX, panelWidth);
             curY = drawStatWithTooltip(context, tr, panelX, curY, "Void Damage", calculateFinalElementalDamage(player, weapon, chestplate, "void_damage_percent", ModAttributes.VOID_DAMAGE, "minecraft:void_damage"), "", mouseX, mouseY, panelX, panelWidth);
             curY += 6;
 
@@ -354,6 +359,7 @@ public abstract class InventoryScreenStatsMixin {
             case "Crit Chance" -> "Chance to deal critical damage";
             case "Attack Range" -> "Maximum melee attack distance";
             case "Knockback" -> "How far enemies are pushed back";
+            case "Reload Speed" -> "How much faster bows/crossbows charge";
             case "Burn Chance" -> "Chance to ignite enemies on hit";
             case "Fire Damage" -> "Bonus fire damage per hit";
             case "Cold Damage" -> "Bonus cold damage per hit";

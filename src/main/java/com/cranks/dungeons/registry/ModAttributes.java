@@ -31,6 +31,7 @@ public class ModAttributes {
     public static final RegistryEntry<EntityAttribute> COLD_DAMAGE = register("cold_damage", 0.0, 0.0, 100.0);
     public static final RegistryEntry<EntityAttribute> LIGHTNING_DAMAGE = register("lightning_damage", 0.0, 0.0, 100.0);
     public static final RegistryEntry<EntityAttribute> VOID_DAMAGE = register("void_damage", 0.0, 0.0, 100.0);
+    public static final RegistryEntry<EntityAttribute> RELOAD_SPEED = register("reload_speed", 0.0, 0.0, 10.0);
 
     // Percentual damage (stored as item stats, not used as attributes directly)
     public static final RegistryEntry<EntityAttribute> ATTACK_DAMAGE_PERCENT = register("attack_damage_percent", 0.0, 0.0, 10.0);
