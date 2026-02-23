@@ -25,7 +25,7 @@ public class ArtificialTomeItem extends Item {
         return Text.empty()
                 .append(super.getName(stack))
                 .append(Text.literal(" "))
-                .append(Text.literal("[ " + customRarity.getName() + " ]").formatted(customRarity.getColor(), Formatting.BOLD));
+                .append(Text.literal("[ " + customRarity.getName() + " ]").formatted(customRarity.getColor()));
     }
 
     @Override

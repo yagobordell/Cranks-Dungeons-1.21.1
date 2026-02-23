@@ -163,7 +163,7 @@ public class ElementalTomeItem extends Item {
         return Text.empty()
                 .append(super.getName(stack))
                 .append(Text.literal(" "))
-                .append(Text.literal("[ " + customRarity.getName() + " ]").formatted(customRarity.getColor(), Formatting.BOLD));
+                .append(Text.literal("[ " + customRarity.getName() + " ]").formatted(customRarity.getColor()));
     }
 
     @Override
@@ -173,19 +173,19 @@ public class ElementalTomeItem extends Item {
 
         textConsumer.accept(Text.literal("Power sealed within runes").formatted(Formatting.AQUA, Formatting.ITALIC));
         if (isGreater) {
-            textConsumer.accept(Text.literal("▶ On Weapons:").formatted(Formatting.WHITE, Formatting.BOLD));
+            textConsumer.accept(Text.literal("▶ On Weapons:").formatted(Formatting.WHITE));
             String statDisplayName = "Increased " + element.getDisplayName() + " Damage";
             addTierBreakdown(textConsumer, statDisplayName, Formatting.WHITE);
         } else {
             // Weapon stats
-            textConsumer.accept(Text.literal("▶ On Weapons:").formatted(Formatting.WHITE, Formatting.BOLD));
+            textConsumer.accept(Text.literal("▶ On Weapons:").formatted(Formatting.WHITE));
             String weaponStatName = element.getDisplayName() + " Damage";
             addTierBreakdown(textConsumer, weaponStatName, Formatting.WHITE);
 
             textConsumer.accept(Text.empty());
 
             // Armor stats
-            textConsumer.accept(Text.literal("▶ On Armor:").formatted(Formatting.WHITE, Formatting.BOLD));
+            textConsumer.accept(Text.literal("▶ On Armor:").formatted(Formatting.WHITE));
             String armorStatName = element.getDisplayName() + " Resistance";
             addTierBreakdown(textConsumer, armorStatName, Formatting.WHITE);
         }

@@ -76,7 +76,7 @@ public abstract class ItemStackTooltipMixin {
 
         List<ItemStatManager.ItemStat> stats = ItemStatManager.getStats(stack);
         if (!stats.isEmpty() || ItemStatManager.hasCrypticStat(stack)) {
-            newTooltip.add(Text.literal("RUNES:").formatted(Formatting.AQUA, Formatting.BOLD));
+            newTooltip.add(Text.literal("RUNES:").formatted(Formatting.AQUA));
 
             for (ItemStatManager.ItemStat itemStat : stats) {
                 CustomStat stat = StatRegistry.getStat(itemStat.statId);
@@ -370,7 +370,7 @@ public abstract class ItemStackTooltipMixin {
         // Runes section - single loop handling both normal and artificial stats
         List<ItemStatManager.ItemStat> stats = ItemStatManager.getStats(stack);
         if (!stats.isEmpty() || ItemStatManager.hasCrypticStat(stack)) {
-            tooltip.add(Text.literal("RUNES:").formatted(Formatting.AQUA, Formatting.BOLD));
+            tooltip.add(Text.literal("RUNES:").formatted(Formatting.AQUA));
 
             for (ItemStatManager.ItemStat itemStat : stats) {
                 CustomStat stat = StatRegistry.getStat(itemStat.statId);
@@ -432,7 +432,7 @@ public abstract class ItemStackTooltipMixin {
                 .formatted(Formatting.WHITE)
                 .append(Text.literal(" "))
                 .append(Text.literal("[ " + rarity.getName() + " ]")
-                        .formatted(rarity.getColor(), Formatting.BOLD));
+                        .formatted(rarity.getColor()));
     }
 
     @Unique
