@@ -105,5 +105,6 @@
   "enchantment.minecraft.repair_chance": "+15% Repair Chance",
   "enchantment.minecraft.breaking_range": "+1 Breaking Range",
   "enchantment.minecraft.reload_speed": "+30% Reload Speed",
+  "enchantment.minecraft.treasure_find": "+2% Treasure Find Chance",
   "enchantment.minecraft.crop_fortune": "+25% Crop Fortune"
 }

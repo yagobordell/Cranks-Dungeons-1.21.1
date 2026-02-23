@@ -2341,6 +2341,17 @@ public class StatRegistry {
                 true,
                 Formatting.AQUA
         ));
+        register(new CustomStat(
+                "shovel_treasure_find",
+                "Treasure Find Chance",
+                EquipmentType.SHOVEL,
+                ModAttributes.TREASURE_FIND,
+                new double[]{0.02, 0.04, 0.06, 0.08, 0.1},
+                new double[]{0.04, 0.06, 0.08, 0.1, 0.15},
+                true,
+                true,
+                Formatting.YELLOW
+        ));
 
         register(new CustomStat(
                 "shovel_breaking_range",
@@ -2375,6 +2386,18 @@ public class StatRegistry {
                 new double[]{0.5, 0.9, 1.3, 1.7, 2.0},
                 false,
                 Formatting.GREEN
+        ));
+
+        register(new CustomStat(
+                "hoe_repair_chance",
+                "Repair Chance",
+                EquipmentType.HOE,
+                ModAttributes.PRECISION_MINING,
+                new double[]{0.03, 0.08, 0.13, 0.18, 0.25},
+                new double[]{0.05, 0.12, 0.18, 0.25, 0.35},
+                true,
+                true,
+                Formatting.AQUA
         ));
 
         register(new CustomStat(

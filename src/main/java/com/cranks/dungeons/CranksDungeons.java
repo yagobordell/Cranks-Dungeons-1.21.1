@@ -12,6 +12,7 @@ import com.cranks.dungeons.registry.ModEnchantments;
 import com.cranks.dungeons.registry.ModSounds;
 import com.cranks.dungeons.screen.ModScreenHandlers;
 import com.cranks.dungeons.stat.StatRegistry;
+import com.cranks.dungeons.treasure.TreasureFindConfig;
 import com.mojang.serialization.Codec;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
@@ -46,6 +47,7 @@ public class CranksDungeons implements ModInitializer {
 		PayloadTypeRegistry.playS2C().register(StatOptionsSyncPacket.ID, StatOptionsSyncPacket.CODEC);
 		PayloadTypeRegistry.playS2C().register(EnergyShieldSyncPacket.ID, EnergyShieldSyncPacket.CODEC);
 		StatRegistry.registerStats();
+		TreasureFindConfig.init();
 		com.cranks.dungeons.command.ApplyStatCommand.register();
 		com.cranks.dungeons.command.CheckStatsCommand.register();
 		com.cranks.dungeons.event.FortuneEventHandler.register();

@@ -51,6 +51,8 @@
 		"ShiftingPreviewMixin",
 		"EnchantmentFilterMixin",
 		"ReloadSpeedMixin",
+		"TreasureFindMixin",
+		"PlayerTreasureFindAttributeMixin",
 		"FeatherFallingMixin"
 	],
 	"client": [
