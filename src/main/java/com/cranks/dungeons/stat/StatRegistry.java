@@ -2424,6 +2424,17 @@ public class StatRegistry {
                 Formatting.GOLD
         ));
 
+        register(new CustomStat(
+                "hoe_crop_experience",
+                "Harvest Experience",
+                EquipmentType.HOE,
+                ModAttributes.CROP_EXPERIENCE,
+                new double[]{0.10, 0.25, 0.45, 0.70, 1.00},
+                new double[]{0.20, 0.40, 0.70, 1.00, 1.50},
+                false,
+                Formatting.DARK_GREEN
+        ));
+
         System.out.println("Registered " + STATS.size() + " custom stats");
     }
 

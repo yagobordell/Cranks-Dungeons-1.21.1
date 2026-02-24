@@ -2,6 +2,10 @@ package com.cranks.dungeons;
 
 import com.cranks.dungeons.block.ModBlocks;
 import com.cranks.dungeons.block.entity.ModBlockEntities;
+import com.cranks.dungeons.command.ApplyStatCommand;
+import com.cranks.dungeons.command.CheckStatsCommand;
+import com.cranks.dungeons.event.CropXpEventHandler;
+import com.cranks.dungeons.event.FortuneEventHandler;
 import com.cranks.dungeons.item.ModItems;
 import com.cranks.dungeons.loot.RunicTomeLootHandler;
 import com.cranks.dungeons.network.EnergyShieldSyncPacket;
@@ -48,9 +52,10 @@ public class CranksDungeons implements ModInitializer {
 		PayloadTypeRegistry.playS2C().register(EnergyShieldSyncPacket.ID, EnergyShieldSyncPacket.CODEC);
 		StatRegistry.registerStats();
 		TreasureFindConfig.init();
-		com.cranks.dungeons.command.ApplyStatCommand.register();
-		com.cranks.dungeons.command.CheckStatsCommand.register();
-		com.cranks.dungeons.event.FortuneEventHandler.register();
+		ApplyStatCommand.register();
+		CheckStatsCommand.register();
+		FortuneEventHandler.register();
+		CropXpEventHandler.register();
 		RunicTomeLootHandler.register();
 		FabricDefaultAttributeRegistry.register(
 				EntityType.PLAYER,
@@ -62,6 +67,7 @@ public class CranksDungeons implements ModInitializer {
 						.add(ModAttributes.RELOAD_SPEED, 0.0)
 						.add(ModAttributes.TREASURE_FIND, 0.0)
 						.add(ModAttributes.STICK_DROP_CHANCE, 0.0)
+						.add(ModAttributes.CROP_EXPERIENCE, 0.0)
 		);
 
 		registerCreativeTabItems();

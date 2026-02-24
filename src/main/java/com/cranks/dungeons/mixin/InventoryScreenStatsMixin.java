@@ -1,16 +1,17 @@
 package com.cranks.dungeons.mixin;
 
 import com.cranks.dungeons.equipment.EquipmentStatApplier;
+import com.cranks.dungeons.equipment.ToolStatHelper;
 import com.cranks.dungeons.registry.ModAttributes;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.InventoryScreen;
+import net.minecraft.component.DataComponentTypes;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.item.ItemStack;
 import net.minecraft.text.Text;
-import net.minecraft.component.DataComponentTypes;
 import net.minecraft.util.Identifier;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -204,10 +205,20 @@ public abstract class InventoryScreenStatsMixin {
             critChance += getEnchantmentValue(boots, "minecraft:crit_chance", 0.075);
             curY = drawStatWithTooltip(context, tr, panelX, curY, "Crit Chance", critChance * 100, "%", mouseX, mouseY, panelX, panelWidth);
 
-            // Attack Range
-            double attackRange = player.getAttributeValue(ModAttributes.ATTACK_RANGE);
-            attackRange += getEnchantmentValue(weapon, "minecraft:attack_range", 1.0);
-            curY = drawStatWithTooltip(context, tr, panelX, curY, "Attack Range", attackRange, " blocks", mouseX, mouseY, panelX, panelWidth);
+            // Attack Range in InventoryScreenStatsMixin
+            double baseAttackRange = player.getAttributeBaseValue(EntityAttributes.ENTITY_INTERACTION_RANGE);
+
+            double attrBonus = 0.0;
+            var inst = player.getAttributeInstance(ModAttributes.ATTACK_RANGE);
+            if (inst != null) {
+                attrBonus = inst.getValue();
+            }
+
+            double enchantBonus = getEnchantmentValue(weapon, "minecraft:attack_range", 1.0);
+
+            double totalAttackRange = baseAttackRange + attrBonus + enchantBonus;
+
+            curY = drawStatWithTooltip(context, tr, panelX, curY, "Attack Range", totalAttackRange, " blocks", mouseX, mouseY, panelX, panelWidth);
 
             // Knockback
             double knockback = player.getAttributeValue(ModAttributes.KNOCKBACK);
@@ -289,6 +300,19 @@ public abstract class InventoryScreenStatsMixin {
             double totalRangeBonus = baseRange + weaponRangeBonus;
 
             curY = drawStatWithTooltip(context, tr, panelX, curY, "Gather Speed", player.getAttributeValue(ModAttributes.MINING_EFFICIENCY) * 100, "%", mouseX, mouseY, panelX, panelWidth);
+
+            // Precision Mining / Repair Chance
+            double precisionChance = 0.0;
+            var precisionInstance = player.getAttributeInstance(ModAttributes.PRECISION_MINING);
+            if (precisionInstance != null) {
+                precisionChance = precisionInstance.getValue();
+            }
+
+            if (precisionChance <= 0.0) {
+                precisionChance = ToolStatHelper.getPrecisionMining(tool);
+            }
+
+            curY = drawStatWithTooltip(context, tr, panelX, curY, "Repair Chance", precisionChance * 100.0, "%", mouseX, mouseY, panelX, panelWidth);
             curY = drawStatWithTooltip(context, tr, panelX, curY, "Ore Fortune", player.getAttributeValue(ModAttributes.FORTUNE) * 100, "%", mouseX, mouseY, panelX, panelWidth);
 
             double treasureFind = 0.0;
@@ -299,6 +323,10 @@ public abstract class InventoryScreenStatsMixin {
             curY = drawStatWithTooltip(context, tr, panelX, curY, "Treasure Find", treasureFind * 100.0, "%", mouseX, mouseY, panelX, panelWidth);
 
             curY = drawStatWithTooltip(context, tr, panelX, curY, "Crop Fortune", EquipmentStatApplier.getItemStatValue(tool, "crop_fortune") * 100, "%", mouseX, mouseY, panelX, panelWidth);
+
+            // Crop XP: read directly from hoe rune, flat xp/harvest
+            double cropXp = EquipmentStatApplier.getItemStatValue(tool, "crop_experience");
+            curY = drawStatWithTooltip(context, tr, panelX, curY, "Crop XP", cropXp, " xp/harvest", mouseX, mouseY, panelX, panelWidth);
 
             double stickDrop = 0.0;
             var stickDropInstance = player.getAttributeInstance(ModAttributes.STICK_DROP_CHANCE);
@@ -402,9 +430,11 @@ public abstract class InventoryScreenStatsMixin {
             case "Luck" -> "Increases rarity of drops";
             case "Exp Bonus" -> "Extra experience gained";
             case "Gather Speed" -> "Mining and harvesting speed";
+            case "Repair Chance" -> "Chance that tools avoid durability loss";
             case "Ore Fortune" -> "Chance to double drops from ores";
             case "Treasure Find" -> "Chance to uncover extra loot when digging";
             case "Crop Fortune" -> "Chance to double drops from crops";
+            case "Crop XP" -> "Experience gained when harvesting fully grown crops with a hoe";
             case "Stick Drop" -> "Chance to get sticks when chopping logs";
             case "Range" -> "Block interaction distance";
             default -> null;
@@ -486,7 +516,9 @@ public abstract class InventoryScreenStatsMixin {
 
     @Unique
     private int drawStatWithTooltip(DrawContext context, TextRenderer tr, int x, int y, String name, double val, String suffix, int mouseX, int mouseY, int panelX, int panelWidth) {
-        String valStr = String.format("%.1f", val);
+        // For Crop XP, show two decimals so 1.6 shows as 1.60, not 1.0
+        String format = "Crop XP".equals(name) ? "%.2f" : "%.1f";
+        String valStr = String.format(format, val);
         String text = name + ": " + valStr + suffix;
 
         int textWidth = tr.getWidth(text);

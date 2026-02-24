@@ -177,7 +177,7 @@ public abstract class ElementalDamageMixin {
                         target,
                         ModSounds.ELEMENTAL_FIRE_HIT,
                         SoundCategory.PLAYERS,
-                        1.2f,
+                        1.5f,
                         1.0f
                 );
             }
@@ -210,7 +210,7 @@ public abstract class ElementalDamageMixin {
                         target,
                         ModSounds.ELEMENTAL_VOID_HIT,
                         SoundCategory.PLAYERS,
-                        0.8f,
+                        0.6f,
                         1.0f
                 );
             }

@@ -4,6 +4,7 @@ import com.cranks.dungeons.equipment.ToolStatHelper;
 import com.cranks.dungeons.registry.ModAttributes;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.registry.tag.ItemTags;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -17,11 +18,22 @@ public class BreakingRangeMixin {
         PlayerEntity player = (PlayerEntity) (Object) this;
         double baseRange = cir.getReturnValue();
 
-        // Get breaking range from the tool in main hand
         ItemStack tool = player.getMainHandStack();
-        double rangeBonus = ToolStatHelper.getBreakingRange(tool);
-        rangeBonus += player.getAttributeValue(ModAttributes.BREAKING_RANGE);
 
-        cir.setReturnValue(baseRange + rangeBonus);
+        // 1) Prefer the attribute value (already includes modifiers from runes, etc.)
+        double rangeBonus = 0.0;
+        var inst = player.getAttributeInstance(ModAttributes.BREAKING_RANGE);
+        if (inst != null) {
+            rangeBonus = inst.getValue();
+        }
+
+        // 2) If attribute isn't wired for some reason, fall back to the raw tool stat
+        if (rangeBonus <= 0.0) {
+            rangeBonus = ToolStatHelper.getBreakingRange(tool);
+        }
+
+        if (rangeBonus != 0.0) {
+            cir.setReturnValue(baseRange + rangeBonus);
+        }
     }
 }

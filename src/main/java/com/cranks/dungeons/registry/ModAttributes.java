@@ -57,6 +57,7 @@ public class ModAttributes {
     public static final RegistryEntry<EntityAttribute> FLYING_SPEED = register("flying_speed", 0.0, 0.0, 10.0);
     public static final RegistryEntry<EntityAttribute> LUCK = register("luck", 0.0, 0.0, 100.0);
     public static final RegistryEntry<EntityAttribute> CROP_FORTUNE = register("crop_fortune",0.0, 0.0, 1.0);
+    public static final RegistryEntry<EntityAttribute> CROP_EXPERIENCE = register("crop_experience",0.0, 0.0, 1.0);
     public static final RegistryEntry<EntityAttribute> STICK_DROP_CHANCE = register("stick_drop_chance", 0.0, 0.0, 1.0);
     public static final RegistryEntry<EntityAttribute> TREASURE_FIND = register("treasure_find",0.0, 0.0, 1.0);
     public static final RegistryEntry<EntityAttribute> FEATHER_FALLING = register("feather_falling", 0.0, 0.0, 0.75);
