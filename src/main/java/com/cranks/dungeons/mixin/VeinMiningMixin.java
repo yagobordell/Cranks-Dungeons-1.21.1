@@ -1,5 +1,6 @@
 package com.cranks.dungeons.mixin;
 
+import com.cranks.dungeons.enchantment.EnchantmentDisableManager;
 import com.cranks.dungeons.equipment.ToolStatHelper;
 import com.cranks.dungeons.registry.ModAttributes;
 import com.cranks.dungeons.registry.ModEnchantments;
@@ -12,6 +13,7 @@ import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.tag.TagKey;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
@@ -25,10 +27,19 @@ import java.util.*;
 @Mixin(Block.class)
 public class VeinMiningMixin {
 
+    @Unique
+    private static final Identifier VEIN_MINING_ID = Identifier.of("cranks-dungeons", "vein_mining");
+
+    @Unique
+    private static final Identifier SILK_TOUCH_ID = Identifier.of("minecraft", "silk_touch");
+
     @Inject(method = "afterBreak", at = @At("TAIL"))
     private void afterBreak(World world, PlayerEntity player, BlockPos pos, BlockState state, net.minecraft.block.entity.BlockEntity blockEntity, ItemStack tool, CallbackInfo ci) {
-        if (world.isClient() || player.isSneaking()) return;
+        if (world.isClient()) return;
         if (!(player instanceof ServerPlayerEntity serverPlayer) || !(world instanceof ServerWorld serverWorld)) return;
+
+        // Check if vein mining is toggled disabled
+        if (EnchantmentDisableManager.isDisabled(player.getUuid(), VEIN_MINING_ID)) return;
 
         int veinLevel = EnchantmentHelper.getLevel(
                 world.getRegistryManager().getOrThrow(RegistryKeys.ENCHANTMENT).getOrThrow(ModEnchantments.VEIN_MINING),
@@ -75,18 +86,25 @@ public class VeinMiningMixin {
             }
         }
 
-        boolean hasSilk = EnchantmentHelper.getLevel(world.getRegistryManager().getOrThrow(RegistryKeys.ENCHANTMENT).getOrThrow(net.minecraft.enchantment.Enchantments.SILK_TOUCH), tool) > 0;
+        boolean hasSilk = EnchantmentHelper.getLevel(
+                world.getRegistryManager().getOrThrow(RegistryKeys.ENCHANTMENT)
+                        .getOrThrow(net.minecraft.enchantment.Enchantments.SILK_TOUCH), tool) > 0;
+
+        // If silk touch is toggled disabled, ignore it
+        if (EnchantmentDisableManager.isDisabled(player.getUuid(), SILK_TOUCH_ID)) {
+            hasSilk = false;
+        }
+
         double fortuneChance = ToolStatHelper.getFortune(tool) + player.getAttributeValue(ModAttributes.FORTUNE);
 
         for (BlockPos pos : toBreak) {
-            if (pos.equals(origin)) continue; // CRITICAL: Skip first block to prevent 7/4 duplicate issue
+            if (pos.equals(origin)) continue;
 
             BlockState state = world.getBlockState(pos);
             if (state.isAir() || !state.isIn(targetTag)) continue;
 
             Block.dropStacks(state, world, pos, world.getBlockEntity(pos), player, tool);
 
-            // Only Fortune if NOT Silk Touching
             if (!hasSilk && fortuneChance > 0 && player.getRandom().nextDouble() < fortuneChance) {
                 Block.dropStacks(state, world, pos, world.getBlockEntity(pos), player, tool);
                 world.playSound(null, pos, net.minecraft.sound.SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, net.minecraft.sound.SoundCategory.BLOCKS, 0.5f, 1.5f);

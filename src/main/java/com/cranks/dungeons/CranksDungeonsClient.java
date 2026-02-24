@@ -2,6 +2,8 @@ package com.cranks.dungeons;
 
 import com.cranks.dungeons.EnergyShieldProvider;
 import com.cranks.dungeons.client.ClientShieldEffects;
+import com.cranks.dungeons.client.EnchantmentToggleHandler;
+import com.cranks.dungeons.client.ModKeybinds;
 import com.cranks.dungeons.damage.DamageNumber;
 import com.cranks.dungeons.damage.DamageNumberManager;
 import com.cranks.dungeons.damage.DamageNumberRenderer;
@@ -25,6 +27,8 @@ public class CranksDungeonsClient implements ClientModInitializer {
     public void onInitializeClient() {
         HandledScreens.register(ModScreenHandlers.RUNIC_ENHANCEMENT_ALTAR, RunicEnhancementAltarScreen::new);
         HandledScreens.register(ModScreenHandlers.ARTIFICIAL_ENHANCEMENT_ALTAR, ArtificialEnhancementAltarScreen::new);
+        ModKeybinds.register();
+        EnchantmentToggleHandler.register();
         ClientPlayNetworking.registerGlobalReceiver(StatOptionsSyncPacket.ID, (payload, context) -> {
             context.client().execute(() -> {
                 if (context.client().player != null && context.client().player.currentScreenHandler instanceof ArtificialEnhancementAltarScreenHandler handler) {

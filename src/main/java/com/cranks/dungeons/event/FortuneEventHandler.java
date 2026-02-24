@@ -1,5 +1,6 @@
 package com.cranks.dungeons.event;
 
+import com.cranks.dungeons.enchantment.EnchantmentDisableManager;
 import com.cranks.dungeons.equipment.ToolStatHelper;
 import com.cranks.dungeons.registry.ModAttributes;
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
@@ -7,8 +8,11 @@ import net.minecraft.block.Block;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.Identifier;
 
 public class FortuneEventHandler {
+
+    private static final Identifier SILK_TOUCH_ID = Identifier.of("minecraft", "silk_touch");
 
     public static void register() {
         PlayerBlockBreakEvents.BEFORE.register((world, player, pos, state, blockEntity) -> {
@@ -24,8 +28,10 @@ public class FortuneEventHandler {
             boolean hasSilkTouch = enchants != null && enchants.getEnchantments().stream()
                     .anyMatch(e -> e.getKey().get().getValue().toString().equals("minecraft:silk_touch"));
 
-            // If sneaking, Silk Touch is "disabled", allowing fortune to trigger
-            if (player.isSneaking()) hasSilkTouch = false;
+            // If Silk Touch is toggled disabled, treat it as not present
+            if (EnchantmentDisableManager.isDisabled(player.getUuid(), SILK_TOUCH_ID)) {
+                hasSilkTouch = false;
+            }
 
             if (!hasSilkTouch) {
                 double fortuneChance = ToolStatHelper.getFortune(tool) + player.getAttributeValue(ModAttributes.FORTUNE);

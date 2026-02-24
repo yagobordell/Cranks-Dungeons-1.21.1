@@ -4,7 +4,9 @@ import com.cranks.dungeons.block.ModBlocks;
 import com.cranks.dungeons.block.entity.ModBlockEntities;
 import com.cranks.dungeons.command.ApplyStatCommand;
 import com.cranks.dungeons.command.CheckStatsCommand;
+import com.cranks.dungeons.enchantment.EnchantmentDisableManager;
 import com.cranks.dungeons.event.CropXpEventHandler;
+import com.cranks.dungeons.event.EnchantmentDisableTickHandler;
 import com.cranks.dungeons.event.FortuneEventHandler;
 import com.cranks.dungeons.item.ModItems;
 import com.cranks.dungeons.loot.RunicTomeLootHandler;
@@ -42,7 +44,9 @@ public class CranksDungeons implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		ModBlocks.register();
-		ModNetworking.registerServer();
+		ModNetworking.registerPayloads();
+		ModNetworking.registerServerReceivers();
+		EnchantmentDisableTickHandler.register();
 		ModBlockEntities.register();
 		ModItems.registerModItems();
 		ModScreenHandlers.register();
@@ -51,6 +55,8 @@ public class CranksDungeons implements ModInitializer {
 		PayloadTypeRegistry.playS2C().register(StatOptionsSyncPacket.ID, StatOptionsSyncPacket.CODEC);
 		PayloadTypeRegistry.playS2C().register(EnergyShieldSyncPacket.ID, EnergyShieldSyncPacket.CODEC);
 		StatRegistry.registerStats();
+		EnchantmentDisableManager.registerToggleable(Identifier.of("minecraft", "silk_touch"));
+		EnchantmentDisableManager.registerToggleable(Identifier.of("cranks-dungeons", "vein_mining"));
 		TreasureFindConfig.init();
 		ApplyStatCommand.register();
 		CheckStatsCommand.register();

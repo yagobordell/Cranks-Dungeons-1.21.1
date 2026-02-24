@@ -48,12 +48,13 @@
 		"EnergyShieldDamageMixin",
 		"EnergyShieldRegenMixin",
 		"DisableEnchantmentWhileSneakingMixin",
-		"ShiftingPreviewMixin",
 		"EnchantmentFilterMixin",
 		"ReloadSpeedMixin",
 		"TreasureFindMixin",
 		"PlayerTreasureFindAttributeMixin",
 		"LogStickDropMixin",
+		"PlayerDisconnectMixin",
+		"SilkTouchBreakMixin",
 		"FeatherFallingMixin"
 	],
 	"client": [
