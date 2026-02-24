@@ -119,7 +119,6 @@ public abstract class InventoryScreenStatsMixin {
             }
             lastClickState = leftClick;
 
-            // Draw button using texture
             Identifier buttonTexture;
             if (statsVisible && isHovering) {
                 buttonTexture = STATS_BUTTON_PRESSED_HOVER;
@@ -141,7 +140,6 @@ public abstract class InventoryScreenStatsMixin {
             int panelWidth = 147;
             int panelHeight = 166;
 
-            // Draw panel background using texture
             context.drawTexturedQuad(STATS_PANEL_TEXTURE, panelX, panelY, panelX + panelWidth, panelY + panelHeight, 0.0F, 1.0F, 0.0F, 1.0F);
 
             var player = MinecraftClient.getInstance().player;
@@ -217,7 +215,7 @@ public abstract class InventoryScreenStatsMixin {
             knockback += getEnchantmentValue(chestplate, "minecraft:bonus_knockback", 0.35);
             curY = drawStatWithTooltip(context, tr, panelX, curY, "Knockback", knockback * 100, "%", mouseX, mouseY, panelX, panelWidth);
 
-            // Reload Speed — sourced from weapon (bow/crossbow) and chestplate
+            // Reload Speed
             double reloadSpeed = player.getAttributeValue(ModAttributes.RELOAD_SPEED);
             curY = drawStatWithTooltip(context, tr, panelX, curY, "Reload Speed", reloadSpeed * 100, "%", mouseX, mouseY, panelX, panelWidth);
 
@@ -292,8 +290,31 @@ public abstract class InventoryScreenStatsMixin {
 
             curY = drawStatWithTooltip(context, tr, panelX, curY, "Gather Speed", player.getAttributeValue(ModAttributes.MINING_EFFICIENCY) * 100, "%", mouseX, mouseY, panelX, panelWidth);
             curY = drawStatWithTooltip(context, tr, panelX, curY, "Ore Fortune", player.getAttributeValue(ModAttributes.FORTUNE) * 100, "%", mouseX, mouseY, panelX, panelWidth);
+
+            double treasureFind = 0.0;
+            var treasureFindInstance = player.getAttributeInstance(ModAttributes.TREASURE_FIND);
+            if (treasureFindInstance != null) {
+                treasureFind = treasureFindInstance.getValue();
+            }
+            curY = drawStatWithTooltip(context, tr, panelX, curY, "Treasure Find", treasureFind * 100.0, "%", mouseX, mouseY, panelX, panelWidth);
+
             curY = drawStatWithTooltip(context, tr, panelX, curY, "Crop Fortune", EquipmentStatApplier.getItemStatValue(tool, "crop_fortune") * 100, "%", mouseX, mouseY, panelX, panelWidth);
-            curY = drawStatWithTooltip(context, tr, panelX, curY, "Range", totalRangeBonus, " blk", mouseX, mouseY, panelX, panelWidth);
+
+            double stickDrop = 0.0;
+            var stickDropInstance = player.getAttributeInstance(ModAttributes.STICK_DROP_CHANCE);
+            if (stickDropInstance != null) {
+                stickDrop = stickDropInstance.getValue();
+            }
+
+            if (stickDrop <= 0.0) {
+                stickDrop = EquipmentStatApplier.getItemStatValue(tool, "stick_drop_chance");
+            }
+
+            stickDrop += getEnchantmentValue(tool, "cranks-dungeons:stick_drop_chance", 0.2);
+
+            curY = drawStatWithTooltip(context, tr, panelX, curY, "Stick Drop", stickDrop * 100.0, "%", mouseX, mouseY, panelX, panelWidth);
+
+            curY = drawStatWithTooltip(context, tr, panelX, curY, "Range", totalRangeBonus, " blocks", mouseX, mouseY, panelX, panelWidth);
 
             int totalContentHeight = (curY + scrollOffset) - (panelY + 8);
             maxScrollOffset = Math.max(0, totalContentHeight - panelHeight + 16);
@@ -382,7 +403,9 @@ public abstract class InventoryScreenStatsMixin {
             case "Exp Bonus" -> "Extra experience gained";
             case "Gather Speed" -> "Mining and harvesting speed";
             case "Ore Fortune" -> "Chance to double drops from ores";
+            case "Treasure Find" -> "Chance to uncover extra loot when digging";
             case "Crop Fortune" -> "Chance to double drops from crops";
+            case "Stick Drop" -> "Chance to get sticks when chopping logs";
             case "Range" -> "Block interaction distance";
             default -> null;
         };
@@ -501,18 +524,14 @@ public abstract class InventoryScreenStatsMixin {
         int sbWidth = 6;
         int sbHeight = panelHeight - 36;
 
-        // Draw track texture
         context.drawTexturedQuad(SCROLLBAR_TRACK_TEXTURE, sbX, sbY, sbX + sbWidth, sbY + sbHeight, 0.0F, 1.0F, 0.0F, 1.0F);
 
-        // Calculate thumb position and size
         float scrollPercent = (float) scrollOffset / maxScrollOffset;
         int thumbHeight = Math.max(20, sbHeight / 4);
         int thumbY = sbY + (int) (scrollPercent * (sbHeight - thumbHeight));
 
-        // Draw thumb texture
         context.drawTexturedQuad(SCROLLBAR_THUMB_TEXTURE, sbX, thumbY, sbX + sbWidth, thumbY + thumbHeight, 0.0F, 1.0F, 0.0F, 1.0F);
 
-        // Drag logic
         if (leftClick) {
             if (!draggingScrollbar && mouseX >= sbX && mouseX <= sbX + sbWidth && mouseY >= sbY && mouseY <= sbY + sbHeight) {
                 draggingScrollbar = true;

@@ -53,6 +53,7 @@
 		"ReloadSpeedMixin",
 		"TreasureFindMixin",
 		"PlayerTreasureFindAttributeMixin",
+		"LogStickDropMixin",
 		"FeatherFallingMixin"
 	],
 	"client": [

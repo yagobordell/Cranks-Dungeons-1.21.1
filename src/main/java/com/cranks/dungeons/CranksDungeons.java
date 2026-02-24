@@ -60,6 +60,8 @@ public class CranksDungeons implements ModInitializer {
 						.add(ModAttributes.EVASION_RATING, 0.0)
 						.add(ModAttributes.ENERGY_SHIELD, 0.0)
 						.add(ModAttributes.RELOAD_SPEED, 0.0)
+						.add(ModAttributes.TREASURE_FIND, 0.0)
+						.add(ModAttributes.STICK_DROP_CHANCE, 0.0)
 		);
 
 		registerCreativeTabItems();

@@ -14,7 +14,7 @@
       {
         "id": "minecraft:enchantment.ore_fortune",
         "attribute": "cranks-dungeons:fortune",
-        "amount": { "type": "minecraft:linear", "base": 0.25, "per_level_above_first": 0.0 },
+        "amount": { "type": "minecraft:linear", "base": 0.2, "per_level_above_first": 0.0 },
         "operation": "add_value"
       }
     ]

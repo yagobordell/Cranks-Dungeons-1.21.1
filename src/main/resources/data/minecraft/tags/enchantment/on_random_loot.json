@@ -33,6 +33,8 @@
     "minecraft:energy_shield",
     "minecraft:evasion_rating",
     "minecraft:reload_speed",
+    "minecraft:stick_drop_chance",
+    "minecraft:treasure_find",
     "minecraft:crop_fortune"
   ]
 }
