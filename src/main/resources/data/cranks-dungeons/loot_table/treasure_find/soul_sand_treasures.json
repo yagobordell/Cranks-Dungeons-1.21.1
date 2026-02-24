@@ -7,11 +7,6 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "minecraft:bone",
-          "weight": 30
-        },
-        {
-          "type": "minecraft:item",
           "name": "minecraft:quartz",
           "weight": 22
         },
@@ -27,23 +22,8 @@
         },
         {
           "type": "minecraft:item",
-          "name": "minecraft:nether_wart",
-          "weight": 12
-        },
-        {
-          "type": "minecraft:item",
           "name": "minecraft:blaze_powder",
           "weight": 8
-        },
-        {
-          "type": "minecraft:item",
-          "name": "minecraft:magma_cream",
-          "weight": 7
-        },
-        {
-          "type": "minecraft:item",
-          "name": "minecraft:ghast_tear",
-          "weight": 3
         },
         {
           "type": "minecraft:item",
@@ -54,6 +34,11 @@
           "type": "minecraft:item",
           "name": "cranks-dungeons:runic_tome_t2",
           "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "cranks-dungeons:runic_tome_t1",
+          "weight": 2
         }
       ]
     }

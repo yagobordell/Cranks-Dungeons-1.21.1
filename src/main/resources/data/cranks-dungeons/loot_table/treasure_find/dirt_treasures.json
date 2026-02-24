@@ -7,53 +7,8 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "minecraft:flint",
-          "weight": 25
-        },
-        {
-          "type": "minecraft:item",
-          "name": "minecraft:bone",
-          "weight": 22
-        },
-        {
-          "type": "minecraft:item",
-          "name": "minecraft:bone_meal",
-          "weight": 20
-        },
-        {
-          "type": "minecraft:item",
           "name": "minecraft:iron_nugget",
           "weight": 18
-        },
-        {
-          "type": "minecraft:item",
-          "name": "minecraft:beetroot_seeds",
-          "weight": 12
-        },
-        {
-          "type": "minecraft:item",
-          "name": "minecraft:wheat_seeds",
-          "weight": 15
-        },
-        {
-          "type": "minecraft:item",
-          "name": "minecraft:pumpkin_seeds",
-          "weight": 8
-        },
-        {
-          "type": "minecraft:item",
-          "name": "minecraft:melon_seeds",
-          "weight": 8
-        },
-        {
-          "type": "minecraft:item",
-          "name": "minecraft:potato",
-          "weight": 6
-        },
-        {
-          "type": "minecraft:item",
-          "name": "minecraft:carrot",
-          "weight": 6
         },
         {
           "type": "minecraft:item",

@@ -7,53 +7,33 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "minecraft:red_mushroom",
-          "weight": 25
-        },
-        {
-          "type": "minecraft:item",
-          "name": "minecraft:brown_mushroom",
-          "weight": 25
-        },
-        {
-          "type": "minecraft:item",
-          "name": "minecraft:bone_meal",
+          "name": "minecraft:iron_nugget",
           "weight": 18
         },
         {
           "type": "minecraft:item",
-          "name": "minecraft:fermented_spider_eye",
-          "weight": 8
-        },
-        {
-          "type": "minecraft:item",
-          "name": "minecraft:spider_eye",
-          "weight": 12
-        },
-        {
-          "type": "minecraft:item",
-          "name": "minecraft:slime_ball",
+          "name": "minecraft:gold_nugget",
           "weight": 10
         },
         {
           "type": "minecraft:item",
-          "name": "minecraft:gunpowder",
-          "weight": 10
-        },
-        {
-          "type": "minecraft:item",
-          "name": "minecraft:glowstone_dust",
+          "name": "minecraft:redstone",
           "weight": 8
         },
         {
           "type": "minecraft:item",
-          "name": "minecraft:nether_wart",
-          "weight": 5
+          "name": "minecraft:emerald",
+          "weight": 2
         },
         {
           "type": "minecraft:item",
-          "name": "minecraft:phantom_membrane",
-          "weight": 3
+          "name": "minecraft:diamond",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "cranks-dungeons:runic_tome_t1",
+          "weight": 2
         },
         {
           "type": "minecraft:item",

@@ -17,38 +17,13 @@
         },
         {
           "type": "minecraft:item",
-          "name": "minecraft:lily_pad",
-          "weight": 12
-        },
-        {
-          "type": "minecraft:item",
           "name": "minecraft:iron_nugget",
           "weight": 18
         },
         {
           "type": "minecraft:item",
-          "name": "minecraft:bone",
-          "weight": 15
-        },
-        {
-          "type": "minecraft:item",
-          "name": "minecraft:mangrove_propagule",
-          "weight": 10
-        },
-        {
-          "type": "minecraft:item",
-          "name": "minecraft:tropical_fish",
-          "weight": 6
-        },
-        {
-          "type": "minecraft:item",
           "name": "minecraft:gold_nugget",
           "weight": 10
-        },
-        {
-          "type": "minecraft:item",
-          "name": "minecraft:prismarine_shard",
-          "weight": 8
         },
         {
           "type": "minecraft:item",

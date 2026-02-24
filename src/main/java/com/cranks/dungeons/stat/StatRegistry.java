@@ -2358,8 +2358,8 @@ public class StatRegistry {
                 "Treasure Find Chance",
                 EquipmentType.SHOVEL,
                 ModAttributes.TREASURE_FIND,
+                new double[]{0.01, 0.02, 0.04, 0.06, 0.08},
                 new double[]{0.02, 0.04, 0.06, 0.08, 0.1},
-                new double[]{0.04, 0.06, 0.08, 0.1, 0.15},
                 true,
                 true,
                 Formatting.YELLOW
