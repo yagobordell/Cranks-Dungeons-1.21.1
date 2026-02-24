@@ -314,34 +314,9 @@ public abstract class InventoryScreenStatsMixin {
 
             curY = drawStatWithTooltip(context, tr, panelX, curY, "Repair Chance", precisionChance * 100.0, "%", mouseX, mouseY, panelX, panelWidth);
             curY = drawStatWithTooltip(context, tr, panelX, curY, "Ore Fortune", player.getAttributeValue(ModAttributes.FORTUNE) * 100, "%", mouseX, mouseY, panelX, panelWidth);
-
-            double treasureFind = 0.0;
-            var treasureFindInstance = player.getAttributeInstance(ModAttributes.TREASURE_FIND);
-            if (treasureFindInstance != null) {
-                treasureFind = treasureFindInstance.getValue();
-            }
-            curY = drawStatWithTooltip(context, tr, panelX, curY, "Treasure Find", treasureFind * 100.0, "%", mouseX, mouseY, panelX, panelWidth);
-
             curY = drawStatWithTooltip(context, tr, panelX, curY, "Crop Fortune", EquipmentStatApplier.getItemStatValue(tool, "crop_fortune") * 100, "%", mouseX, mouseY, panelX, panelWidth);
-
-            // Crop XP: read directly from hoe rune, flat xp/harvest
             double cropXp = EquipmentStatApplier.getItemStatValue(tool, "crop_experience");
             curY = drawStatWithTooltip(context, tr, panelX, curY, "Crop XP", cropXp, " xp/harvest", mouseX, mouseY, panelX, panelWidth);
-
-            double stickDrop = 0.0;
-            var stickDropInstance = player.getAttributeInstance(ModAttributes.STICK_DROP_CHANCE);
-            if (stickDropInstance != null) {
-                stickDrop = stickDropInstance.getValue();
-            }
-
-            if (stickDrop <= 0.0) {
-                stickDrop = EquipmentStatApplier.getItemStatValue(tool, "stick_drop_chance");
-            }
-
-            stickDrop += getEnchantmentValue(tool, "cranks-dungeons:stick_drop_chance", 0.2);
-
-            curY = drawStatWithTooltip(context, tr, panelX, curY, "Stick Drop", stickDrop * 100.0, "%", mouseX, mouseY, panelX, panelWidth);
-
             curY = drawStatWithTooltip(context, tr, panelX, curY, "Range", totalRangeBonus, " blocks", mouseX, mouseY, panelX, panelWidth);
 
             int totalContentHeight = (curY + scrollOffset) - (panelY + 8);

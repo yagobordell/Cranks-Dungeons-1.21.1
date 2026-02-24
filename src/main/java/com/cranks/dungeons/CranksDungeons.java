@@ -14,27 +14,19 @@ import com.cranks.dungeons.network.EnergyShieldSyncPacket;
 import com.cranks.dungeons.network.ModNetworking;
 import com.cranks.dungeons.network.StatOptionsSyncPacket;
 import com.cranks.dungeons.registry.ModAttributes;
-import com.cranks.dungeons.registry.ModEnchantments;
 import com.cranks.dungeons.registry.ModSounds;
 import com.cranks.dungeons.screen.ModScreenHandlers;
 import com.cranks.dungeons.stat.StatRegistry;
-import com.cranks.dungeons.treasure.TreasureFindConfig;
-import com.mojang.serialization.Codec;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
-import net.minecraft.component.ComponentType;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemGroups;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
 import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.List;
 
 public class CranksDungeons implements ModInitializer {
 
@@ -57,7 +49,6 @@ public class CranksDungeons implements ModInitializer {
 		StatRegistry.registerStats();
 		EnchantmentDisableManager.registerToggleable(Identifier.of("minecraft", "silk_touch"));
 		EnchantmentDisableManager.registerToggleable(Identifier.of("cranks-dungeons", "vein_mining"));
-		TreasureFindConfig.init();
 		ApplyStatCommand.register();
 		CheckStatsCommand.register();
 		FortuneEventHandler.register();
@@ -71,8 +62,6 @@ public class CranksDungeons implements ModInitializer {
 						.add(ModAttributes.EVASION_RATING, 0.0)
 						.add(ModAttributes.ENERGY_SHIELD, 0.0)
 						.add(ModAttributes.RELOAD_SPEED, 0.0)
-						.add(ModAttributes.TREASURE_FIND, 0.0)
-						.add(ModAttributes.STICK_DROP_CHANCE, 0.0)
 						.add(ModAttributes.CROP_EXPERIENCE, 0.0)
 		);
 

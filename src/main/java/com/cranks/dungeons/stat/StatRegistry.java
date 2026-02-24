@@ -2305,18 +2305,6 @@ public class StatRegistry {
                 Formatting.GREEN
         ));
 
-        register(new CustomStat(
-                "axe_stick_drop_chance",
-                "Stick Drop Chance",
-                EquipmentType.AXE,
-                ModAttributes.STICK_DROP_CHANCE,
-                new double[]{0.10, 0.18, 0.28, 0.40, 0.55},
-                new double[]{0.15, 0.28, 0.40, 0.55, 0.75},
-                true,
-                true,
-                Formatting.YELLOW
-        ));
-
         // ===== SHOVEL STATS =====
         register(new CustomStat(
                 "shovel_mining_efficiency",
@@ -2352,17 +2340,6 @@ public class StatRegistry {
                 true,
                 true,
                 Formatting.AQUA
-        ));
-        register(new CustomStat(
-                "shovel_treasure_find",
-                "Treasure Find Chance",
-                EquipmentType.SHOVEL,
-                ModAttributes.TREASURE_FIND,
-                new double[]{0.01, 0.02, 0.04, 0.06, 0.08},
-                new double[]{0.02, 0.04, 0.06, 0.08, 0.1},
-                true,
-                true,
-                Formatting.YELLOW
         ));
 
         register(new CustomStat(

@@ -50,9 +50,6 @@
 		"DisableEnchantmentWhileSneakingMixin",
 		"EnchantmentFilterMixin",
 		"ReloadSpeedMixin",
-		"TreasureFindMixin",
-		"PlayerTreasureFindAttributeMixin",
-		"LogStickDropMixin",
 		"PlayerDisconnectMixin",
 		"SilkTouchBreakMixin",
 		"FeatherFallingMixin"
