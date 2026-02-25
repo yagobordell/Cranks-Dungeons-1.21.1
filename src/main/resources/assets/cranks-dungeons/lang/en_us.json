@@ -102,10 +102,11 @@
   "enchantment.minecraft.movement_speed_bonus": "+25% Movement Speed",
   "enchantment.minecraft.feather_falling_bonus": "+20% Feather Falling",
   "enchantment.minecraft.mining_efficiency": "+50% Gathering Speed",
-  "enchantment.minecraft.ore_fortune": "+25% Ore Fortune",
+  "enchantment.minecraft.ore_fortune": "+20% Ore Fortune",
   "enchantment.minecraft.durability_bonus": "+30% Durability Bonus",
   "enchantment.minecraft.repair_chance": "+15% Repair Chance",
   "enchantment.minecraft.breaking_range": "+1 Breaking Range",
   "enchantment.minecraft.reload_speed": "+30% Reload Speed",
-  "enchantment.minecraft.crop_fortune": "+25% Crop Fortune"
+  "enchantment.minecraft.crop_fortune": "+20% Crop Fortune",
+  "enchantment.minecraft.log_fortune": "+20% Log Fortune"
 }

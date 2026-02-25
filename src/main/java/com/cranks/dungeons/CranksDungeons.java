@@ -5,9 +5,7 @@ import com.cranks.dungeons.block.entity.ModBlockEntities;
 import com.cranks.dungeons.command.ApplyStatCommand;
 import com.cranks.dungeons.command.CheckStatsCommand;
 import com.cranks.dungeons.enchantment.EnchantmentDisableManager;
-import com.cranks.dungeons.event.CropXpEventHandler;
-import com.cranks.dungeons.event.EnchantmentDisableTickHandler;
-import com.cranks.dungeons.event.FortuneEventHandler;
+import com.cranks.dungeons.event.*;
 import com.cranks.dungeons.item.ModItems;
 import com.cranks.dungeons.loot.RunicTomeLootHandler;
 import com.cranks.dungeons.network.EnergyShieldSyncPacket;
@@ -52,12 +50,14 @@ public class CranksDungeons implements ModInitializer {
 		ApplyStatCommand.register();
 		CheckStatsCommand.register();
 		FortuneEventHandler.register();
+		LogFortuneHandler.register();
 		CropXpEventHandler.register();
 		RunicTomeLootHandler.register();
 		FabricDefaultAttributeRegistry.register(
 				EntityType.PLAYER,
 				PlayerEntity.createPlayerAttributes()
 						.add(ModAttributes.CROP_FORTUNE, 0.0)
+						.add(ModAttributes.LOG_FORTUNE, 0.0)
 						.add(ModAttributes.FLYING_SPEED)
 						.add(ModAttributes.EVASION_RATING, 0.0)
 						.add(ModAttributes.ENERGY_SHIELD, 0.0)

@@ -314,6 +314,8 @@ public abstract class InventoryScreenStatsMixin {
 
             curY = drawStatWithTooltip(context, tr, panelX, curY, "Repair Chance", precisionChance * 100.0, "%", mouseX, mouseY, panelX, panelWidth);
             curY = drawStatWithTooltip(context, tr, panelX, curY, "Ore Fortune", player.getAttributeValue(ModAttributes.FORTUNE) * 100, "%", mouseX, mouseY, panelX, panelWidth);
+            double logFortune = player.getAttributeValue(ModAttributes.LOG_FORTUNE);
+            curY = drawStatWithTooltip(context, tr, panelX, curY, "Log Fortune", logFortune * 100, "%", mouseX, mouseY, panelX, panelWidth);
             curY = drawStatWithTooltip(context, tr, panelX, curY, "Crop Fortune", EquipmentStatApplier.getItemStatValue(tool, "crop_fortune") * 100, "%", mouseX, mouseY, panelX, panelWidth);
             double cropXp = EquipmentStatApplier.getItemStatValue(tool, "crop_experience");
             curY = drawStatWithTooltip(context, tr, panelX, curY, "Crop XP", cropXp, " xp/harvest", mouseX, mouseY, panelX, panelWidth);

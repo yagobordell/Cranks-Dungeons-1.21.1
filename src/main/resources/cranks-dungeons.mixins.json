@@ -52,6 +52,7 @@
 		"ReloadSpeedMixin",
 		"PlayerDisconnectMixin",
 		"SilkTouchBreakMixin",
+		"BlockPlacedMixin",
 		"FeatherFallingMixin"
 	],
 	"client": [

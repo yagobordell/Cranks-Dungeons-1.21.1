@@ -2305,6 +2305,18 @@ public class StatRegistry {
                 Formatting.GREEN
         ));
 
+        register(new CustomStat(
+                "axe_log_fortune",
+                "Log Fortune",
+                EquipmentType.AXE,
+                ModAttributes.LOG_FORTUNE,
+                new double[]{0.10, 0.18, 0.28, 0.40, 0.55},
+                new double[]{0.15, 0.28, 0.40, 0.55, 0.75},
+                true,
+                true,
+                Formatting.DARK_GREEN
+        ));
+
         // ===== SHOVEL STATS =====
         register(new CustomStat(
                 "shovel_mining_efficiency",
