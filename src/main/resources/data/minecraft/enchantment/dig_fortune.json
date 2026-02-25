@@ -1,6 +1,6 @@
 {
   "description": {
-    "translate": "enchantment.cranks-dungeons.dig_fortune"
+    "translate": "enchantment.minecraft.dig_fortune"
   },
   "supported_items": "#minecraft:shovels",
   "weight": 5,
@@ -12,13 +12,9 @@
   "effects": {
     "minecraft:attributes": [
       {
-        "id": "cranks-dungeons:dig_fortune",
+        "id": "minecraft:enchantment.dig_fortune",
         "attribute": "cranks-dungeons:dig_fortune",
-        "amount": {
-          "type": "minecraft:linear",
-          "base": 0.2,
-          "per_level_above_first": 0.0
-        },
+        "amount": { "type": "minecraft:linear", "base": 0.2, "per_level_above_first": 0.0 },
         "operation": "add_value"
       }
     ]
