@@ -2365,6 +2365,18 @@ public class StatRegistry {
                 Formatting.GREEN
         ));
 
+        register(new CustomStat(
+                "shovel_dig_fortune",
+                "Dig Fortune",
+                EquipmentType.SHOVEL,
+                ModAttributes.DIG_FORTUNE,
+                new double[]{0.10, 0.20, 0.30, 0.45, 0.60},
+                new double[]{0.18, 0.30, 0.42, 0.58, 0.80},
+                true,
+                true,
+                Formatting.DARK_GREEN
+        ));
+
         // ===== HOE STATS =====
         register(new CustomStat(
                 "hoe_durability_bonus",

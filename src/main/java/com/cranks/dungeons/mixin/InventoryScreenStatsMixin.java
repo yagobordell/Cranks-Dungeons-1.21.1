@@ -316,6 +316,8 @@ public abstract class InventoryScreenStatsMixin {
             curY = drawStatWithTooltip(context, tr, panelX, curY, "Ore Fortune", player.getAttributeValue(ModAttributes.FORTUNE) * 100, "%", mouseX, mouseY, panelX, panelWidth);
             double logFortune = player.getAttributeValue(ModAttributes.LOG_FORTUNE);
             curY = drawStatWithTooltip(context, tr, panelX, curY, "Log Fortune", logFortune * 100, "%", mouseX, mouseY, panelX, panelWidth);
+            double digFortuneAttr = player.getAttributeValue(ModAttributes.DIG_FORTUNE);
+            curY = drawStatWithTooltip(context, tr, panelX, curY, "Dig Fortune", digFortuneAttr * 100, "%", mouseX, mouseY, panelX, panelWidth);
             curY = drawStatWithTooltip(context, tr, panelX, curY, "Crop Fortune", EquipmentStatApplier.getItemStatValue(tool, "crop_fortune") * 100, "%", mouseX, mouseY, panelX, panelWidth);
             double cropXp = EquipmentStatApplier.getItemStatValue(tool, "crop_experience");
             curY = drawStatWithTooltip(context, tr, panelX, curY, "Crop XP", cropXp, " xp/harvest", mouseX, mouseY, panelX, panelWidth);
@@ -409,10 +411,10 @@ public abstract class InventoryScreenStatsMixin {
             case "Gather Speed" -> "Mining and harvesting speed";
             case "Repair Chance" -> "Chance that tools avoid durability loss";
             case "Ore Fortune" -> "Chance to double drops from ores";
-            case "Treasure Find" -> "Chance to uncover extra loot when digging";
             case "Crop Fortune" -> "Chance to double drops from crops";
+            case "Log Fortune" -> "Chance to gain extra logs from trees";
+            case "Dig Fortune" -> "Chance to gain extra materials";
             case "Crop XP" -> "Experience gained when harvesting fully grown crops with a hoe";
-            case "Stick Drop" -> "Chance to get sticks when chopping logs";
             case "Range" -> "Block interaction distance";
             default -> null;
         };

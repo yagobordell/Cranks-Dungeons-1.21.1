@@ -47,6 +47,7 @@
     "minecraft:repair_chance",
     "minecraft:breaking_range",
     "minecraft:crop_fortune",
+    "minecraft:dig_fortune",
     "minecraft:reload_speed",
     "cranks-dungeons:vein_mining"
   ]

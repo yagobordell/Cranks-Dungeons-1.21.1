@@ -51,6 +51,7 @@ public class CranksDungeons implements ModInitializer {
 		CheckStatsCommand.register();
 		FortuneEventHandler.register();
 		LogFortuneHandler.register();
+		DigFortuneHandler.register();
 		CropXpEventHandler.register();
 		RunicTomeLootHandler.register();
 		FabricDefaultAttributeRegistry.register(
@@ -58,6 +59,7 @@ public class CranksDungeons implements ModInitializer {
 				PlayerEntity.createPlayerAttributes()
 						.add(ModAttributes.CROP_FORTUNE, 0.0)
 						.add(ModAttributes.LOG_FORTUNE, 0.0)
+						.add(ModAttributes.DIG_FORTUNE, 0.0)
 						.add(ModAttributes.FLYING_SPEED)
 						.add(ModAttributes.EVASION_RATING, 0.0)
 						.add(ModAttributes.ENERGY_SHIELD, 0.0)

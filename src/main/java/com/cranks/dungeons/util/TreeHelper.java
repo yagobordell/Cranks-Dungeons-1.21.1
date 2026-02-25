@@ -1,15 +1,16 @@
 package com.cranks.dungeons.util;
 
+import com.cranks.dungeons.registry.ModBlockTags;
 import net.minecraft.block.BlockState;
-import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 
 public final class TreeHelper {
 
     private TreeHelper() {}
+
     public static boolean isNaturalLogForFortune(ServerWorld world, BlockPos pos, BlockState state) {
-        if (!state.isIn(BlockTags.LOGS)) {
+        if (!state.isIn(ModBlockTags.LOG_FORTUNE_LOGS)) {
             return false;
         }
 
@@ -20,4 +21,6 @@ public final class TreeHelper {
 
         return true;
     }
+
+    // Possible future: tree cluster detection for chop-entire-tree enchant
 }

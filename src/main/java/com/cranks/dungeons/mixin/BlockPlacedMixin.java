@@ -1,12 +1,13 @@
 package com.cranks.dungeons.mixin;
 
+import com.cranks.dungeons.registry.ModBlockTags;
 import com.cranks.dungeons.util.PlacedLogTracker;
+import com.cranks.dungeons.util.PlacedDigBlockTracker;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -26,8 +27,14 @@ public class BlockPlacedMixin {
         if (!(world instanceof ServerWorld serverWorld)) return;
         if (!(placer instanceof PlayerEntity)) return;
 
-        if (!state.isIn(BlockTags.LOGS)) return;
+        // Logs for Log Fortune (uses tag)
+        if (state.isIn(ModBlockTags.LOG_FORTUNE_LOGS)) {
+            PlacedLogTracker.markPlaced(serverWorld, pos);
+        }
 
-        PlacedLogTracker.markPlaced(serverWorld, pos);
+        // Dig fortune blocks (gravel/clay-like) (uses tag)
+        if (state.isIn(ModBlockTags.DIG_FORTUNE_BLOCKS)) {
+            PlacedDigBlockTracker.markPlaced(serverWorld, pos);
+        }
     }
 }
