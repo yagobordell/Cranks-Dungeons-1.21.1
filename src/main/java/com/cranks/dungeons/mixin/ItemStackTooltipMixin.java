@@ -340,7 +340,8 @@ public abstract class ItemStackTooltipMixin {
                 attackSpeed += getEnchantmentValue(stack, "minecraft:attack_speed", 0.2);
                 double attackSpeedPercent = EquipmentStatApplier.getItemStatValue(stack, "attack_speed_percent");
                 double finalAttackSpeed = attackSpeed * (1.0 + attackSpeedPercent);
-                tooltip.add(Text.literal("Attack Speed: " + df.format(finalAttackSpeed)).formatted(Formatting.WHITE));
+
+                tooltip.add(Text.literal("Attack Speed: " + df.format(finalAttackSpeed) + "").formatted(Formatting.WHITE));
             }
         }
 

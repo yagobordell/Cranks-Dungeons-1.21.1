@@ -42,13 +42,17 @@ public final class PlacedDigBlockTracker {
 
     private static class State extends PersistentState {
 
-        private static final int MAX_TRACKED = 100_000;
+        // Maximum number of player-placed blocks to track for fortune checks.
+    // This prevents memory growth from unlimited tracking while being high enough
+    // to not affect normal gameplay (players would need to place ~100k blocks
+    // that require fortune checks to hit this limit).
+    private static final int MAX_TRACKED_PLACED_BLOCKS = 100_000;
         private final Set<Long> placed = new HashSet<>();
 
         State() {}
 
         boolean markPlaced(BlockPos pos) {
-            if (placed.size() >= MAX_TRACKED) return false;
+            if (placed.size() >= MAX_TRACKED_PLACED_BLOCKS) return false;
             return placed.add(pos.asLong());
         }
 
@@ -64,7 +68,7 @@ public final class PlacedDigBlockTracker {
         public static final Codec<State> CODEC = Codec.LONG.listOf().xmap(
                 list -> {
                     State s = new State();
-                    int limit = Math.min(list.size(), MAX_TRACKED);
+                    int limit = Math.min(list.size(), MAX_TRACKED_PLACED_BLOCKS);
                     for (int i = 0; i < limit; i++) {
                         s.placed.add(list.get(i));
                     }

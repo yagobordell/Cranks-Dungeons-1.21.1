@@ -89,8 +89,8 @@ public class CustomStat {
             df = new DecimalFormat("#.#");
             return "+" + df.format(value * 100) + "% " + displayName;
         } else if (isPercentage) {
-            df = new DecimalFormat("#.##");
-            return "+" + df.format(value) + " " + displayName;
+            df = new DecimalFormat("#.#");
+            return "+" + df.format(value * 100) + " " + displayName;
         } else {
             df = new DecimalFormat("#.#");
             return "+" + df.format(value) + " " + displayName;

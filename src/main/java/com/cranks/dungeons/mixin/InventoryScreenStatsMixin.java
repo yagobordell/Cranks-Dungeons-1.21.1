@@ -181,18 +181,21 @@ public abstract class InventoryScreenStatsMixin {
 
             curY = drawStatWithTooltip(context, tr, panelX, curY, "Attack Damage", finalAtkDmg, "", mouseX, mouseY, panelX, panelWidth);
 
-            // Attack Speed
-            double attackSpeed = player.getAttributeValue(EntityAttributes.ATTACK_SPEED);
-            attackSpeed += getEnchantmentValue(weapon, "minecraft:attack_speed", 0.2);
-            attackSpeed += getEnchantmentValue(chestplate, "minecraft:attack_speed", 0.2);
-            attackSpeed += getEnchantmentValue(helmet, "minecraft:attack_speed", 0.2);
-            attackSpeed += getEnchantmentValue(leggings, "minecraft:attack_speed", 0.2);
-            attackSpeed += getEnchantmentValue(boots, "minecraft:attack_speed", 0.2);
+            // Attack Speed - build manually to avoid double-counting held item
+            double baseAttackSpeed = player.getAttributeBaseValue(EntityAttributes.ATTACK_SPEED); // always 4.0
+            baseAttackSpeed += getModifierFromStack(weapon, EntityAttributes.ATTACK_SPEED);       // weapon's flat modifier
+            baseAttackSpeed += getModifierFromStack(chestplate, EntityAttributes.ATTACK_SPEED);   // armor contributions
+            baseAttackSpeed += getModifierFromStack(helmet, EntityAttributes.ATTACK_SPEED);
+            baseAttackSpeed += getModifierFromStack(leggings, EntityAttributes.ATTACK_SPEED);
+            baseAttackSpeed += getModifierFromStack(boots, EntityAttributes.ATTACK_SPEED);
+            baseAttackSpeed += getEnchantmentValue(weapon, "minecraft:attack_speed", 0.2);
+            baseAttackSpeed += getEnchantmentValue(chestplate, "minecraft:attack_speed", 0.2);
+            baseAttackSpeed += getEnchantmentValue(helmet, "minecraft:attack_speed", 0.2);
+            baseAttackSpeed += getEnchantmentValue(leggings, "minecraft:attack_speed", 0.2);
+            baseAttackSpeed += getEnchantmentValue(boots, "minecraft:attack_speed", 0.2);
 
-            double attackSpeedPercentFromWeapon = EquipmentStatApplier.getItemStatValue(weapon, "attack_speed_percent");
-            double attackSpeedPercentFromChestplate = EquipmentStatApplier.getItemStatValue(chestplate, "attack_speed_percent");
-            double totalAttackSpeedPercent = attackSpeedPercentFromWeapon + attackSpeedPercentFromChestplate;
-            double finalAttackSpeed = attackSpeed * (1.0 + totalAttackSpeedPercent);
+            double attackSpeedPercent = EquipmentStatApplier.getItemStatValue(weapon, "attack_speed_percent");
+            double finalAttackSpeed = baseAttackSpeed * (1.0 + attackSpeedPercent);
 
             curY = drawStatWithTooltip(context, tr, panelX, curY, "Attack Speed", finalAttackSpeed, "", mouseX, mouseY, panelX, panelWidth);
 

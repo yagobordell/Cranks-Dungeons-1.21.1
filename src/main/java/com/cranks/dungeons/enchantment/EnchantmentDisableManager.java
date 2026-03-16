@@ -31,14 +31,10 @@ public class EnchantmentDisableManager {
                 entry.getKey().ifPresent(key -> toolEnchantIds.add(key.getValue()))
         );
 
-        List<Identifier> relevant = new ArrayList<>();
-        for (Identifier toggleable : TOGGLEABLE_ENCHANTMENTS) {
-            if (toolEnchantIds.contains(toggleable)) {
-                relevant.add(toggleable);
-            }
-        }
-
-        return relevant;
+        // Optimization: use retainAll to keep only the intersection
+        Set<Identifier> relevant = new HashSet<>(TOGGLEABLE_ENCHANTMENTS);
+        relevant.retainAll(toolEnchantIds);
+        return new ArrayList<>(relevant);
     }
 
     /**

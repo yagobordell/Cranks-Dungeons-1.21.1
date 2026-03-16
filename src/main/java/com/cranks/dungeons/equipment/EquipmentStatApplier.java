@@ -11,6 +11,7 @@ import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.registry.Registries;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.util.Identifier;
 
@@ -192,12 +193,20 @@ public class EquipmentStatApplier {
             return;
         }
 
+        // Collect modifier IDs first to avoid ConcurrentModificationException
+        List<Identifier> modifierIds = new ArrayList<>();
         for (CustomStat stat : StatRegistry.getAllStats()) {
-            Identifier modifierId = Identifier.of(CranksDungeons.MOD_ID, "equipment_" + stat.getId());
-            var attributeInstance = player.getAttributeInstance(stat.getAttribute());
-            if (attributeInstance != null) {
-                attributeInstance.removeModifier(modifierId);
-            }
+            modifierIds.add(Identifier.of(CranksDungeons.MOD_ID, "equipment_" + stat.getId()));
+        }
+
+        for (Identifier modifierId : modifierIds) {
+            // Get the attribute from the registry
+            Registries.ATTRIBUTE.getEntry(modifierId).ifPresent(attributeEntry -> {
+                var attributeInstance = player.getAttributeInstance(attributeEntry);
+                if (attributeInstance != null) {
+                    attributeInstance.removeModifier(modifierId);
+                }
+            });
         }
         modifiers.clear();
     }
