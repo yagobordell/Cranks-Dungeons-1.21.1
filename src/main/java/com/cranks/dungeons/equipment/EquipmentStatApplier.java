@@ -19,7 +19,7 @@ import java.util.*;
 
 public class EquipmentStatApplier {
 
-    private static final Map<UUID, Set<Identifier>> appliedModifiers = new HashMap<>();
+    private static final Map<UUID, Map<Identifier, RegistryEntry<EntityAttribute>>> appliedModifiers = new HashMap<>();
 
     private static final EquipmentSlot[] ARMOR_SLOTS = {
             EquipmentSlot.HEAD,
@@ -183,30 +183,23 @@ public class EquipmentStatApplier {
         if (attributeInstance != null) {
             attributeInstance.removeModifier(modifierId);
             attributeInstance.addTemporaryModifier(modifier);
-            appliedModifiers.computeIfAbsent(player.getUuid(), k -> new HashSet<>()).add(modifierId);
+            appliedModifiers.computeIfAbsent(player.getUuid(), k -> new HashMap<>()).put(modifierId, stat.getAttribute());
         }
     }
 
     private static void removeAllModifiers(PlayerEntity player) {
-        Set<Identifier> modifiers = appliedModifiers.get(player.getUuid());
+        Map<Identifier, RegistryEntry<EntityAttribute>> modifiers = appliedModifiers.get(player.getUuid());
         if (modifiers == null || modifiers.isEmpty()) {
             return;
         }
 
-        // Collect modifier IDs first to avoid ConcurrentModificationException
-        List<Identifier> modifierIds = new ArrayList<>();
-        for (CustomStat stat : StatRegistry.getAllStats()) {
-            modifierIds.add(Identifier.of(CranksDungeons.MOD_ID, "equipment_" + stat.getId()));
-        }
-
-        for (Identifier modifierId : modifierIds) {
-            // Get the attribute from the registry
-            Registries.ATTRIBUTE.getEntry(modifierId).ifPresent(attributeEntry -> {
-                var attributeInstance = player.getAttributeInstance(attributeEntry);
-                if (attributeInstance != null) {
-                    attributeInstance.removeModifier(modifierId);
-                }
-            });
+        for (Map.Entry<Identifier, RegistryEntry<EntityAttribute>> entry : modifiers.entrySet()) {
+            Identifier modifierId = entry.getKey();
+            RegistryEntry<EntityAttribute> attribute = entry.getValue();
+            var attributeInstance = player.getAttributeInstance(attribute);
+            if (attributeInstance != null) {
+                attributeInstance.removeModifier(modifierId);
+            }
         }
         modifiers.clear();
     }

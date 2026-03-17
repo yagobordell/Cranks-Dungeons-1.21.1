@@ -63,7 +63,7 @@ public class ModAttributes {
     public static final RegistryEntry<EntityAttribute> FEATHER_FALLING = register("feather_falling", 0.0, 0.0, 0.75);
 
     public static void registerAttributes() {
-        System.out.println("Custom attributes loaded");
+        // Attributes are registered via the static initializer
     }
 
     private static RegistryEntry<EntityAttribute> register(String name, double base, double min, double max) {

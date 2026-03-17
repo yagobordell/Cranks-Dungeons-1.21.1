@@ -8,12 +8,16 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(PlayerEntity.class)
 public abstract class BonusArmorToughnessMixin {
+
+    @Unique
+    private double cranks$lastBonusToughness = Double.NaN;
 
     @Inject(method = "tick", at = @At("HEAD"))
     private void applyBonusArmorToughness(CallbackInfo ci) {
@@ -23,20 +27,25 @@ public abstract class BonusArmorToughnessMixin {
 
         double bonusToughness = player.getAttributeValue(ModAttributes.BONUS_ARMOR_TOUGHNESS);
 
-        var toughnessAttr = player.getAttributeInstance(EntityAttributes.ARMOR_TOUGHNESS);
-        if (toughnessAttr != null) {
-            Identifier modifierId = Identifier.of(CranksDungeons.MOD_ID, "bonus_armor_toughness");
+        // Only update if the value changed to save performance
+        if (bonusToughness != cranks$lastBonusToughness) {
+            var toughnessAttr = player.getAttributeInstance(EntityAttributes.ARMOR_TOUGHNESS);
+            if (toughnessAttr != null) {
+                Identifier modifierId = Identifier.of(CranksDungeons.MOD_ID, "bonus_armor_toughness");
 
-            toughnessAttr.removeModifier(modifierId);
+                toughnessAttr.removeModifier(modifierId);
 
-            if (bonusToughness > 0) {
-                EntityAttributeModifier modifier = new EntityAttributeModifier(
-                        modifierId,
-                        bonusToughness,
-                        EntityAttributeModifier.Operation.ADD_VALUE
-                );
-                toughnessAttr.addTemporaryModifier(modifier);
+                if (bonusToughness > 0) {
+                    EntityAttributeModifier modifier = new EntityAttributeModifier(
+                            modifierId,
+                            bonusToughness,
+                            EntityAttributeModifier.Operation.ADD_VALUE
+                    );
+                    toughnessAttr.addTemporaryModifier(modifier);
+                }
             }
+
+            cranks$lastBonusToughness = bonusToughness;
         }
     }
 }

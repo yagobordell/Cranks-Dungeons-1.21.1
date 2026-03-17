@@ -25,6 +25,23 @@ public class CranksDungeonsClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
+        // Temporary: Duplicated from DamageNumberRenderer for caching formatted text
+        // In a real scenario, this would be in a shared utility or DamageNumber would handle it
+        // but for the sake of getting the cached values, we'll keep it here for now.
+        // It will be removed from DamageNumberRenderer once this is implemented.
+        class DamageNumberFormatter {
+            public static String formatDamage(double damage) {
+                if (damage >= 1000) {
+                    return String.format("%.1fk", damage / 1000.0);
+                }
+                if (damage < 10) {
+                    return String.format("%.1f", damage);
+                }
+                return String.format("%.0f", damage);
+            }
+        }
+
+
         HandledScreens.register(ModScreenHandlers.RUNIC_ENHANCEMENT_ALTAR, RunicEnhancementAltarScreen::new);
         HandledScreens.register(ModScreenHandlers.ARTIFICIAL_ENHANCEMENT_ALTAR, ArtificialEnhancementAltarScreen::new);
         ModKeybinds.register();
@@ -44,10 +61,8 @@ public class CranksDungeonsClient implements ClientModInitializer {
         ClientShieldEffects.init();
         // Register the payload receiver
         ClientPlayNetworking.registerGlobalReceiver(DamageNumberPayload.ID, (payload, context) -> {
-            System.out.println("[DamageNumbers CLIENT] Received packet with " + payload.entries().size() + " entries");
             context.client().execute(() -> {
                 Vec3d pos = new Vec3d(payload.x(), payload.y(), payload.z());
-                System.out.println("[DamageNumbers CLIENT] Processing at " + pos);
 
                 int count = payload.entries().size();
                 for (int i = 0; i < count; i++) {
@@ -65,17 +80,21 @@ public class CranksDungeonsClient implements ClientModInitializer {
                     offsetX += (Math.random() - 0.5) * 0.1;
                     offsetZ += (Math.random() - 0.5) * 0.1;
 
+                    String formattedDamageText = DamageNumberFormatter.formatDamage(entry.damage());
+                    int formattedDamageWidth = context.client().textRenderer.getWidth(formattedDamageText);
                     DamageNumber damageNumber = new DamageNumber(
                             entry.damage(),
                             entry.color(),
                             pos,
                             offsetX,
                             offsetZ,
-                            i   // NEW: rowIndex
+                            i,   // NEW: rowIndex
+                            formattedDamageText,
+                            formattedDamageWidth
                     );
                     DamageNumberManager.addDamageNumber(damageNumber);
                 }
-                System.out.println("[DamageNumbers CLIENT] Active numbers: " + DamageNumberManager.getActiveNumbers().size());
+
             });
         });
 

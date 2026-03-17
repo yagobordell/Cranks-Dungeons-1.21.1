@@ -59,6 +59,5 @@ public class ModItems {
     }
 
     public static void registerModItems() {
-        System.out.println("Registering items for " + CranksDungeons.MOD_ID);
     }
 }

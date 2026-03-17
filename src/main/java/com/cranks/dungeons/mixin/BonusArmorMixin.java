@@ -8,6 +8,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -15,20 +16,23 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(PlayerEntity.class)
 public abstract class BonusArmorMixin {
 
+    @Unique
+    private double cranks$lastBonusArmor = Double.NaN;
+
     @Inject(method = "tick", at = @At("HEAD"))
     private void applyBonusArmor(CallbackInfo ci) {
         PlayerEntity player = (PlayerEntity) (Object) this;
         if (!(player instanceof ServerPlayerEntity serverPlayer)) return;
 
         double bonusArmor = player.getAttributeValue(ModAttributes.BONUS_ARMOR);
-        var armorAttr = player.getAttributeInstance(EntityAttributes.ARMOR);
 
-        if (armorAttr != null) {
-            Identifier modifierId = Identifier.of(CranksDungeons.MOD_ID, "bonus_armor");
+        // Only update if the value changed to save performance
+        if (bonusArmor != cranks$lastBonusArmor) {
+            var armorAttr = player.getAttributeInstance(EntityAttributes.ARMOR);
 
-            // Only update if the value changed to save performance
-            EntityAttributeModifier currentMod = armorAttr.getModifier(modifierId);
-            if (currentMod == null || currentMod.value() != bonusArmor) {
+            if (armorAttr != null) {
+                Identifier modifierId = Identifier.of(CranksDungeons.MOD_ID, "bonus_armor");
+
                 armorAttr.removeModifier(modifierId);
                 if (bonusArmor > 0) {
                     armorAttr.addTemporaryModifier(new EntityAttributeModifier(
@@ -38,6 +42,8 @@ public abstract class BonusArmorMixin {
                     ));
                 }
             }
+
+            cranks$lastBonusArmor = bonusArmor;
         }
     }
 }

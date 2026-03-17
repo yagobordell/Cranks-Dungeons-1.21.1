@@ -9,7 +9,7 @@ import java.util.*;
 public class EnchantmentDisableManager {
 
     private static final List<Identifier> TOGGLEABLE_ENCHANTMENTS = new ArrayList<>();
-    private static final Map<UUID, Set<Identifier>> playerDisabledEnchantments = new HashMap<>();
+    private static final Map<UUID, Set<Identifier>> playerDisabledEnchantments = new WeakHashMap<>();
 
     public static void registerToggleable(Identifier enchantmentId) {
         if (!TOGGLEABLE_ENCHANTMENTS.contains(enchantmentId)) {

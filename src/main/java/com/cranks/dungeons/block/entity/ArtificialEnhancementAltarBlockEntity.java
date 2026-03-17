@@ -6,6 +6,7 @@ import com.cranks.dungeons.network.StatOptionsSyncPacket;
 import com.cranks.dungeons.screen.ArtificialEnhancementAltarScreenHandler;
 import com.cranks.dungeons.stat.CustomStat;
 import com.cranks.dungeons.stat.StatRegistry;
+import com.cranks.dungeons.util.RandomUtil;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
@@ -227,12 +228,11 @@ public class ArtificialEnhancementAltarBlockEntity extends BlockEntity implement
             return;
         }
 
-        Random random = new Random();
-        Collections.shuffle(availableStats, random);
+        Collections.shuffle(availableStats, RandomUtil.getRandom());
 
         for (int i = 0; i < 3; i++) {
             statOptions[i] = availableStats.get(i).getId();
-            tierOptions[i] = random.nextInt(5) + 1;
+            tierOptions[i] = RandomUtil.nextInt(5) + 1;
         }
 
         optionsGenerated = true;

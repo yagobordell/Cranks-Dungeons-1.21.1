@@ -12,74 +12,94 @@ import java.util.*;
 
 public class EnchantmentDisableTickHandler {
 
-    // How long to show "All Enchantments Enabled", in ticks (20 = 1 second)
     private static final int ENABLED_MESSAGE_TICKS = 40;
 
-    private static final Map<UUID, Boolean> showingDisabled = new HashMap<>();
-    private static final Map<UUID, Boolean> showingEnabled = new HashMap<>();
-    private static final Map<UUID, Integer> enabledMessageTimer = new HashMap<>();
+    private static final Map<UUID, PlayerEnchantmentState> playerStates = new HashMap<>();
+
+    private static class PlayerEnchantmentState {
+        List<Identifier> currentEnchantments;
+        boolean showingDisabled = false;
+        boolean showingEnabled = false;
+        int enabledMessageTimer = 0;
+
+        PlayerEnchantmentState(List<Identifier> enchantments) {
+            this.currentEnchantments = enchantments;
+        }
+    }
 
     public static void register() {
         ServerTickEvents.END_SERVER_TICK.register(server -> {
-            for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-                UUID uuid = player.getUuid();
-                ItemStack tool = player.getMainHandStack();
+            if (playerStates.isEmpty()) {
+                return;
+            }
 
-                List<Identifier> relevant = EnchantmentDisableManager.getRelevantEnchantments(tool);
-                String label = EnchantmentDisableManager.getDisabledLabel(uuid, relevant);
+            Iterator<Map.Entry<UUID, PlayerEnchantmentState>> iterator = playerStates.entrySet().iterator();
+            while (iterator.hasNext()) {
+                Map.Entry<UUID, PlayerEnchantmentState> entry = iterator.next();
+                ServerPlayerEntity player = server.getPlayerManager().getPlayerList().stream()
+                        .filter(p -> p.getUuid().equals(entry.getKey()))
+                        .findFirst()
+                        .orElse(null);
+
+                if (player == null) {
+                    iterator.remove();
+                    continue;
+                }
+
+                PlayerEnchantmentState state = entry.getValue();
+                List<Identifier> currentEnchantments = state.currentEnchantments;
+
+                String label = EnchantmentDisableManager.getDisabledLabel(entry.getKey(), currentEnchantments);
 
                 if (label != null) {
-                    // Show disabled message continuously
                     player.sendMessage(
                             Text.literal("⚠ " + label + " Disabled ⚠")
                                     .formatted(Formatting.RED),
                             true
                     );
-                    showingDisabled.put(uuid, true);
-                    showingEnabled.put(uuid, false);
-                    enabledMessageTimer.remove(uuid);
+                    state.showingDisabled = true;
+                    state.showingEnabled = false;
+                    state.enabledMessageTimer = 0;
                 } else {
-                    int timer = enabledMessageTimer.getOrDefault(uuid, 0);
-
-                    if (timer > 0) {
-                        // Show "all enabled" briefly
+                    if (state.enabledMessageTimer > 0) {
                         player.sendMessage(
                                 Text.literal("✔ All Enchantments Enabled")
                                         .formatted(Formatting.GREEN),
                                 true
                         );
-                        enabledMessageTimer.put(uuid, timer - 1);
-                        showingEnabled.put(uuid, true);
-                        showingDisabled.put(uuid, false);
-                    } else {
-                        // Timer expired or never set: clear any lingering messages
-                        boolean wasDisabled = showingDisabled.getOrDefault(uuid, false);
-                        boolean wasEnabled = showingEnabled.getOrDefault(uuid, false);
-
-                        if (wasDisabled || wasEnabled) {
-                            // Force-clear the action bar so the message really disappears now
-                            player.sendMessage(Text.empty(), true);
-                        }
-
-                        showingDisabled.put(uuid, false);
-                        showingEnabled.put(uuid, false);
-                        enabledMessageTimer.remove(uuid);
+                        state.enabledMessageTimer--;
+                        state.showingEnabled = true;
+                        state.showingDisabled = false;
+                    } else if (state.showingDisabled || state.showingEnabled) {
+                        player.sendMessage(Text.empty(), true);
+                        state.showingDisabled = false;
+                        state.showingEnabled = false;
                     }
                 }
             }
         });
     }
 
-    /**
-     * Trigger the short "All Enchantments Enabled" message.
-     */
+    public static void onMainHandChanged(ServerPlayerEntity player, ItemStack newStack) {
+        UUID uuid = player.getUuid();
+        List<Identifier> relevant = EnchantmentDisableManager.getRelevantEnchantments(newStack);
+
+        PlayerEnchantmentState state = playerStates.computeIfAbsent(uuid, k -> new PlayerEnchantmentState(relevant));
+        state.currentEnchantments = relevant;
+    }
+
     public static void triggerEnabledMessage(UUID playerId) {
-        enabledMessageTimer.put(playerId, ENABLED_MESSAGE_TICKS);
+        PlayerEnchantmentState state = playerStates.get(playerId);
+        if (state != null) {
+            state.enabledMessageTimer = ENABLED_MESSAGE_TICKS;
+        } else {
+            PlayerEnchantmentState newState = new PlayerEnchantmentState(Collections.emptyList());
+            newState.enabledMessageTimer = ENABLED_MESSAGE_TICKS;
+            playerStates.put(playerId, newState);
+        }
     }
 
     public static void removePlayer(UUID playerId) {
-        showingDisabled.remove(playerId);
-        showingEnabled.remove(playerId);
-        enabledMessageTimer.remove(playerId);
+        playerStates.remove(playerId);
     }
 }

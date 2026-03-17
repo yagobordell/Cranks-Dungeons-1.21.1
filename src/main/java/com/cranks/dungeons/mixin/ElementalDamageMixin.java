@@ -39,7 +39,7 @@ public abstract class ElementalDamageMixin {
     public abstract float getMaxHealth();
 
     @Unique
-    private static final ThreadLocal<Boolean> cranks$processingElementalDamage = ThreadLocal.withInitial(() -> false);
+    private boolean cranks$processingElementalDamage = false;
 
     @Inject(method = "damage", at = @At("RETURN"))
     private void applyElementalDamageOnHit(ServerWorld world, DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
@@ -47,7 +47,7 @@ public abstract class ElementalDamageMixin {
             return;
         }
 
-        if (cranks$processingElementalDamage.get()) {
+        if (cranks$processingElementalDamage) {
             return;
         }
 
@@ -67,7 +67,7 @@ public abstract class ElementalDamageMixin {
         float physicalDamage = amount;
 
         try {
-            cranks$processingElementalDamage.set(true);
+            cranks$processingElementalDamage = true;
 
             // === FIRE DAMAGE ===
             double fireBaseDamage = attacker.getAttributeValue(ModAttributes.FIRE_DAMAGE);
@@ -249,7 +249,7 @@ public abstract class ElementalDamageMixin {
             }
 
         } finally {
-            cranks$processingElementalDamage.set(false);
+            cranks$processingElementalDamage = false;
         }
     }
 

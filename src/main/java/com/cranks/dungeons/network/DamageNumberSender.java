@@ -43,7 +43,7 @@ public class DamageNumberSender {
         }
 
         if (entries.isEmpty()) {
-            LOGGER.info("[DamageNumbers] No entries to send - all damages are 0");
+            LOGGER.debug("[DamageNumbers] No entries to send - all damages are 0");
             return;
         }
 
@@ -52,11 +52,13 @@ public class DamageNumberSender {
         double y = hitPos.y;
         double z = hitPos.z;
 
-        LOGGER.info("[DamageNumbers] Sending {} entries to {} at ({}, {}, {})",
-                entries.size(), player.getName().getString(),
-                String.format("%.2f", x),
-                String.format("%.2f", y),
-                String.format("%.2f", z));
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("[DamageNumbers] Sending {} entries to {} at ({}, {}, {})",
+                    entries.size(), player.getName().getString(),
+                    Math.round(x * 100.0) / 100.0,
+                    Math.round(y * 100.0) / 100.0,
+                    Math.round(z * 100.0) / 100.0);
+        }
 
         DamageNumberPayload payload = new DamageNumberPayload(x, y, z, entries);
         ServerPlayNetworking.send(player, payload);

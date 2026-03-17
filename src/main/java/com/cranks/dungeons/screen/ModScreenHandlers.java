@@ -12,8 +12,6 @@ public class ModScreenHandlers {
     public static ScreenHandlerType<ArtificialEnhancementAltarScreenHandler> ARTIFICIAL_ENHANCEMENT_ALTAR;
 
     public static void register() {
-        System.out.println(">>> LOADING SCREEN HANDLERS");
-
         RUNIC_ENHANCEMENT_ALTAR = Registry.register(
                 Registries.SCREEN_HANDLER,
                 Identifier.of(CranksDungeons.MOD_ID, "runic_enhancement_altar_gui"),

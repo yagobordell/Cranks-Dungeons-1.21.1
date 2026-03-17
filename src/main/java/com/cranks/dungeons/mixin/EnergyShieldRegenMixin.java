@@ -21,6 +21,24 @@ public class EnergyShieldRegenMixin {
     @Unique
     private boolean wasRegenerating = false;
 
+    @Unique
+    private float lastSyncedShield = -1.0f;
+
+    @Unique
+    private int ticksSinceLastSync = 0;
+
+    @Unique
+    private static final float SYNC_THRESHOLD = 0.1f;
+
+    @Unique
+    private static final int SYNC_INTERVAL_TICKS = 5;
+
+    @Unique
+    private static final int REGEN_DELAY_TICKS = 80; // 4 seconds at 20 TPS
+
+    @Unique
+    private static final float REGEN_PERCENT_PER_TICK = 0.006f; // 0.6% per tick = 12% per second
+
     @Inject(method = "tick", at = @At("TAIL"))
     private void regenerateEnergyShield(CallbackInfo ci) {
         PlayerEntity self = (PlayerEntity) (Object) this;
@@ -35,6 +53,8 @@ public class EnergyShieldRegenMixin {
         if (maxShield <= 0) {
             provider.cranksdungeons$setCurrentEnergyShield(0);
             wasRegenerating = false;
+            lastSyncedShield = -1.0f;
+            ticksSinceLastSync = 0;
             return;
         }
 
@@ -49,8 +69,8 @@ public class EnergyShieldRegenMixin {
         long currentTime = world.getTime();
         long timeSinceLastDamage = currentTime - provider.cranksdungeons$getLastDamageTime();
 
-        // 4 seconds = 80 ticks
-        if (timeSinceLastDamage >= 80 && currentShield < maxShield) {
+        // Check if we should be regenerating
+        if (timeSinceLastDamage >= REGEN_DELAY_TICKS && currentShield < maxShield) {
             // Play sound when regeneration STARTS (wasn't regenerating before, but is now)
             if (!wasRegenerating) {
                 world.playSoundFromEntity(
@@ -64,18 +84,30 @@ public class EnergyShieldRegenMixin {
                 wasRegenerating = true;
             }
 
-            // Regenerate 12% of max shield per second = 0.6% per tick
-            float regenPerTick = (float) (maxShield * 0.006);
-
+            // Regenerate shield
+            float regenPerTick = (float) (maxShield * REGEN_PERCENT_PER_TICK);
             float newShield = Math.min(currentShield + regenPerTick, (float) maxShield);
 
             provider.cranksdungeons$setCurrentEnergyShield(newShield);
 
-            // Sync to client every tick during regen
-            ServerPlayNetworking.send(serverPlayer, new EnergyShieldSyncPacket(newShield));
+            // Sync to client only when threshold reached or interval passed
+            ticksSinceLastSync++;
+            if (Math.abs(newShield - lastSyncedShield) >= SYNC_THRESHOLD || ticksSinceLastSync >= SYNC_INTERVAL_TICKS) {
+                ServerPlayNetworking.send(serverPlayer, new EnergyShieldSyncPacket(newShield));
+                lastSyncedShield = newShield;
+                ticksSinceLastSync = 0;
+            }
         } else {
             // Not regenerating anymore
+            if (wasRegenerating) {
+                // Sync final value when regeneration stops
+                if (currentShield != lastSyncedShield) {
+                    ServerPlayNetworking.send(serverPlayer, new EnergyShieldSyncPacket(currentShield));
+                    lastSyncedShield = currentShield;
+                }
+            }
             wasRegenerating = false;
+            ticksSinceLastSync = 0;
         }
     }
 }

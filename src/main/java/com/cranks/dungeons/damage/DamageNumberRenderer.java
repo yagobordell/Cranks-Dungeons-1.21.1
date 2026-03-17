@@ -13,6 +13,12 @@ public class DamageNumberRenderer {
     // Smoothing factor: lower = smoother, less jitter
     private static final float SMOOTHING = 0.1f;
 
+    // Maximum render distance squared (32 blocks)
+    private static final double MAX_RENDER_DISTANCE_SQ = 32.0 * 32.0;
+
+    // Screen margin for culling
+    private static final int SCREEN_MARGIN = 50;
+
     public static void renderHud(DrawContext context, float tickDelta) {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.player == null || client.world == null) return;
@@ -50,6 +56,10 @@ public class DamageNumberRenderer {
             double dy = worldY - camY;
             double dz = worldZ - camZ;
 
+            // Early culling: skip if too far away
+            double distanceSq = dx*dx + dy*dy + dz*dz;
+            if (distanceSq > MAX_RENDER_DISTANCE_SQ) continue;
+
             double cosYaw = Math.cos(yawRad);
             double sinYaw = Math.sin(yawRad);
             double rotX = dx * cosYaw + dz * sinYaw;
@@ -85,22 +95,23 @@ public class DamageNumberRenderer {
             int sX = Math.round(number.lastScreenX);
             int sY = Math.round(number.lastScreenY);
 
-            if (sX < -50 || sX > screenWidth + 50
-                    || sY < -50 || sY > screenHeight + 50) {
+            // Cull if off-screen with margin
+            if (sX < -SCREEN_MARGIN || sX > screenWidth + SCREEN_MARGIN
+                    || sY < -SCREEN_MARGIN || sY > screenHeight + SCREEN_MARGIN) {
                 continue;
             }
 
-            String text = formatDamage(number.damage);
-            float alpha = number.getAlpha();
-            int alphaInt = (int) (alpha * 255) & 0xFF;
-            int colorWithAlpha = (alphaInt << 24) | (number.color & 0x00FFFFFF);
-
-            int textWidth = textRenderer.getWidth(text);
+            String text = number.formattedDamageText;
+            int textWidth = number.formattedDamageWidth;
             int rowSpacing = textRenderer.fontHeight + 2;
 
             int drawX = sX - textWidth / 2;
             // Stack using stable rowIndex instead of dynamic overlap
             int drawY = sY - textRenderer.fontHeight / 2 - number.rowIndex * rowSpacing;
+
+            // Calculate color with alpha
+            int alpha = (int) (number.getAlpha() * 255) << 24;
+            int colorWithAlpha = (number.color & 0x00FFFFFF) | alpha;
 
             context.drawText(
                     textRenderer,
@@ -113,13 +124,5 @@ public class DamageNumberRenderer {
         }
     }
 
-    private static String formatDamage(double damage) {
-        if (damage >= 1000) {
-            return String.format("%.1fk", damage / 1000.0);
-        }
-        if (damage < 10) {
-            return String.format("%.1f", damage);
-        }
-        return String.format("%.0f", damage);
-    }
+
 }

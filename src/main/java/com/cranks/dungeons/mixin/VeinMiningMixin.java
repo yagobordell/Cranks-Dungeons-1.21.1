@@ -33,6 +33,12 @@ public class VeinMiningMixin {
     @Unique
     private static final Identifier SILK_TOUCH_ID = Identifier.of("minecraft", "silk_touch");
 
+    @Unique
+    private static final int VEIN_MINE_MAX_BLOCKS = 31;
+
+    @Unique
+    private static final int VEIN_MINE_MAX_ITERATIONS = 64;
+
     @Inject(method = "afterBreak", at = @At("TAIL"))
     private void afterBreak(World world, PlayerEntity player, BlockPos pos, BlockState state, net.minecraft.block.entity.BlockEntity blockEntity, ItemStack tool, CallbackInfo ci) {
         if (world.isClient()) return;
@@ -59,7 +65,6 @@ public class VeinMiningMixin {
         if (oreTag.isEmpty()) return;
         TagKey<Block> targetTag = oreTag.get();
 
-        int maxBlocks = 31;
         Set<BlockPos> visited = new HashSet<>();
         Queue<BlockPos> toCheck = new LinkedList<>();
         List<BlockPos> toBreak = new ArrayList<>();
@@ -67,21 +72,28 @@ public class VeinMiningMixin {
         toCheck.add(origin);
         visited.add(origin);
 
-        while (!toCheck.isEmpty() && toBreak.size() < maxBlocks) {
-            BlockPos current = toCheck.poll();
-            for (int dx = -1; dx <= 1; dx++) {
-                for (int dy = -1; dy <= 1; dy++) {
-                    for (int dz = -1; dz <= 1; dz++) {
-                        if (dx == 0 && dy == 0 && dz == 0) continue;
-                        BlockPos neighbor = current.add(dx, dy, dz);
-                        if (visited.contains(neighbor)) continue;
-                        visited.add(neighbor);
+        // Limit iterations to prevent excessive computation while still finding enough blocks
+        int iterations = 0;
 
-                        if (world.getBlockState(neighbor).isIn(targetTag)) {
-                            toBreak.add(neighbor);
-                            toCheck.add(neighbor);
-                        }
-                    }
+        while (!toCheck.isEmpty() && toBreak.size() < VEIN_MINE_MAX_BLOCKS && iterations < VEIN_MINE_MAX_ITERATIONS) {
+            BlockPos current = toCheck.poll();
+            iterations++;
+
+            // Check 6 direct neighbors (cardinal directions) first for better performance
+            BlockPos[] neighbors = {
+                current.up(), current.down(),
+                current.north(), current.south(),
+                current.east(), current.west()
+            };
+
+            for (BlockPos neighbor : neighbors) {
+                if (visited.contains(neighbor)) continue;
+                visited.add(neighbor);
+
+                if (world.getBlockState(neighbor).isIn(targetTag)) {
+                    toBreak.add(neighbor);
+                    toCheck.add(neighbor);
+                    if (toBreak.size() >= VEIN_MINE_MAX_BLOCKS) break;
                 }
             }
         }

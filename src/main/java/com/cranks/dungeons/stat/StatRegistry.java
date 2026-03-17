@@ -1,14 +1,19 @@
 package com.cranks.dungeons.stat;
 
+import com.cranks.dungeons.CranksDungeons;
 import com.cranks.dungeons.equipment.EquipmentType;
 import com.cranks.dungeons.registry.ModAttributes;
+import com.cranks.dungeons.util.RandomUtil;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.util.Formatting;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class StatRegistry {
+    private static final Logger LOGGER = LoggerFactory.getLogger("StatRegistry");
     private static final Map<String, CustomStat> STATS = new HashMap<>();
 
     public static void registerStats() {
@@ -2436,7 +2441,7 @@ public class StatRegistry {
                 Formatting.DARK_GREEN
         ));
 
-        System.out.println("Registered " + STATS.size() + " custom stats");
+        LOGGER.info("Registered {} custom stats", STATS.size());
     }
 
     private static void register(CustomStat stat) {
@@ -2459,6 +2464,6 @@ public class StatRegistry {
 
     public static CustomStat getRandomStatForEquipmentType(EquipmentType equipmentType) {
         List<CustomStat> stats = getStatsByEquipmentType(equipmentType);
-        return stats.isEmpty() ? null : stats.get(new Random().nextInt(stats.size()));
+        return stats.isEmpty() ? null : stats.get(RandomUtil.nextInt(stats.size()));
     }
 }

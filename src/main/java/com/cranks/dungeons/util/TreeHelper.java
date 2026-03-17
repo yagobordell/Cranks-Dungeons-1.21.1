@@ -14,23 +14,15 @@ public final class TreeHelper {
 
     private TreeHelper() {}
 
-    /**
-     * Natural for Log Fortune:
-     * - The broken block's state is considered a log
-     *   (in our custom tag OR in the vanilla logs tag)
-     * - That position is NOT marked as player-placed
-     */
     public static boolean isNaturalLogForFortune(ServerWorld world, BlockPos pos, BlockState state) {
-        // Fallback: accept vanilla logs even if the custom tag is not set up
         boolean isLog = state.isIn(ModBlockTags.LOG_FORTUNE_LOGS) || state.isIn(BlockTags.LOGS);
         if (!isLog) {
             LOGGER.debug("[LogFortune] {} is not treated as a log", state);
             return false;
         }
 
-        if (PlacedLogTracker.isPlacedByPlayer(world, pos)) {
-            // Once broken, forget it to keep the set small
-            PlacedLogTracker.removePlaced(world, pos);
+        if (PlacedBlockTracker.isPlacedByPlayer(world, pos, PlacedBlockTracker.LOGS_ID)) {
+            PlacedBlockTracker.removePlaced(world, pos, PlacedBlockTracker.LOGS_ID);
             LOGGER.debug("[LogFortune] {} was player-placed", pos);
             return false;
         }

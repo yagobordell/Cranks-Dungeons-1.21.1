@@ -15,6 +15,7 @@ import com.cranks.dungeons.registry.ModAttributes;
 import com.cranks.dungeons.registry.ModSounds;
 import com.cranks.dungeons.screen.ModScreenHandlers;
 import com.cranks.dungeons.stat.StatRegistry;
+import com.cranks.dungeons.util.EquipmentChangeHandler;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
@@ -37,6 +38,7 @@ public class CranksDungeons implements ModInitializer {
 		ModNetworking.registerPayloads();
 		ModNetworking.registerServerReceivers();
 		EnchantmentDisableTickHandler.register();
+		EquipmentChangeHandler.register();
 		ModBlockEntities.register();
 		ModItems.registerModItems();
 		ModScreenHandlers.register();

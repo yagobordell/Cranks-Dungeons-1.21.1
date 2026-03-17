@@ -1,12 +1,12 @@
 package com.cranks.dungeons.stat;
 
 import com.cranks.dungeons.equipment.EquipmentType;
+import com.cranks.dungeons.util.RandomUtil;
 import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.util.Formatting;
 
 import java.text.DecimalFormat;
-import java.util.Random;
 
 public class CustomStat {
     private final String id;
@@ -66,7 +66,6 @@ public class CustomStat {
             throw new IllegalArgumentException("Tier must be between 1 and 5");
         }
 
-        Random random = new Random();
         double min, max;
 
         if (tier <= 2) {
@@ -77,7 +76,7 @@ public class CustomStat {
             max = uncommonRanges[tier - 1];
         }
 
-        double value = min + (max - min) * random.nextDouble();
+        double value = min + (max - min) * RandomUtil.nextDouble(1.0);
 
         return Math.round(value * 1000.0) / 1000.0;
     }

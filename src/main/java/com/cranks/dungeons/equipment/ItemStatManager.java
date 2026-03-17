@@ -115,7 +115,6 @@ public class ItemStatManager {
         stack.set(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,
                 net.minecraft.component.type.NbtComponent.of(nbt));
 
-        System.out.println("Successfully added cryptic stat!");
         return true;
     }
 
@@ -170,8 +169,6 @@ public class ItemStatManager {
                 net.minecraft.component.type.NbtComponent.of(nbt));
 
         EquipmentStatApplier.updateItemAttributes(stack);
-
-        System.out.println("Successfully revealed cryptic stat: " + statId + " at tier " + tier);
         return true;
     }
 
@@ -317,8 +314,6 @@ public class ItemStatManager {
 
         // Update item attributes for weapons/tools/armor
         EquipmentStatApplier.updateItemAttributes(stack);
-
-        System.out.println("Successfully added stat!");
         return true;
     }
 
@@ -338,7 +333,6 @@ public class ItemStatManager {
 
         CustomStat stat = StatRegistry.getStat(statId);
         if (stat == null) {
-            System.out.println("Unknown stat ID: " + statId);
             return false;
         }
 
@@ -383,7 +377,6 @@ public class ItemStatManager {
         // Update item attributes
         EquipmentStatApplier.updateItemAttributes(stack);
 
-        System.out.println("Successfully added specific stat: " + statId + " at tier " + tier);
         return true;
     }
 

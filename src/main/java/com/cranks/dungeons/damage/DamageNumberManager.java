@@ -1,7 +1,6 @@
 package com.cranks.dungeons.damage;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 public class DamageNumberManager {
@@ -16,12 +15,7 @@ public class DamageNumberManager {
     }
 
     public static void tick() {
-        Iterator<DamageNumber> iterator = activeNumbers.iterator();
-        while (iterator.hasNext()) {
-            if (iterator.next().isExpired()) {
-                iterator.remove();
-            }
-        }
+        activeNumbers.removeIf(DamageNumber::isExpired);
     }
 
     public static void clear() {

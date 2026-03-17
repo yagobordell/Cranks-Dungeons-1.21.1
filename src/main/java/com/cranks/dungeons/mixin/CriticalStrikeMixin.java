@@ -68,11 +68,6 @@ public abstract class CriticalStrikeMixin {
                 attacker.heal(healAmount);
             }
 
-            if (isCrit) {
-                System.out.println(String.format("[Dungeons] Base: %.1f | Crit: %b | Physical: %.1f",
-                        amount, isCrit, finalAmount));
-            }
-
             return finalAmount;
         }
         return amount;

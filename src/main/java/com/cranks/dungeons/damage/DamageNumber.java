@@ -10,6 +10,9 @@ public class DamageNumber {
     public final double offsetX;
     public final double offsetZ;
 
+    public final String formattedDamageText;
+    public final int formattedDamageWidth;
+
     public static final long LIFETIME = 1500;
     public static final double FLOAT_HEIGHT = 0.4;
 
@@ -20,7 +23,7 @@ public class DamageNumber {
     public float lastScreenX = Float.NaN;
     public float lastScreenY = Float.NaN;
 
-    public DamageNumber(double damage, int color, Vec3d position, double offsetX, double offsetZ, int rowIndex) {
+    public DamageNumber(double damage, int color, Vec3d position, double offsetX, double offsetZ, int rowIndex, String formattedDamageText, int formattedDamageWidth) {
         this.damage = damage;
         this.color = color;
         this.position = position;
@@ -28,6 +31,8 @@ public class DamageNumber {
         this.offsetX = offsetX;
         this.offsetZ = offsetZ;
         this.rowIndex = rowIndex;
+        this.formattedDamageText = formattedDamageText;
+        this.formattedDamageWidth = formattedDamageWidth;
     }
 
     public boolean isExpired() {

@@ -13,12 +13,6 @@ public abstract class LivingEntityMixin {
 
     @Inject(method = "createLivingAttributes", at = @At("RETURN"), cancellable = true)
     private static void addCustomAttributesToAllEntities(CallbackInfoReturnable<DefaultAttributeContainer.Builder> cir) {
-        try {
-            Class.forName("com.cranks.dungeons.registry.ModAttributes");
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException("Failed to load ModAttributes", e);
-        }
-
         DefaultAttributeContainer.Builder builder = cir.getReturnValue();
 
         builder

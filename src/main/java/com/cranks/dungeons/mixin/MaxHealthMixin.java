@@ -8,12 +8,16 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(PlayerEntity.class)
 public abstract class MaxHealthMixin {
+
+    @Unique
+    private double cranks$lastHealthBonus = Double.NaN;
 
     @Inject(method = "tick", at = @At("HEAD"))
     private void applyMaxHealthBonus(CallbackInfo ci) {
@@ -23,20 +27,25 @@ public abstract class MaxHealthMixin {
 
         double healthBonus = player.getAttributeValue(ModAttributes.MAX_HEALTH_BONUS);
 
-        var maxHealthAttr = player.getAttributeInstance(EntityAttributes.MAX_HEALTH);
-        if (maxHealthAttr != null) {
-            Identifier modifierId = Identifier.of(CranksDungeons.MOD_ID, "max_health_bonus");
+        // Only update if the value changed to save performance
+        if (healthBonus != cranks$lastHealthBonus) {
+            var maxHealthAttr = player.getAttributeInstance(EntityAttributes.MAX_HEALTH);
+            if (maxHealthAttr != null) {
+                Identifier modifierId = Identifier.of(CranksDungeons.MOD_ID, "max_health_bonus");
 
-            maxHealthAttr.removeModifier(modifierId);
+                maxHealthAttr.removeModifier(modifierId);
 
-            if (healthBonus > 0) {
-                EntityAttributeModifier modifier = new EntityAttributeModifier(
-                        modifierId,
-                        healthBonus,
-                        EntityAttributeModifier.Operation.ADD_VALUE
-                );
-                maxHealthAttr.addTemporaryModifier(modifier);
+                if (healthBonus > 0) {
+                    EntityAttributeModifier modifier = new EntityAttributeModifier(
+                            modifierId,
+                            healthBonus,
+                            EntityAttributeModifier.Operation.ADD_VALUE
+                    );
+                    maxHealthAttr.addTemporaryModifier(modifier);
+                }
             }
+
+            cranks$lastHealthBonus = healthBonus;
         }
     }
 }
