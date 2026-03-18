@@ -1,5 +1,7 @@
 package com.cranks.dungeons.mixin;
 
+import com.cranks.dungeons.ailment.AilmentManager;
+import com.cranks.dungeons.ailment.AilmentType;
 import com.cranks.dungeons.equipment.EquipmentStatApplier;
 import com.cranks.dungeons.network.DamageNumberSender;
 import com.cranks.dungeons.registry.ModAttributes;
@@ -231,7 +233,7 @@ public abstract class ElementalDamageMixin {
                 attacker.heal(healAmount);
             }
 
-            // Chance to burn with enchantments
+            // Burn with enchantments
             double chanceToBurnFromWeapon = EquipmentStatApplier.getItemStatValue(weapon, "chance_to_burn");
             double chanceToBurnFromChestplate = EquipmentStatApplier.getItemStatValue(chestplate, "chance_to_burn");
             double chanceToBurnFromAttribute = attacker.getAttributeValue(ModAttributes.CHANCE_TO_BURN);
@@ -244,7 +246,10 @@ public abstract class ElementalDamageMixin {
             if (chanceToBurn > 0) {
                 double roll = Math.random();
                 if (roll < chanceToBurn) {
-                    ((net.minecraft.entity.Entity) target).setOnFireFor(4.0f);
+                    float burnBaseDamage = (float) attacker.getAttributeValue(ModAttributes.BURN_BASE_DAMAGE);
+                    float burnDamagePercent = (float) attacker.getAttributeValue(ModAttributes.BURN_DAMAGE_PERCENT);
+                    double duration = AilmentType.BURN.getBaseDuration();
+                    AilmentManager.applyAilment(target, AilmentType.BURN, burnBaseDamage * burnDamagePercent / 100f, duration);
                 }
             }
 

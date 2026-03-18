@@ -2,8 +2,10 @@ package com.cranks.dungeons;
 
 import com.cranks.dungeons.block.ModBlocks;
 import com.cranks.dungeons.block.entity.ModBlockEntities;
+import com.cranks.dungeons.command.AilmentCommand;
 import com.cranks.dungeons.command.ApplyStatCommand;
 import com.cranks.dungeons.command.CheckStatsCommand;
+import com.cranks.dungeons.effect.ModEffects;
 import com.cranks.dungeons.enchantment.EnchantmentDisableManager;
 import com.cranks.dungeons.event.*;
 import com.cranks.dungeons.item.ModItems;
@@ -44,6 +46,7 @@ public class CranksDungeons implements ModInitializer {
 		ModScreenHandlers.register();
 		ModAttributes.registerAttributes();
 		ModSounds.registerSounds();
+		ModEffects.registerEffects();
 		PayloadTypeRegistry.playS2C().register(StatOptionsSyncPacket.ID, StatOptionsSyncPacket.CODEC);
 		PayloadTypeRegistry.playS2C().register(EnergyShieldSyncPacket.ID, EnergyShieldSyncPacket.CODEC);
 		StatRegistry.registerStats();
@@ -51,6 +54,7 @@ public class CranksDungeons implements ModInitializer {
 		EnchantmentDisableManager.registerToggleable(Identifier.of("cranks-dungeons", "vein_mining"));
 		ApplyStatCommand.register();
 		CheckStatsCommand.register();
+		AilmentCommand.register();
 		FortuneEventHandler.register();
 		LogFortuneHandler.register();
 		DigFortuneHandler.register();
@@ -67,6 +71,9 @@ public class CranksDungeons implements ModInitializer {
 						.add(ModAttributes.ENERGY_SHIELD, 0.0)
 						.add(ModAttributes.RELOAD_SPEED, 0.0)
 						.add(ModAttributes.CROP_EXPERIENCE, 0.0)
+						.add(ModAttributes.CHANCE_TO_BURN, 0.0)
+						.add(ModAttributes.BURN_BASE_DAMAGE, 3.0)
+						.add(ModAttributes.BURN_DAMAGE_PERCENT, 100.0)
 		);
 
 		registerCreativeTabItems();

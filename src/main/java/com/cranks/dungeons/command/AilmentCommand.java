@@ -1,0 +1,78 @@
+package com.cranks.dungeons.command;
+
+import com.cranks.dungeons.ailment.AilmentManager;
+import com.cranks.dungeons.ailment.AilmentType;
+import com.mojang.brigadier.arguments.FloatArgumentType;
+import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.minecraft.command.argument.EntityArgumentType;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.server.command.CommandManager;
+import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.text.Text;
+
+import java.util.Collection;
+
+import static net.minecraft.server.command.CommandManager.argument;
+import static net.minecraft.server.command.CommandManager.literal;
+
+public class AilmentCommand {
+
+    public static void register() {
+        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
+            dispatcher.register(literal("ailment")
+                    .requires(source -> source.getEntity() != null)
+                    .then(argument("type", StringArgumentType.word())
+                            .then(argument("targets", EntityArgumentType.entities())
+                                    .then(argument("duration", FloatArgumentType.floatArg(0.1f, 60.0f))
+                                            .then(argument("damage", FloatArgumentType.floatArg(0.1f, 1000.0f))
+                                                    .executes(AilmentCommand::executeApply)))))
+                    .then(literal("clear")
+                            .then(argument("targets", EntityArgumentType.entities())
+                                    .executes(AilmentCommand::executeClearAll))));
+        });
+    }
+
+    private static int executeApply(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        String typeStr = StringArgumentType.getString(context, "type");
+        Collection<? extends Entity> targets = EntityArgumentType.getEntities(context, "targets");
+        float duration = FloatArgumentType.getFloat(context, "duration");
+        float damage = FloatArgumentType.getFloat(context, "damage");
+
+        AilmentType type = AilmentType.fromId(typeStr.toLowerCase());
+        if (type == null) {
+            context.getSource().sendError(Text.literal("Invalid ailment type: " + typeStr + ". Valid types: burn, bleed, poison, shock, freeze"));
+            return 0;
+        }
+
+        int[] affected = {0};
+        targets.forEach(entity -> {
+            if (entity instanceof LivingEntity living) {
+                AilmentManager.applyAilment(living, type, damage, duration);
+                affected[0]++;
+            }
+        });
+
+        final int finalAffected = affected[0];
+        context.getSource().sendFeedback(() -> Text.literal("Applied " + typeStr + " to " + finalAffected + " entities (duration: " + duration + "s, damage: " + damage + ")"), true);
+        return finalAffected;
+    }
+
+    private static int executeClearAll(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        Collection<? extends Entity> targets = EntityArgumentType.getEntities(context, "targets");
+        int[] cleared = {0};
+        targets.forEach(entity -> {
+            if (entity instanceof LivingEntity living) {
+                AilmentManager.clearAllAilments(living);
+                cleared[0]++;
+            }
+        });
+
+        final int finalCleared = cleared[0];
+        context.getSource().sendFeedback(() -> Text.literal("Cleared ailments from " + finalCleared + " entities"), true);
+        return finalCleared;
+    }
+}

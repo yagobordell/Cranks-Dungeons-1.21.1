@@ -22,6 +22,9 @@ public class ModSounds {
     public static final SoundEvent ELEMENTAL_VOID_HIT = register("void_hit");
     public static final SoundEvent CRITICAL_HIT = register("critical_hit");
 
+    // Ailment sounds
+    public static final SoundEvent BURN_TICK = register("burn_tick");
+
     private static SoundEvent register(String name) {
         Identifier id = Identifier.of(CranksDungeons.MOD_ID, name);
         return Registry.register(Registries.SOUND_EVENT, id, SoundEvent.of(id));

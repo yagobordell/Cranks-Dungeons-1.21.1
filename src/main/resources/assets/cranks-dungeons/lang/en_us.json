@@ -109,5 +109,7 @@
   "enchantment.minecraft.breaking_range": "+1 Breaking Range",
   "enchantment.minecraft.reload_speed": "+30% Reload Speed",
   "enchantment.minecraft.crop_fortune": "+20% Crop Fortune",
-  "enchantment.minecraft.log_fortune": "+20% Log Fortune"
+  "enchantment.minecraft.log_fortune": "+20% Log Fortune",
+
+  "effect.cranks-dungeons.burn": "Burning"
 }
