@@ -17,13 +17,19 @@ public class DamageNumber {
     public static final double FLOAT_HEIGHT = 0.4;
 
     // NEW: fixed vertical stack row for this number
-    public final int rowIndex;
+    public int rowIndex;
+
+    public void setRowIndex(int index) {
+        this.rowIndex = index;
+    }
 
     // client-side, for smoothing in screen space
     public float lastScreenX = Float.NaN;
     public float lastScreenY = Float.NaN;
 
-    public DamageNumber(double damage, int color, Vec3d position, double offsetX, double offsetZ, int rowIndex, String formattedDamageText, int formattedDamageWidth) {
+    public final boolean forceDisplay;
+
+    public DamageNumber(double damage, int color, Vec3d position, double offsetX, double offsetZ, int rowIndex, String formattedDamageText, int formattedDamageWidth, boolean forceDisplay) {
         this.damage = damage;
         this.color = color;
         this.position = position;
@@ -33,6 +39,7 @@ public class DamageNumber {
         this.rowIndex = rowIndex;
         this.formattedDamageText = formattedDamageText;
         this.formattedDamageWidth = formattedDamageWidth;
+        this.forceDisplay = forceDisplay;
     }
 
     public boolean isExpired() {
@@ -45,15 +52,25 @@ public class DamageNumber {
 
     public float getAlpha() {
         float progress = getProgress();
-        if (progress > 0.7f) {
-            return 1.0f - ((progress - 0.7f) / 0.3f);
+        if (progress < 0.1f) {
+            return progress / 0.1f; // Fade in
+        }
+        if (progress > 0.8f) {
+            return 1.0f - ((progress - 0.8f) / 0.2f); // Fade out
         }
         return 1.0f;
     }
 
     public double getCurrentY() {
         float progress = getProgress();
-        double eased = 1.0 - Math.pow(1.0 - progress, 3);
-        return position.y + FLOAT_HEIGHT * eased;
+        // Burst up at the start (0.0 to 0.2), then slow float
+        double yOffset;
+        if (progress < 0.2f) {
+            float burstProgress = progress / 0.2f;
+            yOffset = burstProgress * 0.2; // Initial burst
+        } else {
+            yOffset = 0.2 + (progress - 0.2f) * 0.3; // Slower float after burst
+        }
+        return position.y + yOffset;
     }
 }

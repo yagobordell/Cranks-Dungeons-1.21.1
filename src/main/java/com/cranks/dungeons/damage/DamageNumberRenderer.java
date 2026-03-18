@@ -1,5 +1,6 @@
 package com.cranks.dungeons.damage;
 
+import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
@@ -56,9 +57,9 @@ public class DamageNumberRenderer {
             double dy = worldY - camY;
             double dz = worldZ - camZ;
 
-            // Early culling: skip if too far away
+            // Early culling: skip if too far away, unless it's a forced display (direct source)
             double distanceSq = dx*dx + dy*dy + dz*dz;
-            if (distanceSq > MAX_RENDER_DISTANCE_SQ) continue;
+            if (distanceSq > MAX_RENDER_DISTANCE_SQ && !number.forceDisplay) continue;
 
             double cosYaw = Math.cos(yawRad);
             double sinYaw = Math.sin(yawRad);
@@ -95,6 +96,17 @@ public class DamageNumberRenderer {
             int sX = Math.round(number.lastScreenX);
             int sY = Math.round(number.lastScreenY);
 
+            // Special handling for "Self" numbers (very close to camera)
+            boolean isSelf = distanceSq < 0.5;
+            if (isSelf && client.options.getPerspective().isFirstPerson()) {
+                // Shift self-numbers to the side so they don't block the crosshair
+                // Damage to the left, Healing to the right (heuristic based on color)
+                boolean isHeal = (number.color & 0x00FFFFFF) == 0x55FF55; 
+                float progress = number.getProgress();
+                sX = screenWidth / 2 + (isHeal ? 60 : -60);
+                sY = (int) (screenHeight / 2 + 30 - progress * 40); // Float up from center-ish
+            }
+
             // Cull if off-screen with margin
             if (sX < -SCREEN_MARGIN || sX > screenWidth + SCREEN_MARGIN
                     || sY < -SCREEN_MARGIN || sY > screenHeight + SCREEN_MARGIN) {
@@ -103,24 +115,41 @@ public class DamageNumberRenderer {
 
             String text = number.formattedDamageText;
             int textWidth = number.formattedDamageWidth;
-            int rowSpacing = textRenderer.fontHeight + 2;
+            int rowSpacing = (int)((textRenderer.fontHeight + 2) * 1.2);
 
-            int drawX = sX - textWidth / 2;
-            // Stack using stable rowIndex instead of dynamic overlap
-            int drawY = sY - textRenderer.fontHeight / 2 - number.rowIndex * rowSpacing;
+            float progress = number.getProgress();
+            float scale = 1.0f;
+            if (progress < 0.1f) {
+                scale = progress / 0.1f; // Scale up
+            } else if (progress > 0.8f) {
+                scale = 1.0f - (progress - 0.8f) / 0.2f; // Scale down
+            }
+            
+            // Add a slight "bounce" or "pop" at the start
+            if (progress < 0.2f) {
+                scale *= 1.2f;
+            }
+
+            int drawX = sX - (int)(textWidth * scale / 2);
+            int drawY = sY - (int)(textRenderer.fontHeight * scale / 2) - number.rowIndex * rowSpacing;
 
             // Calculate color with alpha
             int alpha = (int) (number.getAlpha() * 255) << 24;
             int colorWithAlpha = (number.color & 0x00FFFFFF) | alpha;
 
+            context.getMatrices().pushMatrix();
+            context.getMatrices().translate(sX, (float) (sY - number.rowIndex * rowSpacing));
+            context.getMatrices().scale(scale, scale);
+            
             context.drawText(
                     textRenderer,
                     text,
-                    drawX,
-                    drawY,
+                    -textWidth / 2,
+                    -textRenderer.fontHeight / 2,
                     colorWithAlpha,
                     true
             );
+            context.getMatrices().popMatrix();
         }
     }
 

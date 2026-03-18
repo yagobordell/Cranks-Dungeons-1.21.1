@@ -1,6 +1,8 @@
 package com.cranks.dungeons.ailment;
 
 import com.cranks.dungeons.effect.ModEffects;
+import com.cranks.dungeons.network.DamageNumberSender;
+import com.cranks.dungeons.registry.ModAttributes;
 import com.cranks.dungeons.util.StatusEffectHelper;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.effect.StatusEffectInstance;
@@ -62,6 +64,12 @@ public class AilmentManager {
 
     public static void tickAilments(LivingEntity entity) {
         if (entity.getEntityWorld().isClient()) return;
+        
+        // If entity is dead, ensure ailments are cleared and stop ticking
+        if (!entity.isAlive() || entity.getHealth() <= 0) {
+            clearAllAilments(entity);
+            return;
+        }
 
         List<Ailment> ailments = getAilments(entity);
         if (ailments.isEmpty()) return;
@@ -76,18 +84,33 @@ public class AilmentManager {
             if (ailment.isReadyToTick()) {
                 float damage = ailment.getDamagePerTick(tickDamagePercent);
                 if (damage > 0) {
-                    float currentHealth = entity.getHealth();
-                    float newHealth = Math.max(0, currentHealth - damage);
-                    entity.setHealth(newHealth);
-                    
+                    // Apply elemental resistances to ailment damage
                     if (ailment.getType() == AilmentType.BURN) {
-                        ServerWorld world = (ServerWorld) entity.getEntityWorld();
-                        world.playSound(null, entity.getX(), entity.getY(), entity.getZ(),
-                                SoundEvents.ENTITY_PLAYER_HURT, SoundCategory.HOSTILE,
-                                1.0f, 1.0f);
-                        world.playSound(null, entity.getX(), entity.getY(), entity.getZ(),
-                                SoundEvents.ENTITY_GENERIC_BURN, SoundCategory.HOSTILE,
-                                0.4f, 1.5f + world.getRandom().nextFloat() * 0.5f);
+                        double res = entity.getAttributeValue(ModAttributes.FIRE_RESISTANCE);
+                        damage *= (float) (1.0 - res);
+                    }
+
+                    if (damage > 0) {
+                        float currentHealth = entity.getHealth();
+                        float newHealth = Math.max(0, currentHealth - damage);
+                        entity.setHealth(newHealth);
+                        
+                        // Show damage numbers for ailments
+                        if (entity.getEntityWorld() instanceof ServerWorld serverWorld) {
+                            double fire = (ailment.getType() == AilmentType.BURN) ? damage : 0;
+                            double physical = (ailment.getType() == AilmentType.BLEED || ailment.getType() == AilmentType.POISON) ? damage : 0;
+                            DamageNumberSender.broadcast(serverWorld, entity, physical, fire, 0, 0, 0);
+                        }
+
+                        if (ailment.getType() == AilmentType.BURN) {
+                            ServerWorld world = (ServerWorld) entity.getEntityWorld();
+                            world.playSound(null, entity.getX(), entity.getY(), entity.getZ(),
+                                    SoundEvents.ENTITY_PLAYER_HURT, SoundCategory.HOSTILE,
+                                    1.0f, 1.0f);
+                            world.playSound(null, entity.getX(), entity.getY(), entity.getZ(),
+                                    SoundEvents.ENTITY_GENERIC_BURN, SoundCategory.HOSTILE,
+                                    0.4f, 1.5f + world.getRandom().nextFloat() * 0.5f);
+                        }
                     }
                 }
                 ailment.resetTimeSinceLastTick();
@@ -99,7 +122,12 @@ public class AilmentManager {
         }
 
         ailments.removeAll(toRemove);
-        ENTITY_AILMENTS.put(entity.getUuid(), ailments);
+        
+        if (entity.isAlive() && entity.getHealth() > 0) {
+            ENTITY_AILMENTS.put(entity.getUuid(), ailments);
+        } else {
+            clearAllAilments(entity);
+        }
     }
 
     private static float getDamagePercent(LivingEntity entity) {

@@ -11,7 +11,8 @@ import java.util.List;
 
 public record DamageNumberPayload(
         double x, double y, double z,
-        List<DamageEntry> entries
+        List<DamageEntry> entries,
+        boolean forceDisplay
 ) implements CustomPayload {
 
     public static final Id<DamageNumberPayload> ID =
@@ -20,16 +21,18 @@ public record DamageNumberPayload(
     public static final PacketCodec<RegistryByteBuf, DamageNumberPayload> CODEC =
             PacketCodec.of(DamageNumberPayload::write, DamageNumberPayload::read);
 
-    public record DamageEntry(double damage, int color) {}
+    public record DamageEntry(double damage, int color, boolean isHeal) {}
 
     private void write(RegistryByteBuf buf) {
         buf.writeDouble(x);
         buf.writeDouble(y);
         buf.writeDouble(z);
+        buf.writeBoolean(forceDisplay);
         buf.writeVarInt(entries.size());
         for (DamageEntry entry : entries) {
             buf.writeDouble(entry.damage());
             buf.writeInt(entry.color());
+            buf.writeBoolean(entry.isHeal());
         }
     }
 
@@ -37,12 +40,13 @@ public record DamageNumberPayload(
         double x = buf.readDouble();
         double y = buf.readDouble();
         double z = buf.readDouble();
+        boolean forceDisplay = buf.readBoolean();
         int count = buf.readVarInt();
         List<DamageEntry> entries = new ArrayList<>();
         for (int i = 0; i < count; i++) {
-            entries.add(new DamageEntry(buf.readDouble(), buf.readInt()));
+            entries.add(new DamageEntry(buf.readDouble(), buf.readInt(), buf.readBoolean()));
         }
-        return new DamageNumberPayload(x, y, z, entries);
+        return new DamageNumberPayload(x, y, z, entries, forceDisplay);
     }
 
     @Override

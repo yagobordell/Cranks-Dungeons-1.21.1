@@ -1,6 +1,10 @@
 package com.cranks.dungeons.mixin;
 
-import com.cranks.dungeons.registry.ModAttributes;
+import com.cranks.dungeons.ailment.AilmentManager;
+import com.cranks.dungeons.ailment.AilmentType;
+import com.cranks.dungeons.damage.DamageElement;
+import com.cranks.dungeons.util.DamageBreakdownProvider;
+import com.cranks.dungeons.util.DamageConversionHelper;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.damage.DamageTypes;
@@ -31,30 +35,30 @@ public abstract class DamageReductionMixin {
             cranks$processingResistance.set(true);
             LivingEntity entity = (LivingEntity) (Object) this;
 
-            if (source.isOf(DamageTypes.IN_FIRE) ||
-                    source.isOf(DamageTypes.ON_FIRE) ||
-                    source.isOf(DamageTypes.LAVA) ||
-                    source.isOf(DamageTypes.HOT_FLOOR)) {
-                double res = entity.getAttributeValue(ModAttributes.FIRE_RESISTANCE);
-                amount *= (float) (1.0 - res);
+            // Completely disable vanilla "On Fire" DOT damage as we use our own BURN ailment
+            if (source.isOf(DamageTypes.ON_FIRE)) {
+                return 0;
             }
 
-            if (source.isOf(DamageTypes.LIGHTNING_BOLT)) {
-                double res = entity.getAttributeValue(ModAttributes.LIGHTNING_RESISTANCE);
-                amount *= (float) (1.0 - res);
+            DamageConversionHelper.DamageBreakdown breakdown = DamageConversionHelper.getBreakdown(source, amount);
+            if (entity instanceof DamageBreakdownProvider provider) {
+                provider.cranks$setLastDamageBreakdown(breakdown);
             }
 
-            if (source.isOf(DamageTypes.OUT_OF_WORLD)) {
-                double res = entity.getAttributeValue(ModAttributes.VOID_RESISTANCE);
-                amount *= (float) (1.0 - res);
+            // Chance to apply custom BURN from fire sources (except direct DOT which we disabled above)
+            float fireDamage = breakdown.get(DamageElement.FIRE);
+            if (fireDamage > 0 && !world.isClient()) {
+                // Remove chance to burn from environmental sources per user request
+                boolean isEnvironmental = source.isOf(DamageTypes.IN_FIRE) || 
+                                         source.isOf(DamageTypes.LAVA) || 
+                                         source.isOf(DamageTypes.HOT_FLOOR);
+                
+                if (!isEnvironmental && Math.random() < 0.20) {
+                    AilmentManager.applyAilment(entity, AilmentType.BURN, fireDamage * 0.4f, AilmentType.BURN.getBaseDuration());
+                }
             }
 
-            if (source.isOf(DamageTypes.FREEZE)) {
-                double res = entity.getAttributeValue(ModAttributes.COLD_RESISTANCE);
-                amount *= (float) (1.0 - res);
-            }
-
-            return amount;
+            return DamageConversionHelper.applyResistances(entity, breakdown);
         } finally {
             cranks$processingResistance.set(false);
         }

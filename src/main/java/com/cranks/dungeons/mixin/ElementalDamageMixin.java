@@ -2,11 +2,14 @@ package com.cranks.dungeons.mixin;
 
 import com.cranks.dungeons.ailment.AilmentManager;
 import com.cranks.dungeons.ailment.AilmentType;
+import com.cranks.dungeons.damage.DamageElement;
 import com.cranks.dungeons.equipment.EquipmentStatApplier;
 import com.cranks.dungeons.network.DamageNumberSender;
 import com.cranks.dungeons.registry.ModAttributes;
 import com.cranks.dungeons.registry.ModSounds;
 import com.cranks.dungeons.util.CriticalHitState;
+import com.cranks.dungeons.util.DamageBreakdownProvider;
+import com.cranks.dungeons.util.DamageConversionHelper;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
@@ -53,11 +56,17 @@ public abstract class ElementalDamageMixin {
             return;
         }
 
-        if (!(source.getAttacker() instanceof PlayerEntity attacker)) {
-            return;
-        }
-
         LivingEntity target = (LivingEntity) (Object) this;
+
+        if (source.getAttacker() instanceof PlayerEntity attacker) {
+            handlePlayerAttacker(world, source, amount, attacker, target);
+        } else {
+            handleNonPlayerDamage(world, source, amount, target);
+        }
+    }
+
+    @Unique
+    private void handlePlayerAttacker(ServerWorld world, DamageSource source, float amount, PlayerEntity attacker, LivingEntity target) {
         ItemStack weapon = attacker.getMainHandStack();
         ItemStack chestplate = attacker.getEquippedStack(EquipmentSlot.CHEST);
 
@@ -162,7 +171,7 @@ public abstract class ElementalDamageMixin {
             if (attacker instanceof ServerPlayerEntity serverPlayer) {
                 DamageNumberSender.send(
                         serverPlayer, target,
-                        physicalDamage,  // Use the amount parameter directly as physical damage
+                        physicalDamage,
                         finalFireDamage,
                         finalColdDamage,
                         finalLightningDamage,
@@ -170,91 +179,67 @@ public abstract class ElementalDamageMixin {
                 );
             }
 
-            // ... after finalFireDamage, finalColdDamage, finalLightningDamage, finalVoidDamage have been computed
-
-// Play per-element hit sounds (ServerWorld world is passed in, target is the victim)
+            // Play per-element hit sounds
             if (finalFireDamage > 0) {
-                world.playSoundFromEntity(
-                        null,
-                        target,
-                        ModSounds.ELEMENTAL_FIRE_HIT,
-                        SoundCategory.PLAYERS,
-                        1.5f,
-                        1.0f
-                );
+                world.playSoundFromEntity(null, target, ModSounds.ELEMENTAL_FIRE_HIT, SoundCategory.PLAYERS, 1.5f, 1.0f);
             }
-
             if (finalColdDamage > 0) {
-                world.playSoundFromEntity(
-                        null,
-                        target,
-                        ModSounds.ELEMENTAL_COLD_HIT,
-                        SoundCategory.PLAYERS,
-                        1.0f,
-                        1.0f
-                );
+                world.playSoundFromEntity(null, target, ModSounds.ELEMENTAL_COLD_HIT, SoundCategory.PLAYERS, 1.0f, 1.0f);
             }
-
             if (finalLightningDamage > 0) {
-                world.playSoundFromEntity(
-                        null,
-                        target,
-                        ModSounds.ELEMENTAL_LIGHTNING_HIT,
-                        SoundCategory.PLAYERS,
-                        0.8f,
-                        1.0f
-                );
+                world.playSoundFromEntity(null, target, ModSounds.ELEMENTAL_LIGHTNING_HIT, SoundCategory.PLAYERS, 0.8f, 1.0f);
             }
-
             if (finalVoidDamage > 0) {
-                world.playSoundFromEntity(
-                        null,
-                        target,
-                        ModSounds.ELEMENTAL_VOID_HIT,
-                        SoundCategory.PLAYERS,
-                        0.6f,
-                        1.0f
-                );
+                world.playSoundFromEntity(null, target, ModSounds.ELEMENTAL_VOID_HIT, SoundCategory.PLAYERS, 0.6f, 1.0f);
             }
 
-            // Life Steal with enchantments
-            double lifeStealFromWeapon = EquipmentStatApplier.getItemStatValue(weapon, "life_steal");
-            double lifeStealFromChestplate = EquipmentStatApplier.getItemStatValue(chestplate, "life_steal");
-            double lifeStealFromAttribute = attacker.getAttributeValue(ModAttributes.LIFE_STEAL);
-            double lifeStealFromEnchantWeapon = getEnchantmentValue(weapon, "minecraft:life_steal", 0.06);
-            double lifeStealFromEnchantChest = getEnchantmentValue(chestplate, "minecraft:life_steal", 0.06);
-
-            double lifeSteal = lifeStealFromWeapon + lifeStealFromChestplate + lifeStealFromAttribute +
-                    lifeStealFromEnchantWeapon + lifeStealFromEnchantChest;
+            // Life Steal
+            double lifeSteal = attacker.getAttributeValue(ModAttributes.LIFE_STEAL) + 
+                             EquipmentStatApplier.getItemStatValue(weapon, "life_steal") + 
+                             EquipmentStatApplier.getItemStatValue(chestplate, "life_steal") +
+                             getEnchantmentValue(weapon, "minecraft:life_steal", 0.06) +
+                             getEnchantmentValue(chestplate, "minecraft:life_steal", 0.06);
 
             if (lifeSteal > 0) {
                 float totalDamage = physicalDamage + (float) totalElementalDamage;
-                float healAmount = (float) (totalDamage * lifeSteal);
-                attacker.heal(healAmount);
+                attacker.heal((float) (totalDamage * lifeSteal));
             }
 
-            // Burn with enchantments
-            double chanceToBurnFromWeapon = EquipmentStatApplier.getItemStatValue(weapon, "chance_to_burn");
-            double chanceToBurnFromChestplate = EquipmentStatApplier.getItemStatValue(chestplate, "chance_to_burn");
-            double chanceToBurnFromAttribute = attacker.getAttributeValue(ModAttributes.CHANCE_TO_BURN);
-            double chanceToBurnFromEnchantWeapon = getEnchantmentValue(weapon, "minecraft:chance_to_burn", 0.2);
-            double chanceToBurnFromEnchantChest = getEnchantmentValue(chestplate, "minecraft:chance_to_burn", 0.2);
+            // Burn
+            double chanceToBurn = attacker.getAttributeValue(ModAttributes.CHANCE_TO_BURN) + 
+                                EquipmentStatApplier.getItemStatValue(weapon, "chance_to_burn") + 
+                                EquipmentStatApplier.getItemStatValue(chestplate, "chance_to_burn") +
+                                getEnchantmentValue(weapon, "minecraft:chance_to_burn", 0.2) +
+                                getEnchantmentValue(chestplate, "minecraft:chance_to_burn", 0.2);
 
-            double chanceToBurn = chanceToBurnFromWeapon + chanceToBurnFromChestplate + chanceToBurnFromAttribute +
-                    chanceToBurnFromEnchantWeapon + chanceToBurnFromEnchantChest;
-
-            if (chanceToBurn > 0) {
-                double roll = Math.random();
-                if (roll < chanceToBurn) {
-                    float burnBaseDamage = (float) attacker.getAttributeValue(ModAttributes.BURN_BASE_DAMAGE);
-                    float burnDamagePercent = (float) attacker.getAttributeValue(ModAttributes.BURN_DAMAGE_PERCENT);
-                    double duration = AilmentType.BURN.getBaseDuration();
-                    AilmentManager.applyAilment(target, AilmentType.BURN, burnBaseDamage * burnDamagePercent / 100f, duration);
-                }
+            if (Math.random() < chanceToBurn) {
+                float burnBaseDamage = (float) attacker.getAttributeValue(ModAttributes.BURN_BASE_DAMAGE);
+                float burnDamagePercent = (float) attacker.getAttributeValue(ModAttributes.BURN_DAMAGE_PERCENT);
+                AilmentManager.applyAilment(target, AilmentType.BURN, burnBaseDamage * burnDamagePercent / 100f, AilmentType.BURN.getBaseDuration());
             }
 
         } finally {
             cranks$processingElementalDamage = false;
+        }
+    }
+
+    @Unique
+    private void handleNonPlayerDamage(ServerWorld world, DamageSource source, float amount, LivingEntity target) {
+        // For non-player damage, we retrieve the stored breakdown and broadcast to nearby players
+        if (target instanceof DamageBreakdownProvider provider) {
+            DamageConversionHelper.DamageBreakdown breakdown = provider.cranks$getLastDamageBreakdown();
+            if (breakdown == null) {
+                breakdown = DamageConversionHelper.getBreakdown(source, amount);
+            }
+            
+            // Apply resistances to get the actual final values
+            float physical = breakdown.get(DamageElement.PHYSICAL);
+            float fire = (float) (breakdown.get(DamageElement.FIRE) * (1.0 - target.getAttributeValue(ModAttributes.FIRE_RESISTANCE)));
+            float cold = (float) (breakdown.get(DamageElement.COLD) * (1.0 - target.getAttributeValue(ModAttributes.COLD_RESISTANCE)));
+            float lightning = (float) (breakdown.get(DamageElement.LIGHTNING) * (1.0 - target.getAttributeValue(ModAttributes.LIGHTNING_RESISTANCE)));
+            float voidDamage = (float) (breakdown.get(DamageElement.VOID) * (1.0 - target.getAttributeValue(ModAttributes.VOID_RESISTANCE)));
+
+            DamageNumberSender.broadcast(world, target, physical, fire, cold, lightning, voidDamage);
         }
     }
 

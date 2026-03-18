@@ -2,6 +2,7 @@ package com.cranks.dungeons.network;
 
 import com.cranks.dungeons.damage.DamageElement;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.Box;
@@ -25,43 +26,70 @@ public class DamageNumberSender {
                             double voidDamage) {
 
         List<DamageNumberPayload.DamageEntry> entries = new ArrayList<>();
+        if (physicalDamage > 0) entries.add(new DamageNumberPayload.DamageEntry(physicalDamage, DamageElement.PHYSICAL.color, false));
+        if (fireDamage > 0) entries.add(new DamageNumberPayload.DamageEntry(fireDamage, DamageElement.FIRE.color, false));
+        if (coldDamage > 0) entries.add(new DamageNumberPayload.DamageEntry(coldDamage, DamageElement.COLD.color, false));
+        if (lightningDamage > 0) entries.add(new DamageNumberPayload.DamageEntry(lightningDamage, DamageElement.LIGHTNING.color, false));
+        if (voidDamage > 0) entries.add(new DamageNumberPayload.DamageEntry(voidDamage, DamageElement.VOID.color, false));
 
-        if (physicalDamage > 0) {
-            entries.add(new DamageNumberPayload.DamageEntry(physicalDamage, DamageElement.PHYSICAL.color));
-        }
-        if (fireDamage > 0) {
-            entries.add(new DamageNumberPayload.DamageEntry(fireDamage, DamageElement.FIRE.color));
-        }
-        if (coldDamage > 0) {
-            entries.add(new DamageNumberPayload.DamageEntry(coldDamage, DamageElement.COLD.color));
-        }
-        if (lightningDamage > 0) {
-            entries.add(new DamageNumberPayload.DamageEntry(lightningDamage, DamageElement.LIGHTNING.color));
-        }
-        if (voidDamage > 0) {
-            entries.add(new DamageNumberPayload.DamageEntry(voidDamage, DamageElement.VOID.color));
-        }
-
-        if (entries.isEmpty()) {
-            LOGGER.debug("[DamageNumbers] No entries to send - all damages are 0");
-            return;
-        }
+        if (entries.isEmpty()) return;
 
         Vec3d hitPos = getHitPosition(player, target);
-        double x = hitPos.x;
-        double y = hitPos.y;
-        double z = hitPos.z;
-
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("[DamageNumbers] Sending {} entries to {} at ({}, {}, {})",
-                    entries.size(), player.getName().getString(),
-                    Math.round(x * 100.0) / 100.0,
-                    Math.round(y * 100.0) / 100.0,
-                    Math.round(z * 100.0) / 100.0);
-        }
-
-        DamageNumberPayload payload = new DamageNumberPayload(x, y, z, entries);
+        DamageNumberPayload payload = new DamageNumberPayload(hitPos.x, hitPos.y, hitPos.z, entries, true);
         ServerPlayNetworking.send(player, payload);
+    }
+
+    public static void broadcastHeal(ServerWorld world, LivingEntity target, double healAmount) {
+        if (healAmount <= 0) return;
+        List<DamageNumberPayload.DamageEntry> entries = new ArrayList<>();
+        entries.add(new DamageNumberPayload.DamageEntry(healAmount, 0x55FF55, true)); // Green color
+
+        Vec3d pos = new Vec3d(
+                target.getX(),
+                target.getY() + target.getHeight() * 0.5,
+                target.getZ()
+        );
+
+        DamageNumberPayload payload = new DamageNumberPayload(pos.x, pos.y, pos.z, entries, false);
+        double range = 32.0;
+        List<ServerPlayerEntity> players = world.getPlayers(p -> p.squaredDistanceTo(pos) < range * range);
+        for (ServerPlayerEntity player : players) {
+            ServerPlayNetworking.send(player, payload);
+        }
+    }
+
+    public static void broadcast(ServerWorld world, LivingEntity target,
+                                 double physicalDamage,
+                                 double fireDamage,
+                                 double coldDamage,
+                                 double lightningDamage,
+                                 double voidDamage) {
+        
+        List<DamageNumberPayload.DamageEntry> entries = new ArrayList<>();
+        if (physicalDamage > 0) entries.add(new DamageNumberPayload.DamageEntry(physicalDamage, DamageElement.PHYSICAL.color, false));
+        if (fireDamage > 0) entries.add(new DamageNumberPayload.DamageEntry(fireDamage, DamageElement.FIRE.color, false));
+        if (coldDamage > 0) entries.add(new DamageNumberPayload.DamageEntry(coldDamage, DamageElement.COLD.color, false));
+        if (lightningDamage > 0) entries.add(new DamageNumberPayload.DamageEntry(lightningDamage, DamageElement.LIGHTNING.color, false));
+        if (voidDamage > 0) entries.add(new DamageNumberPayload.DamageEntry(voidDamage, DamageElement.VOID.color, false));
+
+        if (entries.isEmpty()) return;
+
+        // Fallback for hit position when there's no specific attacker
+        Vec3d hitPos = new Vec3d(
+                target.getX(),
+                target.getY() + target.getHeight() * 0.5,
+                target.getZ()
+        );
+
+        DamageNumberPayload payload = new DamageNumberPayload(hitPos.x, hitPos.y, hitPos.z, entries, false);
+        
+        // Find players within range
+        double range = 32.0;
+        List<ServerPlayerEntity> players = world.getPlayers(p -> p.squaredDistanceTo(hitPos) < range * range);
+        
+        for (ServerPlayerEntity player : players) {
+            ServerPlayNetworking.send(player, payload);
+        }
     }
 
     /**

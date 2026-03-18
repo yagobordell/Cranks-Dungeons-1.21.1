@@ -80,7 +80,7 @@ public class CranksDungeonsClient implements ClientModInitializer {
                     offsetX += (Math.random() - 0.5) * 0.1;
                     offsetZ += (Math.random() - 0.5) * 0.1;
 
-                    String formattedDamageText = DamageNumberFormatter.formatDamage(entry.damage());
+                    String formattedDamageText = (entry.isHeal() ? "+" : "") + DamageNumberFormatter.formatDamage(entry.damage());
                     int formattedDamageWidth = context.client().textRenderer.getWidth(formattedDamageText);
                     DamageNumber damageNumber = new DamageNumber(
                             entry.damage(),
@@ -90,7 +90,8 @@ public class CranksDungeonsClient implements ClientModInitializer {
                             offsetZ,
                             i,   // NEW: rowIndex
                             formattedDamageText,
-                            formattedDamageWidth
+                            formattedDamageWidth,
+                            payload.forceDisplay()
                     );
                     DamageNumberManager.addDamageNumber(damageNumber);
                 }
