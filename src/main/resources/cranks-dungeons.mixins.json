@@ -68,7 +68,9 @@
 		"MobAttributeMixin$Enderman",
 		"MobAttributeMixin$Endermite",
 		"MobAttributeMixin$Shulker",
-		"MobAttributeMixin$Evoker"
+		"MobAttributeMixin$Evoker",
+		"WitherResistanceReductionMixin",
+		"WitherDamageCancelMixin"
 	],
 	"client": [
 		"HideArmorAttributeMixin",
