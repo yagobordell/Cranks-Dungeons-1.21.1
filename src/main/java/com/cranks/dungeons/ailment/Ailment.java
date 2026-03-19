@@ -6,11 +6,14 @@ public class Ailment {
     private final AilmentType type;
     private double remainingDuration;
     private double timeSinceLastTick;
-    private final float baseDamage;
+    private float baseDamage;
     private final UUID sourceUuid;
     private final UUID parentUuid;
     private final UUID chainUuid;
     private final int generation;
+    private int stacks;
+    private double maxDuration; // Store original duration for reset
+    private float damagePerStack; // Track damage contribution per stack
 
     public Ailment(AilmentType type, float baseDamage, UUID sourceUuid) {
         this(type, type.getBaseDuration(), baseDamage, sourceUuid, null, UUID.randomUUID(), 0);
@@ -19,12 +22,15 @@ public class Ailment {
     public Ailment(AilmentType type, double duration, float baseDamage, UUID sourceUuid, UUID parentUuid, UUID chainUuid, int generation) {
         this.type = type;
         this.remainingDuration = duration;
+        this.maxDuration = duration;
         this.timeSinceLastTick = 0;
         this.baseDamage = baseDamage;
+        this.damagePerStack = baseDamage;
         this.sourceUuid = sourceUuid;
         this.parentUuid = parentUuid;
         this.chainUuid = chainUuid;
         this.generation = generation;
+        this.stacks = 1;
     }
 
     public UUID getChainUuid() {
@@ -80,6 +86,59 @@ public class Ailment {
     }
 
     public float getDamagePerTick(float damagePercent) {
+        // Return base damage per tick (stacks are handled separately for POISON escalation)
         return baseDamage * (damagePercent / 100.0f);
+    }
+    
+    public float getDamagePerTickWithStacks(float damagePercent) {
+        // For POISON: stacks multiply the damage directly
+        return getDamagePerTick(damagePercent) * stacks;
+    }
+
+    public int getStacks() {
+        return stacks;
+    }
+
+    public void setStacks(int stacks) {
+        this.stacks = stacks;
+    }
+
+    public void addStack() {
+        this.stacks++;
+    }
+
+    public void addStack(double duration, float damage) {
+        // Increment stack count first
+        this.stacks++;
+        // Average the damage per stack when adding a new stack
+        float totalDamage = this.damagePerStack * (this.stacks - 1) + damage;
+        this.damagePerStack = totalDamage / this.stacks;
+        // Use the longer duration
+        this.maxDuration = Math.max(this.maxDuration, duration);
+        this.remainingDuration = this.maxDuration;
+    }
+
+    public void removeStack() {
+        if (this.stacks > 0) {
+            this.stacks--;
+            // Reset timer to max duration
+            this.remainingDuration = this.maxDuration;
+        }
+    }
+
+    public double getMaxDuration() {
+        return maxDuration;
+    }
+
+    public void setMaxDuration(double duration) {
+        this.maxDuration = duration;
+    }
+
+    public float getDamagePerStack() {
+        return damagePerStack;
+    }
+
+    public void setDamagePerStack(float damage) {
+        this.damagePerStack = damage;
     }
 }

@@ -218,6 +218,16 @@ public abstract class ElementalDamageMixin {
                 AilmentManager.applyAilment(target, AilmentType.BURN, burnBaseDamage * burnDamagePercent / 100f, AilmentType.BURN.getBaseDuration(), attacker);
             }
 
+            // Poison
+            double chanceToPoison = attacker.getAttributeValue(ModAttributes.CHANCE_TO_POISON) + 
+                                  EquipmentStatApplier.getItemStatValue(weapon, "chance_to_poison");
+            
+            if (Math.random() < chanceToPoison) {
+                float poisonBaseDamage = (float) attacker.getAttributeValue(ModAttributes.POISON_BASE_DAMAGE);
+                float poisonDamagePercent = (float) attacker.getAttributeValue(ModAttributes.POISON_DAMAGE_PERCENT);
+                AilmentManager.applyAilment(target, AilmentType.POISON, poisonBaseDamage * (1.0f + poisonDamagePercent / 100f), AilmentType.POISON.getBaseDuration(), attacker);
+            }
+
         } finally {
             cranks$processingElementalDamage = false;
         }

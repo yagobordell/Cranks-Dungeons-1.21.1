@@ -83,6 +83,7 @@
   "enchantment.minecraft.attack_speed": "+20% Attack Speed",
   "enchantment.minecraft.crit_chance": "+7.5% Critical Strike Chance",
   "enchantment.minecraft.chance_to_burn": "+20% Chance To Burn",
+  "enchantment.minecraft.chance_to_poison": "+20% Chance To Poison",
   "enchantment.minecraft.life_steal": "+6% Life Steal",
   "enchantment.minecraft.bonus_knockback": "+35% Knockback",
   "enchantment.minecraft.attack_range": "+0.5 Attack Range",
@@ -111,5 +112,27 @@
   "enchantment.minecraft.crop_fortune": "+20% Crop Fortune",
   "enchantment.minecraft.log_fortune": "+20% Log Fortune",
 
-  "effect.cranks-dungeons.burn": "Burning"
+  "effect.cranks-dungeons.burn": "Burning",
+  "effect.cranks-dungeons.poison": "Poison",
+
+  "potion.potency.0": " +1",
+  "potion.potency.1": " +2",
+  "potion.potency.2": " +3",
+  "potion.potency.3": " +4",
+  "potion.potency.4": " +5",
+  "potion.potency.5": " +6",
+  "potion.potency.6": " +7",
+  "potion.potency.7": " +8",
+  "potion.potency.8": " +9",
+  "potion.potency.9": " +10",
+  "potion.potency.10": " +11",
+  "potion.potency.11": " +12",
+  "potion.potency.12": " +13",
+  "potion.potency.13": " +14",
+  "potion.potency.14": " +15",
+  "potion.potency.15": " +16",
+  "potion.potency.16": " +17",
+  "potion.potency.17": " +18",
+  "potion.potency.18": " +19",
+  "potion.potency.19": " +20"
 }

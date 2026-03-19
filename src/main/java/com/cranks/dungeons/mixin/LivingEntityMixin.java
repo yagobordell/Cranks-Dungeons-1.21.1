@@ -103,6 +103,9 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
                 .add(ModAttributes.CHANCE_TO_BURN)
                 .add(ModAttributes.BURN_BASE_DAMAGE)
                 .add(ModAttributes.BURN_DAMAGE_PERCENT)
+                .add(ModAttributes.CHANCE_TO_POISON)
+                .add(ModAttributes.POISON_BASE_DAMAGE)
+                .add(ModAttributes.POISON_DAMAGE_PERCENT)
                 .add(ModAttributes.ATTACK_RANGE)
                 .add(ModAttributes.ATTACK_SPEED)
                 .add(ModAttributes.KNOCKBACK)
@@ -150,6 +153,25 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
             double y = entity.getY() + entity.getHeight() * 0.5 + (world.getRandom().nextDouble() - 0.5) * 0.5;
             double z = entity.getZ() + (world.getRandom().nextDouble() - 0.5) * 0.7;
             world.spawnParticles(ParticleTypes.FLAME, x, y, z, 3, 0.1, 0.1, 0.1, 0.05);
+        }
+
+        if (AilmentManager.hasAilment(entity, AilmentType.POISON)) {
+            if (entity.getRandom().nextFloat() > 0.4f) return;
+            ServerWorld world = (ServerWorld) entity.getEntityWorld();
+            
+            // Get stack count from the poison ailment (now single ailment with stacks)
+            int stacks = AilmentManager.getAilments(entity).stream()
+                    .filter(a -> a.getType() == AilmentType.POISON)
+                    .findFirst()
+                    .map(a -> a.getStacks())
+                    .orElse(1);
+            int count = (int) Math.min(4, 1 + stacks / 5);
+
+            double x = entity.getX() + (world.getRandom().nextDouble() - 0.5) * 0.6;
+            double y = entity.getY() + entity.getHeight() * 0.5 + (world.getRandom().nextDouble() - 0.5) * 0.4;
+            double z = entity.getZ() + (world.getRandom().nextDouble() - 0.5) * 0.6;
+            
+            // No ambient poison particles - only damage numbers and sound 
         }
     }
 }

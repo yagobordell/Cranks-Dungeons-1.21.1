@@ -24,6 +24,7 @@ public class ModSounds {
 
     // Ailment sounds
     public static final SoundEvent BURN_TICK = register("burn_tick");
+    public static final SoundEvent POISON_TICK = register("poison_tick");
 
     private static SoundEvent register(String name) {
         Identifier id = Identifier.of(CranksDungeons.MOD_ID, name);

@@ -3,6 +3,7 @@
 	"package": "com.cranks.dungeons.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
+		"VanillaPoisonConversionMixin",
 		"DamageReductionMixin",
 		"LivingEntityMixin",
 		"LifeRegenerationMixin",
@@ -53,7 +54,21 @@
 		"SilkTouchBreakMixin",
 		"BlockPlacedMixin",
 		"FeatherFallingMixin",
-		"VanillaFireDisableMixin"
+		"VanillaFireDisableMixin",
+		"SnowballDamageMixin",
+		"MobAttributeMixin$Blaze",
+		"MobAttributeMixin$MagmaCube",
+		"MobAttributeMixin$Ghast",
+		"MobAttributeMixin$Stray",
+		"MobAttributeMixin$SnowGolem",
+		"MobAttributeMixin$PolarBear",
+		"MobAttributeMixin$Guardian",
+		"MobAttributeMixin$ElderGuardian",
+		"MobAttributeMixin$Breeze",
+		"MobAttributeMixin$Enderman",
+		"MobAttributeMixin$Endermite",
+		"MobAttributeMixin$Shulker",
+		"MobAttributeMixin$Evoker"
 	],
 	"client": [
 		"HideArmorAttributeMixin",
@@ -61,7 +76,8 @@
 		"InventoryScreenStatsMixin",
 		"ScreenAccessor",
 		"EnergyShieldRenderMixin",
-		"HandledScreenAccessor"
+		"HandledScreenAccessor",
+		"StatusEffectDisplayMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

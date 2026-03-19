@@ -3,7 +3,7 @@ package com.cranks.dungeons.ailment;
 public enum AilmentType {
     BURN("burn", 4.0, 0.5),
     BLEED("bleed", 5.0, 0.5),
-    POISON("poison", 6.0, 0.5),
+    POISON("poison", 2.0, 0.5),
     SHOCK("shock", 3.0, 0.0),
     FREEZE("freeze", 3.0, 0.0);
 

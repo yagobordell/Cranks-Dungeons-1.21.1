@@ -4,6 +4,7 @@ import com.cranks.dungeons.CranksDungeons;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.text.Text;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.RecordComponent;
@@ -96,5 +97,28 @@ public class StatusEffectHelper {
             e.printStackTrace();
             return null;
         }
+    }
+
+    public static StatusEffectInstance createWithName(RegistryEntry<StatusEffect> effect, int duration, int amplifier,
+                                                      boolean ambient, boolean showParticles, boolean showIcon,
+                                                      Optional<Text> customName) {
+        StatusEffectInstance instance = create(effect, duration, amplifier, ambient, showParticles, showIcon);
+        if (instance == null) {
+            return null;
+        }
+        
+        // Try to set custom name via reflection if possible
+        try {
+            // Check if there's a constructor that accepts custom name
+            if (paramsConstructor != null) {
+                Object parameters = paramsConstructor.newInstance(
+                        amplifier, duration, ambient, showParticles, showIcon, customName);
+                return instanceConstructor.newInstance(effect, parameters);
+            }
+        } catch (Exception e) {
+            // Fallback to regular instance without custom name
+        }
+        
+        return instance;
     }
 }

@@ -49,5 +49,10 @@
     "sounds": [
       { "name": "cranks-dungeons:critical_hit", "volume": 1.0, "pitch": 1.0 }
     ]
+  },
+  "poison_tick": {
+    "sounds": [
+      { "name": "cranks-dungeons:poison_tick", "volume": 0.8, "pitch": 1.0 }
+    ]
   }
 }

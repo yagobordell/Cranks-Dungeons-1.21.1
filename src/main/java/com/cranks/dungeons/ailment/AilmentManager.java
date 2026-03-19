@@ -3,6 +3,7 @@ package com.cranks.dungeons.ailment;
 import com.cranks.dungeons.effect.ModEffects;
 import com.cranks.dungeons.network.DamageNumberSender;
 import com.cranks.dungeons.registry.ModAttributes;
+import com.cranks.dungeons.registry.ModSounds;
 import com.cranks.dungeons.util.AilmentHistoryProvider;
 import com.cranks.dungeons.util.StatusEffectHelper;
 import net.minecraft.entity.Entity;
@@ -12,7 +13,10 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.text.Text;
 import net.minecraft.util.math.Box;
+
+import java.util.Optional;
 
 import java.util.HashMap;
 import java.util.List;
@@ -23,6 +27,7 @@ import java.util.UUID;
 public class AilmentManager {
 
     private static final Map<UUID, List<Ailment>> ENTITY_AILMENTS = new HashMap<>();
+    private static final int POISON_STACK_CAP = 20;
 
     public static void applyAilment(LivingEntity target, AilmentType type, float baseDamage, double duration, Entity source) {
         applyAilment(target, type, baseDamage, duration, source, null, null, 0);
@@ -31,8 +36,30 @@ public class AilmentManager {
     public static void applyAilment(LivingEntity target, AilmentType type, float baseDamage, double duration, Entity source, Entity parent, UUID chainUuid, int generation) {
         if (target == null) return;
 
-        if (hasAilment(target, type)) {
-            return;
+        List<Ailment> ailments = getAilments(target);
+
+        // POISON: Single ailment with stack counter (1-20)
+        if (type == AilmentType.POISON) {
+            Ailment existingPoison = ailments.stream()
+                    .filter(a -> a.getType() == AilmentType.POISON)
+                    .findFirst()
+                    .orElse(null);
+            
+            if (existingPoison != null) {
+                // Add stack to existing poison (up to cap)
+                if (existingPoison.getStacks() < POISON_STACK_CAP) {
+                    existingPoison.addStack(duration, baseDamage);
+                    ENTITY_AILMENTS.put(target.getUuid(), ailments);
+                    applyStatusEffect(target, type, existingPoison.getRemainingDuration(), existingPoison.getStacks());
+                }
+                return;
+            }
+            // No existing poison, create new one with 1 stack
+        } else {
+            // BURN and other ailments: don't re-apply if already present
+            if (hasAilment(target, type)) {
+                return;
+            }
         }
 
         // Rule: Don't re-ignite with the same chain if we've already been hit by it
@@ -51,15 +78,20 @@ public class AilmentManager {
             history.cranks$recordBurnChain(actualChainUuid);
         }
 
-        List<Ailment> ailments = getAilments(target);
         Ailment ailment = new Ailment(type, duration, baseDamage, sourceUuid, parentUuid, actualChainUuid, generation);
         ailments.add(ailment);
         ENTITY_AILMENTS.put(target.getUuid(), ailments);
 
-        applyStatusEffect(target, type, duration);
+        // Apply status effect - pass stack count for poison (1-20), or 0 for burn
+        int displayValue = (type == AilmentType.POISON) ? ailment.getStacks() : 0;
+        applyStatusEffect(target, type, duration, displayValue);
     }
 
     private static void applyStatusEffect(LivingEntity target, AilmentType type, double duration) {
+        applyStatusEffect(target, type, duration, 0);
+    }
+
+    private static void applyStatusEffect(LivingEntity target, AilmentType type, double duration, int stackCount) {
         int ticks = (int)(duration * 20);
         switch (type) {
             case BURN -> {
@@ -69,6 +101,19 @@ public class AilmentManager {
                     target.addStatusEffect(instance);
                 }
             }
+            case POISON -> {
+                // Remove existing poison effect first to force update
+                target.removeStatusEffect(ModEffects.POISON);
+                // For poison, use stack count as amplifier
+                // amplifier 0 = +1, 1 = +2, etc. (from potion.potency translations)
+                int amplifier = Math.max(0, stackCount - 1);
+                StatusEffectInstance instance = StatusEffectHelper.create(
+                        ModEffects.POISON, ticks, amplifier, false, true, true);
+                if (instance != null) {
+                    target.addStatusEffect(instance);
+                }
+            }
+            default -> {}
         }
     }
 
@@ -111,41 +156,39 @@ public class AilmentManager {
                         double res = entity.getAttributeValue(ModAttributes.FIRE_RESISTANCE);
                         damage *= (float) (1.0 - res);
                         
-                        // SPREADING MECHANIC
-                        if (ailment.getGeneration() < 5) { // Maximum 5 hops
+                        if (ailment.getGeneration() < 5) {
                             handleBurnSpread(entity, ailment);
                         }
-                    }
 
-                    if (damage > 0) {
-                        float currentHealth = entity.getHealth();
-                        float newHealth = Math.max(0, currentHealth - damage);
-                        entity.setHealth(newHealth);
-                        
-                        if (entity.getEntityWorld() instanceof ServerWorld serverWorld) {
-                            double fire = (ailment.getType() == AilmentType.BURN) ? damage : 0.0;
-                            double physical = (ailment.getType() == AilmentType.BLEED || ailment.getType() == AilmentType.POISON) ? (double)damage : 0.0;
-                            
-                            // Use the stored sourceUuid from the ailment to ensure correct attribution
-                            DamageNumberSender.broadcast(serverWorld, entity, physical, fire, 0.0, 0.0, 0.0, ailment.getSourceUuid());
+                        if (damage > 0) {
+                            applySingleAilmentDamage(entity, damage, ailment);
                         }
-
-                        if (ailment.getType() == AilmentType.BURN) {
-                            ServerWorld world = (ServerWorld) entity.getEntityWorld();
-                            world.playSound(null, entity.getX(), entity.getY(), entity.getZ(),
-                                    SoundEvents.ENTITY_PLAYER_HURT, SoundCategory.HOSTILE,
-                                    1.0f, 1.0f);
-                            world.playSound(null, entity.getX(), entity.getY(), entity.getZ(),
-                                    SoundEvents.ENTITY_GENERIC_BURN, SoundCategory.HOSTILE,
-                                    0.4f, 1.5f + world.getRandom().nextFloat() * 0.5f);
-                        }
+                    } else if (ailment.getType() == AilmentType.POISON) {
+                        // Handle POISON damage (single ailment with stacks)
+                        applyPoisonDamage(entity, ailment, damage);
+                    } else {
+                        // Handle other ailments
+                        applySingleAilmentDamage(entity, damage, ailment);
                     }
                 }
                 ailment.resetTimeSinceLastTick();
             }
 
             if (ailment.isExpired()) {
-                toRemove.add(ailment);
+                if (ailment.getType() == AilmentType.POISON) {
+                    // For poison: remove one stack and reset timer
+                    ailment.removeStack();
+                    if (ailment.getStacks() <= 0) {
+                        // Only remove when all stacks are gone
+                        toRemove.add(ailment);
+                        entity.removeStatusEffect(ModEffects.POISON);
+                    } else {
+                        // Update status effect with new stack count
+                        applyStatusEffect(entity, AilmentType.POISON, ailment.getRemainingDuration(), ailment.getStacks());
+                    }
+                } else {
+                    toRemove.add(ailment);
+                }
             }
         }
 
@@ -155,6 +198,28 @@ public class AilmentManager {
             ENTITY_AILMENTS.put(entity.getUuid(), ailments);
         } else {
             clearAllAilments(entity);
+        }
+    }
+
+    private static void applySingleAilmentDamage(LivingEntity entity, float damage, Ailment ailment) {
+        float currentHealth = entity.getHealth();
+        float newHealth = Math.max(0, currentHealth - damage);
+        entity.setHealth(newHealth);
+
+        if (entity.getEntityWorld() instanceof ServerWorld serverWorld) {
+            double fire = (ailment.getType() == AilmentType.BURN) ? damage : 0.0;
+            double physical = (ailment.getType() == AilmentType.BLEED) ? (double)damage : 0.0;
+            DamageNumberSender.broadcast(serverWorld, entity, physical, fire, 0.0, 0.0, 0.0, ailment.getSourceUuid());
+        }
+
+        if (ailment.getType() == AilmentType.BURN) {
+            ServerWorld world = (ServerWorld) entity.getEntityWorld();
+            world.playSound(null, entity.getX(), entity.getY(), entity.getZ(),
+                    SoundEvents.ENTITY_PLAYER_HURT, SoundCategory.HOSTILE,
+                    1.0f, 1.0f);
+            world.playSound(null, entity.getX(), entity.getY(), entity.getZ(),
+                    SoundEvents.ENTITY_GENERIC_BURN, SoundCategory.HOSTILE,
+                    0.4f, 1.5f + world.getRandom().nextFloat() * 0.5f);
         }
     }
 
@@ -172,28 +237,59 @@ public class AilmentManager {
         }
 
         for (LivingEntity target : nearby) {
-            // Rule 1: No spread to original source (player safety)
             if (ailment.getSourceUuid() != null && target.getUuid().equals(ailment.getSourceUuid())) {
                 continue;
             }
-
-            // Rule 2: Mobs/Environment never spread fire to ANY Player (COOP Safety)
             if (target instanceof PlayerEntity) {
                 continue;
             }
-
-            // Rule 3: Ancestry check (don't spread back to anyone who was part of this chain)
             if (target instanceof AilmentHistoryProvider history && history.cranks$wasHitByChain(ailment.getChainUuid())) {
                 continue;
             }
             
-            // Decaying damage and duration (percentage based)
-            float newDamage = ailment.getBaseDamage() * 0.5f; // 50% damage per hop
-            double newDuration = Math.max(1.0, ailment.getRemainingDuration() * 0.5); // 50% duration per hop
+            float newDamage = ailment.getBaseDamage() * 0.5f; 
+            double newDuration = Math.max(1.0, ailment.getRemainingDuration() * 0.5); 
             
             if (newDamage < 0.2f) continue;
 
             applyAilment(target, AilmentType.BURN, newDamage, newDuration, originalSource, entity, ailment.getChainUuid(), ailment.getGeneration() + 1);
+        }
+    }
+
+    private static void applyPoisonDamage(LivingEntity entity, Ailment poisonAilment, float damageFromTick) {
+        if (entity.getEntityWorld().isClient()) return;
+        
+        double res = entity.getAttributeValue(ModAttributes.VOID_RESISTANCE);
+        int stacks = poisonAilment.getStacks();
+        // Escalation: multiplicative scaling (+20% compound growth per stack)
+        // 1 stack = 1.0, 2 stacks = 1.2, 3 stacks = 1.44, 20 stacks = ~32
+        double damageMultiplier = Math.pow(1.2, stacks - 1);
+        // Damage = damagePerStack × multiplier × (1 - resistance)
+        float finalPoisonDamage = (float) (poisonAilment.getDamagePerStack() * (1.0 - res) * damageMultiplier);
+
+        if (finalPoisonDamage > 0) {
+            ServerWorld world = (ServerWorld) entity.getEntityWorld();
+            
+            // Check if damage will kill the entity
+            float currentHealth = entity.getHealth();
+            if (currentHealth - finalPoisonDamage <= 0) {
+                // Entity will die - use proper damage source to ensure loot drops
+                net.minecraft.entity.damage.DamageSource damageSource = world.getDamageSources().magic();
+                entity.damage(world, damageSource, finalPoisonDamage);
+            } else {
+                // Entity won't die - apply damage directly to avoid vanilla damage numbers
+                entity.setHealth(currentHealth - finalPoisonDamage);
+                
+                // Poison sound effect (custom)
+                world.playSound(null, entity.getX(), entity.getY(), entity.getZ(),
+                        ModSounds.POISON_TICK, SoundCategory.HOSTILE,
+                        0.8f, 1.0f);
+
+                DamageNumberSender.broadcastPoison(world, entity, finalPoisonDamage, poisonAilment.getSourceUuid());
+            }
+            
+            // Update status effect with current stack count
+            applyStatusEffect(entity, AilmentType.POISON, poisonAilment.getRemainingDuration(), stacks);
         }
     }
 
@@ -205,10 +301,19 @@ public class AilmentManager {
         List<Ailment> ailments = getAilments(target);
         ailments.removeIf(a -> a.getType() == type);
         ENTITY_AILMENTS.put(target.getUuid(), ailments);
+        
+        // Remove status effect
+        if (type == AilmentType.POISON) {
+            target.removeStatusEffect(ModEffects.POISON);
+        } else if (type == AilmentType.BURN) {
+            target.removeStatusEffect(ModEffects.BURN);
+        }
     }
 
     public static void clearAllAilments(LivingEntity target) {
         ENTITY_AILMENTS.remove(target.getUuid());
+        target.removeStatusEffect(ModEffects.POISON);
+        target.removeStatusEffect(ModEffects.BURN);
     }
 
     public static double getAilmentDuration(LivingEntity target, AilmentType type) {

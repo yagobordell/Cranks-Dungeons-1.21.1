@@ -6,10 +6,13 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.damage.DamageTypes;
-import net.minecraft.entity.boss.WitherEntity;
 import net.minecraft.entity.mob.*;
+import net.minecraft.entity.passive.PolarBearEntity;
+import net.minecraft.entity.projectile.FireballEntity;
 import net.minecraft.entity.projectile.SmallFireballEntity;
+import net.minecraft.entity.projectile.thrown.SnowballEntity;
 import net.minecraft.entity.projectile.WitherSkullEntity;
+import net.minecraft.entity.boss.WitherEntity;
 
 import java.util.EnumMap;
 import java.util.Map;
@@ -65,30 +68,59 @@ public class DamageConversionHelper {
             return breakdown;
         }
 
-        // Mob specific conversions
-        if (attacker instanceof BlazeEntity || attacker instanceof MagmaCubeEntity || directSource instanceof SmallFireballEntity) {
+        // --- Elemental Mob Conversions ---
+
+        // FIRE
+        if (attacker instanceof BlazeEntity || attacker instanceof MagmaCubeEntity || 
+            attacker instanceof GhastEntity || directSource instanceof SmallFireballEntity || 
+            directSource instanceof FireballEntity || source.isOf(DamageTypes.FIREBALL)) {
             breakdown.add(DamageElement.FIRE, amount);
             return breakdown;
         }
 
-        if (attacker instanceof EndermanEntity) {
-            float voidPart = amount * 0.4f; // 40% void damage
-            breakdown.add(DamageElement.PHYSICAL, amount - voidPart);
-            breakdown.add(DamageElement.VOID, voidPart);
+        // COLD
+        if (directSource instanceof SnowballEntity) {
+            breakdown.add(DamageElement.COLD, amount);
             return breakdown;
         }
-
-        if (attacker instanceof WitherEntity || attacker instanceof WitherSkeletonEntity || directSource instanceof WitherSkullEntity) {
-            float voidPart = amount * 0.5f; // 50% void damage
-            breakdown.add(DamageElement.PHYSICAL, amount - voidPart);
-            breakdown.add(DamageElement.VOID, voidPart);
-            return breakdown;
-        }
-
         if (attacker instanceof StrayEntity) {
-            float coldPart = amount * 0.3f; // 30% cold damage
+            float coldPart = amount * 0.5f;
             breakdown.add(DamageElement.PHYSICAL, amount - coldPart);
             breakdown.add(DamageElement.COLD, coldPart);
+            return breakdown;
+        }
+        if (attacker instanceof PolarBearEntity) {
+            float coldPart = amount * 0.2f;
+            breakdown.add(DamageElement.PHYSICAL, amount - coldPart);
+            breakdown.add(DamageElement.COLD, coldPart);
+            return breakdown;
+        }
+
+        // LIGHTNING
+        if (attacker instanceof GuardianEntity || attacker instanceof BreezeEntity) {
+            if (!source.isOf(DamageTypes.THORNS)) {
+                breakdown.add(DamageElement.LIGHTNING, amount);
+                return breakdown;
+            }
+        }
+
+        // VOID
+        if (attacker instanceof EndermanEntity || attacker instanceof EndermiteEntity) {
+            float voidPart = amount * 0.4f;
+            breakdown.add(DamageElement.PHYSICAL, amount - voidPart);
+            breakdown.add(DamageElement.VOID, voidPart);
+            return breakdown;
+        }
+        if (attacker instanceof ShulkerEntity || attacker instanceof EvokerEntity || source.isOf(DamageTypes.MAGIC) || source.isOf(DamageTypes.INDIRECT_MAGIC)) {
+            breakdown.add(DamageElement.VOID, amount);
+            return breakdown;
+        }
+
+        // Standard Wither handling (kept from previous implementation)
+        if (attacker instanceof WitherEntity || attacker instanceof WitherSkeletonEntity || directSource instanceof WitherSkullEntity) {
+            float voidPart = amount * 0.5f;
+            breakdown.add(DamageElement.PHYSICAL, amount - voidPart);
+            breakdown.add(DamageElement.VOID, voidPart);
             return breakdown;
         }
 

@@ -59,6 +59,25 @@ public class DamageNumberSender {
         }
     }
 
+    public static void broadcastPoison(ServerWorld world, LivingEntity target, double poisonDamage, UUID attackerUuid) {
+        if (poisonDamage <= 0) return;
+        List<DamageNumberPayload.DamageEntry> entries = new ArrayList<>();
+        entries.add(new DamageNumberPayload.DamageEntry(poisonDamage, DamageElement.POISON.color, false));
+
+        Vec3d pos = new Vec3d(
+                target.getX(),
+                target.getY() + target.getHeight() * 0.5,
+                target.getZ()
+        );
+
+        DamageNumberPayload payload = new DamageNumberPayload(pos.x, pos.y, pos.z, entries, false, attackerUuid, target.getUuid());
+        double range = 32.0;
+        List<ServerPlayerEntity> players = world.getPlayers(p -> p.squaredDistanceTo(pos) < range * range);
+        for (ServerPlayerEntity player : players) {
+            ServerPlayNetworking.send(player, payload);
+        }
+    }
+
     public static void broadcast(ServerWorld world, LivingEntity target,
                                  double physicalDamage,
                                  double fireDamage,
@@ -104,35 +123,24 @@ public class DamageNumberSender {
         broadcast(world, target, physicalDamage, fireDamage, coldDamage, lightningDamage, voidDamage, attackerUuid);
     }
 
-    /**
-     * Compute where the player's line of sight hits the target's bounding box.
-     * Falls back to entity center if the raycast misses.
-     */
     private static Vec3d getHitPosition(ServerPlayerEntity player, LivingEntity target) {
         Vec3d eyePos = player.getEyePos();
-        Vec3d look = player.getRotationVec(1.0F); // server-side rotation
+        Vec3d look = player.getRotationVec(1.0F); 
 
-        // Max distance for the ray (a bit more than melee range)
         double maxDist = 6.0D;
         Vec3d end = eyePos.add(look.multiply(maxDist));
 
-        // Slightly expanded box like normal hit detection
         Box box = target.getBoundingBox().expand(0.1D);
-
         Optional<Vec3d> optHit = box.raycast(eyePos, end);
 
         Vec3d hit;
         if (optHit.isPresent()) {
             Vec3d rawHit = optHit.get();
-
-            // Clamp Y so we don't go exactly on the very feet or above the very top
             double minY = target.getY() + target.getHeight() * 0.05;
             double maxY = target.getY() + target.getHeight() * 0.95;
             double clampedY = MathHelper.clamp(rawHit.y, minY, maxY);
-
             hit = new Vec3d(rawHit.x, clampedY, rawHit.z);
         } else {
-            // Fallback: center of the entity
             hit = new Vec3d(
                     target.getX(),
                     target.getY() + target.getHeight() * 0.5,
@@ -140,7 +148,6 @@ public class DamageNumberSender {
             );
         }
 
-        // Push slightly toward the player so the text is not "inside" the model
         Vec3d toPlayer = eyePos.subtract(hit);
         if (toPlayer.lengthSquared() > 1.0e-6) {
             toPlayer = toPlayer.normalize().multiply(0.1D);
