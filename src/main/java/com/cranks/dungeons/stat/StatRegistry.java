@@ -365,18 +365,6 @@ public class StatRegistry {
         ));
 
         register(new CustomStat(
-                "chestplate_chance_to_burn",
-                "Chance to burn",
-                EquipmentType.CHESTPLATE,
-                ModAttributes.CHANCE_TO_BURN,
-                new double[]{0.01, 0.03, 0.05, 0.08, 0.12},
-                new double[]{0.02, 0.05, 0.08, 0.12, 0.18},
-                true,
-                true,
-                Formatting.RED
-        ));
-
-        register(new CustomStat(
                 "chestplate_fire_damage",
                 "Fire Damage",
                 EquipmentType.CHESTPLATE,
@@ -418,18 +406,6 @@ public class StatRegistry {
                 new double[]{1.0, 3.0, 5.5, 9.0, 14.0},
                 false,
                 Formatting.DARK_PURPLE
-        ));
-
-        register(new CustomStat(
-                "chestplate_life_steal",
-                "Life Steal",
-                EquipmentType.CHESTPLATE,
-                ModAttributes.LIFE_STEAL,
-                new double[]{0.01, 0.03, 0.05, 0.08, 0.11},
-                new double[]{0.02, 0.05, 0.07, 0.10, 0.13},
-                true,
-                true,
-                Formatting.DARK_RED
         ));
 
         register(new CustomStat(
