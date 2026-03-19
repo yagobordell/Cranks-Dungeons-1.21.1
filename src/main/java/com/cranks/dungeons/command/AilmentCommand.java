@@ -51,7 +51,7 @@ public class AilmentCommand {
         int[] affected = {0};
         targets.forEach(entity -> {
             if (entity instanceof LivingEntity living) {
-                AilmentManager.applyAilment(living, type, damage, duration);
+                AilmentManager.applyAilment(living, type, damage, (double)duration, context.getSource().getEntity());
                 affected[0]++;
             }
         });

@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 public class DamageNumberSender {
     private static final Logger LOGGER = LoggerFactory.getLogger("DamageNumbers");
@@ -35,7 +36,7 @@ public class DamageNumberSender {
         if (entries.isEmpty()) return;
 
         Vec3d hitPos = getHitPosition(player, target);
-        DamageNumberPayload payload = new DamageNumberPayload(hitPos.x, hitPos.y, hitPos.z, entries, true);
+        DamageNumberPayload payload = new DamageNumberPayload(hitPos.x, hitPos.y, hitPos.z, entries, true, player.getUuid(), target.getUuid());
         ServerPlayNetworking.send(player, payload);
     }
 
@@ -50,7 +51,7 @@ public class DamageNumberSender {
                 target.getZ()
         );
 
-        DamageNumberPayload payload = new DamageNumberPayload(pos.x, pos.y, pos.z, entries, false);
+        DamageNumberPayload payload = new DamageNumberPayload(pos.x, pos.y, pos.z, entries, false, null, target.getUuid());
         double range = 32.0;
         List<ServerPlayerEntity> players = world.getPlayers(p -> p.squaredDistanceTo(pos) < range * range);
         for (ServerPlayerEntity player : players) {
@@ -63,7 +64,8 @@ public class DamageNumberSender {
                                  double fireDamage,
                                  double coldDamage,
                                  double lightningDamage,
-                                 double voidDamage) {
+                                 double voidDamage,
+                                 UUID attackerUuid) {
         
         List<DamageNumberPayload.DamageEntry> entries = new ArrayList<>();
         if (physicalDamage > 0) entries.add(new DamageNumberPayload.DamageEntry(physicalDamage, DamageElement.PHYSICAL.color, false));
@@ -81,7 +83,7 @@ public class DamageNumberSender {
                 target.getZ()
         );
 
-        DamageNumberPayload payload = new DamageNumberPayload(hitPos.x, hitPos.y, hitPos.z, entries, false);
+        DamageNumberPayload payload = new DamageNumberPayload(hitPos.x, hitPos.y, hitPos.z, entries, false, attackerUuid, target.getUuid());
         
         // Find players within range
         double range = 32.0;
@@ -90,6 +92,16 @@ public class DamageNumberSender {
         for (ServerPlayerEntity player : players) {
             ServerPlayNetworking.send(player, payload);
         }
+    }
+
+    public static void broadcast(ServerWorld world, LivingEntity target,
+                                 double physicalDamage,
+                                 double fireDamage,
+                                 double coldDamage,
+                                 double lightningDamage,
+                                 double voidDamage) {
+        UUID attackerUuid = (target.getRecentDamageSource() != null) ? (target.getRecentDamageSource().getAttacker() != null ? target.getRecentDamageSource().getAttacker().getUuid() : null) : null;
+        broadcast(world, target, physicalDamage, fireDamage, coldDamage, lightningDamage, voidDamage, attackerUuid);
     }
 
     /**

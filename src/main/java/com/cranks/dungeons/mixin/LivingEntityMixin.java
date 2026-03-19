@@ -3,6 +3,7 @@ package com.cranks.dungeons.mixin;
 import com.cranks.dungeons.ailment.AilmentManager;
 import com.cranks.dungeons.ailment.AilmentType;
 import com.cranks.dungeons.registry.ModAttributes;
+import com.cranks.dungeons.util.AilmentHistoryProvider;
 import com.cranks.dungeons.util.DamageBreakdownProvider;
 import com.cranks.dungeons.util.DamageConversionHelper;
 import com.cranks.dungeons.network.DamageNumberSender;
@@ -18,8 +19,12 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
+
 @Mixin(LivingEntity.class)
-public abstract class LivingEntityMixin implements DamageBreakdownProvider {
+public abstract class LivingEntityMixin implements DamageBreakdownProvider, AilmentHistoryProvider {
 
     @Unique
     private DamageConversionHelper.DamageBreakdown cranks$lastDamageBreakdown;
@@ -29,6 +34,9 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider {
     @Unique
     private int cranks$healTimer = 0;
 
+    @Unique
+    private final Set<UUID> cranks$recentBurnChains = new HashSet<>();
+
     @Override
     public DamageConversionHelper.DamageBreakdown cranks$getLastDamageBreakdown() {
         return cranks$lastDamageBreakdown;
@@ -37,6 +45,18 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider {
     @Override
     public void cranks$setLastDamageBreakdown(DamageConversionHelper.DamageBreakdown breakdown) {
         this.cranks$lastDamageBreakdown = breakdown;
+    }
+
+    @Override
+    public void cranks$recordBurnChain(UUID chainUuid) {
+        if (chainUuid != null) {
+            cranks$recentBurnChains.add(chainUuid);
+        }
+    }
+
+    @Override
+    public boolean cranks$wasHitByChain(UUID chainUuid) {
+        return chainUuid != null && cranks$recentBurnChains.contains(chainUuid);
     }
 
     @Inject(method = "onDeath", at = @At("HEAD"))
@@ -49,13 +69,10 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider {
         LivingEntity entity = (LivingEntity) (Object) this;
         if (entity.getEntityWorld().isClient() || amount <= 0) return;
 
-        // Calculate actual health gained
         float actualHeal = Math.min(amount, entity.getMaxHealth() - entity.getHealth());
         if (actualHeal <= 0) return;
 
         cranks$accumulatedHeal += actualHeal;
-        // We no longer broadcast immediately in heal() to avoid multiple numbers per tick
-        // Accumulation will be handled in tickLivingEntity()
     }
 
     @Inject(method = "createLivingAttributes", at = @At("RETURN"), cancellable = true)
@@ -114,8 +131,6 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider {
         // Show accumulated healing
         if (cranks$accumulatedHeal > 0) {
             cranks$healTimer++;
-            
-            // If it's a "burst" of healing (like life steal from multiple hits) or enough time passed
             if (cranks$accumulatedHeal >= 1.0f || cranks$healTimer >= 10) {
                 DamageNumberSender.broadcastHeal((ServerWorld) entity.getEntityWorld(), entity, (double)Math.round(cranks$accumulatedHeal * 10.0) / 10.0);
                 cranks$accumulatedHeal = 0;
@@ -129,8 +144,6 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider {
         if (entity.getEntityWorld().isClient()) return;
         
         if (AilmentManager.hasAilment(entity, AilmentType.BURN)) {
-            // We no longer set fire ticks here to avoid vanilla fire damage and overlay
-            
             if (entity.getRandom().nextFloat() > 0.5f) return;
             ServerWorld world = (ServerWorld) entity.getEntityWorld();
             double x = entity.getX() + (world.getRandom().nextDouble() - 0.5) * 0.7;

@@ -1,9 +1,10 @@
 package com.cranks.dungeons;
 
-import com.cranks.dungeons.EnergyShieldProvider;
+import com.cranks.dungeons.client.ClientConfigCommand;
 import com.cranks.dungeons.client.ClientShieldEffects;
 import com.cranks.dungeons.client.EnchantmentToggleHandler;
 import com.cranks.dungeons.client.ModKeybinds;
+import com.cranks.dungeons.config.ModConfig;
 import com.cranks.dungeons.damage.DamageNumber;
 import com.cranks.dungeons.damage.DamageNumberManager;
 import com.cranks.dungeons.damage.DamageNumberRenderer;
@@ -21,31 +22,32 @@ import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.client.gui.screen.ingame.HandledScreens;
 import net.minecraft.util.math.Vec3d;
 
+import java.util.UUID;
+
 public class CranksDungeonsClient implements ClientModInitializer {
+
+    static class DamageNumberFormatter {
+        public static String formatDamage(double damage) {
+            if (damage >= 1000) {
+                return String.format("%.1fk", damage / 1000.0);
+            }
+            if (damage < 10) {
+                return String.format("%.1f", damage);
+            }
+            return String.format("%.0f", damage);
+        }
+    }
 
     @Override
     public void onInitializeClient() {
-        // Temporary: Duplicated from DamageNumberRenderer for caching formatted text
-        // In a real scenario, this would be in a shared utility or DamageNumber would handle it
-        // but for the sake of getting the cached values, we'll keep it here for now.
-        // It will be removed from DamageNumberRenderer once this is implemented.
-        class DamageNumberFormatter {
-            public static String formatDamage(double damage) {
-                if (damage >= 1000) {
-                    return String.format("%.1fk", damage / 1000.0);
-                }
-                if (damage < 10) {
-                    return String.format("%.1f", damage);
-                }
-                return String.format("%.0f", damage);
-            }
-        }
-
+        ModConfig.load();
+        ClientConfigCommand.register();
 
         HandledScreens.register(ModScreenHandlers.RUNIC_ENHANCEMENT_ALTAR, RunicEnhancementAltarScreen::new);
         HandledScreens.register(ModScreenHandlers.ARTIFICIAL_ENHANCEMENT_ALTAR, ArtificialEnhancementAltarScreen::new);
         ModKeybinds.register();
         EnchantmentToggleHandler.register();
+        
         ClientPlayNetworking.registerGlobalReceiver(StatOptionsSyncPacket.ID, (payload, context) -> {
             context.client().execute(() -> {
                 if (context.client().player != null && context.client().player.currentScreenHandler instanceof ArtificialEnhancementAltarScreenHandler handler) {
@@ -58,15 +60,37 @@ public class CranksDungeonsClient implements ClientModInitializer {
                 }
             });
         });
+        
         ClientShieldEffects.init();
+        
         // Register the payload receiver
         ClientPlayNetworking.registerGlobalReceiver(DamageNumberPayload.ID, (payload, context) -> {
             context.client().execute(() -> {
+                if (context.client().player == null) return;
+                
+                UUID myUuid = context.client().player.getUuid();
+                ModConfig config = ModConfig.get();
+                
+                // Determine source type
+                boolean isDealt = payload.attackerUuid() != null && payload.attackerUuid().equals(myUuid);
+                boolean isReceived = payload.victimUuid() != null && payload.victimUuid().equals(myUuid);
+                boolean isOther = !isDealt && !isReceived;
+
                 Vec3d pos = new Vec3d(payload.x(), payload.y(), payload.z());
 
                 int count = payload.entries().size();
                 for (int i = 0; i < count; i++) {
                     DamageNumberPayload.DamageEntry entry = payload.entries().get(i);
+
+                    // Filter based on config
+                    if (entry.isHeal()) {
+                        if (isReceived && !config.showMyReceivedHealing) continue;
+                        if (!isReceived && !config.showOtherPlayerHealing) continue;
+                    } else {
+                        if (isDealt && !config.showMyDealtDamage) continue;
+                        if (isReceived && !config.showMyReceivedDamage) continue;
+                        if (isOther && !config.showOtherPlayerDamage) continue;
+                    }
 
                     double offsetX = 0;
                     double offsetZ = 0;
@@ -88,14 +112,13 @@ public class CranksDungeonsClient implements ClientModInitializer {
                             pos,
                             offsetX,
                             offsetZ,
-                            i,   // NEW: rowIndex
+                            i,
                             formattedDamageText,
                             formattedDamageWidth,
                             payload.forceDisplay()
                     );
                     DamageNumberManager.addDamageNumber(damageNumber);
                 }
-
             });
         });
 
@@ -104,12 +127,10 @@ public class CranksDungeonsClient implements ClientModInitializer {
                 (payload, context) -> EnergyShieldSyncPacket.handle(payload, context.client())
         );
 
-        // Register tick event for cleanup
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             DamageNumberManager.tick();
         });
 
-        // Render damage numbers as HUD overlay
         HudRenderCallback.EVENT.register((context, tickCounter) -> {
             DamageNumberRenderer.renderHud(context, 0f);
         });

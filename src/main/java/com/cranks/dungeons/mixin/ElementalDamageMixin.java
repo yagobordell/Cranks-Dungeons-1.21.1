@@ -215,7 +215,7 @@ public abstract class ElementalDamageMixin {
             if (Math.random() < chanceToBurn) {
                 float burnBaseDamage = (float) attacker.getAttributeValue(ModAttributes.BURN_BASE_DAMAGE);
                 float burnDamagePercent = (float) attacker.getAttributeValue(ModAttributes.BURN_DAMAGE_PERCENT);
-                AilmentManager.applyAilment(target, AilmentType.BURN, burnBaseDamage * burnDamagePercent / 100f, AilmentType.BURN.getBaseDuration());
+                AilmentManager.applyAilment(target, AilmentType.BURN, burnBaseDamage * burnDamagePercent / 100f, AilmentType.BURN.getBaseDuration(), attacker);
             }
 
         } finally {

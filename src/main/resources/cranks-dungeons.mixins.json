@@ -52,7 +52,8 @@
 		"PlayerDisconnectMixin",
 		"SilkTouchBreakMixin",
 		"BlockPlacedMixin",
-		"FeatherFallingMixin"
+		"FeatherFallingMixin",
+		"VanillaFireDisableMixin"
 	],
 	"client": [
 		"HideArmorAttributeMixin",

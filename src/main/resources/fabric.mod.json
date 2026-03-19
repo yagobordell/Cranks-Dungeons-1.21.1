@@ -23,6 +23,9 @@
 		],
 		"fabric-datagen": [
 			"com.cranks.dungeons.CranksDungeonsDataGenerator"
+		],
+		"modmenu": [
+			"com.cranks.dungeons.client.ModMenuIntegration"
 		]
 	},
 	"mixins": [

@@ -3,12 +3,16 @@ package com.cranks.dungeons.ailment;
 import com.cranks.dungeons.effect.ModEffects;
 import com.cranks.dungeons.network.DamageNumberSender;
 import com.cranks.dungeons.registry.ModAttributes;
+import com.cranks.dungeons.util.AilmentHistoryProvider;
 import com.cranks.dungeons.util.StatusEffectHelper;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.effect.StatusEffectInstance;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.util.math.Box;
 
 import java.util.HashMap;
 import java.util.List;
@@ -20,15 +24,35 @@ public class AilmentManager {
 
     private static final Map<UUID, List<Ailment>> ENTITY_AILMENTS = new HashMap<>();
 
-    public static void applyAilment(LivingEntity target, AilmentType type, float baseDamage, double duration) {
+    public static void applyAilment(LivingEntity target, AilmentType type, float baseDamage, double duration, Entity source) {
+        applyAilment(target, type, baseDamage, duration, source, null, null, 0);
+    }
+
+    public static void applyAilment(LivingEntity target, AilmentType type, float baseDamage, double duration, Entity source, Entity parent, UUID chainUuid, int generation) {
         if (target == null) return;
 
         if (hasAilment(target, type)) {
             return;
         }
 
+        // Rule: Don't re-ignite with the same chain if we've already been hit by it
+        if (type == AilmentType.BURN && chainUuid != null && target instanceof AilmentHistoryProvider history) {
+            if (history.cranks$wasHitByChain(chainUuid)) {
+                return;
+            }
+        }
+
+        UUID sourceUuid = (source != null) ? source.getUuid() : null;
+        UUID parentUuid = (parent != null) ? parent.getUuid() : null;
+        UUID actualChainUuid = (chainUuid != null) ? chainUuid : UUID.randomUUID();
+        
+        // Record this chain in the history
+        if (type == AilmentType.BURN && target instanceof AilmentHistoryProvider history) {
+            history.cranks$recordBurnChain(actualChainUuid);
+        }
+
         List<Ailment> ailments = getAilments(target);
-        Ailment ailment = new Ailment(type, duration, baseDamage);
+        Ailment ailment = new Ailment(type, duration, baseDamage, sourceUuid, parentUuid, actualChainUuid, generation);
         ailments.add(ailment);
         ENTITY_AILMENTS.put(target.getUuid(), ailments);
 
@@ -65,7 +89,6 @@ public class AilmentManager {
     public static void tickAilments(LivingEntity entity) {
         if (entity.getEntityWorld().isClient()) return;
         
-        // If entity is dead, ensure ailments are cleared and stop ticking
         if (!entity.isAlive() || entity.getHealth() <= 0) {
             clearAllAilments(entity);
             return;
@@ -84,10 +107,14 @@ public class AilmentManager {
             if (ailment.isReadyToTick()) {
                 float damage = ailment.getDamagePerTick(tickDamagePercent);
                 if (damage > 0) {
-                    // Apply elemental resistances to ailment damage
                     if (ailment.getType() == AilmentType.BURN) {
                         double res = entity.getAttributeValue(ModAttributes.FIRE_RESISTANCE);
                         damage *= (float) (1.0 - res);
+                        
+                        // SPREADING MECHANIC
+                        if (ailment.getGeneration() < 5) { // Maximum 5 hops
+                            handleBurnSpread(entity, ailment);
+                        }
                     }
 
                     if (damage > 0) {
@@ -95,11 +122,12 @@ public class AilmentManager {
                         float newHealth = Math.max(0, currentHealth - damage);
                         entity.setHealth(newHealth);
                         
-                        // Show damage numbers for ailments
                         if (entity.getEntityWorld() instanceof ServerWorld serverWorld) {
-                            double fire = (ailment.getType() == AilmentType.BURN) ? damage : 0;
-                            double physical = (ailment.getType() == AilmentType.BLEED || ailment.getType() == AilmentType.POISON) ? damage : 0;
-                            DamageNumberSender.broadcast(serverWorld, entity, physical, fire, 0, 0, 0);
+                            double fire = (ailment.getType() == AilmentType.BURN) ? damage : 0.0;
+                            double physical = (ailment.getType() == AilmentType.BLEED || ailment.getType() == AilmentType.POISON) ? (double)damage : 0.0;
+                            
+                            // Use the stored sourceUuid from the ailment to ensure correct attribution
+                            DamageNumberSender.broadcast(serverWorld, entity, physical, fire, 0.0, 0.0, 0.0, ailment.getSourceUuid());
                         }
 
                         if (ailment.getType() == AilmentType.BURN) {
@@ -127,6 +155,45 @@ public class AilmentManager {
             ENTITY_AILMENTS.put(entity.getUuid(), ailments);
         } else {
             clearAllAilments(entity);
+        }
+    }
+
+    private static void handleBurnSpread(LivingEntity entity, Ailment ailment) {
+        if (entity.getEntityWorld().isClient()) return;
+        
+        ServerWorld world = (ServerWorld) entity.getEntityWorld();
+        double radius = 3.0;
+        Box box = entity.getBoundingBox().expand(radius);
+        List<LivingEntity> nearby = world.getEntitiesByClass(LivingEntity.class, box, e -> e != entity && e.isAlive());
+
+        Entity originalSource = null;
+        if (ailment.getSourceUuid() != null) {
+            originalSource = world.getEntity(ailment.getSourceUuid());
+        }
+
+        for (LivingEntity target : nearby) {
+            // Rule 1: No spread to original source (player safety)
+            if (ailment.getSourceUuid() != null && target.getUuid().equals(ailment.getSourceUuid())) {
+                continue;
+            }
+
+            // Rule 2: Mobs/Environment never spread fire to ANY Player (COOP Safety)
+            if (target instanceof PlayerEntity) {
+                continue;
+            }
+
+            // Rule 3: Ancestry check (don't spread back to anyone who was part of this chain)
+            if (target instanceof AilmentHistoryProvider history && history.cranks$wasHitByChain(ailment.getChainUuid())) {
+                continue;
+            }
+            
+            // Decaying damage and duration (percentage based)
+            float newDamage = ailment.getBaseDamage() * 0.5f; // 50% damage per hop
+            double newDuration = Math.max(1.0, ailment.getRemainingDuration() * 0.5); // 50% duration per hop
+            
+            if (newDamage < 0.2f) continue;
+
+            applyAilment(target, AilmentType.BURN, newDamage, newDuration, originalSource, entity, ailment.getChainUuid(), ailment.getGeneration() + 1);
         }
     }
 

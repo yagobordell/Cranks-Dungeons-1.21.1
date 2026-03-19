@@ -35,8 +35,11 @@ public abstract class DamageReductionMixin {
             cranks$processingResistance.set(true);
             LivingEntity entity = (LivingEntity) (Object) this;
 
-            // Completely disable vanilla "On Fire" DOT damage as we use our own BURN ailment
-            if (source.isOf(DamageTypes.ON_FIRE)) {
+            // If the entity already has our custom BURN ailment, we disable the vanilla "On Fire" DOT
+            // to avoid double-ticking damage. 
+            // However, we let it through if there's no BURN ailment (e.g. Zombies in the sun)
+            // so they still take fire damage and show damage numbers.
+            if (source.isOf(DamageTypes.ON_FIRE) && AilmentManager.hasAilment(entity, AilmentType.BURN)) {
                 return 0;
             }
 
@@ -45,16 +48,17 @@ public abstract class DamageReductionMixin {
                 provider.cranks$setLastDamageBreakdown(breakdown);
             }
 
-            // Chance to apply custom BURN from fire sources (except direct DOT which we disabled above)
+            // Chance to apply custom BURN from fire sources (except direct DOT which we handled above)
             float fireDamage = breakdown.get(DamageElement.FIRE);
             if (fireDamage > 0 && !world.isClient()) {
                 // Remove chance to burn from environmental sources per user request
                 boolean isEnvironmental = source.isOf(DamageTypes.IN_FIRE) || 
                                          source.isOf(DamageTypes.LAVA) || 
-                                         source.isOf(DamageTypes.HOT_FLOOR);
+                                         source.isOf(DamageTypes.HOT_FLOOR) ||
+                                         source.isOf(DamageTypes.ON_FIRE); // Sun/Vanilla fire DOT doesn't apply the status effect
                 
                 if (!isEnvironmental && Math.random() < 0.20) {
-                    AilmentManager.applyAilment(entity, AilmentType.BURN, fireDamage * 0.4f, AilmentType.BURN.getBaseDuration());
+                    AilmentManager.applyAilment(entity, AilmentType.BURN, fireDamage * 0.4f, AilmentType.BURN.getBaseDuration(), source.getAttacker());
                 }
             }
 
