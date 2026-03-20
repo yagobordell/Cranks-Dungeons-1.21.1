@@ -187,7 +187,26 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
             double y = entity.getY() + entity.getHeight() * 0.5 + (world.getRandom().nextDouble() - 0.5) * 0.4;
             double z = entity.getZ() + (world.getRandom().nextDouble() - 0.5) * 0.6;
             
-            // No ambient poison particles - only damage numbers and sound 
+            // No ambient poison particles - only damage numbers and sound
+        }
+
+        if (AilmentManager.hasAilment(entity, AilmentType.FREEZE)) {
+            if (entity.getRandom().nextFloat() > 0.3f) return;
+            ServerWorld world = (ServerWorld) entity.getEntityWorld();
+            double x = entity.getX() + (world.getRandom().nextDouble() - 0.5) * 0.8;
+            double y = entity.getY() + entity.getHeight() * 0.5 + (world.getRandom().nextDouble() - 0.5) * 0.6;
+            double z = entity.getZ() + (world.getRandom().nextDouble() - 0.5) * 0.8;
+            
+            // Breaking ice crystals around the frozen entity
+            world.spawnParticles(ParticleTypes.ITEM_SNOWBALL, x, y, z, 2, 0.15, 0.15, 0.15, 0.05);
+            
+            // Falling snow effect near feet occasionally
+            if (entity.getRandom().nextFloat() < 0.3f) {
+                double snowX = entity.getX() + (world.getRandom().nextDouble() - 0.5) * 0.5;
+                double snowY = entity.getY() + 0.1;
+                double snowZ = entity.getZ() + (world.getRandom().nextDouble() - 0.5) * 0.5;
+                world.spawnParticles(ParticleTypes.SNOWFLAKE, snowX, snowY, snowZ, 1, 0.05, 0.02, 0.05, 0.01);
+            }
         }
     }
 }
