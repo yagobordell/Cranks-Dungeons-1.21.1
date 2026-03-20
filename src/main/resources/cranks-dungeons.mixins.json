@@ -79,7 +79,8 @@
 		"ScreenAccessor",
 		"EnergyShieldRenderMixin",
 		"HandledScreenAccessor",
-		"StatusEffectDisplayMixin"
+		"StatusEffectDisplayMixin",
+		"CustomAilmentHeartRenderMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

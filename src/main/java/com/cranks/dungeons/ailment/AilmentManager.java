@@ -284,6 +284,11 @@ public class AilmentManager {
                 world.playSound(null, entity.getX(), entity.getY(), entity.getZ(),
                         ModSounds.POISON_TICK, SoundCategory.HOSTILE,
                         0.8f, 1.0f);
+                
+                // Player hurt sound
+                world.playSound(null, entity.getX(), entity.getY(), entity.getZ(),
+                        SoundEvents.ENTITY_PLAYER_HURT, SoundCategory.HOSTILE,
+                        0.8f, 1.0f);
 
                 DamageNumberSender.broadcastPoison(world, entity, finalPoisonDamage, poisonAilment.getSourceUuid());
             }
