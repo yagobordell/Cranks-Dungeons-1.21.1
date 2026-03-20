@@ -88,6 +88,30 @@ public class CustomAilmentHeartRenderMixin {
                 context.drawGuiTexture(net.minecraft.client.gl.RenderPipelines.GUI_TEXTURED, texture, heartX, heartY, 9, 9);
             }
         }
+        
+        // Draw custom texture for the regenerating (lost health) heart position
+        if (regeneratingHeartIndex >= 0 && regeneratingHeartIndex < totalHeartPositions) {
+            int row = regeneratingHeartIndex / 10;
+            int col = regeneratingHeartIndex % 10;
+            int heartX = x + col * 8;
+            int heartY = y - row * 10;
+            
+            // Determine if this was a half heart
+            int lostFullHearts = lastHealth / 2;
+            boolean lostHasHalf = (lastHealth % 2) == 1;
+            boolean wasHalf = (regeneratingHeartIndex == lostFullHearts) && lostHasHalf;
+            
+            // Use blinking texture for regenerating heart
+            Identifier texture = getTexture(ailment, hardcore, true, wasHalf);
+            
+            if (texture != null) {
+                context.drawGuiTexture(net.minecraft.client.gl.RenderPipelines.GUI_TEXTURED, texture, heartX, heartY, 9, 9);
+            }
+        }
+        
+        // Cover empty heart containers (lost health) with custom empty container texture
+        // TODO: Create proper empty container textures (e.g., poison_empty.png)
+        // For now, we skip drawing on empty containers to avoid confusion
     }
 
     @Unique
