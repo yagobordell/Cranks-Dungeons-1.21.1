@@ -54,5 +54,10 @@
     "sounds": [
       { "name": "cranks-dungeons:poison_tick", "volume": 0.8, "pitch": 1.0 }
     ]
+  },
+  "freeze_move": {
+    "sounds": [
+      { "name": "cranks-dungeons:freeze_move", "volume": 0.6, "pitch": 1.0 }
+    ]
   }
 }

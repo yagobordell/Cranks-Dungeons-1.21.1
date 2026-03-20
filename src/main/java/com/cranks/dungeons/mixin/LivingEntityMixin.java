@@ -91,6 +91,8 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
                 .add(ModAttributes.LIFE_REGENERATION)
                 .add(ModAttributes.MAX_HEALTH_BONUS)
                 .add(ModAttributes.FEATHER_FALLING)
+                .add(ModAttributes.ENERGY_SHIELD)
+                .add(ModAttributes.EVASION_RATING)
 
                 // Offensive
                 .add(ModAttributes.CRIT_CHANCE)
@@ -106,6 +108,7 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
                 .add(ModAttributes.CHANCE_TO_POISON)
                 .add(ModAttributes.POISON_BASE_DAMAGE)
                 .add(ModAttributes.POISON_DAMAGE_PERCENT)
+                .add(ModAttributes.CHANCE_TO_FREEZE)
                 .add(ModAttributes.ATTACK_RANGE)
                 .add(ModAttributes.ATTACK_SPEED)
                 .add(ModAttributes.KNOCKBACK)
@@ -118,7 +121,20 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
                 .add(ModAttributes.PRECISION_MINING)
                 .add(ModAttributes.BREAKING_RANGE)
                 .add(ModAttributes.MOVEMENT_SPEED)
-                .add(ModAttributes.LUCK);
+                .add(ModAttributes.FLYING_SPEED)
+                .add(ModAttributes.LUCK)
+                .add(ModAttributes.CROP_FORTUNE)
+                .add(ModAttributes.LOG_FORTUNE)
+                .add(ModAttributes.DIG_FORTUNE)
+                .add(ModAttributes.CROP_EXPERIENCE)
+
+                // Percentage damage
+                .add(ModAttributes.ATTACK_DAMAGE_PERCENT)
+                .add(ModAttributes.FIRE_DAMAGE_PERCENT)
+                .add(ModAttributes.COLD_DAMAGE_PERCENT)
+                .add(ModAttributes.LIGHTNING_DAMAGE_PERCENT)
+                .add(ModAttributes.VOID_DAMAGE_PERCENT)
+                .add(ModAttributes.RELOAD_SPEED);
 
         cir.setReturnValue(builder);
     }

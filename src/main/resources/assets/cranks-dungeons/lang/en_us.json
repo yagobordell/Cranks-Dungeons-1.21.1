@@ -84,6 +84,7 @@
   "enchantment.minecraft.crit_chance": "+7.5% Critical Strike Chance",
   "enchantment.minecraft.chance_to_burn": "+20% Chance To Burn",
   "enchantment.minecraft.chance_to_poison": "+20% Chance To Poison",
+  "enchantment.minecraft.chance_to_freeze": "+20% Chance To Freeze",
   "enchantment.minecraft.life_steal": "+6% Life Steal",
   "enchantment.minecraft.bonus_knockback": "+35% Knockback",
   "enchantment.minecraft.attack_range": "+0.5 Attack Range",
@@ -114,6 +115,7 @@
 
   "effect.cranks-dungeons.burn": "Burning",
   "effect.cranks-dungeons.poison": "Poison",
+  "effect.cranks-dungeons.freeze": "Frozen",
 
   "potion.potency.0": " +1",
   "potion.potency.1": " +2",

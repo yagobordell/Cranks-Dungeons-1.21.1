@@ -113,6 +113,13 @@ public class AilmentManager {
                     target.addStatusEffect(instance);
                 }
             }
+            case FREEZE -> {
+                StatusEffectInstance instance = StatusEffectHelper.create(
+                        ModEffects.FREEZE, ticks, 0, false, true, true);
+                if (instance != null) {
+                    target.addStatusEffect(instance);
+                }
+            }
             default -> {}
         }
     }
@@ -312,6 +319,8 @@ public class AilmentManager {
             target.removeStatusEffect(ModEffects.POISON);
         } else if (type == AilmentType.BURN) {
             target.removeStatusEffect(ModEffects.BURN);
+        } else if (type == AilmentType.FREEZE) {
+            target.removeStatusEffect(ModEffects.FREEZE);
         }
     }
 
@@ -319,6 +328,7 @@ public class AilmentManager {
         ENTITY_AILMENTS.remove(target.getUuid());
         target.removeStatusEffect(ModEffects.POISON);
         target.removeStatusEffect(ModEffects.BURN);
+        target.removeStatusEffect(ModEffects.FREEZE);
     }
 
     public static double getAilmentDuration(LivingEntity target, AilmentType type) {

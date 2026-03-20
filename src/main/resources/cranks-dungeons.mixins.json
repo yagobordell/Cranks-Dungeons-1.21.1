@@ -70,7 +70,9 @@
 		"MobAttributeMixin$Shulker",
 		"MobAttributeMixin$Evoker",
 		"WitherResistanceReductionMixin",
-		"WitherDamageCancelMixin"
+		"WitherDamageCancelMixin",
+		"FreezeSlowdownMixin",
+		"FreezeSoundMixin"
 	],
 	"client": [
 		"HideArmorAttributeMixin",

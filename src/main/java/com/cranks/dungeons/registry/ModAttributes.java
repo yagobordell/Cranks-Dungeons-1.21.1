@@ -49,6 +49,8 @@ public class ModAttributes {
     public static final RegistryEntry<EntityAttribute> POISON_BASE_DAMAGE = register("poison_base_damage", 1.0, 0.0, 100.0);
     public static final RegistryEntry<EntityAttribute> POISON_DAMAGE_PERCENT = register("poison_damage_percent", 0.0, 0.0, 100.0);
 
+    public static final RegistryEntry<EntityAttribute> CHANCE_TO_FREEZE = register("chance_to_freeze", 0.0, 0.0, 1.0);
+
     public static final RegistryEntry<EntityAttribute> ATTACK_RANGE = register("attack_range", 0.0, 0.0, 10.0);
     public static final RegistryEntry<EntityAttribute> ATTACK_SPEED = register("attack_speed", 0.0, 0.0, 10.0);
     public static final RegistryEntry<EntityAttribute> KNOCKBACK = register("knockback", 0.0, 0.0, 2.0);

@@ -28,6 +28,7 @@ public class AilmentCommand {
                     .then(argument("type", StringArgumentType.word())
                             .then(argument("targets", EntityArgumentType.entities())
                                     .then(argument("duration", FloatArgumentType.floatArg(0.1f, 60.0f))
+                                            .executes(AilmentCommand::executeApplyNoDamage)
                                             .then(argument("damage", FloatArgumentType.floatArg(0.1f, 1000.0f))
                                                     .executes(AilmentCommand::executeApply)))))
                     .then(literal("clear")
@@ -36,11 +37,19 @@ public class AilmentCommand {
         });
     }
 
+    private static int executeApplyNoDamage(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        return executeApplyWithDamage(context, 0.0f);
+    }
+
     private static int executeApply(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        float damage = FloatArgumentType.getFloat(context, "damage");
+        return executeApplyWithDamage(context, damage);
+    }
+
+    private static int executeApplyWithDamage(CommandContext<ServerCommandSource> context, float damage) throws CommandSyntaxException {
         String typeStr = StringArgumentType.getString(context, "type");
         Collection<? extends Entity> targets = EntityArgumentType.getEntities(context, "targets");
         float duration = FloatArgumentType.getFloat(context, "duration");
-        float damage = FloatArgumentType.getFloat(context, "damage");
 
         AilmentType type = AilmentType.fromId(typeStr.toLowerCase());
         if (type == null) {
@@ -48,16 +57,23 @@ public class AilmentCommand {
             return 0;
         }
 
+        // For damaging ailments without damage parameter, use default damage
+        final float finalDamage = (damage == 0.0f && type.dealsDamage()) ? 1.0f : damage;
+
         int[] affected = {0};
         targets.forEach(entity -> {
             if (entity instanceof LivingEntity living) {
-                AilmentManager.applyAilment(living, type, damage, (double)duration, context.getSource().getEntity());
+                AilmentManager.applyAilment(living, type, finalDamage, (double)duration, context.getSource().getEntity());
                 affected[0]++;
             }
         });
 
         final int finalAffected = affected[0];
-        context.getSource().sendFeedback(() -> Text.literal("Applied " + typeStr + " to " + finalAffected + " entities (duration: " + duration + "s, damage: " + damage + ")"), true);
+        if (type.dealsDamage()) {
+            context.getSource().sendFeedback(() -> Text.literal("Applied " + typeStr + " to " + finalAffected + " entities (duration: " + duration + "s, damage: " + finalDamage + ")"), true);
+        } else {
+            context.getSource().sendFeedback(() -> Text.literal("Applied " + typeStr + " to " + finalAffected + " entities (duration: " + duration + "s)"), true);
+        }
         return finalAffected;
     }
 

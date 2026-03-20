@@ -11,6 +11,7 @@ public class ModEffects {
 
     public static RegistryEntry<StatusEffect> BURN;
     public static RegistryEntry<StatusEffect> POISON;
+    public static RegistryEntry<StatusEffect> FREEZE;
 
     public static void registerEffects() {
         Identifier burnId = Identifier.of(CranksDungeons.MOD_ID, "burn");
@@ -20,6 +21,10 @@ public class ModEffects {
         Identifier poisonId = Identifier.of(CranksDungeons.MOD_ID, "poison");
         Registry.register(Registries.STATUS_EFFECT, poisonId, new PoisonStatusEffect());
         POISON = Registries.STATUS_EFFECT.getEntry(poisonId).orElseThrow();
+
+        Identifier freezeId = Identifier.of(CranksDungeons.MOD_ID, "freeze");
+        Registry.register(Registries.STATUS_EFFECT, freezeId, new FreezeStatusEffect());
+        FREEZE = Registries.STATUS_EFFECT.getEntry(freezeId).orElseThrow();
 
         CranksDungeons.LOGGER.info("Registering effects for " + CranksDungeons.MOD_ID);
     }

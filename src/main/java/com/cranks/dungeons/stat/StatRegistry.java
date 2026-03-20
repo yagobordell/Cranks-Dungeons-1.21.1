@@ -854,7 +854,7 @@ public class StatRegistry {
 
         register(new CustomStat(
                 "sword_chance_to_burn",
-                "Chance to burn",
+                "Burn Chance",
                 EquipmentType.SWORD,
                 ModAttributes.CHANCE_TO_BURN,
                 new double[]{0.01, 0.03, 0.05, 0.08, 0.12},
@@ -866,7 +866,7 @@ public class StatRegistry {
 
         register(new CustomStat(
                 "sword_chance_to_poison",
-                "Chance to poison",
+                "Poison Chance",
                 EquipmentType.SWORD,
                 ModAttributes.CHANCE_TO_POISON,
                 new double[]{0.01, 0.03, 0.05, 0.08, 0.12},
@@ -874,6 +874,18 @@ public class StatRegistry {
                 true,
                 true,
                 Formatting.GREEN
+        ));
+
+        register(new CustomStat(
+                "sword_chance_to_freeze",
+                "Freeze Chance",
+                EquipmentType.SWORD,
+                ModAttributes.CHANCE_TO_FREEZE,
+                new double[]{0.01, 0.03, 0.05, 0.08, 0.12},
+                new double[]{0.02, 0.05, 0.08, 0.12, 0.18},
+                true,
+                true,
+                Formatting.AQUA
         ));
 
         register(new CustomStat(
@@ -1076,7 +1088,7 @@ public class StatRegistry {
 
         register(new CustomStat(
                 "spear_chance_to_burn",
-                "Chance to burn",
+                "Burn Chance",
                 EquipmentType.SPEAR,
                 ModAttributes.CHANCE_TO_BURN,
                 new double[]{0.01, 0.03, 0.05, 0.08, 0.12},
@@ -1088,7 +1100,7 @@ public class StatRegistry {
 
         register(new CustomStat(
                 "spear_chance_to_poison",
-                "Chance to poison",
+                "Poison Chance",
                 EquipmentType.SPEAR,
                 ModAttributes.CHANCE_TO_POISON,
                 new double[]{0.01, 0.03, 0.05, 0.08, 0.12},
@@ -1096,6 +1108,18 @@ public class StatRegistry {
                 true,
                 true,
                 Formatting.GREEN
+        ));
+
+        register(new CustomStat(
+                "spear_chance_to_freeze",
+                "Freeze Chance",
+                EquipmentType.SPEAR,
+                ModAttributes.CHANCE_TO_FREEZE,
+                new double[]{0.01, 0.03, 0.05, 0.08, 0.12},
+                new double[]{0.02, 0.05, 0.08, 0.12, 0.18},
+                true,
+                true,
+                Formatting.AQUA
         ));
 
         register(new CustomStat(
@@ -1276,7 +1300,7 @@ public class StatRegistry {
 
         register(new CustomStat(
                 "mace_chance_to_burn",
-                "Chance to burn",
+                "Burn Chance",
                 EquipmentType.MACE,
                 ModAttributes.CHANCE_TO_BURN,
                 new double[]{0.01, 0.03, 0.05, 0.08, 0.12},
@@ -1288,7 +1312,7 @@ public class StatRegistry {
 
         register(new CustomStat(
                 "mace_chance_to_poison",
-                "Chance to poison",
+                "Poison Chance",
                 EquipmentType.MACE,
                 ModAttributes.CHANCE_TO_POISON,
                 new double[]{0.01, 0.03, 0.05, 0.08, 0.12},
@@ -1296,6 +1320,18 @@ public class StatRegistry {
                 true,
                 true,
                 Formatting.GREEN
+        ));
+
+        register(new CustomStat(
+                "mace_chance_to_freeze",
+                "Freeze Chance",
+                EquipmentType.MACE,
+                ModAttributes.CHANCE_TO_FREEZE,
+                new double[]{0.01, 0.03, 0.05, 0.08, 0.12},
+                new double[]{0.02, 0.05, 0.08, 0.12, 0.18},
+                true,
+                true,
+                Formatting.AQUA
         ));
 
         register(new CustomStat(
@@ -1487,7 +1523,7 @@ public class StatRegistry {
 
         register(new CustomStat(
                 "trident_chance_to_burn",
-                "Chance to burn",
+                "Burn Chance",
                 EquipmentType.TRIDENT,
                 ModAttributes.CHANCE_TO_BURN,
                 new double[]{0.01, 0.03, 0.05, 0.08, 0.12},
@@ -1499,7 +1535,7 @@ public class StatRegistry {
 
         register(new CustomStat(
                 "trident_chance_to_poison",
-                "Chance to poison",
+                "Poison Chance",
                 EquipmentType.TRIDENT,
                 ModAttributes.CHANCE_TO_POISON,
                 new double[]{0.01, 0.03, 0.05, 0.08, 0.12},
@@ -1507,6 +1543,18 @@ public class StatRegistry {
                 true,
                 true,
                 Formatting.GREEN
+        ));
+
+        register(new CustomStat(
+                "trident_chance_to_freeze",
+                "Freeze Chance",
+                EquipmentType.TRIDENT,
+                ModAttributes.CHANCE_TO_FREEZE,
+                new double[]{0.01, 0.03, 0.05, 0.08, 0.12},
+                new double[]{0.02, 0.05, 0.08, 0.12, 0.18},
+                true,
+                true,
+                Formatting.AQUA
         ));
 
         register(new CustomStat(
@@ -1686,7 +1734,7 @@ public class StatRegistry {
 
         register(new CustomStat(
                 "bow_chance_to_burn",
-                "Chance to burn",
+                "Burn Chance",
                 EquipmentType.BOW,
                 ModAttributes.CHANCE_TO_BURN,
                 new double[]{0.01, 0.03, 0.05, 0.08, 0.12},
@@ -1874,7 +1922,7 @@ public class StatRegistry {
 
         register(new CustomStat(
                 "crossbow_chance_to_burn",
-                "Chance to burn",
+                "Burn Chance",
                 EquipmentType.CROSSBOW,
                 ModAttributes.CHANCE_TO_BURN,
                 new double[]{0.01, 0.03, 0.05, 0.08, 0.12},

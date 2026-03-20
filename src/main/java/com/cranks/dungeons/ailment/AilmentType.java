@@ -5,7 +5,7 @@ public enum AilmentType {
     BLEED("bleed", 5.0, 0.5),
     POISON("poison", 2.0, 0.5),
     SHOCK("shock", 3.0, 0.0),
-    FREEZE("freeze", 3.0, 0.0);
+    FREEZE("freeze", 4.0, 0.5);
 
     private final String id;
     private final double baseDuration;
@@ -36,5 +36,9 @@ public enum AilmentType {
             }
         }
         return null;
+    }
+
+    public boolean dealsDamage() {
+        return this == BURN || this == BLEED || this == POISON;
     }
 }
