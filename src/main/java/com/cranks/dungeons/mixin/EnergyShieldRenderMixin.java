@@ -68,8 +68,6 @@ public abstract class EnergyShieldRenderMixin {
         int totalShieldHearts = (int) Math.ceil(maxShield / 2.0);
         int fullShieldHearts = (int) (currentShield / 2.0);
         boolean hasHalfShield = (currentShield % 2.0f) >= 1.0f;
-        int maxHealthHearts = (int) Math.ceil(maxHealth / 2.0f);
-        int absorptionHearts = (int) Math.ceil(absorption / 2.0f);
 
         // Check if shield changed (damage or regeneration) and update blink timer
         long currentTime = System.currentTimeMillis();
@@ -87,13 +85,17 @@ public abstract class EnergyShieldRenderMixin {
             shieldBlinking = phase == 0; // Show blinking texture in phases 0 and 2
         }
 
+        // Calculate how many rows the health bar takes up
+        int totalHealthHearts = (int) Math.ceil((maxHealth + absorption) / 2.0f);
+        int healthRows = (int) Math.ceil(totalHealthHearts / 10.0);
+        
+        // Render shields on a new row ABOVE the health bar
         for (int i = 0; i < totalShieldHearts; i++) {
-            // Shield hearts start after health hearts AND absorption hearts
-            int heartIndex = maxHealthHearts + absorptionHearts + i;
-            int row = heartIndex / 10;
-            int col = heartIndex % 10;
+            int row = i / 10;
+            int col = i % 10;
             int heartX = x + col * 8;
-            int heartY = y - row * 10;
+            // Position above health bar: subtract (row + healthRows) * 10
+            int heartY = y - (row + healthRows) * 10;
 
             // Draw vanilla container first (background) - use blinking container when shield is damaged
             Identifier containerTexture = shieldBlinking ? 
