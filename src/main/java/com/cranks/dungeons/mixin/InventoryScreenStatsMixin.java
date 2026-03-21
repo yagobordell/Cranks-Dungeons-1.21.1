@@ -199,16 +199,16 @@ public abstract class InventoryScreenStatsMixin {
             context.drawText(tr, Text.literal("☠ Ailments"), panelX + 6, curY, 0xFF404040, false);
             curY += 11;
             double chanceToBurn = player.getAttributeValue(ModAttributes.CHANCE_TO_BURN);
-            chanceToBurn += getEnchantmentValue(weapon, "minecraft:chance_to_burn", 0.2);
-            chanceToBurn += getEnchantmentValue(chestplate, "minecraft:chance_to_burn", 0.2);
+            chanceToBurn += getEnchantmentValue(weapon, "minecraft:chance_to_burn", 0.05);
+            chanceToBurn += getEnchantmentValue(chestplate, "minecraft:chance_to_burn", 0.05);
             curY = drawStatWithTooltip(context, tr, panelX, curY, "Burn Chance", chanceToBurn * 100, "%", mouseX, mouseY, panelX, panelWidth);
             double chanceToPoison = player.getAttributeValue(ModAttributes.CHANCE_TO_POISON);
-            chanceToPoison += getEnchantmentValue(weapon, "minecraft:chance_to_poison", 0.2);
-            chanceToPoison += getEnchantmentValue(chestplate, "minecraft:chance_to_poison", 0.2);
+            chanceToPoison += getEnchantmentValue(weapon, "minecraft:chance_to_poison", 0.05);
+            chanceToPoison += getEnchantmentValue(chestplate, "minecraft:chance_to_poison", 0.05);
             curY = drawStatWithTooltip(context, tr, panelX, curY, "Poison Chance", chanceToPoison * 100, "%", mouseX, mouseY, panelX, panelWidth);
             double chanceToFreeze = player.getAttributeValue(ModAttributes.CHANCE_TO_FREEZE);
-            chanceToFreeze += getEnchantmentValue(weapon, "minecraft:chance_to_freeze", 0.2);
-            chanceToFreeze += getEnchantmentValue(chestplate, "minecraft:chance_to_freeze", 0.2);
+            chanceToFreeze += getEnchantmentValue(weapon, "minecraft:chance_to_freeze", 0.05);
+            chanceToFreeze += getEnchantmentValue(chestplate, "minecraft:chance_to_freeze", 0.05);
             curY = drawStatWithTooltip(context, tr, panelX, curY, "Freeze Chance", chanceToFreeze * 100, "%", mouseX, mouseY, panelX, panelWidth);
             curY += 6;
 

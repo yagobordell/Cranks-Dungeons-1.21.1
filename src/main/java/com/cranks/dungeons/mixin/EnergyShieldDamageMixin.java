@@ -113,7 +113,7 @@ public class EnergyShieldDamageMixin {
             // Cancel vanilla damage: no health lost when shield fully absorbs
             cir.setReturnValue(false);
         } else {
-            // Shield cannot fully absorb: it breaks and health takes damage
+            // Shield breaks but absorbs ALL damage from this hit (no overflow to health)
             provider.cranksdungeons$setCurrentEnergyShield(0.0f);
             provider.cranksdungeons$setLastDamageTime(currentTime);
             ServerPlayNetworking.send(serverPlayer, new EnergyShieldSyncPacket(0.0f));
@@ -140,7 +140,8 @@ public class EnergyShieldDamageMixin {
                 );
             }
 
-            // Do NOT cancel here – let vanilla damage reduce health & hearts
+            // Cancel damage - shield broke but absorbed the entire hit (no overflow damage)
+            cir.setReturnValue(false);
         }
     }
 }

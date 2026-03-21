@@ -22,6 +22,8 @@
     "minecraft:attack_speed",
     "minecraft:crit_chance",
     "minecraft:chance_to_burn",
+    "minecraft:chance_to_poison",
+    "minecraft:chance_to_freeze",
     "minecraft:life_steal",
     "minecraft:bonus_knockback",
     "minecraft:attack_range",

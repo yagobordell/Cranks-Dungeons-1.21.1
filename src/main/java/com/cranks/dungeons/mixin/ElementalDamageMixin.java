@@ -209,8 +209,8 @@ public abstract class ElementalDamageMixin {
             double chanceToBurn = attacker.getAttributeValue(ModAttributes.CHANCE_TO_BURN) + 
                                 EquipmentStatApplier.getItemStatValue(weapon, "chance_to_burn") + 
                                 EquipmentStatApplier.getItemStatValue(chestplate, "chance_to_burn") +
-                                getEnchantmentValue(weapon, "minecraft:chance_to_burn", 0.2) +
-                                getEnchantmentValue(chestplate, "minecraft:chance_to_burn", 0.2);
+                                getEnchantmentValue(weapon, "minecraft:chance_to_burn", 0.05) +
+                                getEnchantmentValue(chestplate, "minecraft:chance_to_burn", 0.05);
 
             if (Math.random() < chanceToBurn) {
                 float burnBaseDamage = (float) attacker.getAttributeValue(ModAttributes.BURN_BASE_DAMAGE);
@@ -220,12 +220,26 @@ public abstract class ElementalDamageMixin {
 
             // Poison
             double chanceToPoison = attacker.getAttributeValue(ModAttributes.CHANCE_TO_POISON) + 
-                                  EquipmentStatApplier.getItemStatValue(weapon, "chance_to_poison");
+                                  EquipmentStatApplier.getItemStatValue(weapon, "chance_to_poison") + 
+                                  EquipmentStatApplier.getItemStatValue(chestplate, "chance_to_poison") +
+                                  getEnchantmentValue(weapon, "minecraft:chance_to_poison", 0.05) +
+                                  getEnchantmentValue(chestplate, "minecraft:chance_to_poison", 0.05);
             
             if (Math.random() < chanceToPoison) {
                 float poisonBaseDamage = (float) attacker.getAttributeValue(ModAttributes.POISON_BASE_DAMAGE);
                 float poisonDamagePercent = (float) attacker.getAttributeValue(ModAttributes.POISON_DAMAGE_PERCENT);
                 AilmentManager.applyAilment(target, AilmentType.POISON, poisonBaseDamage * (1.0f + poisonDamagePercent / 100f), AilmentType.POISON.getBaseDuration(), attacker);
+            }
+
+            // Freeze
+            double chanceToFreeze = attacker.getAttributeValue(ModAttributes.CHANCE_TO_FREEZE) + 
+                                  EquipmentStatApplier.getItemStatValue(weapon, "chance_to_freeze") + 
+                                  EquipmentStatApplier.getItemStatValue(chestplate, "chance_to_freeze") +
+                                  getEnchantmentValue(weapon, "minecraft:chance_to_freeze", 0.05) +
+                                  getEnchantmentValue(chestplate, "minecraft:chance_to_freeze", 0.05);
+            
+            if (Math.random() < chanceToFreeze) {
+                AilmentManager.applyAilment(target, AilmentType.FREEZE, 0.0f, AilmentType.FREEZE.getBaseDuration(), attacker);
             }
 
         } finally {
