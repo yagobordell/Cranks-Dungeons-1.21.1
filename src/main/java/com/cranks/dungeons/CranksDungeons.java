@@ -74,6 +74,11 @@ public class CranksDungeons implements ModInitializer {
 						.add(ModAttributes.CHANCE_TO_BURN, 0.0)
 						.add(ModAttributes.BURN_BASE_DAMAGE, 3.0)
 						.add(ModAttributes.BURN_DAMAGE_PERCENT, 100.0)
+						.add(ModAttributes.CHANCE_TO_POISON, 0.0)
+						.add(ModAttributes.POISON_BASE_DAMAGE, 1.0)
+						.add(ModAttributes.POISON_DAMAGE_PERCENT, 0.0)
+						.add(ModAttributes.CHANCE_TO_FREEZE, 0.0)
+						.add(ModAttributes.CHANCE_TO_BLEED, 0.0)
 		);
 
 		registerCreativeTabItems();

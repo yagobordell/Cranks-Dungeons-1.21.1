@@ -1,11 +1,11 @@
 package com.cranks.dungeons.damage;
 
-import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Vec3d;
 
 import java.util.List;
 
@@ -48,6 +48,9 @@ public class DamageNumberRenderer {
 
         for (DamageNumber number : numbers) {
             if (number.isExpired()) continue;
+
+            // Update position to follow entity if it exists
+            updateNumberPosition(number, client);
 
             double worldX = number.position.x + number.offsetX;
             double worldY = number.getCurrentY();
@@ -153,5 +156,48 @@ public class DamageNumberRenderer {
         }
     }
 
+    /**
+     * Updates the damage number's position to follow its entity smoothly.
+     * If the entity despawned, freezes at last known position.
+     */
+    private static void updateNumberPosition(DamageNumber number, MinecraftClient client) {
+        if (number.entityDespawned) return;
+        if (number.victimUuid == null) return;
 
+        Entity entity = client.world.getEntity(number.victimUuid);
+        
+        if (entity != null && entity.isAlive()) {
+            // Entity exists - calculate target position with rotation
+            Vec3d entityPos = new Vec3d(entity.getX(), entity.getY() + entity.getHeight() / 2, entity.getZ());
+            
+            // Apply entity rotation to hit offset
+            Vec3d rotatedOffset = rotateOffsetByEntity(number.hitOffset, entity);
+            
+            // Target position is entity center + rotated hit offset
+            Vec3d targetPos = entityPos.add(rotatedOffset);
+            
+            // Smoothly interpolate to target position
+            number.updatePositionToFollow(targetPos);
+        } else {
+            // Entity despawned - freeze at last known position
+            number.onEntityDespawned();
+        }
+    }
+
+    /**
+     * Rotates the hit offset based on the entity's current yaw rotation
+     */
+    private static Vec3d rotateOffsetByEntity(Vec3d offset, Entity entity) {
+        float yaw = entity.getYaw();
+        float yawRad = (float) Math.toRadians(yaw);
+        
+        double cosYaw = Math.cos(yawRad);
+        double sinYaw = Math.sin(yawRad);
+        
+        // Rotate the offset around Y axis
+        double newX = offset.x * cosYaw - offset.z * sinYaw;
+        double newZ = offset.x * sinYaw + offset.z * cosYaw;
+        
+        return new Vec3d(newX, offset.y, newZ);
+    }
 }

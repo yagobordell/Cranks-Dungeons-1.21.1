@@ -208,5 +208,14 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
                 world.spawnParticles(ParticleTypes.SNOWFLAKE, snowX, snowY, snowZ, 1, 0.05, 0.02, 0.05, 0.01);
             }
         }
+
+        if (AilmentManager.hasAilment(entity, AilmentType.BLEED)) {
+            if (entity.getRandom().nextFloat() > 0.4f) return;
+            ServerWorld world = (ServerWorld) entity.getEntityWorld();
+            double x = entity.getX() + (world.getRandom().nextDouble() - 0.5) * 0.7;
+            double y = entity.getY() + entity.getHeight() * 0.5 + (world.getRandom().nextDouble() - 0.5) * 0.5;
+            double z = entity.getZ() + (world.getRandom().nextDouble() - 0.5) * 0.7;
+            world.spawnParticles(ParticleTypes.RAID_OMEN, x, y, z, 2, 0.1, 0.1, 0.1, 0.05);
+        }
     }
 }

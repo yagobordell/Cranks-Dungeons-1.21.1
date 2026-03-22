@@ -71,6 +71,23 @@ public class CustomAilmentHeartRenderMixin {
     @Unique
     private static final Identifier FREEZE_HARDCORE_HALF_BLINKING = Identifier.of(CranksDungeons.MOD_ID, "hud/heart/freeze/hardcore_half_blinking");
 
+    @Unique
+    private static final Identifier BLEED_FULL = Identifier.of(CranksDungeons.MOD_ID, "hud/heart/bleed/full");
+    @Unique
+    private static final Identifier BLEED_HALF = Identifier.of(CranksDungeons.MOD_ID, "hud/heart/bleed/half");
+    @Unique
+    private static final Identifier BLEED_FULL_BLINKING = Identifier.of(CranksDungeons.MOD_ID, "hud/heart/bleed/full_blinking");
+    @Unique
+    private static final Identifier BLEED_HALF_BLINKING = Identifier.of(CranksDungeons.MOD_ID, "hud/heart/bleed/half_blinking");
+    @Unique
+    private static final Identifier BLEED_HARDCORE_FULL = Identifier.of(CranksDungeons.MOD_ID, "hud/heart/bleed/hardcore_full");
+    @Unique
+    private static final Identifier BLEED_HARDCORE_HALF = Identifier.of(CranksDungeons.MOD_ID, "hud/heart/bleed/hardcore_half");
+    @Unique
+    private static final Identifier BLEED_HARDCORE_FULL_BLINKING = Identifier.of(CranksDungeons.MOD_ID, "hud/heart/bleed/hardcore_full_blinking");
+    @Unique
+    private static final Identifier BLEED_HARDCORE_HALF_BLINKING = Identifier.of(CranksDungeons.MOD_ID, "hud/heart/bleed/hardcore_half_blinking");
+
     // Energy Shield textures
     @Unique
     private static final Identifier SHIELD_FULL = Identifier.of(CranksDungeons.MOD_ID, "hud/heart/shield/full");
@@ -93,12 +110,14 @@ public class CustomAilmentHeartRenderMixin {
 
     @Inject(method = "renderHealthBar", at = @At("HEAD"), cancellable = true)
     private void drawCustomHearts(DrawContext context, PlayerEntity player, int x, int y, int lines, int regeneratingHeartIndex, float maxHealth, int lastHealth, int health, int absorption, boolean blinking, CallbackInfo ci) {
-        // Check if player has custom ailment (Priority: Poison > Burn > Freeze)
+        // Check if player has custom ailment (Priority: Poison > Burn > Bleed > Freeze)
         AilmentType ailment = null;
         if (AilmentManager.hasAilment(player, AilmentType.POISON)) {
             ailment = AilmentType.POISON;
         } else if (AilmentManager.hasAilment(player, AilmentType.BURN)) {
             ailment = AilmentType.BURN;
+        } else if (AilmentManager.hasAilment(player, AilmentType.BLEED)) {
+            ailment = AilmentType.BLEED;
         } else if (AilmentManager.hasAilment(player, AilmentType.FREEZE)) {
             ailment = AilmentType.FREEZE;
         }
@@ -293,6 +312,14 @@ public class CustomAilmentHeartRenderMixin {
             } else {
                 if (half) return blinking ? BURN_HALF_BLINKING : BURN_HALF;
                 return blinking ? BURN_FULL_BLINKING : BURN_FULL;
+            }
+        } else if (ailment == AilmentType.BLEED) {
+            if (hardcore) {
+                if (half) return blinking ? BLEED_HARDCORE_HALF_BLINKING : BLEED_HARDCORE_HALF;
+                return blinking ? BLEED_HARDCORE_FULL_BLINKING : BLEED_HARDCORE_FULL;
+            } else {
+                if (half) return blinking ? BLEED_HALF_BLINKING : BLEED_HALF;
+                return blinking ? BLEED_FULL_BLINKING : BLEED_FULL;
             }
         } else if (ailment == AilmentType.FREEZE) {
             if (hardcore) {

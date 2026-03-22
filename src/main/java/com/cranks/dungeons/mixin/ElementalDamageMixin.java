@@ -58,6 +58,9 @@ public abstract class ElementalDamageMixin {
 
         LivingEntity target = (LivingEntity) (Object) this;
 
+        // Accumulate bleed damage if target has bleed ailment
+        AilmentManager.accumulateBleedDamage(target, amount);
+
         if (source.getAttacker() instanceof PlayerEntity attacker) {
             handlePlayerAttacker(world, source, amount, attacker, target);
         } else {
@@ -232,14 +235,25 @@ public abstract class ElementalDamageMixin {
             }
 
             // Freeze
-            double chanceToFreeze = attacker.getAttributeValue(ModAttributes.CHANCE_TO_FREEZE) + 
-                                  EquipmentStatApplier.getItemStatValue(weapon, "chance_to_freeze") + 
+            double chanceToFreeze = attacker.getAttributeValue(ModAttributes.CHANCE_TO_FREEZE) +
+                                  EquipmentStatApplier.getItemStatValue(weapon, "chance_to_freeze") +
                                   EquipmentStatApplier.getItemStatValue(chestplate, "chance_to_freeze") +
                                   getEnchantmentValue(weapon, "minecraft:chance_to_freeze", 0.05) +
                                   getEnchantmentValue(chestplate, "minecraft:chance_to_freeze", 0.05);
-            
+
             if (Math.random() < chanceToFreeze) {
                 AilmentManager.applyAilment(target, AilmentType.FREEZE, 0.0f, AilmentType.FREEZE.getBaseDuration(), attacker);
+            }
+
+            // Bleed
+            double chanceToBleed = attacker.getAttributeValue(ModAttributes.CHANCE_TO_BLEED) +
+                                  EquipmentStatApplier.getItemStatValue(weapon, "chance_to_bleed") +
+                                  EquipmentStatApplier.getItemStatValue(chestplate, "chance_to_bleed") +
+                                  getEnchantmentValue(weapon, "minecraft:chance_to_bleed", 0.05) +
+                                  getEnchantmentValue(chestplate, "minecraft:chance_to_bleed", 0.05);
+
+            if (Math.random() < chanceToBleed) {
+                AilmentManager.applyAilment(target, AilmentType.BLEED, 0.0f, AilmentType.BLEED.getBaseDuration(), attacker);
             }
 
         } finally {

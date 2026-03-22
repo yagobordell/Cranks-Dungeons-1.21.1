@@ -198,18 +198,43 @@ public abstract class InventoryScreenStatsMixin {
             // --- CATEGORY 3: AILMENTS ---
             context.drawText(tr, Text.literal("☠ Ailments"), panelX + 6, curY, 0xFF404040, false);
             curY += 11;
+
+            // BURN stats
             double chanceToBurn = player.getAttributeValue(ModAttributes.CHANCE_TO_BURN);
             chanceToBurn += getEnchantmentValue(weapon, "minecraft:chance_to_burn", 0.05);
             chanceToBurn += getEnchantmentValue(chestplate, "minecraft:chance_to_burn", 0.05);
             curY = drawStatWithTooltip(context, tr, panelX, curY, "Burn Chance", chanceToBurn * 100, "%", mouseX, mouseY, panelX, panelWidth);
+            double burnBaseDamage = player.getAttributeValue(ModAttributes.BURN_BASE_DAMAGE);
+            double burnDamagePercent = player.getAttributeValue(ModAttributes.BURN_DAMAGE_PERCENT);
+            double burnDamage = burnBaseDamage * burnDamagePercent / 100.0;
+            curY = drawStatWithTooltip(context, tr, panelX, curY, "Burn Damage", burnDamage, "", mouseX, mouseY, panelX, panelWidth);
+            curY = drawStatWithTooltip(context, tr, panelX, curY, "Burn Duration", 4.0, "s", mouseX, mouseY, panelX, panelWidth);
+
+            // POISON stats
             double chanceToPoison = player.getAttributeValue(ModAttributes.CHANCE_TO_POISON);
             chanceToPoison += getEnchantmentValue(weapon, "minecraft:chance_to_poison", 0.05);
             chanceToPoison += getEnchantmentValue(chestplate, "minecraft:chance_to_poison", 0.05);
             curY = drawStatWithTooltip(context, tr, panelX, curY, "Poison Chance", chanceToPoison * 100, "%", mouseX, mouseY, panelX, panelWidth);
+            double poisonBaseDamage = player.getAttributeValue(ModAttributes.POISON_BASE_DAMAGE);
+            double poisonDamagePercent = player.getAttributeValue(ModAttributes.POISON_DAMAGE_PERCENT);
+            double poisonDamage = poisonBaseDamage * (1.0 + poisonDamagePercent / 100.0);
+            curY = drawStatWithTooltip(context, tr, panelX, curY, "Poison Damage", poisonDamage, "", mouseX, mouseY, panelX, panelWidth);
+            curY = drawStatWithTooltip(context, tr, panelX, curY, "Poison Duration", 2.0, "s", mouseX, mouseY, panelX, panelWidth);
+            curY = drawStatWithTooltip(context, tr, panelX, curY, "Poison Max Stacks", 20.0, "", mouseX, mouseY, panelX, panelWidth);
+
+            // BLEED stats
+            double chanceToBleed = player.getAttributeValue(ModAttributes.CHANCE_TO_BLEED);
+            chanceToBleed += getEnchantmentValue(weapon, "minecraft:chance_to_bleed", 0.05);
+            chanceToBleed += getEnchantmentValue(chestplate, "minecraft:chance_to_bleed", 0.05);
+            curY = drawStatWithTooltip(context, tr, panelX, curY, "Bleed Chance", chanceToBleed * 100.0, "%", mouseX, mouseY, panelX, panelWidth);
+            curY = drawStatWithTooltip(context, tr, panelX, curY, "Bleed Duration", 5.0, "s", mouseX, mouseY, panelX, panelWidth);
+
+            // FREEZE stats
             double chanceToFreeze = player.getAttributeValue(ModAttributes.CHANCE_TO_FREEZE);
             chanceToFreeze += getEnchantmentValue(weapon, "minecraft:chance_to_freeze", 0.05);
             chanceToFreeze += getEnchantmentValue(chestplate, "minecraft:chance_to_freeze", 0.05);
             curY = drawStatWithTooltip(context, tr, panelX, curY, "Freeze Chance", chanceToFreeze * 100, "%", mouseX, mouseY, panelX, panelWidth);
+            curY = drawStatWithTooltip(context, tr, panelX, curY, "Freeze Duration", 4.0, "s", mouseX, mouseY, panelX, panelWidth);
             curY += 6;
 
             // --- CATEGORY 4: SURVIVAL ---
@@ -319,6 +344,16 @@ public abstract class InventoryScreenStatsMixin {
             case "Knockback" -> "How far enemies are pushed back";
             case "Reload Speed" -> "How much faster bows/crossbows charge";
             case "Burn Chance" -> "Chance to ignite enemies on hit";
+            case "Burn Damage" -> "Fire damage per burn tick";
+            case "Burn Duration" -> "Base duration of burn ailment";
+            case "Poison Chance" -> "Chance to poison enemies on hit";
+            case "Poison Damage" -> "Void damage per poison tick";
+            case "Poison Duration" -> "Base duration of poison ailment";
+            case "Poison Max Stacks" -> "Maximum poison stacks (20)";
+            case "Bleed Chance" -> "Chance to cause bleeding on hit";
+            case "Bleed Duration" -> "Base duration of bleed ailment";
+            case "Freeze Chance" -> "Chance to freeze enemies on hit";
+            case "Freeze Duration" -> "Base duration of freeze ailment";
             case "Fire Damage" -> "Bonus fire damage per hit";
             case "Cold Damage" -> "Bonus cold damage per hit";
             case "Lightning Dmg" -> "Bonus lightning damage per hit";
@@ -448,31 +483,31 @@ public abstract class InventoryScreenStatsMixin {
         // Category header + spacing
         height += 11;
         
-        // Combat stats (7 stats)
-        height += 7 * 10;
+        // Combat stats (6 stats: Attack Damage, Attack Speed, Crit Chance, Attack Range, Knockback, Reload Speed)
+        height += 6 * 10;
         height += 6; // spacing after category
         
         // Elemental category
         height += 11;
-        // Elemental stats (4 stats)
+        // Elemental stats (4 stats: Fire, Cold, Lightning, Void)
         height += 4 * 10;
         height += 6;
         
         // Ailments category
         height += 11;
-        // Ailment stats (3 stats)
-        height += 3 * 10;
+        // Ailment stats (11 stats: burn 3 + poison 4 + bleed 2 + freeze 2)
+        height += 11 * 10;
         height += 6;
         
         // Survival category
         height += 11;
-        // Survival stats (7 stats)
+        // Survival stats (7 stats: Energy Shield, Max Health, Regen, Life Steal, Evasion, Armor, Toughness)
         height += 7 * 10;
         height += 6;
         
         // Resistances category
         height += 11;
-        // Resistance stats (5 stats)
+        // Resistance stats (5 stats: Fire, Cold, Lightning, Void, Knockback)
         height += 5 * 10;
         height += 6;
         
@@ -484,8 +519,8 @@ public abstract class InventoryScreenStatsMixin {
         
         // Gathering sub-header
         height += 10;
-        // Gathering stats (7 stats)
-        height += 7 * 10;
+        // Gathering stats (8 stats: Gather Speed, Repair Chance, Ore, Log, Dig, Crop Fortune, Crop XP, Range)
+        height += 8 * 10;
         
         return height;
     }

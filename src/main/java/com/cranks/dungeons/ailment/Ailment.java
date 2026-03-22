@@ -14,6 +14,7 @@ public class Ailment {
     private int stacks;
     private double maxDuration; // Store original duration for reset
     private float damagePerStack; // Track damage contribution per stack
+    private float storedDamage; // For BLEED: stores accumulated damage
 
     public Ailment(AilmentType type, float baseDamage, UUID sourceUuid) {
         this(type, type.getBaseDuration(), baseDamage, sourceUuid, null, UUID.randomUUID(), 0);
@@ -31,6 +32,7 @@ public class Ailment {
         this.chainUuid = chainUuid;
         this.generation = generation;
         this.stacks = 1;
+        this.storedDamage = 0.0f;
     }
 
     public UUID getChainUuid() {
@@ -140,5 +142,17 @@ public class Ailment {
 
     public void setDamagePerStack(float damage) {
         this.damagePerStack = damage;
+    }
+
+    public float getStoredDamage() {
+        return storedDamage;
+    }
+
+    public void setStoredDamage(float damage) {
+        this.storedDamage = damage;
+    }
+
+    public void addStoredDamage(float damage) {
+        this.storedDamage += damage;
     }
 }

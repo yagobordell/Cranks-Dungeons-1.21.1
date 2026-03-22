@@ -59,5 +59,15 @@
     "sounds": [
       { "name": "cranks-dungeons:freeze_move", "volume": 0.6, "pitch": 1.0 }
     ]
+  },
+  "bleed_hit": {
+    "sounds": [
+      { "name": "cranks-dungeons:bleed_hit", "volume": 0.8, "pitch": 1.0 }
+    ]
+  },
+  "bleed_burst": {
+    "sounds": [
+      { "name": "cranks-dungeons:bleed_burst", "volume": 0.8, "pitch": 1.0 }
+    ]
   }
 }

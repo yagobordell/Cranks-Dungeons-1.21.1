@@ -26,6 +26,8 @@ public class ModSounds {
     public static final SoundEvent BURN_TICK = register("burn_tick");
     public static final SoundEvent POISON_TICK = register("poison_tick");
     public static final SoundEvent FREEZE_MOVE = register("freeze_move");
+    public static final SoundEvent BLEED_HIT = register("bleed_hit");
+    public static final SoundEvent BLEED_BURST = register("bleed_burst");
 
     private static SoundEvent register(String name) {
         Identifier id = Identifier.of(CranksDungeons.MOD_ID, name);

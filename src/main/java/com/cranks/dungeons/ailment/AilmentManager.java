@@ -120,6 +120,13 @@ public class AilmentManager {
                     target.addStatusEffect(instance);
                 }
             }
+            case BLEED -> {
+                StatusEffectInstance instance = StatusEffectHelper.create(
+                        ModEffects.BLEED, ticks, 0, false, true, true);
+                if (instance != null) {
+                    target.addStatusEffect(instance);
+                }
+            }
             default -> {}
         }
     }
@@ -173,6 +180,9 @@ public class AilmentManager {
                     } else if (ailment.getType() == AilmentType.POISON) {
                         // Handle POISON damage (single ailment with stacks)
                         applyPoisonDamage(entity, ailment, damage);
+                    } else if (ailment.getType() == AilmentType.BLEED) {
+                        // BLEED doesn't deal tick damage - only burst damage on expiration
+                        // Skip damage application
                     } else {
                         // Handle other ailments
                         applySingleAilmentDamage(entity, damage, ailment);
@@ -193,6 +203,14 @@ public class AilmentManager {
                         // Update status effect with new stack count
                         applyStatusEffect(entity, AilmentType.POISON, ailment.getRemainingDuration(), ailment.getStacks());
                     }
+                } else if (ailment.getType() == AilmentType.BLEED) {
+                    // For bleed: deal stored damage when it expires
+                    float storedDamage = ailment.getStoredDamage();
+                    if (storedDamage > 0) {
+                        applyBleedBurstDamage(entity, storedDamage, ailment);
+                    }
+                    toRemove.add(ailment);
+                    entity.removeStatusEffect(ModEffects.BLEED);
                 } else {
                     toRemove.add(ailment);
                 }
@@ -227,6 +245,52 @@ public class AilmentManager {
             world.playSound(null, entity.getX(), entity.getY(), entity.getZ(),
                     SoundEvents.ENTITY_GENERIC_BURN, SoundCategory.HOSTILE,
                     0.4f, 1.5f + world.getRandom().nextFloat() * 0.5f);
+        }
+    }
+
+    private static void applyBleedBurstDamage(LivingEntity entity, float storedDamage, Ailment ailment) {
+        if (entity.getEntityWorld().isClient()) return;
+        
+        ServerWorld world = (ServerWorld) entity.getEntityWorld();
+        
+        // Check if damage will kill the entity
+        float currentHealth = entity.getHealth();
+        if (currentHealth - storedDamage <= 0) {
+            // Entity will die - use proper damage source to ensure loot drops
+            net.minecraft.entity.damage.DamageSource damageSource = world.getDamageSources().magic();
+            entity.damage(world, damageSource, storedDamage);
+        } else {
+            // Entity won't die - apply damage directly
+            entity.setHealth(currentHealth - storedDamage);
+            
+            // Bleed burst sound effect (custom - different from hit sound)
+            world.playSound(null, entity.getX(), entity.getY(), entity.getZ(),
+                    ModSounds.BLEED_BURST, SoundCategory.HOSTILE,
+                    0.8f, 0.8f + world.getRandom().nextFloat() * 0.3f);
+            
+            // Broadcast damage numbers as physical (dark red)
+            DamageNumberSender.broadcastBleed(world, entity, storedDamage, ailment.getSourceUuid());
+        }
+    }
+
+    public static void accumulateBleedDamage(LivingEntity entity, float damageReceived) {
+        if (entity.getEntityWorld().isClient()) return;
+        if (!hasAilment(entity, AilmentType.BLEED)) return;
+        
+        List<Ailment> ailments = getAilments(entity);
+        for (Ailment ailment : ailments) {
+            if (ailment.getType() == AilmentType.BLEED) {
+                // Store 10% of damage received
+                float damageToStore = damageReceived * 0.10f;
+                ailment.addStoredDamage(damageToStore);
+                
+                // Play bleed hit sound when entity gets hit while bleeding
+                ServerWorld world = (ServerWorld) entity.getEntityWorld();
+                world.playSound(null, entity.getX(), entity.getY(), entity.getZ(),
+                        ModSounds.BLEED_HIT, SoundCategory.HOSTILE,
+                        0.8f, 0.9f + world.getRandom().nextFloat() * 0.2f);
+                break;
+            }
         }
     }
 
@@ -321,6 +385,8 @@ public class AilmentManager {
             target.removeStatusEffect(ModEffects.BURN);
         } else if (type == AilmentType.FREEZE) {
             target.removeStatusEffect(ModEffects.FREEZE);
+        } else if (type == AilmentType.BLEED) {
+            target.removeStatusEffect(ModEffects.BLEED);
         }
     }
 
@@ -329,6 +395,7 @@ public class AilmentManager {
         target.removeStatusEffect(ModEffects.POISON);
         target.removeStatusEffect(ModEffects.BURN);
         target.removeStatusEffect(ModEffects.FREEZE);
+        target.removeStatusEffect(ModEffects.BLEED);
     }
 
     public static double getAilmentDuration(LivingEntity target, AilmentType type) {

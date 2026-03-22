@@ -78,6 +78,27 @@ public class DamageNumberSender {
         }
     }
 
+    public static void broadcastBleed(ServerWorld world, LivingEntity target, double bleedDamage, UUID attackerUuid) {
+        if (bleedDamage <= 0) return;
+        List<DamageNumberPayload.DamageEntry> entries = new ArrayList<>();
+        // Dark red color for bleed burst damage
+        int bleedColor = 0x8B0000;
+        entries.add(new DamageNumberPayload.DamageEntry(bleedDamage, bleedColor, false));
+
+        Vec3d pos = new Vec3d(
+                target.getX(),
+                target.getY() + target.getHeight() * 0.5,
+                target.getZ()
+        );
+
+        DamageNumberPayload payload = new DamageNumberPayload(pos.x, pos.y, pos.z, entries, false, attackerUuid, target.getUuid());
+        double range = 32.0;
+        List<ServerPlayerEntity> players = world.getPlayers(p -> p.squaredDistanceTo(pos) < range * range);
+        for (ServerPlayerEntity player : players) {
+            ServerPlayNetworking.send(player, payload);
+        }
+    }
+
     public static void broadcast(ServerWorld world, LivingEntity target,
                                  double physicalDamage,
                                  double fireDamage,

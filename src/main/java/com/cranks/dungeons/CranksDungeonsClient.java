@@ -78,6 +78,17 @@ public class CranksDungeonsClient implements ClientModInitializer {
 
                 Vec3d pos = new Vec3d(payload.x(), payload.y(), payload.z());
 
+                // Calculate hit offset from entity center
+                Vec3d hitOffset = Vec3d.ZERO;
+                if (payload.victimUuid() != null && context.client().world != null) {
+                    var entity = context.client().world.getEntity(payload.victimUuid());
+                    if (entity != null) {
+                        // Calculate offset from entity center to hit position
+                        Vec3d entityCenter = new Vec3d(entity.getX(), entity.getY() + entity.getHeight() / 2, entity.getZ());
+                        hitOffset = pos.subtract(entityCenter);
+                    }
+                }
+
                 int count = payload.entries().size();
                 for (int i = 0; i < count; i++) {
                     DamageNumberPayload.DamageEntry entry = payload.entries().get(i);
@@ -115,7 +126,9 @@ public class CranksDungeonsClient implements ClientModInitializer {
                             i,
                             formattedDamageText,
                             formattedDamageWidth,
-                            payload.forceDisplay()
+                            payload.forceDisplay(),
+                            payload.victimUuid(),
+                            hitOffset
                     );
                     DamageNumberManager.addDamageNumber(damageNumber);
                 }

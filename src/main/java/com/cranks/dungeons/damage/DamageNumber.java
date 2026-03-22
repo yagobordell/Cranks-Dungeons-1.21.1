@@ -2,10 +2,12 @@ package com.cranks.dungeons.damage;
 
 import net.minecraft.util.math.Vec3d;
 
+import java.util.UUID;
+
 public class DamageNumber {
     public final double damage;
     public final int color;
-    public final Vec3d position;
+    public Vec3d position;  // Now mutable for entity following
     public final long spawnTime;
     public final double offsetX;
     public final double offsetZ;
@@ -15,6 +17,13 @@ public class DamageNumber {
 
     public static final long LIFETIME = 1500;
     public static final double FLOAT_HEIGHT = 0.4;
+    private static final double LERP_FACTOR = 0.2; // 20% per frame for smooth following
+
+    // NEW: Entity tracking fields
+    public final UUID victimUuid;
+    public final Vec3d hitOffset;  // Offset from entity center where hit occurred
+    public Vec3d lastKnownPosition;
+    public boolean entityDespawned;
 
     // NEW: fixed vertical stack row for this number
     public int rowIndex;
@@ -29,7 +38,9 @@ public class DamageNumber {
 
     public final boolean forceDisplay;
 
-    public DamageNumber(double damage, int color, Vec3d position, double offsetX, double offsetZ, int rowIndex, String formattedDamageText, int formattedDamageWidth, boolean forceDisplay) {
+    public DamageNumber(double damage, int color, Vec3d position, double offsetX, double offsetZ, 
+                       int rowIndex, String formattedDamageText, int formattedDamageWidth, 
+                       boolean forceDisplay, UUID victimUuid, Vec3d hitOffset) {
         this.damage = damage;
         this.color = color;
         this.position = position;
@@ -40,6 +51,10 @@ public class DamageNumber {
         this.formattedDamageText = formattedDamageText;
         this.formattedDamageWidth = formattedDamageWidth;
         this.forceDisplay = forceDisplay;
+        this.victimUuid = victimUuid;
+        this.hitOffset = hitOffset;
+        this.lastKnownPosition = position;
+        this.entityDespawned = false;
     }
 
     public boolean isExpired() {
@@ -72,5 +87,33 @@ public class DamageNumber {
             yOffset = 0.2 + (progress - 0.2f) * 0.3; // Slower float after burst
         }
         return position.y + yOffset;
+    }
+
+    /**
+     * Smoothly updates position to follow an entity
+     * @param targetPosition The entity's current position plus hit offset
+     */
+    public void updatePositionToFollow(Vec3d targetPosition) {
+        if (entityDespawned) return;
+        
+        // Smooth lerp to target position
+        double newX = lerp(position.x, targetPosition.x, LERP_FACTOR);
+        double newY = lerp(position.y, targetPosition.y, LERP_FACTOR);
+        double newZ = lerp(position.z, targetPosition.z, LERP_FACTOR);
+        
+        position = new Vec3d(newX, newY, newZ);
+        lastKnownPosition = position;
+    }
+
+    /**
+     * Call when entity despawns - freezes at last known position
+     */
+    public void onEntityDespawned() {
+        entityDespawned = true;
+        position = lastKnownPosition;
+    }
+
+    private double lerp(double start, double end, double factor) {
+        return start + (end - start) * factor;
     }
 }
