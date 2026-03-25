@@ -1,8 +1,10 @@
 package com.cranks.dungeons;
 
 import com.cranks.dungeons.client.ClientConfigCommand;
+import com.cranks.dungeons.client.ClientEquipmentHandler;
 import com.cranks.dungeons.client.ClientShieldEffects;
 import com.cranks.dungeons.client.EnchantmentToggleHandler;
+import com.cranks.dungeons.client.EnergyShieldHudRenderer;
 import com.cranks.dungeons.client.ModKeybinds;
 import com.cranks.dungeons.config.ModConfig;
 import com.cranks.dungeons.damage.DamageNumber;
@@ -62,6 +64,12 @@ public class CranksDungeonsClient implements ClientModInitializer {
         });
         
         ClientShieldEffects.init();
+        
+        // Register client-side equipment change handler for proper stat sync
+        ClientEquipmentHandler.register();
+        
+        // Register energy shield HUD renderer (works independently of health bar mods)
+        EnergyShieldHudRenderer.register();
         
         // Register the payload receiver
         ClientPlayNetworking.registerGlobalReceiver(DamageNumberPayload.ID, (payload, context) -> {

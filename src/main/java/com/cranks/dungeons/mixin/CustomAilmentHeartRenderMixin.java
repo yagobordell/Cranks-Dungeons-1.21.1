@@ -5,6 +5,7 @@ import com.cranks.dungeons.EnergyShieldProvider;
 import com.cranks.dungeons.ailment.AilmentManager;
 import com.cranks.dungeons.ailment.AilmentType;
 import com.cranks.dungeons.registry.ModAttributes;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
@@ -102,14 +103,27 @@ public class CustomAilmentHeartRenderMixin {
     @Unique
     private float cranks$lastRenderedHealth = -1;
     @Unique
-    private static float cranks$lastRenderedShield = -1;
+    private float cranks$lastRenderedShield = -1;
     @Unique
-    private static long cranks$lastShieldDamageTime = 0;
+    private long cranks$lastShieldDamageTime = 0;
     @Unique
     private static final long SHIELD_BLINK_DURATION = 1000;
+    @Unique
+    private static long lastRenderFrame = -1;
+    
+    // Check if Overflowing Bars is loaded
+    @Unique
+    private static final boolean OVERFLOWING_BARS_LOADED = FabricLoader.getInstance().isModLoaded("overflowingbars");
+
+    @Unique
+    private static boolean debugLogged = false;
 
     @Inject(method = "renderHealthBar", at = @At("HEAD"), cancellable = true)
     private void drawCustomHearts(DrawContext context, PlayerEntity player, int x, int y, int lines, int regeneratingHeartIndex, float maxHealth, int lastHealth, int health, int absorption, boolean blinking, CallbackInfo ci) {
+        if (!debugLogged) {
+            CranksDungeons.LOGGER.info("CustomAilmentHeartRenderMixin.drawCustomHearts called! OverflowingBars loaded: {}", OVERFLOWING_BARS_LOADED);
+            debugLogged = true;
+        }
         // Check if player has custom ailment (Priority: Poison > Burn > Bleed > Freeze)
         AilmentType ailment = null;
         if (AilmentManager.hasAilment(player, AilmentType.POISON)) {
@@ -122,14 +136,148 @@ public class CustomAilmentHeartRenderMixin {
             ailment = AilmentType.FREEZE;
         }
         
-        // If no ailment, let vanilla handle it normally
+        // If no ailment, let vanilla/Overflowing Bars handle it normally
         if (ailment == null) {
             cranks$lastRenderedHealth = -1; // Reset
+            if (OVERFLOWING_BARS_LOADED) {
+                ci.cancel(); // Cancel vanilla, we'll render everything
+                renderWithOverflowingBars(context, player, x, y, lines, regeneratingHeartIndex, maxHealth, lastHealth, health, absorption, blinking, ailment);
+            }
+            // Without Overflowing Bars: EnergyShieldRenderMixin will handle shield rendering at RETURN
             return;
         }
         
-        // Cancel vanilla rendering - we'll draw everything ourselves
-        ci.cancel();
+        if (OVERFLOWING_BARS_LOADED) {
+            // Use compatibility mode with Overflowing Bars
+            ci.cancel();
+            renderWithOverflowingBars(context, player, x, y, lines, regeneratingHeartIndex, maxHealth, lastHealth, health, absorption, blinking, ailment);
+        } else {
+            // Full custom rendering (no Overflowing Bars)
+            ci.cancel();
+            renderFullCustom(context, player, x, y, lines, regeneratingHeartIndex, maxHealth, lastHealth, health, absorption, blinking, ailment);
+        }
+    }
+    
+    @Unique
+    private void renderWithOverflowingBars(DrawContext context, PlayerEntity player, int x, int y, int lines, int regeneratingHeartIndex, float maxHealth, int lastHealth, int health, int absorption, boolean blinking, AilmentType ailment) {
+        boolean hardcore = player.getEntityWorld().getLevelProperties().isHardcore();
+        
+        // Calculate health values
+        int displayHealth = health;
+        int totalHealthRows = (int) Math.ceil((health + absorption) / 20.0);
+        int currentHealthHearts = (int) Math.ceil(health / 2.0);
+        int fullHearts = health / 2;
+        boolean hasHalf = (health % 2) == 1;
+        
+        // Calculate absorption hearts
+        int absorptionHearts = (int) Math.ceil(absorption / 2.0);
+        int totalFilledHearts = currentHealthHearts + absorptionHearts;
+        
+        // Draw heart containers (for all hearts including absorption)
+        int maxHeartPositions = (int) Math.ceil((maxHealth + absorption) / 2.0f);
+        Identifier containerTexture = getContainerTexture(hardcore, blinking);
+        for (int i = 0; i < maxHeartPositions; i++) {
+            int row = i / 10;
+            int col = i % 10;
+            int heartX = x + col * 8;
+            int heartY = y - row * 10;
+            
+            if (containerTexture != null) {
+                context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, containerTexture, heartX, heartY, 9, 9);
+            }
+        }
+        
+        // Draw vanilla-style filled hearts (red for health, gold for absorption)
+        // Health hearts (red)
+        for (int i = 0; i < currentHealthHearts; i++) {
+            int row = i / 10;
+            int col = i % 10;
+            int heartX = x + col * 8;
+            int heartY = y - row * 10;
+            boolean isHalf = (i == fullHearts) && hasHalf && i == currentHealthHearts - 1;
+            
+            // Use vanilla texture or ailment overlay
+            if (ailment != null) {
+                Identifier texture = getTexture(ailment, hardcore, blinking, isHalf);
+                if (texture != null) {
+                    context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, texture, heartX, heartY, 9, 9);
+                }
+            } else {
+                // Vanilla red hearts
+                Identifier texture = getVanillaHealthTexture(hardcore, blinking, isHalf);
+                if (texture != null) {
+                    context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, texture, heartX, heartY, 9, 9);
+                }
+            }
+        }
+        
+        // Absorption hearts (gold/yellow)
+        for (int i = 0; i < absorptionHearts; i++) {
+            int heartIndex = currentHealthHearts + i;
+            int row = heartIndex / 10;
+            int col = heartIndex % 10;
+            int heartX = x + col * 8;
+            int heartY = y - row * 10;
+            
+            int absorptionFull = absorption / 2;
+            boolean isHalfAbsorption = (i == absorptionFull) && (absorption % 2) == 1 && i == absorptionHearts - 1;
+            
+            // Apply ailment overlay to absorption hearts too
+            if (ailment != null) {
+                Identifier texture = getTexture(ailment, hardcore, blinking, isHalfAbsorption);
+                if (texture != null) {
+                    context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, texture, heartX, heartY, 9, 9);
+                }
+            } else {
+                // Vanilla absorption texture
+                Identifier texture = getVanillaAbsorptionTexture(hardcore, blinking, isHalfAbsorption);
+                if (texture != null) {
+                    context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, texture, heartX, heartY, 9, 9);
+                }
+            }
+        }
+        
+        // Draw regenerating heart
+        if (regeneratingHeartIndex >= 0 && regeneratingHeartIndex < totalFilledHearts) {
+            int row = regeneratingHeartIndex / 10;
+            int col = regeneratingHeartIndex % 10;
+            int heartX = x + col * 8;
+            int heartY = y - row * 10;
+            
+            // Determine if this was a half heart
+            int lostFullHearts = lastHealth / 2;
+            boolean lostHasHalf = (lastHealth % 2) == 1;
+            boolean wasHalf = (regeneratingHeartIndex == lostFullHearts) && lostHasHalf;
+            
+            if (ailment != null) {
+                Identifier texture = getTexture(ailment, hardcore, true, wasHalf);
+                if (texture != null) {
+                    context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, texture, heartX, heartY, 9, 9);
+                }
+            } else {
+                Identifier texture = getVanillaHealthTexture(hardcore, true, wasHalf);
+                if (texture != null) {
+                    context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, texture, heartX, heartY, 9, 9);
+                }
+            }
+        }
+        
+        // Draw row count for health
+        if (totalHealthRows > 1 || absorption > 0) {
+            int rowCount = totalHealthRows;
+            String countText = rowCount + "x";
+            int textX = x - 12;
+            int textY = y - (totalHealthRows - 1) * 10 - 1;
+            context.drawTextWithShadow(MinecraftClient.getInstance().textRenderer, countText, textX, textY, 0xFFAA5500); // Orange color for row count
+        }
+        
+        // Energy shields are now rendered independently by EnergyShieldHudRenderer
+        // drawEnergyShieldHearts(context, player, x, y, maxHealth, absorption, blinking);
+    }
+
+    @Unique
+    private void renderFullCustom(DrawContext context, PlayerEntity player, int x, int y, int lines, int regeneratingHeartIndex, float maxHealth, int lastHealth, int health, int absorption, boolean blinking, AilmentType ailment) {
+        boolean hardcore = player.getEntityWorld().getLevelProperties().isHardcore();
         
         // Smoothly interpolate the rendered health value
         float actualHealth = player.getHealth();
@@ -142,8 +290,6 @@ public class CustomAilmentHeartRenderMixin {
         } else if (cranks$lastRenderedHealth < actualHealth) {
             cranks$lastRenderedHealth = Math.min(actualHealth, cranks$lastRenderedHealth + 0.1f);
         }
-        
-        boolean hardcore = player.getEntityWorld().getLevelProperties().isHardcore();
         
         // Use interpolated health for rendering
         int displayHealth = (int) cranks$lastRenderedHealth;
@@ -205,8 +351,25 @@ public class CustomAilmentHeartRenderMixin {
             }
         }
         
-        // Draw Energy Shield hearts after ailment hearts
-        drawEnergyShieldHearts(context, player, x, y, maxHealth, absorption, blinking);
+        // Energy shields are now rendered independently by EnergyShieldHudRenderer
+        // drawEnergyShieldHearts(context, player, x, y, maxHealth, absorption, blinking);
+    }
+
+    @Unique
+    private Identifier getVanillaHealthTexture(boolean hardcore, boolean blinking, boolean half) {
+        if (hardcore) {
+            if (half) return blinking ? Identifier.of("hud/heart/hardcore_half_blinking") : Identifier.of("hud/heart/hardcore_half");
+            return blinking ? Identifier.of("hud/heart/hardcore_full_blinking") : Identifier.of("hud/heart/hardcore_full");
+        } else {
+            if (half) return blinking ? Identifier.of("hud/heart/half_blinking") : Identifier.of("hud/heart/half");
+            return blinking ? Identifier.of("hud/heart/full_blinking") : Identifier.of("hud/heart/full");
+        }
+    }
+    
+    @Unique
+    private Identifier getVanillaAbsorptionTexture(boolean hardcore, boolean blinking, boolean half) {
+        if (half) return blinking ? Identifier.of("hud/heart/absorbing_half_blinking") : Identifier.of("hud/heart/absorbing_half");
+        return blinking ? Identifier.of("hud/heart/absorbing_full_blinking") : Identifier.of("hud/heart/absorbing_full");
     }
     
     @Unique
@@ -242,22 +405,91 @@ public class CustomAilmentHeartRenderMixin {
         // Calculate how many rows the health bar takes up
         int totalHealthHearts = (int) Math.ceil((maxHealth + absorption) / 2.0f);
         int healthRows = (int) Math.ceil(totalHealthHearts / 10.0);
+        
+        // Calculate shield rows
+        int shieldRows = (int) Math.ceil(totalShieldHearts / 10.0);
+        
+        if (OVERFLOWING_BARS_LOADED) {
+            // With Overflowing Bars: Show only last row with row count
+            drawStackedShieldRow(context, x, y, healthRows, totalShieldHearts, fullShieldHearts, 
+                               hasHalfShield, shieldBlinking, shieldRows);
+        } else {
+            // Without Overflowing Bars: Show all rows normally
+            drawAllShieldRows(context, x, y, healthRows, totalShieldHearts, fullShieldHearts, 
+                            hasHalfShield, shieldBlinking);
+        }
+        
+        // Update last rendered shield for next frame
+        cranks$lastRenderedShield = currentShield;
+    }
 
-        for (int i = 0; i < totalShieldHearts; i++) {
-            // Render shields on a new row ABOVE the health bar
-            int row = i / 10;
+    @Unique
+    private void drawStackedShieldRow(DrawContext context, int x, int y, int healthRows, 
+                                     int totalShieldHearts, int fullShieldHearts, boolean hasHalfShield, 
+                                     boolean shieldBlinking, int shieldRows) {
+        // Show only the LAST row (stacked display like Overflowing Bars)
+        int startHeartIndex = (shieldRows - 1) * 10;
+        int endHeartIndex = Math.min(startHeartIndex + 10, totalShieldHearts);
+        
+        int rowFullHearts = fullShieldHearts - startHeartIndex;
+        if (rowFullHearts < 0) rowFullHearts = 0;
+
+        for (int i = startHeartIndex; i < endHeartIndex; i++) {
             int col = i % 10;
             int heartX = x + col * 8;
-            // Position above health bar: subtract (row + healthRows) * 10
-            int heartY = y - (row + healthRows) * 10;
+            int heartY = y - healthRows * 10 - 3;
 
-            // Draw vanilla container first (background)
+            // Draw container
             Identifier containerTexture = shieldBlinking ? 
                 Identifier.of("hud/heart/container_blinking") : 
                 Identifier.of("hud/heart/container");
             context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, containerTexture, heartX, heartY, 9, 9);
 
-            // Draw filled heart on top
+            // Draw filled heart
+            int relativeIndex = i - startHeartIndex;
+            boolean isFilled = relativeIndex < rowFullHearts;
+            boolean isHalf = (relativeIndex == rowFullHearts) && hasHalfShield && fullShieldHearts == i;
+            
+            Identifier texture = null;
+            if (isFilled) {
+                texture = shieldBlinking ? SHIELD_FULL_BLINKING : SHIELD_FULL;
+            } else if (isHalf) {
+                texture = shieldBlinking ? SHIELD_HALF_BLINKING : SHIELD_HALF;
+            }
+            
+            if (texture != null) {
+                context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, texture, heartX, heartY, 9, 9);
+            }
+        }
+        
+        // Draw row count
+        if (shieldRows > 1) {
+            String countText = shieldRows + "x";
+            int textX = x - 12;
+            int textY = y - healthRows * 10 - 3 - 1;
+            context.drawTextWithShadow(MinecraftClient.getInstance().textRenderer, countText, textX, textY, 0xFF55AAFF);
+        }
+    }
+
+    @Unique
+    private void drawAllShieldRows(DrawContext context, int x, int y, int healthRows,
+                                  int totalShieldHearts, int fullShieldHearts, boolean hasHalfShield,
+                                  boolean shieldBlinking) {
+        // Show all rows normally (no stacking, no row count)
+        for (int i = 0; i < totalShieldHearts; i++) {
+            int row = i / 10;
+            int col = i % 10;
+            int heartX = x + col * 8;
+            // Position above health bar
+            int heartY = y - (row + healthRows) * 10 - 3;
+
+            // Draw container
+            Identifier containerTexture = shieldBlinking ? 
+                Identifier.of("hud/heart/container_blinking") : 
+                Identifier.of("hud/heart/container");
+            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, containerTexture, heartX, heartY, 9, 9);
+
+            // Draw filled heart
             boolean isFilled = i < fullShieldHearts;
             boolean isHalf = (i == fullShieldHearts) && hasHalfShield;
             
@@ -272,9 +504,6 @@ public class CustomAilmentHeartRenderMixin {
                 context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, texture, heartX, heartY, 9, 9);
             }
         }
-        
-        // Update last rendered shield for next frame
-        cranks$lastRenderedShield = currentShield;
     }
 
     @Unique

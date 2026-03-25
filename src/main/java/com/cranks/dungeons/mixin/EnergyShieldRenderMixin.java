@@ -2,7 +2,10 @@ package com.cranks.dungeons.mixin;
 
 import com.cranks.dungeons.CranksDungeons;
 import com.cranks.dungeons.EnergyShieldProvider;
+import com.cranks.dungeons.ailment.AilmentManager;
+import com.cranks.dungeons.ailment.AilmentType;
 import com.cranks.dungeons.registry.ModAttributes;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
@@ -31,6 +34,7 @@ public abstract class EnergyShieldRenderMixin {
     private static final Identifier SHIELD_HALF_BLINKING = Identifier.of(CranksDungeons.MOD_ID, "hud/heart/shield/half_blinking");
 
     @Shadow @Final private MinecraftClient client;
+    @Unique private static final boolean OVERFLOWING_BARS_LOADED = FabricLoader.getInstance().isModLoaded("overflowingbars");
     @Unique private static int shieldRowCount = 0;
     @Unique private static float cranks$lastRenderedShield = -1;
     @Unique private static long cranks$lastShieldDamageTime = 0;
@@ -44,6 +48,15 @@ public abstract class EnergyShieldRenderMixin {
     @Inject(method = "renderHealthBar", at = @At("HEAD"))
     private void calculateShieldRows(DrawContext context, PlayerEntity player, int x, int y, int lines, int regeneratingHeartIndex, float maxHealth, int lastHealth, int health, int absorption, boolean blinking, CallbackInfo ci) {
         if (client.player == null) { shieldRowCount = 0; return; }
+        // Skip calculation if CustomAilmentHeartRenderMixin is handling rendering
+        if (AilmentManager.hasAilment(client.player, AilmentType.POISON) ||
+            AilmentManager.hasAilment(client.player, AilmentType.BURN) ||
+            AilmentManager.hasAilment(client.player, AilmentType.BLEED) ||
+            AilmentManager.hasAilment(client.player, AilmentType.FREEZE) ||
+            OVERFLOWING_BARS_LOADED) {
+            shieldRowCount = 0;
+            return;
+        }
         double maxShield = client.player.getAttributeValue(ModAttributes.ENERGY_SHIELD);
         if (maxShield <= 0) { shieldRowCount = 0; return; }
 
@@ -57,69 +70,7 @@ public abstract class EnergyShieldRenderMixin {
 
     @Inject(method = "renderHealthBar", at = @At("RETURN"))
     private void renderEnergyShieldHearts(DrawContext context, PlayerEntity player, int x, int y, int lines, int regeneratingHeartIndex, float maxHealth, int lastHealth, int health, int absorption, boolean blinking, CallbackInfo ci) {
-        if (client.player == null) return;
-        EnergyShieldProvider shieldProvider = (EnergyShieldProvider) client.player;
-        float currentShield = shieldProvider.cranksdungeons$getCurrentEnergyShield();
-        double maxShield = client.player.getAttributeValue(ModAttributes.ENERGY_SHIELD);
-        if (maxShield <= 0) return;
-
-        if (currentShield < 1.0f) currentShield = 0.0f;
-
-        int totalShieldHearts = (int) Math.ceil(maxShield / 2.0);
-        int fullShieldHearts = (int) (currentShield / 2.0);
-        boolean hasHalfShield = (currentShield % 2.0f) >= 1.0f;
-
-        // Check if shield changed (damage or regeneration) and update blink timer
-        long currentTime = System.currentTimeMillis();
-        if (cranks$lastRenderedShield >= 0 && currentShield != cranks$lastRenderedShield) {
-            cranks$lastShieldDamageTime = currentTime;
-        }
-
-        // Determine if shield should blink (within blink duration of shield change)
-        long timeSinceChange = currentTime - cranks$lastShieldDamageTime;
-        boolean shieldBlinking = timeSinceChange < SHIELD_BLINK_DURATION;
-        
-        // Make it blink twice by alternating every 250ms
-        if (shieldBlinking) {
-            long phase = (timeSinceChange / 250) % 2;
-            shieldBlinking = phase == 0; // Show blinking texture in phases 0 and 2
-        }
-
-        // Calculate how many rows the health bar takes up
-        int totalHealthHearts = (int) Math.ceil((maxHealth + absorption) / 2.0f);
-        int healthRows = (int) Math.ceil(totalHealthHearts / 10.0);
-        
-        // Render shields on a new row ABOVE the health bar
-        for (int i = 0; i < totalShieldHearts; i++) {
-            int row = i / 10;
-            int col = i % 10;
-            int heartX = x + col * 8;
-            // Position above health bar: subtract (row + healthRows) * 10
-            int heartY = y - (row + healthRows) * 10;
-
-            // Draw vanilla container first (background) - use blinking container when shield is damaged
-            Identifier containerTexture = shieldBlinking ? 
-                Identifier.of("hud/heart/container_blinking") : 
-                Identifier.of("hud/heart/container");
-            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, containerTexture, heartX, heartY, 9, 9);
-
-            // Draw filled heart on top
-            boolean isFilled = i < fullShieldHearts;
-            boolean isHalf = (i == fullShieldHearts) && hasHalfShield;
-            
-            Identifier texture = null;
-            if (isFilled) {
-                texture = shieldBlinking ? SHIELD_FULL_BLINKING : SHIELD_FULL;
-            } else if (isHalf) {
-                texture = shieldBlinking ? SHIELD_HALF_BLINKING : SHIELD_HALF;
-            }
-            
-            if (texture != null) {
-                context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, texture, heartX, heartY, 9, 9);
-            }
-        }
-        
-        // Update last rendered shield for next frame comparison
-        cranks$lastRenderedShield = currentShield;
+        // Energy shields are now rendered independently by EnergyShieldHudRenderer
+        // This mixin is kept for the armor Y-offset modification only
     }
 }
