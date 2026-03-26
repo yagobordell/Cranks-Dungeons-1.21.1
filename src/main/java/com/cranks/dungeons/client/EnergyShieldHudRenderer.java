@@ -19,6 +19,12 @@ public class EnergyShieldHudRenderer implements HudRenderCallback {
     private static final Identifier SHIELD_FULL_BLINKING = Identifier.of(CranksDungeons.MOD_ID, "hud/heart/shield/full_blinking");
     private static final Identifier SHIELD_HALF_BLINKING = Identifier.of(CranksDungeons.MOD_ID, "hud/heart/shield/half_blinking");
     
+    // New textures for current row (stacking effect with Overflowing Bars)
+    private static final Identifier SHIELD_FULL_CURRENT = Identifier.of(CranksDungeons.MOD_ID, "hud/heart/shield/full_current");
+    private static final Identifier SHIELD_HALF_CURRENT = Identifier.of(CranksDungeons.MOD_ID, "hud/heart/shield/half_current");
+    private static final Identifier SHIELD_FULL_CURRENT_BLINKING = Identifier.of(CranksDungeons.MOD_ID, "hud/heart/shield/full_current_blinking");
+    private static final Identifier SHIELD_HALF_CURRENT_BLINKING = Identifier.of(CranksDungeons.MOD_ID, "hud/heart/shield/half_current_blinking");
+    
     private static final boolean OVERFLOWING_BARS_LOADED = FabricLoader.getInstance().isModLoaded("overflowingbars");
     private static final long SHIELD_BLINK_DURATION = 1000;
     private float lastRenderedShield = -1;
@@ -87,18 +93,23 @@ public class EnergyShieldHudRenderer implements HudRenderCallback {
     private void drawStackedShields(DrawContext drawContext, MinecraftClient client, int healthBarX, int armorBarY, 
                                    int totalShieldHearts, int fullShieldHearts, boolean hasHalfShield, 
                                    boolean shieldBlinking, int shieldRows) {
-        // Show only the LAST row (like Overflowing Bars stacking)
-        int startHeartIndex = (shieldRows - 1) * 10;
-        int endHeartIndex = Math.min(startHeartIndex + 10, totalShieldHearts);
+        // Calculate which row we're currently on based on current shield (not max)
+        int currentRow = (fullShieldHearts / 10) + 1;
+        if (currentRow < 1) currentRow = 1;
+        if (currentRow > shieldRows) currentRow = shieldRows;
         
-        int rowFullHearts = fullShieldHearts - startHeartIndex;
-        if (rowFullHearts < 0) rowFullHearts = 0;
+        // Calculate filled hearts in the current row
+        int filledInCurrentRow = fullShieldHearts % 10;
+        if (filledInCurrentRow == 0 && fullShieldHearts > 0) {
+            filledInCurrentRow = 10; // Full row
+        }
         
         // Position at armor bar height (replacing armor bar)
         int heartY = armorBarY;
         
-        for (int i = startHeartIndex; i < endHeartIndex; i++) {
-            int col = i % 10;
+        // Draw up to 10 hearts for the current row
+        for (int i = 0; i < 10; i++) {
+            int col = i;
             int heartX = healthBarX + col * 8;
             
             // Skip if off-screen
@@ -110,16 +121,33 @@ public class EnergyShieldHudRenderer implements HudRenderCallback {
                 Identifier.of("hud/heart/container");
             drawContext.drawGuiTexture(RenderPipelines.GUI_TEXTURED, containerTexture, heartX, heartY, 9, 9);
             
-            // Draw filled heart
-            int relativeIndex = i - startHeartIndex;
-            boolean isFilled = relativeIndex < rowFullHearts;
-            boolean isHalf = (relativeIndex == rowFullHearts) && hasHalfShield && fullShieldHearts == i;
+            // Draw filled heart if within filled count
+            boolean isFilled = i < filledInCurrentRow;
+            boolean isHalf = (i == filledInCurrentRow) && hasHalfShield;
+            boolean isEmpty = i >= filledInCurrentRow && !isHalf;
             
             Identifier texture = null;
-            if (isFilled) {
-                texture = shieldBlinking ? SHIELD_FULL_BLINKING : SHIELD_FULL;
-            } else if (isHalf) {
-                texture = shieldBlinking ? SHIELD_HALF_BLINKING : SHIELD_HALF;
+            // Use special "current" textures when you're on row 2+ (stacking effect)
+            // Row 1 (0-10 shield): use normal textures
+            // Row 2+ (11+ shield): use current textures for filled, normal for empty
+            if (currentRow > 1) {
+                // On row 2 or higher: use new textures for current row filled/half hearts
+                if (isFilled) {
+                    texture = shieldBlinking ? SHIELD_FULL_CURRENT_BLINKING : SHIELD_FULL_CURRENT;
+                } else if (isHalf) {
+                    texture = shieldBlinking ? SHIELD_HALF_CURRENT_BLINKING : SHIELD_HALF_CURRENT;
+                } else if (isEmpty) {
+                    // Empty hearts show normal shield texture (simulates row underneath)
+                    texture = shieldBlinking ? SHIELD_FULL_BLINKING : SHIELD_FULL;
+                }
+            } else {
+                // On row 1: use normal textures
+                if (isFilled) {
+                    texture = shieldBlinking ? SHIELD_FULL_BLINKING : SHIELD_FULL;
+                } else if (isHalf) {
+                    texture = shieldBlinking ? SHIELD_HALF_BLINKING : SHIELD_HALF;
+                }
+                // Note: Empty hearts in single row don't need a texture - the container is enough
             }
             
             if (texture != null) {
@@ -127,13 +155,19 @@ public class EnergyShieldHudRenderer implements HudRenderCallback {
             }
         }
         
-        // Draw row count (Nx) - only when Overflowing Bars is loaded and multiple rows exist
-        if (shieldRows > 1) {
-            String countText = shieldRows + "x";
-            int textX = healthBarX - 10;
-            int textY = heartY;
-            drawScaledBorderedText(drawContext, client.textRenderer, countText, textX, textY, 0xFF55AAFF, 0.85f);
+        // Draw row count (Nx) - only show when on row 2 or higher
+        if (currentRow > 1) {
+            drawSpriteRowCount(drawContext, currentRow, healthBarX - 13, heartY - 2);
         }
+    }
+    
+    private void drawSpriteRowCount(DrawContext context, int currentRow, int x, int y) {
+        // Use individual sprite textures: 1x.png, 2x.png, etc.
+        Identifier spriteId = ShieldNumberSprites.getSpriteId(currentRow);
+        
+        // Draw the sprite (assuming 16x16 or similar size)
+        // Position adjusted: moved 1 pixel up and 1 pixel left from original
+        context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, spriteId, x, y, 16, 16);
     }
 
     private void drawBorderedText(DrawContext context, net.minecraft.client.font.TextRenderer textRenderer, 

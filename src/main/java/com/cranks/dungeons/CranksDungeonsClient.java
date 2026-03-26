@@ -6,6 +6,7 @@ import com.cranks.dungeons.client.ClientShieldEffects;
 import com.cranks.dungeons.client.EnchantmentToggleHandler;
 import com.cranks.dungeons.client.EnergyShieldHudRenderer;
 import com.cranks.dungeons.client.ModKeybinds;
+import com.cranks.dungeons.client.ShieldNumberSprites;
 import com.cranks.dungeons.config.ModConfig;
 import com.cranks.dungeons.damage.DamageNumber;
 import com.cranks.dungeons.damage.DamageNumberManager;
@@ -64,6 +65,9 @@ public class CranksDungeonsClient implements ClientModInitializer {
         });
         
         ClientShieldEffects.init();
+        
+        // Register shield number sprites for row counter
+        ShieldNumberSprites.register();
         
         // Register client-side equipment change handler for proper stat sync
         ClientEquipmentHandler.register();
