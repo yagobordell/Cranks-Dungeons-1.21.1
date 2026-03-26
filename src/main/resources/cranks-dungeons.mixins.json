@@ -82,7 +82,8 @@
 		"EnergyShieldRenderMixin",
 		"HandledScreenAccessor",
 		"StatusEffectDisplayMixin",
-		"CustomAilmentHeartRenderMixin"
+		"CustomAilmentHeartRenderMixin",
+		"DisableArmorBarMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

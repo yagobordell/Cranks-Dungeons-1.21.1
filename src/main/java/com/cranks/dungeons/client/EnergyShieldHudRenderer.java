@@ -47,12 +47,6 @@ public class EnergyShieldHudRenderer implements HudRenderCallback {
         int healthBarX = screenWidth / 2 - 91;
         int healthBarY = screenHeight - 39;
         
-        // Calculate health rows to position shields above
-        float maxHealth = player.getMaxHealth();
-        float absorption = player.getAbsorptionAmount();
-        int totalHealthHearts = (int) Math.ceil((maxHealth + absorption) / 2.0f);
-        int healthRows = (int) Math.ceil(totalHealthHearts / 10.0);
-        
         // Calculate shield info
         int totalShieldHearts = (int) Math.ceil(maxShield / 2.0);
         int fullShieldHearts = (int) (currentShield / 2.0);
@@ -74,21 +68,24 @@ public class EnergyShieldHudRenderer implements HudRenderCallback {
         // Calculate shield rows
         int shieldRows = (int) Math.ceil(totalShieldHearts / 10.0);
         
+        // Shields replace armor bar - position at armor bar height (above health)
+        int armorBarY = healthBarY - 10;
+        
         if (OVERFLOWING_BARS_LOADED) {
             // With Overflowing Bars: Stack shields - show only last row with Nx count
-            drawStackedShields(drawContext, client, healthBarX, healthBarY, healthRows, 
+            drawStackedShields(drawContext, client, healthBarX, armorBarY, 
                              totalShieldHearts, fullShieldHearts, hasHalfShield, shieldBlinking, shieldRows);
         } else {
             // Without Overflowing Bars: Show all rows normally, no Nx count
-            drawAllShieldRows(drawContext, client, healthBarX, healthBarY, healthRows, 
+            drawAllShieldRows(drawContext, client, healthBarX, armorBarY, 
                             totalShieldHearts, fullShieldHearts, hasHalfShield, shieldBlinking);
         }
         
         lastRenderedShield = currentShield;
     }
     
-    private void drawStackedShields(DrawContext drawContext, MinecraftClient client, int healthBarX, int healthBarY, 
-                                   int healthRows, int totalShieldHearts, int fullShieldHearts, boolean hasHalfShield, 
+    private void drawStackedShields(DrawContext drawContext, MinecraftClient client, int healthBarX, int armorBarY, 
+                                   int totalShieldHearts, int fullShieldHearts, boolean hasHalfShield, 
                                    boolean shieldBlinking, int shieldRows) {
         // Show only the LAST row (like Overflowing Bars stacking)
         int startHeartIndex = (shieldRows - 1) * 10;
@@ -97,8 +94,8 @@ public class EnergyShieldHudRenderer implements HudRenderCallback {
         int rowFullHearts = fullShieldHearts - startHeartIndex;
         if (rowFullHearts < 0) rowFullHearts = 0;
         
-        // Position at the top (single row above health)
-        int heartY = healthBarY - healthRows * 10 - 3;
+        // Position at armor bar height (replacing armor bar)
+        int heartY = armorBarY;
         
         for (int i = startHeartIndex; i < endHeartIndex; i++) {
             int col = i % 10;
@@ -133,9 +130,9 @@ public class EnergyShieldHudRenderer implements HudRenderCallback {
         // Draw row count (Nx) - only when Overflowing Bars is loaded and multiple rows exist
         if (shieldRows > 1) {
             String countText = shieldRows + "x";
-            int textX = healthBarX - 12;
-            int textY = heartY - 1;
-            drawBorderedText(drawContext, client.textRenderer, countText, textX, textY, 0xFF55AAFF);
+            int textX = healthBarX - 10;
+            int textY = heartY;
+            drawScaledBorderedText(drawContext, client.textRenderer, countText, textX, textY, 0xFF55AAFF, 0.85f);
         }
     }
 
@@ -155,15 +152,38 @@ public class EnergyShieldHudRenderer implements HudRenderCallback {
         context.drawText(textRenderer, text, x, y, color, false);
     }
     
-    private void drawAllShieldRows(DrawContext drawContext, MinecraftClient client, int healthBarX, int healthBarY, 
-                                  int healthRows, int totalShieldHearts, int fullShieldHearts, boolean hasHalfShield, 
+    private void drawScaledBorderedText(DrawContext context, net.minecraft.client.font.TextRenderer textRenderer, 
+                                        String text, int x, int y, int color, float scale) {
+        int alpha = (color >> 24) & 0xFF;
+        if (alpha == 0) alpha = 255;
+        int shadowColor = (alpha << 24);
+        
+        context.getMatrices().pushMatrix();
+        context.getMatrices().translate(x, y);
+        context.getMatrices().scale(scale, scale);
+        
+        // Draw shadow on all four sides for border effect
+        context.drawText(textRenderer, text, -1, 0, shadowColor, false);
+        context.drawText(textRenderer, text, 1, 0, shadowColor, false);
+        context.drawText(textRenderer, text, 0, -1, shadowColor, false);
+        context.drawText(textRenderer, text, 0, 1, shadowColor, false);
+        
+        // Draw actual text
+        context.drawText(textRenderer, text, 0, 0, color, false);
+        
+        context.getMatrices().popMatrix();
+    }
+    
+    private void drawAllShieldRows(DrawContext drawContext, MinecraftClient client, int healthBarX, int armorBarY, 
+                                  int totalShieldHearts, int fullShieldHearts, boolean hasHalfShield, 
                                   boolean shieldBlinking) {
-        // Show all rows normally (no stacking)
+        // Show all rows normally at armor bar height (replacing armor bar)
         for (int i = 0; i < totalShieldHearts; i++) {
             int row = i / 10;
             int col = i % 10;
             int heartX = healthBarX + col * 8;
-            int heartY = healthBarY - (row + healthRows) * 10 - 3;
+            // Position at armor bar height, with additional rows going upward
+            int heartY = armorBarY - row * 10;
             
             // Skip if off-screen
             if (heartY < 0) continue;
