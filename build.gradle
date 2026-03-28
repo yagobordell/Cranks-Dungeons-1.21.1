@@ -11,8 +11,18 @@ base {
 }
 
 repositories {
-	maven { url "https://maven.terraformersmc.com/releases/" }
+	maven { url "https://maven.terraformersmc.com/releases" }
 }
+
+loom {
+	accessWidenerPath = file("src/main/resources/cranks-dungeons.accesswidener")
+}
+
+/*fabricApi {
+	configureDataGeneration {
+		client = true
+	}
+}*/
 
 fabricApi {
 	configureDataGeneration {

@@ -2,6 +2,7 @@ package com.cranks.dungeons.ailment;
 
 import com.cranks.dungeons.effect.ModEffects;
 import com.cranks.dungeons.network.DamageNumberSender;
+import com.cranks.dungeons.particle.ModParticles;
 import com.cranks.dungeons.registry.ModAttributes;
 import com.cranks.dungeons.registry.ModSounds;
 import com.cranks.dungeons.util.AilmentHistoryProvider;
@@ -22,12 +23,30 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.UUID;
 
 public class AilmentManager {
 
     private static final Map<UUID, List<Ailment>> ENTITY_AILMENTS = new HashMap<>();
     private static final int POISON_STACK_CAP = 20;
+    
+    // Track entities currently being processed by shock chain to prevent recursion
+    private static final Set<UUID> PROCESSING_SHOCK_CHAIN = new HashSet<>();
+    
+    // Global flag to prevent ANY shock chain from triggering while one is in progress
+    // This stops cross-entity ping-pong (A chains to B, B chains back to A)
+    private static boolean GLOBAL_SHOCK_CHAIN_LOCK = false;
+    
+    // Track when the lock was acquired for timeout purposes
+    private static long LOCK_ACQUIRE_TIME = 0;
+    
+    // Lock timeout in milliseconds (prevent stuck locks)
+    private static final long LOCK_TIMEOUT = 100; // 100ms should be plenty for a single chain
+    
+    // Track which entity triggered the current chain to prevent self-chaining
+    private static UUID CURRENT_CHAIN_SOURCE = null;
 
     public static void applyAilment(LivingEntity target, AilmentType type, float baseDamage, double duration, Entity source) {
         applyAilment(target, type, baseDamage, duration, source, null, null, 0);
@@ -108,7 +127,7 @@ public class AilmentManager {
                 // amplifier 0 = +1, 1 = +2, etc. (from potion.potency translations)
                 int amplifier = Math.max(0, stackCount - 1);
                 StatusEffectInstance instance = StatusEffectHelper.create(
-                        ModEffects.POISON, ticks, amplifier, false, true, true);
+                        ModEffects.POISON, ticks, amplifier, false, false, true);
                 if (instance != null) {
                     target.addStatusEffect(instance);
                 }
@@ -122,7 +141,14 @@ public class AilmentManager {
             }
             case BLEED -> {
                 StatusEffectInstance instance = StatusEffectHelper.create(
-                        ModEffects.BLEED, ticks, 0, false, true, true);
+                        ModEffects.BLEED, ticks, 0, false, false, true);
+                if (instance != null) {
+                    target.addStatusEffect(instance);
+                }
+            }
+            case SHOCK -> {
+                StatusEffectInstance instance = StatusEffectHelper.create(
+                        ModEffects.SHOCK, ticks, 0, false, false, true);
                 if (instance != null) {
                     target.addStatusEffect(instance);
                 }
@@ -387,6 +413,8 @@ public class AilmentManager {
             target.removeStatusEffect(ModEffects.FREEZE);
         } else if (type == AilmentType.BLEED) {
             target.removeStatusEffect(ModEffects.BLEED);
+        } else if (type == AilmentType.SHOCK) {
+            target.removeStatusEffect(ModEffects.SHOCK);
         }
     }
 
@@ -396,6 +424,7 @@ public class AilmentManager {
         target.removeStatusEffect(ModEffects.BURN);
         target.removeStatusEffect(ModEffects.FREEZE);
         target.removeStatusEffect(ModEffects.BLEED);
+        target.removeStatusEffect(ModEffects.SHOCK);
     }
 
     public static double getAilmentDuration(LivingEntity target, AilmentType type) {
@@ -414,5 +443,113 @@ public class AilmentManager {
 
     public static void onEntityDespawn(LivingEntity entity) {
         clearAllAilments(entity);
+    }
+
+    public static void handleShockChain(LivingEntity entity, float lightningDamage, Entity source) {
+        if (entity.getEntityWorld().isClient()) return;
+        if (!hasAilment(entity, AilmentType.SHOCK)) return;
+        if (lightningDamage <= 0) return;
+        
+        // Note: Global lock is managed by the caller (ElementalDamageMixin)
+        // This prevents cross-entity ping-pong (A chains to B, B chains back to A)
+        
+        // NOTE: Removed source type matching to ensure ALL lightning damage chains
+        // This ensures consistent behavior whether shock was applied by player or mob
+        
+        executeShockChain(entity, lightningDamage, source);
+    }
+    
+    /**
+     * Execute shock chain without checking if entity has shock (for killing hits where ailment was already cleared)
+     */
+    public static void executeShockChain(LivingEntity entity, float lightningDamage, Entity source) {
+        if (entity.getEntityWorld().isClient()) return;
+        if (lightningDamage <= 0) return;
+        
+        ServerWorld world = (ServerWorld) entity.getEntityWorld();
+        double radius = 10.0;
+        Box box = entity.getBoundingBox().expand(radius);
+        List<LivingEntity> nearby = world.getEntitiesByClass(LivingEntity.class, box, e -> 
+            e.isAlive() && hasAilment(e, AilmentType.SHOCK)
+        );
+        
+        for (LivingEntity target : nearby) {
+            // Skip the entity that triggered this chain to prevent self-damage
+            // (they already took the original lightning damage from the hit)
+            if (target.getUuid().equals(entity.getUuid())) {
+                continue;
+            }
+            
+            // Apply lightning damage using the elemental damage system
+            // Apply resistance reduction
+            double resistance = target.getAttributeValue(ModAttributes.LIGHTNING_RESISTANCE);
+            double finalDamage = lightningDamage * (1.0 - resistance);
+            
+            if (finalDamage > 0) {
+                // Use magic damage to apply damage with full hit reactions
+                // The global lock is already set, which prevents both recursive chains 
+                // AND double elemental processing (mixin checks isShockChainInProgress)
+                net.minecraft.entity.damage.DamageSource damageSource = world.getDamageSources().magic();
+                target.damage(world, damageSource, (float) finalDamage);
+                
+                // Play custom shock chain sound
+                world.playSound(null, target.getX(), target.getY(), target.getZ(),
+                        ModSounds.SHOCK_CHAIN, SoundCategory.HOSTILE,
+                        0.7f, 1.0f + world.getRandom().nextFloat() * 0.3f);
+                
+                // Broadcast damage numbers as lightning damage  
+                DamageNumberSender.broadcast(world, target, 0, 0, 0, finalDamage, 0, source != null ? source.getUuid() : null);
+                
+                // Spawn shock chain particles at target position
+                spawnShockChainParticles(world, target);
+            }
+        }
+    }
+
+    public static boolean isShockChainInProgress() {
+        // Check if lock has timed out
+        if (GLOBAL_SHOCK_CHAIN_LOCK && System.currentTimeMillis() - LOCK_ACQUIRE_TIME > LOCK_TIMEOUT) {
+            System.err.println("[CranksDungeons] Shock chain lock timed out, forcing release");
+            releaseShockChainLock();
+            return false;
+        }
+        return GLOBAL_SHOCK_CHAIN_LOCK;
+    }
+    
+    public static boolean acquireShockChainLock() {
+        // Check if previous lock timed out
+        if (GLOBAL_SHOCK_CHAIN_LOCK && System.currentTimeMillis() - LOCK_ACQUIRE_TIME > LOCK_TIMEOUT) {
+            System.err.println("[CranksDungeons] Previous shock chain lock timed out, resetting");
+            releaseShockChainLock();
+        }
+        
+        if (GLOBAL_SHOCK_CHAIN_LOCK) {
+            return false;
+        }
+        GLOBAL_SHOCK_CHAIN_LOCK = true;
+        LOCK_ACQUIRE_TIME = System.currentTimeMillis();
+        return true;
+    }
+    
+    public static void releaseShockChainLock() {
+        GLOBAL_SHOCK_CHAIN_LOCK = false;
+        LOCK_ACQUIRE_TIME = 0;
+    }
+
+    private static void spawnShockChainParticles(ServerWorld world, LivingEntity target) {
+        double centerX = target.getX();
+        double centerY = target.getY() + target.getHeight() / 2.0;
+        double centerZ = target.getZ();
+
+        // Spawn 4 different shock particles in a small burst (single iteration)
+        double offsetX = (world.getRandom().nextDouble() - 0.5) * 1.0;
+        double offsetY = (world.getRandom().nextDouble() - 0.5) * 1.0;
+        double offsetZ = (world.getRandom().nextDouble() - 0.5) * 1.0;
+
+        // Spawn all 4 shock particle types with slight offsets
+        world.spawnParticles(ModParticles.SHOCK_SPARK_1, centerX + offsetX, centerY + offsetY, centerZ + offsetZ, 1, 0.1, 0.1, 0.1, 0.05);
+        world.spawnParticles(ModParticles.SHOCK_SPARK_2, centerX + offsetX * 0.8, centerY + offsetY * 0.8, centerZ + offsetZ * 0.8, 1, 0.1, 0.1, 0.1, 0.05);
+        world.spawnParticles(ModParticles.SHOCK_SPARK_3, centerX + offsetX * 1.2, centerY + offsetY * 1.2, centerZ + offsetZ * 1.2, 1, 0.1, 0.1, 0.1, 0.05);
+        world.spawnParticles(ModParticles.SHOCK_SPARK_4, centerX + offsetX * 0.6, centerY + offsetY * 0.6, centerZ + offsetZ * 0.6, 1, 0.1, 0.1, 0.1, 0.05);
     }
 }

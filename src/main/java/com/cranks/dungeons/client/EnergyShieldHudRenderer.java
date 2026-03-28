@@ -35,6 +35,7 @@ public class EnergyShieldHudRenderer implements HudRenderCallback {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.player == null) return;
         if (client.options.hudHidden) return;
+        if (client.player.isCreative() || client.player.isSpectator()) return;
         
         PlayerEntity player = client.player;
         if (!(player instanceof EnergyShieldProvider shieldProvider)) return;

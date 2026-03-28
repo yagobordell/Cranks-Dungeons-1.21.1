@@ -1,0 +1,7 @@
+accessWidener v2 named
+
+# Make HeartType enum accessible
+accessible class net/minecraft/client/gui/hud/InGameHud$HeartType
+
+# Make drawHeart method accessible  
+accessible method net/minecraft/client/gui/hud/InGameHud drawHeart (Lnet/minecraft/client/gui/DrawContext;Lnet/minecraft/client/gui/hud/InGameHud$HeartType;IIZZZ)V

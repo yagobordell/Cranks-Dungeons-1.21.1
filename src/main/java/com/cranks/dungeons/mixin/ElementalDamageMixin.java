@@ -10,6 +10,7 @@ import com.cranks.dungeons.registry.ModSounds;
 import com.cranks.dungeons.util.CriticalHitState;
 import com.cranks.dungeons.util.DamageBreakdownProvider;
 import com.cranks.dungeons.util.DamageConversionHelper;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
@@ -45,18 +46,26 @@ public abstract class ElementalDamageMixin {
 
     @Unique
     private boolean cranks$processingElementalDamage = false;
+    
+    // Static flag to prevent shock chain damage from triggering elemental processing
 
     @Inject(method = "damage", at = @At("RETURN"))
     private void applyElementalDamageOnHit(ServerWorld world, DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
+        // Skip if damage didn't succeed or already processing
         if (!cir.getReturnValue()) {
             return;
         }
 
+        LivingEntity target = (LivingEntity) (Object) this;
+
         if (cranks$processingElementalDamage) {
             return;
         }
-
-        LivingEntity target = (LivingEntity) (Object) this;
+        
+        // Skip if this is shock chain damage (prevent double processing)
+        if (AilmentManager.isShockChainInProgress()) {
+            return;
+        }
 
         // Accumulate bleed damage if target has bleed ailment
         AilmentManager.accumulateBleedDamage(target, amount);
@@ -82,6 +91,10 @@ public abstract class ElementalDamageMixin {
 
         try {
             cranks$processingElementalDamage = true;
+            
+            // Check for shock IMMEDIATELY at start - BEFORE any damage calculations or applications
+            // This ensures we capture the shock state before any damage kills the entity
+            final boolean[] hasShockBeforeDamage = {AilmentManager.hasAilment(target, AilmentType.SHOCK)};
 
             // === FIRE DAMAGE ===
             double fireBaseDamage = attacker.getAttributeValue(ModAttributes.FIRE_DAMAGE);
@@ -92,7 +105,7 @@ public abstract class ElementalDamageMixin {
             double fireTotalPercent = firePercentFromWeapon + firePercentFromChestplate;
 
             double fireDamage = fireBaseDamage * (1.0 + fireTotalPercent) * critMultiplier;
-
+            
             // === COLD DAMAGE ===
             double coldBaseDamage = attacker.getAttributeValue(ModAttributes.COLD_DAMAGE);
             coldBaseDamage += getEnchantmentValue(weapon, "minecraft:cold_damage", 4.0);
@@ -153,6 +166,28 @@ public abstract class ElementalDamageMixin {
             if (lightningDamage > 0) {
                 double resistance = target.getAttributeValue(ModAttributes.LIGHTNING_RESISTANCE);
                 double finalDamage = lightningDamage * (1.0 - resistance);
+                
+                // Trigger shock chain BEFORE applying damage (ensures it works for killing hits)
+                // Check here regardless of finalDamage to ensure chain always triggers when appropriate
+                boolean shouldChain = hasShockBeforeDamage[0] && finalDamage > 0 && !AilmentManager.isShockChainInProgress();
+                
+                if (shouldChain) {
+                    if (AilmentManager.acquireShockChainLock()) {
+                        try {
+                            // Use executeShockChain which skips the hasAilment check
+                            AilmentManager.executeShockChain(target, (float) finalDamage, attacker);
+                        } catch (Exception e) {
+                            // Log error but don't crash
+                            System.err.println("[CranksDungeons] Error in shock chain: " + e.getMessage());
+                            e.printStackTrace();
+                        } finally {
+                            AilmentManager.releaseShockChainLock();
+                        }
+                    } else {
+                        System.err.println("[CranksDungeons] Failed to acquire shock chain lock (already in progress)");
+                    }
+                }
+                
                 if (finalDamage > 0) {
                     target.setHealth(target.getHealth() - (float) finalDamage);
                     totalElementalDamage += finalDamage;
@@ -191,6 +226,8 @@ public abstract class ElementalDamageMixin {
             }
             if (finalLightningDamage > 0) {
                 world.playSoundFromEntity(null, target, ModSounds.ELEMENTAL_LIGHTNING_HIT, SoundCategory.PLAYERS, 0.8f, 1.0f);
+                // Note: Shock chain is now triggered at the start of the method (line ~58)
+                // to ensure it works even when the target dies from the hit
             }
             if (finalVoidDamage > 0) {
                 world.playSoundFromEntity(null, target, ModSounds.ELEMENTAL_VOID_HIT, SoundCategory.PLAYERS, 0.6f, 1.0f);
@@ -256,11 +293,23 @@ public abstract class ElementalDamageMixin {
                 AilmentManager.applyAilment(target, AilmentType.BLEED, 0.0f, AilmentType.BLEED.getBaseDuration(), attacker);
             }
 
+            // Shock
+            double chanceToShock = attacker.getAttributeValue(ModAttributes.CHANCE_TO_SHOCK) +
+                                  EquipmentStatApplier.getItemStatValue(weapon, "chance_to_shock") +
+                                  EquipmentStatApplier.getItemStatValue(chestplate, "chance_to_shock") +
+                                  getEnchantmentValue(weapon, "minecraft:chance_to_shock", 0.05) +
+                                  getEnchantmentValue(chestplate, "minecraft:chance_to_shock", 0.05);
+
+            if (Math.random() < chanceToShock) {
+                double shockDuration = attacker.getAttributeValue(ModAttributes.SHOCK_DURATION);
+                AilmentManager.applyAilment(target, AilmentType.SHOCK, 0.0f, shockDuration, attacker);
+            }
+
         } finally {
             cranks$processingElementalDamage = false;
         }
     }
-
+    
     @Unique
     private void handleNonPlayerDamage(ServerWorld world, DamageSource source, float amount, LivingEntity target) {
         // For non-player damage, we retrieve the stored breakdown and broadcast to nearby players
@@ -270,12 +319,26 @@ public abstract class ElementalDamageMixin {
                 breakdown = DamageConversionHelper.getBreakdown(source, amount);
             }
             
+            // Check for shock BEFORE calculating damage
+            boolean hasShockBeforeDamage = AilmentManager.hasAilment(target, AilmentType.SHOCK);
+            
             // Apply resistances to get the actual final values
             float physical = breakdown.get(DamageElement.PHYSICAL);
             float fire = (float) (breakdown.get(DamageElement.FIRE) * (1.0 - target.getAttributeValue(ModAttributes.FIRE_RESISTANCE)));
             float cold = (float) (breakdown.get(DamageElement.COLD) * (1.0 - target.getAttributeValue(ModAttributes.COLD_RESISTANCE)));
             float lightning = (float) (breakdown.get(DamageElement.LIGHTNING) * (1.0 - target.getAttributeValue(ModAttributes.LIGHTNING_RESISTANCE)));
             float voidDamage = (float) (breakdown.get(DamageElement.VOID) * (1.0 - target.getAttributeValue(ModAttributes.VOID_RESISTANCE)));
+            
+            // Trigger shock chain BEFORE damage is applied (works for killing hits)
+            if (lightning > 0 && hasShockBeforeDamage && !AilmentManager.isShockChainInProgress()) {
+                if (AilmentManager.acquireShockChainLock()) {
+                    try {
+                        AilmentManager.executeShockChain(target, lightning, source.getAttacker());
+                    } finally {
+                        AilmentManager.releaseShockChainLock();
+                    }
+                }
+            }
 
             DamageNumberSender.broadcast(world, target, physical, fire, cold, lightning, voidDamage);
         }

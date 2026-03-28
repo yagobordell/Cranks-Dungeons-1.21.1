@@ -235,6 +235,13 @@ public abstract class InventoryScreenStatsMixin {
             chanceToFreeze += getEnchantmentValue(chestplate, "minecraft:chance_to_freeze", 0.05);
             curY = drawStatWithTooltip(context, tr, panelX, curY, "Freeze Chance", chanceToFreeze * 100, "%", mouseX, mouseY, panelX, panelWidth);
             curY = drawStatWithTooltip(context, tr, panelX, curY, "Freeze Duration", 4.0, "s", mouseX, mouseY, panelX, panelWidth);
+
+            // SHOCK stats
+            double chanceToShock = player.getAttributeValue(ModAttributes.CHANCE_TO_SHOCK);
+            chanceToShock += getEnchantmentValue(weapon, "minecraft:chance_to_shock", 0.05);
+            chanceToShock += getEnchantmentValue(chestplate, "minecraft:chance_to_shock", 0.05);
+            curY = drawStatWithTooltip(context, tr, panelX, curY, "Shock Chance", chanceToShock * 100, "%", mouseX, mouseY, panelX, panelWidth);
+            curY = drawStatWithTooltip(context, tr, panelX, curY, "Shock Duration", 10.0, "s", mouseX, mouseY, panelX, panelWidth);
             curY += 6;
 
             // --- CATEGORY 4: SURVIVAL ---
@@ -354,6 +361,8 @@ public abstract class InventoryScreenStatsMixin {
             case "Bleed Duration" -> "Base duration of bleed ailment";
             case "Freeze Chance" -> "Chance to freeze enemies on hit";
             case "Freeze Duration" -> "Base duration of freeze ailment";
+            case "Shock Chance" -> "Chance to shock enemies on hit";
+            case "Shock Duration" -> "Base duration of shock ailment";
             case "Fire Damage" -> "Bonus fire damage per hit";
             case "Cold Damage" -> "Bonus cold damage per hit";
             case "Lightning Dmg" -> "Bonus lightning damage per hit";
@@ -495,8 +504,8 @@ public abstract class InventoryScreenStatsMixin {
         
         // Ailments category
         height += 11;
-        // Ailment stats (11 stats: burn 3 + poison 4 + bleed 2 + freeze 2)
-        height += 11 * 10;
+        // Ailment stats (13 stats: burn 3 + poison 4 + bleed 2 + freeze 2 + shock 2)
+        height += 13 * 10;
         height += 6;
         
         // Survival category

@@ -4,7 +4,7 @@ public enum AilmentType {
     BURN("burn", 4.0, 0.5),
     BLEED("bleed", 5.0, 0.5),
     POISON("poison", 2.0, 0.5),
-    SHOCK("shock", 3.0, 0.0),
+    SHOCK("shock", 10.0, 0.0),
     FREEZE("freeze", 4.0, 0.5);
 
     private final String id;

@@ -2,7 +2,9 @@ package com.cranks.dungeons.mixin;
 
 import com.cranks.dungeons.ailment.AilmentManager;
 import com.cranks.dungeons.ailment.AilmentType;
+import com.cranks.dungeons.particle.ModParticles;
 import com.cranks.dungeons.registry.ModAttributes;
+import com.cranks.dungeons.registry.ModSounds;
 import com.cranks.dungeons.util.AilmentHistoryProvider;
 import com.cranks.dungeons.util.DamageBreakdownProvider;
 import com.cranks.dungeons.util.DamageConversionHelper;
@@ -10,8 +12,10 @@ import com.cranks.dungeons.network.DamageNumberSender;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.attribute.DefaultAttributeContainer;
 import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.particle.ParticleEffect;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.SoundCategory;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -174,20 +178,10 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
         if (AilmentManager.hasAilment(entity, AilmentType.POISON)) {
             if (entity.getRandom().nextFloat() > 0.4f) return;
             ServerWorld world = (ServerWorld) entity.getEntityWorld();
-            
-            // Get stack count from the poison ailment (now single ailment with stacks)
-            int stacks = AilmentManager.getAilments(entity).stream()
-                    .filter(a -> a.getType() == AilmentType.POISON)
-                    .findFirst()
-                    .map(a -> a.getStacks())
-                    .orElse(1);
-            int count = (int) Math.min(4, 1 + stacks / 5);
-
             double x = entity.getX() + (world.getRandom().nextDouble() - 0.5) * 0.6;
-            double y = entity.getY() + entity.getHeight() * 0.5 + (world.getRandom().nextDouble() - 0.5) * 0.4;
+            double y = entity.getY() + entity.getHeight() * 0.75 + (world.getRandom().nextDouble() - 0.5) * 0.4;
             double z = entity.getZ() + (world.getRandom().nextDouble() - 0.5) * 0.6;
-            
-            // No ambient poison particles - only damage numbers and sound
+            world.spawnParticles(ModParticles.POISON_BUBBLE, x, y, z, 2, 0.1, 0.1, 0.1, 0.05);
         }
 
         if (AilmentManager.hasAilment(entity, AilmentType.FREEZE)) {
@@ -216,6 +210,35 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
             double y = entity.getY() + entity.getHeight() * 0.5 + (world.getRandom().nextDouble() - 0.5) * 0.5;
             double z = entity.getZ() + (world.getRandom().nextDouble() - 0.5) * 0.7;
             world.spawnParticles(ParticleTypes.RAID_OMEN, x, y, z, 2, 0.1, 0.1, 0.1, 0.05);
+        }
+
+        if (AilmentManager.hasAilment(entity, AilmentType.SHOCK)) {
+            // Electric pulse effect: spawn multiple particles every 3 seconds (60 ticks)
+            // This gives particles time to disappear before next spawn
+            if (entity.age % 60 == 0) {
+                ServerWorld world = (ServerWorld) entity.getEntityWorld();
+                // Play ambient shock sound
+                world.playSound(null, entity.getX(), entity.getY(), entity.getZ(), 
+                    ModSounds.SHOCK_AMBIENT, SoundCategory.HOSTILE, 0.6f, 1.0f);
+                // Spawn 4-6 particles in a burst around the entity
+                int particleCount = 4 + entity.getRandom().nextInt(3);
+                for (int i = 0; i < particleCount; i++) {
+                    double x = entity.getX() + (world.getRandom().nextDouble() - 0.5) * entity.getWidth() * 0.5;
+                    double y = entity.getY() + entity.getHeight() * 0.4 + world.getRandom().nextDouble() * entity.getHeight() * 0.4;
+                    double z = entity.getZ() + (world.getRandom().nextDouble() - 0.5) * entity.getWidth() * 0.5;
+                    // Randomly choose one of 3 shock ambient particles
+                    int particleVariant = entity.getRandom().nextInt(3);
+                    ParticleEffect particle = switch (particleVariant) {
+                        case 0 -> ModParticles.SHOCK_AMBIENT_1;
+                        case 1 -> ModParticles.SHOCK_AMBIENT_2;
+                        case 2 -> ModParticles.SHOCK_AMBIENT_3;
+                        default -> ModParticles.SHOCK_AMBIENT_1;
+                    };
+                    // Lower velocity spread keeps particles closer to entity
+                    // Speed 0.05 for slower movement
+                    world.spawnParticles(particle, x, y, z, 1, 0.1, 0.1, 0.1, 0.05);
+                }
+            }
         }
     }
 }

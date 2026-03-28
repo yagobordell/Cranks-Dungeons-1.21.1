@@ -901,6 +901,18 @@ public class StatRegistry {
         ));
 
         register(new CustomStat(
+                "sword_chance_to_shock",
+                "Shock Chance",
+                EquipmentType.SWORD,
+                ModAttributes.CHANCE_TO_SHOCK,
+                new double[]{0.01, 0.03, 0.05, 0.08, 0.12},
+                new double[]{0.02, 0.05, 0.08, 0.12, 0.18},
+                true,
+                true,
+                Formatting.YELLOW
+        ));
+
+        register(new CustomStat(
                 "sword_fire_damage",
                 "Fire Damage",
                 EquipmentType.SWORD,
@@ -1147,6 +1159,18 @@ public class StatRegistry {
         ));
 
         register(new CustomStat(
+                "spear_chance_to_shock",
+                "Shock Chance",
+                EquipmentType.SPEAR,
+                ModAttributes.CHANCE_TO_SHOCK,
+                new double[]{0.01, 0.03, 0.05, 0.08, 0.12},
+                new double[]{0.02, 0.05, 0.08, 0.12, 0.18},
+                true,
+                true,
+                Formatting.YELLOW
+        ));
+
+        register(new CustomStat(
                 "spear_fire_damage",
                 "Fire Damage",
                 EquipmentType.SPEAR,
@@ -1368,6 +1392,18 @@ public class StatRegistry {
                 true,
                 true,
                 Formatting.DARK_RED
+        ));
+
+        register(new CustomStat(
+                "mace_chance_to_shock",
+                "Shock Chance",
+                EquipmentType.MACE,
+                ModAttributes.CHANCE_TO_SHOCK,
+                new double[]{0.01, 0.03, 0.05, 0.08, 0.12},
+                new double[]{0.02, 0.05, 0.08, 0.12, 0.18},
+                true,
+                true,
+                Formatting.YELLOW
         ));
 
         register(new CustomStat(
@@ -1606,6 +1642,18 @@ public class StatRegistry {
         ));
 
         register(new CustomStat(
+                "trident_chance_to_shock",
+                "Shock Chance",
+                EquipmentType.TRIDENT,
+                ModAttributes.CHANCE_TO_SHOCK,
+                new double[]{0.01, 0.03, 0.05, 0.08, 0.12},
+                new double[]{0.02, 0.05, 0.08, 0.12, 0.18},
+                true,
+                true,
+                Formatting.YELLOW
+        ));
+
+        register(new CustomStat(
                 "trident_fire_damage",
                 "Fire Damage",
                 EquipmentType.TRIDENT,
@@ -1802,6 +1850,18 @@ public class StatRegistry {
                 true,
                 true,
                 Formatting.DARK_RED
+        ));
+
+        register(new CustomStat(
+                "bow_chance_to_shock",
+                "Shock Chance",
+                EquipmentType.BOW,
+                ModAttributes.CHANCE_TO_SHOCK,
+                new double[]{0.01, 0.03, 0.05, 0.08, 0.12},
+                new double[]{0.02, 0.05, 0.08, 0.12, 0.18},
+                true,
+                true,
+                Formatting.YELLOW
         ));
 
         register(new CustomStat(
@@ -2002,6 +2062,18 @@ public class StatRegistry {
                 true,
                 true,
                 Formatting.DARK_RED
+        ));
+
+        register(new CustomStat(
+                "crossbow_chance_to_shock",
+                "Shock Chance",
+                EquipmentType.CROSSBOW,
+                ModAttributes.CHANCE_TO_SHOCK,
+                new double[]{0.01, 0.03, 0.05, 0.08, 0.12},
+                new double[]{0.02, 0.05, 0.08, 0.12, 0.18},
+                true,
+                true,
+                Formatting.YELLOW
         ));
 
         register(new CustomStat(

@@ -13,6 +13,7 @@ import com.cranks.dungeons.loot.RunicTomeLootHandler;
 import com.cranks.dungeons.network.EnergyShieldSyncPacket;
 import com.cranks.dungeons.network.ModNetworking;
 import com.cranks.dungeons.network.StatOptionsSyncPacket;
+import com.cranks.dungeons.particle.ModParticles;
 import com.cranks.dungeons.registry.ModAttributes;
 import com.cranks.dungeons.registry.ModSounds;
 import com.cranks.dungeons.screen.ModScreenHandlers;
@@ -47,6 +48,7 @@ public class CranksDungeons implements ModInitializer {
 		ModAttributes.registerAttributes();
 		ModSounds.registerSounds();
 		ModEffects.registerEffects();
+		ModParticles.register();
 		PayloadTypeRegistry.playS2C().register(StatOptionsSyncPacket.ID, StatOptionsSyncPacket.CODEC);
 		PayloadTypeRegistry.playS2C().register(EnergyShieldSyncPacket.ID, EnergyShieldSyncPacket.CODEC);
 		StatRegistry.registerStats();
@@ -79,6 +81,8 @@ public class CranksDungeons implements ModInitializer {
 						.add(ModAttributes.POISON_DAMAGE_PERCENT, 0.0)
 						.add(ModAttributes.CHANCE_TO_FREEZE, 0.0)
 						.add(ModAttributes.CHANCE_TO_BLEED, 0.0)
+						.add(ModAttributes.CHANCE_TO_SHOCK, 0.0)
+						.add(ModAttributes.SHOCK_DURATION, 3.0)
 		);
 
 		registerCreativeTabItems();

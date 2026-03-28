@@ -13,6 +13,7 @@ public class ModEffects {
     public static RegistryEntry<StatusEffect> POISON;
     public static RegistryEntry<StatusEffect> FREEZE;
     public static RegistryEntry<StatusEffect> BLEED;
+    public static RegistryEntry<StatusEffect> SHOCK;
 
     public static void registerEffects() {
         Identifier burnId = Identifier.of(CranksDungeons.MOD_ID, "burn");
@@ -30,6 +31,10 @@ public class ModEffects {
         Identifier bleedId = Identifier.of(CranksDungeons.MOD_ID, "bleed");
         Registry.register(Registries.STATUS_EFFECT, bleedId, new BleedStatusEffect());
         BLEED = Registries.STATUS_EFFECT.getEntry(bleedId).orElseThrow();
+
+        Identifier shockId = Identifier.of(CranksDungeons.MOD_ID, "shock");
+        Registry.register(Registries.STATUS_EFFECT, shockId, new ShockStatusEffect());
+        SHOCK = Registries.STATUS_EFFECT.getEntry(shockId).orElseThrow();
 
         CranksDungeons.LOGGER.info("Registering effects for " + CranksDungeons.MOD_ID);
     }

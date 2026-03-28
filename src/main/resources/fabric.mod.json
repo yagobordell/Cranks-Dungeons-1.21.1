@@ -28,6 +28,7 @@
 			"com.cranks.dungeons.client.ModMenuIntegration"
 		]
 	},
+	"accessWidener": "cranks-dungeons.accesswidener",
 	"mixins": [
 		"cranks-dungeons.mixins.json"
 	],

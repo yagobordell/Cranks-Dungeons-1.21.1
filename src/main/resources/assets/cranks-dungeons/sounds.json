@@ -69,5 +69,15 @@
     "sounds": [
       { "name": "cranks-dungeons:bleed_burst", "volume": 0.8, "pitch": 1.0 }
     ]
+  },
+  "shock_ambient": {
+    "sounds": [
+      { "name": "cranks-dungeons:shock_ambient", "volume": 0.6, "pitch": 1.0 }
+    ]
+  },
+  "shock_chain": {
+    "sounds": [
+      { "name": "cranks-dungeons:shock_chain", "volume": 0.7, "pitch": 1.0 }
+    ]
   }
 }
