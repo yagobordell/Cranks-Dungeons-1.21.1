@@ -14,6 +14,7 @@ import net.minecraft.registry.RegistryKeys;
 import net.minecraft.util.Identifier;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -30,25 +31,73 @@ public class RunicTomeLootHandler {
 
     // Mob tier classification
     private static final Map<EntityType<?>, Integer> MOB_TIERS = new HashMap<>();
+    
+    // Chest loot table IDs
+    private static final List<Identifier> TIER_1_CHESTS = List.of(
+        Identifier.of("minecraft", "chests/abandoned_mineshaft"),
+        Identifier.of("minecraft", "chests/spawn_bonus_chest")
+    );
+    
+    private static final List<Identifier> TIER_2_CHESTS = List.of(
+        Identifier.of("minecraft", "chests/simple_dungeon"),
+        Identifier.of("minecraft", "chests/desert_pyramid"),
+        Identifier.of("minecraft", "chests/jungle_temple"),
+        Identifier.of("minecraft", "chests/igloo_chest"),
+        Identifier.of("minecraft", "chests/ruined_portal"),
+        Identifier.of("minecraft", "chests/shipwreck_map"),
+        Identifier.of("minecraft", "chests/shipwreck_supply"),
+        Identifier.of("minecraft", "chests/shipwreck_treasure"),
+        Identifier.of("minecraft", "chests/buried_treasure"),
+        Identifier.of("minecraft", "chests/underwater_ruin_small"),
+        Identifier.of("minecraft", "chests/underwater_ruin_big")
+    );
+    
+    private static final List<Identifier> TIER_3_CHESTS = List.of(
+        Identifier.of("minecraft", "chests/stronghold_library"),
+        Identifier.of("minecraft", "chests/stronghold_corridor"),
+        Identifier.of("minecraft", "chests/stronghold_crossing"),
+        Identifier.of("minecraft", "chests/end_city_treasure"),
+        Identifier.of("minecraft", "chests/nether_bridge"),
+        Identifier.of("minecraft", "chests/bastion_treasure"),
+        Identifier.of("minecraft", "chests/bastion_other"),
+        Identifier.of("minecraft", "chests/bastion_bridge"),
+        Identifier.of("minecraft", "chests/bastion_hoglin_stable"),
+        Identifier.of("minecraft", "chests/ancient_city"),
+        Identifier.of("minecraft", "chests/ancient_city_ice_box")
+    );
 
     public static void register() {
         registerMobTiers();
 
         LootTableEvents.MODIFY.register((key, tableBuilder, source, registries) -> {
-            // Only modify entity loot tables
-            if (!source.isBuiltin() || key.getValue().getPath().startsWith("blocks/")) {
+            if (!source.isBuiltin()) {
                 return;
             }
+            
+            Identifier lootId = key.getValue();
+            String path = lootId.getPath();
+            
+            // Handle entity loot tables
+            if (path.startsWith("entities/")) {
+                EntityType<?> entityType = getEntityTypeFromLootTable(key);
+                if (entityType == null) return;
 
-            // Get entity type from loot table key
-            EntityType<?> entityType = getEntityTypeFromLootTable(key);
-            if (entityType == null) return;
+                Integer mobTier = MOB_TIERS.get(entityType);
+                if (mobTier == null) return;
 
-            Integer mobTier = MOB_TIERS.get(entityType);
-            if (mobTier == null) return;
-
-            // Add appropriate tome drops based on mob tier
-            addTomeDrops(tableBuilder, mobTier);
+                // Add appropriate tome drops based on mob tier
+                addTomeDrops(tableBuilder, mobTier);
+            }
+            // Handle chest loot tables
+            else if (path.startsWith("chests/")) {
+                if (TIER_3_CHESTS.contains(lootId)) {
+                    addChestTomeDrops(tableBuilder, 3);
+                } else if (TIER_2_CHESTS.contains(lootId)) {
+                    addChestTomeDrops(tableBuilder, 2);
+                } else if (TIER_1_CHESTS.contains(lootId)) {
+                    addChestTomeDrops(tableBuilder, 1);
+                }
+            }
         });
     }
 
@@ -198,6 +247,80 @@ public class RunicTomeLootHandler {
                 .with(ItemEntry.builder(net.minecraft.item.Items.AIR)
                         .weight(1150)
                         .quality(-3)); // LUCK PENALTY (stronger)
+    }
+
+    /**
+     * Add tome drops to chests based on tier.
+     * Higher tier chests have better drop chances and higher tier tomes.
+     */
+    private static void addChestTomeDrops(LootTable.Builder tableBuilder, int chestTier) {
+        LootPool.Builder poolBuilder = LootPool.builder()
+                .rolls(ConstantLootNumberProvider.create(1));
+
+        switch (chestTier) {
+            case 1 -> addTier1ChestDrops(poolBuilder);
+            case 2 -> addTier2ChestDrops(poolBuilder);
+            case 3 -> addTier3ChestDrops(poolBuilder);
+        }
+
+        tableBuilder.pool(poolBuilder);
+    }
+
+    /**
+     * TIER 1 CHESTS (Mineshafts, Spawn Bonus) - T1-T2 tomes only
+     * 15% chance for tomes
+     */
+    private static void addTier1ChestDrops(LootPool.Builder poolBuilder) {
+        poolBuilder
+                .with(ItemEntry.builder(ModItems.RUNIC_TOME_T1)
+                        .weight(90)
+                        .quality(1)
+                        .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))
+                .with(ItemEntry.builder(ModItems.RUNIC_TOME_T2)
+                        .weight(10)
+                        .quality(2)
+                        .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))
+                .with(ItemEntry.builder(net.minecraft.item.Items.AIR)
+                        .weight(850)
+                        .quality(-2));
+    }
+
+    /**
+     * TIER 2 CHESTS (Dungeons, Temples, Shipwrecks) - T1-T2 tomes only
+     * 20% chance for tomes
+     */
+    private static void addTier2ChestDrops(LootPool.Builder poolBuilder) {
+        poolBuilder
+                .with(ItemEntry.builder(ModItems.RUNIC_TOME_T1)
+                        .weight(35)
+                        .quality(1)
+                        .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))
+                .with(ItemEntry.builder(ModItems.RUNIC_TOME_T2)
+                        .weight(65)
+                        .quality(2)
+                        .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))
+                .with(ItemEntry.builder(net.minecraft.item.Items.AIR)
+                        .weight(800)
+                        .quality(-2));
+    }
+
+    /**
+     * TIER 3 CHESTS (Strongholds, End Cities, Bastions, Ancient Cities) - T1-T2 tomes only
+     * 25% chance for tomes
+     */
+    private static void addTier3ChestDrops(LootPool.Builder poolBuilder) {
+        poolBuilder
+                .with(ItemEntry.builder(ModItems.RUNIC_TOME_T1)
+                        .weight(15)
+                        .quality(1)
+                        .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))
+                .with(ItemEntry.builder(ModItems.RUNIC_TOME_T2)
+                        .weight(85)
+                        .quality(2)
+                        .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))
+                .with(ItemEntry.builder(net.minecraft.item.Items.AIR)
+                        .weight(750)
+                        .quality(-3));
     }
 
     private static EntityType<?> getEntityTypeFromLootTable(RegistryKey<LootTable> key) {
