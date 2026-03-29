@@ -502,6 +502,7 @@ public class AilmentManager {
                 
                 // Spawn shock chain particles at target position
                 spawnShockChainParticles(world, target);
+                
             }
         }
     }
@@ -552,4 +553,5 @@ public class AilmentManager {
         world.spawnParticles(ModParticles.SHOCK_SPARK_3, centerX + offsetX * 1.2, centerY + offsetY * 1.2, centerZ + offsetZ * 1.2, 1, 0.1, 0.1, 0.1, 0.05);
         world.spawnParticles(ModParticles.SHOCK_SPARK_4, centerX + offsetX * 0.6, centerY + offsetY * 0.6, centerZ + offsetZ * 0.6, 1, 0.1, 0.1, 0.1, 0.05);
     }
+    
 }

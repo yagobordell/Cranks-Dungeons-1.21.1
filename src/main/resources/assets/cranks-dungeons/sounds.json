@@ -79,5 +79,15 @@
     "sounds": [
       { "name": "cranks-dungeons:shock_chain", "volume": 0.7, "pitch": 1.0 }
     ]
+  },
+  "shock_loop": {
+    "sounds": [
+      { "name": "cranks-dungeons:shock_loop", "volume": 0.3, "pitch": 1.0 }
+    ]
+  },
+  "shock_loop_2": {
+    "sounds": [
+      { "name": "cranks-dungeons:shock_loop_2", "volume": 0.3, "pitch": 1.0 }
+    ]
   }
 }

@@ -32,6 +32,8 @@ public class ModSounds {
     // Shock sounds
     public static final SoundEvent SHOCK_AMBIENT = register("shock_ambient");
     public static final SoundEvent SHOCK_CHAIN = register("shock_chain");
+    public static final SoundEvent SHOCK_LOOP = register("shock_loop");
+    public static final SoundEvent SHOCK_LOOP_2 = register("shock_loop_2");
 
     private static SoundEvent register(String name) {
         Identifier id = Identifier.of(CranksDungeons.MOD_ID, name);
