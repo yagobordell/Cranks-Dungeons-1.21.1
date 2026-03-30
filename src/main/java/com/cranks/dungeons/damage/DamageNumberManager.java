@@ -7,6 +7,16 @@ public class DamageNumberManager {
     private static final List<DamageNumber> activeNumbers = new ArrayList<>();
 
     public static void addDamageNumber(DamageNumber number) {
+        // Check if this is a drowning damage number (cyan-blue color 0x0088AA)
+        boolean isDrowning = (number.color == 0x0088AA);
+        
+        // If it's a drowning number, always use row 0 (don't stack vertically)
+        if (isDrowning) {
+            number.setRowIndex(0);
+            activeNumbers.add(number);
+            return;
+        }
+        
         // Automatically adjust rowIndex based on existing numbers near this one
         int maxRow = -1;
         long now = System.currentTimeMillis();

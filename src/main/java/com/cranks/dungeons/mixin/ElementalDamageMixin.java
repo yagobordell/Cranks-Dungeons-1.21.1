@@ -206,14 +206,16 @@ public abstract class ElementalDamageMixin {
             }
 
             // === SEND DAMAGE NUMBERS ===
+            // Broadcast to all nearby players so everyone can see the damage numbers
             if (attacker instanceof ServerPlayerEntity serverPlayer) {
-                DamageNumberSender.send(
-                        serverPlayer, target,
+                DamageNumberSender.broadcast(
+                        world, target,
                         physicalDamage,
                         finalFireDamage,
                         finalColdDamage,
                         finalLightningDamage,
-                        finalVoidDamage
+                        finalVoidDamage,
+                        serverPlayer.getUuid()
                 );
             }
 
@@ -312,6 +314,11 @@ public abstract class ElementalDamageMixin {
     
     @Unique
     private void handleNonPlayerDamage(ServerWorld world, DamageSource source, float amount, LivingEntity target) {
+        // Skip broadcasting void damage numbers if this is poison damage (poison sends its own green numbers)
+        if (AilmentManager.isPoisonDamageInProgress(target.getUuid())) {
+            return;
+        }
+        
         // For non-player damage, we retrieve the stored breakdown and broadcast to nearby players
         if (target instanceof DamageBreakdownProvider provider) {
             DamageConversionHelper.DamageBreakdown breakdown = provider.cranks$getLastDamageBreakdown();

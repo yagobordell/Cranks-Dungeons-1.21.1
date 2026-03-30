@@ -47,6 +47,21 @@ public class AilmentManager {
     
     // Track which entity triggered the current chain to prevent self-chaining
     private static UUID CURRENT_CHAIN_SOURCE = null;
+    
+    // Track entities currently being damaged by poison (to prevent void damage numbers from showing)
+    private static final Set<UUID> POISON_DAMAGE_IN_PROGRESS = new HashSet<>();
+    
+    public static boolean isPoisonDamageInProgress(UUID entityUuid) {
+        return POISON_DAMAGE_IN_PROGRESS.contains(entityUuid);
+    }
+    
+    public static void setPoisonDamageInProgress(UUID entityUuid, boolean inProgress) {
+        if (inProgress) {
+            POISON_DAMAGE_IN_PROGRESS.add(entityUuid);
+        } else {
+            POISON_DAMAGE_IN_PROGRESS.remove(entityUuid);
+        }
+    }
 
     public static void applyAilment(LivingEntity target, AilmentType type, float baseDamage, double duration, Entity source) {
         applyAilment(target, type, baseDamage, duration, source, null, null, 0);
@@ -371,8 +386,16 @@ public class AilmentManager {
             float currentHealth = entity.getHealth();
             if (currentHealth - finalPoisonDamage <= 0) {
                 // Entity will die - use proper damage source to ensure loot drops
-                net.minecraft.entity.damage.DamageSource damageSource = world.getDamageSources().magic();
-                entity.damage(world, damageSource, finalPoisonDamage);
+                // Send poison damage number BEFORE applying killing blow so it shows green instead of purple void
+                DamageNumberSender.broadcastPoison(world, entity, finalPoisonDamage, poisonAilment.getSourceUuid());
+                // Mark poison damage as in progress to prevent void numbers from showing
+                setPoisonDamageInProgress(entity.getUuid(), true);
+                try {
+                    net.minecraft.entity.damage.DamageSource damageSource = world.getDamageSources().magic();
+                    entity.damage(world, damageSource, finalPoisonDamage);
+                } finally {
+                    setPoisonDamageInProgress(entity.getUuid(), false);
+                }
             } else {
                 // Entity won't die - apply damage directly to avoid vanilla damage numbers
                 entity.setHealth(currentHealth - finalPoisonDamage);

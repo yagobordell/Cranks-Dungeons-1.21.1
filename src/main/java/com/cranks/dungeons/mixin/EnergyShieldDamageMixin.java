@@ -6,6 +6,7 @@ import com.cranks.dungeons.registry.ModAttributes;
 import com.cranks.dungeons.registry.ModSounds;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.entity.damage.DamageTypes;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.registry.tag.DamageTypeTags;
@@ -37,9 +38,9 @@ public class EnergyShieldDamageMixin {
         long currentTime = world.getTime();
         long timeSinceLastHit = currentTime - provider.cranksdungeons$getLastDamageTime();
 
-        // Bypass shield for creative/void/etc.
-        if (source.isIn(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
-            provider.cranksdungeons$setLastDamageTime(currentTime);
+        // Bypass shield for creative/void/drowning/etc. - don't update damage time for these
+        if (source.isIn(DamageTypeTags.BYPASSES_INVULNERABILITY) || source.isOf(DamageTypes.DROWN)) {
+            // Don't update lastDamageTime - this damage bypasses shield entirely
             return;
         }
 

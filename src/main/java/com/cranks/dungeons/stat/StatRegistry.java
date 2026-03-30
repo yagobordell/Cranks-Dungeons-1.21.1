@@ -1865,6 +1865,30 @@ public class StatRegistry {
         ));
 
         register(new CustomStat(
+                "bow_chance_to_poison",
+                "Poison Chance",
+                EquipmentType.BOW,
+                ModAttributes.CHANCE_TO_POISON,
+                new double[]{0.01, 0.03, 0.05, 0.08, 0.12},
+                new double[]{0.02, 0.05, 0.08, 0.12, 0.18},
+                true,
+                true,
+                Formatting.GREEN
+        ));
+
+        register(new CustomStat(
+                "bow_chance_to_freeze",
+                "Freeze Chance",
+                EquipmentType.BOW,
+                ModAttributes.CHANCE_TO_FREEZE,
+                new double[]{0.01, 0.03, 0.05, 0.08, 0.12},
+                new double[]{0.02, 0.05, 0.08, 0.12, 0.18},
+                true,
+                true,
+                Formatting.AQUA
+        ));
+
+        register(new CustomStat(
                 "bow_fire_damage",
                 "Fire Damage",
                 EquipmentType.BOW,
@@ -2074,6 +2098,30 @@ public class StatRegistry {
                 true,
                 true,
                 Formatting.YELLOW
+        ));
+
+        register(new CustomStat(
+                "crossbow_chance_to_poison",
+                "Poison Chance",
+                EquipmentType.CROSSBOW,
+                ModAttributes.CHANCE_TO_POISON,
+                new double[]{0.01, 0.03, 0.05, 0.08, 0.12},
+                new double[]{0.02, 0.05, 0.08, 0.12, 0.18},
+                true,
+                true,
+                Formatting.GREEN
+        ));
+
+        register(new CustomStat(
+                "crossbow_chance_to_freeze",
+                "Freeze Chance",
+                EquipmentType.CROSSBOW,
+                ModAttributes.CHANCE_TO_FREEZE,
+                new double[]{0.01, 0.03, 0.05, 0.08, 0.12},
+                new double[]{0.02, 0.05, 0.08, 0.12, 0.18},
+                true,
+                true,
+                Formatting.AQUA
         ));
 
         register(new CustomStat(
@@ -2681,5 +2729,9 @@ public class StatRegistry {
     public static CustomStat getRandomStatForEquipmentType(EquipmentType equipmentType) {
         List<CustomStat> stats = getStatsByEquipmentType(equipmentType);
         return stats.isEmpty() ? null : stats.get(RandomUtil.nextInt(stats.size()));
+    }
+
+    public static Collection<String> getAllStatIds() {
+        return STATS.keySet();
     }
 }

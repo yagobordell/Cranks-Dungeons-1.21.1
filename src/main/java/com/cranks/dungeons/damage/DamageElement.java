@@ -6,7 +6,8 @@ public enum DamageElement {
     COLD(0x55FFFF),
     LIGHTNING(0x0000AA),
     VOID(0xAA00AA),
-    POISON(0x006400); // Dark Green
+    POISON(0x006400), // Dark Green
+    DROWN(0x0088AA); // Cyan-blue unique to drowning
 
     public final int color;
     DamageElement(int color) {

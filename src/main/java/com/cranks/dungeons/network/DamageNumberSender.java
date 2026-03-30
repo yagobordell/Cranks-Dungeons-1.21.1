@@ -99,6 +99,25 @@ public class DamageNumberSender {
         }
     }
 
+    public static void broadcastDrown(ServerWorld world, LivingEntity target, double drownDamage) {
+        if (drownDamage <= 0) return;
+        List<DamageNumberPayload.DamageEntry> entries = new ArrayList<>();
+        entries.add(new DamageNumberPayload.DamageEntry(drownDamage, DamageElement.DROWN.color, false));
+
+        Vec3d pos = new Vec3d(
+                target.getX(),
+                target.getY() + target.getHeight() * 0.5,
+                target.getZ()
+        );
+
+        DamageNumberPayload payload = new DamageNumberPayload(pos.x, pos.y, pos.z, entries, false, null, target.getUuid());
+        double range = 32.0;
+        List<ServerPlayerEntity> players = world.getPlayers(p -> p.squaredDistanceTo(pos) < range * range);
+        for (ServerPlayerEntity player : players) {
+            ServerPlayNetworking.send(player, payload);
+        }
+    }
+
     public static void broadcast(ServerWorld world, LivingEntity target,
                                  double physicalDamage,
                                  double fireDamage,

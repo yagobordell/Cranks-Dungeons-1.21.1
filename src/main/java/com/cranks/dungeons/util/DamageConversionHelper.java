@@ -58,6 +58,12 @@ public class DamageConversionHelper {
             return breakdown;
         }
 
+        // Drowning damage - unique cyan-blue color
+        if (source.isOf(DamageTypes.DROWN)) {
+            breakdown.add(DamageElement.DROWN, amount);
+            return breakdown;
+        }
+
         if (source.isOf(DamageTypes.OUT_OF_WORLD)) {
             breakdown.add(DamageElement.VOID, amount);
             return breakdown;

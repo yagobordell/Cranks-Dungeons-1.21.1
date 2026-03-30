@@ -22,12 +22,15 @@ public class ElytraFlyingSpeedMixin {
             double flyingSpeedBonus = player.getAttributeValue(ModAttributes.FLYING_SPEED);
 
             if (flyingSpeedBonus > 0) {
+                // Apply additive boost in the direction the player is looking
+                // This gives consistent speed that matches the tooltip values
+                // instead of compounding multiplicatively every tick
                 Vec3d velocity = entity.getVelocity();
-                entity.setVelocity(new Vec3d(
-                        velocity.x * (1.0 + flyingSpeedBonus * 0.1),
-                        velocity.y,
-                        velocity.z * (1.0 + flyingSpeedBonus * 0.1)
-                ));
+                Vec3d look = player.getRotationVec(1.0F);
+                // Scale: 30% bonus = +0.015 velocity per tick (roughly 30% faster total)
+                // Sweet spot between too slow and too fast
+                Vec3d boost = look.multiply(flyingSpeedBonus * 0.05);
+                entity.setVelocity(velocity.add(boost));
             }
         }
     }

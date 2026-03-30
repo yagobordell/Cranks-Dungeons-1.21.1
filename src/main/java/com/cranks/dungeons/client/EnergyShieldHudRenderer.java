@@ -75,8 +75,19 @@ public class EnergyShieldHudRenderer implements HudRenderCallback {
         // Calculate shield rows
         int shieldRows = (int) Math.ceil(totalShieldHearts / 10.0);
         
-        // Shields replace armor bar - position at armor bar height (above health)
-        int armorBarY = healthBarY - 10;
+        // Calculate health rows based on MAX health (not current) so shields stay in fixed position
+        // Use maxHealth from attributes to ensure consistent positioning
+        int maxHealthHearts = (int) Math.ceil(player.getMaxHealth() / 2.0f);
+        int absorptionHearts = (int) Math.ceil(player.getAbsorptionAmount() / 2.0f);
+        int totalHealthRows = (int) Math.ceil((maxHealthHearts + absorptionHearts) / 10.0);
+        
+        // Shields replace armor bar - position above all health rows with proper spacing
+        // Match vanilla Minecraft's dynamic spacing formula: Math.max(10 - (rows - 2), 3)
+        // 1-2 rows: 10px spacing, 3 rows: 9px, 4 rows: 8px, etc. (min 3px for 9+ rows)
+        int healthRowsToAccountFor = OVERFLOWING_BARS_LOADED ? 1 : Math.max(1, totalHealthRows);
+        int vanillaSpacing = Math.max(10 - (healthRowsToAccountFor - 2), 3);
+        // Armor bar is at -10px, then add spacing for each additional row above
+        int armorBarY = healthBarY - 10 - ((healthRowsToAccountFor - 1) * vanillaSpacing);
         
         if (OVERFLOWING_BARS_LOADED) {
             // With Overflowing Bars: Stack shields - show only last row with Nx count
@@ -108,8 +119,9 @@ public class EnergyShieldHudRenderer implements HudRenderCallback {
         // Position at armor bar height (replacing armor bar)
         int heartY = armorBarY;
         
-        // Draw up to 10 hearts for the current row
-        for (int i = 0; i < 10; i++) {
+        // Draw hearts for the current row (only up to totalShieldHearts or 10, whichever is less)
+        int heartsToShow = Math.min(totalShieldHearts, 10);
+        for (int i = 0; i < heartsToShow; i++) {
             int col = i;
             int heartX = healthBarX + col * 8;
             
@@ -129,10 +141,10 @@ public class EnergyShieldHudRenderer implements HudRenderCallback {
             
             Identifier texture = null;
             // Use special "current" textures when you're on row 2+ (stacking effect)
-            // Row 1 (0-10 shield): use normal textures
-            // Row 2+ (11+ shield): use current textures for filled, normal for empty
-            if (currentRow > 1) {
-                // On row 2 or higher: use new textures for current row filled/half hearts
+            // Row 1 (0-10 shield): use normal textures, no empty heart textures
+            // Row 2+ (11+ shield): use current textures for filled, normal for empty (but only if total > 10)
+            if (currentRow > 1 && totalShieldHearts > 10) {
+                // On row 2 or higher with multiple rows: show filled textures for empty slots (stacking effect)
                 if (isFilled) {
                     texture = shieldBlinking ? SHIELD_FULL_CURRENT_BLINKING : SHIELD_FULL_CURRENT;
                 } else if (isHalf) {
@@ -142,7 +154,7 @@ public class EnergyShieldHudRenderer implements HudRenderCallback {
                     texture = shieldBlinking ? SHIELD_FULL_BLINKING : SHIELD_FULL;
                 }
             } else {
-                // On row 1: use normal textures
+                // On row 1 OR less than 10 total shields: use normal textures, no empty heart textures
                 if (isFilled) {
                     texture = shieldBlinking ? SHIELD_FULL_BLINKING : SHIELD_FULL;
                 } else if (isHalf) {
@@ -156,8 +168,8 @@ public class EnergyShieldHudRenderer implements HudRenderCallback {
             }
         }
         
-        // Draw row count (Nx) - only show when on row 2 or higher
-        if (currentRow > 1) {
+        // Draw row count (Nx) - only show when on row 2 or higher AND we have more than 10 total shields
+        if (currentRow > 1 && totalShieldHearts > 10) {
             drawSpriteRowCount(drawContext, currentRow, healthBarX - 13, heartY - 2);
         }
     }
@@ -212,13 +224,17 @@ public class EnergyShieldHudRenderer implements HudRenderCallback {
     private void drawAllShieldRows(DrawContext drawContext, MinecraftClient client, int healthBarX, int armorBarY, 
                                   int totalShieldHearts, int fullShieldHearts, boolean hasHalfShield, 
                                   boolean shieldBlinking) {
+        // Calculate shield rows and use vanilla spacing
+        int shieldRows = (int) Math.ceil(totalShieldHearts / 10.0);
+        int vanillaSpacing = Math.max(10 - (shieldRows - 2), 3);
+        
         // Show all rows normally at armor bar height (replacing armor bar)
         for (int i = 0; i < totalShieldHearts; i++) {
             int row = i / 10;
             int col = i % 10;
             int heartX = healthBarX + col * 8;
-            // Position at armor bar height, with additional rows going upward
-            int heartY = armorBarY - row * 10;
+            // Position at armor bar height, with additional rows using vanilla spacing
+            int heartY = armorBarY - row * vanillaSpacing;
             
             // Skip if off-screen
             if (heartY < 0) continue;

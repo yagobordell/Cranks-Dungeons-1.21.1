@@ -1,5 +1,6 @@
 package com.cranks.dungeons.mixin;
 
+import com.cranks.dungeons.client.StatsPanelScrollHandler;
 import com.cranks.dungeons.equipment.EquipmentStatApplier;
 import com.cranks.dungeons.equipment.ToolStatHelper;
 import com.cranks.dungeons.registry.ModAttributes;
@@ -37,9 +38,9 @@ public abstract class InventoryScreenStatsMixin {
     @Unique
     private static final Identifier SCROLLBAR_THUMB_TEXTURE = Identifier.of("cranks-dungeons", "textures/gui/stats_scrollbar_scroller.png");
 
+    // Note: statsVisible, scrollOffset and maxScrollOffset are now managed by StatsPanelScrollHandler
+    // to enable proper cross-mixin communication for scroll wheel handling
     @Unique private static boolean statsVisible = false;
-    @Unique private static int scrollOffset = 0;
-    @Unique private static int maxScrollOffset = 0;
     @Unique private boolean draggingScrollbar = false;
     @Unique private boolean lastClickState = false;
     @Unique private String hoveredStat = null;
@@ -48,36 +49,6 @@ public abstract class InventoryScreenStatsMixin {
 
     // Debug: log once per second so we don't spam
     @Unique private static long lastLogTime = 0;
-
-    public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
-        if (statsVisible) {
-            InventoryScreen screen = (InventoryScreen) (Object) this;
-            try {
-                int x = ((HandledScreenAccessor) screen).getX();
-                int y = ((HandledScreenAccessor) screen).getY();
-                int backgroundWidth = ((HandledScreenAccessor) screen).getBackgroundWidth();
-
-                int panelX = x + backgroundWidth + 2;
-                int panelY = y;
-                int panelWidth = 147;
-                int panelHeight = 166;
-
-                if (mouseX >= panelX && mouseX <= panelX + panelWidth &&
-                        mouseY >= panelY && mouseY <= panelY + panelHeight) {
-
-                    scrollOffset -= (int) (verticalAmount * 10);
-                    scrollOffset = Math.max(0, scrollOffset);
-
-                    System.out.println("[StatsPanel] mouseScrolled: verticalAmount=" + verticalAmount
-                            + " scrollOffset=" + scrollOffset + " maxScrollOffset=" + maxScrollOffset);
-                    return true;
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        return false;
-    }
 
     @Inject(method = "render", at = @At("TAIL"))
     private void renderStatsPanel(DrawContext context, int mouseX, int mouseY, float delta, CallbackInfo ci) {
@@ -104,8 +75,7 @@ public abstract class InventoryScreenStatsMixin {
 
             if (isHovering && leftClick && !lastClickState && !draggingScrollbar) {
                 statsVisible = !statsVisible;
-                scrollOffset = 0;
-                maxScrollOffset = 0;
+                StatsPanelScrollHandler.setStatsVisible(statsVisible);
                 System.out.println("[StatsPanel] Toggled statsVisible=" + statsVisible);
             }
             lastClickState = leftClick;
@@ -140,8 +110,12 @@ public abstract class InventoryScreenStatsMixin {
             // Pre-calculate total content height before drawing
             int totalContentHeight = calculateTotalContentHeight();
             int visibleHeight = panelHeight - 16;
-            maxScrollOffset = Math.max(0, totalContentHeight - visibleHeight);
+            int scrollOffset = StatsPanelScrollHandler.getScrollOffset();
+            int maxScrollOffset = Math.max(0, totalContentHeight - visibleHeight);
+            StatsPanelScrollHandler.setMaxScrollOffset(maxScrollOffset);
+            // Clamp scroll offset to new max
             scrollOffset = Math.max(0, Math.min(scrollOffset, maxScrollOffset));
+            StatsPanelScrollHandler.setScrollOffset(scrollOffset);
 
             context.enableScissor(panelX + 4, panelY + 4, panelX + panelWidth - 14, panelY + panelHeight - 4);
 
@@ -300,14 +274,14 @@ public abstract class InventoryScreenStatsMixin {
             if (now - lastLogTime > 1000) {
                 lastLogTime = now;
                 System.out.println("[StatsPanel] panelY=" + panelY + " panelHeight=" + panelHeight
-                        + " curY=" + curY + " scrollOffset=" + scrollOffset
+                        + " curY=" + curY + " scrollOffset=" + StatsPanelScrollHandler.getScrollOffset()
                         + " totalContentHeight=" + totalContentHeight
-                        + " maxScrollOffset=" + maxScrollOffset);
+                        + " maxScrollOffset=" + StatsPanelScrollHandler.getMaxScrollOffset());
             }
 
             context.disableScissor();
 
-            if (maxScrollOffset > 0) {
+            if (StatsPanelScrollHandler.getMaxScrollOffset() > 0) {
                 renderScrollbar(context, panelX, panelY, panelWidth, panelHeight, mouseX, mouseY, leftClick);
             }
 
@@ -463,10 +437,13 @@ public abstract class InventoryScreenStatsMixin {
         int sbY = panelY + 18;
         int sbWidth = 6;
         int sbHeight = panelHeight - 36;
+        
+        int scrollOffset = StatsPanelScrollHandler.getScrollOffset();
+        int maxScrollOffset = StatsPanelScrollHandler.getMaxScrollOffset();
 
         context.drawTexturedQuad(SCROLLBAR_TRACK_TEXTURE, sbX, sbY, sbX + sbWidth, sbY + sbHeight, 0.0F, 1.0F, 0.0F, 1.0F);
 
-        float scrollPercent = (float) scrollOffset / maxScrollOffset;
+        float scrollPercent = maxScrollOffset > 0 ? (float) scrollOffset / maxScrollOffset : 0;
         int thumbHeight = Math.max(20, sbHeight / 4);
         int thumbY = sbY + (int) (scrollPercent * (sbHeight - thumbHeight));
 
@@ -478,7 +455,7 @@ public abstract class InventoryScreenStatsMixin {
             }
             if (draggingScrollbar) {
                 float newPercent = Math.max(0, Math.min(1, (float) (mouseY - sbY - thumbHeight / 2) / (sbHeight - thumbHeight)));
-                scrollOffset = (int) (newPercent * maxScrollOffset);
+                StatsPanelScrollHandler.setScrollOffset((int) (newPercent * maxScrollOffset));
             }
         } else {
             draggingScrollbar = false;

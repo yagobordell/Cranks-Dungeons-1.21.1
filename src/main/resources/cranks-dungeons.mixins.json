@@ -53,6 +53,7 @@
 		"PlayerDisconnectMixin",
 		"SilkTouchBreakMixin",
 		"BlockPlacedMixin",
+		"ServerPlayerDeathDropMixin",
 		"FeatherFallingMixin",
 		"VanillaFireDisableMixin",
 		"SnowballDamageMixin",
@@ -72,18 +73,22 @@
 		"WitherResistanceReductionMixin",
 		"WitherDamageCancelMixin",
 		"FreezeSlowdownMixin",
-		"FreezeSoundMixin"
+		"FreezeSoundMixin",
+		"DrowningDamageMixin",
+		"DrowningHealBlockMixin"
 	],
 	"client": [
 		"HideArmorAttributeMixin",
 		"EnchantingTableTooltipMixin",
 		"InventoryScreenStatsMixin",
+		"InventoryScreenScrollMixin",
 		"ScreenAccessor",
 		"EnergyShieldRenderMixin",
 		"HandledScreenAccessor",
 		"StatusEffectDisplayMixin",
 		"AilmentHeartTextureMixin",
-		"DisableArmorBarMixin"
+		"DisableArmorBarMixin",
+		"OverflowingBarsAilmentMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
