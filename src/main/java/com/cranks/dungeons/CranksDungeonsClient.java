@@ -8,6 +8,11 @@ import com.cranks.dungeons.client.EnergyShieldHudRenderer;
 import com.cranks.dungeons.client.ModKeybinds;
 import com.cranks.dungeons.client.ModParticleProviders;
 import com.cranks.dungeons.client.ShieldNumberSprites;
+import com.cranks.dungeons.client.party.PartyClientData;
+import com.cranks.dungeons.client.party.PartyHudRenderer;
+import com.cranks.dungeons.network.PartyHealthPacket;
+import com.cranks.dungeons.network.PartyInvitePacket;
+import com.cranks.dungeons.network.PartySyncPacket;
 import com.cranks.dungeons.config.ModConfig;
 import com.cranks.dungeons.damage.DamageNumber;
 import com.cranks.dungeons.damage.DamageNumberManager;
@@ -162,6 +167,48 @@ public class CranksDungeonsClient implements ClientModInitializer {
 
         HudRenderCallback.EVENT.register((context, tickCounter) -> {
             DamageNumberRenderer.renderHud(context, 0f);
+        });
+        
+        // Register party HUD renderer
+        PartyHudRenderer.register();
+        
+        // Register party packet handlers
+        ClientPlayNetworking.registerGlobalReceiver(PartySyncPacket.ID, (payload, context) -> {
+            context.client().execute(() -> {
+                PartyClientData.setPartyData(payload.members(), payload.leaderUuid());
+            });
+        });
+        
+        ClientPlayNetworking.registerGlobalReceiver(PartyHealthPacket.ID, (payload, context) -> {
+            context.client().execute(() -> {
+                PartyClientData.updateMemberHealth(
+                    payload.playerUuid(),
+                    payload.health(),
+                    payload.maxHealth(),
+                    payload.energyShield(),
+                    payload.maxEnergyShield()
+                );
+            });
+        });
+        
+        ClientPlayNetworking.registerGlobalReceiver(PartyInvitePacket.ID, (payload, context) -> {
+            context.client().execute(() -> {
+                if (payload.accepted()) {
+                    context.client().player.sendMessage(
+                        net.minecraft.text.Text.literal(payload.inviterName() + " accepted your party invite!")
+                            .formatted(net.minecraft.util.Formatting.GREEN),
+                        false
+                    );
+                } else {
+                    context.client().player.sendMessage(
+                        net.minecraft.text.Text.literal(payload.inviterName() + " invited you to their party!")
+                            .formatted(net.minecraft.util.Formatting.YELLOW)
+                            .append(net.minecraft.text.Text.literal(" Use /party accept " + payload.inviterName())
+                                .formatted(net.minecraft.util.Formatting.GREEN)),
+                        false
+                    );
+                }
+            });
         });
     }
 }

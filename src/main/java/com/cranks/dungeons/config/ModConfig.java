@@ -21,6 +21,12 @@ public class ModConfig {
     // Healing toggles
     public boolean showMyReceivedHealing = true; // "Self Healing" (includes life steal, regen)
     public boolean showOtherPlayerHealing = true; // "Other Healing" (enemies healing, other players healing)
+    
+    // Party HUD settings
+    public boolean partyHudEnabled = true;
+    public boolean partyHudShowSelf = true; // Set to false to hide yourself from party HUD
+    public int partyHudX = -1; // -1 = default (middle-left)
+    public int partyHudY = -1; // -1 = default (middle-left)
 
     private static ModConfig INSTANCE;
 

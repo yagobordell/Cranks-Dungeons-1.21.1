@@ -75,7 +75,8 @@
 		"FreezeSlowdownMixin",
 		"FreezeSoundMixin",
 		"DrowningDamageMixin",
-		"DrowningHealBlockMixin"
+		"DrowningHealBlockMixin",
+		"PartyPvPMixin"
 	],
 	"client": [
 		"HideArmorAttributeMixin",

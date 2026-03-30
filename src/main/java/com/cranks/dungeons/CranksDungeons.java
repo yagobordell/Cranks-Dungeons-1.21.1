@@ -5,6 +5,8 @@ import com.cranks.dungeons.block.entity.ModBlockEntities;
 import com.cranks.dungeons.command.AilmentCommand;
 import com.cranks.dungeons.command.ApplyStatCommand;
 import com.cranks.dungeons.command.CheckStatsCommand;
+import com.cranks.dungeons.command.PartyCommand;
+import com.cranks.dungeons.party.PartyHealthSyncHandler;
 import com.cranks.dungeons.command.RuneCommand;
 import com.cranks.dungeons.effect.ModEffects;
 import com.cranks.dungeons.enchantment.EnchantmentDisableManager;
@@ -69,6 +71,8 @@ public class CranksDungeons implements ModInitializer {
 		CheckStatsCommand.register();
 		AilmentCommand.register();
 		RuneCommand.register();
+		PartyCommand.register();
+		PartyHealthSyncHandler.register();
 		FortuneEventHandler.register();
 		LogFortuneHandler.register();
 		DigFortuneHandler.register();
