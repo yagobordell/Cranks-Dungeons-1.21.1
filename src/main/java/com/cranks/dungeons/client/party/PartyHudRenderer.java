@@ -24,9 +24,8 @@ public class PartyHudRenderer implements HudRenderCallback {
     private static final Identifier SHIELD_HALF_BLINKING = Identifier.of(CranksDungeons.MOD_ID, "hud/heart/shield/half_blinking");
     private static final Identifier SHIELD_CONTAINER = Identifier.of("hud/heart/container");
 
-    private static final int MEMBER_WIDTH = 110;
-    private static final int MEMBER_HEIGHT = 36;
-    private static final int COLUMN_SIZE = 5;
+    private static final int BASE_MEMBER_WIDTH = 110;
+    private static final int BASE_MEMBER_HEIGHT = 36;
 
 
     
@@ -59,24 +58,27 @@ public class PartyHudRenderer implements HudRenderCallback {
         int y = config.partyHudY;
         
         if (x < 0) x = 5;
-        if (y < 0) y = screenHeight / 2 - 100;
         
-        int columnCount = (members.size() + COLUMN_SIZE - 1) / COLUMN_SIZE;
-        columnCount = Math.min(columnCount, 2);
+        float scale = config.partyHudSize;
+        int maxRows = config.partyHudMaxRows;
+        int maxColumns = config.partyHudMaxColumns;
+        
+        int columnCount = (members.size() + maxRows - 1) / maxRows;
+        columnCount = Math.min(columnCount, maxColumns);
         
         for (int i = 0; i < members.size(); i++) {
             PartyMemberData member = members.get(i);
-            int col = i / COLUMN_SIZE;
-            int row = i % COLUMN_SIZE;
+            int col = i / maxRows;
+            int row = i % maxRows;
             
-            int memberX = x + col * (MEMBER_WIDTH + 5);
-            int memberY = y + row * (MEMBER_HEIGHT + 2);
+            int memberX = x + (int) (col * (BASE_MEMBER_WIDTH + 5) * scale);
+            int memberY = y + (int) (row * (BASE_MEMBER_HEIGHT + 2) * scale);
             
-            renderMember(context, client, member, memberX, memberY);
+            renderMember(context, client, member, memberX, memberY, scale);
         }
     }
     
-    private void renderMember(DrawContext context, MinecraftClient client, PartyMemberData member, int x, int y) {
+    private void renderMember(DrawContext context, MinecraftClient client, PartyMemberData member, int x, int y, float scale) {
         boolean isLeader = PartyClientData.isLeader(member.uuid());
         boolean isSelf = member.uuid().equals(client.player.getUuid());
         
@@ -95,24 +97,30 @@ public class PartyHudRenderer implements HudRenderCallback {
         // [Icon (16x16)] [Shield] Nx
         //                 [Health] Nx
 
+        int iconSize = (int) (16 * scale);
+        int textY = y - (int) (10 * scale);
+        
         // Draw name above icon
-        context.drawTextWithShadow(client.textRenderer, displayName, x + 2, y - 10, nameColor);
+        context.drawTextWithShadow(client.textRenderer, displayName, x + (int) (2 * scale), textY, nameColor);
 
-        // Icon on left side (16x16)
-        renderPlayerHead(context, client, member, x + 2, y + 2);
+        // Icon on left side
+        renderPlayerHead(context, client, member, x + (int) (2 * scale), y + (int) (2 * scale), scale);
 
         if (member.isAlive()) {
-            // Shield on top, Health below - both to the right of icon (offset by 20 for 16px icon + spacing)
-            renderShieldBar(context, x + 22, y, member);
-            renderHealthBar(context, x + 22, y + 11, member);
+            // Shield on top, Health below - both to the right of icon
+            int barsX = x + (int) (22 * scale);
+            renderShieldBar(context, barsX, y, member, scale);
+            renderHealthBar(context, barsX, y + (int) (11 * scale), member, scale);
         } else {
-            context.drawTextWithShadow(client.textRenderer, "☠ Dead", x + 22, y + 5, 0xAA0000);
+            context.drawTextWithShadow(client.textRenderer, "☠ Dead", x + (int) (22 * scale), y + (int) (5 * scale), 0xAA0000);
         }
     }
     
-    private void renderPlayerHead(DrawContext context, MinecraftClient client, PartyMemberData member, int x, int y) {
+    private void renderPlayerHead(DrawContext context, MinecraftClient client, PartyMemberData member, int x, int y, float scale) {
         boolean isSelf = member.uuid().equals(client.player.getUuid());
         boolean isLeader = PartyClientData.isLeader(member.uuid());
+
+        int size = (int) (16 * scale);
 
         // Try to render player skin using the proper approach from Wynntils
         boolean skinRendered = false;
@@ -126,13 +134,12 @@ public class PartyHudRenderer implements HudRenderCallback {
                     
                     if (texture != null) {
                         // Render face (base layer): UV (8, 8) to (16, 16) on 64x64 texture
-                        // We render at 16x16 on screen
                         context.drawTexture(
                             RenderPipelines.GUI_TEXTURED,
                             texture,
                             x, y,           // screen position
                             8, 8,           // UV start (face region)
-                            16, 16,         // size on screen
+                            size, size,     // size on screen
                             8, 8,           // UV region size
                             64, 64          // texture size
                         );
@@ -143,7 +150,7 @@ public class PartyHudRenderer implements HudRenderCallback {
                             texture,
                             x, y,           // screen position (same as face)
                             40, 8,          // UV start (hat region)
-                            16, 16,         // size on screen
+                            size, size,     // size on screen
                             8, 8,           // UV region size
                             64, 64          // texture size
                         );
@@ -161,13 +168,13 @@ public class PartyHudRenderer implements HudRenderCallback {
             return;
         }
 
-        // Fallback: draw colored square with initial (16x16 size)
-        context.fill(x - 1, y - 1, x + 17, y + 17, 0xFF000000);
+        // Fallback: draw colored square with initial
+        context.fill(x - 1, y - 1, x + size + 1, y + size + 1, 0xFF000000);
 
         String initial = member.name().substring(0, 1).toUpperCase();
         int textWidth = client.textRenderer.getWidth(initial);
-        int textX = x + 8 - textWidth / 2;
-        int textY = y + 4;
+        int textX = x + size / 2 - textWidth / 2;
+        int textY = y + size / 2 - 4;
 
         int bgColor;
         if (isLeader) {
@@ -178,11 +185,11 @@ public class PartyHudRenderer implements HudRenderCallback {
             bgColor = 0xFF555555;
         }
 
-        context.fill(x, y, x + 16, y + 16, bgColor);
+        context.fill(x, y, x + size, y + size, bgColor);
         context.drawTextWithShadow(client.textRenderer, initial, textX, textY, 0xFFFFFFFF);
     }
     
-    private void renderHealthBar(DrawContext context, int x, int y, PartyMemberData member) {
+    private void renderHealthBar(DrawContext context, int x, int y, PartyMemberData member, float scale) {
         float maxHealth = member.maxHealth();
         float health = member.health();
         
@@ -215,32 +222,35 @@ public class PartyHudRenderer implements HudRenderCallback {
         // Check for damage or heal flash
         boolean isFlashing = PartyClientData.isDamageFlashing(member.uuid()) || PartyClientData.isHealFlashing(member.uuid());
 
+        int heartSize = (int) (9 * scale);
+        int spacing = (int) (8 * scale);
+
         // Draw only the hearts that exist in this row (no empty containers beyond max)
         for (int i = 0; i < heartsInThisRow; i++) {
-            int heartX = x + i * 8;
+            int heartX = x + i * spacing;
 
             // Draw container (use blinking texture when flashing)
             Identifier containerTexture = isFlashing ? HEART_CONTAINER_BLINKING : HEART_CONTAINER;
-            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, containerTexture, heartX, y, 9, 9);
+            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, containerTexture, heartX, y, heartSize, heartSize);
 
             // Draw filled or half heart
             if (i < fullHeartsInRow) {
-                context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, HEART_FULL, heartX, y, 9, 9);
+                context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, HEART_FULL, heartX, y, heartSize, heartSize);
             } else if (i == fullHeartsInRow && hasHalfInRow) {
-                context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, HEART_HALF, heartX, y, 9, 9);
+                context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, HEART_HALF, heartX, y, heartSize, heartSize);
             }
         }
 
         // Draw row indicator (e.g., "2x") at the end if not first row
         if (currentRow > 1) {
             String rowIndicator = (currentRow - 1) + "x";
-            int indicatorX = x + heartsInThisRow * 8 + 2;
+            int indicatorX = x + heartsInThisRow * spacing + 2;
             context.drawTextWithShadow(MinecraftClient.getInstance().textRenderer,
                 rowIndicator, indicatorX, y, 0xFFAAAAAA);
         }
     }
     
-    private void renderShieldBar(DrawContext context, int x, int y, PartyMemberData member) {
+    private void renderShieldBar(DrawContext context, int x, int y, PartyMemberData member, float scale) {
         float maxShield = member.maxEnergyShield();
         float shield = member.energyShield();
         
@@ -273,28 +283,31 @@ public class PartyHudRenderer implements HudRenderCallback {
         // Check for damage, heal, or shield flash
         boolean isFlashing = PartyClientData.isDamageFlashing(member.uuid()) || PartyClientData.isHealFlashing(member.uuid()) || PartyClientData.isShieldFlashing(member.uuid());
 
+        int heartSize = (int) (9 * scale);
+        int spacing = (int) (8 * scale);
+
         // Draw only the hearts that exist in this row (no empty containers beyond max)
         for (int i = 0; i < heartsInThisRow; i++) {
-            int heartX = x + i * 8;
+            int heartX = x + i * spacing;
 
             // Draw container (use blinking texture when flashing)
             Identifier containerTexture = isFlashing ? HEART_CONTAINER_BLINKING : SHIELD_CONTAINER;
-            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, containerTexture, heartX, y, 9, 9);
+            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, containerTexture, heartX, y, heartSize, heartSize);
 
             // Draw filled or half heart (use blinking textures when flashing)
             if (i < fullHeartsInRow) {
                 Identifier shieldTexture = isFlashing ? SHIELD_FULL_BLINKING : SHIELD_FULL;
-                context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, shieldTexture, heartX, y, 9, 9);
+                context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, shieldTexture, heartX, y, heartSize, heartSize);
             } else if (i == fullHeartsInRow && hasHalfInRow) {
                 Identifier shieldTexture = isFlashing ? SHIELD_HALF_BLINKING : SHIELD_HALF;
-                context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, shieldTexture, heartX, y, 9, 9);
+                context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, shieldTexture, heartX, y, heartSize, heartSize);
             }
         }
 
         // Draw row indicator (e.g., "2x") at the end if not first row
         if (currentRow > 1) {
             String rowIndicator = (currentRow - 1) + "x";
-            int indicatorX = x + heartsInThisRow * 8 + 2;
+            int indicatorX = x + heartsInThisRow * spacing + 2;
             context.drawTextWithShadow(MinecraftClient.getInstance().textRenderer,
                 rowIndicator, indicatorX, y, 0xFFAAAAAA);
         }

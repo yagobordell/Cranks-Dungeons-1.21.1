@@ -26,7 +26,15 @@ public class ModConfig {
     public boolean partyHudEnabled = true;
     public boolean partyHudShowSelf = true; // Set to false to hide yourself from party HUD
     public int partyHudX = -1; // -1 = default (middle-left)
-    public int partyHudY = -1; // -1 = default (middle-left)
+    public int partyHudY = 190; // default Y position
+    public float partyHudSize = 1.0f; // Scale factor (0.5 to 2.0)
+    public int partyHudMaxRows = 5; // Max members per column (1 to 10)
+    public int partyHudMaxColumns = 2; // Max columns (1 to 2)
+    
+    public void resetPartyHudPosition() {
+        partyHudX = -1;
+        partyHudY = -1;
+    }
 
     private static ModConfig INSTANCE;
 
