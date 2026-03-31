@@ -113,25 +113,54 @@ public class PartyHudRenderer implements HudRenderCallback {
     private void renderPlayerHead(DrawContext context, MinecraftClient client, PartyMemberData member, int x, int y) {
         boolean isSelf = member.uuid().equals(client.player.getUuid());
         boolean isLeader = PartyClientData.isLeader(member.uuid());
-        
-        // Try to get skin textures and draw using PlayerSkinDrawer
-        var playerListEntry = client.player.networkHandler.getPlayerListEntry(member.uuid());
-        if (playerListEntry != null) {
-            try {
-                Object skinTextures = playerListEntry.getSkinTextures();
-                if (skinTextures != null) {
-                    // Use PlayerSkinDrawer to draw the head via reflection (16x16 size)
-                    java.lang.reflect.Method drawMethod = net.minecraft.client.gui.PlayerSkinDrawer.class.getMethod("draw",
-                        DrawContext.class, skinTextures.getClass(), int.class, int.class, int.class);
-                    drawMethod.invoke(null, context, skinTextures, x, y, 16);
 
-                    return;
+        // Try to render player skin using the proper approach from Wynntils
+        boolean skinRendered = false;
+        try {
+            var playerListEntry = client.player.networkHandler.getPlayerListEntry(member.uuid());
+            if (playerListEntry != null) {
+                var skinTextures = playerListEntry.getSkinTextures();
+                if (skinTextures != null) {
+                    // Get the texture path from the body texture
+                    Identifier texture = skinTextures.body().texturePath();
+                    
+                    if (texture != null) {
+                        // Render face (base layer): UV (8, 8) to (16, 16) on 64x64 texture
+                        // We render at 16x16 on screen
+                        context.drawTexture(
+                            RenderPipelines.GUI_TEXTURED,
+                            texture,
+                            x, y,           // screen position
+                            8, 8,           // UV start (face region)
+                            16, 16,         // size on screen
+                            8, 8,           // UV region size
+                            64, 64          // texture size
+                        );
+                        
+                        // Render hat layer (overlay): UV (40, 8) to (48, 16) on 64x64 texture
+                        context.drawTexture(
+                            RenderPipelines.GUI_TEXTURED,
+                            texture,
+                            x, y,           // screen position (same as face)
+                            40, 8,          // UV start (hat region)
+                            16, 16,         // size on screen
+                            8, 8,           // UV region size
+                            64, 64          // texture size
+                        );
+                        
+                        skinRendered = true;
+                    }
                 }
-            } catch (Exception e) {
-                // Failed to draw skin, use fallback
             }
+        } catch (Exception e) {
+            // Skin rendering failed, use fallback
+            CranksDungeons.LOGGER.debug("Failed to render skin for {}: {}", member.name(), e.getMessage());
         }
-        
+
+        if (skinRendered) {
+            return;
+        }
+
         // Fallback: draw colored square with initial (16x16 size)
         context.fill(x - 1, y - 1, x + 17, y + 17, 0xFF000000);
 
