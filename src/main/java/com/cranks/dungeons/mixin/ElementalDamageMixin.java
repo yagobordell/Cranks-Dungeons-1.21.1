@@ -143,41 +143,45 @@ public abstract class ElementalDamageMixin {
             double finalLightningDamage = 0;
             double finalVoidDamage = 0;
 
+            // Track if target died from elemental damage to ensure proper death handling
+            boolean targetDiedFromElemental = false;
+            float healthBeforeElemental = target.getHealth();
+
             if (fireDamage > 0) {
                 double resistance = target.getAttributeValue(ModAttributes.FIRE_RESISTANCE);
                 double finalDamage = fireDamage * (1.0 - resistance);
                 if (finalDamage > 0) {
-                    target.setHealth(target.getHealth() - (float) finalDamage);
+                    // Use proper damage method with fire damage source to ensure death handling
+                    applyElementalDamage(target, world, finalDamage, DamageElement.FIRE);
                     totalElementalDamage += finalDamage;
                     finalFireDamage = finalDamage;
+                    if (target.getHealth() <= 0) targetDiedFromElemental = true;
                 }
             }
 
-            if (coldDamage > 0) {
+            if (!targetDiedFromElemental && coldDamage > 0) {
                 double resistance = target.getAttributeValue(ModAttributes.COLD_RESISTANCE);
                 double finalDamage = coldDamage * (1.0 - resistance);
                 if (finalDamage > 0) {
-                    target.setHealth(target.getHealth() - (float) finalDamage);
+                    applyElementalDamage(target, world, finalDamage, DamageElement.COLD);
                     totalElementalDamage += finalDamage;
                     finalColdDamage = finalDamage;
+                    if (target.getHealth() <= 0) targetDiedFromElemental = true;
                 }
             }
 
-            if (lightningDamage > 0) {
+            if (!targetDiedFromElemental && lightningDamage > 0) {
                 double resistance = target.getAttributeValue(ModAttributes.LIGHTNING_RESISTANCE);
                 double finalDamage = lightningDamage * (1.0 - resistance);
                 
                 // Trigger shock chain BEFORE applying damage (ensures it works for killing hits)
-                // Check here regardless of finalDamage to ensure chain always triggers when appropriate
                 boolean shouldChain = hasShockBeforeDamage[0] && finalDamage > 0 && !AilmentManager.isShockChainInProgress();
                 
                 if (shouldChain) {
                     if (AilmentManager.acquireShockChainLock()) {
                         try {
-                            // Use executeShockChain which skips the hasAilment check
                             AilmentManager.executeShockChain(target, (float) finalDamage, attacker);
                         } catch (Exception e) {
-                            // Log error but don't crash
                             System.err.println("[CranksDungeons] Error in shock chain: " + e.getMessage());
                             e.printStackTrace();
                         } finally {
@@ -189,17 +193,18 @@ public abstract class ElementalDamageMixin {
                 }
                 
                 if (finalDamage > 0) {
-                    target.setHealth(target.getHealth() - (float) finalDamage);
+                    applyElementalDamage(target, world, finalDamage, DamageElement.LIGHTNING);
                     totalElementalDamage += finalDamage;
                     finalLightningDamage = finalDamage;
+                    if (target.getHealth() <= 0) targetDiedFromElemental = true;
                 }
             }
 
-            if (voidDamage > 0) {
+            if (!targetDiedFromElemental && voidDamage > 0) {
                 double resistance = target.getAttributeValue(ModAttributes.VOID_RESISTANCE);
                 double finalDamage = voidDamage * (1.0 - resistance);
                 if (finalDamage > 0) {
-                    target.setHealth(target.getHealth() - (float) finalDamage);
+                    applyElementalDamage(target, world, finalDamage, DamageElement.VOID);
                     totalElementalDamage += finalDamage;
                     finalVoidDamage = finalDamage;
                 }
@@ -361,5 +366,32 @@ public abstract class ElementalDamageMixin {
             }
         }
         return 0.0;
+    }
+
+    @Unique
+    private void applyElementalDamage(LivingEntity target, ServerWorld world, double damage, DamageElement element) {
+        // Use proper damage method with elemental damage source to ensure death handling and loot drops
+        float damageAmount = (float) damage;
+        
+        // Check if this would kill the entity
+        if (target.getHealth() - damageAmount <= 0) {
+            // Entity will die - use proper damage source to ensure loot drops
+            DamageSource damageSource = getElementalDamageSource(world, element);
+            target.damage(world, damageSource, damageAmount);
+        } else {
+            // Entity won't die - apply damage directly to avoid vanilla damage numbers
+            target.setHealth(target.getHealth() - damageAmount);
+        }
+    }
+    
+    @Unique
+    private DamageSource getElementalDamageSource(ServerWorld world, DamageElement element) {
+        return switch (element) {
+            case FIRE -> world.getDamageSources().onFire();
+            case COLD -> world.getDamageSources().freeze();
+            case LIGHTNING -> world.getDamageSources().lightningBolt();
+            case VOID -> world.getDamageSources().outOfWorld();
+            default -> world.getDamageSources().generic();
+        };
     }
 }

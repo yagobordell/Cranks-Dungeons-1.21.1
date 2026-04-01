@@ -175,7 +175,12 @@ public class CranksDungeonsClient implements ClientModInitializer {
         // Register party packet handlers
         ClientPlayNetworking.registerGlobalReceiver(PartySyncPacket.ID, (payload, context) -> {
             context.client().execute(() -> {
-                PartyClientData.setPartyData(payload.members(), payload.leaderUuid());
+                if (payload.members().isEmpty()) {
+                    // Empty party list = leave party
+                    PartyClientData.leaveParty();
+                } else {
+                    PartyClientData.setPartyData(payload.members(), payload.leaderUuid());
+                }
             });
         });
         

@@ -312,12 +312,14 @@ public class PartyCommand {
             return 0;
         }
 
+        // Send leave packets to ALL members including leader
         for (UUID member : party.getMembers()) {
             PartyHealthSyncHandler.clearPlayerData(member);
+            ModNetworking.sendLeavePacket(context.getSource().getServer(), member);
+            
             ServerPlayerEntity memberPlayer = context.getSource().getServer().getPlayerManager().getPlayer(member);
             if (memberPlayer != null && !member.equals(uuid)) {
                 memberPlayer.sendMessage(Text.literal("The party was disbanded by " + player.getName().getString() + "!").formatted(Formatting.RED), false);
-                ModNetworking.sendLeavePacket(context.getSource().getServer(), member);
             }
         }
 
