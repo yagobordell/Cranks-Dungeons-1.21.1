@@ -175,6 +175,7 @@ public class CranksDungeons implements ModInitializer {
 		addAllowedEnchantment(allowedEnchantments, "minecraft:chance_to_burn");
 		addAllowedEnchantment(allowedEnchantments, "minecraft:chance_to_poison");
 		addAllowedEnchantment(allowedEnchantments, "minecraft:chance_to_freeze");
+		addAllowedEnchantment(allowedEnchantments, "minecraft:chance_to_shock");
 		addAllowedEnchantment(allowedEnchantments, "minecraft:life_steal");
 		addAllowedEnchantment(allowedEnchantments, "minecraft:bonus_knockback");
 		addAllowedEnchantment(allowedEnchantments, "minecraft:attack_range");
