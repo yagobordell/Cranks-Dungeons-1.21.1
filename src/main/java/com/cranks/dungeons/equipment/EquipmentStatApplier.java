@@ -9,6 +9,7 @@ import net.minecraft.component.type.AttributeModifiersComponent;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
+import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
@@ -97,7 +98,7 @@ public class EquipmentStatApplier {
 
         for (ItemStatManager.ItemStat itemStat : stats) {
             CustomStat stat = StatRegistry.getStat(itemStat.statId);
-            if (stat != null) {
+            if (stat != null && !stat.getAttribute().equals(EntityAttributes.ATTACK_SPEED)) {
                 customStatAttributes.add(stat.getAttribute());
             }
         }
@@ -117,6 +118,10 @@ public class EquipmentStatApplier {
         for (ItemStatManager.ItemStat itemStat : stats) {
             CustomStat stat = StatRegistry.getStat(itemStat.statId);
             if (stat != null) {
+                if (stat.getAttribute().equals(EntityAttributes.ATTACK_SPEED)) {
+                    continue;
+                }
+
                 Identifier modifierId = Identifier.of(
                         CranksDungeons.MOD_ID,
                         "item_" + stat.getId()
@@ -172,6 +177,9 @@ public class EquipmentStatApplier {
     }
 
     private static void applyStatModifier(PlayerEntity player, CustomStat stat, double value) {
+        if (stat.getAttribute().equals(EntityAttributes.ATTACK_SPEED)) {
+            return;
+        }
         Identifier modifierId = Identifier.of(CranksDungeons.MOD_ID, "equipment_" + stat.getId());
         EntityAttributeModifier modifier = new EntityAttributeModifier(
                 modifierId,

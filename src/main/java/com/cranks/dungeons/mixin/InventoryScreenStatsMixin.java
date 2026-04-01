@@ -136,7 +136,12 @@ public abstract class InventoryScreenStatsMixin {
             curY = drawStatWithTooltip(context, tr, panelX, curY, "Attack Damage", attackDamage, "", mouseX, mouseY, panelX, panelWidth);
 
             double attackSpeed = player.getAttributeValue(EntityAttributes.ATTACK_SPEED);
-            attackSpeed *= (1.0 + EquipmentStatApplier.getItemStatValue(weapon, "attack_speed_percent"));
+            double runePercent = EquipmentStatApplier.getItemStatValue(weapon, "attack_speed")
+                    + EquipmentStatApplier.getItemStatValue(chestplate, "attack_speed")
+                    + player.getAttributeValue(ModAttributes.ATTACK_SPEED)
+                    + getEnchantmentValue(weapon, "minecraft:attack_speed", 0.2)
+                    + getEnchantmentValue(chestplate, "minecraft:attack_speed", 0.2);
+            attackSpeed += attackSpeed * runePercent;
             curY = drawStatWithTooltip(context, tr, panelX, curY, "Attack Speed", attackSpeed, "", mouseX, mouseY, panelX, panelWidth);
 
             double critChance = player.getAttributeValue(ModAttributes.CRIT_CHANCE);
