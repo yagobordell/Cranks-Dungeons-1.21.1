@@ -252,6 +252,7 @@ public abstract class InventoryScreenStatsMixin {
             context.drawText(tr, Text.literal("✦ Utility"), panelX + 6, curY, 0xFF404040, false);
             curY += 11;
             curY = drawStatWithTooltip(context, tr, panelX, curY, "Move Speed", player.getAttributeValue(EntityAttributes.MOVEMENT_SPEED) / 0.1 * 100, "%", mouseX, mouseY, panelX, panelWidth);
+            curY = drawStatWithTooltip(context, tr, panelX, curY, "Flying Speed", player.getAttributeValue(ModAttributes.FLYING_SPEED) * 100, "%", mouseX, mouseY, panelX, panelWidth);
             curY = drawStatWithTooltip(context, tr, panelX, curY, "Luck", player.getAttributeValue(EntityAttributes.LUCK), "", mouseX, mouseY, panelX, panelWidth);
             curY = drawStatWithTooltip(context, tr, panelX, curY, "Exp Bonus", player.getAttributeValue(ModAttributes.EXPERIENCE_BONUS) * 100, "%", mouseX, mouseY, panelX, panelWidth);
             curY += 4;
@@ -359,6 +360,7 @@ public abstract class InventoryScreenStatsMixin {
             case "Void Res" -> "Reduces void damage taken";
             case "Knockback Res" -> "Resistance to being pushed";
             case "Move Speed" -> "Movement speed modifier";
+            case "Flying Speed" -> "Elytra flight speed bonus";
             case "Luck" -> "Increases rarity of drops";
             case "Exp Bonus" -> "Extra experience gained";
             case "Gather Speed" -> "Mining and harvesting speed";
