@@ -5,6 +5,7 @@ import com.cranks.dungeons.equipment.EquipmentType;
 import com.cranks.dungeons.item.ArtificialTomeItem;
 import com.cranks.dungeons.item.ElementalTomeItem;
 import com.cranks.dungeons.item.RunicTomeItem;
+import com.cranks.dungeons.item.SwiftnessTomeItem;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
@@ -53,7 +54,8 @@ public class RunicEnhancementAltarScreenHandler extends ScreenHandler {
             public boolean canInsert(ItemStack stack) {
                 return stack.getItem() instanceof RunicTomeItem
                         || stack.getItem() instanceof ElementalTomeItem
-                        || stack.getItem() instanceof ArtificialTomeItem;
+                        || stack.getItem() instanceof ArtificialTomeItem
+                        || stack.getItem() instanceof SwiftnessTomeItem;
             }
         });
 
@@ -114,7 +116,8 @@ public class RunicEnhancementAltarScreenHandler extends ScreenHandler {
             } else if (slot >= PLAYER_INV_START) {
                 if (clickedStack.getItem() instanceof RunicTomeItem
                         || clickedStack.getItem() instanceof ElementalTomeItem
-                        || clickedStack.getItem() instanceof ArtificialTomeItem) {
+                        || clickedStack.getItem() instanceof ArtificialTomeItem
+                        || clickedStack.getItem() instanceof SwiftnessTomeItem) {
                     if (!tryInsertAndTrack(clickedStack, RunicEnhancementAltarBlockEntity.TOME_SLOT, slot)) {
                         return ItemStack.EMPTY;
                     }

@@ -1667,7 +1667,7 @@ public class StatRegistry {
         register(new CustomStat(
                 "trident_cold_damage",
                 "Cold Damage",
-                EquipmentType.MACE,
+                EquipmentType.TRIDENT,
                 ModAttributes.COLD_DAMAGE,
                 new double[]{0.5, 1.5, 3.0, 5.0, 8.0},
                 new double[]{1.0, 3.0, 5.5, 9.0, 14.0},

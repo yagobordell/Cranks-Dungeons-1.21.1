@@ -5,6 +5,7 @@ import com.cranks.dungeons.equipment.ItemStatManager;
 import com.cranks.dungeons.item.ArtificialTomeItem;
 import com.cranks.dungeons.item.ElementalTomeItem;
 import com.cranks.dungeons.item.RunicTomeItem;
+import com.cranks.dungeons.item.SwiftnessTomeItem;
 import com.cranks.dungeons.registry.ModSounds;
 import com.cranks.dungeons.screen.RunicEnhancementAltarScreenHandler;
 import net.minecraft.block.BlockState;
@@ -121,7 +122,8 @@ public class RunicEnhancementAltarBlockEntity extends BlockEntity implements Nam
         if (slot == TOME_SLOT) {
             return stack.getItem() instanceof RunicTomeItem
                     || stack.getItem() instanceof ElementalTomeItem
-                    || stack.getItem() instanceof ArtificialTomeItem;
+                    || stack.getItem() instanceof ArtificialTomeItem
+                    || stack.getItem() instanceof SwiftnessTomeItem;
         }
         return false;
     }
@@ -155,6 +157,11 @@ public class RunicEnhancementAltarBlockEntity extends BlockEntity implements Nam
         // Handle Elemental Tomes
         if (tome.getItem() instanceof ElementalTomeItem elementalTome) {
             return tryElementalEnhance(equipment, tome, elementalTome);
+        }
+
+        // Handle Swiftness Tomes
+        if (tome.getItem() instanceof SwiftnessTomeItem swiftnessTome) {
+            return trySwiftnessEnhance(equipment, tome, swiftnessTome);
         }
 
         // Handle Regular Runic Tomes
@@ -215,6 +222,37 @@ public class RunicEnhancementAltarBlockEntity extends BlockEntity implements Nam
             tome.decrement(1);
             markDirty();
             playEnhanceSound();   // ← here
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean trySwiftnessEnhance(ItemStack equipment, ItemStack tome, SwiftnessTomeItem swiftnessTome) {
+        EquipmentType equipType = EquipmentType.getTypeForItem(equipment).get();
+
+        if (!swiftnessTome.canApplyTo(equipment)) {
+            return false;
+        }
+
+        String statId = swiftnessTome.getStatIdForEquipment(equipType);
+        if (statId == null) {
+            return false;
+        }
+
+        int currentStatCount = ItemStatManager.getStats(equipment).size();
+        int tier = ElementalTomeItem.getTierForStatCount(currentStatCount);
+
+        ItemStack result = equipment.copy();
+
+        boolean success = ItemStatManager.addSpecificStat(result, statId, tier);
+
+        if (success) {
+            setStack(RESULT_SLOT, result);
+            equipment.decrement(1);
+            tome.decrement(1);
+            markDirty();
+            playEnhanceSound();
             return true;
         }
 

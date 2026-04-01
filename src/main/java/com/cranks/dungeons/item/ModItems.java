@@ -24,6 +24,9 @@ public class ModItems {
     public static final Item TOME_OF_VOID = registerElementalTome("void_tome", Element.VOID, false, CustomRarity.RARE);
     public static final Item TOME_OF_PHYSICALITY = registerElementalTome("physicality_tome", Element.PHYSICAL, false, CustomRarity.RARE);
 
+    // Swiftness Tome
+    public static final Item TOME_OF_SWIFTNESS = registerSwiftnessTome("swiftness_tome", CustomRarity.RARE);
+
     // Greater Elemental Tomes
     public static final Item GREATER_TOME_OF_FIRE = registerElementalTome("greater_fire_tome", Element.FIRE, true, CustomRarity.UNIQUE);
     public static final Item GREATER_TOME_OF_COLD = registerElementalTome("greater_cold_tome", Element.COLD, true, CustomRarity.UNIQUE);
@@ -40,6 +43,14 @@ public class ModItems {
 
         return Registry.register(Registries.ITEM, key,
                 new RunicTomeItem(tier, rarity, new Item.Settings().registryKey(key)));
+    }
+
+    private static Item registerSwiftnessTome(String name, CustomRarity rarity) {
+        Identifier id = Identifier.of(CranksDungeons.MOD_ID, name);
+        RegistryKey<Item> key = RegistryKey.of(RegistryKeys.ITEM, id);
+
+        return Registry.register(Registries.ITEM, key,
+                new SwiftnessTomeItem(rarity, new Item.Settings().registryKey(key)));
     }
 
     private static Item registerElementalTome(String name, Element element, boolean isGreater, CustomRarity rarity) {
