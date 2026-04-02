@@ -24,6 +24,8 @@ import net.minecraft.text.Text;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
+import com.cranks.dungeons.item.EnergyTomeItem;
+import com.cranks.dungeons.item.EvasionTomeItem;
 import org.jetbrains.annotations.Nullable;
 
 public class RunicEnhancementAltarBlockEntity extends BlockEntity implements NamedScreenHandlerFactory, SidedInventory {
@@ -123,7 +125,9 @@ public class RunicEnhancementAltarBlockEntity extends BlockEntity implements Nam
             return stack.getItem() instanceof RunicTomeItem
                     || stack.getItem() instanceof ElementalTomeItem
                     || stack.getItem() instanceof ArtificialTomeItem
-                    || stack.getItem() instanceof SwiftnessTomeItem;
+                    || stack.getItem() instanceof SwiftnessTomeItem
+                    || stack.getItem() instanceof EnergyTomeItem
+                    || stack.getItem() instanceof EvasionTomeItem;
         }
         return false;
     }
@@ -164,9 +168,45 @@ public class RunicEnhancementAltarBlockEntity extends BlockEntity implements Nam
             return trySwiftnessEnhance(equipment, tome, swiftnessTome);
         }
 
+        if (tome.getItem() instanceof EnergyTomeItem energyTome) {
+            return trySpecificTomeEnhance(equipment, tome, energyTome::canApplyTo, energyTome::getStatIdForEquipment);
+        }
+
+        if (tome.getItem() instanceof EvasionTomeItem evasionTome) {
+            return trySpecificTomeEnhance(equipment, tome, evasionTome::canApplyTo, evasionTome::getStatIdForEquipment);
+        }
+
         // Handle Regular Runic Tomes
         if (tome.getItem() instanceof RunicTomeItem runicTome) {
             return tryRunicEnhance(equipment, tome, runicTome);
+        }
+
+        return false;
+    }
+
+    private boolean trySpecificTomeEnhance(ItemStack equipment, ItemStack tome,
+                                           java.util.function.Predicate<ItemStack> canApply,
+                                           java.util.function.Function<EquipmentType, String> getStatId) {
+        EquipmentType equipType = EquipmentType.getTypeForItem(equipment).get();
+
+        if (!canApply.test(equipment)) return false;
+
+        String statId = getStatId.apply(equipType);
+        if (statId == null) return false;
+
+        int currentStatCount = ItemStatManager.getStats(equipment).size();
+        int tier = ElementalTomeItem.getTierForStatCount(currentStatCount);
+
+        ItemStack result = equipment.copy();
+        boolean success = ItemStatManager.addSpecificStat(result, statId, tier);
+
+        if (success) {
+            setStack(RESULT_SLOT, result);
+            equipment.decrement(1);
+            tome.decrement(1);
+            markDirty();
+            playEnhanceSound();
+            return true;
         }
 
         return false;

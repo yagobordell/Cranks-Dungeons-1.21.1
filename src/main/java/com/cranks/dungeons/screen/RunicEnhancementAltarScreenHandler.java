@@ -13,6 +13,8 @@ import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
+import com.cranks.dungeons.item.EnergyTomeItem;
+import com.cranks.dungeons.item.EvasionTomeItem;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -55,7 +57,9 @@ public class RunicEnhancementAltarScreenHandler extends ScreenHandler {
                 return stack.getItem() instanceof RunicTomeItem
                         || stack.getItem() instanceof ElementalTomeItem
                         || stack.getItem() instanceof ArtificialTomeItem
-                        || stack.getItem() instanceof SwiftnessTomeItem;
+                        || stack.getItem() instanceof SwiftnessTomeItem
+                        || stack.getItem() instanceof EnergyTomeItem
+                        || stack.getItem() instanceof EvasionTomeItem;
             }
         });
 
@@ -117,7 +121,9 @@ public class RunicEnhancementAltarScreenHandler extends ScreenHandler {
                 if (clickedStack.getItem() instanceof RunicTomeItem
                         || clickedStack.getItem() instanceof ElementalTomeItem
                         || clickedStack.getItem() instanceof ArtificialTomeItem
-                        || clickedStack.getItem() instanceof SwiftnessTomeItem) {
+                        || clickedStack.getItem() instanceof SwiftnessTomeItem
+                        || clickedStack.getItem() instanceof EnergyTomeItem
+                        || clickedStack.getItem() instanceof EvasionTomeItem) {
                     if (!tryInsertAndTrack(clickedStack, RunicEnhancementAltarBlockEntity.TOME_SLOT, slot)) {
                         return ItemStack.EMPTY;
                     }
