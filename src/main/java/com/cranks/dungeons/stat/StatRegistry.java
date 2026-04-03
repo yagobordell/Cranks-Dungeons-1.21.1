@@ -547,7 +547,7 @@ public class StatRegistry {
         ));
 
         register(new CustomStat(
-                "leggigns_fire_resistance",
+                "leggings_fire_resistance",
                 "Fire Resistance",
                 EquipmentType.LEGGINGS,
                 ModAttributes.FIRE_RESISTANCE,
