@@ -13,6 +13,8 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
+import com.cranks.dungeons.util.CombatUtility;
+
 @Mixin(LivingEntity.class)
 public class BonusAttackDamageMixin {
 
@@ -24,12 +26,11 @@ public class BonusAttackDamageMixin {
     )
     private float applyBonusAttackDamage(float amount, ServerWorld world, DamageSource source) {
         if (source.getAttacker() instanceof PlayerEntity attacker) {
-            ItemStack weapon = attacker.getMainHandStack();
+            ItemStack weapon = CombatUtility.getCombatWeapon(source, attacker);
             ItemStack chestplate = attacker.getEquippedStack(EquipmentSlot.CHEST);
 
-            // Get bonus attack damage from attributes + stats
-            double bonusDamage = attacker.getAttributeValue(ModAttributes.BONUS_ATTACK_DAMAGE);
-            bonusDamage += EquipmentStatApplier.getItemStatValue(weapon, "bonus_attack_damage");
+            // Get bonus attack damage from attributes
+            double bonusDamage = CombatUtility.getAttributeValue(attacker, ModAttributes.BONUS_ATTACK_DAMAGE, weapon, "bonus_attack_damage", source);
 
             // Add bonus attack damage from weapon/chestplate enchantments
             bonusDamage += getEnchantmentValue(weapon, "minecraft:attack_damage", 4.0);

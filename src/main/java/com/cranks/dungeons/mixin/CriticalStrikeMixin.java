@@ -16,6 +16,8 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
+import com.cranks.dungeons.util.CombatUtility;
+
 @Mixin(value = LivingEntity.class, priority = 10000)
 public abstract class CriticalStrikeMixin {
 
@@ -35,15 +37,14 @@ public abstract class CriticalStrikeMixin {
 
         if (source.getAttacker() instanceof PlayerEntity attacker) {
             LivingEntity target = (LivingEntity) (Object) this;
-            ItemStack weapon = attacker.getMainHandStack();
+            ItemStack weapon = CombatUtility.getCombatWeapon(source, attacker);
             ItemStack chest = attacker.getEquippedStack(EquipmentSlot.CHEST);
             ItemStack helmet = attacker.getEquippedStack(EquipmentSlot.HEAD);
             ItemStack leggings = attacker.getEquippedStack(EquipmentSlot.LEGS);
             ItemStack boots = attacker.getEquippedStack(EquipmentSlot.FEET);
 
             // Crit Chance with enchantments from all armor pieces
-            double critChance = attacker.getAttributeValue(ModAttributes.CRIT_CHANCE);
-            critChance += EquipmentStatApplier.getItemStatValue(weapon, "crit_chance");
+            double critChance = CombatUtility.getAttributeValue(attacker, ModAttributes.CRIT_CHANCE, weapon, "crit_chance", source);
             critChance += getEnchantmentValue(weapon, "minecraft:crit_chance", 0.075);
             critChance += getEnchantmentValue(chest, "minecraft:crit_chance", 0.075);
             critChance += getEnchantmentValue(helmet, "minecraft:crit_chance", 0.075);
@@ -60,8 +61,7 @@ public abstract class CriticalStrikeMixin {
                 spawnCriticalEffects(world, target);
             }
 
-            double lifeStealStat = EquipmentStatApplier.getItemStatValue(weapon, "life_steal")
-                    + EquipmentStatApplier.getItemStatValue(chest, "life_steal");
+            double lifeStealStat = CombatUtility.getAttributeValue(attacker, ModAttributes.LIFE_STEAL, weapon, "life_steal", source);
 
             if (lifeStealStat > 0) {
                 float healAmount = (float) (finalAmount * lifeStealStat);

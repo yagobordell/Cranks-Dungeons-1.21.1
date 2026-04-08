@@ -38,9 +38,17 @@ public class EnergyShieldDamageMixin {
         long currentTime = world.getTime();
         long timeSinceLastHit = currentTime - provider.cranksdungeons$getLastDamageTime();
 
-        // Bypass shield for creative/void/drowning/etc. - don't update damage time for these
+        // Bypass shield if player is invulnerable (Creative, etc.) or if it's friendly fire between party members
+        if (self.isInvulnerableTo(world, source)) return;
+
+        if (source.getAttacker() instanceof PlayerEntity attacker) {
+            if (com.cranks.dungeons.party.PartyManager.areInSameParty(self.getUuid(), attacker.getUuid())) {
+                return;
+            }
+        }
+
+        // Bypass shield for specific damage types that should ignore it entirely (Void, etc.)
         if (source.isIn(DamageTypeTags.BYPASSES_INVULNERABILITY) || source.isOf(DamageTypes.DROWN)) {
-            // Don't update lastDamageTime - this damage bypasses shield entirely
             return;
         }
 
