@@ -119,7 +119,7 @@ public abstract class ItemStackTooltipMixin {
                     if (attributeTotals.getOrDefault(ModAttributes.MOVEMENT_SPEED, 0.0) != 0) {
                         double moveSpeed = attributeTotals.get(ModAttributes.MOVEMENT_SPEED) * 100;
                         tooltip.add(Text.literal("Movement Speed: ").formatted(Formatting.GRAY)
-                                .append(Text.literal("+" + df.format(moveSpeed) + "%").formatted(Formatting.WHITE)));
+                                .append(Text.literal(df.format(moveSpeed) + "%").formatted(Formatting.WHITE)));
                     }
                     addedAny = true;
                     break;
@@ -148,7 +148,7 @@ public abstract class ItemStackTooltipMixin {
                     if (attributeTotals.getOrDefault(EntityAttributes.ATTACK_SPEED, 0.0) != 0) {
                         double speed = attributeTotals.get(EntityAttributes.ATTACK_SPEED) * 100;
                         tooltip.add(Text.literal("Attack Speed: ").formatted(Formatting.GRAY)
-                                .append(Text.literal("+" + df.format(speed) + "%").formatted(Formatting.WHITE)));
+                                .append(Text.literal(df.format(speed) + "%").formatted(Formatting.WHITE)));
                     }
                     addedAny = true;
                     break;
@@ -345,7 +345,7 @@ public abstract class ItemStackTooltipMixin {
     @Unique
     private Text createRunicStatLine(CustomStat stat, double value, int tier, boolean isArtificial) {
         String displayText = stat.formatValue(value);
-        MutableText line = Text.literal(displayText).formatted(isArtificial ? Formatting.DARK_GREEN : Formatting.AQUA);
+        MutableText line = Text.literal(displayText).formatted(isArtificial ? Formatting.DARK_GREEN : Formatting.WHITE);
         return line.append(Text.literal(" [T" + tier + "]").formatted(getTierColor(tier)));
     }
 
