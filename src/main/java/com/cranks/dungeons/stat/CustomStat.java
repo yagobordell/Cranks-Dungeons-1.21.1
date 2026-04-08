@@ -75,17 +75,19 @@ public class CustomStat {
     }
 
     public String formatValue(double value) {
-        DecimalFormat df;
+        DecimalFormat df = new DecimalFormat("#.#");
 
         if (displayAsPercentage) {
-            df = new DecimalFormat("#.#");
             return df.format(value * 100) + "% " + displayName;
         } else if (isPercentage) {
-            df = new DecimalFormat("#.#");
             return df.format(value * 100) + " " + displayName;
         } else {
-            df = new DecimalFormat("#.#");
-            return "Adds " + df.format(value) + " to " + displayName;
+            // Whole numbers
+            if (displayName.endsWith("Damage")) {
+                return "Adds " + df.format(value) + " to " + displayName;
+            } else {
+                return "+" + df.format(value) + " to " + displayName;
+            }
         }
     }
 
