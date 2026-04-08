@@ -302,8 +302,8 @@ public abstract class ElementalDamageMixin {
     
     @Unique
     private void handleNonPlayerDamage(ServerWorld world, DamageSource source, float amount, LivingEntity target) {
-        // Skip broadcasting void damage numbers if this is poison damage (poison sends its own green numbers)
-        if (AilmentManager.isPoisonDamageInProgress(target.getUuid())) {
+        // Skip broadcasting void damage numbers if this is ailment damage (they send their own correct numbers)
+        if (AilmentManager.isPoisonDamageInProgress(target.getUuid()) || AilmentManager.isBleedDamageInProgress(target.getUuid())) {
             return;
         }
         

@@ -41,7 +41,7 @@ public class CombatAudioHelper {
             case FIRE -> SoundEvents.ITEM_FIRECHARGE_USE;
             case COLD -> SoundEvents.BLOCK_POWDER_SNOW_BREAK;
             case LIGHTNING -> SoundEvents.ENTITY_PLAYER_ATTACK_WEAK;
-            case VOID -> SoundEvents.ENTITY_ENDERMAN_TELEPORT;
+            case VOID -> SoundEvents.BLOCK_AMETHYST_BLOCK_HIT;
             case POISON -> SoundEvents.BLOCK_RESPAWN_ANCHOR_CHARGE; 
             case DROWN -> SoundEvents.ENTITY_PLAYER_HURT_DROWN;
             default -> SoundEvents.ENTITY_PLAYER_ATTACK_WEAK;

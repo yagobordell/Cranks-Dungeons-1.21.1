@@ -48,8 +48,9 @@ public class AilmentManager {
     // Track which entity triggered the current chain to prevent self-chaining
     private static UUID CURRENT_CHAIN_SOURCE = null;
     
-    // Track entities currently being damaged by poison (to prevent void damage numbers from showing)
+    // Track entities currently being damaged by ailments (to prevent void damage numbers from showing on death)
     private static final Set<UUID> POISON_DAMAGE_IN_PROGRESS = new HashSet<>();
+    private static final Set<UUID> BLEED_DAMAGE_IN_PROGRESS = new HashSet<>();
     
     public static boolean isPoisonDamageInProgress(UUID entityUuid) {
         return POISON_DAMAGE_IN_PROGRESS.contains(entityUuid);
@@ -60,6 +61,18 @@ public class AilmentManager {
             POISON_DAMAGE_IN_PROGRESS.add(entityUuid);
         } else {
             POISON_DAMAGE_IN_PROGRESS.remove(entityUuid);
+        }
+    }
+
+    public static boolean isBleedDamageInProgress(UUID entityUuid) {
+        return BLEED_DAMAGE_IN_PROGRESS.contains(entityUuid);
+    }
+    
+    public static void setBleedDamageInProgress(UUID entityUuid, boolean inProgress) {
+        if (inProgress) {
+            BLEED_DAMAGE_IN_PROGRESS.add(entityUuid);
+        } else {
+            BLEED_DAMAGE_IN_PROGRESS.remove(entityUuid);
         }
     }
 
@@ -293,25 +306,30 @@ public class AilmentManager {
         if (entity.getEntityWorld().isClient()) return;
         
         ServerWorld world = (ServerWorld) entity.getEntityWorld();
-        
-        // Check if damage will kill the entity
         float currentHealth = entity.getHealth();
-        if (currentHealth - storedDamage <= 0) {
-            // Entity will die - use proper damage source to ensure loot drops
-            net.minecraft.entity.damage.DamageSource damageSource = world.getDamageSources().magic();
-            entity.damage(world, damageSource, storedDamage);
-        } else {
-            // Entity won't die - apply damage directly
-            entity.setHealth(currentHealth - storedDamage);
-            
-            // Bleed burst sound effect (custom - different from hit sound)
-            world.playSound(null, entity.getX(), entity.getY(), entity.getZ(),
-                    ModSounds.BLEED_BURST, SoundCategory.HOSTILE,
-                    0.8f, 0.8f + world.getRandom().nextFloat() * 0.3f);
-            
-            // Broadcast damage numbers as physical (dark red)
-            DamageNumberSender.broadcastBleed(world, entity, storedDamage, ailment.getSourceUuid());
+        
+        // Broadcast damage numbers as physical (dark red)
+        DamageNumberSender.broadcastBleed(world, entity, storedDamage, ailment.getSourceUuid());
+        
+        // Mark bleed damage as in progress to prevent void numbers from showing on kill
+        setBleedDamageInProgress(entity.getUuid(), true);
+        try {
+            if (currentHealth - storedDamage <= 0) {
+                // Entity will die - use proper damage source to ensure loot drops
+                net.minecraft.entity.damage.DamageSource damageSource = world.getDamageSources().magic();
+                entity.damage(world, damageSource, storedDamage);
+            } else {
+                // Entity won't die - apply damage directly
+                entity.setHealth(currentHealth - storedDamage);
+            }
+        } finally {
+            setBleedDamageInProgress(entity.getUuid(), false);
         }
+        
+        // Bleed burst sound effect
+        world.playSound(null, entity.getX(), entity.getY(), entity.getZ(),
+                ModSounds.BLEED_BURST, SoundCategory.HOSTILE,
+                0.8f, 0.8f + world.getRandom().nextFloat() * 0.3f);
     }
 
     public static void accumulateBleedDamage(LivingEntity entity, float damageReceived) {
