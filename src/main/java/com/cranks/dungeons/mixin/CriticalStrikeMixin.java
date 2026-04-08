@@ -87,19 +87,28 @@ public abstract class CriticalStrikeMixin {
 
     @Unique
     private void spawnCriticalEffects(ServerWorld world, LivingEntity target) {
+        // High density enchanted hit particles (Purple/White)
         world.spawnParticles(
                 net.minecraft.particle.ParticleTypes.ENCHANTED_HIT,
                 target.getX(), target.getY() + target.getHeight() * 0.75, target.getZ(),
-                15, 0.2, 0.2, 0.2, 0.15
+                15, 0.2, 0.2, 0.2, 0.2
         );
 
-        for (int i = 0; i < 12; i++) {
-            double angle = i * (Math.PI * 2 / 12);
-            double vx = Math.cos(angle) * 0.2;
-            double vz = Math.sin(angle) * 0.2;
-        }
+        // Standard Crit particles (White/Brownish)
+        world.spawnParticles(
+                net.minecraft.particle.ParticleTypes.CRIT,
+                target.getX(), target.getY() + target.getHeight() * 0.5, target.getZ(),
+                10, 0.3, 0.3, 0.3, 0.15
+        );
 
-        // Use your custom critical hit sound instead of vanilla
+        // Glow particles for the "Gold" shimmer effect
+        world.spawnParticles(
+                net.minecraft.particle.ParticleTypes.GLOW,
+                target.getX(), target.getY() + target.getHeight() * 0.5, target.getZ(),
+                12, 0.4, 0.4, 0.4, 0.05
+        );
+
+        // Impact sound
         world.playSound(
                 null,
                 target.getBlockPos(),

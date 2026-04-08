@@ -214,7 +214,8 @@ public abstract class ElementalDamageMixin {
                         finalColdDamage,
                         finalLightningDamage,
                         finalVoidDamage,
-                        serverPlayer.getUuid()
+                        serverPlayer.getUuid(),
+                        isCrit
                 );
             }
 

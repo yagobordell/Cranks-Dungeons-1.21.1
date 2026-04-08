@@ -16,26 +16,12 @@ public class DamageNumberManager {
             activeNumbers.add(number);
             return;
         }
-        
-        // Automatically adjust rowIndex based on existing numbers near this one
-        int maxRow = -1;
-        long now = System.currentTimeMillis();
-        for (DamageNumber existing : activeNumbers) {
-            if (now - existing.spawnTime < 500) { // Only stack with recent numbers
-                double distSq = existing.position.squaredDistanceTo(number.position);
-                if (distSq < 1.0) { // Close enough to consider stacking
-                    maxRow = Math.max(maxRow, existing.rowIndex);
-                }
-            }
+        // We no longer manually stack rows here because it conflicts with the float-up animation.
+        // Instead, we let numbers naturally stagger based on their spawn time.
+        // Drowning still uses row 0 always.
+        if (isDrowning) {
+            number.setRowIndex(0);
         }
-        
-        // If we found existing numbers, place this one above them
-        // If not, use its original rowIndex
-        int finalRow = (maxRow == -1) ? number.rowIndex : maxRow + 1;
-        
-        // We need to make rowIndex non-final to change it here, 
-        // or recreate the number. non-final is easier.
-        number.setRowIndex(finalRow);
         
         activeNumbers.add(number);
     }

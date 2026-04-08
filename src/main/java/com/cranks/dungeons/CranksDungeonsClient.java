@@ -10,6 +10,7 @@ import com.cranks.dungeons.client.ModParticleProviders;
 import com.cranks.dungeons.client.ShieldNumberSprites;
 import com.cranks.dungeons.client.party.PartyClientData;
 import com.cranks.dungeons.client.party.PartyHudRenderer;
+import com.cranks.dungeons.damage.DamageElement;
 import com.cranks.dungeons.network.PartyHealthPacket;
 import com.cranks.dungeons.network.PartyInvitePacket;
 import com.cranks.dungeons.network.PartySyncPacket;
@@ -113,6 +114,7 @@ public class CranksDungeonsClient implements ClientModInitializer {
                 int count = payload.entries().size();
                 for (int i = 0; i < count; i++) {
                     DamageNumberPayload.DamageEntry entry = payload.entries().get(i);
+                    DamageElement element = DamageElement.values()[Math.min(entry.elementId(), DamageElement.values().length - 1)];
 
                     // Filter based on config
                     if (entry.isHeal()) {
@@ -122,6 +124,11 @@ public class CranksDungeonsClient implements ClientModInitializer {
                         if (isDealt && !config.showMyDealtDamage) continue;
                         if (isReceived && !config.showMyReceivedDamage) continue;
                         if (isOther && !config.showOtherPlayerDamage) continue;
+                    }
+
+                    // Play combat sound for this element if it's damage
+                    if (!entry.isHeal() && (isDealt || isReceived)) {
+                        com.cranks.dungeons.client.CombatAudioHelper.playCombatSound(element, entry.damage(), entry.isCrit());
                     }
 
                     double offsetX = 0;
@@ -149,7 +156,11 @@ public class CranksDungeonsClient implements ClientModInitializer {
                             formattedDamageWidth,
                             payload.forceDisplay(),
                             payload.victimUuid(),
-                            hitOffset
+                            hitOffset,
+                            element,
+                            entry.isCrit(),
+                            entry.isHeal(),
+                            System.currentTimeMillis() - (i * 80) // Stagger by 80ms each so oldest appear higher
                     );
                     DamageNumberManager.addDamageNumber(damageNumber);
                 }
@@ -209,7 +220,7 @@ public class CranksDungeonsClient implements ClientModInitializer {
                         net.minecraft.text.Text.literal(payload.inviterName() + " invited you to their party!")
                             .formatted(net.minecraft.util.Formatting.YELLOW)
                             .append(net.minecraft.text.Text.literal(" Use /party accept " + payload.inviterName())
-                                .formatted(net.minecraft.util.Formatting.GREEN)),
+                                 .formatted(net.minecraft.util.Formatting.GREEN)),
                         false
                     );
                 }

@@ -275,7 +275,7 @@ public class AilmentManager {
         if (entity.getEntityWorld() instanceof ServerWorld serverWorld) {
             double fire = (ailment.getType() == AilmentType.BURN) ? damage : 0.0;
             double physical = (ailment.getType() == AilmentType.BLEED) ? (double)damage : 0.0;
-            DamageNumberSender.broadcast(serverWorld, entity, physical, fire, 0.0, 0.0, 0.0, ailment.getSourceUuid());
+            DamageNumberSender.broadcast(serverWorld, entity, physical, fire, 0.0, 0.0, 0.0, ailment.getSourceUuid(), false);
         }
 
         if (ailment.getType() == AilmentType.BURN) {
@@ -521,7 +521,7 @@ public class AilmentManager {
                         0.7f, 1.0f + world.getRandom().nextFloat() * 0.3f);
                 
                 // Broadcast damage numbers as lightning damage  
-                DamageNumberSender.broadcast(world, target, 0, 0, 0, finalDamage, 0, source != null ? source.getUuid() : null);
+                DamageNumberSender.broadcast(world, target, 0, 0, 0, finalDamage, 0, source != null ? source.getUuid() : null, false);
                 
                 // Spawn shock chain particles at target position
                 spawnShockChainParticles(world, target);

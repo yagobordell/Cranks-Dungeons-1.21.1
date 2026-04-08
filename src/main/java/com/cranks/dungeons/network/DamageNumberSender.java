@@ -24,14 +24,15 @@ public class DamageNumberSender {
                             double fireDamage,
                             double coldDamage,
                             double lightningDamage,
-                            double voidDamage) {
+                            double voidDamage,
+                            boolean isCrit) {
 
         List<DamageNumberPayload.DamageEntry> entries = new ArrayList<>();
-        if (physicalDamage > 0) entries.add(new DamageNumberPayload.DamageEntry(physicalDamage, DamageElement.PHYSICAL.color, false));
-        if (fireDamage > 0) entries.add(new DamageNumberPayload.DamageEntry(fireDamage, DamageElement.FIRE.color, false));
-        if (coldDamage > 0) entries.add(new DamageNumberPayload.DamageEntry(coldDamage, DamageElement.COLD.color, false));
-        if (lightningDamage > 0) entries.add(new DamageNumberPayload.DamageEntry(lightningDamage, DamageElement.LIGHTNING.color, false));
-        if (voidDamage > 0) entries.add(new DamageNumberPayload.DamageEntry(voidDamage, DamageElement.VOID.color, false));
+        if (physicalDamage > 0) entries.add(new DamageNumberPayload.DamageEntry(physicalDamage, DamageElement.PHYSICAL.color, false, DamageElement.PHYSICAL.ordinal(), isCrit));
+        if (fireDamage > 0) entries.add(new DamageNumberPayload.DamageEntry(fireDamage, DamageElement.FIRE.color, false, DamageElement.FIRE.ordinal(), isCrit));
+        if (coldDamage > 0) entries.add(new DamageNumberPayload.DamageEntry(coldDamage, DamageElement.COLD.color, false, DamageElement.COLD.ordinal(), isCrit));
+        if (lightningDamage > 0) entries.add(new DamageNumberPayload.DamageEntry(lightningDamage, DamageElement.LIGHTNING.color, false, DamageElement.LIGHTNING.ordinal(), isCrit));
+        if (voidDamage > 0) entries.add(new DamageNumberPayload.DamageEntry(voidDamage, DamageElement.VOID.color, false, DamageElement.VOID.ordinal(), isCrit));
 
         if (entries.isEmpty()) return;
 
@@ -43,7 +44,7 @@ public class DamageNumberSender {
     public static void broadcastHeal(ServerWorld world, LivingEntity target, double healAmount) {
         if (healAmount <= 0) return;
         List<DamageNumberPayload.DamageEntry> entries = new ArrayList<>();
-        entries.add(new DamageNumberPayload.DamageEntry(healAmount, 0x55FF55, true)); // Green color
+        entries.add(new DamageNumberPayload.DamageEntry(healAmount, 0x55FF55, true, DamageElement.PHYSICAL.ordinal(), false)); // Green color
 
         Vec3d pos = new Vec3d(
                 target.getX(),
@@ -62,7 +63,7 @@ public class DamageNumberSender {
     public static void broadcastPoison(ServerWorld world, LivingEntity target, double poisonDamage, UUID attackerUuid) {
         if (poisonDamage <= 0) return;
         List<DamageNumberPayload.DamageEntry> entries = new ArrayList<>();
-        entries.add(new DamageNumberPayload.DamageEntry(poisonDamage, DamageElement.POISON.color, false));
+        entries.add(new DamageNumberPayload.DamageEntry(poisonDamage, DamageElement.POISON.color, false, DamageElement.POISON.ordinal(), false));
 
         Vec3d pos = new Vec3d(
                 target.getX(),
@@ -83,7 +84,7 @@ public class DamageNumberSender {
         List<DamageNumberPayload.DamageEntry> entries = new ArrayList<>();
         // Dark red color for bleed burst damage
         int bleedColor = 0x8B0000;
-        entries.add(new DamageNumberPayload.DamageEntry(bleedDamage, bleedColor, false));
+        entries.add(new DamageNumberPayload.DamageEntry(bleedDamage, bleedColor, false, DamageElement.PHYSICAL.ordinal(), false));
 
         Vec3d pos = new Vec3d(
                 target.getX(),
@@ -102,7 +103,7 @@ public class DamageNumberSender {
     public static void broadcastDrown(ServerWorld world, LivingEntity target, double drownDamage) {
         if (drownDamage <= 0) return;
         List<DamageNumberPayload.DamageEntry> entries = new ArrayList<>();
-        entries.add(new DamageNumberPayload.DamageEntry(drownDamage, DamageElement.DROWN.color, false));
+        entries.add(new DamageNumberPayload.DamageEntry(drownDamage, DamageElement.DROWN.color, false, DamageElement.DROWN.ordinal(), false));
 
         Vec3d pos = new Vec3d(
                 target.getX(),
@@ -124,14 +125,15 @@ public class DamageNumberSender {
                                  double coldDamage,
                                  double lightningDamage,
                                  double voidDamage,
-                                 UUID attackerUuid) {
+                                 UUID attackerUuid,
+                                 boolean isCrit) {
         
         List<DamageNumberPayload.DamageEntry> entries = new ArrayList<>();
-        if (physicalDamage > 0) entries.add(new DamageNumberPayload.DamageEntry(physicalDamage, DamageElement.PHYSICAL.color, false));
-        if (fireDamage > 0) entries.add(new DamageNumberPayload.DamageEntry(fireDamage, DamageElement.FIRE.color, false));
-        if (coldDamage > 0) entries.add(new DamageNumberPayload.DamageEntry(coldDamage, DamageElement.COLD.color, false));
-        if (lightningDamage > 0) entries.add(new DamageNumberPayload.DamageEntry(lightningDamage, DamageElement.LIGHTNING.color, false));
-        if (voidDamage > 0) entries.add(new DamageNumberPayload.DamageEntry(voidDamage, DamageElement.VOID.color, false));
+        if (physicalDamage > 0) entries.add(new DamageNumberPayload.DamageEntry(physicalDamage, DamageElement.PHYSICAL.color, false, DamageElement.PHYSICAL.ordinal(), isCrit));
+        if (fireDamage > 0) entries.add(new DamageNumberPayload.DamageEntry(fireDamage, DamageElement.FIRE.color, false, DamageElement.FIRE.ordinal(), isCrit));
+        if (coldDamage > 0) entries.add(new DamageNumberPayload.DamageEntry(coldDamage, DamageElement.COLD.color, false, DamageElement.COLD.ordinal(), isCrit));
+        if (lightningDamage > 0) entries.add(new DamageNumberPayload.DamageEntry(lightningDamage, DamageElement.LIGHTNING.color, false, DamageElement.LIGHTNING.ordinal(), isCrit));
+        if (voidDamage > 0) entries.add(new DamageNumberPayload.DamageEntry(voidDamage, DamageElement.VOID.color, false, DamageElement.VOID.ordinal(), isCrit));
 
         if (entries.isEmpty()) return;
 
@@ -160,7 +162,7 @@ public class DamageNumberSender {
                                  double lightningDamage,
                                  double voidDamage) {
         UUID attackerUuid = (target.getRecentDamageSource() != null) ? (target.getRecentDamageSource().getAttacker() != null ? target.getRecentDamageSource().getAttacker().getUuid() : null) : null;
-        broadcast(world, target, physicalDamage, fireDamage, coldDamage, lightningDamage, voidDamage, attackerUuid);
+        broadcast(world, target, physicalDamage, fireDamage, coldDamage, lightningDamage, voidDamage, attackerUuid, false);
     }
 
     private static Vec3d getHitPosition(ServerPlayerEntity player, LivingEntity target) {

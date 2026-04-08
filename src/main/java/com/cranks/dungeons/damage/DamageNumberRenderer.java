@@ -52,68 +52,68 @@ public class DamageNumberRenderer {
             // Update position to follow entity if it exists
             updateNumberPosition(number, client);
 
-            double worldX = number.position.x + number.offsetX;
-            double worldY = number.getCurrentY();
-            double worldZ = number.position.z + number.offsetZ;
+            boolean isSelf = number.victimUuid != null && number.victimUuid.equals(client.player.getUuid());
+            int sX, sY;
 
-            double dx = worldX - camX;
-            double dy = worldY - camY;
-            double dz = worldZ - camZ;
-
-            // Early culling: skip if too far away, unless it's a forced display (direct source)
-            double distanceSq = dx*dx + dy*dy + dz*dz;
-            if (distanceSq > MAX_RENDER_DISTANCE_SQ && !number.forceDisplay) continue;
-
-            double cosYaw = Math.cos(yawRad);
-            double sinYaw = Math.sin(yawRad);
-            double rotX = dx * cosYaw + dz * sinYaw;
-            double rotZ = -dx * sinYaw + dz * cosYaw;
-            double rotY = dy;
-
-            double cosPitch = Math.cos(pitchRad);
-            double sinPitch = Math.sin(pitchRad);
-            double viewX = rotX;
-            double viewY = rotY * cosPitch - rotZ * sinPitch;
-            double viewZ = rotY * sinPitch + rotZ * cosPitch;
-
-            if (viewZ >= 0) continue; // behind camera
-
-            double depth = -viewZ;
-            double projDepth = Math.max(depth, 0.5);
-
-            double ndcX = viewX / (halfWidth * projDepth);
-            double ndcY = viewY / (halfHeight * projDepth);
-
-            float targetSX = (float) ((ndcX + 1.0) / 2.0 * screenWidth);
-            float targetSY = (float) ((1.0 - ndcY) / 2.0 * screenHeight);
-
-            // Screen-space smoothing
-            if (Float.isNaN(number.lastScreenX)) {
-                number.lastScreenX = targetSX;
-                number.lastScreenY = targetSY;
-            } else {
-                number.lastScreenX = MathHelper.lerp(SMOOTHING, number.lastScreenX, targetSX);
-                number.lastScreenY = MathHelper.lerp(SMOOTHING, number.lastScreenY, targetSY);
-            }
-
-            int sX = Math.round(number.lastScreenX);
-            int sY = Math.round(number.lastScreenY);
-
-            // Special handling for "Self" numbers (very close to camera)
-            boolean isSelf = distanceSq < 0.5;
+            // SPECIAL CASE: Smooth UI rendering for local player in first person
             if (isSelf && client.options.getPerspective().isFirstPerson()) {
-                // Shift self-numbers to the side so they don't block the crosshair
-                // Damage to the left, Healing to the right (heuristic based on color)
-                boolean isHeal = (number.color & 0x00FFFFFF) == 0x55FF55; 
                 float progress = number.getProgress();
-                sX = screenWidth / 2 + (isHeal ? 60 : -60);
-                sY = (int) (screenHeight / 2 + 30 - progress * 40); // Float up from center-ish
-            }
+                sX = screenWidth / 2 + (number.isHeal ? 60 : -60);
+                sY = (int) (screenHeight / 2 + 30 - progress * 40);
+            } else {
+                // Standard world-space projection for Mobs and other players
+                double worldX = number.position.x + number.offsetX;
+                double worldY = number.getCurrentY();
+                double worldZ = number.position.z + number.offsetZ;
 
-            // Cull if off-screen with margin
-            if (sX < -SCREEN_MARGIN || sX > screenWidth + SCREEN_MARGIN
-                    || sY < -SCREEN_MARGIN || sY > screenHeight + SCREEN_MARGIN) {
-                continue;
+                double dx = worldX - camX;
+                double dy = worldY - camY;
+                double dz = worldZ - camZ;
+
+                // Early culling: skip if too far away, unless it's a forced display (direct source)
+                double distanceSq = dx*dx + dy*dy + dz*dz;
+                if (distanceSq > MAX_RENDER_DISTANCE_SQ && !number.forceDisplay) continue;
+
+                double cosYaw = Math.cos(yawRad);
+                double sinYaw = Math.sin(yawRad);
+                double rotX = dx * cosYaw + dz * sinYaw;
+                double rotZ = -dx * sinYaw + dz * cosYaw;
+                double rotY = dy;
+
+                double cosPitch = Math.cos(pitchRad);
+                double sinPitch = Math.sin(pitchRad);
+                double viewX = rotX;
+                double viewY = rotY * cosPitch - rotZ * sinPitch;
+                double viewZ = rotY * sinPitch + rotZ * cosPitch;
+
+                if (viewZ >= 0) continue; // behind camera (standard culling)
+
+                double depth = -viewZ;
+                double projDepth = Math.max(depth, 0.5);
+
+                double ndcX = viewX / (halfWidth * projDepth);
+                double ndcY = viewY / (halfHeight * projDepth);
+
+                float targetSX = (float) ((ndcX + 1.0) / 2.0 * screenWidth);
+                float targetSY = (float) ((1.0 - ndcY) / 2.0 * screenHeight);
+
+                // Screen-space smoothing
+                if (Float.isNaN(number.lastScreenX)) {
+                    number.lastScreenX = targetSX;
+                    number.lastScreenY = targetSY;
+                } else {
+                    number.lastScreenX = MathHelper.lerp(SMOOTHING, number.lastScreenX, targetSX);
+                    number.lastScreenY = MathHelper.lerp(SMOOTHING, number.lastScreenY, targetSY);
+                }
+
+                sX = Math.round(number.lastScreenX);
+                sY = Math.round(number.lastScreenY);
+
+                // Final screen-space culling with margin
+                if (sX < -SCREEN_MARGIN || sX > screenWidth + SCREEN_MARGIN
+                        || sY < -SCREEN_MARGIN || sY > screenHeight + SCREEN_MARGIN) {
+                    continue;
+                }
             }
 
             String text = number.formattedDamageText;
@@ -121,36 +121,49 @@ public class DamageNumberRenderer {
             int rowSpacing = (int)((textRenderer.fontHeight + 2) * 1.2);
 
             float progress = number.getProgress();
-            float scale = 1.0f;
+            
+            // 1. Calculate Dynamic Scale based on damage magnitude and Crit status
+            float baseScale = 1.0f + (float)Math.min(number.damage / 80.0, 0.6); // Scale up based on damage
+            if (number.isCritical) baseScale *= 1.3f; // Crits are naturally larger
+            baseScale = Math.min(baseScale, 2.0f); // HARD CAP per user request
+            
+            float scale = baseScale;
             if (progress < 0.1f) {
-                scale = progress / 0.1f; // Scale up
+                scale *= progress / 0.1f; // Scale up at start
             } else if (progress > 0.8f) {
-                scale = 1.0f - (progress - 0.8f) / 0.2f; // Scale down
+                scale *= 1.0f - (progress - 0.8f) / 0.2f; // Scale down at end
             }
             
-            // Add a slight "bounce" or "pop" at the start
-            if (progress < 0.2f) {
-                scale *= 1.2f;
+            // 2. Critical "Heartbeat" Pulse
+            if (number.isCritical && progress < 0.25f) {
+                // Pulse up then back to baseScale
+                float pulse = (float)Math.sin(progress * Math.PI / 0.25f) * 0.25f;
+                scale += pulse;
+            } else if (progress < 0.2f) {
+                // Normal hits get a smaller pop
+                scale *= 1.15f;
             }
 
-            int drawX = sX - (int)(textWidth * scale / 2);
-            int drawY = sY - (int)(textRenderer.fontHeight * scale / 2) - number.rowIndex * rowSpacing;
+            int sX_final = sX;
+            int sY_final = sY;
 
             // Calculate color with alpha
-            int alpha = (int) (number.getAlpha() * 255) << 24;
+            int alphaValue = (int) (number.getAlpha() * 255);
+            int alpha = alphaValue << 24;
             int colorWithAlpha = (number.color & 0x00FFFFFF) | alpha;
 
             context.getMatrices().pushMatrix();
-            context.getMatrices().translate(sX, (float) (sY - number.rowIndex * rowSpacing));
+            context.getMatrices().translate((float)sX_final, (float)sY_final);
             context.getMatrices().scale(scale, scale);
             
+            // 4. Main Text render
             context.drawText(
                     textRenderer,
                     text,
                     -textWidth / 2,
                     -textRenderer.fontHeight / 2,
                     colorWithAlpha,
-                    true
+                    true // Keep vanilla shadow for clarity
             );
             context.getMatrices().popMatrix();
         }

@@ -37,14 +37,18 @@ public class DamageNumber {
     public float lastScreenY = Float.NaN;
 
     public final boolean forceDisplay;
+    public final DamageElement element;
+    public final boolean isCritical;
+    public final boolean isHeal;
 
     public DamageNumber(double damage, int color, Vec3d position, double offsetX, double offsetZ, 
                        int rowIndex, String formattedDamageText, int formattedDamageWidth, 
-                       boolean forceDisplay, UUID victimUuid, Vec3d hitOffset) {
+                       boolean forceDisplay, UUID victimUuid, Vec3d hitOffset,
+                       DamageElement element, boolean isCritical, boolean isHeal, long spawnTime) {
         this.damage = damage;
         this.color = color;
         this.position = position;
-        this.spawnTime = System.currentTimeMillis();
+        this.spawnTime = spawnTime;
         this.offsetX = offsetX;
         this.offsetZ = offsetZ;
         this.rowIndex = rowIndex;
@@ -55,6 +59,9 @@ public class DamageNumber {
         this.hitOffset = hitOffset;
         this.lastKnownPosition = position;
         this.entityDespawned = false;
+        this.element = element;
+        this.isCritical = isCritical;
+        this.isHeal = isHeal;
     }
 
     public boolean isExpired() {

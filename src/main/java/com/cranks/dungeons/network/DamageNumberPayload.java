@@ -23,7 +23,7 @@ public record DamageNumberPayload(
     public static final PacketCodec<RegistryByteBuf, DamageNumberPayload> CODEC =
             PacketCodec.of(DamageNumberPayload::write, DamageNumberPayload::read);
 
-    public record DamageEntry(double damage, int color, boolean isHeal) {}
+    public record DamageEntry(double damage, int color, boolean isHeal, int elementId, boolean isCrit) {}
 
     private void write(RegistryByteBuf buf) {
         buf.writeDouble(x);
@@ -42,6 +42,8 @@ public record DamageNumberPayload(
             buf.writeDouble(entry.damage());
             buf.writeInt(entry.color());
             buf.writeBoolean(entry.isHeal());
+            buf.writeByte(entry.elementId());
+            buf.writeBoolean(entry.isCrit());
         }
     }
 
@@ -57,7 +59,7 @@ public record DamageNumberPayload(
         int count = buf.readVarInt();
         List<DamageEntry> entries = new ArrayList<>();
         for (int i = 0; i < count; i++) {
-            entries.add(new DamageEntry(buf.readDouble(), buf.readInt(), buf.readBoolean()));
+            entries.add(new DamageEntry(buf.readDouble(), buf.readInt(), buf.readBoolean(), buf.readByte(), buf.readBoolean()));
         }
         return new DamageNumberPayload(x, y, z, entries, forceDisplay, attackerUuid, victimUuid);
     }
