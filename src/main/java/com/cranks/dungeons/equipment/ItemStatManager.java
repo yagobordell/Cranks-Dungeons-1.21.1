@@ -1,5 +1,6 @@
 package com.cranks.dungeons.equipment;
 
+import com.cranks.dungeons.item.AbstractTomeItem;
 import com.cranks.dungeons.stat.CustomStat;
 import com.cranks.dungeons.stat.StatRegistry;
 import net.minecraft.item.ItemStack;
@@ -392,13 +393,6 @@ public class ItemStatManager {
     }
 
     private static Formatting getTierColor(int tier) {
-        return switch (tier) {
-            case 1 -> Formatting.GRAY;
-            case 2 -> Formatting.GRAY;
-            case 3 -> Formatting.GREEN;
-            case 4 -> Formatting.GREEN;
-            case 5 -> Formatting.GOLD;
-            default -> Formatting.WHITE;
-        };
+        return AbstractTomeItem.getTierColor(tier);
     }
 }

@@ -66,15 +66,8 @@ public class CustomStat {
             throw new IllegalArgumentException("Tier must be between 1 and 5");
         }
 
-        double min, max;
-
-        if (tier <= 2) {
-            min = normalRanges[tier - 1];
-            max = uncommonRanges[tier - 1];
-        } else {
-            min = normalRanges[tier - 1];
-            max = uncommonRanges[tier - 1];
-        }
+        double min = normalRanges[tier - 1];
+        double max = uncommonRanges[tier - 1];
 
         double value = min + (max - min) * RandomUtil.nextDouble(1.0);
 

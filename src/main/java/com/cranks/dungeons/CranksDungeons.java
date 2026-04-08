@@ -41,6 +41,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class CranksDungeons implements ModInitializer {
@@ -150,79 +151,97 @@ public class CranksDungeons implements ModInitializer {
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.SEARCH).register(this::filterEnchantedBooks);
 	}
 
-	private void filterEnchantedBooks(FabricItemGroupEntries content) {
-		// Build set of allowed enchantment registry keys
-		Set<RegistryKey<Enchantment>> allowedEnchantments = new HashSet<>();
+	/**
+	 * Enchantment IDs allowed through the creative tab filter.
+	 * Any enchanted book not in this list is hidden from creative tabs.
+	 */
+	private static final List<String> ALLOWED_ENCHANTMENT_IDS = List.of(
+			// Vanilla utility enchantments kept as-is
+			"minecraft:aqua_affinity",
+			"minecraft:channeling",
+			"minecraft:infinity",
+			"minecraft:multishot",
+			"minecraft:silk_touch",
+			"minecraft:frost_walker",
+			"minecraft:loyalty",
+			"minecraft:soul_speed",
+			"minecraft:wind_burst",
+			"minecraft:riptide",
+			"minecraft:respiration",
+			"minecraft:depth_strider",
+			"minecraft:lunge",
+			// Custom stat-based enchantments (minecraft namespace, overridden via data pack)
+			"minecraft:fire_damage",
+			"minecraft:cold_damage",
+			"minecraft:lightning_damage",
+			"minecraft:void_damage",
+			"minecraft:attack_damage",
+			"minecraft:attack_speed",
+			"minecraft:crit_chance",
+			"minecraft:chance_to_burn",
+			"minecraft:chance_to_poison",
+			"minecraft:chance_to_freeze",
+			"minecraft:chance_to_shock",
+			"minecraft:life_steal",
+			"minecraft:bonus_knockback",
+			"minecraft:attack_range",
+			"minecraft:max_health_bonus",
+			"minecraft:life_regeneration",
+			"minecraft:bonus_armor",
+			"minecraft:bonus_armor_toughness",
+			"minecraft:knockback_resistance",
+			"minecraft:fire_resistance",
+			"minecraft:cold_resistance",
+			"minecraft:lightning_resistance",
+			"minecraft:void_resistance",
+			"minecraft:experience_bonus",
+			"minecraft:luck_bonus",
+			"minecraft:movement_speed_bonus",
+			"minecraft:feather_falling_bonus",
+			"minecraft:mining_efficiency",
+			"minecraft:ore_fortune",
+			"minecraft:log_fortune",
+			"minecraft:energy_shield",
+			"minecraft:evasion_rating",
+			"minecraft:durability_bonus",
+			"minecraft:repair_chance",
+			"minecraft:breaking_range",
+			"minecraft:crop_fortune",
+			"minecraft:dig_fortune",
+			"minecraft:reload_speed",
+			// Mod-namespaced enchantments
+			"cranks-dungeons:vein_mining"
+	);
 
-		// Add all allowed enchantments from your json
-		addAllowedEnchantment(allowedEnchantments, "minecraft:aqua_affinity");
-		addAllowedEnchantment(allowedEnchantments, "minecraft:channeling");
-		addAllowedEnchantment(allowedEnchantments, "minecraft:infinity");
-		addAllowedEnchantment(allowedEnchantments, "minecraft:multishot");
-		addAllowedEnchantment(allowedEnchantments, "minecraft:silk_touch");
-		addAllowedEnchantment(allowedEnchantments, "minecraft:frost_walker");
-		addAllowedEnchantment(allowedEnchantments, "minecraft:loyalty");
-		addAllowedEnchantment(allowedEnchantments, "minecraft:soul_speed");
-		addAllowedEnchantment(allowedEnchantments, "minecraft:wind_burst");
-		addAllowedEnchantment(allowedEnchantments, "minecraft:riptide");
-		addAllowedEnchantment(allowedEnchantments, "minecraft:respiration");
-		addAllowedEnchantment(allowedEnchantments, "minecraft:depth_strider");
-		addAllowedEnchantment(allowedEnchantments, "minecraft:lunge");
-		addAllowedEnchantment(allowedEnchantments, "minecraft:fire_damage");
-		addAllowedEnchantment(allowedEnchantments, "minecraft:cold_damage");
-		addAllowedEnchantment(allowedEnchantments, "minecraft:lightning_damage");
-		addAllowedEnchantment(allowedEnchantments, "minecraft:void_damage");
-		addAllowedEnchantment(allowedEnchantments, "minecraft:attack_damage");
-		addAllowedEnchantment(allowedEnchantments, "minecraft:attack_speed");
-		addAllowedEnchantment(allowedEnchantments, "minecraft:crit_chance");
-		addAllowedEnchantment(allowedEnchantments, "minecraft:chance_to_burn");
-		addAllowedEnchantment(allowedEnchantments, "minecraft:chance_to_poison");
-		addAllowedEnchantment(allowedEnchantments, "minecraft:chance_to_freeze");
-		addAllowedEnchantment(allowedEnchantments, "minecraft:chance_to_shock");
-		addAllowedEnchantment(allowedEnchantments, "minecraft:life_steal");
-		addAllowedEnchantment(allowedEnchantments, "minecraft:bonus_knockback");
-		addAllowedEnchantment(allowedEnchantments, "minecraft:attack_range");
-		addAllowedEnchantment(allowedEnchantments, "minecraft:max_health_bonus");
-		addAllowedEnchantment(allowedEnchantments, "minecraft:life_regeneration");
-		addAllowedEnchantment(allowedEnchantments, "minecraft:bonus_armor");
-		addAllowedEnchantment(allowedEnchantments, "minecraft:bonus_armor_toughness");
-		addAllowedEnchantment(allowedEnchantments, "minecraft:knockback_resistance");
-		addAllowedEnchantment(allowedEnchantments, "minecraft:fire_resistance");
-		addAllowedEnchantment(allowedEnchantments, "minecraft:cold_resistance");
-		addAllowedEnchantment(allowedEnchantments, "minecraft:lightning_resistance");
-		addAllowedEnchantment(allowedEnchantments, "minecraft:void_resistance");
-		addAllowedEnchantment(allowedEnchantments, "minecraft:experience_bonus");
-		addAllowedEnchantment(allowedEnchantments, "minecraft:luck_bonus");
-		addAllowedEnchantment(allowedEnchantments, "minecraft:movement_speed_bonus");
-		addAllowedEnchantment(allowedEnchantments, "minecraft:feather_falling_bonus");
-		addAllowedEnchantment(allowedEnchantments, "minecraft:mining_efficiency");
-		addAllowedEnchantment(allowedEnchantments, "minecraft:ore_fortune");
-		addAllowedEnchantment(allowedEnchantments, "minecraft:log_fortune");
-		addAllowedEnchantment(allowedEnchantments, "minecraft:energy_shield");
-		addAllowedEnchantment(allowedEnchantments, "minecraft:evasion_rating");
-		addAllowedEnchantment(allowedEnchantments, "minecraft:durability_bonus");
-		addAllowedEnchantment(allowedEnchantments, "minecraft:repair_chance");
-		addAllowedEnchantment(allowedEnchantments, "minecraft:breaking_range");
-		addAllowedEnchantment(allowedEnchantments, "minecraft:crop_fortune");
-		addAllowedEnchantment(allowedEnchantments, "minecraft:dig_fortune");
-		addAllowedEnchantment(allowedEnchantments, "minecraft:reload_speed");
-		addAllowedEnchantment(allowedEnchantments, "cranks-dungeons:vein_mining");
+	/** Cached set of allowed enchantment registry keys, built once on first use. */
+	private Set<RegistryKey<Enchantment>> allowedEnchantmentKeys;
+
+	private Set<RegistryKey<Enchantment>> getAllowedEnchantmentKeys() {
+		if (allowedEnchantmentKeys == null) {
+			allowedEnchantmentKeys = new HashSet<>();
+			for (String id : ALLOWED_ENCHANTMENT_IDS) {
+				Identifier identifier = Identifier.tryParse(id);
+				if (identifier != null) {
+					RegistryKey<net.minecraft.registry.Registry<Enchantment>> registryKey =
+							RegistryKey.ofRegistry(Identifier.of("minecraft", "enchantment"));
+					allowedEnchantmentKeys.add(RegistryKey.of(registryKey, identifier));
+				}
+			}
+		}
+		return allowedEnchantmentKeys;
+	}
+
+	private void filterEnchantedBooks(FabricItemGroupEntries content) {
+		Set<RegistryKey<Enchantment>> allowed = getAllowedEnchantmentKeys();
 
 		// Remove from both display stacks and search tab stacks
 		var displayStacks = content.getDisplayStacks();
 		var searchStacks = content.getSearchTabStacks();
 		
-		displayStacks.removeIf(stack -> shouldRemoveBook(stack, allowedEnchantments));
-		searchStacks.removeIf(stack -> shouldRemoveBook(stack, allowedEnchantments));
+		displayStacks.removeIf(stack -> shouldRemoveBook(stack, allowed));
+		searchStacks.removeIf(stack -> shouldRemoveBook(stack, allowed));
 	}
 
-	private void addAllowedEnchantment(Set<RegistryKey<Enchantment>> set, String id) {
-		Identifier identifier = Identifier.tryParse(id);
-		if (identifier != null) {
-			RegistryKey<net.minecraft.registry.Registry<Enchantment>> registryKey = RegistryKey.ofRegistry(Identifier.of("minecraft", "enchantment"));
-			set.add(RegistryKey.of(registryKey, identifier));
-		}
-	}
 
 	private boolean shouldRemoveBook(net.minecraft.item.ItemStack stack, Set<RegistryKey<Enchantment>> allowedEnchantments) {
 		if (!stack.isOf(Items.ENCHANTED_BOOK)) {
