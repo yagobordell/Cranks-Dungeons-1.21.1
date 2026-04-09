@@ -126,8 +126,8 @@ public class CranksDungeonsClient implements ClientModInitializer {
                         if (isOther && !config.showOtherPlayerDamage) continue;
                     }
 
-                    // Play combat sound for this element if it's damage
-                    if (!entry.isHeal() && (isDealt || isReceived)) {
+                    // Play combat sound for this element if it's damage and from a combat source
+                    if (!entry.isHeal() && (isDealt || (isReceived && payload.attackerUuid() != null))) {
                         com.cranks.dungeons.client.CombatAudioHelper.playCombatSound(element, entry.damage(), entry.isCrit());
                     }
 

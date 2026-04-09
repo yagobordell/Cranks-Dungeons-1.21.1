@@ -16,12 +16,5 @@ public abstract class VanillaFireDisableMixin {
     // This allows vanilla fire mechanics (like Zombies in sun) to trigger damage(ON_FIRE) calls.
     // The damage reduction and numbers are handled in DamageReductionMixin.
 
-    @Inject(method = "isOnFire", at = @At("HEAD"), cancellable = true)
-    private void hideFireOverlayForAllLiving(CallbackInfoReturnable<Boolean> cir) {
-        Entity entity = (Entity) (Object) this;
-        // Hide vanilla fire overlay for all living entities to maintain modded aesthetic
-        if (entity instanceof LivingEntity) {
-            cir.setReturnValue(false);
-        }
-    }
+    // Fire overlay follows vanilla behavior.
 }

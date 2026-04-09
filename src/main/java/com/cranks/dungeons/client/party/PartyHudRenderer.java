@@ -1,9 +1,11 @@
 package com.cranks.dungeons.client.party;
 
 import com.cranks.dungeons.CranksDungeons;
+import com.cranks.dungeons.client.ShieldNumberSprites;
 import com.cranks.dungeons.config.ModConfig;
 import com.cranks.dungeons.party.PartyMemberData;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
@@ -24,18 +26,16 @@ public class PartyHudRenderer implements HudRenderCallback {
     private static final Identifier SHIELD_HALF_BLINKING = Identifier.of(CranksDungeons.MOD_ID, "hud/heart/shield/half_blinking");
     private static final Identifier SHIELD_CONTAINER = Identifier.of("hud/heart/container");
 
+    private static final boolean OVERFLOWING_BARS_LOADED = FabricLoader.getInstance().isModLoaded("overflowingbars");
+
     private static final int BASE_MEMBER_WIDTH = 110;
     private static final int BASE_MEMBER_HEIGHT = 36;
 
-
-    
     @Override
     public void onHudRender(DrawContext context, RenderTickCounter tickCounter) {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.player == null) return;
         if (client.options.hudHidden) return;
-
-
 
         ModConfig config = ModConfig.get();
         if (!config.partyHudEnabled) return;
@@ -94,25 +94,53 @@ public class PartyHudRenderer implements HudRenderCallback {
         
         // Layout:
         // [Name]
-        // [Icon (16x16)] [Shield] Nx
-        //                 [Health] Nx
+        // [Icon (16x16)] [Shield]
+        //                 [Health]
 
-        int iconSize = (int) (16 * scale);
-        int textY = y - (int) (10 * scale);
+        int maxHealthHearts = (int) Math.ceil(member.maxHealth() / 2.0f);
+        int healthRows = OVERFLOWING_BARS_LOADED ? 1 : Math.max(1, (int) Math.ceil(maxHealthHearts / 10.0));
+        int healthVanillaSpacing = Math.max(10 - (healthRows - 2), 3);
+        int healthRowHeight = (int) (healthVanillaSpacing * scale);
+
+        // Height of the health bar from its base (y) to its top row.
+        int healthTotalHeight = (healthRows - 1) * healthRowHeight;
+
+        // The base Y for the health bar. We'll place it slightly below the starting 'y' 
+        // to leave room for everything else.
+        int healthBaseY = y + (int) (12 * scale);
         
-        // Draw name above icon
-        context.drawTextWithShadow(client.textRenderer, displayName, x + (int) (2 * scale), textY, nameColor);
+        // The shield should be above the top-most health row.
+        // Vanilla standard gap between bars is 10 pixels.
+        int shieldBaseY = healthBaseY - healthTotalHeight - (int) (10 * scale);
 
-        // Icon on left side
-        renderPlayerHead(context, client, member, x + (int) (2 * scale), y + (int) (2 * scale), scale);
+        // Name should be above the highest bar (either name bar or shield bar).
+        // Max shield rows calculation for name placement
+        int maxShieldHearts = (int) Math.ceil(member.maxEnergyShield() / 2.0f);
+        int shieldRows = OVERFLOWING_BARS_LOADED ? 1 : Math.max(1, (int) Math.ceil(maxShieldHearts / 10.0));
+        int shieldVanillaSpacing = Math.max(10 - (shieldRows - 2), 3);
+        int shieldRowHeight = (int) (shieldVanillaSpacing * scale);
+        int shieldTotalHeight = (shieldRows > 0 && member.maxEnergyShield() > 0) ? (shieldRows - 1) * shieldRowHeight : 0;
+        
+        int highestBarY = (member.maxEnergyShield() > 0) ? (shieldBaseY - shieldTotalHeight) : (healthBaseY - healthTotalHeight);
+        int lowestBarY = healthBaseY + (int) (9 * scale);
+        int barsMidpointY = (highestBarY + lowestBarY) / 2;
+        int iconY = barsMidpointY - (int) (8 * scale); // Center 16x16 icon on midpoint
+
+        int nameY = highestBarY - (int) (10 * scale);
+
+        // Draw name above everything
+        context.drawTextWithShadow(client.textRenderer, displayName, x + (int) (2 * scale), nameY, nameColor);
+
+        // Icon on left side - dynamically centered vertically relative to bars
+        renderPlayerHead(context, client, member, x + (int) (2 * scale), iconY, scale);
 
         if (member.isAlive()) {
-            // Shield on top, Health below - both to the right of icon
-            int barsX = x + (int) (22 * scale);
-            renderShieldBar(context, barsX, y, member, scale);
-            renderHealthBar(context, barsX, y + (int) (11 * scale), member, scale);
+            int barsX = x + (int) (24 * scale); // Shift slightly right to give icon more breathing room
+            renderShieldBar(context, barsX, shieldBaseY, member, scale);
+            renderHealthBar(context, barsX, healthBaseY, member, scale);
         } else {
-            context.drawTextWithShadow(client.textRenderer, "☠ Dead", x + (int) (22 * scale), y + (int) (5 * scale), 0xAA0000);
+            // Center the "Dead" text too if needed, but keeping fixed for now as per layout
+            context.drawTextWithShadow(client.textRenderer, "☠ Dead", x + (int) (24 * scale), y + (int) (5 * scale), 0xAA0000);
         }
     }
     
@@ -189,127 +217,204 @@ public class PartyHudRenderer implements HudRenderCallback {
         context.drawTextWithShadow(client.textRenderer, initial, textX, textY, 0xFFFFFFFF);
     }
     
+    // ─── Health Hearts ───────────────────────────────────────────────────
+
     private void renderHealthBar(DrawContext context, int x, int y, PartyMemberData member, float scale) {
         float maxHealth = member.maxHealth();
         float health = member.health();
         
         if (maxHealth <= 0) return;
-        
+
         int maxHearts = (int) Math.ceil(maxHealth / 2.0f);
-        
-        // Calculate which row contains current health (1-indexed)
-        int currentHeart = Math.max(1, (int) Math.ceil(health / 2.0f));
-        int currentRow = (currentHeart - 1) / 10 + 1;
-        int totalRows = (maxHearts - 1) / 10 + 1;
-        
-        // Hearts in complete rows above current
-        int heartsInFullRows = (currentRow - 1) * 10;
-        
-        // How many hearts to show in this row (up to 10, but not more than max)
-        int heartsInThisRow = Math.min(10, maxHearts - heartsInFullRows);
-        
-        // Calculate filled hearts in this row
         int totalFullHearts = (int) (health / 2.0f);
-        int fullHeartsInRow = Math.max(0, totalFullHearts - heartsInFullRows);
-        
-        // Check for half heart in this row
-        boolean hasHalfInRow = false;
-        if (health % 2.0f >= 1.0f) {
-            int halfHeartPosition = totalFullHearts + 1;
-            hasHalfInRow = halfHeartPosition > heartsInFullRows && halfHeartPosition <= heartsInFullRows + heartsInThisRow;
-        }
-        
-        // Check for damage or heal flash
+        boolean hasHalf = (health % 2.0f) >= 1.0f;
         boolean isFlashing = PartyClientData.isDamageFlashing(member.uuid()) || PartyClientData.isHealFlashing(member.uuid());
 
         int heartSize = (int) (9 * scale);
         int spacing = (int) (8 * scale);
 
-        // Draw only the hearts that exist in this row (no empty containers beyond max)
+        if (OVERFLOWING_BARS_LOADED) {
+            renderHealthBarStacked(context, x, y, maxHearts, totalFullHearts, hasHalf, isFlashing, heartSize, spacing, scale);
+        } else {
+            renderHealthBarAllRows(context, x, y, maxHearts, totalFullHearts, hasHalf, isFlashing, heartSize, spacing, scale);
+        }
+    }
+
+    /**
+     * Without Overflowing Bars: render all heart rows, just like vanilla does for
+     * the player's own health bar.
+     */
+    private void renderHealthBarAllRows(DrawContext context, int x, int y,
+                                        int maxHearts, int fullHearts, boolean hasHalf,
+                                        boolean isFlashing, int heartSize, int spacing, float scale) {
+        int totalRows = (int) Math.ceil(maxHearts / 10.0);
+        int vanillaSpacing = Math.max(10 - (totalRows - 2), 3);
+        int scaledRowSpacing = (int) (vanillaSpacing * scale);
+
+        for (int i = 0; i < maxHearts; i++) {
+            int row = i / 10;
+            int col = i % 10;
+            int heartX = x + col * spacing;
+            int heartY = y - row * scaledRowSpacing;
+
+            // Container
+            Identifier container = isFlashing ? HEART_CONTAINER_BLINKING : HEART_CONTAINER;
+            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, container, heartX, heartY, heartSize, heartSize);
+
+            // Fill
+            if (i < fullHearts) {
+                context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, HEART_FULL, heartX, heartY, heartSize, heartSize);
+            } else if (i == fullHearts && hasHalf) {
+                context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, HEART_HALF, heartX, heartY, heartSize, heartSize);
+            }
+        }
+    }
+
+    /**
+     * With Overflowing Bars: stack hearts into a single row with an Nx indicator,
+     * mirroring the Overflowing Bars mod behaviour for the player's own HUD.
+     */
+    private void renderHealthBarStacked(DrawContext context, int x, int y,
+                                        int maxHearts, int fullHearts, boolean hasHalf,
+                                        boolean isFlashing, int heartSize, int spacing, float scale) {
+        int totalRows = (int) Math.ceil(maxHearts / 10.0);
+
+        // Determine which row the current health falls on (1-indexed)
+        int currentRow;
+        if (fullHearts <= 0 && !hasHalf) {
+            currentRow = 1; // empty, show row 1
+        } else {
+            int topFilledIndex = hasHalf ? fullHearts : Math.max(0, fullHearts - 1);
+            currentRow = (topFilledIndex / 10) + 1;
+        }
+
+        int heartsInFullRowsBelow = (currentRow - 1) * 10;
+        int heartsInThisRow = Math.min(10, maxHearts - heartsInFullRowsBelow);
+        int filledInRow = Math.max(0, fullHearts - heartsInFullRowsBelow);
+        boolean halfInRow = hasHalf && (fullHearts >= heartsInFullRowsBelow) && (fullHearts < heartsInFullRowsBelow + heartsInThisRow);
+
         for (int i = 0; i < heartsInThisRow; i++) {
             int heartX = x + i * spacing;
 
-            // Draw container (use blinking texture when flashing)
-            Identifier containerTexture = isFlashing ? HEART_CONTAINER_BLINKING : HEART_CONTAINER;
-            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, containerTexture, heartX, y, heartSize, heartSize);
+            Identifier container = isFlashing ? HEART_CONTAINER_BLINKING : HEART_CONTAINER;
+            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, container, heartX, y, heartSize, heartSize);
 
-            // Draw filled or half heart
-            if (i < fullHeartsInRow) {
+            if (i < filledInRow) {
                 context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, HEART_FULL, heartX, y, heartSize, heartSize);
-            } else if (i == fullHeartsInRow && hasHalfInRow) {
+            } else if (i == filledInRow && halfInRow) {
                 context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, HEART_HALF, heartX, y, heartSize, heartSize);
             }
         }
 
-        // Draw row indicator (e.g., "2x") at the end if not first row
+        // Nx sprite indicator when on row 2+ - using the custom texture font
         if (currentRow > 1) {
-            String rowIndicator = (currentRow - 1) + "x";
-            int indicatorX = x + heartsInThisRow * spacing + 2;
-            context.drawTextWithShadow(MinecraftClient.getInstance().textRenderer,
-                rowIndicator, indicatorX, y, 0xFFAAAAAA);
+            int spriteX = x + heartsInThisRow * spacing;
+            int spriteY = y - (int) (2 * scale); // Adjusted down by 2 pixels for better alignment
+            Identifier spriteId = ShieldNumberSprites.getSpriteId(currentRow);
+            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, spriteId, spriteX, spriteY, (int) (16 * scale), (int) (16 * scale));
         }
     }
-    
+
+    // ─── Shield Hearts ───────────────────────────────────────────────────
+
     private void renderShieldBar(DrawContext context, int x, int y, PartyMemberData member, float scale) {
         float maxShield = member.maxEnergyShield();
         float shield = member.energyShield();
         
         if (maxShield <= 0) return;
-        
-        int maxHearts = (int) Math.ceil(maxShield / 2.0f);
-        
-        // Calculate which row contains current shield (1-indexed)
-        int currentHeart = Math.max(1, (int) Math.ceil(shield / 2.0f));
-        int currentRow = (currentHeart - 1) / 10 + 1;
-        int totalRows = (maxHearts - 1) / 10 + 1;
-        
-        // Hearts in complete rows above current
-        int heartsInFullRows = (currentRow - 1) * 10;
-        
-        // How many hearts to show in this row (up to 10, but not more than max)
-        int heartsInThisRow = Math.min(10, maxHearts - heartsInFullRows);
-        
-        // Calculate filled hearts in this row
-        int totalFullHearts = (int) (shield / 2.0f);
-        int fullHeartsInRow = Math.max(0, totalFullHearts - heartsInFullRows);
-        
-        // Check for half heart in this row
-        boolean hasHalfInRow = false;
-        if (shield % 2.0f >= 1.0f) {
-            int halfHeartPosition = totalFullHearts + 1;
-            hasHalfInRow = halfHeartPosition > heartsInFullRows && halfHeartPosition <= heartsInFullRows + heartsInThisRow;
-        }
 
-        // Check for damage, heal, or shield flash
-        boolean isFlashing = PartyClientData.isDamageFlashing(member.uuid()) || PartyClientData.isHealFlashing(member.uuid()) || PartyClientData.isShieldFlashing(member.uuid());
+        int maxHearts = (int) Math.ceil(maxShield / 2.0f);
+        int totalFullHearts = (int) (shield / 2.0f);
+        boolean hasHalf = (shield % 2.0f) >= 1.0f;
+        boolean isFlashing = PartyClientData.isDamageFlashing(member.uuid())
+                || PartyClientData.isHealFlashing(member.uuid())
+                || PartyClientData.isShieldFlashing(member.uuid());
 
         int heartSize = (int) (9 * scale);
         int spacing = (int) (8 * scale);
 
-        // Draw only the hearts that exist in this row (no empty containers beyond max)
+        if (OVERFLOWING_BARS_LOADED) {
+            renderShieldBarStacked(context, x, y, maxHearts, totalFullHearts, hasHalf, isFlashing, heartSize, spacing, scale);
+        } else {
+            renderShieldBarAllRows(context, x, y, maxHearts, totalFullHearts, hasHalf, isFlashing, heartSize, spacing, scale);
+        }
+    }
+
+    /**
+     * Without Overflowing Bars: render all shield rows normally.
+     */
+    private void renderShieldBarAllRows(DrawContext context, int x, int y,
+                                        int maxHearts, int fullHearts, boolean hasHalf,
+                                        boolean isFlashing, int heartSize, int spacing, float scale) {
+        int totalRows = (int) Math.ceil(maxHearts / 10.0);
+        int vanillaSpacing = Math.max(10 - (totalRows - 2), 3);
+        int scaledRowSpacing = (int) (vanillaSpacing * scale);
+
+        for (int i = 0; i < maxHearts; i++) {
+            int row = i / 10;
+            int col = i % 10;
+            int heartX = x + col * spacing;
+            int heartY = y - row * scaledRowSpacing;
+
+            // Container
+            Identifier container = isFlashing ? HEART_CONTAINER_BLINKING : SHIELD_CONTAINER;
+            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, container, heartX, heartY, heartSize, heartSize);
+
+            // Fill
+            if (i < fullHearts) {
+                Identifier tex = isFlashing ? SHIELD_FULL_BLINKING : SHIELD_FULL;
+                context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, tex, heartX, heartY, heartSize, heartSize);
+            } else if (i == fullHearts && hasHalf) {
+                Identifier tex = isFlashing ? SHIELD_HALF_BLINKING : SHIELD_HALF;
+                context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, tex, heartX, heartY, heartSize, heartSize);
+            }
+        }
+    }
+
+    /**
+     * With Overflowing Bars: stack shields into a single row with an Nx sprite,
+     * mirroring the player's own energy shield HUD (EnergyShieldHudRenderer).
+     */
+    private void renderShieldBarStacked(DrawContext context, int x, int y,
+                                        int maxHearts, int fullHearts, boolean hasHalf,
+                                        boolean isFlashing, int heartSize, int spacing, float scale) {
+        int totalRows = (int) Math.ceil(maxHearts / 10.0);
+
+        int currentRow;
+        if (fullHearts <= 0 && !hasHalf) {
+            currentRow = 1;
+        } else {
+            int topFilledIndex = hasHalf ? fullHearts : Math.max(0, fullHearts - 1);
+            currentRow = (topFilledIndex / 10) + 1;
+        }
+
+        int heartsInFullRowsBelow = (currentRow - 1) * 10;
+        int heartsInThisRow = Math.min(10, maxHearts - heartsInFullRowsBelow);
+        int filledInRow = Math.max(0, fullHearts - heartsInFullRowsBelow);
+        boolean halfInRow = hasHalf && (fullHearts >= heartsInFullRowsBelow) && (fullHearts < heartsInFullRowsBelow + heartsInThisRow);
+
         for (int i = 0; i < heartsInThisRow; i++) {
             int heartX = x + i * spacing;
 
-            // Draw container (use blinking texture when flashing)
-            Identifier containerTexture = isFlashing ? HEART_CONTAINER_BLINKING : SHIELD_CONTAINER;
-            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, containerTexture, heartX, y, heartSize, heartSize);
+            // Container
+            Identifier container = isFlashing ? HEART_CONTAINER_BLINKING : SHIELD_CONTAINER;
+            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, container, heartX, y, heartSize, heartSize);
 
-            // Draw filled or half heart (use blinking textures when flashing)
-            if (i < fullHeartsInRow) {
-                Identifier shieldTexture = isFlashing ? SHIELD_FULL_BLINKING : SHIELD_FULL;
-                context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, shieldTexture, heartX, y, heartSize, heartSize);
-            } else if (i == fullHeartsInRow && hasHalfInRow) {
-                Identifier shieldTexture = isFlashing ? SHIELD_HALF_BLINKING : SHIELD_HALF;
-                context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, shieldTexture, heartX, y, heartSize, heartSize);
+            if (i < filledInRow) {
+                Identifier tex = isFlashing ? SHIELD_FULL_BLINKING : SHIELD_FULL;
+                context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, tex, heartX, y, heartSize, heartSize);
+            } else if (i == filledInRow && halfInRow) {
+                Identifier tex = isFlashing ? SHIELD_HALF_BLINKING : SHIELD_HALF;
+                context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, tex, heartX, y, heartSize, heartSize);
             }
         }
 
-        // Draw row indicator (e.g., "2x") at the end if not first row
-        if (currentRow > 1) {
-            String rowIndicator = (currentRow - 1) + "x";
-            int indicatorX = x + heartsInThisRow * spacing + 2;
-            context.drawTextWithShadow(MinecraftClient.getInstance().textRenderer,
-                rowIndicator, indicatorX, y, 0xFFAAAAAA);
+        // Nx sprite indicator when on row 2+ - matching health style with texture font
+        if (currentRow > 1 && maxHearts > 10) {
+            int spriteX = x + heartsInThisRow * spacing;
+            int spriteY = y - (int) (2 * scale); // Adjusted down by 2 pixels for better alignment
+            Identifier spriteId = ShieldNumberSprites.getSpriteId(currentRow);
+            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, spriteId, spriteX, spriteY, (int) (16 * scale), (int) (16 * scale));
         }
     }
     
