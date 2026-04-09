@@ -30,19 +30,23 @@ public class PartyHealthSyncHandler {
     private static class HealthData {
         float health;
         float maxHealth;
+        float absorption;
         float shield;
         float maxShield;
         
-        HealthData(float health, float maxHealth, float shield, float maxShield) {
+        HealthData(float health, float maxHealth, float absorption, float shield, float maxShield) {
             this.health = health;
             this.maxHealth = maxHealth;
+            this.absorption = absorption;
             this.shield = shield;
             this.maxShield = maxShield;
         }
         
-        boolean hasMeaningfulChange(float health, float shield) {
-            // Sync on any change >= 0.01 health (catches final regen ticks)
-            return Math.abs(this.health - health) >= 0.01f || Math.abs(this.shield - shield) >= 0.01f;
+        boolean hasMeaningfulChange(float health, float maxHealth, float absorption, float shield, float maxShield) {
+            // Remove the threshold entirely. Sending a few floats every sync interval (200ms) 
+            // is worth it to ensure the HUD is always 100% accurate and never 'stuck'.
+            return this.health != health || this.maxHealth != maxHealth || this.absorption != absorption ||
+                   this.shield != shield || this.maxShield != maxShield;
         }
     }
     
@@ -92,13 +96,14 @@ public class PartyHealthSyncHandler {
         
         float health = player.getHealth();
         float maxHealth = player.getMaxHealth();
+        float absorption = player.getAbsorptionAmount();
         float shield = 0;
         if (player instanceof com.cranks.dungeons.EnergyShieldProvider provider) {
             shield = provider.cranksdungeons$getCurrentEnergyShield();
         }
         float maxShield = (float) player.getAttributeValue(com.cranks.dungeons.registry.ModAttributes.ENERGY_SHIELD);
         
-        lastHealthData.put(playerUuid, new HealthData(health, maxHealth, shield, maxShield));
+        lastHealthData.put(playerUuid, new HealthData(health, maxHealth, absorption, shield, maxShield));
         ModNetworking.sendPartyHealthUpdate(server, party, playerUuid);
     }
     
@@ -119,6 +124,7 @@ public class PartyHealthSyncHandler {
             
             float health = player.getHealth();
             float maxHealth = player.getMaxHealth();
+            float absorption = player.getAbsorptionAmount();
             float shield = 0;
             if (player instanceof com.cranks.dungeons.EnergyShieldProvider provider) {
                 shield = provider.cranksdungeons$getCurrentEnergyShield();
@@ -129,8 +135,8 @@ public class PartyHealthSyncHandler {
             
             // Sync if: first time, damage event, during fast sync period, or meaningful change
             // During fast sync: always sync regardless of threshold to catch every tick
-            if (lastData == null || needsImmediateSync || inFastSync || lastData.hasMeaningfulChange(health, shield)) {
-                lastHealthData.put(playerUuid, new HealthData(health, maxHealth, shield, maxShield));
+            if (lastData == null || needsImmediateSync || inFastSync || lastData.hasMeaningfulChange(health, maxHealth, absorption, shield, maxShield)) {
+                lastHealthData.put(playerUuid, new HealthData(health, maxHealth, absorption, shield, maxShield));
                 ModNetworking.sendPartyHealthUpdate(server, party, playerUuid);
             }
         }

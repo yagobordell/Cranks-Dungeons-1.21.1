@@ -55,9 +55,12 @@ public class EnergyShieldHudRenderer implements HudRenderCallback {
         int healthBarY = screenHeight - 39;
         
         // Calculate shield info
+        // Apply a small epsilon to avoid lingering half-hearts when effectively full.
+        float effectiveShield = (currentShield >= maxShield - 0.1f) ? (float) maxShield : currentShield + 0.001f;
+
         int totalShieldHearts = (int) Math.ceil(maxShield / 2.0);
-        int fullShieldHearts = (int) (currentShield / 2.0);
-        boolean hasHalfShield = (currentShield % 2.0f) >= 1.0f;
+        int fullShieldHearts = (int) (effectiveShield / 2.0);
+        boolean hasHalfShield = (effectiveShield % 2.0f) >= 1.0f;
         
         // Check for shield damage for blinking
         long currentTime = System.currentTimeMillis();
@@ -90,77 +93,59 @@ public class EnergyShieldHudRenderer implements HudRenderCallback {
         int armorBarY = healthBarY - 10 - ((healthRowsToAccountFor - 1) * vanillaSpacing);
         
         if (OVERFLOWING_BARS_LOADED) {
-            // With Overflowing Bars: Stack shields - show only last row with Nx count
             drawStackedShields(drawContext, client, healthBarX, armorBarY, 
-                             totalShieldHearts, fullShieldHearts, hasHalfShield, shieldBlinking, shieldRows);
+                             totalShieldHearts, (float)maxShield, effectiveShield, shieldBlinking, shieldRows);
         } else {
-            // Without Overflowing Bars: Show all rows normally, no Nx count
             drawAllShieldRows(drawContext, client, healthBarX, armorBarY, 
-                            totalShieldHearts, fullShieldHearts, hasHalfShield, shieldBlinking);
+                            totalShieldHearts, effectiveShield, shieldBlinking);
         }
         
         lastRenderedShield = currentShield;
     }
     
     private void drawStackedShields(DrawContext drawContext, MinecraftClient client, int healthBarX, int armorBarY, 
-                                   int totalShieldHearts, int fullShieldHearts, boolean hasHalfShield, 
+                                   int totalShieldHearts, float maxShield, float currentShield, 
                                    boolean shieldBlinking, int shieldRows) {
-        // Calculate which row we're currently on based on current shield (not max)
-        int currentRow = (fullShieldHearts / 10) + 1;
-        if (currentRow < 1) currentRow = 1;
+        // Calculate which row we're currently on based on CURRENT shield
+        int highestIconIndex = (int) Math.ceil(currentShield / 2.0f) - 1;
+        int currentRow = Math.max(1, (highestIconIndex / 10) + 1);
         if (currentRow > shieldRows) currentRow = shieldRows;
         
-        // Calculate filled hearts in the current row
-        int filledInCurrentRow = fullShieldHearts % 10;
-        if (filledInCurrentRow == 0 && fullShieldHearts > 0) {
-            filledInCurrentRow = 10; // Full row
-        }
-        
-        // Position at armor bar height (replacing armor bar)
         int heartY = armorBarY;
-        
-        // Draw hearts for the current row (only up to totalShieldHearts or 10, whichever is less)
-        int heartsToShow = Math.min(totalShieldHearts, 10);
+        int heartsInFullRowsBelow = (currentRow - 1) * 10;
+        int heartsToShow = Math.min(10, totalShieldHearts - heartsInFullRowsBelow);
+
         for (int i = 0; i < heartsToShow; i++) {
-            int col = i;
-            int heartX = healthBarX + col * 8;
+            int iconIndex = heartsInFullRowsBelow + i;
+            int heartX = healthBarX + i * 8;
             
-            // Skip if off-screen
             if (heartY < 0) continue;
             
-            // Draw container
             Identifier containerTexture = shieldBlinking ? 
-                Identifier.of("hud/heart/container_blinking") : 
-                Identifier.of("hud/heart/container");
+                Identifier.of("minecraft", "hud/heart/container_blinking") : 
+                Identifier.of("minecraft", "hud/heart/container");
             drawContext.drawGuiTexture(RenderPipelines.GUI_TEXTURED, containerTexture, heartX, heartY, 9, 9);
             
-            // Draw filled heart if within filled count
-            boolean isFilled = i < filledInCurrentRow;
-            boolean isHalf = (i == filledInCurrentRow) && hasHalfShield;
-            boolean isEmpty = i >= filledInCurrentRow && !isHalf;
-            
+            float baseVisibility = iconIndex * 2.0f;
             Identifier texture = null;
-            // Use special "current" textures when you're on row 2+ (stacking effect)
-            // Row 1 (0-10 shield): use normal textures, no empty heart textures
-            // Row 2+ (11+ shield): use current textures for filled, normal for empty (but only if total > 10)
-            if (currentRow > 1 && totalShieldHearts > 10) {
-                // On row 2 or higher with multiple rows: show filled textures for empty slots (stacking effect)
-                if (isFilled) {
+
+            // Priority: is it filled?
+            if (currentShield >= baseVisibility + 1.01f) {
+                // If on row 2+ stacking, use current textures, otherwise blinking/normal
+                if (currentRow > 1 && totalShieldHearts > 10) {
                     texture = shieldBlinking ? SHIELD_FULL_CURRENT_BLINKING : SHIELD_FULL_CURRENT;
-                } else if (isHalf) {
-                    texture = shieldBlinking ? SHIELD_HALF_CURRENT_BLINKING : SHIELD_HALF_CURRENT;
-                } else if (isEmpty) {
-                    // Empty hearts show normal shield texture (simulates row underneath)
+                } else {
                     texture = shieldBlinking ? SHIELD_FULL_BLINKING : SHIELD_FULL;
                 }
-            } else {
-                // On row 1 OR less than 10 total shields: use normal textures, no empty heart textures
-                if (isFilled) {
-                    texture = shieldBlinking ? SHIELD_FULL_BLINKING : SHIELD_FULL;
-                } else if (isHalf) {
+            } else if (currentShield >= baseVisibility + 0.01f) {
+                if (currentRow > 1 && totalShieldHearts > 10) {
+                    texture = shieldBlinking ? SHIELD_HALF_CURRENT_BLINKING : SHIELD_HALF_CURRENT;
+                } else {
                     texture = shieldBlinking ? SHIELD_HALF_BLINKING : SHIELD_HALF;
                 }
-                // Note: Empty hearts in single row don't need a texture - the container is enough
+            } else if (currentRow > 1 && totalShieldHearts > 10 && iconIndex < totalShieldHearts) {
+                // Empty slots on row 2+ show normal shield texture (stacking effect)
+                texture = shieldBlinking ? SHIELD_FULL_BLINKING : SHIELD_FULL;
             }
             
             if (texture != null) {
@@ -168,18 +153,13 @@ public class EnergyShieldHudRenderer implements HudRenderCallback {
             }
         }
         
-        // Draw row count (Nx) - only show when on row 2 or higher AND we have more than 10 total shields
         if (currentRow > 1 && totalShieldHearts > 10) {
             drawSpriteRowCount(drawContext, currentRow, healthBarX - 13, heartY - 2);
         }
     }
     
     private void drawSpriteRowCount(DrawContext context, int currentRow, int x, int y) {
-        // Use individual sprite textures: 1x.png, 2x.png, etc.
         Identifier spriteId = ShieldNumberSprites.getSpriteId(currentRow);
-        
-        // Draw the sprite (assuming 16x16 or similar size)
-        // Position adjusted: moved 1 pixel up and 1 pixel left from original
         context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, spriteId, x, y, 16, 16);
     }
 
@@ -222,37 +202,29 @@ public class EnergyShieldHudRenderer implements HudRenderCallback {
     }
     
     private void drawAllShieldRows(DrawContext drawContext, MinecraftClient client, int healthBarX, int armorBarY, 
-                                  int totalShieldHearts, int fullShieldHearts, boolean hasHalfShield, 
+                                  int totalShieldHearts, float currentShield, 
                                   boolean shieldBlinking) {
-        // Calculate shield rows and use vanilla spacing
         int shieldRows = (int) Math.ceil(totalShieldHearts / 10.0);
         int vanillaSpacing = Math.max(10 - (shieldRows - 2), 3);
         
-        // Show all rows normally at armor bar height (replacing armor bar)
         for (int i = 0; i < totalShieldHearts; i++) {
             int row = i / 10;
             int col = i % 10;
             int heartX = healthBarX + col * 8;
-            // Position at armor bar height, with additional rows using vanilla spacing
             int heartY = armorBarY - row * vanillaSpacing;
             
-            // Skip if off-screen
             if (heartY < 0) continue;
             
-            // Draw container
             Identifier containerTexture = shieldBlinking ? 
-                Identifier.of("hud/heart/container_blinking") : 
-                Identifier.of("hud/heart/container");
+                Identifier.of("minecraft", "hud/heart/container_blinking") : 
+                Identifier.of("minecraft", "hud/heart/container");
             drawContext.drawGuiTexture(RenderPipelines.GUI_TEXTURED, containerTexture, heartX, heartY, 9, 9);
             
-            // Draw filled heart
-            boolean isFilled = i < fullShieldHearts;
-            boolean isHalf = (i == fullShieldHearts) && hasHalfShield;
-            
+            float baseVisibility = i * 2.0f;
             Identifier texture = null;
-            if (isFilled) {
+            if (currentShield >= baseVisibility + 1.01f) {
                 texture = shieldBlinking ? SHIELD_FULL_BLINKING : SHIELD_FULL;
-            } else if (isHalf) {
+            } else if (currentShield >= baseVisibility + 0.01f) {
                 texture = shieldBlinking ? SHIELD_HALF_BLINKING : SHIELD_HALF;
             }
             
@@ -260,7 +232,6 @@ public class EnergyShieldHudRenderer implements HudRenderCallback {
                 drawContext.drawGuiTexture(RenderPipelines.GUI_TEXTURED, texture, heartX, heartY, 9, 9);
             }
         }
-        // No row count drawn when Overflowing Bars is not loaded
     }
     
     public static void register() {

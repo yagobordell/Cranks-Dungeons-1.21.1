@@ -12,6 +12,7 @@ public record PartyHealthPacket(
     UUID playerUuid,
     float health,
     float maxHealth,
+    float absorption,
     float energyShield,
     float maxEnergyShield
 ) implements CustomPayload {
@@ -26,6 +27,7 @@ public record PartyHealthPacket(
         buf.writeUuid(playerUuid);
         buf.writeFloat(health);
         buf.writeFloat(maxHealth);
+        buf.writeFloat(absorption);
         buf.writeFloat(energyShield);
         buf.writeFloat(maxEnergyShield);
     }
@@ -34,9 +36,10 @@ public record PartyHealthPacket(
         UUID uuid = buf.readUuid();
         float health = buf.readFloat();
         float maxHealth = buf.readFloat();
+        float absorption = buf.readFloat();
         float energyShield = buf.readFloat();
         float maxEnergyShield = buf.readFloat();
-        return new PartyHealthPacket(uuid, health, maxHealth, energyShield, maxEnergyShield);
+        return new PartyHealthPacket(uuid, health, maxHealth, absorption, energyShield, maxEnergyShield);
     }
     
     @Override

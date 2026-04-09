@@ -16,15 +16,17 @@ import java.util.List;
 
 public class PartyHudRenderer implements HudRenderCallback {
 
-    private static final Identifier HEART_FULL = Identifier.of("hud/heart/full");
-    private static final Identifier HEART_HALF = Identifier.of("hud/heart/half");
-    private static final Identifier HEART_CONTAINER = Identifier.of("hud/heart/container");
-    private static final Identifier HEART_CONTAINER_BLINKING = Identifier.of("hud/heart/container_blinking");
+    private static final Identifier HEART_FULL = Identifier.of("minecraft", "hud/heart/full");
+    private static final Identifier HEART_HALF = Identifier.of("minecraft", "hud/heart/half");
+    private static final Identifier HEART_CONTAINER = Identifier.of("minecraft", "hud/heart/container");
+    private static final Identifier HEART_CONTAINER_BLINKING = Identifier.of("minecraft", "hud/heart/container_blinking");
+    private static final Identifier HEART_ABSORPTION_FULL = Identifier.of("minecraft", "hud/heart/absorbing_full");
+    private static final Identifier HEART_ABSORPTION_HALF = Identifier.of("minecraft", "hud/heart/absorbing_half");
     private static final Identifier SHIELD_FULL = Identifier.of(CranksDungeons.MOD_ID, "hud/heart/shield/full");
     private static final Identifier SHIELD_HALF = Identifier.of(CranksDungeons.MOD_ID, "hud/heart/shield/half");
     private static final Identifier SHIELD_FULL_BLINKING = Identifier.of(CranksDungeons.MOD_ID, "hud/heart/shield/full_blinking");
     private static final Identifier SHIELD_HALF_BLINKING = Identifier.of(CranksDungeons.MOD_ID, "hud/heart/shield/half_blinking");
-    private static final Identifier SHIELD_CONTAINER = Identifier.of("hud/heart/container");
+    private static final Identifier SHIELD_CONTAINER = Identifier.of("minecraft", "hud/heart/container");
 
     private static final boolean OVERFLOWING_BARS_LOADED = FabricLoader.getInstance().isModLoaded("overflowingbars");
 
@@ -97,50 +99,64 @@ public class PartyHudRenderer implements HudRenderCallback {
         // [Icon (16x16)] [Shield]
         //                 [Health]
 
-        int maxHealthHearts = (int) Math.ceil(member.maxHealth() / 2.0f);
-        int healthRows = OVERFLOWING_BARS_LOADED ? 1 : Math.max(1, (int) Math.ceil(maxHealthHearts / 10.0));
+        float health, maxHealth, absorption, shield, maxShield;
+        if (isSelf) {
+            health = client.player.getHealth();
+            maxHealth = client.player.getMaxHealth();
+            absorption = client.player.getAbsorptionAmount();
+            if (client.player instanceof com.cranks.dungeons.EnergyShieldProvider provider) {
+                shield = provider.cranksdungeons$getCurrentEnergyShield();
+            } else {
+                shield = member.energyShield();
+            }
+            maxShield = (float) client.player.getAttributeValue(com.cranks.dungeons.registry.ModAttributes.ENERGY_SHIELD);
+        } else {
+            health = member.health();
+            maxHealth = member.maxHealth();
+            absorption = member.absorption();
+            shield = member.energyShield();
+            maxShield = member.maxEnergyShield();
+        }
+
+        int totalHealthHearts = (int) Math.ceil((maxHealth + absorption) / 2.0f);
+        int healthRows = OVERFLOWING_BARS_LOADED ? 1 : Math.max(1, (int) Math.ceil(totalHealthHearts / 10.0));
         int healthVanillaSpacing = Math.max(10 - (healthRows - 2), 3);
         int healthRowHeight = (int) (healthVanillaSpacing * scale);
-
-        // Height of the health bar from its base (y) to its top row.
         int healthTotalHeight = (healthRows - 1) * healthRowHeight;
 
-        // The base Y for the health bar. We'll place it slightly below the starting 'y' 
-        // to leave room for everything else.
         int healthBaseY = y + (int) (12 * scale);
-        
-        // The shield should be above the top-most health row.
-        // Vanilla standard gap between bars is 10 pixels.
         int shieldBaseY = healthBaseY - healthTotalHeight - (int) (10 * scale);
 
-        // Name should be above the highest bar (either name bar or shield bar).
-        // Max shield rows calculation for name placement
-        int maxShieldHearts = (int) Math.ceil(member.maxEnergyShield() / 2.0f);
+        int maxShieldHearts = (int) Math.ceil(maxShield / 2.0f);
         int shieldRows = OVERFLOWING_BARS_LOADED ? 1 : Math.max(1, (int) Math.ceil(maxShieldHearts / 10.0));
         int shieldVanillaSpacing = Math.max(10 - (shieldRows - 2), 3);
         int shieldRowHeight = (int) (shieldVanillaSpacing * scale);
-        int shieldTotalHeight = (shieldRows > 0 && member.maxEnergyShield() > 0) ? (shieldRows - 1) * shieldRowHeight : 0;
+        int shieldTotalHeight = (shieldRows > 0 && maxShield > 0) ? (shieldRows - 1) * shieldRowHeight : 0;
         
-        int highestBarY = (member.maxEnergyShield() > 0) ? (shieldBaseY - shieldTotalHeight) : (healthBaseY - healthTotalHeight);
-        int lowestBarY = healthBaseY + (int) (9 * scale);
-        int barsMidpointY = (highestBarY + lowestBarY) / 2;
-        int iconY = barsMidpointY - (int) (8 * scale); // Center 16x16 icon on midpoint
+        int highestBarY = (maxShield > 0) ? (shieldBaseY - shieldTotalHeight) : (healthBaseY - healthTotalHeight);
 
-        int nameY = highestBarY - (int) (10 * scale);
-
-        // Draw name above everything
-        context.drawTextWithShadow(client.textRenderer, displayName, x + (int) (2 * scale), nameY, nameColor);
-
-        // Icon on left side - dynamically centered vertically relative to bars
-        renderPlayerHead(context, client, member, x + (int) (2 * scale), iconY, scale);
-
+        int iconY, nameY;
         if (member.isAlive()) {
-            int barsX = x + (int) (24 * scale); // Shift slightly right to give icon more breathing room
-            renderShieldBar(context, barsX, shieldBaseY, member, scale);
-            renderHealthBar(context, barsX, healthBaseY, member, scale);
+            int lowestBarY = healthBaseY + (int) (9 * scale);
+            int barsMidpointY = (highestBarY + lowestBarY) / 2;
+            iconY = barsMidpointY - (int) (8 * scale);
+
+            int absoluteTopY = Math.min(highestBarY, iconY);
+            nameY = absoluteTopY - (int) (10 * scale);
+            
+            context.drawTextWithShadow(client.textRenderer, displayName, x + (int) (2 * scale), nameY, nameColor);
+            renderPlayerHead(context, client, member, x + (int) (2 * scale), iconY, scale);
+
+            int barsX = x + (int) (24 * scale);
+            renderShieldBar(context, barsX, shieldBaseY, shield, maxShield, member.uuid(), scale);
+            renderHealthBar(context, barsX, healthBaseY, health, maxHealth, absorption, member.uuid(), scale);
         } else {
-            // Center the "Dead" text too if needed, but keeping fixed for now as per layout
-            context.drawTextWithShadow(client.textRenderer, "☠ Dead", x + (int) (24 * scale), y + (int) (5 * scale), 0xAA0000);
+            iconY = y + (int) (10 * scale);
+            nameY = iconY - (int) (10 * scale);
+            
+            context.drawTextWithShadow(client.textRenderer, displayName, x + (int) (2 * scale), nameY, nameColor);
+            renderPlayerHead(context, client, member, x + (int) (2 * scale), iconY, scale);
+            context.drawTextWithShadow(client.textRenderer, "☠ Dead", x + (int) (24 * scale), iconY + (int) (4 * scale), 0xAA0000);
         }
     }
     
@@ -219,24 +235,21 @@ public class PartyHudRenderer implements HudRenderCallback {
     
     // ─── Health Hearts ───────────────────────────────────────────────────
 
-    private void renderHealthBar(DrawContext context, int x, int y, PartyMemberData member, float scale) {
-        float maxHealth = member.maxHealth();
-        float health = member.health();
-        
+    private void renderHealthBar(DrawContext context, int x, int y, float health, float maxHealth, float absorption, java.util.UUID uuid, float scale) {
         if (maxHealth <= 0) return;
 
-        int maxHearts = (int) Math.ceil(maxHealth / 2.0f);
-        int totalFullHearts = (int) (health / 2.0f);
-        boolean hasHalf = (health % 2.0f) >= 1.0f;
-        boolean isFlashing = PartyClientData.isDamageFlashing(member.uuid()) || PartyClientData.isHealFlashing(member.uuid());
+        // Apply a small epsilon to avoid lingering half-hearts when effectively full.
+        float effectiveHealth = (health >= maxHealth - 0.1f) ? maxHealth : health + 0.001f;
+        int totalHearts = (int) Math.ceil((maxHealth + absorption) / 2.0f);
+        boolean isFlashing = PartyClientData.isDamageFlashing(uuid) || PartyClientData.isHealFlashing(uuid);
 
         int heartSize = (int) (9 * scale);
         int spacing = (int) (8 * scale);
 
         if (OVERFLOWING_BARS_LOADED) {
-            renderHealthBarStacked(context, x, y, maxHearts, totalFullHearts, hasHalf, isFlashing, heartSize, spacing, scale);
+            renderHealthBarStacked(context, x, y, totalHearts, effectiveHealth, maxHealth, absorption, isFlashing, heartSize, spacing, scale);
         } else {
-            renderHealthBarAllRows(context, x, y, maxHearts, totalFullHearts, hasHalf, isFlashing, heartSize, spacing, scale);
+            renderHealthBarAllRows(context, x, y, totalHearts, effectiveHealth, maxHealth, absorption, isFlashing, heartSize, spacing, scale);
         }
     }
 
@@ -245,13 +258,13 @@ public class PartyHudRenderer implements HudRenderCallback {
      * the player's own health bar.
      */
     private void renderHealthBarAllRows(DrawContext context, int x, int y,
-                                        int maxHearts, int fullHearts, boolean hasHalf,
+                                        int totalHearts, float health, float maxHealth, float absorption,
                                         boolean isFlashing, int heartSize, int spacing, float scale) {
-        int totalRows = (int) Math.ceil(maxHearts / 10.0);
+        int totalRows = (int) Math.ceil(totalHearts / 10.0);
         int vanillaSpacing = Math.max(10 - (totalRows - 2), 3);
         int scaledRowSpacing = (int) (vanillaSpacing * scale);
 
-        for (int i = 0; i < maxHearts; i++) {
+        for (int i = 0; i < totalHearts; i++) {
             int row = i / 10;
             int col = i % 10;
             int heartX = x + col * spacing;
@@ -261,11 +274,23 @@ public class PartyHudRenderer implements HudRenderCallback {
             Identifier container = isFlashing ? HEART_CONTAINER_BLINKING : HEART_CONTAINER;
             context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, container, heartX, heartY, heartSize, heartSize);
 
-            // Fill
-            if (i < fullHearts) {
+            // Logic: Heart i represents range [i*2, i*2 + 2]
+            // Half heart: health >= (i*2) + 0.01
+            // Full heart: health >= (i*2) + 1.01
+            float baseVisibility = i * 2.0f;
+
+            if (health >= baseVisibility + 1.01f) {
                 context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, HEART_FULL, heartX, heartY, heartSize, heartSize);
-            } else if (i == fullHearts && hasHalf) {
+            } else if (health >= baseVisibility + 0.01f) {
                 context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, HEART_HALF, heartX, heartY, heartSize, heartSize);
+            } else if (baseVisibility >= maxHealth) {
+                // Absorption zone
+                float absorptionVisibility = baseVisibility - maxHealth;
+                if (absorption >= absorptionVisibility + 1.01f) {
+                    context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, HEART_ABSORPTION_FULL, heartX, heartY, heartSize, heartSize);
+                } else if (absorption >= absorptionVisibility + 0.01f) {
+                    context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, HEART_ABSORPTION_HALF, heartX, heartY, heartSize, heartSize);
+                }
             }
         }
     }
@@ -275,41 +300,44 @@ public class PartyHudRenderer implements HudRenderCallback {
      * mirroring the Overflowing Bars mod behaviour for the player's own HUD.
      */
     private void renderHealthBarStacked(DrawContext context, int x, int y,
-                                        int maxHearts, int fullHearts, boolean hasHalf,
+                                        int totalHearts, float health, float maxHealth, float absorption,
                                         boolean isFlashing, int heartSize, int spacing, float scale) {
-        int totalRows = (int) Math.ceil(maxHearts / 10.0);
-
-        // Determine which row the current health falls on (1-indexed)
-        int currentRow;
-        if (fullHearts <= 0 && !hasHalf) {
-            currentRow = 1; // empty, show row 1
-        } else {
-            int topFilledIndex = hasHalf ? fullHearts : Math.max(0, fullHearts - 1);
-            currentRow = (topFilledIndex / 10) + 1;
-        }
+        // Determine which row the current 'highest' icon falls on (1-indexed)
+        float totalEffective = health + absorption;
+        int highestIconIndex = (int) Math.ceil(totalEffective / 2.0f) - 1;
+        int currentRow = Math.max(1, (highestIconIndex / 10) + 1);
 
         int heartsInFullRowsBelow = (currentRow - 1) * 10;
-        int heartsInThisRow = Math.min(10, maxHearts - heartsInFullRowsBelow);
-        int filledInRow = Math.max(0, fullHearts - heartsInFullRowsBelow);
-        boolean halfInRow = hasHalf && (fullHearts >= heartsInFullRowsBelow) && (fullHearts < heartsInFullRowsBelow + heartsInThisRow);
+        int heartsInThisRow = Math.min(10, totalHearts - heartsInFullRowsBelow);
 
         for (int i = 0; i < heartsInThisRow; i++) {
+            int iconIndex = heartsInFullRowsBelow + i;
             int heartX = x + i * spacing;
 
             Identifier container = isFlashing ? HEART_CONTAINER_BLINKING : HEART_CONTAINER;
             context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, container, heartX, y, heartSize, heartSize);
 
-            if (i < filledInRow) {
+            float baseVisibility = iconIndex * 2.0f;
+
+            if (health >= baseVisibility + 1.01f) {
                 context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, HEART_FULL, heartX, y, heartSize, heartSize);
-            } else if (i == filledInRow && halfInRow) {
+            } else if (health >= baseVisibility + 0.01f) {
                 context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, HEART_HALF, heartX, y, heartSize, heartSize);
+            } else if (baseVisibility >= maxHealth) {
+                // Absorption zone
+                float absorptionVisibility = baseVisibility - maxHealth;
+                if (absorption >= absorptionVisibility + 1.01f) {
+                    context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, HEART_ABSORPTION_FULL, heartX, y, heartSize, heartSize);
+                } else if (absorption >= absorptionVisibility + 0.01f) {
+                    context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, HEART_ABSORPTION_HALF, heartX, y, heartSize, heartSize);
+                }
             }
         }
 
-        // Nx sprite indicator when on row 2+ - using the custom texture font
+        // Nx sprite indicator when on row 2+
         if (currentRow > 1) {
             int spriteX = x + heartsInThisRow * spacing;
-            int spriteY = y - (int) (2 * scale); // Adjusted down by 2 pixels for better alignment
+            int spriteY = y - (int) (2 * scale);
             Identifier spriteId = ShieldNumberSprites.getSpriteId(currentRow);
             context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, spriteId, spriteX, spriteY, (int) (16 * scale), (int) (16 * scale));
         }
@@ -317,40 +345,35 @@ public class PartyHudRenderer implements HudRenderCallback {
 
     // ─── Shield Hearts ───────────────────────────────────────────────────
 
-    private void renderShieldBar(DrawContext context, int x, int y, PartyMemberData member, float scale) {
-        float maxShield = member.maxEnergyShield();
-        float shield = member.energyShield();
-        
+    private void renderShieldBar(DrawContext context, int x, int y, float shield, float maxShield, java.util.UUID uuid, float scale) {
         if (maxShield <= 0) return;
 
-        int maxHearts = (int) Math.ceil(maxShield / 2.0f);
-        int totalFullHearts = (int) (shield / 2.0f);
-        boolean hasHalf = (shield % 2.0f) >= 1.0f;
-        boolean isFlashing = PartyClientData.isDamageFlashing(member.uuid())
-                || PartyClientData.isHealFlashing(member.uuid())
-                || PartyClientData.isShieldFlashing(member.uuid());
+        // Apply a small epsilon to avoid lingering half-hearts when effectively full.
+        float effectiveShield = (shield >= maxShield - 0.1f) ? maxShield : shield + 0.001f;
+
+        int totalHearts = (int) Math.ceil(maxShield / 2.0f);
+        boolean isFlashing = PartyClientData.isDamageFlashing(uuid)
+                || PartyClientData.isHealFlashing(uuid)
+                || PartyClientData.isShieldFlashing(uuid);
 
         int heartSize = (int) (9 * scale);
         int spacing = (int) (8 * scale);
 
         if (OVERFLOWING_BARS_LOADED) {
-            renderShieldBarStacked(context, x, y, maxHearts, totalFullHearts, hasHalf, isFlashing, heartSize, spacing, scale);
+            renderShieldBarStacked(context, x, y, totalHearts, effectiveShield, isFlashing, heartSize, spacing, scale);
         } else {
-            renderShieldBarAllRows(context, x, y, maxHearts, totalFullHearts, hasHalf, isFlashing, heartSize, spacing, scale);
+            renderShieldBarAllRows(context, x, y, totalHearts, effectiveShield, isFlashing, heartSize, spacing, scale);
         }
     }
 
-    /**
-     * Without Overflowing Bars: render all shield rows normally.
-     */
     private void renderShieldBarAllRows(DrawContext context, int x, int y,
-                                        int maxHearts, int fullHearts, boolean hasHalf,
+                                        int totalHearts, float shield,
                                         boolean isFlashing, int heartSize, int spacing, float scale) {
-        int totalRows = (int) Math.ceil(maxHearts / 10.0);
+        int totalRows = (int) Math.ceil(totalHearts / 10.0);
         int vanillaSpacing = Math.max(10 - (totalRows - 2), 3);
         int scaledRowSpacing = (int) (vanillaSpacing * scale);
 
-        for (int i = 0; i < maxHearts; i++) {
+        for (int i = 0; i < totalHearts; i++) {
             int row = i / 10;
             int col = i % 10;
             int heartX = x + col * spacing;
@@ -360,11 +383,12 @@ public class PartyHudRenderer implements HudRenderCallback {
             Identifier container = isFlashing ? HEART_CONTAINER_BLINKING : SHIELD_CONTAINER;
             context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, container, heartX, heartY, heartSize, heartSize);
 
-            // Fill
-            if (i < fullHearts) {
+            float baseVisibility = i * 2.0f;
+
+            if (shield >= baseVisibility + 1.01f) {
                 Identifier tex = isFlashing ? SHIELD_FULL_BLINKING : SHIELD_FULL;
                 context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, tex, heartX, heartY, heartSize, heartSize);
-            } else if (i == fullHearts && hasHalf) {
+            } else if (shield >= baseVisibility + 0.01f) {
                 Identifier tex = isFlashing ? SHIELD_HALF_BLINKING : SHIELD_HALF;
                 context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, tex, heartX, heartY, heartSize, heartSize);
             }
@@ -376,43 +400,37 @@ public class PartyHudRenderer implements HudRenderCallback {
      * mirroring the player's own energy shield HUD (EnergyShieldHudRenderer).
      */
     private void renderShieldBarStacked(DrawContext context, int x, int y,
-                                        int maxHearts, int fullHearts, boolean hasHalf,
+                                        int totalHearts, float shield,
                                         boolean isFlashing, int heartSize, int spacing, float scale) {
-        int totalRows = (int) Math.ceil(maxHearts / 10.0);
-
-        int currentRow;
-        if (fullHearts <= 0 && !hasHalf) {
-            currentRow = 1;
-        } else {
-            int topFilledIndex = hasHalf ? fullHearts : Math.max(0, fullHearts - 1);
-            currentRow = (topFilledIndex / 10) + 1;
-        }
+        int highestIconIndex = (int) Math.ceil(shield / 2.0f) - 1;
+        int currentRow = Math.max(1, (highestIconIndex / 10) + 1);
 
         int heartsInFullRowsBelow = (currentRow - 1) * 10;
-        int heartsInThisRow = Math.min(10, maxHearts - heartsInFullRowsBelow);
-        int filledInRow = Math.max(0, fullHearts - heartsInFullRowsBelow);
-        boolean halfInRow = hasHalf && (fullHearts >= heartsInFullRowsBelow) && (fullHearts < heartsInFullRowsBelow + heartsInThisRow);
+        int heartsInThisRow = Math.min(10, totalHearts - heartsInFullRowsBelow);
 
         for (int i = 0; i < heartsInThisRow; i++) {
+            int iconIndex = heartsInFullRowsBelow + i;
             int heartX = x + i * spacing;
 
             // Container
             Identifier container = isFlashing ? HEART_CONTAINER_BLINKING : SHIELD_CONTAINER;
             context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, container, heartX, y, heartSize, heartSize);
 
-            if (i < filledInRow) {
+            float baseVisibility = iconIndex * 2.0f;
+
+            if (shield >= baseVisibility + 1.01f) {
                 Identifier tex = isFlashing ? SHIELD_FULL_BLINKING : SHIELD_FULL;
                 context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, tex, heartX, y, heartSize, heartSize);
-            } else if (i == filledInRow && halfInRow) {
+            } else if (shield >= baseVisibility + 0.01f) {
                 Identifier tex = isFlashing ? SHIELD_HALF_BLINKING : SHIELD_HALF;
                 context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, tex, heartX, y, heartSize, heartSize);
             }
         }
 
         // Nx sprite indicator when on row 2+ - matching health style with texture font
-        if (currentRow > 1 && maxHearts > 10) {
+        if (currentRow > 1 && totalHearts > 10) {
             int spriteX = x + heartsInThisRow * spacing;
-            int spriteY = y - (int) (2 * scale); // Adjusted down by 2 pixels for better alignment
+            int spriteY = y - (int) (2 * scale);
             Identifier spriteId = ShieldNumberSprites.getSpriteId(currentRow);
             context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, spriteId, spriteX, spriteY, (int) (16 * scale), (int) (16 * scale));
         }

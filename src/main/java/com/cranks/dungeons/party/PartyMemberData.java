@@ -11,6 +11,7 @@ public record PartyMemberData(
     String name,
     float health,
     float maxHealth,
+    float absorption,
     float energyShield,
     float maxEnergyShield
 ) implements CustomPayload {
@@ -26,6 +27,7 @@ public record PartyMemberData(
         buf.writeString(name);
         buf.writeFloat(health);
         buf.writeFloat(maxHealth);
+        buf.writeFloat(absorption);
         buf.writeFloat(energyShield);
         buf.writeFloat(maxEnergyShield);
     }
@@ -35,9 +37,10 @@ public record PartyMemberData(
         String name = buf.readString();
         float health = buf.readFloat();
         float maxHealth = buf.readFloat();
+        float absorption = buf.readFloat();
         float energyShield = buf.readFloat();
         float maxEnergyShield = buf.readFloat();
-        return new PartyMemberData(uuid, name, health, maxHealth, energyShield, maxEnergyShield);
+        return new PartyMemberData(uuid, name, health, maxHealth, absorption, energyShield, maxEnergyShield);
     }
     
     @Override

@@ -201,6 +201,7 @@ public class CranksDungeonsClient implements ClientModInitializer {
                     payload.playerUuid(),
                     payload.health(),
                     payload.maxHealth(),
+                    payload.absorption(),
                     payload.energyShield(),
                     payload.maxEnergyShield()
                 );

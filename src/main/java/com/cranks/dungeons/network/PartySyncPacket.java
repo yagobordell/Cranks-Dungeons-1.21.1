@@ -35,6 +35,7 @@ public record PartySyncPacket(
             buf.writeString(member.name());
             buf.writeFloat(member.health());
             buf.writeFloat(member.maxHealth());
+            buf.writeFloat(member.absorption());
             buf.writeFloat(member.energyShield());
             buf.writeFloat(member.maxEnergyShield());
         }
@@ -50,9 +51,10 @@ public record PartySyncPacket(
             String name = buf.readString();
             float health = buf.readFloat();
             float maxHealth = buf.readFloat();
+            float absorption = buf.readFloat();
             float energyShield = buf.readFloat();
             float maxEnergyShield = buf.readFloat();
-            members.add(new PartyMemberData(uuid, name, health, maxHealth, energyShield, maxEnergyShield));
+            members.add(new PartyMemberData(uuid, name, health, maxHealth, absorption, energyShield, maxEnergyShield));
         }
         return new PartySyncPacket(members, leader, joined);
     }

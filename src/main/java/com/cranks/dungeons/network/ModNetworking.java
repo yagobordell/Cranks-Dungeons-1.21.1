@@ -84,6 +84,7 @@ public class ModNetworking {
                     memberPlayer.getName().getString(),
                     health,
                     maxHealth,
+                    memberPlayer.getAbsorptionAmount(),
                     energyShield,
                     maxEnergyShield
                 ));
@@ -114,7 +115,7 @@ public class ModNetworking {
         }
         float maxEnergyShield = (float) player.getAttributeValue(ModAttributes.ENERGY_SHIELD);
         
-        PartyHealthPacket packet = new PartyHealthPacket(playerUuid, health, maxHealth, energyShield, maxEnergyShield);
+        PartyHealthPacket packet = new PartyHealthPacket(playerUuid, health, maxHealth, player.getAbsorptionAmount(), energyShield, maxEnergyShield);
         
         // Send to ALL party members including the player themselves
         for (java.util.UUID memberUuid : party.getMembers()) {

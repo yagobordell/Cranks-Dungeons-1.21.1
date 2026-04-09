@@ -12,6 +12,7 @@ public class PartyClientData {
     private static final Map<UUID, Integer> lastFullHearts = new HashMap<>();
     private static final Map<UUID, Boolean> lastHadHalfHeart = new HashMap<>();
     private static final Map<UUID, Float> lastShieldValues = new HashMap<>();
+    private static final Map<UUID, Float> lastAbsorptionValues = new HashMap<>();
     private static UUID leaderUuid;
     private static boolean inParty = false;
 
@@ -29,7 +30,7 @@ public class PartyClientData {
         inParty = !members.isEmpty();
     }
     
-    public static void updateMemberHealth(UUID uuid, float health, float maxHealth, float energyShield, float maxEnergyShield) {
+    public static void updateMemberHealth(UUID uuid, float health, float maxHealth, float absorption, float energyShield, float maxEnergyShield) {
         PartyMemberData existing = partyMembers.get(uuid);
         if (existing != null) {
             // Check for damage (health decreased)
@@ -42,6 +43,7 @@ public class PartyClientData {
                 }
             }
             lastHealthValues.put(uuid, health);
+            lastAbsorptionValues.put(uuid, absorption);
 
             // Check for new heart appearing (visual change) - both full and half hearts
             int currentFullHearts = (int) (health / 2.0f);
@@ -70,7 +72,7 @@ public class PartyClientData {
             lastShieldValues.put(uuid, energyShield);
 
             partyMembers.put(uuid, new PartyMemberData(
-                uuid, existing.name(), health, maxHealth, energyShield, maxEnergyShield
+                uuid, existing.name(), health, maxHealth, absorption, energyShield, maxEnergyShield
             ));
         }
     }
