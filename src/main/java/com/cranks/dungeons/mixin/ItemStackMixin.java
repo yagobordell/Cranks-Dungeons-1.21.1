@@ -16,6 +16,14 @@ public class ItemStackMixin {
 
     @Inject(
             method = "getName",
+            at = @At("HEAD")
+    )
+    private void dungeons$globalEnchantmentFilter(CallbackInfoReturnable<Text> cir) {
+        com.cranks.dungeons.util.EnchantmentFilterUtil.filterStack((ItemStack) (Object) this);
+    }
+
+    @Inject(
+            method = "getName",
             at = @At("RETURN"),
             cancellable = true
     )

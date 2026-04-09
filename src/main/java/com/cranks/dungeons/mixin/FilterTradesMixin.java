@@ -30,7 +30,7 @@ public class FilterTradesMixin {
         TradeOffers.PROFESSION_TO_LEVELED_TRADE.forEach((profession, trades) -> {
             if (trades == null) return;
             
-            boolean isLibrarian = profession == VillagerProfession.LIBRARIAN;
+            boolean isLibrarian = profession.getValue().getPath().equals("librarian");
             
             trades.forEach((level, tradeArray) -> {
                 if (tradeArray == null) return;
@@ -51,7 +51,7 @@ public class FilterTradesMixin {
                     
                     // For ALL other professions: filter ANY enchanted equipment
                     // Check if trade involves enchanted equipment
-                    if (isEnchantedEquipmentTrade(tradeClassName)) {
+                    if (isEnchantedEquipmentTrade(tradeClassName, profession)) {
                         // Skip this trade (remove enchanted equipment)
                         continue;
                     }
@@ -71,34 +71,38 @@ public class FilterTradesMixin {
     }
     
     /**
-     * Check if a trade is for enchanted equipment (swords, armor, tools, bows, fishing rods, etc.)
+     * Check if a trade is likely for enchanted equipment.
      */
-    private static boolean isEnchantedEquipmentTrade(String tradeClassName) {
-        // Check if class name contains "enchant" 
-        if (!tradeClassName.contains("enchant")) {
-            return false;
-        }
+    private static boolean isEnchantedEquipmentTrade(String tradeClassName, net.minecraft.registry.RegistryKey<VillagerProfession> profession) {
+        String professionPath = profession.getValue().getPath();
         
-        // Check if it's for equipment (not books)
-        for (String equipmentType : ENCHANTED_EQUIPMENT_TYPES) {
-            if (tradeClassName.contains(equipmentType)) {
-                return true;
+        // If it's an anonymous class, simplify name will be empty.
+        // In that case, we should be more aggressive if it's a combat/tool profession.
+        if (tradeClassName.isEmpty()) {
+            return professionPath.equals("weaponsmith") || 
+                   professionPath.equals("armorer") || 
+                   professionPath.equals("toolsmith");
+        }
+
+        // Check for common keywords in vanilla and modded factories
+        if (tradeClassName.contains("enchant") || 
+            tradeClassName.contains("sellenchanted") || 
+            tradeClassName.contains("processenchanted")) {
+            
+            // It involves enchantment. Now check if it's equipment.
+            for (String equipmentType : ENCHANTED_EQUIPMENT_TYPES) {
+                if (tradeClassName.contains(equipmentType)) {
+                    return true;
+                }
             }
-        }
-        
-        // Also check for generic "tool" trades that are enchanted
-        if (tradeClassName.contains("tool") && !tradeClassName.contains("book")) {
-            return true;
-        }
-        
-        // Check for armor specifically
-        if (tradeClassName.contains("armor") || tradeClassName.contains("armour")) {
-            return true;
-        }
-        
-        // Check for weapon trades
-        if (tradeClassName.contains("weapon")) {
-            return true;
+            
+            // Also check for generic "tool", "weapon", "armor" trades
+            if (tradeClassName.contains("tool") || 
+                tradeClassName.contains("weapon") || 
+                tradeClassName.contains("armor") || 
+                tradeClassName.contains("armour")) {
+                return !tradeClassName.contains("book");
+            }
         }
         
         return false;

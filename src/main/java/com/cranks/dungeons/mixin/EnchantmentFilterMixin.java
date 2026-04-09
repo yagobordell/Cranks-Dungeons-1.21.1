@@ -29,9 +29,7 @@ public class EnchantmentFilterMixin {
             ItemStack stack = inventory.getStack(i);
             if (stack.isEmpty()) continue;
 
-            dungeons$filterComponent(stack, DataComponentTypes.ENCHANTMENTS, false);
-            dungeons$filterComponent(stack, DataComponentTypes.STORED_ENCHANTMENTS,
-                    stack.isOf(Items.ENCHANTED_BOOK));
+            com.cranks.dungeons.util.EnchantmentFilterUtil.filterStack(stack);
 
             if (stack.isOf(Items.ENCHANTED_BOOK)) {
                 ItemEnchantmentsComponent stored = stack.getOrDefault(
@@ -47,45 +45,4 @@ public class EnchantmentFilterMixin {
             }
         }
     }
-
-    @Unique
-    private static void dungeons$filterComponent(
-            ItemStack stack,
-            ComponentType<ItemEnchantmentsComponent> componentType,
-            boolean limitToOne) {
-
-        ItemEnchantmentsComponent enchants = stack.getOrDefault(
-                componentType, ItemEnchantmentsComponent.DEFAULT);
-
-        if (enchants.isEmpty()) return;
-
-        ItemEnchantmentsComponent.Builder builder = new ItemEnchantmentsComponent.Builder(
-                ItemEnchantmentsComponent.DEFAULT);
-
-        boolean changed = false;
-        int count = 0;
-
-        for (var entry : enchants.getEnchantmentEntries()) {
-            RegistryEntry<Enchantment> enchantment = entry.getKey();
-            int level = entry.getIntValue();
-
-            if (!enchantment.isIn(EnchantmentTags.IN_ENCHANTING_TABLE)
-                    && !enchantment.isIn(EnchantmentTags.ON_RANDOM_LOOT)) {
-                changed = true;
-                continue;
-            }
-
-            if (limitToOne && count >= 1) {
-                changed = true;
-                continue;
-            }
-
-            builder.add(enchantment, level);
-            count++;
-        }
-
-        if (changed) {
-            stack.set(componentType, builder.build());
-        }
-    }
-}
+}
