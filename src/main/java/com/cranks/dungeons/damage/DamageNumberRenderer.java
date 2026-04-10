@@ -22,17 +22,20 @@ public class DamageNumberRenderer {
 
     public static void renderHud(DrawContext context, float tickDelta) {
         MinecraftClient client = MinecraftClient.getInstance();
-        if (client.player == null || client.world == null) return;
+        if (client.player == null || client.world == null)
+            return;
 
         List<DamageNumber> numbers = DamageNumberManager.getActiveNumbers();
-        if (numbers.isEmpty()) return;
+        if (numbers.isEmpty())
+            return;
 
         TextRenderer textRenderer = client.textRenderer;
         int screenWidth = client.getWindow().getScaledWidth();
         int screenHeight = client.getWindow().getScaledHeight();
 
         Entity cameraEntity = client.getCameraEntity();
-        if (cameraEntity == null) cameraEntity = client.player;
+        if (cameraEntity == null)
+            cameraEntity = client.player;
 
         double camX = cameraEntity.getX();
         double camY = cameraEntity.getEyeY();
@@ -47,7 +50,8 @@ public class DamageNumberRenderer {
         double halfWidth = halfHeight * aspectRatio;
 
         for (DamageNumber number : numbers) {
-            if (number.isExpired()) continue;
+            if (number.isExpired())
+                continue;
 
             // Update position to follow entity if it exists
             updateNumberPosition(number, client);
@@ -59,9 +63,9 @@ public class DamageNumberRenderer {
             if (isSelf && client.options.getPerspective().isFirstPerson()) {
                 float progress = number.getProgress();
                 sX = screenWidth / 2 + (number.isHeal ? 60 : -60);
-                
+
                 // Fix: Apply rowIndex stacking to the first-person Y coordinate
-                int rowSpacing = (int)((textRenderer.fontHeight + 2) * 1.5); // Slightly more spacing for UI
+                int rowSpacing = (int) ((textRenderer.fontHeight + 2) * 1.5); // Slightly more spacing for UI
                 sY = (int) (screenHeight / 2 + 30 - progress * 40 + (number.rowIndex * rowSpacing));
             } else {
                 // Standard world-space projection for Mobs and other players
@@ -73,9 +77,11 @@ public class DamageNumberRenderer {
                 double dy = worldY - camY;
                 double dz = worldZ - camZ;
 
-                // Early culling: skip if too far away, unless it's a forced display (direct source)
-                double distanceSq = dx*dx + dy*dy + dz*dz;
-                if (distanceSq > MAX_RENDER_DISTANCE_SQ && !number.forceDisplay) continue;
+                // Early culling: skip if too far away, unless it's a forced display (direct
+                // source)
+                double distanceSq = dx * dx + dy * dy + dz * dz;
+                if (distanceSq > MAX_RENDER_DISTANCE_SQ && !number.forceDisplay)
+                    continue;
 
                 double cosYaw = Math.cos(yawRad);
                 double sinYaw = Math.sin(yawRad);
@@ -89,7 +95,8 @@ public class DamageNumberRenderer {
                 double viewY = rotY * cosPitch - rotZ * sinPitch;
                 double viewZ = rotY * sinPitch + rotZ * cosPitch;
 
-                if (viewZ >= 0) continue; // behind camera (standard culling)
+                if (viewZ >= 0)
+                    continue; // behind camera (standard culling)
 
                 double depth = -viewZ;
                 double projDepth = Math.max(depth, 0.5);
@@ -121,26 +128,27 @@ public class DamageNumberRenderer {
 
             String text = number.formattedDamageText;
             int textWidth = number.formattedDamageWidth;
-            int rowSpacing = (int)((textRenderer.fontHeight + 2) * 1.2);
+            int rowSpacing = (int) ((textRenderer.fontHeight + 2) * 1.2);
 
             float progress = number.getProgress();
-            
+
             // 1. Calculate Dynamic Scale based on damage magnitude and Crit status
-            float baseScale = 1.0f + (float)Math.min(number.damage / 80.0, 0.6); // Scale up based on damage
-            if (number.isCritical) baseScale *= 1.3f; // Crits are naturally larger
+            float baseScale = 1.0f + (float) Math.min(number.damage / 80.0, 0.6); // Scale up based on damage
+            if (number.isCritical)
+                baseScale *= 1.3f; // Crits are naturally larger
             baseScale = Math.min(baseScale, 2.0f); // HARD CAP per user request
-            
+
             float scale = baseScale;
             if (progress < 0.1f) {
                 scale *= progress / 0.1f; // Scale up at start
             } else if (progress > 0.8f) {
                 scale *= 1.0f - (progress - 0.8f) / 0.2f; // Scale down at end
             }
-            
+
             // 2. Critical "Heartbeat" Pulse
             if (number.isCritical && progress < 0.25f) {
                 // Pulse up then back to baseScale
-                float pulse = (float)Math.sin(progress * Math.PI / 0.25f) * 0.25f;
+                float pulse = (float) Math.sin(progress * Math.PI / 0.25f) * 0.25f;
                 scale += pulse;
             } else if (progress < 0.2f) {
                 // Normal hits get a smaller pop
@@ -156,9 +164,9 @@ public class DamageNumberRenderer {
             int colorWithAlpha = (number.color & 0x00FFFFFF) | alpha;
 
             context.getMatrices().pushMatrix();
-            context.getMatrices().translate((float)sX_final, (float)sY_final);
+            context.getMatrices().translate((float) sX_final, (float) sY_final);
             context.getMatrices().scale(scale, scale);
-            
+
             // 4. Main Text render
             context.drawText(
                     textRenderer,
@@ -177,21 +185,23 @@ public class DamageNumberRenderer {
      * If the entity despawned, freezes at last known position.
      */
     private static void updateNumberPosition(DamageNumber number, MinecraftClient client) {
-        if (number.entityDespawned) return;
-        if (number.victimUuid == null) return;
+        if (number.entityDespawned)
+            return;
+        if (number.victimUuid == null)
+            return;
 
         Entity entity = client.world.getEntity(number.victimUuid);
-        
+
         if (entity != null && entity.isAlive()) {
             // Entity exists - calculate target position with rotation
             Vec3d entityPos = new Vec3d(entity.getX(), entity.getY() + entity.getHeight() / 2, entity.getZ());
-            
+
             // Apply entity rotation to hit offset
             Vec3d rotatedOffset = rotateOffsetByEntity(number.hitOffset, entity);
-            
+
             // Target position is entity center + rotated hit offset
             Vec3d targetPos = entityPos.add(rotatedOffset);
-            
+
             // Smoothly interpolate to target position
             number.updatePositionToFollow(targetPos);
         } else {
@@ -206,14 +216,14 @@ public class DamageNumberRenderer {
     private static Vec3d rotateOffsetByEntity(Vec3d offset, Entity entity) {
         float yaw = entity.getYaw();
         float yawRad = (float) Math.toRadians(yaw);
-        
+
         double cosYaw = Math.cos(yawRad);
         double sinYaw = Math.sin(yawRad);
-        
+
         // Rotate the offset around Y axis
         double newX = offset.x * cosYaw - offset.z * sinYaw;
         double newZ = offset.x * sinYaw + offset.z * cosYaw;
-        
+
         return new Vec3d(newX, offset.y, newZ);
     }
 }
