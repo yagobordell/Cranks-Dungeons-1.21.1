@@ -402,6 +402,37 @@ public class StatRegistry {
                                 true, true, Formatting.DARK_PURPLE,
                                 ALL_WEAPONS);
 
+                // --- Proportional Extra Damage (Runes) ---
+                registerForTypes("attack_extra_damage", "Damage as Extra Physical Damage",
+                                ModAttributes.PHYSICAL_EXTRA_PERCENT,
+                                r(0.05, 0.12, 0.20, 0.28, 0.35), r(0.08, 0.16, 0.24, 0.35, 0.40),
+                                true, true, Formatting.WHITE,
+                                ALL_WEAPONS);
+
+                registerForTypes("fire_extra_damage", "Damage as Extra Fire Damage",
+                                ModAttributes.FIRE_EXTRA_PERCENT,
+                                r(0.05, 0.12, 0.20, 0.28, 0.35), r(0.08, 0.16, 0.24, 0.35, 0.40),
+                                true, true, Formatting.RED,
+                                ALL_WEAPONS);
+
+                registerForTypes("cold_extra_damage", "Damage as Extra Cold Damage",
+                                ModAttributes.COLD_EXTRA_PERCENT,
+                                r(0.05, 0.12, 0.20, 0.28, 0.35), r(0.08, 0.16, 0.24, 0.35, 0.40),
+                                true, true, Formatting.AQUA,
+                                ALL_WEAPONS);
+
+                registerForTypes("lightning_extra_damage", "Damage as Extra Lightning Damage",
+                                ModAttributes.LIGHTNING_EXTRA_PERCENT,
+                                r(0.05, 0.12, 0.20, 0.28, 0.35), r(0.08, 0.16, 0.24, 0.35, 0.40),
+                                true, true, Formatting.DARK_BLUE,
+                                ALL_WEAPONS);
+
+                registerForTypes("void_extra_damage", "Damage as Extra Void Damage",
+                                ModAttributes.VOID_EXTRA_PERCENT,
+                                r(0.05, 0.12, 0.20, 0.28, 0.35), r(0.08, 0.16, 0.24, 0.35, 0.40),
+                                true, true, Formatting.DARK_PURPLE,
+                                ALL_WEAPONS);
+
                 // --- Life Steal (melee + trident: one range, bow/crossbow: different) ---
                 registerForTypes("life_steal", "Life Steal",
                                 ModAttributes.LIFE_STEAL,

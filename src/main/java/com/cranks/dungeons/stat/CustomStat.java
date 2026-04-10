@@ -78,13 +78,17 @@ public class CustomStat {
         DecimalFormat df = new DecimalFormat("#.#");
 
         if (displayAsPercentage) {
-            return df.format(value * 100) + "% " + displayName;
+            String formattedValue = df.format(value * 100) + "%";
+            if (displayName.contains("Extra")) {
+                return "Gain " + formattedValue + " of " + displayName;
+            }
+            return formattedValue + " " + displayName;
         } else if (isPercentage) {
             return df.format(value * 100) + " " + displayName;
         } else {
             // Whole numbers
             if (displayName.endsWith("Damage")) {
-                return "Adds " + df.format(value) + " to " + displayName;
+                return "Adds " + df.format(value) + " " + displayName + " to Attacks";
             } else {
                 return "+" + df.format(value) + " to " + displayName;
             }

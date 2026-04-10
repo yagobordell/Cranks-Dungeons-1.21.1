@@ -130,6 +130,25 @@ public abstract class ElementalDamageMixin {
 
             double voidDamage = voidBaseDamage * (1.0 + voidTotalPercent) * critMultiplier;
 
+            // === PROPORTIONAL EXTRA DAMAGE (RUNES) ===
+            // Calculate total basic damage for proportional scaling
+            double totalBasicDamage = physicalDamage + fireDamage + coldDamage + lightningDamage + voidDamage;
+
+            double extraPhysicalPercent = CombatUtility.getAttributeValue(attacker, ModAttributes.PHYSICAL_EXTRA_PERCENT, weapon, "attack_extra_damage", source);
+            double finalPhysicalExtraDamage = totalBasicDamage * extraPhysicalPercent;
+
+            double extraFirePercent = CombatUtility.getAttributeValue(attacker, ModAttributes.FIRE_EXTRA_PERCENT, weapon, "fire_extra_damage", source);
+            fireDamage += totalBasicDamage * extraFirePercent;
+
+            double extraColdPercent = CombatUtility.getAttributeValue(attacker, ModAttributes.COLD_EXTRA_PERCENT, weapon, "cold_extra_damage", source);
+            coldDamage += totalBasicDamage * extraColdPercent;
+
+            double extraLightningPercent = CombatUtility.getAttributeValue(attacker, ModAttributes.LIGHTNING_EXTRA_PERCENT, weapon, "lightning_extra_damage", source);
+            lightningDamage += totalBasicDamage * extraLightningPercent;
+
+            double extraVoidPercent = CombatUtility.getAttributeValue(attacker, ModAttributes.VOID_EXTRA_PERCENT, weapon, "void_extra_damage", source);
+            voidDamage += totalBasicDamage * extraVoidPercent;
+
             double totalElementalDamage = 0;
 
             double finalFireDamage = 0;
@@ -140,6 +159,13 @@ public abstract class ElementalDamageMixin {
             // Track if target died from elemental damage to ensure proper death handling
             boolean targetDiedFromElemental = false;
             float healthBeforeElemental = target.getHealth();
+
+            if (finalPhysicalExtraDamage > 0) {
+                applyElementalDamage(target, world, finalPhysicalExtraDamage, DamageElement.PHYSICAL);
+                totalElementalDamage += finalPhysicalExtraDamage;
+                physicalDamage += (float) finalPhysicalExtraDamage;
+                if (target.getHealth() <= 0) targetDiedFromElemental = true;
+            }
 
             if (fireDamage > 0) {
                 double resistance = target.getAttributeValue(ModAttributes.FIRE_RESISTANCE);
@@ -370,6 +396,7 @@ public abstract class ElementalDamageMixin {
     @Unique
     private DamageSource getElementalDamageSource(ServerWorld world, DamageElement element) {
         return switch (element) {
+            case PHYSICAL -> world.getDamageSources().generic();
             case FIRE -> world.getDamageSources().onFire();
             case COLD -> world.getDamageSources().freeze();
             case LIGHTNING -> world.getDamageSources().lightningBolt();

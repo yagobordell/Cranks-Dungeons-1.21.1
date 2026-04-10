@@ -40,6 +40,13 @@ public class ModAttributes {
     public static final RegistryEntry<EntityAttribute> LIGHTNING_DAMAGE_PERCENT = register("lightning_damage_percent", 0.0, 0.0, 10.0);
     public static final RegistryEntry<EntityAttribute> VOID_DAMAGE_PERCENT = register("void_damage_percent", 0.0, 0.0, 10.0);
 
+    // Proportional Extra Damage percentages
+    public static final RegistryEntry<EntityAttribute> PHYSICAL_EXTRA_PERCENT = register("physical_extra_percent", 0.0, 0.0, 5.0);
+    public static final RegistryEntry<EntityAttribute> FIRE_EXTRA_PERCENT = register("fire_extra_percent", 0.0, 0.0, 5.0);
+    public static final RegistryEntry<EntityAttribute> COLD_EXTRA_PERCENT = register("cold_extra_percent", 0.0, 0.0, 5.0);
+    public static final RegistryEntry<EntityAttribute> LIGHTNING_EXTRA_PERCENT = register("lightning_extra_percent", 0.0, 0.0, 5.0);
+    public static final RegistryEntry<EntityAttribute> VOID_EXTRA_PERCENT = register("void_extra_percent", 0.0, 0.0, 5.0);
+
     public static final RegistryEntry<EntityAttribute> LIFE_STEAL = register("life_steal", 0.0, 0.0, 1.0);
     public static final RegistryEntry<EntityAttribute> CHANCE_TO_BURN = register("chance_to_burn", 0.0, 0.0, 1.0);
     public static final RegistryEntry<EntityAttribute> BURN_BASE_DAMAGE = register("burn_base_damage", 4.0, 0.0, 100.0);
