@@ -1,10 +1,10 @@
 package com.cranks.dungeons.client;
 
 import com.cranks.dungeons.damage.DamageElement;
+import com.cranks.dungeons.registry.ModSounds;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvent;
-import net.minecraft.sound.SoundEvents;
 
 public class CombatAudioHelper {
 
@@ -13,6 +13,7 @@ public class CombatAudioHelper {
         if (client.player == null) return;
 
         SoundEvent sound = getSoundForElement(element, isCrit);
+        if (sound == null) return;
         
         // Pitch logic: Higher damage = slightly higher pitch (sharper hit)
         // Range: 0.95 to 1.5, capped
@@ -35,16 +36,16 @@ public class CombatAudioHelper {
     }
 
     private static SoundEvent getSoundForElement(DamageElement element, boolean isCrit) {
-        if (isCrit) return SoundEvents.ENTITY_PLAYER_ATTACK_CRIT;
+        if (isCrit) return ModSounds.CRITICAL_HIT;
 
         return switch (element) {
-            case FIRE -> SoundEvents.ITEM_FIRECHARGE_USE;
-            case COLD -> SoundEvents.BLOCK_POWDER_SNOW_BREAK;
-            case LIGHTNING -> SoundEvents.ENTITY_PLAYER_ATTACK_WEAK;
-            case VOID -> SoundEvents.BLOCK_AMETHYST_BLOCK_HIT;
-            case POISON -> SoundEvents.BLOCK_RESPAWN_ANCHOR_CHARGE; 
-            case DROWN -> SoundEvents.ENTITY_PLAYER_HURT_DROWN;
-            default -> SoundEvents.ENTITY_PLAYER_ATTACK_WEAK;
+            case FIRE -> ModSounds.ELEMENTAL_FIRE_HIT;
+            case COLD -> ModSounds.ELEMENTAL_COLD_HIT;
+            case LIGHTNING -> ModSounds.ELEMENTAL_LIGHTNING_HIT;
+            case VOID -> ModSounds.ELEMENTAL_VOID_HIT;
+            case POISON -> ModSounds.POISON_TICK; // Using tick as hit sound for now
+            case DROWN -> null; // Silence drown hits if no custom sound
+            default -> null;
         };
     }
 }

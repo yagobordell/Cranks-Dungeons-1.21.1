@@ -90,4 +90,15 @@
       { "name": "cranks-dungeons:shock_loop_2", "volume": 0.3, "pitch": 1.0 }
     ]
   }
+,
+  "burn_tick": {
+    "sounds": [
+      { "name": "cranks-dungeons:burn_tick", "volume": 0.8, "pitch": 1.0 }
+    ]
+  },
+  "burn_loop": {
+    "sounds": [
+      { "name": "cranks-dungeons:burn_loop", "volume": 0.8, "pitch": 1.0 }
+    ]
+  }
 }

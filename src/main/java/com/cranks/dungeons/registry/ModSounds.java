@@ -24,6 +24,7 @@ public class ModSounds {
 
     // Ailment sounds
     public static final SoundEvent BURN_TICK = register("burn_tick");
+    public static final SoundEvent BURN_LOOP = register("burn_loop");
     public static final SoundEvent POISON_TICK = register("poison_tick");
     public static final SoundEvent FREEZE_MOVE = register("freeze_move");
     public static final SoundEvent BLEED_HIT = register("bleed_hit");

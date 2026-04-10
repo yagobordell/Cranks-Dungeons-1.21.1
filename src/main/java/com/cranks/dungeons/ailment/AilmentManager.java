@@ -143,7 +143,7 @@ public class AilmentManager {
         switch (type) {
             case BURN -> {
                 StatusEffectInstance instance = StatusEffectHelper.create(
-                        ModEffects.BURN, ticks, 0, false, true, true);
+                        ModEffects.BURN, ticks, 0, false, false, true);
                 if (instance != null) {
                     target.addStatusEffect(instance);
                 }
@@ -162,7 +162,7 @@ public class AilmentManager {
             }
             case FREEZE -> {
                 StatusEffectInstance instance = StatusEffectHelper.create(
-                        ModEffects.FREEZE, ticks, 0, false, true, true);
+                        ModEffects.FREEZE, ticks, 0, false, false, true);
                 if (instance != null) {
                     target.addStatusEffect(instance);
                 }
@@ -297,8 +297,8 @@ public class AilmentManager {
                     SoundEvents.ENTITY_PLAYER_HURT, SoundCategory.HOSTILE,
                     1.0f, 1.0f);
             world.playSound(null, entity.getX(), entity.getY(), entity.getZ(),
-                    SoundEvents.ENTITY_GENERIC_BURN, SoundCategory.HOSTILE,
-                    0.4f, 1.5f + world.getRandom().nextFloat() * 0.5f);
+                    ModSounds.BURN_TICK, SoundCategory.HOSTILE,
+                    1.0f, 1.0f + world.getRandom().nextFloat() * 0.2f);
         }
     }
 
