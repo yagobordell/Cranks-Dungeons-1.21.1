@@ -97,7 +97,7 @@ public abstract class ItemStackTooltipMixin {
 
     @Unique
     private void addBaseStatsSection(ItemStack stack, List<Text> tooltip, EquipmentType type) {
-        DecimalFormat df = new DecimalFormat("#.##");
+        DecimalFormat df = new DecimalFormat("#.#");
         Map<RegistryEntry<EntityAttribute>, Double> attributeTotals = calculateItemAttributeTotals(stack);
 
         boolean isDefensive = type == EquipmentType.HELMET || type == EquipmentType.CHESTPLATE ||
@@ -255,6 +255,21 @@ public abstract class ItemStackTooltipMixin {
                 tooltip.add(Text.literal("Attack Speed: ").formatted(Formatting.GRAY)
                         .append(Text.literal(df.format(finalSpeed)).formatted(Formatting.WHITE)));
                 addedAny = true;
+            }
+
+            // --- New Identity Stats (Range & Knockback) ---
+            double baseRange = 3.0 + attributeTotals.getOrDefault(ModAttributes.ATTACK_RANGE, 0.0);
+            tooltip.add(Text.literal("Attack Range: ").formatted(Formatting.GRAY)
+                    .append(Text.literal(df.format(baseRange)).formatted(Formatting.WHITE)));
+            addedAny = true;
+
+            if (attributeTotals.containsKey(ModAttributes.KNOCKBACK)) {
+                double kbValue = attributeTotals.get(ModAttributes.KNOCKBACK);
+                if (kbValue != 0) {
+                    tooltip.add(Text.literal("Knockback: ").formatted(Formatting.GRAY)
+                            .append(Text.literal(df.format(kbValue)).formatted(Formatting.WHITE)));
+                    addedAny = true;
+                }
             }
         }
 

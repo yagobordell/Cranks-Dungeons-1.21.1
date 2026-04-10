@@ -2,6 +2,7 @@ package com.cranks.dungeons.mixin;
 
 import com.cranks.dungeons.ailment.AilmentManager;
 import com.cranks.dungeons.ailment.AilmentType;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import com.cranks.dungeons.damage.DamageElement;
 import com.cranks.dungeons.equipment.EquipmentStatApplier;
 import com.cranks.dungeons.network.DamageNumberSender;
@@ -50,6 +51,15 @@ public abstract class ElementalDamageMixin {
     
     // Static flag to prevent shock chain damage from triggering elemental processing
 
+    @ModifyVariable(method = "damage", at = @At("HEAD"), argsOnly = true)
+    private float cranks$reducePvPDamage(float amount, ServerWorld world, DamageSource source) {
+        LivingEntity target = (LivingEntity) (Object) this;
+        if (source.getAttacker() instanceof PlayerEntity && target instanceof PlayerEntity) {
+            return amount * 0.5f;
+        }
+        return amount;
+    }
+
     @Inject(method = "damage", at = @At("RETURN"))
     private void applyElementalDamageOnHit(ServerWorld world, DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
         // Skip if damage didn't succeed or already processing
@@ -84,8 +94,11 @@ public abstract class ElementalDamageMixin {
         ItemStack chestplate = attacker.getEquippedStack(EquipmentSlot.CHEST);
 
         // Check if this hit was a critical strike
+        boolean isPvP = target instanceof PlayerEntity;
+        double pvpMultiplier = isPvP ? 0.5 : 1.0;
+
         boolean isCrit = CriticalHitState.isCriticalHit();
-        float critMultiplier = isCrit ? 1.5f : 1.0f;
+        float critMultiplier = isCrit ? (isPvP ? 1.25f : 1.5f) : 1.0f;
 
         // The amount parameter already has crit applied to physical damage
         float physicalDamage = amount;
@@ -148,6 +161,13 @@ public abstract class ElementalDamageMixin {
 
             double extraVoidPercent = CombatUtility.getAttributeValue(attacker, ModAttributes.VOID_EXTRA_PERCENT, weapon, "void_extra_damage", source);
             voidDamage += totalBasicDamage * extraVoidPercent;
+
+            // Apply global PvP reduction to final bonus values
+            fireDamage *= pvpMultiplier;
+            coldDamage *= pvpMultiplier;
+            lightningDamage *= pvpMultiplier;
+            voidDamage *= pvpMultiplier;
+            finalPhysicalExtraDamage *= pvpMultiplier;
 
             double totalElementalDamage = 0;
 
@@ -268,7 +288,14 @@ public abstract class ElementalDamageMixin {
 
             if (lifeSteal > 0) {
                 float totalDamage = physicalDamage + (float) totalElementalDamage;
-                attacker.heal((float) (totalDamage * lifeSteal));
+                float healing = totalDamage * (float) lifeSteal;
+                
+                // Halve life steal effectiveness in PvP
+                if (isPvP) {
+                    healing *= 0.5f;
+                }
+                
+                attacker.heal(healing);
             }
 
             // Burn
