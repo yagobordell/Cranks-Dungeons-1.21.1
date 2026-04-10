@@ -126,16 +126,17 @@ public class CranksDungeonsClient implements ClientModInitializer {
                         if (isOther && !config.showOtherPlayerDamage) continue;
                     }
 
-                    // Play combat sound for this element if it's damage and from a combat source
-                    if (!entry.isHeal() && (isDealt || (isReceived && payload.attackerUuid() != null))) {
+                    // Play combat sound for this element ONLY if we dealt the damage
+                    if (!entry.isHeal() && isDealt) {
                         com.cranks.dungeons.client.CombatAudioHelper.playCombatSound(element, entry.damage(), entry.isCrit());
                     }
 
                     double offsetX = 0;
                     double offsetZ = 0;
                     if (count > 1) {
+                        // Multi-element hits: still use slight spiral spread + vertical stacking (handled by rowIndex)
                         double angle = (2.0 * Math.PI * i) / count;
-                        double spread = 0.25;
+                        double spread = 0.15; // smaller horizontal spread since we have vertical stacking now
                         offsetX = Math.cos(angle) * spread;
                         offsetZ = Math.sin(angle) * spread;
                     }
@@ -160,7 +161,7 @@ public class CranksDungeonsClient implements ClientModInitializer {
                             element,
                             entry.isCrit(),
                             entry.isHeal(),
-                            System.currentTimeMillis() - (i * 80) // Stagger by 80ms each so oldest appear higher
+                            System.currentTimeMillis() - (i * 120) // Increased stagger for better layout
                     );
                     DamageNumberManager.addDamageNumber(damageNumber);
                 }

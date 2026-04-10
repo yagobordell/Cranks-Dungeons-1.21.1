@@ -4,6 +4,10 @@ import com.cranks.dungeons.EnergyShieldProvider;
 import com.cranks.dungeons.network.EnergyShieldSyncPacket;
 import com.cranks.dungeons.registry.ModAttributes;
 import com.cranks.dungeons.registry.ModSounds;
+import com.cranks.dungeons.util.DamageConversionHelper;
+import com.cranks.dungeons.damage.DamageElement;
+import com.cranks.dungeons.ailment.AilmentManager;
+import com.cranks.dungeons.network.DamageNumberSender;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.damage.DamageTypes;
@@ -14,143 +18,136 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(PlayerEntity.class)
 public class EnergyShieldDamageMixin {
 
-    // Time between shield hits in ticks (10 = half a second at 20 TPS)
     private static final long SHIELD_COOLDOWN_TICKS = 10L;
 
-    @Inject(method = "damage", at = @At("HEAD"), cancellable = true)
-    private void absorbDamageWithEnergyShield(ServerWorld world, DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
+    /**
+     * Overhaul: We use ModifyVariable to subtract damage from the shield and return 
+     * the remaining damage that should deal to health.
+     */
+    @ModifyVariable(method = "damage", at = @At("HEAD"), argsOnly = true)
+    private float applyEnergyShieldMitigation(float amount, ServerWorld world, DamageSource source) {
         PlayerEntity self = (PlayerEntity) (Object) this;
+        if (!(self instanceof ServerPlayerEntity serverPlayer)) return amount;
+        if (amount <= 0) return 0.0f;
 
-        if (!(self instanceof ServerPlayerEntity serverPlayer)) return;
+        // Bypass shield if player is invulnerable
+        if (self.isInvulnerableTo(world, source)) return 0.0f;
 
-        EnergyShieldProvider provider = (EnergyShieldProvider) self;
-
-        double maxShield = self.getAttributeValue(ModAttributes.ENERGY_SHIELD);
-        float currentShield = provider.cranksdungeons$getCurrentEnergyShield();
-
-        long currentTime = world.getTime();
-        long timeSinceLastHit = currentTime - provider.cranksdungeons$getLastDamageTime();
-
-        // Bypass shield if player is invulnerable (Creative, etc.) or if it's friendly fire between party members
-        if (self.isInvulnerableTo(world, source)) return;
-
+        // Party friendly fire check
         if (source.getAttacker() instanceof PlayerEntity attacker) {
             if (com.cranks.dungeons.party.PartyManager.areInSameParty(self.getUuid(), attacker.getUuid())) {
-                return;
+                return 0.0f;
             }
         }
 
-        // Bypass shield for specific damage types that should ignore it entirely (Void, etc.)
+        // Specific bypasses
         if (source.isIn(DamageTypeTags.BYPASSES_INVULNERABILITY) || source.isOf(DamageTypes.DROWN)) {
-            return;
+            return amount;
         }
 
-        // No shield available: just update time and let vanilla handle health
+        EnergyShieldProvider provider = (EnergyShieldProvider) self;
+        float currentShield = provider.cranksdungeons$getCurrentEnergyShield();
+        double maxShield = self.getAttributeValue(ModAttributes.ENERGY_SHIELD);
+
+        // No shield at all
         if (currentShield <= 0 || maxShield <= 0) {
-            provider.cranksdungeons$setLastDamageTime(currentTime);
-            return;
+            provider.cranksdungeons$setLastDamageTime(world.getTime());
+            return amount;
         }
 
-        // Shield cooldown (i-frames for shield)
+        // I-frame check
+        long currentTime = world.getTime();
+        long timeSinceLastHit = currentTime - provider.cranksdungeons$getLastDamageTime();
         if (timeSinceLastHit < SHIELD_COOLDOWN_TICKS) {
-            // Do NOT update lastDamageTime here – so cooldown can actually expire
-            cir.setReturnValue(false);
-            return;
+            return 0.0f; 
         }
 
-        float prevShield = currentShield;
-
-        // Compute shield damage
-        float damageToShield = amount;
-        if (source.isIn(DamageTypeTags.BYPASSES_ARMOR)) {
-            damageToShield *= 2.0f;
-        }
-        // Ensure a hit always costs at least 1 shield unit
-        if (damageToShield < 1.0f) {
-            damageToShield = 1.0f;
+        // Ailment Bypass check (Poison/Bleed ignore ES in PoE 2)
+        if (AilmentManager.isPoisonDamageInProgress(self.getUuid()) || AilmentManager.isBleedDamageInProgress(self.getUuid())) {
+            return amount;
         }
 
-        if (currentShield >= damageToShield) {
-            // Shield fully absorbs this hit
-            float newShield = currentShield - damageToShield;
+        // Calculate weighted shield damage (Void deals 2x)
+        DamageConversionHelper.DamageBreakdown breakdown = DamageConversionHelper.getBreakdown(source, amount);
+        float voidDmg = breakdown.get(DamageElement.VOID);
+        float otherDmg = amount - voidDmg;
+        float weightedShieldDmg = otherDmg + (voidDmg * 2.0f);
+        
+        if (weightedShieldDmg <= 0) return amount;
 
+        if (currentShield >= weightedShieldDmg) {
+            // Full absorption
+            float newShield = currentShield - weightedShieldDmg;
             provider.cranksdungeons$setCurrentEnergyShield(newShield);
             provider.cranksdungeons$setLastDamageTime(currentTime);
-
-            // Sync shield to client
+            
+            triggerShieldVisuals(world, self, currentShield, newShield);
+            triggerDamageNumbers(world, self, source, amount);
             ServerPlayNetworking.send(serverPlayer, new EnergyShieldSyncPacket(newShield));
-
-            // Hit sound
-            world.playSoundFromEntity(
-                    null,
-                    self,
-                    ModSounds.ENERGY_SHIELD_HIT,
-                    SoundCategory.PLAYERS,
-                    1.0f,
-                    1.0f
-            );
-
-            // BREAK if hearts go from >=1 to <1
-            if (prevShield >= 1.0f && newShield < 1.0f) {
-                world.playSoundFromEntity(
-                        null,
-                        self,
-                        ModSounds.ENERGY_SHIELD_BREAK,
-                        SoundCategory.PLAYERS,
-                        1.0f,
-                        1.0f
-                );
-
-                world.spawnParticles(
-                        ParticleTypes.END_ROD,
-                        self.getX(),
-                        self.getY() + 1.0,
-                        self.getZ(),
-                        30,
-                        0.5, 0.5, 0.5,
-                        0.1
-                );
-            }
-
-            // Cancel vanilla damage: no health lost when shield fully absorbs
-            cir.setReturnValue(false);
+            
+            return 0.0f; 
         } else {
-            // Shield breaks but absorbs ALL damage from this hit (no overflow to health)
+            // Overflow logic
+            float absorptionRatio = currentShield / weightedShieldDmg;
+            float absorbedAmount = amount * absorptionRatio;
+            float remainingAmount = amount - absorbedAmount;
+
             provider.cranksdungeons$setCurrentEnergyShield(0.0f);
             provider.cranksdungeons$setLastDamageTime(currentTime);
+            
+            triggerShieldVisuals(world, self, currentShield, 0.0f);
+            triggerDamageNumbers(world, self, source, absorbedAmount);
             ServerPlayNetworking.send(serverPlayer, new EnergyShieldSyncPacket(0.0f));
 
-            // Only play break if we actually had at least 1 heart before
-            if (prevShield >= 1.0f) {
-                world.playSoundFromEntity(
-                        null,
-                        self,
-                        ModSounds.ENERGY_SHIELD_BREAK,
-                        SoundCategory.PLAYERS,
-                        1.0f,
-                        1.0f
-                );
+            return remainingAmount;
+        }
+    }
 
-                world.spawnParticles(
-                        ParticleTypes.END_ROD,
-                        self.getX(),
-                        self.getY() + 1.0,
-                        self.getZ(),
-                        30,
-                        0.5, 0.5, 0.5,
-                        0.1
-                );
-            }
-
-            // Cancel damage - shield broke but absorbed the entire hit (no overflow damage)
+    /**
+     * Because ModifyVariable changed amount to 0 when absorbed, we cancel the damage method here.
+     */
+    @Inject(method = "damage", at = @At("HEAD"), cancellable = true)
+    private void cancelShieldedDamage(ServerWorld world, DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
+        if (amount <= 0.0f) {
             cir.setReturnValue(false);
+        }
+    }
+
+    @Unique
+    private void triggerDamageNumbers(ServerWorld world, PlayerEntity self, DamageSource source, float actualAbsorbedAmount) {
+        if (actualAbsorbedAmount <= 0.01f) return;
+        
+        DamageConversionHelper.DamageBreakdown breakdown = DamageConversionHelper.getBreakdown(source, actualAbsorbedAmount);
+        
+        DamageNumberSender.broadcast(
+            world, 
+            self, 
+            breakdown.get(DamageElement.PHYSICAL),
+            breakdown.get(DamageElement.FIRE),
+            breakdown.get(DamageElement.COLD),
+            breakdown.get(DamageElement.LIGHTNING),
+            breakdown.get(DamageElement.VOID),
+            source.getAttacker() != null ? source.getAttacker().getUuid() : null,
+            false // ES hits don't show as crits for now to keep it clean
+        );
+    }
+
+    @Unique
+    private void triggerShieldVisuals(ServerWorld world, PlayerEntity self, float prevShield, float newShield) {
+        world.playSoundFromEntity(null, self, ModSounds.ENERGY_SHIELD_HIT, SoundCategory.PLAYERS, 1.0f, 1.0f);
+
+        if (prevShield >= 1.0f && newShield < 1.0f) {
+            world.playSoundFromEntity(null, self, ModSounds.ENERGY_SHIELD_BREAK, SoundCategory.PLAYERS, 1.0f, 1.0f);
+            world.spawnParticles(ParticleTypes.END_ROD, self.getX(), self.getY() + 1.0, self.getZ(), 30, 0.5, 0.5, 0.5, 0.1);
         }
     }
 }

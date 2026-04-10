@@ -37,8 +37,13 @@ public abstract class KnockbackProcessorMixin {
             knockbackBonus += getEnchantmentValue(weapon, "minecraft:bonus_knockback", 0.35);
             knockbackBonus += getEnchantmentValue(chestplate, "minecraft:bonus_knockback", 0.35);
 
-            // Using multiplier to keep it from being "rocket-powered"
-            finalStrength *= (1.0 + knockbackBonus);
+            // If base strength is 0 (standing attack), give it a base strength from the bonus
+            if (finalStrength <= 0.01 && knockbackBonus > 0) {
+                finalStrength = knockbackBonus * 0.5; // Base push force
+            } else {
+                // Otherwise amplify existing knockback (sprinting/crit)
+                finalStrength *= (1.0 + knockbackBonus);
+            }
         }
 
         // 2. Apply Target's Resistance to the NEW total

@@ -305,7 +305,7 @@ public class ItemDefaultComponentsMixin {
             );
 
         } else if (itemName.contains("netherite")) {
-            // Netherite: Armor + Armor Toughness + Attack Damage
+            // Netherite: Armor + Armor Toughness + Physical Damage
             double attackDamage = getNetheriteAttackDamage(itemName);
             builder.add(
                     ModAttributes.BONUS_ATTACK_DAMAGE,
@@ -363,18 +363,18 @@ public class ItemDefaultComponentsMixin {
     }
 
     private double getArmorMultiplier(String itemName) {
-        if (itemName.contains("copper")) return 2.0;
-        if (itemName.contains("iron")) return 2.0;
-        if (itemName.contains("diamond")) return 2.0;
-        if (itemName.contains("netherite")) return 2.0;
+        if (itemName.contains("copper")) return 5.0;
+        if (itemName.contains("iron")) return 8.0;
+        if (itemName.contains("diamond")) return 15.0;
+        if (itemName.contains("netherite")) return 20.0;
         return 1.0;
     }
 
     private double getToughnessBonus(String itemName) {
-        if (itemName.contains("copper")) return 3.0;
-        if (itemName.contains("iron")) return 2.0;
-        if (itemName.contains("diamond")) return 3.0;
-        if (itemName.contains("netherite")) return 4.0;
+        if (itemName.contains("copper")) return 5.0;
+        if (itemName.contains("iron")) return 10.0;
+        if (itemName.contains("diamond")) return 20.0;
+        if (itemName.contains("netherite")) return 30.0;
         return 0.0;
     }
 
@@ -473,7 +473,7 @@ public class ItemDefaultComponentsMixin {
         return 0.0;
     }
 
-    // ========== NETHERITE: Attack Damage ==========
+    // ========== NETHERITE: Physical Damage ==========
     private double getNetheriteAttackDamage(String itemName) {
         if (itemName.contains("helmet")) return 1.0;
         if (itemName.contains("chestplate")) return 2.0;

@@ -12,6 +12,7 @@ import net.minecraft.entity.projectile.FireballEntity;
 import net.minecraft.entity.projectile.SmallFireballEntity;
 import net.minecraft.entity.projectile.thrown.SnowballEntity;
 import net.minecraft.entity.projectile.WitherSkullEntity;
+import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.boss.WitherEntity;
 
 import java.util.EnumMap;
@@ -146,7 +147,17 @@ public class DamageConversionHelper {
                 case LIGHTNING -> res = target.getAttributeValue(ModAttributes.LIGHTNING_RESISTANCE);
                 case VOID -> res = target.getAttributeValue(ModAttributes.VOID_RESISTANCE);
                 case PHYSICAL -> {
-                    finalTotal += amount;
+                    double ar = target.getAttributeValue(EntityAttributes.ARMOR);
+                    double toughness = target.getAttributeValue(EntityAttributes.ARMOR_TOUGHNESS);
+                    
+                    if (ar > 0 && amount > 0) {
+                        // PoE 2 Formula: PDR = Armor / (Armor + (10 / (1 + Toughness / 20)) * Damage)
+                        double coeff = 10.0 / (1.0 + (toughness / 20.0));
+                        double pdr = ar / (ar + coeff * amount);
+                        finalTotal += (float) (amount * (1.0 - pdr));
+                    } else {
+                        finalTotal += amount;
+                    }
                     continue;
                 }
             }

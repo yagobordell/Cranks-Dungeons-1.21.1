@@ -93,7 +93,12 @@ public class DamageNumber {
         } else {
             yOffset = 0.2 + (progress - 0.2f) * 0.3; // Slower float after burst
         }
-        return position.y + yOffset;
+
+        // Apply vertical stacking for multi-element hits
+        // Each index moves the number down by 0.45 meters so they don't overlap
+        double stackOffset = rowIndex * -0.45;
+
+        return position.y + yOffset + stackOffset;
     }
 
     /**

@@ -159,15 +159,17 @@ public abstract class InventoryScreenStatsMixin {
             ItemStack leggings = player.getEquippedStack(EquipmentSlot.LEGS);
             ItemStack boots = player.getEquippedStack(EquipmentSlot.FEET);
 
-            double attackDamage = player.getAttributeValue(EntityAttributes.ATTACK_DAMAGE);
             double baseAD = player.getAttributeBaseValue(EntityAttributes.ATTACK_DAMAGE);
+            double weaponAD = getModifierFromStack(weapon, EntityAttributes.ATTACK_DAMAGE);
+            double attackDamage = baseAD + weaponAD;
             attackDamage *= (1.0 + EquipmentStatApplier.getItemStatValue(weapon, "attack_damage_percent")
                     + EquipmentStatApplier.getItemStatValue(chestplate, "attack_damage_percent"));
-            curY = drawStatWithTooltip(context, tr, panelX, curY, "Attack Damage", attackDamage, baseAD, "", mouseX,
+            curY = drawStatWithTooltip(context, tr, panelX, curY, "Physical Damage", attackDamage, baseAD, "", mouseX,
                     mouseY, panelX, panelWidth);
 
-            double attackSpeed = player.getAttributeValue(EntityAttributes.ATTACK_SPEED);
             double baseAS = player.getAttributeBaseValue(EntityAttributes.ATTACK_SPEED);
+            double weaponAS = getModifierFromStack(weapon, EntityAttributes.ATTACK_SPEED);
+            double attackSpeed = baseAS + weaponAS;
             double runePercent = EquipmentStatApplier.getItemStatValue(weapon, "attack_speed")
                     + EquipmentStatApplier.getItemStatValue(chestplate, "attack_speed")
                     + player.getAttributeValue(ModAttributes.ATTACK_SPEED)
@@ -493,7 +495,7 @@ public abstract class InventoryScreenStatsMixin {
     @Unique
     private String getStatDescription(String statName) {
         return switch (statName) {
-            case "Attack Damage" -> "Physical damage dealt per hit";
+            case "Physical Damage" -> "Physical damage dealt per hit";
             case "Attack Speed" -> "Number of attacks per second";
             case "Crit Chance" -> "Chance to deal critical damage";
             case "Attack Range" -> "Maximum melee attack distance";
@@ -522,7 +524,7 @@ public abstract class InventoryScreenStatsMixin {
             case "Life Steal" -> "% of damage converted to health";
             case "Evasion" -> calculateEvasionDescription();
             case "Armor" -> calculateArmorDescription();
-            case "Toughness" -> "Reduces damage from big hits";
+            case "Toughness" -> "Improves armor effectiveness against big hits";
             case "Fire Res" -> "Reduces fire damage taken";
             case "Cold Res" -> "Reduces cold damage taken";
             case "Lightning Res" -> "Reduces lightning damage taken";
@@ -551,16 +553,23 @@ public abstract class InventoryScreenStatsMixin {
             return "Chance to dodge attacks";
         double rating = player.getAttributeValue(ModAttributes.EVASION_RATING);
         double armor = player.getAttributeValue(EntityAttributes.ARMOR);
-        return (int) (rating / (rating + 400.0 + armor * 5.0) * 100) + "% chance to dodge";
+        // Adjusted armor penalty (0.25x) to match new higher armor scale
+        return (int) (rating / (rating + 400.0 + armor * 0.25) * 100) + "% chance to dodge";
     }
 
     @Unique
     private String calculateArmorDescription() {
         var player = MinecraftClient.getInstance().player;
         if (player == null)
-            return "Reduces damage taken";
+            return "Reduces incoming physical damage";
         double armor = player.getAttributeValue(EntityAttributes.ARMOR);
-        return (int) (Math.min(20.0, armor / 5.0) * 5) + "% Reduced attack damage taken";
+        double toughness = player.getAttributeValue(EntityAttributes.ARMOR_TOUGHNESS);
+        
+        // Show reduction against a standard 10 damage hit
+        double coeff = 10.0 / (1.0 + (toughness / 20.0));
+        double pdr = armor / (armor + coeff * 10.0);
+        
+        return (int)(pdr * 100) + "% PDR (Estimated vs 10 Physical Damage)";
     }
 
     @Unique
@@ -663,7 +672,7 @@ public abstract class InventoryScreenStatsMixin {
         // Category header + spacing
         height += 11;
 
-        // Combat stats (6 stats: Attack Damage, Attack Speed, Crit Chance, Attack
+        // Combat stats (6 stats: Physical Damage, Attack Speed, Crit Chance, Attack
         // Range, Knockback, Reload Speed)
         height += 6 * 10;
         height += 6; // spacing after category

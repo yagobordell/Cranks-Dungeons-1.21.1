@@ -113,7 +113,9 @@ public class EnergyShieldHudRenderer implements HudRenderCallback {
         
         int heartY = armorBarY;
         int heartsInFullRowsBelow = (currentRow - 1) * 10;
-        int heartsToShow = Math.min(10, totalShieldHearts - heartsInFullRowsBelow);
+        
+        // Always show 10 hearts if total capacity is more than 10, to keep bar wide
+        int heartsToShow = totalShieldHearts > 10 ? 10 : totalShieldHearts;
 
         for (int i = 0; i < heartsToShow; i++) {
             int iconIndex = heartsInFullRowsBelow + i;
@@ -129,22 +131,26 @@ public class EnergyShieldHudRenderer implements HudRenderCallback {
             float baseVisibility = iconIndex * 2.0f;
             Identifier texture = null;
 
-            // Priority: is it filled?
-            if (currentShield >= baseVisibility + 1.01f) {
-                // If on row 2+ stacking, use current textures, otherwise blinking/normal
-                if (currentRow > 1 && totalShieldHearts > 10) {
-                    texture = shieldBlinking ? SHIELD_FULL_CURRENT_BLINKING : SHIELD_FULL_CURRENT;
-                } else {
+            boolean isLastRow = (currentRow == shieldRows);
+            boolean isFirstRow = (currentRow == 1);
+            boolean useCurrentTextures = !isFirstRow;
+
+            // 1. If this icon slot is within our current row's capacity
+            if (iconIndex < totalShieldHearts) {
+                if (currentShield >= baseVisibility + 1.01f) {
+                    texture = useCurrentTextures ? (shieldBlinking ? SHIELD_FULL_CURRENT_BLINKING : SHIELD_FULL_CURRENT) 
+                                               : (shieldBlinking ? SHIELD_FULL_BLINKING : SHIELD_FULL);
+                } else if (currentShield >= baseVisibility + 0.01f) {
+                    texture = useCurrentTextures ? (shieldBlinking ? SHIELD_HALF_CURRENT_BLINKING : SHIELD_HALF_CURRENT) 
+                                               : (shieldBlinking ? SHIELD_HALF_BLINKING : SHIELD_HALF);
+                } else if (!isFirstRow) {
+                    // Show filled hearts from row below as background in ALL rows above 1
                     texture = shieldBlinking ? SHIELD_FULL_BLINKING : SHIELD_FULL;
                 }
-            } else if (currentShield >= baseVisibility + 0.01f) {
-                if (currentRow > 1 && totalShieldHearts > 10) {
-                    texture = shieldBlinking ? SHIELD_HALF_CURRENT_BLINKING : SHIELD_HALF_CURRENT;
-                } else {
-                    texture = shieldBlinking ? SHIELD_HALF_BLINKING : SHIELD_HALF;
-                }
-            } else if (currentRow > 1 && totalShieldHearts > 10 && iconIndex < totalShieldHearts) {
-                // Empty slots on row 2+ show normal shield texture (stacking effect)
+            } 
+            // 2. If this icon is PAST our current row capacity but we are showing it for width
+            else if (totalShieldHearts > 10) {
+                // Should show the filled hearts from the COMPLETED row underneath
                 texture = shieldBlinking ? SHIELD_FULL_BLINKING : SHIELD_FULL;
             }
             

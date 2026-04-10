@@ -59,7 +59,10 @@ public class DamageNumberRenderer {
             if (isSelf && client.options.getPerspective().isFirstPerson()) {
                 float progress = number.getProgress();
                 sX = screenWidth / 2 + (number.isHeal ? 60 : -60);
-                sY = (int) (screenHeight / 2 + 30 - progress * 40);
+                
+                // Fix: Apply rowIndex stacking to the first-person Y coordinate
+                int rowSpacing = (int)((textRenderer.fontHeight + 2) * 1.5); // Slightly more spacing for UI
+                sY = (int) (screenHeight / 2 + 30 - progress * 40 + (number.rowIndex * rowSpacing));
             } else {
                 // Standard world-space projection for Mobs and other players
                 double worldX = number.position.x + number.offsetX;

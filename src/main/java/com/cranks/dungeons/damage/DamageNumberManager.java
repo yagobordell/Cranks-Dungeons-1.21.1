@@ -7,6 +7,11 @@ public class DamageNumberManager {
     private static final List<DamageNumber> activeNumbers = new ArrayList<>();
 
     public static void addDamageNumber(DamageNumber number) {
+        // Suppress 'crazy values' (e.g. from revival mod death triggers)
+        if (number.damage > 999999 && !number.isHeal) {
+            return;
+        }
+
         // Check if this is a drowning damage number (cyan-blue color 0x0088AA)
         boolean isDrowning = (number.color == 0x0088AA);
         

@@ -242,7 +242,7 @@ public class StatRegistry {
                 // CHESTPLATE-ONLY OFFENSIVE STATS
                 // ===================================================================
 
-                register(new CustomStat("chestplate_attack_damage", "Attack Damage",
+                register(new CustomStat("chestplate_attack_damage", "Physical Damage",
                                 EquipmentType.CHESTPLATE, EntityAttributes.ATTACK_DAMAGE,
                                 r(0.5, 1.5, 3.0, 5.0, 8.0), r(1.0, 2.5, 4.5, 7.5, 12.0),
                                 false, Formatting.WHITE));
@@ -301,8 +301,8 @@ public class StatRegistry {
                 // WEAPON STATS (Shared across weapon types)
                 // ===================================================================
 
-                // --- Attack Damage (all weapons) ---
-                registerForTypes("attack_damage", "Attack Damage",
+                // --- Physical Damage (all weapons) ---
+                registerForTypes("attack_damage", "Physical Damage",
                                 EntityAttributes.ATTACK_DAMAGE,
                                 r(0.5, 1.5, 3.0, 5.0, 8.0), r(1.0, 2.5, 4.5, 7.5, 12.0),
                                 false, Formatting.WHITE,
@@ -372,7 +372,7 @@ public class StatRegistry {
                                 ALL_WEAPONS);
 
                 // --- Percent Damages (all weapons) ---
-                registerForTypes("attack_damage_percent", "Increased Attack Damage",
+                registerForTypes("attack_damage_percent", "Increased Physical Damage",
                                 ModAttributes.ATTACK_DAMAGE_PERCENT,
                                 r(0.01, 0.20, 0.40, 0.60, 1.10), r(0.20, 0.40, 0.60, 1.00, 1.65),
                                 true, true, Formatting.WHITE,

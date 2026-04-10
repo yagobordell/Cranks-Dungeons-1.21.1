@@ -220,7 +220,7 @@ public abstract class ItemStackTooltipMixin {
                                 .append(Text.literal(df.format(attributeTotals.get(EntityAttributes.ARMOR_TOUGHNESS))).formatted(Formatting.WHITE)));
                     }
                     if (attributeTotals.containsKey(ModAttributes.BONUS_ATTACK_DAMAGE)) {
-                        tooltip.add(Text.literal("Attack Damage: ").formatted(Formatting.GRAY)
+                        tooltip.add(Text.literal("Physical Damage: ").formatted(Formatting.GRAY)
                                 .append(Text.literal("+" + df.format(attributeTotals.get(ModAttributes.BONUS_ATTACK_DAMAGE))).formatted(Formatting.WHITE)));
                     }
                     addedAny = true;

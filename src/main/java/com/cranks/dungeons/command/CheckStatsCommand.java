@@ -53,7 +53,7 @@ public class CheckStatsCommand {
                         double totalSpeed = player.getAttributeValue(ModAttributes.ATTACK_SPEED) + weaponSpeed;
                         double totalBonusDmg = player.getAttributeValue(ModAttributes.BONUS_ATTACK_DAMAGE) + weaponBonusDmg;
 
-                        sendStat(player, "Attack Damage", baseDamage + totalBonusDmg, 0, "");
+                        sendStat(player, "Physical Damage", baseDamage + totalBonusDmg, 0, "");
                         if (totalSpeed > 0) sendStat(player, "Attack Speed", totalSpeed * 100, 0, "%");
                         if (totalCrit > 0) sendStat(player, "Critical Chance", totalCrit * 100, 0, "%");
                         if (totalBonusDmg > 0) sendStat(player, "Bonus Damage", totalBonusDmg, 0, "");
