@@ -55,7 +55,7 @@ public abstract class ElementalDamageMixin {
     private float cranks$reducePvPDamage(float amount, ServerWorld world, DamageSource source) {
         LivingEntity target = (LivingEntity) (Object) this;
         if (source.getAttacker() instanceof PlayerEntity && target instanceof PlayerEntity) {
-            return amount * 0.5f;
+            return amount * 0.25f;
         }
         return amount;
     }
@@ -95,7 +95,7 @@ public abstract class ElementalDamageMixin {
 
         // Check if this hit was a critical strike
         boolean isPvP = target instanceof PlayerEntity;
-        double pvpMultiplier = isPvP ? 0.5 : 1.0;
+        double pvpMultiplier = isPvP ? 0.25 : 1.0;
 
         boolean isCrit = CriticalHitState.isCriticalHit();
         float critMultiplier = isCrit ? (isPvP ? 1.25f : 1.5f) : 1.0f;
