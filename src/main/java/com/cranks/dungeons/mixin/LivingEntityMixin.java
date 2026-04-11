@@ -100,6 +100,7 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
 
                 // Offensive
                 .add(ModAttributes.CRIT_CHANCE)
+                .add(ModAttributes.CRIT_MULTIPLIER)
                 .add(ModAttributes.BONUS_ATTACK_DAMAGE)
                 .add(ModAttributes.FIRE_DAMAGE)
                 .add(ModAttributes.COLD_DAMAGE)
@@ -138,6 +139,7 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
                 .add(ModAttributes.COLD_DAMAGE_PERCENT)
                 .add(ModAttributes.LIGHTNING_DAMAGE_PERCENT)
                 .add(ModAttributes.VOID_DAMAGE_PERCENT)
+                .add(ModAttributes.SHOCK_DURATION)
                 .add(ModAttributes.RELOAD_SPEED);
 
         cir.setReturnValue(builder);

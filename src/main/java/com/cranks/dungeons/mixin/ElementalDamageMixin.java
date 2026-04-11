@@ -98,7 +98,11 @@ public abstract class ElementalDamageMixin {
         double pvpMultiplier = isPvP ? 0.25 : 1.0;
 
         boolean isCrit = CriticalHitState.isCriticalHit();
-        float critMultiplier = isCrit ? (isPvP ? 1.25f : 1.5f) : 1.0f;
+        float critMultiplier = isCrit ? (float) attacker.getAttributeValue(ModAttributes.CRIT_MULTIPLIER) : 1.0f;
+        // Halve the bonus multiplier in PvP
+        if (isCrit && isPvP) {
+            critMultiplier = 1.0f + (critMultiplier - 1.0f) * 0.5f;
+        }
 
         // Use unreduced physical damage for internal scaling calculations to avoid double-dipping the 75% PvP reduction
         float unreducedPhysicalDamage = (float) (amount / pvpMultiplier);

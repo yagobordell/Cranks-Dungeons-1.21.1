@@ -93,6 +93,18 @@ public class EnergyShieldDamageMixin {
             triggerShieldVisuals(world, self, currentShield, newShield);
             triggerDamageNumbers(world, self, source, amount);
             ServerPlayNetworking.send(serverPlayer, new EnergyShieldSyncPacket(newShield));
+
+            // Manual Knockback for fully absorbed hits
+            if (!source.isIn(net.minecraft.registry.tag.DamageTypeTags.NO_KNOCKBACK)) {
+                net.minecraft.util.math.Vec3d vec3d = source.getPosition();
+                if (vec3d != null) {
+                    self.takeKnockback(0.4000000059604645, vec3d.getX() - self.getX(), vec3d.getZ() - self.getZ());
+                } else if (source.getAttacker() != null) {
+                    self.takeKnockback(0.4000000059604645, source.getAttacker().getX() - self.getX(), source.getAttacker().getZ() - self.getZ());
+                }
+                // SYNC: Manually send velocity update packet since damage method is cancelled
+                serverPlayer.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.EntityVelocityUpdateS2CPacket(self));
+            }
             
             return 0.0f; 
         } else {

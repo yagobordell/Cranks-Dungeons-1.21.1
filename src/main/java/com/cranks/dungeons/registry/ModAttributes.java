@@ -26,6 +26,7 @@ public class ModAttributes {
 
     // Offensive stats
     public static final RegistryEntry<EntityAttribute> CRIT_CHANCE = register("crit_chance", 0.05, 0.0, 1.0);
+    public static final RegistryEntry<EntityAttribute> CRIT_MULTIPLIER = register("crit_multiplier", 1.5, 1.0, 10.0);
     public static final RegistryEntry<EntityAttribute> BONUS_ATTACK_DAMAGE = register("bonus_attack_damage", 0.0, 0.0, 100.0);
     public static final RegistryEntry<EntityAttribute> FIRE_DAMAGE = register("fire_damage", 0.0, 0.0, 100.0);
     public static final RegistryEntry<EntityAttribute> COLD_DAMAGE = register("cold_damage", 0.0, 0.0, 100.0);
