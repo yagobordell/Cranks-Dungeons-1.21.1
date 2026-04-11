@@ -141,7 +141,7 @@ public class StatRegistry {
                 // --- Armor (Armor + Shield) ---
                 registerForTypes("armor", "Armor",
                                 EntityAttributes.ARMOR,
-                                r(0.5, 1.5, 3.0, 5.0, 8.0), r(1.0, 2.5, 4.5, 7.5, 12.0),
+                                r(10.0, 30.0, 60.0, 100.0, 160.0), r(20.0, 50.0, 90.0, 150.0, 240.0),
                                 false, Formatting.WHITE,
                                 EquipmentType.HELMET, EquipmentType.CHESTPLATE, EquipmentType.LEGGINGS,
                                 EquipmentType.BOOTS,
@@ -150,7 +150,7 @@ public class StatRegistry {
                 // --- Armor Toughness (Armor + Shield) ---
                 registerForTypes("armor_toughness", "Armor Toughness",
                                 EntityAttributes.ARMOR_TOUGHNESS,
-                                r(0.3, 0.8, 1.5, 2.5, 4.0), r(0.6, 1.4, 2.4, 4.0, 6.0),
+                                r(6.0, 16.0, 30.0, 50.0, 80.0), r(12.0, 28.0, 48.0, 80.0, 120.0),
                                 false, Formatting.WHITE,
                                 EquipmentType.HELMET, EquipmentType.CHESTPLATE, EquipmentType.LEGGINGS,
                                 EquipmentType.BOOTS,

@@ -566,7 +566,7 @@ public abstract class InventoryScreenStatsMixin {
         double toughness = player.getAttributeValue(EntityAttributes.ARMOR_TOUGHNESS);
         
         // Show reduction against a standard 10 damage hit
-        double coeff = 10.0 / (1.0 + (toughness / 20.0));
+        double coeff = 80.0 / (1.0 + (toughness / 20.0));
         double pdr = armor / (armor + coeff * 10.0);
         
         return (int)(pdr * 100) + "% PDR (Estimated vs 10 Physical Damage)";

@@ -100,7 +100,8 @@ public abstract class ElementalDamageMixin {
         boolean isCrit = CriticalHitState.isCriticalHit();
         float critMultiplier = isCrit ? (isPvP ? 1.25f : 1.5f) : 1.0f;
 
-        // The amount parameter already has crit applied to physical damage
+        // Use unreduced physical damage for internal scaling calculations to avoid double-dipping the 75% PvP reduction
+        float unreducedPhysicalDamage = (float) (amount / pvpMultiplier);
         float physicalDamage = amount;
 
         try {
@@ -144,8 +145,8 @@ public abstract class ElementalDamageMixin {
             double voidDamage = voidBaseDamage * (1.0 + voidTotalPercent) * critMultiplier;
 
             // === PROPORTIONAL EXTRA DAMAGE (RUNES) ===
-            // Calculate total basic damage for proportional scaling
-            double totalBasicDamage = physicalDamage + fireDamage + coldDamage + lightningDamage + voidDamage;
+            // Calculate total basic damage using UNREDUCED values for proportional scaling
+            double totalBasicDamage = unreducedPhysicalDamage + fireDamage + coldDamage + lightningDamage + voidDamage;
 
             double extraPhysicalPercent = CombatUtility.getAttributeValue(attacker, ModAttributes.PHYSICAL_EXTRA_PERCENT, weapon, "attack_extra_damage", source);
             double finalPhysicalExtraDamage = totalBasicDamage * extraPhysicalPercent;
@@ -181,9 +182,10 @@ public abstract class ElementalDamageMixin {
             float healthBeforeElemental = target.getHealth();
 
             if (finalPhysicalExtraDamage > 0) {
-                applyElementalDamage(target, world, finalPhysicalExtraDamage, DamageElement.PHYSICAL);
-                totalElementalDamage += finalPhysicalExtraDamage;
-                physicalDamage += (float) finalPhysicalExtraDamage;
+                float reducedExtraPhysical = DamageConversionHelper.calculatePhysicalReduction(target, (float) finalPhysicalExtraDamage);
+                applyElementalDamage(target, world, reducedExtraPhysical, DamageElement.PHYSICAL);
+                totalElementalDamage += reducedExtraPhysical;
+                physicalDamage += reducedExtraPhysical;
                 if (target.getHealth() <= 0) targetDiedFromElemental = true;
             }
 
@@ -412,7 +414,15 @@ public abstract class ElementalDamageMixin {
         // Energy Shield Mitigation for players
         if (target instanceof PlayerEntity player && target instanceof com.cranks.dungeons.EnergyShieldProvider esProvider) {
             float currentShield = esProvider.cranksdungeons$getCurrentEnergyShield();
-            if (currentShield > 0) {
+            
+            // Check shield cooldown - allow the same-frame hit (currentTime == lastDamageTime)
+            // but block if it's a different hit within the cooldown window.
+            long currentTime = world.getTime();
+            long lastDamageTime = esProvider.cranksdungeons$getLastDamageTime();
+            boolean isSameHit = (currentTime == lastDamageTime);
+            boolean onCooldown = (currentTime - lastDamageTime < 10L); // 10L = SHIELD_COOLDOWN_TICKS
+
+            if (currentShield > 0 && (isSameHit || !onCooldown)) {
                 // Weighted damage (Void deals 2x to shields)
                 float weightedDamage = (element == DamageElement.VOID) ? damageAmount * 2.0f : damageAmount;
                 

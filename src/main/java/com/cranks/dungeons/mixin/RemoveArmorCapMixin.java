@@ -12,16 +12,11 @@ import java.lang.reflect.Field;
 @Mixin(ClampedEntityAttribute.class)
 public class RemoveArmorCapMixin {
 
-    @Shadow
-    private double maxValue;
-
-    @Inject(method = "<init>", at = @At("RETURN"))
-    private void uncapArmor(String translationKey, double fallback, double min, double max, CallbackInfo ci) {
-        // Force modify maxValue for armor and toughness attributes
-        // This used reflection before, which fails in production due to obfuscation.
-        // Using the Shadow field directly allows Mixin to handle remapping.
+    @org.spongepowered.asm.mixin.injection.ModifyVariable(method = "<init>", at = @At("HEAD"), argsOnly = true, ordinal = 2)
+    private static double uncapArmor(double max) {
         if (max == 30.0 || max == 20.0) {
-            this.maxValue = 1024.0;
+            return 1024.0;
         }
+        return max;
     }
 }

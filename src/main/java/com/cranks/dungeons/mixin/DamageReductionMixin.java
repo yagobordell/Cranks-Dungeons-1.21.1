@@ -44,6 +44,7 @@ public abstract class DamageReductionMixin {
             }
 
             DamageConversionHelper.DamageBreakdown breakdown = DamageConversionHelper.getBreakdown(source, amount);
+            breakdown.applyResistancesInPlace(entity);
             if (entity instanceof DamageBreakdownProvider provider) {
                 provider.cranks$setLastDamageBreakdown(breakdown);
             }
@@ -62,7 +63,7 @@ public abstract class DamageReductionMixin {
                 }
             }
 
-            return DamageConversionHelper.applyResistances(entity, breakdown);
+            return breakdown.getTotal();
         } finally {
             cranks$processingResistance.set(false);
         }

@@ -40,6 +40,30 @@ public class DamageConversionHelper {
             for (float f : damages.values()) total += f;
             return total;
         }
+
+        /**
+         * Reduces each damage component in the breakdown by the target's resistances and armor.
+         * Used to ensure the display matches the actual health loss.
+         */
+        public void applyResistancesInPlace(LivingEntity target) {
+            for (Map.Entry<DamageElement, Float> entry : new java.util.HashMap<>(damages).entrySet()) {
+                DamageElement element = entry.getKey();
+                float amount = entry.getValue();
+
+                if (element == DamageElement.PHYSICAL) {
+                    damages.put(element, calculatePhysicalReduction(target, amount));
+                } else if (element != DamageElement.DROWN) {
+                    double res = switch (element) {
+                        case FIRE -> target.getAttributeValue(ModAttributes.FIRE_RESISTANCE);
+                        case COLD -> target.getAttributeValue(ModAttributes.COLD_RESISTANCE);
+                        case LIGHTNING -> target.getAttributeValue(ModAttributes.LIGHTNING_RESISTANCE);
+                        case VOID -> target.getAttributeValue(ModAttributes.VOID_RESISTANCE);
+                        default -> 0;
+                    };
+                    damages.put(element, (float) (amount * (1.0 - res)));
+                }
+            }
+        }
     }
 
     public static DamageBreakdown getBreakdown(DamageSource source, float amount) {
@@ -147,22 +171,30 @@ public class DamageConversionHelper {
                 case LIGHTNING -> res = target.getAttributeValue(ModAttributes.LIGHTNING_RESISTANCE);
                 case VOID -> res = target.getAttributeValue(ModAttributes.VOID_RESISTANCE);
                 case PHYSICAL -> {
-                    double ar = target.getAttributeValue(EntityAttributes.ARMOR);
-                    double toughness = target.getAttributeValue(EntityAttributes.ARMOR_TOUGHNESS);
-                    
-                    if (ar > 0 && amount > 0) {
-                        // PoE 2 Formula: PDR = Armor / (Armor + (10 / (1 + Toughness / 20)) * Damage)
-                        double coeff = 10.0 / (1.0 + (toughness / 20.0));
-                        double pdr = ar / (ar + coeff * amount);
-                        finalTotal += (float) (amount * (1.0 - pdr));
-                    } else {
-                        finalTotal += amount;
-                    }
+                    finalTotal += calculatePhysicalReduction(target, amount);
                     continue;
                 }
             }
             finalTotal += (float) (amount * (1.0 - res));
         }
         return finalTotal;
+    }
+
+    /**
+     * Calculates the remaining damage after applying the custom Path of Exile 2 inspired armor reduction.
+     */
+    public static float calculatePhysicalReduction(LivingEntity target, float amount) {
+        double ar = target.getAttributeValue(net.minecraft.entity.attribute.EntityAttributes.ARMOR);
+        double toughness = target.getAttributeValue(net.minecraft.entity.attribute.EntityAttributes.ARMOR_TOUGHNESS);
+
+        if (ar > 0 && amount > 0) {
+            // Stabilized formula: X = (400 + 10 * Damage) / (1 + Toughness / 20)
+            // PDR = Armor / (Armor + X)
+            // This is less sensitive to hit size than the pure PoE 2 formula, making damage more consistent.
+            double x = (400.0 + 10.0 * amount) / (1.0 + (toughness / 20.0));
+            double pdr = ar / (ar + x);
+            return (float) (amount * (1.0 - pdr));
+        }
+        return amount;
     }
 }
