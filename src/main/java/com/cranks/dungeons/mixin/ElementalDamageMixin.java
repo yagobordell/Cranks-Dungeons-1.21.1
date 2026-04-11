@@ -406,16 +406,50 @@ public abstract class ElementalDamageMixin {
 
     @Unique
     private void applyElementalDamage(LivingEntity target, ServerWorld world, double damage, DamageElement element) {
-        // Use proper damage method with elemental damage source to ensure death handling and loot drops
         float damageAmount = (float) damage;
-        
-        // Check if this would kill the entity
+        if (damageAmount <= 0) return;
+
+        // Energy Shield Mitigation for players
+        if (target instanceof PlayerEntity player && target instanceof com.cranks.dungeons.EnergyShieldProvider esProvider) {
+            float currentShield = esProvider.cranksdungeons$getCurrentEnergyShield();
+            if (currentShield > 0) {
+                // Weighted damage (Void deals 2x to shields)
+                float weightedDamage = (element == DamageElement.VOID) ? damageAmount * 2.0f : damageAmount;
+                
+                if (currentShield >= weightedDamage) {
+                    float newShield = currentShield - weightedDamage;
+                    esProvider.cranksdungeons$setCurrentEnergyShield(newShield);
+                    
+                    // Sync to client
+                    if (player instanceof net.minecraft.server.network.ServerPlayerEntity serverPlayer) {
+                        net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(
+                            serverPlayer, 
+                            new com.cranks.dungeons.network.EnergyShieldSyncPacket(newShield)
+                        );
+                    }
+                    return; // Fully absorbed
+                } else {
+                    float absorptionRatio = currentShield / weightedDamage;
+                    float absorbedHealthDamage = damageAmount * absorptionRatio;
+                    damageAmount -= absorbedHealthDamage;
+                    
+                    esProvider.cranksdungeons$setCurrentEnergyShield(0.0f);
+                    if (player instanceof net.minecraft.server.network.ServerPlayerEntity serverPlayer) {
+                        net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(
+                            serverPlayer, 
+                            new com.cranks.dungeons.network.EnergyShieldSyncPacket(0.0f)
+                        );
+                    }
+                    // Remaining damage falls through to health application below
+                }
+            }
+        }
+
+        // Apply health reduction
         if (target.getHealth() - damageAmount <= 0) {
-            // Entity will die - use proper damage source to ensure loot drops
             DamageSource damageSource = getElementalDamageSource(world, element);
             target.damage(world, damageSource, damageAmount);
         } else {
-            // Entity won't die - apply damage directly to avoid vanilla damage numbers
             target.setHealth(target.getHealth() - damageAmount);
         }
     }

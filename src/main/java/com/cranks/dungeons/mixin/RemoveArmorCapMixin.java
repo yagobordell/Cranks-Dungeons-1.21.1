@@ -17,15 +17,11 @@ public class RemoveArmorCapMixin {
 
     @Inject(method = "<init>", at = @At("RETURN"))
     private void uncapArmor(String translationKey, double fallback, double min, double max, CallbackInfo ci) {
-        // Force modify maxValue for armor attributes
-        if (max == 30.0 || max == 20.0) {  // 30 = armor cap, 20 = toughness cap
-            try {
-                Field field = ClampedEntityAttribute.class.getDeclaredField("maxValue");
-                field.setAccessible(true);
-                field.set(this, 1024.0);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+        // Force modify maxValue for armor and toughness attributes
+        // This used reflection before, which fails in production due to obfuscation.
+        // Using the Shadow field directly allows Mixin to handle remapping.
+        if (max == 30.0 || max == 20.0) {
+            this.maxValue = 1024.0;
         }
     }
 }

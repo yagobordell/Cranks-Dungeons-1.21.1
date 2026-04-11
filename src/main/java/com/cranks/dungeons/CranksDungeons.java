@@ -105,6 +105,8 @@ public class CranksDungeons implements ModInitializer {
 						.add(ModAttributes.COLD_EXTRA_PERCENT, 0.0)
 						.add(ModAttributes.LIGHTNING_EXTRA_PERCENT, 0.0)
 						.add(ModAttributes.VOID_EXTRA_PERCENT, 0.0)
+						.add(ModAttributes.KNOCKBACK, 0.0)
+						.add(ModAttributes.KNOCKBACK_RESISTANCE, 0.0)
 		);
 
 		registerCreativeTabItems();

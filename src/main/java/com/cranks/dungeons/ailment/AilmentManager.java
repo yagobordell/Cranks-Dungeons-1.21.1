@@ -281,8 +281,54 @@ public class AilmentManager {
     }
 
     private static void applySingleAilmentDamage(LivingEntity entity, float damage, Ailment ailment) {
+        float damageToApply = damage;
+
+        // Energy Shield Mitigation for players (Burn/Shock/Cold/Lightning/Void etc. ailments)
+        // Poison and Bleed bypass Energy Shield based on PoE 2 rules
+        if (entity instanceof PlayerEntity player && entity instanceof com.cranks.dungeons.EnergyShieldProvider esProvider) {
+            if (ailment.getType() != AilmentType.POISON && ailment.getType() != AilmentType.BLEED) {
+                float currentShield = esProvider.cranksdungeons$getCurrentEnergyShield();
+                if (currentShield > 0) {
+                    float weightedDamage = (ailment.getType() == AilmentType.BURN || ailment.getType() == AilmentType.SHOCK || ailment.getType() == AilmentType.FREEZE) ? damageToApply : damageToApply;
+                    // Note: Void ailment doesn't exist yet but if it did, weighted *= 2.0f
+                    
+                    if (currentShield >= weightedDamage) {
+                        float newShield = currentShield - weightedDamage;
+                        esProvider.cranksdungeons$setCurrentEnergyShield(newShield);
+                        if (player instanceof net.minecraft.server.network.ServerPlayerEntity serverPlayer) {
+                            net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(
+                                serverPlayer,
+                                new com.cranks.dungeons.network.EnergyShieldSyncPacket(newShield)
+                            );
+                        }
+                        damageToApply = 0; // Fully absorbed
+                    } else {
+                        float absorptionRatio = currentShield / weightedDamage;
+                        damageToApply -= damageToApply * absorptionRatio;
+                        esProvider.cranksdungeons$setCurrentEnergyShield(0.0f);
+                        if (player instanceof net.minecraft.server.network.ServerPlayerEntity serverPlayer) {
+                            net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(
+                                serverPlayer,
+                                new com.cranks.dungeons.network.EnergyShieldSyncPacket(0.0f)
+                            );
+                        }
+                    }
+                }
+            }
+        }
+
+        if (damageToApply <= 0 && damage > 0) {
+            // Damage was fully absorbed by ES. Still broadcast damage numbers.
+            if (entity.getEntityWorld() instanceof ServerWorld serverWorld) {
+                double fire = (ailment.getType() == AilmentType.BURN) ? damage : 0.0;
+                double physical = (ailment.getType() == AilmentType.BLEED) ? (double)damage : 0.0;
+                com.cranks.dungeons.network.DamageNumberSender.broadcast(serverWorld, entity, physical, fire, 0.0, 0.0, 0.0, ailment.getSourceUuid(), false);
+            }
+            return;
+        }
+
         float currentHealth = entity.getHealth();
-        float newHealth = Math.max(0, currentHealth - damage);
+        float newHealth = Math.max(0, currentHealth - damageToApply);
         entity.setHealth(newHealth);
 
         if (entity.getEntityWorld() instanceof ServerWorld serverWorld) {
