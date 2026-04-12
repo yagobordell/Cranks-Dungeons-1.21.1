@@ -12,6 +12,7 @@ base {
 
 repositories {
 	maven { url "https://maven.terraformersmc.com/releases" }
+	maven { url 'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/' }
 }
 
 loom {
@@ -37,6 +38,9 @@ dependencies {
 
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 	modCompileOnly "com.terraformersmc:modmenu:11.0.1"
+
+	// GeckoLib (Optional)
+	modCompileOnly "software.bernie.geckolib:geckolib-fabric-1.21.11:${project.geckolib_version}"
 }
 
 processResources {

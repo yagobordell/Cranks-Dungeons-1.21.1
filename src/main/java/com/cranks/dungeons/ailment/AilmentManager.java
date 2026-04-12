@@ -16,6 +16,8 @@ import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.Box;
+import net.minecraft.util.math.Vec3d;
+import com.cranks.dungeons.network.ShockArcPayload;
 
 import java.util.Optional;
 
@@ -589,6 +591,17 @@ public class AilmentManager {
                 
                 // Spawn shock chain particles at target position
                 spawnShockChainParticles(world, target);
+
+                // Send ShockArc visual to all nearby players
+                Vec3d startPos = new Vec3d(entity.getX(), entity.getY() + entity.getStandingEyeHeight() * 0.8, entity.getZ());
+                Vec3d endPos = new Vec3d(target.getX(), target.getY() + target.getStandingEyeHeight() * 0.8, target.getZ());
+                ShockArcPayload payload = new ShockArcPayload(startPos, endPos, 0xFFFFFF); // White lightning
+
+                for (net.minecraft.server.network.ServerPlayerEntity player : world.getPlayers()) {
+                    if (player.squaredDistanceTo(startPos) < 64 * 64) {
+                        net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(player, payload);
+                    }
+                }
                 
             }
         }
@@ -626,7 +639,7 @@ public class AilmentManager {
 
     private static void spawnShockChainParticles(ServerWorld world, LivingEntity target) {
         double centerX = target.getX();
-        double centerY = target.getY() + target.getHeight() / 2.0;
+        double centerY = target.getY() + target.getStandingEyeHeight() * 0.8;
         double centerZ = target.getZ();
 
         // Spawn 4 different shock particles in a small burst (single iteration)

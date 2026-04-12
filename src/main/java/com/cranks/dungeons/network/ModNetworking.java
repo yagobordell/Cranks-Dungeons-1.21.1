@@ -26,6 +26,7 @@ public class ModNetworking {
                 ToggleEnchantmentDisablePayload.CODEC
         );
         PayloadTypeRegistry.playS2C().register(DamageNumberPayload.ID, DamageNumberPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(ShockArcPayload.ID, ShockArcPayload.CODEC);
         
         // Party packets
         PayloadTypeRegistry.playS2C().register(PartySyncPacket.ID, PartySyncPacket.CODEC);

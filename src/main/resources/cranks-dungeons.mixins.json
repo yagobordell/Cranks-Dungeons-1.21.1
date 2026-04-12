@@ -90,7 +90,9 @@
 		"StatusEffectDisplayMixin",
 		"AilmentHeartTextureMixin",
 		"DisableArmorBarMixin",
-		"OverflowingBarsAilmentMixin"
+		"OverflowingBarsAilmentMixin",
+		"client.LivingEntityRendererMixin",
+		"client.LivingEntityRenderStateMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

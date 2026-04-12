@@ -21,6 +21,7 @@ import com.cranks.dungeons.damage.DamageNumberRenderer;
 import com.cranks.dungeons.network.EnergyShieldSyncPacket;
 import com.cranks.dungeons.network.DamageNumberPayload;
 import com.cranks.dungeons.network.StatOptionsSyncPacket;
+import com.cranks.dungeons.network.ShockArcPayload;
 import com.cranks.dungeons.screen.ArtificialEnhancementAltarScreen;
 import com.cranks.dungeons.screen.ArtificialEnhancementAltarScreenHandler;
 import com.cranks.dungeons.screen.ModScreenHandlers;
@@ -175,10 +176,16 @@ public class CranksDungeonsClient implements ClientModInitializer {
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             DamageNumberManager.tick();
+            com.cranks.dungeons.client.render.LightningArcManager.tick();
         });
 
         HudRenderCallback.EVENT.register((context, tickCounter) -> {
             DamageNumberRenderer.renderHud(context, 0f);
+        });
+
+        net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents.AFTER_ENTITIES.register(context -> {
+            com.cranks.dungeons.client.render.LightningArcRenderer.render(context);
+            com.cranks.dungeons.client.render.AilmentIconRenderer.render(context);
         });
         
         // Register party HUD renderer
@@ -226,6 +233,12 @@ public class CranksDungeonsClient implements ClientModInitializer {
                         false
                     );
                 }
+            });
+        });
+
+        ClientPlayNetworking.registerGlobalReceiver(ShockArcPayload.ID, (payload, context) -> {
+            context.client().execute(() -> {
+                com.cranks.dungeons.client.render.LightningArcManager.addArc(payload.start(), payload.end(), payload.color());
             });
         });
     }
