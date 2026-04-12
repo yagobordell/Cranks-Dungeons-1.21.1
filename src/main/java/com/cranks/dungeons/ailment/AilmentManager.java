@@ -18,6 +18,11 @@ import net.minecraft.text.Text;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 import com.cranks.dungeons.network.ShockArcPayload;
+import com.cranks.dungeons.network.AilmentSyncPayload;
+import net.minecraft.util.Identifier;
+import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.entity.effect.StatusEffect;
 
 import java.util.Optional;
 
@@ -184,6 +189,37 @@ public class AilmentManager {
                 }
             }
             default -> {}
+        }
+    }
+
+    public static void syncAilments(LivingEntity entity) {
+        if (entity.getEntityWorld().isClient() || !(entity.getEntityWorld() instanceof net.minecraft.server.world.ServerWorld serverWorld)) return;
+
+        List<AilmentSyncPayload.AilmentEntry> entries = new java.util.ArrayList<>();
+        
+        checkAndAddSyncEntry(entity, ModEffects.BURN, Identifier.of(com.cranks.dungeons.CranksDungeons.MOD_ID, "textures/mob_effect/burn.png"), entries);
+        checkAndAddSyncEntry(entity, ModEffects.POISON, Identifier.of(com.cranks.dungeons.CranksDungeons.MOD_ID, "textures/mob_effect/poison.png"), entries);
+        checkAndAddSyncEntry(entity, ModEffects.FREEZE, Identifier.of(com.cranks.dungeons.CranksDungeons.MOD_ID, "textures/mob_effect/freeze.png"), entries);
+        checkAndAddSyncEntry(entity, ModEffects.SHOCK, Identifier.of(com.cranks.dungeons.CranksDungeons.MOD_ID, "textures/mob_effect/shock.png"), entries);
+        checkAndAddSyncEntry(entity, ModEffects.BLEED, Identifier.of(com.cranks.dungeons.CranksDungeons.MOD_ID, "textures/mob_effect/bleed.png"), entries);
+
+        AilmentSyncPayload payload = new AilmentSyncPayload(entity.getId(), entries);
+        
+        // Send to all players tracking this entity
+        net.fabricmc.fabric.api.networking.v1.PlayerLookup.tracking(entity).forEach(player -> {
+            ServerPlayNetworking.send(player, payload);
+        });
+        
+        // Also send to the entity themselves if it's a player
+        if (entity instanceof net.minecraft.server.network.ServerPlayerEntity player) {
+            ServerPlayNetworking.send(player, payload);
+        }
+    }
+
+    private static void checkAndAddSyncEntry(LivingEntity entity, net.minecraft.registry.entry.RegistryEntry<StatusEffect> effect, Identifier texture, List<AilmentSyncPayload.AilmentEntry> entries) {
+        StatusEffectInstance instance = entity.getStatusEffect(effect);
+        if (instance != null) {
+            entries.add(new AilmentSyncPayload.AilmentEntry(texture, instance.getAmplifier() + 1));
         }
     }
 

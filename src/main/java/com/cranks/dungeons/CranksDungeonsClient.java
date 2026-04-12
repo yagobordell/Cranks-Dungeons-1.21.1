@@ -241,5 +241,11 @@ public class CranksDungeonsClient implements ClientModInitializer {
                 com.cranks.dungeons.client.render.LightningArcManager.addArc(payload.start(), payload.end(), payload.color());
             });
         });
+
+        ClientPlayNetworking.registerGlobalReceiver(com.cranks.dungeons.network.AilmentSyncPayload.ID, (payload, context) -> {
+            context.client().execute(() -> {
+                com.cranks.dungeons.client.render.AilmentIconRenderer.updateAilments(payload.entityId(), payload.ailments());
+            });
+        });
     }
 }

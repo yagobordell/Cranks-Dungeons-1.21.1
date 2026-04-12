@@ -77,7 +77,8 @@
 		"FreezeSoundMixin",
 		"DrowningDamageMixin",
 		"DrowningHealBlockMixin",
-		"PartyPvPMixin"
+		"PartyPvPMixin",
+		"AilmentSyncMixin"
 	],
 	"client": [
 		"HideArmorAttributeMixin",
@@ -91,8 +92,7 @@
 		"AilmentHeartTextureMixin",
 		"DisableArmorBarMixin",
 		"OverflowingBarsAilmentMixin",
-		"client.LivingEntityRendererMixin",
-		"client.LivingEntityRenderStateMixin"
+		"client.LivingEntityRendererMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
