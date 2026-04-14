@@ -28,15 +28,11 @@ public class AilmentIconRenderer {
             AILMENT_CACHE.remove(entityId);
         } else {
             AILMENT_CACHE.put(entityId, new ArrayList<>(ailments));
-            // Debug logging to verify server data
-            for (AilmentSyncPayload.AilmentEntry entry : ailments) {
-                if (entry.stacks() > 1) {
-                    String msg = "AILMENT SYNC: [Entity " + entityId + "] " + entry.texture() + " (Stacks: " + entry.stacks() + ")";
-                    com.cranks.dungeons.CranksDungeons.LOGGER.info(msg);
-                    System.out.println(msg); // Direct output to ensure it's seen
-                }
-            }
         }
+    }
+
+    public static List<AilmentSyncPayload.AilmentEntry> getAilments(int entityId) {
+        return AILMENT_CACHE.getOrDefault(entityId, List.of());
     }
 
     private static final Identifier FONT_TEXTURE = Identifier.ofVanilla("textures/font/ascii.png");

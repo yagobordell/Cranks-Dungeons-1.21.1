@@ -22,6 +22,12 @@ public class ModParticles {
     public static final SimpleParticleType SHOCK_AMBIENT_1 = FabricParticleTypes.simple();
     public static final SimpleParticleType SHOCK_AMBIENT_2 = FabricParticleTypes.simple();
     public static final SimpleParticleType SHOCK_AMBIENT_3 = FabricParticleTypes.simple();
+
+    // Bleed splash particles (4 variants)
+    public static final SimpleParticleType BLEED_SPLASH_1 = FabricParticleTypes.simple();
+    public static final SimpleParticleType BLEED_SPLASH_2 = FabricParticleTypes.simple();
+    public static final SimpleParticleType BLEED_SPLASH_3 = FabricParticleTypes.simple();
+    public static final SimpleParticleType BLEED_SPLASH_4 = FabricParticleTypes.simple();
     
     public static void register() {
         Registry.register(Registries.PARTICLE_TYPE, 
@@ -46,5 +52,15 @@ public class ModParticles {
             Identifier.of(CranksDungeons.MOD_ID, "shock_ambient_2"), SHOCK_AMBIENT_2);
         Registry.register(Registries.PARTICLE_TYPE, 
             Identifier.of(CranksDungeons.MOD_ID, "shock_ambient_3"), SHOCK_AMBIENT_3);
+
+        // Register bleed splash particles (4 variants)
+        Registry.register(Registries.PARTICLE_TYPE, 
+            Identifier.of(CranksDungeons.MOD_ID, "bleed_splash_1"), BLEED_SPLASH_1);
+        Registry.register(Registries.PARTICLE_TYPE, 
+            Identifier.of(CranksDungeons.MOD_ID, "bleed_splash_2"), BLEED_SPLASH_2);
+        Registry.register(Registries.PARTICLE_TYPE, 
+            Identifier.of(CranksDungeons.MOD_ID, "bleed_splash_3"), BLEED_SPLASH_3);
+        Registry.register(Registries.PARTICLE_TYPE, 
+            Identifier.of(CranksDungeons.MOD_ID, "bleed_splash_4"), BLEED_SPLASH_4);
     }
 }

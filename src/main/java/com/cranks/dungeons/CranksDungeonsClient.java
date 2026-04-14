@@ -31,6 +31,9 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.client.gui.screen.ingame.HandledScreens;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.Vec3d;
 
 import java.util.UUID;
@@ -106,6 +109,10 @@ public class CranksDungeonsClient implements ClientModInitializer {
                 if (payload.victimUuid() != null && context.client().world != null) {
                     var entity = context.client().world.getEntity(payload.victimUuid());
                     if (entity != null) {
+                        // Blood splash effect on hit if they are bleeding
+                        if (entity instanceof LivingEntity living && !payload.entries().isEmpty() && !payload.entries().get(0).isHeal()) {
+                            com.cranks.dungeons.client.render.AilmentParticleManager.onEntityHit(living);
+                        }
                         // Calculate offset from entity center to hit position
                         Vec3d entityCenter = new Vec3d(entity.getX(), entity.getY() + entity.getHeight() / 2, entity.getZ());
                         hitOffset = pos.subtract(entityCenter);
@@ -177,6 +184,7 @@ public class CranksDungeonsClient implements ClientModInitializer {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             DamageNumberManager.tick();
             com.cranks.dungeons.client.render.LightningArcManager.tick();
+            com.cranks.dungeons.client.render.AilmentParticleManager.tick(client);
         });
 
         HudRenderCallback.EVENT.register((context, tickCounter) -> {

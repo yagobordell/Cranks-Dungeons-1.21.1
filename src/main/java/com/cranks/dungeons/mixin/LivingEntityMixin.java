@@ -2,6 +2,7 @@ package com.cranks.dungeons.mixin;
 
 import com.cranks.dungeons.ailment.AilmentManager;
 import com.cranks.dungeons.ailment.AilmentType;
+import com.cranks.dungeons.client.render.AilmentParticleManager;
 import com.cranks.dungeons.particle.ModParticles;
 import com.cranks.dungeons.registry.ModAttributes;
 import com.cranks.dungeons.registry.ModSounds;
@@ -151,7 +152,6 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
         if (entity.getEntityWorld().isClient()) return;
 
         AilmentManager.tickAilments(entity);
-        spawnAilmentParticles(entity);
 
         // Show accumulated healing
         if (cranks$accumulatedHeal > 0) {
@@ -164,83 +164,4 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
         }
     }
 
-    @Unique
-    private void spawnAilmentParticles(LivingEntity entity) {
-        if (entity.getEntityWorld().isClient()) return;
-        
-        if (AilmentManager.hasAilment(entity, AilmentType.BURN)) {
-            if (entity.getRandom().nextFloat() > 0.5f) return;
-            ServerWorld world = (ServerWorld) entity.getEntityWorld();
-            double x = entity.getX() + (world.getRandom().nextDouble() - 0.5) * 0.7;
-            double y = entity.getY() + entity.getHeight() * 0.5 + (world.getRandom().nextDouble() - 0.5) * 0.5;
-            double z = entity.getZ() + (world.getRandom().nextDouble() - 0.5) * 0.7;
-            world.spawnParticles(ParticleTypes.FLAME, x, y, z, 3, 0.1, 0.1, 0.1, 0.05);
-        }
-
-        if (AilmentManager.hasAilment(entity, AilmentType.POISON)) {
-            if (entity.getRandom().nextFloat() > 0.4f) return;
-            ServerWorld world = (ServerWorld) entity.getEntityWorld();
-            double x = entity.getX() + (world.getRandom().nextDouble() - 0.5) * 0.6;
-            double y = entity.getY() + entity.getHeight() * 0.75 + (world.getRandom().nextDouble() - 0.5) * 0.4;
-            double z = entity.getZ() + (world.getRandom().nextDouble() - 0.5) * 0.6;
-            world.spawnParticles(ModParticles.POISON_BUBBLE, x, y, z, 2, 0.1, 0.1, 0.1, 0.05);
-        }
-
-        if (AilmentManager.hasAilment(entity, AilmentType.FREEZE)) {
-            if (entity.getRandom().nextFloat() > 0.3f) return;
-            ServerWorld world = (ServerWorld) entity.getEntityWorld();
-            double x = entity.getX() + (world.getRandom().nextDouble() - 0.5) * 0.8;
-            double y = entity.getY() + entity.getHeight() * 0.5 + (world.getRandom().nextDouble() - 0.5) * 0.6;
-            double z = entity.getZ() + (world.getRandom().nextDouble() - 0.5) * 0.8;
-            
-            // Breaking ice crystals around the frozen entity
-            world.spawnParticles(ParticleTypes.ITEM_SNOWBALL, x, y, z, 2, 0.15, 0.15, 0.15, 0.05);
-            
-            // Falling snow effect near feet occasionally
-            if (entity.getRandom().nextFloat() < 0.3f) {
-                double snowX = entity.getX() + (world.getRandom().nextDouble() - 0.5) * 0.5;
-                double snowY = entity.getY() + 0.1;
-                double snowZ = entity.getZ() + (world.getRandom().nextDouble() - 0.5) * 0.5;
-                world.spawnParticles(ParticleTypes.SNOWFLAKE, snowX, snowY, snowZ, 1, 0.05, 0.02, 0.05, 0.01);
-            }
-        }
-
-        if (AilmentManager.hasAilment(entity, AilmentType.BLEED)) {
-            if (entity.getRandom().nextFloat() > 0.4f) return;
-            ServerWorld world = (ServerWorld) entity.getEntityWorld();
-            double x = entity.getX() + (world.getRandom().nextDouble() - 0.5) * 0.7;
-            double y = entity.getY() + entity.getHeight() * 0.5 + (world.getRandom().nextDouble() - 0.5) * 0.5;
-            double z = entity.getZ() + (world.getRandom().nextDouble() - 0.5) * 0.7;
-            world.spawnParticles(ParticleTypes.RAID_OMEN, x, y, z, 2, 0.1, 0.1, 0.1, 0.05);
-        }
-
-        if (AilmentManager.hasAilment(entity, AilmentType.SHOCK)) {
-            // Electric pulse effect: spawn multiple particles every 3 seconds (60 ticks)
-            // This gives particles time to disappear before next spawn
-            if (entity.age % 60 == 0) {
-                ServerWorld world = (ServerWorld) entity.getEntityWorld();
-                // Play ambient shock sound
-                world.playSound(null, entity.getX(), entity.getY(), entity.getZ(), 
-                    ModSounds.SHOCK_AMBIENT, SoundCategory.HOSTILE, 0.6f, 1.0f);
-                // Spawn 4-6 particles in a burst around the entity
-                int particleCount = 4 + entity.getRandom().nextInt(3);
-                for (int i = 0; i < particleCount; i++) {
-                    double x = entity.getX() + (world.getRandom().nextDouble() - 0.5) * entity.getWidth() * 0.5;
-                    double y = entity.getY() + entity.getHeight() * 0.4 + world.getRandom().nextDouble() * entity.getHeight() * 0.4;
-                    double z = entity.getZ() + (world.getRandom().nextDouble() - 0.5) * entity.getWidth() * 0.5;
-                    // Randomly choose one of 3 shock ambient particles
-                    int particleVariant = entity.getRandom().nextInt(3);
-                    ParticleEffect particle = switch (particleVariant) {
-                        case 0 -> ModParticles.SHOCK_AMBIENT_1;
-                        case 1 -> ModParticles.SHOCK_AMBIENT_2;
-                        case 2 -> ModParticles.SHOCK_AMBIENT_3;
-                        default -> ModParticles.SHOCK_AMBIENT_1;
-                    };
-                    // Lower velocity spread keeps particles closer to entity
-                    // Speed 0.05 for slower movement
-                    world.spawnParticles(particle, x, y, z, 1, 0.1, 0.1, 0.1, 0.05);
-                }
-            }
-        }
-    }
 }
