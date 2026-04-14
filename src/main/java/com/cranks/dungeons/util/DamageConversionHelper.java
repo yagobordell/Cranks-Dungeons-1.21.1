@@ -66,10 +66,16 @@ public class DamageConversionHelper {
         }
     }
 
-    public static DamageBreakdown getBreakdown(DamageSource source, float amount) {
+    public static DamageBreakdown getBreakdown(DamageSource source, float amount, LivingEntity target) {
         DamageBreakdown breakdown = new DamageBreakdown();
         Entity attacker = source.getAttacker();
         Entity directSource = source.getSource();
+
+        // Specific handling for quiet 'generic' damage from AilmentManager
+        if (source.isOf(DamageTypes.GENERIC) && com.cranks.dungeons.ailment.AilmentManager.hasAilment(target, com.cranks.dungeons.ailment.AilmentType.BURN)) {
+            breakdown.add(DamageElement.FIRE, amount);
+            return breakdown;
+        }
 
         // Environmental Damage
         if (source.isOf(DamageTypes.IN_FIRE) || source.isOf(DamageTypes.ON_FIRE) ||

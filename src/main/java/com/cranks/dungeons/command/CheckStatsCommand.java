@@ -84,7 +84,7 @@ public class CheckStatsCommand {
                         sendStat(player, "Max Health", maxHealth, 20, " HP");
                         sendStat(player, "Armor", armor, 0, "");
                         if (toughness > 0) sendStat(player, "Armor Toughness", toughness, 0, "");
-                        if (lifeRegen > 0) sendStat(player, "Life Regeneration", lifeRegen, 0, " HP/s");
+                        if (lifeRegen > 0) sendStat(player, "Health Regeneration", lifeRegen, 0, " HP/s");
                         if (fireRes > 0) sendStat(player, "Fire Resistance", fireRes * 100, 0, "%");
                         if (coldRes > 0) sendStat(player, "Cold Resistance", coldRes * 100, 0, "%");
                         if (lightningRes > 0) sendStat(player, "Lightning Resistance", lightningRes * 100, 0, "%");

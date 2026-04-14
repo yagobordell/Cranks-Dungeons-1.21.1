@@ -370,7 +370,7 @@ public abstract class ElementalDamageMixin {
         if (target instanceof DamageBreakdownProvider provider) {
             DamageConversionHelper.DamageBreakdown breakdown = provider.cranks$getLastDamageBreakdown();
             if (breakdown == null) {
-                breakdown = DamageConversionHelper.getBreakdown(source, amount);
+                breakdown = DamageConversionHelper.getBreakdown(source, amount, target);
             }
             
             // Check for shock BEFORE calculating damage

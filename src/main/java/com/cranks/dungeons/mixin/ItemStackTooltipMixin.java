@@ -204,7 +204,7 @@ public abstract class ItemStackTooltipMixin {
                                 .append(Text.literal("+" + df.format(attributeTotals.get(EntityAttributes.MAX_HEALTH))).formatted(Formatting.WHITE)));
                     }
                     if (attributeTotals.containsKey(ModAttributes.LIFE_REGENERATION)) {
-                        tooltip.add(Text.literal("HP Regen: ").formatted(Formatting.GRAY)
+                        tooltip.add(Text.literal("Health Regeneration: ").formatted(Formatting.GRAY)
                                 .append(Text.literal("+" + df.format(attributeTotals.get(ModAttributes.LIFE_REGENERATION))).formatted(Formatting.WHITE)));
                     }
                     addedAny = true;

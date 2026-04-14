@@ -77,7 +77,7 @@ public class EnergyShieldDamageMixin {
         }
 
         // Calculate weighted shield damage (Void deals 2x)
-        DamageConversionHelper.DamageBreakdown breakdown = DamageConversionHelper.getBreakdown(source, amount);
+        DamageConversionHelper.DamageBreakdown breakdown = DamageConversionHelper.getBreakdown(source, amount, self);
         float voidDmg = breakdown.get(DamageElement.VOID);
         float otherDmg = amount - voidDmg;
         float weightedShieldDmg = otherDmg + (voidDmg * 2.0f);
@@ -96,6 +96,12 @@ public class EnergyShieldDamageMixin {
 
             // Manual Knockback for fully absorbed hits
             if (!source.isIn(net.minecraft.registry.tag.DamageTypeTags.NO_KNOCKBACK)) {
+                // IMPORTANT: Since super.damage is cancelled, we must manually set the attacker
+                // so that the KnockbackProcessorMixin can find the player and apply weapon bonuses.
+                if (source.getAttacker() instanceof net.minecraft.entity.LivingEntity livingAttacker) {
+                    self.setAttacker(livingAttacker);
+                }
+
                 net.minecraft.util.math.Vec3d vec3d = source.getPosition();
                 if (vec3d != null) {
                     self.takeKnockback(0.4000000059604645, vec3d.getX() - self.getX(), vec3d.getZ() - self.getZ());
@@ -120,6 +126,11 @@ public class EnergyShieldDamageMixin {
             triggerDamageNumbers(world, self, source, absorbedAmount);
             ServerPlayNetworking.send(serverPlayer, new EnergyShieldSyncPacket(0.0f));
 
+            // Force velocity sync on shield break to prevent "stuttering" or nullified knockback in PvP
+            if (!source.isIn(net.minecraft.registry.tag.DamageTypeTags.NO_KNOCKBACK)) {
+                serverPlayer.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.EntityVelocityUpdateS2CPacket(self));
+            }
+
             return remainingAmount;
         }
     }
@@ -138,7 +149,7 @@ public class EnergyShieldDamageMixin {
     private void triggerDamageNumbers(ServerWorld world, PlayerEntity self, DamageSource source, float actualAbsorbedAmount) {
         if (actualAbsorbedAmount <= 0.01f) return;
         
-        DamageConversionHelper.DamageBreakdown breakdown = DamageConversionHelper.getBreakdown(source, actualAbsorbedAmount);
+        DamageConversionHelper.DamageBreakdown breakdown = DamageConversionHelper.getBreakdown(source, actualAbsorbedAmount, self);
         
         DamageNumberSender.broadcast(
             world, 

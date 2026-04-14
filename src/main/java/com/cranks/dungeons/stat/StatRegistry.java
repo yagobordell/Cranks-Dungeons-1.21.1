@@ -237,23 +237,6 @@ public class StatRegistry {
                                 EquipmentType.ELYTRA, ModAttributes.CRIT_CHANCE,
                                 r(0.10, 0.13, 0.16, 0.19, 0.23), r(0.12, 0.15, 0.18, 0.21, 0.30),
                                 true, true, Formatting.GOLD));
-                // --- Critical Strike Multiplier (Armor: Helmet + Chestplate, plus Elytra) ---
-                registerForTypes("crit_multiplier", "Critical Strike Multiplier",
-                                ModAttributes.CRIT_MULTIPLIER,
-                                r(0.05, 0.15, 0.25, 0.40, 0.60), r(0.10, 0.20, 0.35, 0.55, 0.85),
-                                true, true, Formatting.GOLD,
-                                EquipmentType.HELMET, EquipmentType.CHESTPLATE);
-                // Weapons share the same values
-                registerForTypes("crit_multiplier", "Critical Strike Multiplier",
-                                ModAttributes.CRIT_MULTIPLIER,
-                                r(0.05, 0.15, 0.25, 0.40, 0.60), r(0.10, 0.20, 0.35, 0.55, 0.85),
-                                true, true, Formatting.GOLD,
-                                ALL_WEAPONS);
-                // Elytra has different ranges
-                register(new CustomStat("elytra_crit_multiplier", "Critical Strike Multiplier",
-                                EquipmentType.ELYTRA, ModAttributes.CRIT_MULTIPLIER,
-                                r(0.30, 0.45, 0.65, 0.90, 1.25), r(0.40, 0.60, 0.85, 1.20, 1.75),
-                                true, true, Formatting.GOLD));
 
                 // ===================================================================
                 // CHESTPLATE-ONLY OFFENSIVE STATS

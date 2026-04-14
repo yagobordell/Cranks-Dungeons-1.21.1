@@ -87,7 +87,7 @@ public class DrowningDamageMixin {
         // Set damage breakdown for display
         if (entity instanceof DamageBreakdownProvider provider) {
             DamageSource source = world.getDamageSources().drown();
-            DamageConversionHelper.DamageBreakdown breakdown = DamageConversionHelper.getBreakdown(source, damage);
+            DamageConversionHelper.DamageBreakdown breakdown = DamageConversionHelper.getBreakdown(source, damage, entity);
             provider.cranks$setLastDamageBreakdown(breakdown);
         }
     }

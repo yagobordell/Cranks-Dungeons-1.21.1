@@ -26,6 +26,8 @@ public abstract class KnockbackProcessorMixin {
         double finalStrength = strength;
 
         // 1. Apply Attacker's Bonus first (Multiplicative is recommended)
+        if (attacker == null) attacker = target.getLastAttacker(); // Fallback for some mixin execution orders
+
         if (attacker instanceof PlayerEntity player) {
             ItemStack weapon = player.getMainHandStack();
             ItemStack chestplate = player.getEquippedStack(net.minecraft.entity.EquipmentSlot.CHEST);
@@ -39,7 +41,8 @@ public abstract class KnockbackProcessorMixin {
 
             // If base strength is 0 (standing attack), give it a base strength from the bonus
             if (finalStrength <= 0.01 && knockbackBonus > 0) {
-                finalStrength = knockbackBonus * 0.5; // Base push force
+                // Increased base floor to 0.35 * bonus to ensure visibility for Spears
+                finalStrength = Math.max(0.2, knockbackBonus * 0.4); 
             } else {
                 // Otherwise amplify existing knockback (sprinting/crit)
                 finalStrength *= (1.0 + knockbackBonus);

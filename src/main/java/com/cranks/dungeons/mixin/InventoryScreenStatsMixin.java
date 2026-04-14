@@ -272,7 +272,7 @@ public abstract class InventoryScreenStatsMixin {
             curY = drawStatWithTooltip(context, tr, panelX, curY, "Max Health",
                     player.getAttributeValue(EntityAttributes.MAX_HEALTH),
                     player.getAttributeBaseValue(EntityAttributes.MAX_HEALTH), " HP", mouseX, mouseY, panelX, panelWidth);
-            curY = drawStatWithTooltip(context, tr, panelX, curY, "Regeneration",
+            curY = drawStatWithTooltip(context, tr, panelX, curY, "Health Regeneration",
                     player.getAttributeValue(ModAttributes.LIFE_REGENERATION),
                     player.getAttributeBaseValue(ModAttributes.LIFE_REGENERATION), " HP/s", mouseX, mouseY, panelX, panelWidth);
             curY = drawStatWithTooltip(context, tr, panelX, curY, "Armor",
@@ -477,7 +477,7 @@ public abstract class InventoryScreenStatsMixin {
             case "Void Damage" -> "Bonus void damage per hit";
             case "Energy Shield" -> "Absorbs damage before health";
             case "Max Health" -> "Maximum health points";
-            case "Regeneration" -> "Health restored per second";
+            case "Health Regeneration" -> "Health restored per second";
             case "Life Steal" -> "% of damage converted to health";
             case "Evasion" -> calculateEvasionDescription();
             case "Armor" -> calculateArmorDescription();

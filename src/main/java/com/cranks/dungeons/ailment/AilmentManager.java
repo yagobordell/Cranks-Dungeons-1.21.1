@@ -367,22 +367,41 @@ public class AilmentManager {
 
         float currentHealth = entity.getHealth();
         float newHealth = Math.max(0, currentHealth - damageToApply);
-        entity.setHealth(newHealth);
 
         if (entity.getEntityWorld() instanceof ServerWorld serverWorld) {
             double fire = (ailment.getType() == AilmentType.BURN) ? damage : 0.0;
             double physical = (ailment.getType() == AilmentType.BLEED) ? (double)damage : 0.0;
-            DamageNumberSender.broadcast(serverWorld, entity, physical, fire, 0.0, 0.0, 0.0, ailment.getSourceUuid(), false);
+
+            // Apply lethal damage via the damage system so death-prevention mods can catch it
+            if (currentHealth - damageToApply <= 0) {
+                DamageNumberSender.broadcast(serverWorld, entity, physical, fire, 0.0, 0.0, 0.0, ailment.getSourceUuid(), false);
+                
+                net.minecraft.entity.damage.DamageSource source;
+                if (ailment.getType() == AilmentType.BURN) {
+                    // Use generic source so it's quiet (no vanilla fire sounds),
+                    // but it's mapped to Fire Elemental in DamageConversionHelper if target has BURN.
+                    source = serverWorld.getDamageSources().generic();
+                } else {
+                    source = serverWorld.getDamageSources().magic();
+                }
+                entity.damage(serverWorld, source, damageToApply);
+            } else {
+                // Apply non-lethal damage directly for cleaner numbers
+                entity.setHealth(newHealth);
+                DamageNumberSender.broadcast(serverWorld, entity, physical, fire, 0.0, 0.0, 0.0, ailment.getSourceUuid(), false);
+            }
         }
 
         if (ailment.getType() == AilmentType.BURN) {
             ServerWorld world = (ServerWorld) entity.getEntityWorld();
+            
+            // Always play the custom burn tick
             world.playSound(null, entity.getX(), entity.getY(), entity.getZ(),
-                    SoundEvents.ENTITY_PLAYER_HURT, SoundCategory.HOSTILE,
-                    1.0f, 1.0f);
+                    ModSounds.BURN_TICK, SoundCategory.HOSTILE, 1.0f, 1.0f + world.getRandom().nextFloat() * 0.2f);
+
+            // Always play standard hurt sound
             world.playSound(null, entity.getX(), entity.getY(), entity.getZ(),
-                    ModSounds.BURN_TICK, SoundCategory.HOSTILE,
-                    1.0f, 1.0f + world.getRandom().nextFloat() * 0.2f);
+                    SoundEvents.ENTITY_PLAYER_HURT, SoundCategory.HOSTILE, 1.0f, 1.0f);
         }
     }
 
@@ -423,8 +442,8 @@ public class AilmentManager {
         List<Ailment> ailments = getAilments(entity);
         for (Ailment ailment : ailments) {
             if (ailment.getType() == AilmentType.BLEED) {
-                // Store 10% of damage received
-                float damageToStore = damageReceived * 0.10f;
+                // Store 40% of damage received (Buffed from 10%)
+                float damageToStore = damageReceived * 0.40f;
                 ailment.addStoredDamage(damageToStore);
                 
                 // Play bleed hit sound when entity gets hit while bleeding
