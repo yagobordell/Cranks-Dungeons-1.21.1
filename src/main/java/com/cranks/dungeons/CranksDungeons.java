@@ -139,6 +139,9 @@ public class CranksDungeons implements ModInitializer {
 			content.add(ModItems.GREATER_TOME_OF_LIGHTNING);
 			content.add(ModItems.GREATER_TOME_OF_VOID);
 			content.add(ModItems.GREATER_TOME_OF_PHYSICALITY);
+			content.add(ModItems.TOME_OF_HEALTH_BONUS);
+			content.add(ModItems.TOME_OF_HEALTH_REGEN);
+			content.add(ModItems.TOME_OF_RANGE);
 			content.add(ModItems.ARTIFICIAL_TOME);
 		});
 

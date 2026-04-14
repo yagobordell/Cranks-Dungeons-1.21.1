@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "cranks-dungeons:item/health_regen_tome"
+  }
+}

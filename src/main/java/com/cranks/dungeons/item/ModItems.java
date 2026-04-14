@@ -27,6 +27,9 @@ public class ModItems {
     public static final Item TOME_OF_SWIFTNESS = registerSwiftnessTome("swiftness_tome", CustomRarity.RARE);
     public static final Item TOME_OF_ENERGY = registerEnergyTome("energy_tome", CustomRarity.RARE);
     public static final Item TOME_OF_EVASION = registerEvasionTome("evasion_tome", CustomRarity.RARE);
+    public static final Item TOME_OF_HEALTH_BONUS = registerHealthBonusTome("health_bonus_tome", CustomRarity.RARE);
+    public static final Item TOME_OF_HEALTH_REGEN = registerHealthRegenTome("health_regen_tome", CustomRarity.RARE);
+    public static final Item TOME_OF_RANGE = registerRangeTome("range_tome", CustomRarity.RARE);
 
 
     // Greater Elemental Tomes
@@ -83,6 +86,27 @@ public class ModItems {
 
         return Registry.register(Registries.ITEM, key,
                 new ArtificialTomeItem(rarity, new Item.Settings().registryKey(key)));
+    }
+
+    private static Item registerHealthBonusTome(String name, CustomRarity rarity) {
+        Identifier id = Identifier.of(CranksDungeons.MOD_ID, name);
+        RegistryKey<Item> key = RegistryKey.of(RegistryKeys.ITEM, id);
+        return Registry.register(Registries.ITEM, key,
+                new HealthBonusTomeItem(rarity, new Item.Settings().registryKey(key)));
+    }
+
+    private static Item registerHealthRegenTome(String name, CustomRarity rarity) {
+        Identifier id = Identifier.of(CranksDungeons.MOD_ID, name);
+        RegistryKey<Item> key = RegistryKey.of(RegistryKeys.ITEM, id);
+        return Registry.register(Registries.ITEM, key,
+                new HealthRegenTomeItem(rarity, new Item.Settings().registryKey(key)));
+    }
+
+    private static Item registerRangeTome(String name, CustomRarity rarity) {
+        Identifier id = Identifier.of(CranksDungeons.MOD_ID, name);
+        RegistryKey<Item> key = RegistryKey.of(RegistryKeys.ITEM, id);
+        return Registry.register(Registries.ITEM, key,
+                new RangeTomeItem(rarity, new Item.Settings().registryKey(key)));
     }
 
     public static void registerModItems() {

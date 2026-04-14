@@ -18,66 +18,51 @@
   "item.cranks-dungeons.swiftness_tome": "Tome of Swiftness",
   "item.cranks-dungeons.energy_tome": "Tome of Energy",
   "item.cranks-dungeons.evasion_tome": "Tome of Evasion",
-
+  "item.cranks-dungeons.health_bonus_tome": "Tome of Health",
+  "item.cranks-dungeons.health_regen_tome": "Tome of Regeneration",
+  "item.cranks-dungeons.range_tome": "Tome of Range",
   "item.cranks-dungeons.runic_enhancement_altar": "Runic Enhancement Altar",
   "block.cranks-dungeons.runic_enhancement_altar": "Runic Enhancement Altar",
-
   "item.cranks-dungeons.artificial_enhancement_altar": "Artificial Enhancement Altar",
   "block.cranks-dungeons.artificial_enhancement_altar": "Artificial Enhancement Altar",
-
   "key.cranks-dungeons.toggle_enchantment_disable": "Toggle Enchantment Disable",
-
   "enchantment.cranks-dungeons.lunge": "Lunge",
   "enchantment.cranks-dungeons.lunge.desc": "Jab attacks propel the wielder forward",
-
   "enchantment.cranks-dungeons.riptide": "Riptide",
   "enchantment.cranks-dungeons.riptide.desc": "Launches the user when used in water or rain,",
   "enchantment.cranks-dungeons.riptide.desc2": "replacing the trident's ability to be thrown",
-
   "enchantment.cranks-dungeons.wind_burst": "Wind Burst",
   "enchantment.cranks-dungeons.wind_burst.desc": "Causes a powerful upward knockback effect",
   "enchantment.cranks-dungeons.wind_burst.desc2": "upon smash attack, does not negate fall damage",
-
   "enchantment.cranks-dungeons.channeling": "Channeling",
   "enchantment.cranks-dungeons.channeling.desc": "Causes a lightning strike when thrown at an entity",
   "enchantment.cranks-dungeons.channeling.desc2": "or lightning rod during a thunderstorm",
-
   "enchantment.cranks-dungeons.infinity": "Infinity",
   "enchantment.cranks-dungeons.infinity.desc": "Prevents consumption of arrows, except for",
   "enchantment.cranks-dungeons.infinity.desc2": "spectral arrows or tipped arrows",
-
   "enchantment.cranks-dungeons.multishot": "Multishot",
   "enchantment.cranks-dungeons.multishot.desc": "Fires three shots for the price of one in a fixed spread,",
   "enchantment.cranks-dungeons.multishot.desc2": "consuming extra durability per shot.",
-
   "enchantment.cranks-dungeons.silk_touch": "Silk Touch",
   "enchantment.cranks-dungeons.silk_touch.desc": "Causes certain blocks to drop themselves",
   "enchantment.cranks-dungeons.silk_touch.desc2": "instead of their normal drops",
-
   "enchantment.cranks-dungeons.frost_walker": "Frost Walker",
   "enchantment.cranks-dungeons.frost_walker.desc": "Turns water into frosted ice beneath the user's feet,",
   "enchantment.cranks-dungeons.frost_walker.desc2": "provides immunity to campfire and magma block damage",
-
   "enchantment.cranks-dungeons.loyalty": "Loyalty",
   "enchantment.cranks-dungeons.loyalty.desc": "Causes a thrown trident to fly back to the player after it lands",
-
   "enchantment.cranks-dungeons.depth_strider": "Depth Strider",
   "enchantment.cranks-dungeons.depth_strider.desc": "Removes underwater movement speed penalty",
-
   "enchantment.cranks-dungeons.respiration": "Respiration",
   "enchantment.cranks-dungeons.respiration.desc": "Extends underwater breathing time by 45 seconds",
-
   "enchantment.cranks-dungeons.soul_speed": "Soul Speed",
   "enchantment.cranks-dungeons.soul_speed.desc": "+60% Movement speed on soul sand and soul soil,",
   "enchantment.cranks-dungeons.soul_speed.desc2": "draining durability in the process",
-
   "enchantment.cranks-dungeons.aqua_affinity": "Aqua Affinity",
   "enchantment.cranks-dungeons.aqua_affinity.desc": "Removes the mining speed reduction that occurs when underwater",
-
   "enchantment.cranks_dungeons.vein_mining": "Vein Mining",
   "enchantment.cranks-dungeons.vein_mining.desc": "Allows to break matching connected ores",
   "enchantment.cranks-dungeons.vein_mining.desc2": "by only breaking one",
-
   "enchantment.minecraft.fire_damage": "+4 Fire Damage",
   "enchantment.minecraft.cold_damage": "+4 Cold Damage",
   "enchantment.minecraft.lightning_damage": "+4 Lightning Damage",
@@ -117,13 +102,11 @@
   "enchantment.minecraft.reload_speed": "+30% Reload Speed",
   "enchantment.minecraft.crop_fortune": "+20% Crop Fortune",
   "enchantment.minecraft.log_fortune": "+20% Log Fortune",
-
   "effect.cranks-dungeons.burn": "Burning",
   "effect.cranks-dungeons.poison": "Poison",
   "effect.cranks-dungeons.freeze": "Frozen",
   "effect.cranks-dungeons.bleed": "Bleeding",
   "effect.cranks-dungeons.shock": "Shock",
-
   "potion.potency.0": " +1",
   "potion.potency.1": " +2",
   "potion.potency.2": " +3",
