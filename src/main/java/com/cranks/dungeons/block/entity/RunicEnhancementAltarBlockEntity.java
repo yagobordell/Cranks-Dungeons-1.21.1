@@ -2,10 +2,9 @@ package com.cranks.dungeons.block.entity;
 
 import com.cranks.dungeons.equipment.EquipmentType;
 import com.cranks.dungeons.equipment.ItemStatManager;
+import com.cranks.dungeons.item.AbstractTomeItem;
 import com.cranks.dungeons.item.ArtificialTomeItem;
-import com.cranks.dungeons.item.ElementalTomeItem;
 import com.cranks.dungeons.item.RunicTomeItem;
-import com.cranks.dungeons.item.SwiftnessTomeItem;
 import com.cranks.dungeons.registry.ModSounds;
 import com.cranks.dungeons.screen.RunicEnhancementAltarScreenHandler;
 import net.minecraft.block.BlockState;
@@ -24,8 +23,6 @@ import net.minecraft.text.Text;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
-import com.cranks.dungeons.item.EnergyTomeItem;
-import com.cranks.dungeons.item.EvasionTomeItem;
 import org.jetbrains.annotations.Nullable;
 
 public class RunicEnhancementAltarBlockEntity extends BlockEntity implements NamedScreenHandlerFactory, SidedInventory {
@@ -123,11 +120,8 @@ public class RunicEnhancementAltarBlockEntity extends BlockEntity implements Nam
         }
         if (slot == TOME_SLOT) {
             return stack.getItem() instanceof RunicTomeItem
-                    || stack.getItem() instanceof ElementalTomeItem
                     || stack.getItem() instanceof ArtificialTomeItem
-                    || stack.getItem() instanceof SwiftnessTomeItem
-                    || stack.getItem() instanceof EnergyTomeItem
-                    || stack.getItem() instanceof EvasionTomeItem;
+                    || stack.getItem() instanceof AbstractTomeItem;
         }
         return false;
     }
@@ -158,22 +152,9 @@ public class RunicEnhancementAltarBlockEntity extends BlockEntity implements Nam
             return tryArtificialEnhance(equipment, tome);
         }
 
-        // Handle Elemental Tomes
-        if (tome.getItem() instanceof ElementalTomeItem elementalTome) {
-            return tryElementalEnhance(equipment, tome, elementalTome);
-        }
-
-        // Handle Swiftness Tomes
-        if (tome.getItem() instanceof SwiftnessTomeItem swiftnessTome) {
-            return trySwiftnessEnhance(equipment, tome, swiftnessTome);
-        }
-
-        if (tome.getItem() instanceof EnergyTomeItem energyTome) {
-            return trySpecificTomeEnhance(equipment, tome, energyTome::canApplyTo, energyTome::getStatIdForEquipment);
-        }
-
-        if (tome.getItem() instanceof EvasionTomeItem evasionTome) {
-            return trySpecificTomeEnhance(equipment, tome, evasionTome::canApplyTo, evasionTome::getStatIdForEquipment);
+        // Handle Abstract Tomes (Elemental, Swiftness, Energy, Evasion, Health, Regen, Range)
+        if (tome.getItem() instanceof AbstractTomeItem abstractTome) {
+            return trySpecificTomeEnhance(equipment, tome, abstractTome::canApplyTo, abstractTome::getStatIdForEquipment);
         }
 
         // Handle Regular Runic Tomes
@@ -195,7 +176,7 @@ public class RunicEnhancementAltarBlockEntity extends BlockEntity implements Nam
         if (statId == null) return false;
 
         int currentStatCount = ItemStatManager.getStats(equipment).size();
-        int tier = ElementalTomeItem.getTierForStatCount(currentStatCount);
+        int tier = AbstractTomeItem.getTierForStatCount(currentStatCount);
 
         ItemStack result = equipment.copy();
         boolean success = ItemStatManager.addSpecificStat(result, statId, tier);
@@ -237,67 +218,6 @@ public class RunicEnhancementAltarBlockEntity extends BlockEntity implements Nam
         return false;
     }
 
-    private boolean tryElementalEnhance(ItemStack equipment, ItemStack tome, ElementalTomeItem elementalTome) {
-        EquipmentType equipType = EquipmentType.getTypeForItem(equipment).get();
-
-        if (!elementalTome.canApplyTo(equipment)) {
-            return false;
-        }
-
-        String statId = elementalTome.getStatIdForEquipment(equipType);
-        if (statId == null) {
-            return false;
-        }
-
-        int currentStatCount = ItemStatManager.getStats(equipment).size();
-        int tier = ElementalTomeItem.getTierForStatCount(currentStatCount);
-
-        ItemStack result = equipment.copy();
-
-        boolean success = ItemStatManager.addSpecificStat(result, statId, tier);
-
-        if (success) {
-            setStack(RESULT_SLOT, result);
-            equipment.decrement(1);
-            tome.decrement(1);
-            markDirty();
-            playEnhanceSound();   // ← here
-            return true;
-        }
-
-        return false;
-    }
-
-    private boolean trySwiftnessEnhance(ItemStack equipment, ItemStack tome, SwiftnessTomeItem swiftnessTome) {
-        EquipmentType equipType = EquipmentType.getTypeForItem(equipment).get();
-
-        if (!swiftnessTome.canApplyTo(equipment)) {
-            return false;
-        }
-
-        String statId = swiftnessTome.getStatIdForEquipment(equipType);
-        if (statId == null) {
-            return false;
-        }
-
-        int currentStatCount = ItemStatManager.getStats(equipment).size();
-        int tier = ElementalTomeItem.getTierForStatCount(currentStatCount);
-
-        ItemStack result = equipment.copy();
-
-        boolean success = ItemStatManager.addSpecificStat(result, statId, tier);
-
-        if (success) {
-            setStack(RESULT_SLOT, result);
-            equipment.decrement(1);
-            tome.decrement(1);
-            markDirty();
-            playEnhanceSound();
-            return true;
-        }
-
-        return false;
-    }
 
     private boolean tryRunicEnhance(ItemStack equipment, ItemStack tome, RunicTomeItem runicTome) {
         ItemStack result = equipment.copy();

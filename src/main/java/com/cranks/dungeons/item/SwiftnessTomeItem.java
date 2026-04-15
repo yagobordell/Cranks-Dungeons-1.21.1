@@ -20,21 +20,22 @@ public class SwiftnessTomeItem extends AbstractTomeItem {
     public String getStatIdForEquipment(EquipmentType equipType) {
         return switch (equipType) {
             case SWORD, SPEAR, MACE, TRIDENT -> equipType.name().toLowerCase() + "_attack_speed";
-            case BOW, CROSSBOW               -> equipType.name().toLowerCase() + "_reload_speed";
-            case BOOTS                       -> "boots_movement_speed";
-            case ELYTRA                      -> "elytra_movement_speed";
-            default                          -> null;
+            case BOW, CROSSBOW -> equipType.name().toLowerCase() + "_reload_speed";
+            case CHESTPLATE -> "chestplate_attack_speed";
+            case BOOTS -> "boots_movement_speed";
+            case ELYTRA -> "elytra_movement_speed";
+            default -> null;
         };
     }
 
     @Override
     public void appendTooltip(ItemStack stack, TooltipContext context,
-                              net.minecraft.component.type.TooltipDisplayComponent displayComponent,
-                              Consumer<Text> textConsumer, net.minecraft.item.tooltip.TooltipType type) {
+            net.minecraft.component.type.TooltipDisplayComponent displayComponent,
+            Consumer<Text> textConsumer, net.minecraft.item.tooltip.TooltipType type) {
 
         textConsumer.accept(Text.literal("Power sealed within runes").formatted(Formatting.AQUA, Formatting.ITALIC));
 
-        textConsumer.accept(Text.literal("▶ On Melee Weapons:").formatted(Formatting.WHITE));
+        textConsumer.accept(Text.literal("▶ On Melee Weapons & Chestplates:").formatted(Formatting.WHITE));
         addTierBreakdown(textConsumer, "Attack Speed", Formatting.WHITE);
 
         textConsumer.accept(Text.empty());

@@ -2,10 +2,9 @@ package com.cranks.dungeons.screen;
 
 import com.cranks.dungeons.block.entity.RunicEnhancementAltarBlockEntity;
 import com.cranks.dungeons.equipment.EquipmentType;
+import com.cranks.dungeons.item.AbstractTomeItem;
 import com.cranks.dungeons.item.ArtificialTomeItem;
-import com.cranks.dungeons.item.ElementalTomeItem;
 import com.cranks.dungeons.item.RunicTomeItem;
-import com.cranks.dungeons.item.SwiftnessTomeItem;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
@@ -13,8 +12,6 @@ import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
-import com.cranks.dungeons.item.EnergyTomeItem;
-import com.cranks.dungeons.item.EvasionTomeItem;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -55,11 +52,8 @@ public class RunicEnhancementAltarScreenHandler extends ScreenHandler {
             @Override
             public boolean canInsert(ItemStack stack) {
                 return stack.getItem() instanceof RunicTomeItem
-                        || stack.getItem() instanceof ElementalTomeItem
                         || stack.getItem() instanceof ArtificialTomeItem
-                        || stack.getItem() instanceof SwiftnessTomeItem
-                        || stack.getItem() instanceof EnergyTomeItem
-                        || stack.getItem() instanceof EvasionTomeItem;
+                        || stack.getItem() instanceof AbstractTomeItem;
             }
         });
 
@@ -119,11 +113,8 @@ public class RunicEnhancementAltarScreenHandler extends ScreenHandler {
                 sourceSlots.remove(slot);
             } else if (slot >= PLAYER_INV_START) {
                 if (clickedStack.getItem() instanceof RunicTomeItem
-                        || clickedStack.getItem() instanceof ElementalTomeItem
                         || clickedStack.getItem() instanceof ArtificialTomeItem
-                        || clickedStack.getItem() instanceof SwiftnessTomeItem
-                        || clickedStack.getItem() instanceof EnergyTomeItem
-                        || clickedStack.getItem() instanceof EvasionTomeItem) {
+                        || clickedStack.getItem() instanceof AbstractTomeItem) {
                     if (!tryInsertAndTrack(clickedStack, RunicEnhancementAltarBlockEntity.TOME_SLOT, slot)) {
                         return ItemStack.EMPTY;
                     }
