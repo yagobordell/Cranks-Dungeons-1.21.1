@@ -198,20 +198,25 @@ public class PassiveSkillTreeScreen extends Screen {
             int drawX = (int) (nx - currentNodeSize / 2);
             int drawY = (int) (ny - currentNodeSize / 2);
             
-            int colorOutline = isDraft ? 0xFF00FFFF : (isUnlocked ? 0xFFffd700 : (canUnlock ? 0xFF00FF00 : 0xFF444444));
-            int colorFill = isUnlocked ? 0xFFaa8800 : 0xFF222222;
+            // Draw shape only if it exists
+            if (node.shape() != null && !node.shape().isEmpty()) {
+                int colorOutline = isDraft ? 0xFF00FFFF : (isUnlocked ? 0xFFffd700 : (canUnlock ? 0xFF00FF00 : 0xFF444444));
+                int colorFill = isUnlocked ? 0xFFaa8800 : 0xFF222222;
+                drawNodeShape(context, nx, ny, colorOutline, colorFill, node.shape(), currentNodeSize);
+            }
 
-            drawNodeShape(context, nx, ny, colorOutline, colorFill, node.shape(), currentNodeSize);
-
+            // Draw Icon (now scaled to full node size)
             if (node.icon() != null) {
-                int iconSize = (int) (16 * zoom);
-                if (iconSize < 8) iconSize = 8;
+                int iconSize = (int) currentNodeSize;
                 context.drawTexture(net.minecraft.client.gl.RenderPipelines.GUI_TEXTURED, node.icon(), nx - iconSize/2, ny - iconSize/2, 0.0f, 0.0f, iconSize, iconSize, iconSize, iconSize);
             }
 
+            // Highlight on hover
             if (mouseX >= drawX && mouseX <= drawX + currentNodeSize && mouseY >= drawY && mouseY <= drawY + currentNodeSize) {
                 hovered = node;
-                drawNodeShape(context, nx, ny, 0xFFFFFFFF, -1, node.shape(), currentNodeSize);
+                // Use square as default hover highlight if no shape is specified
+                String hoverShape = (node.shape() != null && !node.shape().isEmpty()) ? node.shape() : "square";
+                drawNodeShape(context, nx, ny, 0xFFFFFFFF, -1, hoverShape, currentNodeSize);
             }
         }
         
@@ -328,9 +333,18 @@ public class PassiveSkillTreeScreen extends Screen {
                 int ny = (int) (panY + node.gridY() * currentGridScale);
                 
                 if (mouseX >= nx - halfSize && mouseX <= nx + halfSize && mouseY >= ny - halfSize && mouseY <= ny + halfSize) {
-                    boolean isUnlocked = unlocked.contains(node.id()) || draftUnlocked.contains(node.id());
-                    if (isUnlocked) return true; // Already unlocked (draft or real)
+                    if (draftUnlocked.contains(node.id())) {
+                        // Toggle OFF: Unselect drafted node
+                        draftUnlocked.remove(node.id());
+                        draftPoints++;
+                        revalidateDraft();
+                        return true;
+                    }
 
+                    boolean isPermanent = unlocked.contains(node.id());
+                    if (isPermanent) return true; // Already permanently unlocked
+
+                    // Node is locked and not in draft: try to select it
                     boolean canUnlock = false;
                     for (String conn : node.connections()) {
                         if (unlocked.contains(conn) || draftUnlocked.contains(conn)) {
@@ -348,6 +362,47 @@ public class PassiveSkillTreeScreen extends Screen {
             }
         }
         return super.mouseClicked(click, bl);
+    }
+
+    /**
+     * Re-check all drafted nodes for reachability. Any node that is no longer connected
+     * to a permanently unlocked node is removed from the draft and its point refunded.
+     */
+    private void revalidateDraft() {
+        var player = MinecraftClient.getInstance().player;
+        if (player == null) return;
+        
+        PassiveDataComponent data = ModComponents.PASSIVE_DATA.get(player);
+        Set<String> permanent = data.getUnlockedNodes();
+        
+        Set<String> stillReachable = new java.util.HashSet<>(permanent);
+        java.util.Queue<String> queue = new java.util.LinkedList<>(permanent);
+        
+        Map<String, PassiveNode> allNodes = PassiveNodeRegistry.getNodes();
+        
+        // BFS for reachability
+        while (!queue.isEmpty()) {
+            String currentId = queue.poll();
+            PassiveNode currentNode = allNodes.get(currentId);
+            if (currentNode == null) continue;
+            
+            for (String neighborId : currentNode.connections()) {
+                if (!stillReachable.contains(neighborId) && draftUnlocked.contains(neighborId)) {
+                    stillReachable.add(neighborId);
+                    queue.add(neighborId);
+                }
+            }
+        }
+        
+        // Prune orphans
+        java.util.Iterator<String> it = draftUnlocked.iterator();
+        while (it.hasNext()) {
+            String draftId = it.next();
+            if (!stillReachable.contains(draftId)) {
+                it.remove();
+                draftPoints++;
+            }
+        }
     }
 
     @Override

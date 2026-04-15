@@ -92,7 +92,22 @@ public class CranksDungeons implements ModInitializer {
 
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
 			PassiveDataComponent data = ModComponents.PASSIVE_DATA.get(handler.player);
+
+			// Restore from PersistentState backup (guarantees persistence across restarts)
+			com.cranks.dungeons.component.PassiveTreePersistentState worldState =
+					com.cranks.dungeons.component.PassiveTreePersistentState.get(server);
+			if (data.getPlayerClass() == null || data.getPlayerClass().isEmpty()) {
+				worldState.loadIntoComponent(handler.player.getUuid(), data);
+			} else {
+				// CCA loaded fine this time, make sure PersistentState is up to date
+				worldState.savePlayerData(handler.player.getUuid(), data);
+			}
+
 			data.checkRetroactivePoints(handler.player.experienceLevel);
+			
+			// If retroactive checking changed anything, save it
+			worldState.savePlayerData(handler.player.getUuid(), data);
+
 			ModNetworking.syncPassiveTreeToPlayer(handler.player);
 			PassiveSkillApplier.updatePlayerPassives(handler.player);
 		});

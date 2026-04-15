@@ -122,6 +122,10 @@ public class ModNetworking {
                                 // Unlocking start node for free
                                 data.unlockNode(def.startNode());
                                 com.cranks.dungeons.stat.passive.PassiveSkillApplier.updatePlayerPassives(player);
+
+                                // Persist to world backup
+                                com.cranks.dungeons.component.PassiveTreePersistentState.get(context.server())
+                                        .savePlayerData(player.getUuid(), data);
                             }
                         }
                     });
@@ -170,6 +174,10 @@ public class ModNetworking {
                         
                         if (totalChanged) {
                             com.cranks.dungeons.stat.passive.PassiveSkillApplier.updatePlayerPassives(player);
+
+                            // Persist to world backup
+                            com.cranks.dungeons.component.PassiveTreePersistentState.get(context.server())
+                                    .savePlayerData(player.getUuid(), data);
                         }
                     });
                 }
