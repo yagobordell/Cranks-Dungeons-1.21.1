@@ -312,7 +312,8 @@ public abstract class ElementalDamageMixin {
             if (Math.random() < chanceToBurn) {
                 float burnBaseDamage = (float) CombatUtility.getAttributeValue(attacker, ModAttributes.BURN_BASE_DAMAGE, weapon, "burn_base_damage", source);
                 float burnDamagePercent = (float) CombatUtility.getAttributeValue(attacker, ModAttributes.BURN_DAMAGE_PERCENT, weapon, "burn_damage_percent", source);
-                AilmentManager.applyAilment(target, AilmentType.BURN, burnBaseDamage * burnDamagePercent / 100f, AilmentType.BURN.getBaseDuration(), attacker);
+                double burnDuration = AilmentType.BURN.getBaseDuration() * (1.0 + attacker.getAttributeValue(ModAttributes.BURN_DURATION));
+                AilmentManager.applyAilment(target, AilmentType.BURN, burnBaseDamage * burnDamagePercent / 100f, burnDuration, attacker);
             }
 
             // Poison
@@ -323,7 +324,8 @@ public abstract class ElementalDamageMixin {
             if (Math.random() < chanceToPoison) {
                 float poisonBaseDamage = (float) CombatUtility.getAttributeValue(attacker, ModAttributes.POISON_BASE_DAMAGE, weapon, "poison_base_damage", source);
                 float poisonDamagePercent = (float) CombatUtility.getAttributeValue(attacker, ModAttributes.POISON_DAMAGE_PERCENT, weapon, "poison_damage_percent", source);
-                AilmentManager.applyAilment(target, AilmentType.POISON, poisonBaseDamage * (1.0f + poisonDamagePercent / 100f), AilmentType.POISON.getBaseDuration(), attacker);
+                double poisonDuration = AilmentType.POISON.getBaseDuration() * (1.0 + attacker.getAttributeValue(ModAttributes.POISON_DURATION));
+                AilmentManager.applyAilment(target, AilmentType.POISON, poisonBaseDamage * (1.0f + poisonDamagePercent / 100f), poisonDuration, attacker);
             }
 
             // Freeze
@@ -332,7 +334,8 @@ public abstract class ElementalDamageMixin {
                                   getEnchantmentValue(chestplate, "minecraft:chance_to_freeze", 0.05);
 
             if (Math.random() < chanceToFreeze) {
-                AilmentManager.applyAilment(target, AilmentType.FREEZE, 0.0f, AilmentType.FREEZE.getBaseDuration(), attacker);
+                double freezeDuration = AilmentType.FREEZE.getBaseDuration() * (1.0 + attacker.getAttributeValue(ModAttributes.FREEZE_DURATION));
+                AilmentManager.applyAilment(target, AilmentType.FREEZE, 0.0f, freezeDuration, attacker);
             }
 
             // Bleed
@@ -341,7 +344,8 @@ public abstract class ElementalDamageMixin {
                                   getEnchantmentValue(chestplate, "minecraft:chance_to_bleed", 0.05);
 
             if (Math.random() < chanceToBleed) {
-                AilmentManager.applyAilment(target, AilmentType.BLEED, 0.0f, AilmentType.BLEED.getBaseDuration(), attacker);
+                double bleedDuration = AilmentType.BLEED.getBaseDuration() * (1.0 + attacker.getAttributeValue(ModAttributes.BLEED_DURATION));
+                AilmentManager.applyAilment(target, AilmentType.BLEED, 0.0f, bleedDuration, attacker);
             }
 
             // Shock

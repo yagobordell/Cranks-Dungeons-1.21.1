@@ -14,5 +14,6 @@ public class ServerPlayerEntityMixin {
     private void onPlayerDisconnect(CallbackInfo ci) {
         ServerPlayerEntity player = (ServerPlayerEntity) (Object) this;
         EquipmentStatApplier.onPlayerDisconnect(player);
+        com.cranks.dungeons.stat.passive.PassiveSkillApplier.onPlayerDisconnect(player);
     }
 }

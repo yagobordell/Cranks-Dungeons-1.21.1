@@ -255,5 +255,12 @@ public class CranksDungeonsClient implements ClientModInitializer {
                 com.cranks.dungeons.client.render.AilmentIconRenderer.updateAilments(payload.entityId(), payload.ailments());
             });
         });
+
+        ClientPlayNetworking.registerGlobalReceiver(com.cranks.dungeons.network.SyncPassiveTreePayload.ID, (payload, context) -> {
+            context.client().execute(() -> {
+                com.cranks.dungeons.config.PassiveTreeConfig.setNodesAndClasses(payload.nodes(), payload.classes());
+                com.cranks.dungeons.stat.passive.PassiveNodeRegistry.loadFromConfig();
+            });
+        });
     }
 }

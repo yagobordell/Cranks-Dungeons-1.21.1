@@ -1,3 +1,12 @@
+buildscript {
+	repositories {
+		mavenCentral()
+	}
+	dependencies {
+		classpath 'org.ow2.asm:asm:9.7.1'
+	}
+}
+
 plugins {
 	id 'net.fabricmc.fabric-loom-remap' version "${loom_version}"
 	id 'maven-publish'
@@ -13,6 +22,8 @@ base {
 repositories {
 	maven { url "https://maven.terraformersmc.com/releases" }
 	maven { url 'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/' }
+	maven { url 'https://maven.wispforest.io/releases/' }
+	maven { url 'https://maven.ladysnake.org/releases' }
 }
 
 loom {
@@ -41,6 +52,11 @@ dependencies {
 
 	// GeckoLib (Optional)
 	modCompileOnly "software.bernie.geckolib:geckolib-fabric-1.21.11:${project.geckolib_version}"
+
+	// Passive Skill Tree
+	modImplementation annotationProcessor("io.wispforest:owo-lib:${project.owo_version}")
+	modImplementation("org.ladysnake.cardinal-components-api:cardinal-components-base:${project.cardinal_components_version}")
+	modImplementation("org.ladysnake.cardinal-components-api:cardinal-components-entity:${project.cardinal_components_version}")
 }
 
 processResources {
@@ -69,6 +85,90 @@ jar {
 	}
 }
 
+// Patch the remapped JAR to inject CCA 7.3.1 compatible writeData/readData methods.
+// CCA 7.3.1 (used by the modpack at runtime) requires:
+//   writeData(Lnet/minecraft/class_11372;)V  (ValueOutput)
+//   readData(Lnet/minecraft/class_11368;)V   (ValueInput)
+// Since these classes don't exist in the dev classpath (CCA 6.0.0), we inject
+// them directly at the bytecode level using intermediary descriptors.
+tasks.register('patchJarForCCA') {
+	dependsOn remapJar
+	doLast {
+		def jarFile = remapJar.archiveFile.get().asFile
+		def tmpDir = new File(buildDir, "tmp/patchCCA")
+		if (tmpDir.exists()) tmpDir.deleteDir()
+		tmpDir.mkdirs()
+
+		// Extract, patch, repackage
+		ant.unzip(src: jarFile, dest: tmpDir)
+
+		def classFile = new File(tmpDir, "com/cranks/dungeons/component/PassiveDataComponentImpl.class")
+		if (!classFile.exists()) {
+			throw new GradleException("PassiveDataComponentImpl.class not found in remapped JAR!")
+		}
+
+		def cr = new org.objectweb.asm.ClassReader(classFile.bytes)
+		def cw = new org.objectweb.asm.ClassWriter(cr, 0)
+
+		// Visit existing class to copy it
+		cr.accept(cw, 0)
+
+		// Add: public void writeData(Lnet/minecraft/class_11372;)V
+		def mv1 = cw.visitMethod(
+			org.objectweb.asm.Opcodes.ACC_PUBLIC,
+			"writeData",
+			"(Lnet/minecraft/class_11372;)V",
+			null, null
+		)
+		mv1.visitCode()
+		mv1.visitVarInsn(org.objectweb.asm.Opcodes.ALOAD, 0) // this
+		mv1.visitVarInsn(org.objectweb.asm.Opcodes.ALOAD, 1) // buffer
+		mv1.visitMethodInsn(
+			org.objectweb.asm.Opcodes.INVOKEVIRTUAL,
+			"com/cranks/dungeons/component/PassiveDataComponentImpl",
+			"cca_bridge_writeData",
+			"(Ljava/lang/Object;)V",
+			false
+		)
+		mv1.visitInsn(org.objectweb.asm.Opcodes.RETURN)
+		mv1.visitMaxs(2, 2)
+		mv1.visitEnd()
+ 
+		// Add: public void readData(Lnet/minecraft/class_11368;)V
+		def mv2 = cw.visitMethod(
+			org.objectweb.asm.Opcodes.ACC_PUBLIC,
+			"readData",
+			"(Lnet/minecraft/class_11368;)V",
+			null, null
+		)
+		mv2.visitCode()
+		mv2.visitVarInsn(org.objectweb.asm.Opcodes.ALOAD, 0) // this
+		mv2.visitVarInsn(org.objectweb.asm.Opcodes.ALOAD, 1) // buffer
+		mv2.visitMethodInsn(
+			org.objectweb.asm.Opcodes.INVOKEVIRTUAL,
+			"com/cranks/dungeons/component/PassiveDataComponentImpl",
+			"cca_bridge_readData",
+			"(Ljava/lang/Object;)V",
+			false
+		)
+		mv2.visitInsn(org.objectweb.asm.Opcodes.RETURN)
+		mv2.visitMaxs(2, 2)
+		mv2.visitEnd()
+
+		classFile.bytes = cw.toByteArray()
+
+		// Repackage
+		jarFile.delete()
+		ant.zip(destfile: jarFile, basedir: tmpDir)
+
+		println "Patched ${jarFile.name} with CCA 7.3.1 compatible writeData/readData methods"
+	}
+}
+
+tasks.named('build') {
+	dependsOn patchJarForCCA
+}
+
 publishing {
 	publications {
 		create("mavenJava", MavenPublication) {
@@ -79,3 +179,4 @@ publishing {
 	repositories {
 	}
 }
+

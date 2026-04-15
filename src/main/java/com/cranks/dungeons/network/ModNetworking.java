@@ -25,6 +25,9 @@ public class ModNetworking {
                 ToggleEnchantmentDisablePayload.ID,
                 ToggleEnchantmentDisablePayload.CODEC
         );
+        PayloadTypeRegistry.playC2S().register(UnlockNodePayload.ID, UnlockNodePayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(SelectClassPayload.ID, SelectClassPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(BulkUnlockNodesPayload.ID, BulkUnlockNodesPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(DamageNumberPayload.ID, DamageNumberPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(ShockArcPayload.ID, ShockArcPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(AilmentSyncPayload.ID, AilmentSyncPayload.CODEC);
@@ -33,6 +36,7 @@ public class ModNetworking {
         PayloadTypeRegistry.playS2C().register(PartySyncPacket.ID, PartySyncPacket.CODEC);
         PayloadTypeRegistry.playS2C().register(PartyHealthPacket.ID, PartyHealthPacket.CODEC);
         PayloadTypeRegistry.playS2C().register(PartyInvitePacket.ID, PartyInvitePacket.CODEC);
+        PayloadTypeRegistry.playS2C().register(SyncPassiveTreePayload.ID, SyncPassiveTreePayload.CODEC);
     }
 
     public static void registerServerReceivers() {
@@ -62,6 +66,111 @@ public class ModNetworking {
                             EnchantmentDisableTickHandler.triggerEnabledMessage(player.getUuid());
                         }
                         // If something is disabled, the tick handler will show it continuously
+                    });
+                }
+        );
+
+        ServerPlayNetworking.registerGlobalReceiver(
+                UnlockNodePayload.ID,
+                (payload, context) -> {
+                    context.server().execute(() -> {
+                        var player = context.player();
+                        var data = com.cranks.dungeons.component.ModComponents.PASSIVE_DATA.get(player);
+                        String nodeId = payload.nodeId();
+                        var node = com.cranks.dungeons.stat.passive.PassiveNodeRegistry.getNode(nodeId);
+                        
+                        if (node != null && !data.hasNode(nodeId) && data.getUnspentPoints() > 0) {
+                            // Validate pathing (must be adjacent to an unlocked node or starting node from class)
+                            boolean canUnlock = false;
+                            
+                            // Let's assume start nodes for classes are unlocked for free from SelectClassPayload,
+                            // or they are adjacent. If unlockedNodes is empty, we only allow start nodes, but 
+                            // SelectClassPayload handles start nodes.
+                            for (String connectedId : node.connections()) {
+                                if (data.hasNode(connectedId)) {
+                                    canUnlock = true;
+                                    break;
+                                }
+                            }
+                            
+                            if (canUnlock) {
+                                data.setUnspentPoints(data.getUnspentPoints() - 1);
+                                data.unlockNode(nodeId);
+                                com.cranks.dungeons.stat.passive.PassiveSkillApplier.updatePlayerPassives(player);
+                            }
+                        }
+                    });
+                }
+        );
+
+        ServerPlayNetworking.registerGlobalReceiver(
+                SelectClassPayload.ID,
+                (payload, context) -> {
+                    context.server().execute(() -> {
+                        var player = context.player();
+                        var data = com.cranks.dungeons.component.ModComponents.PASSIVE_DATA.get(player);
+                        
+                        // Prevent changing class if already chosen
+                        if (data.getPlayerClass().isEmpty()) {
+                            String cName = payload.className();
+                            com.cranks.dungeons.config.PassiveTreeConfig.ClassDefinition def = com.cranks.dungeons.config.PassiveTreeConfig.getClasses().stream()
+                                    .filter(c -> c.id().equals(cName))
+                                    .findFirst().orElse(null);
+                            
+                            if (def != null) {
+                                data.setPlayerClass(cName);
+                                // Unlocking start node for free
+                                data.unlockNode(def.startNode());
+                                com.cranks.dungeons.stat.passive.PassiveSkillApplier.updatePlayerPassives(player);
+                            }
+                        }
+                    });
+                }
+        );
+        ServerPlayNetworking.registerGlobalReceiver(
+                BulkUnlockNodesPayload.ID,
+                (payload, context) -> {
+                    context.server().execute(() -> {
+                        var player = context.player();
+                        var data = com.cranks.dungeons.component.ModComponents.PASSIVE_DATA.get(player);
+                        java.util.List<String> remainingNodes = new java.util.ArrayList<>(payload.nodeIds());
+                        
+                        boolean totalChanged = false;
+                        boolean progress = true;
+                        
+                        // Keep trying to unlock nodes as long as we make progress in a pass
+                        while (progress && !remainingNodes.isEmpty()) {
+                            progress = false;
+                            java.util.Iterator<String> it = remainingNodes.iterator();
+                            while (it.hasNext()) {
+                                String nodeId = it.next();
+                                var node = com.cranks.dungeons.stat.passive.PassiveNodeRegistry.getNode(nodeId);
+                                
+                                if (node != null && !data.hasNode(nodeId) && data.getUnspentPoints() > 0) {
+                                    boolean canUnlock = false;
+                                    for (String connectedId : node.connections()) {
+                                        if (data.hasNode(connectedId)) {
+                                            canUnlock = true;
+                                            break;
+                                        }
+                                    }
+                                    
+                                    if (canUnlock) {
+                                        data.setUnspentPoints(data.getUnspentPoints() - 1);
+                                        data.unlockNode(nodeId);
+                                        it.remove();
+                                        progress = true;
+                                        totalChanged = true;
+                                    }
+                                } else if (data.hasNode(nodeId)) {
+                                    it.remove(); // Already unlocked, just clean up
+                                }
+                            }
+                        }
+                        
+                        if (totalChanged) {
+                            com.cranks.dungeons.stat.passive.PassiveSkillApplier.updatePlayerPassives(player);
+                        }
                     });
                 }
         );
@@ -132,6 +241,23 @@ public class ModNetworking {
         net.minecraft.server.network.ServerPlayerEntity player = server.getPlayerManager().getPlayer(playerUuid);
         if (player != null) {
             ServerPlayNetworking.send(player, new PartySyncPacket(java.util.Collections.emptyList(), null, false));
+        }
+    }
+
+    public static void syncPassiveTreeToPlayer(net.minecraft.server.network.ServerPlayerEntity player) {
+        ServerPlayNetworking.send(player, new SyncPassiveTreePayload(
+                com.cranks.dungeons.config.PassiveTreeConfig.getNodes(),
+                com.cranks.dungeons.config.PassiveTreeConfig.getClasses()
+        ));
+    }
+
+    public static void syncPassiveTreeToAll(net.minecraft.server.MinecraftServer server) {
+        SyncPassiveTreePayload payload = new SyncPassiveTreePayload(
+                com.cranks.dungeons.config.PassiveTreeConfig.getNodes(),
+                com.cranks.dungeons.config.PassiveTreeConfig.getClasses()
+        );
+        for (net.minecraft.server.network.ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+            ServerPlayNetworking.send(player, payload);
         }
     }
 }

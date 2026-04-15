@@ -78,7 +78,9 @@
 		"DrowningDamageMixin",
 		"DrowningHealBlockMixin",
 		"PartyPvPMixin",
-		"AilmentSyncMixin"
+		"AilmentSyncMixin",
+		"DeathXpPenaltyMixin",
+		"PlayerEntityXpMixin"
 	],
 	"client": [
 		"HideArmorAttributeMixin",

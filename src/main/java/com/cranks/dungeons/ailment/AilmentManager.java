@@ -92,8 +92,13 @@ public class AilmentManager {
 
         List<Ailment> ailments = getAilments(target);
 
-        // POISON: Single ailment with stack counter (1-20)
+        // POISON: Single ailment with stack counter (1-20 base, plus modifiers)
         if (type == AilmentType.POISON) {
+            int maxStacks = POISON_STACK_CAP;
+            if (source instanceof LivingEntity living) {
+                maxStacks += (int) living.getAttributeValue(ModAttributes.POISON_MAX_STACKS);
+            }
+
             Ailment existingPoison = ailments.stream()
                     .filter(a -> a.getType() == AilmentType.POISON)
                     .findFirst()
@@ -101,7 +106,7 @@ public class AilmentManager {
             
             if (existingPoison != null) {
                 // Add stack to existing poison (up to cap)
-                if (existingPoison.getStacks() < POISON_STACK_CAP) {
+                if (existingPoison.getStacks() < maxStacks) {
                     existingPoison.addStack(duration, baseDamage);
                     ENTITY_AILMENTS.put(target.getUuid(), ailments);
                     applyStatusEffect(target, type, existingPoison.getRemainingDuration(), existingPoison.getStacks());

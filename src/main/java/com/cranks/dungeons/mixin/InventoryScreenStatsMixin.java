@@ -42,6 +42,15 @@ public abstract class InventoryScreenStatsMixin {
     @Unique
     private static final Identifier STATS_BUTTON_PRESSED_HOVER = Identifier.of("cranks-dungeons",
             "textures/gui/stats_button_pressed_hover.png");
+            
+    // SKILL TREE BUTTON
+    @Unique
+    private static final Identifier SKILLS_BUTTON_NORMAL = Identifier.of("cranks-dungeons",
+            "textures/gui/skills_button.png"); // We'll assume a similar texture naming convention
+    @Unique
+    private static final Identifier SKILLS_BUTTON_HOVER = Identifier.of("cranks-dungeons",
+            "textures/gui/skills_button_hover.png");
+
     @Unique
     private static final Identifier SCROLLBAR_TRACK_TEXTURE = Identifier.of("cranks-dungeons",
             "textures/gui/stats_scrollbar_background.png");
@@ -58,6 +67,8 @@ public abstract class InventoryScreenStatsMixin {
     private boolean draggingScrollbar = false;
     @Unique
     private boolean lastClickState = false;
+    @Unique
+    private boolean lastSkillClickState = false;
     @Unique
     private String hoveredStat = null;
     @Unique
@@ -117,6 +128,22 @@ public abstract class InventoryScreenStatsMixin {
 
             context.drawTexturedQuad(buttonTexture, buttonX, buttonY, buttonX + buttonWidth, buttonY + buttonHeight,
                     0.0F, 1.0F, 0.0F, 1.0F);
+
+            // --- SKILL TREE BUTTON ---
+            int skillButtonX = buttonX;
+            int skillButtonY = buttonY + 16;
+            boolean isHoveringSkill = mouseX >= skillButtonX && mouseX <= skillButtonX + buttonWidth &&
+                    mouseY >= skillButtonY && mouseY <= skillButtonY + buttonHeight;
+                    
+            if (isHoveringSkill && leftClick && !lastSkillClickState && !draggingScrollbar) {
+                MinecraftClient.getInstance().setScreen(new com.cranks.dungeons.client.screen.PassiveSkillTreeScreen(screen));
+            }
+            lastSkillClickState = leftClick;
+
+            Identifier skillButtonTexture = isHoveringSkill ? SKILLS_BUTTON_HOVER : SKILLS_BUTTON_NORMAL;
+            context.drawTexturedQuad(skillButtonTexture, skillButtonX, skillButtonY, skillButtonX + buttonWidth, skillButtonY + buttonHeight,
+                    0.0F, 1.0F, 0.0F, 1.0F);
+
 
             if (!statsVisible)
                 return;
@@ -232,7 +259,7 @@ public abstract class InventoryScreenStatsMixin {
             double burnBaseVal = player.getAttributeValue(ModAttributes.BURN_BASE_DAMAGE);
             double burnPctVal = player.getAttributeValue(ModAttributes.BURN_DAMAGE_PERCENT);
             curY = drawStatWithTooltip(context, tr, panelX, curY, "Burn Damage", burnBaseVal * burnPctVal / 100.0, 4.0, "", mouseX, mouseY, panelX, panelWidth);
-            curY = drawStatWithTooltip(context, tr, panelX, curY, "Burn Duration", 4.0, 4.0, "s", mouseX, mouseY, panelX, panelWidth);
+            curY = drawStatWithTooltip(context, tr, panelX, curY, "Burn Duration", 4.0 * (1.0 + player.getAttributeValue(ModAttributes.BURN_DURATION)), 4.0, "s", mouseX, mouseY, panelX, panelWidth);
 
             // POISON
             double chanceToPoison = player.getAttributeValue(ModAttributes.CHANCE_TO_POISON) + getEnchantmentValue(weapon, "minecraft:chance_to_poison", 0.05) + getEnchantmentValue(chestplate, "minecraft:chance_to_poison", 0.05);
@@ -240,18 +267,18 @@ public abstract class InventoryScreenStatsMixin {
             double poisonBaseVal = player.getAttributeValue(ModAttributes.POISON_BASE_DAMAGE);
             double poisonPctVal = player.getAttributeValue(ModAttributes.POISON_DAMAGE_PERCENT);
             curY = drawStatWithTooltip(context, tr, panelX, curY, "Poison Damage", poisonBaseVal * (1.0 + poisonPctVal / 100.0), 1.0, "", mouseX, mouseY, panelX, panelWidth);
-            curY = drawStatWithTooltip(context, tr, panelX, curY, "Poison Duration", 2.0, 2.0, "s", mouseX, mouseY, panelX, panelWidth);
-            curY = drawStatWithTooltip(context, tr, panelX, curY, "Poison Stacks", 20.0, 20.0, " max", mouseX, mouseY, panelX, panelWidth);
+            curY = drawStatWithTooltip(context, tr, panelX, curY, "Poison Duration", 2.0 * (1.0 + player.getAttributeValue(ModAttributes.POISON_DURATION)), 2.0, "s", mouseX, mouseY, panelX, panelWidth);
+            curY = drawStatWithTooltip(context, tr, panelX, curY, "Poison Stacks", 20.0 + player.getAttributeValue(ModAttributes.POISON_MAX_STACKS), 20.0, " max", mouseX, mouseY, panelX, panelWidth);
 
             // BLEED
             double chanceToBleed = player.getAttributeValue(ModAttributes.CHANCE_TO_BLEED) + getEnchantmentValue(weapon, "minecraft:chance_to_bleed", 0.05) + getEnchantmentValue(chestplate, "minecraft:chance_to_bleed", 0.05);
             curY = drawStatWithTooltip(context, tr, panelX, curY, "Bleed Chance", chanceToBleed * 100, player.getAttributeBaseValue(ModAttributes.CHANCE_TO_BLEED) * 100, "%", mouseX, mouseY, panelX, panelWidth);
-            curY = drawStatWithTooltip(context, tr, panelX, curY, "Bleed Duration", 5.0, 5.0, "s", mouseX, mouseY, panelX, panelWidth);
+            curY = drawStatWithTooltip(context, tr, panelX, curY, "Bleed Duration", 5.0 * (1.0 + player.getAttributeValue(ModAttributes.BLEED_DURATION)), 5.0, "s", mouseX, mouseY, panelX, panelWidth);
 
             // FREEZE
             double chanceToFreeze = player.getAttributeValue(ModAttributes.CHANCE_TO_FREEZE) + getEnchantmentValue(weapon, "minecraft:chance_to_freeze", 0.05) + getEnchantmentValue(chestplate, "minecraft:chance_to_freeze", 0.05);
             curY = drawStatWithTooltip(context, tr, panelX, curY, "Freeze Chance", chanceToFreeze * 100, player.getAttributeBaseValue(ModAttributes.CHANCE_TO_FREEZE) * 100, "%", mouseX, mouseY, panelX, panelWidth);
-            curY = drawStatWithTooltip(context, tr, panelX, curY, "Freeze Duration", 4.0, 4.0, "s", mouseX, mouseY, panelX, panelWidth);
+            curY = drawStatWithTooltip(context, tr, panelX, curY, "Freeze Duration", 4.0 * (1.0 + player.getAttributeValue(ModAttributes.FREEZE_DURATION)), 4.0, "s", mouseX, mouseY, panelX, panelWidth);
 
             // SHOCK
             double chanceToShock = player.getAttributeValue(ModAttributes.CHANCE_TO_SHOCK) + getEnchantmentValue(weapon, "minecraft:chance_to_shock", 0.05) + getEnchantmentValue(chestplate, "minecraft:chance_to_shock", 0.05);

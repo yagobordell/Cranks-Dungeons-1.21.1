@@ -26,12 +26,20 @@
 		],
 		"modmenu": [
 			"com.cranks.dungeons.client.ModMenuIntegration"
+		],
+		"cardinal-components": [
+			"com.cranks.dungeons.component.ModComponents"
 		]
 	},
 	"accessWidener": "cranks-dungeons.accesswidener",
 	"mixins": [
 		"cranks-dungeons.mixins.json"
 	],
+	"custom": {
+		"cardinal-components": [
+			"cranks-dungeons:passive_data"
+		]
+	},
 	"depends": {
 		"fabricloader": ">=0.18.4",
 		"minecraft": "~1.21.11",

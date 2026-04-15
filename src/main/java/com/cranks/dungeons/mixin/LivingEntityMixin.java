@@ -10,7 +10,9 @@ import com.cranks.dungeons.util.AilmentHistoryProvider;
 import com.cranks.dungeons.util.DamageBreakdownProvider;
 import com.cranks.dungeons.util.DamageConversionHelper;
 import com.cranks.dungeons.network.DamageNumberSender;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.attribute.DefaultAttributeContainer;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.particle.ParticleEffect;
@@ -67,6 +69,16 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
     @Inject(method = "onDeath", at = @At("HEAD"))
     private void onEntityDeath(DamageSource source, CallbackInfo ci) {
         AilmentManager.onEntityDeath((LivingEntity) (Object) this);
+    }
+
+    /**
+     * Prevents players from dropping XP on death (Yarn 1.21.1 signature).
+     */
+    @Inject(method = "dropExperience", at = @At("HEAD"), cancellable = true)
+    private void preventPlayerXpDrop(ServerWorld world, Entity attacker, CallbackInfo ci) {
+        if ((Object) this instanceof PlayerEntity) {
+            ci.cancel();
+        }
     }
 
     @Inject(method = "heal", at = @At("HEAD"))

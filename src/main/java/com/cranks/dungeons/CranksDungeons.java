@@ -22,6 +22,14 @@ import com.cranks.dungeons.registry.ModSounds;
 import com.cranks.dungeons.screen.ModScreenHandlers;
 import com.cranks.dungeons.stat.StatRegistry;
 import com.cranks.dungeons.util.EquipmentChangeHandler;
+import com.cranks.dungeons.component.ModComponents;
+import com.cranks.dungeons.component.PassiveDataComponent;
+import com.cranks.dungeons.stat.passive.PassiveSkillApplier;
+import com.cranks.dungeons.stat.passive.PassiveNodeRegistry;
+import com.cranks.dungeons.config.PassiveTreeConfig;
+import net.minecraft.text.Text;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroupEntries;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
@@ -79,6 +87,19 @@ public class CranksDungeons implements ModInitializer {
 		DigFortuneHandler.register();
 		CropXpEventHandler.register();
 		RunicTomeLootHandler.register();
+		PassiveTreeConfig.load();
+		PassiveNodeRegistry.loadFromConfig();
+
+		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
+			PassiveDataComponent data = ModComponents.PASSIVE_DATA.get(handler.player);
+			data.checkRetroactivePoints(handler.player.experienceLevel);
+			ModNetworking.syncPassiveTreeToPlayer(handler.player);
+			PassiveSkillApplier.updatePlayerPassives(handler.player);
+		});
+
+		ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
+			PassiveSkillApplier.updatePlayerPassives(newPlayer);
+		});
 		FabricDefaultAttributeRegistry.register(
 				EntityType.PLAYER,
 				PlayerEntity.createPlayerAttributes()
@@ -100,6 +121,11 @@ public class CranksDungeons implements ModInitializer {
 						.add(ModAttributes.CHANCE_TO_BLEED, 0.0)
 						.add(ModAttributes.CHANCE_TO_SHOCK, 0.0)
 						.add(ModAttributes.SHOCK_DURATION, 3.0)
+						.add(ModAttributes.BURN_DURATION, 0.0)
+						.add(ModAttributes.POISON_DURATION, 0.0)
+						.add(ModAttributes.POISON_MAX_STACKS, 0.0)
+						.add(ModAttributes.FREEZE_DURATION, 0.0)
+						.add(ModAttributes.BLEED_DURATION, 0.0)
 						.add(ModAttributes.PHYSICAL_EXTRA_PERCENT, 0.0)
 						.add(ModAttributes.FIRE_EXTRA_PERCENT, 0.0)
 						.add(ModAttributes.COLD_EXTRA_PERCENT, 0.0)
@@ -110,6 +136,18 @@ public class CranksDungeons implements ModInitializer {
 		);
 
 		registerCreativeTabItems();
+
+		net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
+			dispatcher.register(net.minecraft.server.command.CommandManager.literal("reloadpassivetree")
+				.requires(source -> true) // Temporary while fixing permission check method 
+				.executes(context -> {
+					com.cranks.dungeons.config.PassiveTreeConfig.load();
+					com.cranks.dungeons.stat.passive.PassiveNodeRegistry.loadFromConfig();
+					com.cranks.dungeons.network.ModNetworking.syncPassiveTreeToAll(context.getSource().getServer());
+					context.getSource().sendFeedback(() -> net.minecraft.text.Text.literal("Passive skill tree reloaded and synced to all players."), true);
+					return 1;
+				}));
+		});
 
 		LOGGER.info("Cranks Dungeons initialized!");
 	}
