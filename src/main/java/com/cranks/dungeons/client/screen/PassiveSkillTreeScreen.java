@@ -17,6 +17,9 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import com.mojang.blaze3d.systems.RenderSystem;
 import org.joml.Matrix4f;
+import net.minecraft.sound.SoundEvents;
+import com.cranks.dungeons.registry.ModSounds;
+import com.cranks.dungeons.stat.passive.PassiveStatHelper;
 
 import java.util.Map;
 import java.util.Set;
@@ -34,6 +37,7 @@ public class PassiveSkillTreeScreen extends Screen {
     private boolean choosingClass = false;
     private final Set<String> draftUnlocked = new HashSet<>();
     private int draftPoints;
+    private boolean showStatsPanel = false;
 
     // --- Unified Logic & Rendering Caches ---
     private record Edge(PassiveNode n1, PassiveNode n2) {}
@@ -55,6 +59,10 @@ public class PassiveSkillTreeScreen extends Screen {
         if (player == null) return;
         PassiveDataComponent data = ModComponents.PASSIVE_DATA.get(player);
         this.draftPoints = data.getUnspentPoints();
+        
+        if (this.client != null && this.client.player != null) {
+            this.client.player.playSound(SoundEvents.UI_BUTTON_CLICK.value(), 0.5f, 0.8f);
+        }
 
         if (data.getPlayerClass() == null || data.getPlayerClass().isEmpty()) {
             choosingClass = true;
@@ -80,6 +88,13 @@ public class PassiveSkillTreeScreen extends Screen {
             this.addDrawableChild(ButtonWidget.builder(Text.literal("Reset Draft"), b -> resetDraft())
                     .dimensions(this.width / 2 + 5, this.height - 30, 100, 20).build());
 
+            // Stats Toggle Button
+            this.addDrawableChild(ButtonWidget.builder(Text.literal(showStatsPanel ? "Hide Stats" : "Show Stats"), b -> {
+                        showStatsPanel = !showStatsPanel;
+                        this.init(); // Refresh button text
+                    })
+                    .dimensions(this.width - 110, 10, 100, 20).build());
+
             // Center the view on the starting node for their class (only if not already panned)
             if (panX == 0 && panY == 0) {
                 String startId = data.getPlayerClass() + "_start";
@@ -97,13 +112,21 @@ public class PassiveSkillTreeScreen extends Screen {
 
     private void applyChanges() {
         if (!draftUnlocked.isEmpty()) {
+            var player = MinecraftClient.getInstance().player;
+            if (player != null) {
+                player.playSound(ModSounds.PASSIVE_POINT_APPLY, 0.8f, 1.0f);
+            }
+            
             ClientPlayNetworking.send(new com.cranks.dungeons.network.BulkUnlockNodesPayload(new java.util.ArrayList<>(draftUnlocked)));
-            draftUnlocked.clear();
-            // We'll update points on next tick or just let server sync handle it. 
-            // Better: update client-side points now.
-            var data = ModComponents.PASSIVE_DATA.get(MinecraftClient.getInstance().player);
+            
+            // Update client-side points and unlocked nodes BEFORE clearing the draft
+            var data = ModComponents.PASSIVE_DATA.get(player);
             data.setUnspentPoints(draftPoints);
-            for (String id : draftUnlocked) data.unlockNode(id);
+            for (String id : draftUnlocked) {
+                data.unlockNode(id);
+            }
+            
+            draftUnlocked.clear();
             this.init(); 
             this.cacheDirty = true;
         }
@@ -126,6 +149,11 @@ public class PassiveSkillTreeScreen extends Screen {
                 .filter(c -> c.id().equals(className)).findFirst().orElse(null);
         if (def != null) {
             data.unlockNode(def.startNode());
+        }
+        
+        var playerEntity = MinecraftClient.getInstance().player;
+        if (playerEntity != null) {
+            playerEntity.playSound(SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, 0.8f, 1.0f);
         }
         
         this.clearChildren();
@@ -267,7 +295,76 @@ public class PassiveSkillTreeScreen extends Screen {
         String pointsText = "Unspent Points: " + draftPoints;
         context.drawCenteredTextWithShadow(this.textRenderer, pointsText, this.width / 2, this.height - 48, 0xFFFFAA00);
         
+        if (showStatsPanel) {
+            renderStatsPanel(context);
+        }
+
         super.render(context, mouseX, mouseY, delta);
+    }
+
+    private void renderStatsPanel(DrawContext context) {
+        int panelWidth = 160;
+        int panelHeight = (int) (this.height * 0.7);
+        int panelX = this.width - panelWidth - 10;
+        int panelY = (this.height - panelHeight) / 2;
+
+        // Draw Panel Background (PoE Style)
+        context.fill(panelX - 2, panelY - 2, panelX + panelWidth + 2, panelY + panelHeight + 2, 0xFF000000); // Border
+        context.fill(panelX, panelY, panelX + panelWidth, panelY + panelHeight, 0xE0100515); // Translucent Dark Purple
+
+        int ty = panelY + 10;
+        context.drawCenteredTextWithShadow(this.textRenderer, "=== Tree Summary ===", panelX + panelWidth / 2, ty, 0xFFFFAA00);
+        ty += 15;
+
+        var stats = PassiveStatHelper.getDisplayableSummary(MinecraftClient.getInstance().player);
+        
+        // Add draft stats temporarily if we want to show preview (User didn't explicitly ask but it's better)
+        Map<String, Double> draftSummary = new java.util.TreeMap<>();
+        for (String id : draftUnlocked) {
+            var node = PassiveNodeRegistry.getNode(id);
+            if (node != null && node.modifiers() != null) {
+                for (var entry : node.modifiers().entrySet()) {
+                    String name = entry.getKey().value().getTranslationKey().replace("attribute.name.minecraft.", "").replace("attribute.name.cranks-dungeons.", "").replace("_", " ");
+                    name = name.substring(0, 1).toUpperCase() + name.substring(1);
+                    draftSummary.merge(name, entry.getValue(), Double::sum);
+                }
+            }
+        }
+
+        if (stats.isEmpty() && draftSummary.isEmpty()) {
+            context.drawCenteredTextWithShadow(this.textRenderer, "No stats unlocked", panelX + panelWidth / 2, ty + 20, 0x80AAAAAA);
+        } else {
+            // Merge for display
+            Set<String> allKeys = new java.util.TreeSet<>(stats.keySet());
+            allKeys.addAll(draftSummary.keySet());
+
+            for (String key : allKeys) {
+                double total = stats.getOrDefault(key, 0.0) + draftSummary.getOrDefault(key, 0.0);
+                if (total == 0) continue;
+
+                double displayVal = total;
+                boolean isPercent = key.toLowerCase().contains("percent") || 
+                                   key.toLowerCase().contains("chance") || 
+                                   key.toLowerCase().contains("speed") || 
+                                   key.toLowerCase().contains("extra") || 
+                                   key.toLowerCase().contains("reduction");
+                
+                if (isPercent) {
+                    displayVal *= 100.0;
+                }
+
+                String valStr = String.format("%+.1f", displayVal);
+                if (isPercent) {
+                    valStr += "%";
+                }
+
+                context.drawTextWithShadow(this.textRenderer, key + ":", panelX + 8, ty, 0xFFAAAAAA);
+                context.drawTextWithShadow(this.textRenderer, valStr, panelX + panelWidth - 8 - this.textRenderer.getWidth(valStr), ty, 0xFF55FFFF);
+                ty += 12;
+                
+                if (ty > panelY + panelHeight - 15) break; // Simple culling
+            }
+        }
     }
 
     private void refreshCaches(PassiveDataComponent data) {
@@ -450,7 +547,10 @@ public class PassiveSkillTreeScreen extends Screen {
         int button = click.button();
         
         if (!choosingClass && button == 0) {
-            PassiveDataComponent data = ModComponents.PASSIVE_DATA.get(MinecraftClient.getInstance().player);
+            var player = MinecraftClient.getInstance().player;
+            if (player == null) return false;
+            
+            PassiveDataComponent data = ModComponents.PASSIVE_DATA.get(player);
             Set<String> unlocked = data.getUnlockedNodes();
             
             double currentGridScale = BASE_GRID_SCALE * zoom;
@@ -470,6 +570,7 @@ public class PassiveSkillTreeScreen extends Screen {
                         // Toggle OFF: Unselect drafted node
                         draftUnlocked.remove(node.id());
                         draftPoints++;
+                        player.playSound(ModSounds.PASSIVE_NODE_SELECT, 0.5f, 0.8f); // Pitched down for deselect
                         this.cacheDirty = true;
                         revalidateDraft();
                         return true;
@@ -493,6 +594,7 @@ public class PassiveSkillTreeScreen extends Screen {
                     if (draftPoints > 0 && canUnlock) {
                         draftUnlocked.add(node.id());
                         draftPoints--;
+                        player.playSound(ModSounds.PASSIVE_NODE_SELECT, 0.6f, 1.2f); // Pitched up for select
                         this.cacheDirty = true;
                     }
                     return true;

@@ -16,7 +16,6 @@ This file contains a comprehensive list of all attributes available for use in t
 | `cranks-dungeons:crit_chance` | Percentage | Chance to deal critical damage. (Base: 5%) |
 | `cranks-dungeons:bonus_attack_damage` | Flat | Extra physical damage added to every hit. |
 | `cranks-dungeons:attack_speed` | Percentage | Increases frequency of attacks. |
-| `cranks-dungeons:physical_extra_percent` | Percentage | Deals a % of physical damage as extra damage. |
 | `cranks-dungeons:fire_damage` | Flat | Adds flat fire damage to attacks. |
 | `cranks-dungeons:cold_damage` | Flat | Adds flat cold damage to attacks. |
 | `cranks-dungeons:lightning_damage` | Flat | Adds flat lightning damage to attacks. |

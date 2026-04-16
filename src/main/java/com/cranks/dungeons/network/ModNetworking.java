@@ -169,7 +169,8 @@ public class ModNetworking {
                             progress = false;
                             java.util.Iterator<String> it = remainingNodes.iterator();
                             while (it.hasNext()) {
-                                String nodeId = it.next() != null ? it.next().trim() : "";
+                                String rawId = it.next();
+                                String nodeId = rawId != null ? rawId.trim() : "";
                                 if (nodeId.isEmpty()) { it.remove(); continue; }
                                 var node = com.cranks.dungeons.stat.passive.PassiveNodeRegistry.getNode(nodeId);
                                 

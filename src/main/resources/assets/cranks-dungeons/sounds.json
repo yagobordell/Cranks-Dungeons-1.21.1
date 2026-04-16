@@ -100,5 +100,20 @@
     "sounds": [
       { "name": "cranks-dungeons:burn_loop", "volume": 0.8, "pitch": 1.0 }
     ]
+  },
+  "passive_level_up": {
+    "sounds": [
+      { "name": "cranks-dungeons:passive_level_up", "volume": 1.0, "pitch": 1.0 }
+    ]
+  },
+  "passive_point_apply": {
+    "sounds": [
+      { "name": "cranks-dungeons:passive_point_apply", "volume": 1.0, "pitch": 1.0 }
+    ]
+  },
+  "passive_node_select": {
+    "sounds": [
+      { "name": "minecraft:ui/button/click", "volume": 0.6, "pitch": 1.4, "type": "event" }
+    ]
   }
 }

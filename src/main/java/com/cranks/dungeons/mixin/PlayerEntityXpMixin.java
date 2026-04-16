@@ -2,6 +2,7 @@ package com.cranks.dungeons.mixin;
 
 import com.cranks.dungeons.component.ModComponents;
 import com.cranks.dungeons.component.PassiveDataComponent;
+import com.cranks.dungeons.registry.ModSounds;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
@@ -32,6 +33,10 @@ public abstract class PlayerEntityXpMixin extends LivingEntity {
                 PassiveDataComponent component = ModComponents.PASSIVE_DATA.get(player);
                 // The player could theoretically add many levels at once via commands, loop or add the value directly.
                 component.addUnspentPoints(levels);
+                
+                // Play custom level up sound with correct category for server-side broadcast
+                player.getEntityWorld().playSound(null, player.getX(), player.getY(), player.getZ(), 
+                    ModSounds.PASSIVE_LEVEL_UP, net.minecraft.sound.SoundCategory.PLAYERS, 1.0f, 1.0f);
             }
         }
     }

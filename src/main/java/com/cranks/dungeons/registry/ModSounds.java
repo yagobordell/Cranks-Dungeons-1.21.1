@@ -36,6 +36,11 @@ public class ModSounds {
     public static final SoundEvent SHOCK_LOOP = register("shock_loop");
     public static final SoundEvent SHOCK_LOOP_2 = register("shock_loop_2");
 
+    // PASSIVE TREE SOUNDS
+    public static final SoundEvent PASSIVE_LEVEL_UP = register("passive_level_up");
+    public static final SoundEvent PASSIVE_POINT_APPLY = register("passive_point_apply");
+    public static final SoundEvent PASSIVE_NODE_SELECT = register("passive_node_select");
+
     private static SoundEvent register(String name) {
         Identifier id = Identifier.of(CranksDungeons.MOD_ID, name);
         return Registry.register(Registries.SOUND_EVENT, id, SoundEvent.of(id));
