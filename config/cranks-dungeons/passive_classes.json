@@ -1,0 +1,19 @@
+{
+    "classes":  [
+                    {
+                        "id":  "warrior",
+                        "name":  "[warrior] Warrior",
+                        "startNode":  "warrior_start"
+                    },
+                    {
+                        "id":  "ranger",
+                        "name":  "[ranger] Ranger",
+                        "startNode":  "ranger_start"
+                    },
+                    {
+                        "id":  "mercenary",
+                        "name":  "[mercenary] Mercenary",
+                        "startNode":  "mercenary_start"
+                    }
+                ]
+}

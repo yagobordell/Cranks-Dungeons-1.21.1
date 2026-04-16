@@ -1,0 +1,3149 @@
+{
+    "nodes":  [
+                  {
+                      "id":  "warrior_start",
+                      "name":  "[warrior_start] Path of the Warrior",
+                      "description":  "Start your journey as a Warrior.",
+                      "gridX":  -3.0,
+                      "gridY":  0.0,
+                      "shape":  "diamond",
+                      "icon":  "",
+                      "connections":  [
+                                          "w_arm1"
+                                      ],
+                      "modifiers":  {
+
+                                    }
+                  },
+                  {
+                      "id":  "ranger_start",
+                      "name":  "[ranger_start] Path of the Ranger",
+                      "description":  "Start your journey as a Ranger.",
+                      "gridX":  0.78,
+                      "gridY":  -2.9,
+                      "shape":  "diamond",
+                      "icon":  "",
+                      "connections":  [
+                                          "r_arm1"
+                                      ],
+                      "modifiers":  {
+
+                                    }
+                  },
+                  {
+                      "id":  "mercenary_start",
+                      "name":  "[mercenary_start] Path of the Mercenary",
+                      "description":  "Start your journey as a Mercenary.",
+                      "gridX":  2.12,
+                      "gridY":  2.12,
+                      "shape":  "diamond",
+                      "icon":  "",
+                      "connections":  [
+                                          "m_arm1"
+                                      ],
+                      "modifiers":  {
+
+                                    }
+                  },
+                  {
+                      "id":  "w_arm1",
+                      "name":  "[w_arm1] Travel Node",
+                      "description":  "+1% Max Health",
+                      "gridX":  -4.82,
+                      "gridY":  0.0,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "warrior_start",
+                                          "w_arm2"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:max_health_bonus":  1.0
+                                    }
+                  },
+                  {
+                      "id":  "w_arm2",
+                      "name":  "[w_arm2] Travel Node",
+                      "description":  "+1% Max Health",
+                      "gridX":  -6.58,
+                      "gridY":  0.0,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "w_arm1",
+                                          "w_arm3"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:max_health_bonus":  1.0
+                                    }
+                  },
+                  {
+                      "id":  "w_arm3",
+                      "name":  "[w_arm3] Travel Node",
+                      "description":  "+1% Max Health",
+                      "gridX":  -8.33,
+                      "gridY":  0.0,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "w_arm2",
+                                          "ir_033"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:max_health_bonus":  1.0
+                                    }
+                  },
+                  {
+                      "id":  "w_bridge1",
+                      "name":  "[w_bridge1] Travel Node",
+                      "description":  "+1% Movement Speed",
+                      "gridX":  -11.74,
+                      "gridY":  0.0,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_033",
+                                          "w_bridge2"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:movement_speed":  0.01
+                                    }
+                  },
+                  {
+                      "id":  "w_bridge2",
+                      "name":  "[w_bridge2] Travel Node",
+                      "description":  "+1% Movement Speed",
+                      "gridX":  -13.9,
+                      "gridY":  0.0,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "w_bridge1",
+                                          "w_bridge3"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:movement_speed":  0.01
+                                    }
+                  },
+                  {
+                      "id":  "w_bridge3",
+                      "name":  "[w_bridge3] Travel Node",
+                      "description":  "+1% Movement Speed",
+                      "gridX":  -16.06,
+                      "gridY":  0.0,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "w_bridge2",
+                                          "or_054"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:movement_speed":  0.01
+                                    }
+                  },
+                  {
+                      "id":  "r_arm1",
+                      "name":  "[r_arm1] Travel Node",
+                      "description":  "+1% Movement Speed",
+                      "gridX":  1.25,
+                      "gridY":  -4.66,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ranger_start",
+                                          "r_arm2"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:movement_speed":  0.01
+                                    }
+                  },
+                  {
+                      "id":  "r_arm2",
+                      "name":  "[r_arm2] Travel Node",
+                      "description":  "+1% Movement Speed",
+                      "gridX":  1.7,
+                      "gridY":  -6.35,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "r_arm1",
+                                          "r_arm3"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:movement_speed":  0.01
+                                    }
+                  },
+                  {
+                      "id":  "r_arm3",
+                      "name":  "[r_arm3] Travel Node",
+                      "description":  "+1% Movement Speed",
+                      "gridX":  2.16,
+                      "gridY":  -8.05,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "r_arm2",
+                                          "ir_014"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:movement_speed":  0.01
+                                    }
+                  },
+                  {
+                      "id":  "r_bridge1",
+                      "name":  "[r_bridge1] Travel Node",
+                      "description":  "+1% Movement Speed",
+                      "gridX":  3.04,
+                      "gridY":  -11.34,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_014",
+                                          "r_bridge2"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:movement_speed":  0.01
+                                    }
+                  },
+                  {
+                      "id":  "r_bridge2",
+                      "name":  "[r_bridge2] Travel Node",
+                      "description":  "+1% Movement Speed",
+                      "gridX":  3.6,
+                      "gridY":  -13.43,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "r_bridge1",
+                                          "r_bridge3"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:movement_speed":  0.01
+                                    }
+                  },
+                  {
+                      "id":  "r_bridge3",
+                      "name":  "[r_bridge3] Travel Node",
+                      "description":  "+1% Movement Speed",
+                      "gridX":  4.16,
+                      "gridY":  -15.51,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "r_bridge2",
+                                          "or_022"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:movement_speed":  0.01
+                                    }
+                  },
+                  {
+                      "id":  "m_arm1",
+                      "name":  "[m_arm1] Travel Node",
+                      "description":  "+1% Attack Speed",
+                      "gridX":  3.41,
+                      "gridY":  3.41,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "mercenary_start",
+                                          "m_arm2"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:attack_speed":  0.01
+                                    }
+                  },
+                  {
+                      "id":  "m_arm2",
+                      "name":  "[m_arm2] Travel Node",
+                      "description":  "+1% Attack Speed",
+                      "gridX":  4.65,
+                      "gridY":  4.65,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "m_arm1",
+                                          "m_arm3"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:attack_speed":  0.01
+                                    }
+                  },
+                  {
+                      "id":  "m_arm3",
+                      "name":  "[m_arm3] Travel Node",
+                      "description":  "+1% Attack Speed",
+                      "gridX":  5.89,
+                      "gridY":  5.89,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "m_arm2",
+                                          "ir_058"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:attack_speed":  0.01
+                                    }
+                  },
+                  {
+                      "id":  "m_bridge1",
+                      "name":  "[m_bridge1] Travel Node",
+                      "description":  "+1% Movement Speed",
+                      "gridX":  8.3,
+                      "gridY":  8.3,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_058",
+                                          "m_bridge2"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:movement_speed":  0.01
+                                    }
+                  },
+                  {
+                      "id":  "m_bridge2",
+                      "name":  "[m_bridge2] Travel Node",
+                      "description":  "+1% Movement Speed",
+                      "gridX":  9.83,
+                      "gridY":  9.83,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "m_bridge1",
+                                          "m_bridge3"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:movement_speed":  0.01
+                                    }
+                  },
+                  {
+                      "id":  "m_bridge3",
+                      "name":  "[m_bridge3] Travel Node",
+                      "description":  "+1% Movement Speed",
+                      "gridX":  11.36,
+                      "gridY":  11.36,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "m_bridge2",
+                                          "or_094"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:movement_speed":  0.01
+                                    }
+                  },
+                  {
+                      "id":  "ir_000",
+                      "name":  "[ir_000] Iron Plating",
+                      "description":  "+1 Bonus Armor",
+                      "gridX":  9.5,
+                      "gridY":  0.0,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_001",
+                                          "ir_065"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:bonus_armor":  1.0
+                                    }
+                  },
+                  {
+                      "id":  "ir_001",
+                      "name":  "[ir_001] Fortitude",
+                      "description":  "+5 Max Health",
+                      "gridX":  9.46,
+                      "gridY":  -0.9,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_000",
+                                          "ir_002"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:max_health_bonus":  5.0
+                                    }
+                  },
+                  {
+                      "id":  "ir_002",
+                      "name":  "[ir_002] Blood Flow",
+                      "description":  "+0.1 Life Regen/s",
+                      "gridX":  9.33,
+                      "gridY":  -1.8,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_001",
+                                          "ir_003"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:life_regeneration":  0.1
+                                    }
+                  },
+                  {
+                      "id":  "ir_003",
+                      "name":  "[ir_003] Ember Ward",
+                      "description":  "+3% Fire Resistance",
+                      "gridX":  9.12,
+                      "gridY":  -2.68,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_002",
+                                          "ir_004"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:fire_resistance":  0.03
+                                    }
+                  },
+                  {
+                      "id":  "ir_004",
+                      "name":  "[ir_004] Rend",
+                      "description":  "+2% Bleed Chance",
+                      "gridX":  8.82,
+                      "gridY":  -3.53,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_003",
+                                          "ir_005"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:chance_to_bleed":  0.02
+                                    }
+                  },
+                  {
+                      "id":  "ir_005",
+                      "name":  "[ir_005] Brute Force",
+                      "description":  "+2% Phys Extra Damage",
+                      "gridX":  8.44,
+                      "gridY":  -4.35,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_004",
+                                          "ir_006"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:physical_extra_percent":  0.02
+                                    }
+                  },
+                  {
+                      "id":  "ir_006",
+                      "name":  "[ir_006] Dodge",
+                      "description":  "+8 Evasion Rating",
+                      "gridX":  7.99,
+                      "gridY":  -5.14,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_005",
+                                          "ir_007"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:evasion_rating":  8.0
+                                    }
+                  },
+                  {
+                      "id":  "ir_007",
+                      "name":  "[ir_007] Fleet",
+                      "description":  "+2% Movement Speed",
+                      "gridX":  7.47,
+                      "gridY":  -5.87,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_006",
+                                          "ir_008"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:movement_speed":  0.02
+                                    }
+                  },
+                  {
+                      "id":  "ir_008",
+                      "name":  "[ir_008] Iron Body",
+                      "description":  "+3 Bonus Armor, +1 Armor Toughness",
+                      "gridX":  6.88,
+                      "gridY":  -6.56,
+                      "shape":  "circle",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_007",
+                                          "ir_009"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:bonus_armor":  3.0,
+                                        "cranks-dungeons:bonus_armor_toughness":  1.0
+                                    }
+                  },
+                  {
+                      "id":  "ir_009",
+                      "name":  "[ir_009] Venom Tip",
+                      "description":  "+2% Poison Chance",
+                      "gridX":  6.22,
+                      "gridY":  -7.18,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_008",
+                                          "ir_010"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:chance_to_poison":  0.02
+                                    }
+                  },
+                  {
+                      "id":  "ir_010",
+                      "name":  "[ir_010] Static",
+                      "description":  "+2% Shock Chance",
+                      "gridX":  5.51,
+                      "gridY":  -7.74,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_009",
+                                          "ir_011"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:chance_to_shock":  0.02
+                                    }
+                  },
+                  {
+                      "id":  "ir_011",
+                      "name":  "[ir_011] Quick Draw",
+                      "description":  "+2% Attack Speed",
+                      "gridX":  4.75,
+                      "gridY":  -8.23,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_010",
+                                          "ir_012"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:attack_speed":  0.02
+                                    }
+                  },
+                  {
+                      "id":  "ir_012",
+                      "name":  "[ir_012] Quick Hands",
+                      "description":  "+3% Reload Speed",
+                      "gridX":  3.95,
+                      "gridY":  -8.64,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_011",
+                                          "ir_013"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:reload_speed":  0.03
+                                    }
+                  },
+                  {
+                      "id":  "ir_013",
+                      "name":  "[ir_013] Frost Ward",
+                      "description":  "+3% Cold Resistance",
+                      "gridX":  3.11,
+                      "gridY":  -8.98,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_012",
+                                          "ir_014"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:cold_resistance":  0.03
+                                    }
+                  },
+                  {
+                      "id":  "ir_014",
+                      "name":  "[ir_014] Null Ward",
+                      "description":  "+2% Void Resistance",
+                      "gridX":  2.24,
+                      "gridY":  -9.23,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_013",
+                                          "ir_015",
+                                          "r_arm3",
+                                          "r_bridge1"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:void_resistance":  0.02
+                                    }
+                  },
+                  {
+                      "id":  "ir_015",
+                      "name":  "[ir_015] Spark",
+                      "description":  "+2% Lightning Extra Damage",
+                      "gridX":  1.35,
+                      "gridY":  -9.4,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_014",
+                                          "ir_016"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:lightning_extra_percent":  0.02
+                                    }
+                  },
+                  {
+                      "id":  "ir_016",
+                      "name":  "[ir_016] Colossus",
+                      "description":  "+10 Max Health, +0.1 Life Regen/s",
+                      "gridX":  0.45,
+                      "gridY":  -9.49,
+                      "shape":  "circle",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_015",
+                                          "ir_017"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:max_health_bonus":  10.0,
+                                        "cranks-dungeons:life_regeneration":  0.1
+                                    }
+                  },
+                  {
+                      "id":  "ir_017",
+                      "name":  "[ir_017] Iron Plating",
+                      "description":  "+1 Bonus Armor",
+                      "gridX":  -0.45,
+                      "gridY":  -9.49,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_016",
+                                          "ir_018"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:bonus_armor":  1.0
+                                    }
+                  },
+                  {
+                      "id":  "ir_018",
+                      "name":  "[ir_018] Fortitude",
+                      "description":  "+5 Max Health",
+                      "gridX":  -1.35,
+                      "gridY":  -9.4,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_017",
+                                          "ir_019"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:max_health_bonus":  5.0
+                                    }
+                  },
+                  {
+                      "id":  "ir_019",
+                      "name":  "[ir_019] Blood Flow",
+                      "description":  "+0.1 Life Regen/s",
+                      "gridX":  -2.24,
+                      "gridY":  -9.23,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_018",
+                                          "ir_020"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:life_regeneration":  0.1
+                                    }
+                  },
+                  {
+                      "id":  "ir_020",
+                      "name":  "[ir_020] Ember Ward",
+                      "description":  "+3% Fire Resistance",
+                      "gridX":  -3.11,
+                      "gridY":  -8.98,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_019",
+                                          "ir_021"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:fire_resistance":  0.03
+                                    }
+                  },
+                  {
+                      "id":  "ir_021",
+                      "name":  "[ir_021] Rend",
+                      "description":  "+2% Bleed Chance",
+                      "gridX":  -3.95,
+                      "gridY":  -8.64,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_020",
+                                          "ir_022"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:chance_to_bleed":  0.02
+                                    }
+                  },
+                  {
+                      "id":  "ir_022",
+                      "name":  "[ir_022] Brute Force",
+                      "description":  "+2% Phys Extra Damage",
+                      "gridX":  -4.75,
+                      "gridY":  -8.23,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_021",
+                                          "ir_023"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:physical_extra_percent":  0.02
+                                    }
+                  },
+                  {
+                      "id":  "ir_023",
+                      "name":  "[ir_023] Dodge",
+                      "description":  "+8 Evasion Rating",
+                      "gridX":  -5.51,
+                      "gridY":  -7.74,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_022",
+                                          "ir_024"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:evasion_rating":  8.0
+                                    }
+                  },
+                  {
+                      "id":  "ir_024",
+                      "name":  "[ir_024] Ghost Steps",
+                      "description":  "+15 Evasion, +2% Move Speed",
+                      "gridX":  -6.22,
+                      "gridY":  -7.18,
+                      "shape":  "circle",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_023",
+                                          "ir_025"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:evasion_rating":  15.0,
+                                        "cranks-dungeons:movement_speed":  0.02
+                                    }
+                  },
+                  {
+                      "id":  "ir_025",
+                      "name":  "[ir_025] Sharp Eye",
+                      "description":  "+1% Crit Chance",
+                      "gridX":  -6.88,
+                      "gridY":  -6.56,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_024",
+                                          "ir_026"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:crit_chance":  0.01
+                                    }
+                  },
+                  {
+                      "id":  "ir_026",
+                      "name":  "[ir_026] Venom Tip",
+                      "description":  "+2% Poison Chance",
+                      "gridX":  -7.47,
+                      "gridY":  -5.87,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_025",
+                                          "ir_027"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:chance_to_poison":  0.02
+                                    }
+                  },
+                  {
+                      "id":  "ir_027",
+                      "name":  "[ir_027] Static",
+                      "description":  "+2% Shock Chance",
+                      "gridX":  -7.99,
+                      "gridY":  -5.14,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_026",
+                                          "ir_028"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:chance_to_shock":  0.02
+                                    }
+                  },
+                  {
+                      "id":  "ir_028",
+                      "name":  "[ir_028] Quick Draw",
+                      "description":  "+2% Attack Speed",
+                      "gridX":  -8.44,
+                      "gridY":  -4.35,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_027",
+                                          "ir_029"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:attack_speed":  0.02
+                                    }
+                  },
+                  {
+                      "id":  "ir_029",
+                      "name":  "[ir_029] Quick Hands",
+                      "description":  "+3% Reload Speed",
+                      "gridX":  -8.82,
+                      "gridY":  -3.53,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_028",
+                                          "ir_030"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:reload_speed":  0.03
+                                    }
+                  },
+                  {
+                      "id":  "ir_030",
+                      "name":  "[ir_030] Frost Ward",
+                      "description":  "+3% Cold Resistance",
+                      "gridX":  -9.12,
+                      "gridY":  -2.68,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_029",
+                                          "ir_031"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:cold_resistance":  0.03
+                                    }
+                  },
+                  {
+                      "id":  "ir_031",
+                      "name":  "[ir_031] Null Ward",
+                      "description":  "+2% Void Resistance",
+                      "gridX":  -9.33,
+                      "gridY":  -1.8,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_030",
+                                          "ir_032"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:void_resistance":  0.02
+                                    }
+                  },
+                  {
+                      "id":  "ir_032",
+                      "name":  "[ir_032] Noxious",
+                      "description":  "+4% Poison, +1 Poison Stack",
+                      "gridX":  -9.46,
+                      "gridY":  -0.9,
+                      "shape":  "circle",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_031",
+                                          "ir_033"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:chance_to_poison":  0.04,
+                                        "cranks-dungeons:poison_max_stacks":  1.0
+                                    }
+                  },
+                  {
+                      "id":  "ir_033",
+                      "name":  "[ir_033] Frost Edge",
+                      "description":  "+2% Cold Extra Damage",
+                      "gridX":  -9.5,
+                      "gridY":  0.0,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_032",
+                                          "ir_034",
+                                          "w_arm3",
+                                          "w_bridge1"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:cold_extra_percent":  0.02
+                                    }
+                  },
+                  {
+                      "id":  "ir_034",
+                      "name":  "[ir_034] Iron Plating",
+                      "description":  "+1 Bonus Armor",
+                      "gridX":  -9.46,
+                      "gridY":  0.9,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_033",
+                                          "ir_035"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:bonus_armor":  1.0
+                                    }
+                  },
+                  {
+                      "id":  "ir_035",
+                      "name":  "[ir_035] Fortitude",
+                      "description":  "+5 Max Health",
+                      "gridX":  -9.33,
+                      "gridY":  1.8,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_034",
+                                          "ir_036"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:max_health_bonus":  5.0
+                                    }
+                  },
+                  {
+                      "id":  "ir_036",
+                      "name":  "[ir_036] Blood Flow",
+                      "description":  "+0.1 Life Regen/s",
+                      "gridX":  -9.12,
+                      "gridY":  2.68,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_035",
+                                          "ir_037"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:life_regeneration":  0.1
+                                    }
+                  },
+                  {
+                      "id":  "ir_037",
+                      "name":  "[ir_037] Ember Ward",
+                      "description":  "+3% Fire Resistance",
+                      "gridX":  -8.82,
+                      "gridY":  3.53,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_036",
+                                          "ir_038"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:fire_resistance":  0.03
+                                    }
+                  },
+                  {
+                      "id":  "ir_038",
+                      "name":  "[ir_038] Rend",
+                      "description":  "+2% Bleed Chance",
+                      "gridX":  -8.44,
+                      "gridY":  4.35,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_037",
+                                          "ir_039"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:chance_to_bleed":  0.02
+                                    }
+                  },
+                  {
+                      "id":  "ir_039",
+                      "name":  "[ir_039] Brute Force",
+                      "description":  "+2% Phys Extra Damage",
+                      "gridX":  -7.99,
+                      "gridY":  5.14,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_038",
+                                          "ir_040"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:physical_extra_percent":  0.02
+                                    }
+                  },
+                  {
+                      "id":  "ir_040",
+                      "name":  "[ir_040] Electrify",
+                      "description":  "+3% Shock, +1s Shock Duration",
+                      "gridX":  -7.47,
+                      "gridY":  5.87,
+                      "shape":  "circle",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_039",
+                                          "ir_041"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:chance_to_shock":  0.03,
+                                        "cranks-dungeons:shock_duration":  1.0
+                                    }
+                  },
+                  {
+                      "id":  "ir_041",
+                      "name":  "[ir_041] Fleet",
+                      "description":  "+2% Movement Speed",
+                      "gridX":  -6.88,
+                      "gridY":  6.56,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_040",
+                                          "ir_042"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:movement_speed":  0.02
+                                    }
+                  },
+                  {
+                      "id":  "ir_042",
+                      "name":  "[ir_042] Sharp Eye",
+                      "description":  "+1% Crit Chance",
+                      "gridX":  -6.22,
+                      "gridY":  7.18,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_041",
+                                          "ir_043"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:crit_chance":  0.01
+                                    }
+                  },
+                  {
+                      "id":  "ir_043",
+                      "name":  "[ir_043] Venom Tip",
+                      "description":  "+2% Poison Chance",
+                      "gridX":  -5.51,
+                      "gridY":  7.74,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_042",
+                                          "ir_044"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:chance_to_poison":  0.02
+                                    }
+                  },
+                  {
+                      "id":  "ir_044",
+                      "name":  "[ir_044] Static",
+                      "description":  "+2% Shock Chance",
+                      "gridX":  -4.75,
+                      "gridY":  8.23,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_043",
+                                          "ir_045"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:chance_to_shock":  0.02
+                                    }
+                  },
+                  {
+                      "id":  "ir_045",
+                      "name":  "[ir_045] Quick Draw",
+                      "description":  "+2% Attack Speed",
+                      "gridX":  -3.95,
+                      "gridY":  8.64,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_044",
+                                          "ir_046"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:attack_speed":  0.02
+                                    }
+                  },
+                  {
+                      "id":  "ir_046",
+                      "name":  "[ir_046] Quick Hands",
+                      "description":  "+3% Reload Speed",
+                      "gridX":  -3.11,
+                      "gridY":  8.98,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_045",
+                                          "ir_047"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:reload_speed":  0.03
+                                    }
+                  },
+                  {
+                      "id":  "ir_047",
+                      "name":  "[ir_047] Frost Ward",
+                      "description":  "+3% Cold Resistance",
+                      "gridX":  -2.24,
+                      "gridY":  9.23,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_046",
+                                          "ir_048"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:cold_resistance":  0.03
+                                    }
+                  },
+                  {
+                      "id":  "ir_048",
+                      "name":  "[ir_048] Blademaster",
+                      "description":  "+4% Phys Extra, +2% Atk Speed",
+                      "gridX":  -1.35,
+                      "gridY":  9.4,
+                      "shape":  "circle",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_047",
+                                          "ir_049"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:physical_extra_percent":  0.04,
+                                        "cranks-dungeons:attack_speed":  0.02
+                                    }
+                  },
+                  {
+                      "id":  "ir_049",
+                      "name":  "[ir_049] Spark",
+                      "description":  "+2% Lightning Extra Damage",
+                      "gridX":  -0.45,
+                      "gridY":  9.49,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_048",
+                                          "ir_050"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:lightning_extra_percent":  0.02
+                                    }
+                  },
+                  {
+                      "id":  "ir_050",
+                      "name":  "[ir_050] Frost Edge",
+                      "description":  "+2% Cold Extra Damage",
+                      "gridX":  0.45,
+                      "gridY":  9.49,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_049",
+                                          "ir_051"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:cold_extra_percent":  0.02
+                                    }
+                  },
+                  {
+                      "id":  "ir_051",
+                      "name":  "[ir_051] Iron Plating",
+                      "description":  "+1 Bonus Armor",
+                      "gridX":  1.35,
+                      "gridY":  9.4,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_050",
+                                          "ir_052"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:bonus_armor":  1.0
+                                    }
+                  },
+                  {
+                      "id":  "ir_052",
+                      "name":  "[ir_052] Fortitude",
+                      "description":  "+5 Max Health",
+                      "gridX":  2.24,
+                      "gridY":  9.23,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_051",
+                                          "ir_053"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:max_health_bonus":  5.0
+                                    }
+                  },
+                  {
+                      "id":  "ir_053",
+                      "name":  "[ir_053] Blood Flow",
+                      "description":  "+0.1 Life Regen/s",
+                      "gridX":  3.11,
+                      "gridY":  8.98,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_052",
+                                          "ir_054"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:life_regeneration":  0.1
+                                    }
+                  },
+                  {
+                      "id":  "ir_054",
+                      "name":  "[ir_054] Ember Ward",
+                      "description":  "+3% Fire Resistance",
+                      "gridX":  3.95,
+                      "gridY":  8.64,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_053",
+                                          "ir_055"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:fire_resistance":  0.03
+                                    }
+                  },
+                  {
+                      "id":  "ir_055",
+                      "name":  "[ir_055] Rend",
+                      "description":  "+2% Bleed Chance",
+                      "gridX":  4.75,
+                      "gridY":  8.23,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_054",
+                                          "ir_056"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:chance_to_bleed":  0.02
+                                    }
+                  },
+                  {
+                      "id":  "ir_056",
+                      "name":  "[ir_056] Rapid Reload",
+                      "description":  "+5% Reload, +2% Atk Speed",
+                      "gridX":  5.51,
+                      "gridY":  7.74,
+                      "shape":  "circle",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_055",
+                                          "ir_057"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:reload_speed":  0.05,
+                                        "cranks-dungeons:attack_speed":  0.02
+                                    }
+                  },
+                  {
+                      "id":  "ir_057",
+                      "name":  "[ir_057] Dodge",
+                      "description":  "+8 Evasion Rating",
+                      "gridX":  6.22,
+                      "gridY":  7.18,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_056",
+                                          "ir_058"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:evasion_rating":  8.0
+                                    }
+                  },
+                  {
+                      "id":  "ir_058",
+                      "name":  "[ir_058] Fleet",
+                      "description":  "+2% Movement Speed",
+                      "gridX":  6.88,
+                      "gridY":  6.56,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_057",
+                                          "ir_059",
+                                          "m_arm3",
+                                          "m_bridge1"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:movement_speed":  0.02
+                                    }
+                  },
+                  {
+                      "id":  "ir_059",
+                      "name":  "[ir_059] Sharp Eye",
+                      "description":  "+1% Crit Chance",
+                      "gridX":  7.47,
+                      "gridY":  5.87,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_058",
+                                          "ir_060"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:crit_chance":  0.01
+                                    }
+                  },
+                  {
+                      "id":  "ir_060",
+                      "name":  "[ir_060] Venom Tip",
+                      "description":  "+2% Poison Chance",
+                      "gridX":  7.99,
+                      "gridY":  5.14,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_059",
+                                          "ir_061"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:chance_to_poison":  0.02
+                                    }
+                  },
+                  {
+                      "id":  "ir_061",
+                      "name":  "[ir_061] Static",
+                      "description":  "+2% Shock Chance",
+                      "gridX":  8.44,
+                      "gridY":  4.35,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_060",
+                                          "ir_062"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:chance_to_shock":  0.02
+                                    }
+                  },
+                  {
+                      "id":  "ir_062",
+                      "name":  "[ir_062] Quick Draw",
+                      "description":  "+2% Attack Speed",
+                      "gridX":  8.82,
+                      "gridY":  3.53,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_061",
+                                          "ir_063"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:attack_speed":  0.02
+                                    }
+                  },
+                  {
+                      "id":  "ir_063",
+                      "name":  "[ir_063] Quick Hands",
+                      "description":  "+3% Reload Speed",
+                      "gridX":  9.12,
+                      "gridY":  2.68,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_062",
+                                          "ir_064"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:reload_speed":  0.03
+                                    }
+                  },
+                  {
+                      "id":  "ir_064",
+                      "name":  "[ir_064] Fire Eater",
+                      "description":  "+5% Fire Res, +2% Fire Extra",
+                      "gridX":  9.33,
+                      "gridY":  1.8,
+                      "shape":  "circle",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_063",
+                                          "ir_065"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:fire_resistance":  0.05,
+                                        "cranks-dungeons:fire_extra_percent":  0.02
+                                    }
+                  },
+                  {
+                      "id":  "ir_065",
+                      "name":  "[ir_065] Null Ward",
+                      "description":  "+2% Void Resistance",
+                      "gridX":  9.46,
+                      "gridY":  0.9,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "ir_064",
+                                          "ir_000"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:void_resistance":  0.02
+                                    }
+                  },
+                  {
+                      "id":  "or_000",
+                      "name":  "[or_000] Reinforced",
+                      "description":  "+2 Bonus Armor",
+                      "gridX":  17.5,
+                      "gridY":  0.0,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_001",
+                                          "or_107"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:bonus_armor":  2.0
+                                    }
+                  },
+                  {
+                      "id":  "or_001",
+                      "name":  "[or_001] Endurance",
+                      "description":  "+6 Max Health",
+                      "gridX":  17.47,
+                      "gridY":  -1.02,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_000",
+                                          "or_002"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:max_health_bonus":  6.0
+                                    }
+                  },
+                  {
+                      "id":  "or_002",
+                      "name":  "[or_002] Mending",
+                      "description":  "+0.12 Life Regen/s",
+                      "gridX":  17.38,
+                      "gridY":  -2.03,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_001",
+                                          "or_003"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:life_regeneration":  0.12
+                                    }
+                  },
+                  {
+                      "id":  "or_003",
+                      "name":  "[or_003] Ashen Hide",
+                      "description":  "+4% Fire Resistance",
+                      "gridX":  17.23,
+                      "gridY":  -3.04,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_002",
+                                          "or_004"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:fire_resistance":  0.04
+                                    }
+                  },
+                  {
+                      "id":  "or_004",
+                      "name":  "[or_004] Deep Wound",
+                      "description":  "+3% Bleed Chance",
+                      "gridX":  17.03,
+                      "gridY":  -4.04,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_003",
+                                          "or_005"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:chance_to_bleed":  0.03
+                                    }
+                  },
+                  {
+                      "id":  "or_005",
+                      "name":  "[or_005] Devastation",
+                      "description":  "+3% Phys Extra Damage",
+                      "gridX":  16.76,
+                      "gridY":  -5.02,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_004",
+                                          "or_006"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:physical_extra_percent":  0.03
+                                    }
+                  },
+                  {
+                      "id":  "or_006",
+                      "name":  "[or_006] Planted",
+                      "description":  "+4% Knockback Resistance",
+                      "gridX":  16.44,
+                      "gridY":  -5.99,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_005",
+                                          "or_007"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:knockback_resistance":  0.04
+                                    }
+                  },
+                  {
+                      "id":  "or_007",
+                      "name":  "[or_007] Wraith",
+                      "description":  "+12 Evasion Rating",
+                      "gridX":  16.07,
+                      "gridY":  -6.93,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_006",
+                                          "or_008"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:evasion_rating":  12.0
+                                    }
+                  },
+                  {
+                      "id":  "or_008",
+                      "name":  "[or_008] Tempest",
+                      "description":  "+3% Movement Speed",
+                      "gridX":  15.64,
+                      "gridY":  -7.85,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_007",
+                                          "or_009"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:movement_speed":  0.03
+                                    }
+                  },
+                  {
+                      "id":  "or_009",
+                      "name":  "[or_009] Diamond Shell",
+                      "description":  "+3 Armor Toughness, +2 Armor",
+                      "gridX":  15.16,
+                      "gridY":  -8.75,
+                      "shape":  "circle",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_008",
+                                          "or_010"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:bonus_armor_toughness":  3.0,
+                                        "cranks-dungeons:bonus_armor":  2.0
+                                    }
+                  },
+                  {
+                      "id":  "or_010",
+                      "name":  "[or_010] Coated Bolt",
+                      "description":  "+3% Poison Chance",
+                      "gridX":  14.62,
+                      "gridY":  -9.62,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_009",
+                                          "or_011"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:chance_to_poison":  0.03
+                                    }
+                  },
+                  {
+                      "id":  "or_011",
+                      "name":  "[or_011] Charged",
+                      "description":  "+3% Shock Chance",
+                      "gridX":  14.04,
+                      "gridY":  -10.45,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_010",
+                                          "or_012"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:chance_to_shock":  0.03
+                                    }
+                  },
+                  {
+                      "id":  "or_012",
+                      "name":  "[or_012] Flurry",
+                      "description":  "+3% Attack Speed",
+                      "gridX":  13.41,
+                      "gridY":  -11.25,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_011",
+                                          "or_013"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:attack_speed":  0.03
+                                    }
+                  },
+                  {
+                      "id":  "or_013",
+                      "name":  "[or_013] Nimble",
+                      "description":  "+4% Reload Speed",
+                      "gridX":  12.73,
+                      "gridY":  -12.01,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_012",
+                                          "or_014"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:reload_speed":  0.04
+                                    }
+                  },
+                  {
+                      "id":  "or_014",
+                      "name":  "[or_014] Ice Guard",
+                      "description":  "+4% Cold Resistance",
+                      "gridX":  12.01,
+                      "gridY":  -12.73,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_013",
+                                          "or_015"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:cold_resistance":  0.04
+                                    }
+                  },
+                  {
+                      "id":  "or_015",
+                      "name":  "[or_015] Null Shield",
+                      "description":  "+3% Void Resistance",
+                      "gridX":  11.25,
+                      "gridY":  -13.41,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_014",
+                                          "or_016"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:void_resistance":  0.03
+                                    }
+                  },
+                  {
+                      "id":  "or_016",
+                      "name":  "[or_016] Voltage",
+                      "description":  "+3% Lightning Extra Damage",
+                      "gridX":  10.45,
+                      "gridY":  -14.04,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_015",
+                                          "or_017"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:lightning_extra_percent":  0.03
+                                    }
+                  },
+                  {
+                      "id":  "or_017",
+                      "name":  "[or_017] Glacial",
+                      "description":  "+3% Cold Extra Damage",
+                      "gridX":  9.62,
+                      "gridY":  -14.62,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_016",
+                                          "or_018"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:cold_extra_percent":  0.03
+                                    }
+                  },
+                  {
+                      "id":  "or_018",
+                      "name":  "[or_018] Titan\u0027s Blood",
+                      "description":  "+15 Max Health, +0.15 Life Regen",
+                      "gridX":  8.75,
+                      "gridY":  -15.16,
+                      "shape":  "circle",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_017",
+                                          "or_019"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:max_health_bonus":  15.0,
+                                        "cranks-dungeons:life_regeneration":  0.15
+                                    }
+                  },
+                  {
+                      "id":  "or_019",
+                      "name":  "[or_019] Vicious",
+                      "description":  "+5% Crit Multiplier",
+                      "gridX":  7.85,
+                      "gridY":  -15.64,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_018",
+                                          "or_020"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:crit_multiplier":  0.05
+                                    }
+                  },
+                  {
+                      "id":  "or_020",
+                      "name":  "[or_020] Cinders",
+                      "description":  "+2% Burn Chance",
+                      "gridX":  6.93,
+                      "gridY":  -16.07,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_019",
+                                          "or_021"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:chance_to_burn":  0.02
+                                    }
+                  },
+                  {
+                      "id":  "or_021",
+                      "name":  "[or_021] Smoldering",
+                      "description":  "+8% Burn Duration",
+                      "gridX":  5.99,
+                      "gridY":  -16.44,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_020",
+                                          "or_022"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:burn_duration":  0.08
+                                    }
+                  },
+                  {
+                      "id":  "or_022",
+                      "name":  "[or_022] Reinforced",
+                      "description":  "+2 Bonus Armor",
+                      "gridX":  5.02,
+                      "gridY":  -16.76,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_021",
+                                          "or_023",
+                                          "r_bridge3"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:bonus_armor":  2.0
+                                    }
+                  },
+                  {
+                      "id":  "or_023",
+                      "name":  "[or_023] Endurance",
+                      "description":  "+6 Max Health",
+                      "gridX":  4.04,
+                      "gridY":  -17.03,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_022",
+                                          "or_024"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:max_health_bonus":  6.0
+                                    }
+                  },
+                  {
+                      "id":  "or_024",
+                      "name":  "[or_024] Mending",
+                      "description":  "+0.12 Life Regen/s",
+                      "gridX":  3.04,
+                      "gridY":  -17.23,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_023",
+                                          "or_025"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:life_regeneration":  0.12
+                                    }
+                  },
+                  {
+                      "id":  "or_025",
+                      "name":  "[or_025] Ashen Hide",
+                      "description":  "+4% Fire Resistance",
+                      "gridX":  2.03,
+                      "gridY":  -17.38,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_024",
+                                          "or_026"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:fire_resistance":  0.04
+                                    }
+                  },
+                  {
+                      "id":  "or_026",
+                      "name":  "[or_026] Deep Wound",
+                      "description":  "+3% Bleed Chance",
+                      "gridX":  1.02,
+                      "gridY":  -17.47,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_025",
+                                          "or_027"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:chance_to_bleed":  0.03
+                                    }
+                  },
+                  {
+                      "id":  "or_027",
+                      "name":  "[or_027] Phantasm",
+                      "description":  "+20 Evasion, +3% Move Speed",
+                      "gridX":  0.0,
+                      "gridY":  -17.5,
+                      "shape":  "circle",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_026",
+                                          "or_028"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:evasion_rating":  20.0,
+                                        "cranks-dungeons:movement_speed":  0.03
+                                    }
+                  },
+                  {
+                      "id":  "or_028",
+                      "name":  "[or_028] Planted",
+                      "description":  "+4% Knockback Resistance",
+                      "gridX":  -1.02,
+                      "gridY":  -17.47,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_027",
+                                          "or_029"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:knockback_resistance":  0.04
+                                    }
+                  },
+                  {
+                      "id":  "or_029",
+                      "name":  "[or_029] Wraith",
+                      "description":  "+12 Evasion Rating",
+                      "gridX":  -2.03,
+                      "gridY":  -17.38,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_028",
+                                          "or_030"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:evasion_rating":  12.0
+                                    }
+                  },
+                  {
+                      "id":  "or_030",
+                      "name":  "[or_030] Tempest",
+                      "description":  "+3% Movement Speed",
+                      "gridX":  -3.04,
+                      "gridY":  -17.23,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_029",
+                                          "or_031"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:movement_speed":  0.03
+                                    }
+                  },
+                  {
+                      "id":  "or_031",
+                      "name":  "[or_031] Predator",
+                      "description":  "+2% Crit Chance",
+                      "gridX":  -4.04,
+                      "gridY":  -17.03,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_030",
+                                          "or_032"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:crit_chance":  0.02
+                                    }
+                  },
+                  {
+                      "id":  "or_032",
+                      "name":  "[or_032] Coated Bolt",
+                      "description":  "+3% Poison Chance",
+                      "gridX":  -5.02,
+                      "gridY":  -16.76,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_031",
+                                          "or_033"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:chance_to_poison":  0.03
+                                    }
+                  },
+                  {
+                      "id":  "or_033",
+                      "name":  "[or_033] Charged",
+                      "description":  "+3% Shock Chance",
+                      "gridX":  -5.99,
+                      "gridY":  -16.44,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_032",
+                                          "or_034"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:chance_to_shock":  0.03
+                                    }
+                  },
+                  {
+                      "id":  "or_034",
+                      "name":  "[or_034] Flurry",
+                      "description":  "+3% Attack Speed",
+                      "gridX":  -6.93,
+                      "gridY":  -16.07,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_033",
+                                          "or_035"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:attack_speed":  0.03
+                                    }
+                  },
+                  {
+                      "id":  "or_035",
+                      "name":  "[or_035] Nimble",
+                      "description":  "+4% Reload Speed",
+                      "gridX":  -7.85,
+                      "gridY":  -15.64,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_034",
+                                          "or_036"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:reload_speed":  0.04
+                                    }
+                  },
+                  {
+                      "id":  "or_036",
+                      "name":  "[or_036] Lethal Precision",
+                      "description":  "+3% Crit, +5% Crit Multiplier",
+                      "gridX":  -8.75,
+                      "gridY":  -15.16,
+                      "shape":  "circle",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_035",
+                                          "or_037"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:crit_chance":  0.03,
+                                        "cranks-dungeons:crit_multiplier":  0.05
+                                    }
+                  },
+                  {
+                      "id":  "or_037",
+                      "name":  "[or_037] Null Shield",
+                      "description":  "+3% Void Resistance",
+                      "gridX":  -9.62,
+                      "gridY":  -14.62,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_036",
+                                          "or_038"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:void_resistance":  0.03
+                                    }
+                  },
+                  {
+                      "id":  "or_038",
+                      "name":  "[or_038] Voltage",
+                      "description":  "+3% Lightning Extra Damage",
+                      "gridX":  -10.45,
+                      "gridY":  -14.04,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_037",
+                                          "or_039"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:lightning_extra_percent":  0.03
+                                    }
+                  },
+                  {
+                      "id":  "or_039",
+                      "name":  "[or_039] Glacial",
+                      "description":  "+3% Cold Extra Damage",
+                      "gridX":  -11.25,
+                      "gridY":  -13.41,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_038",
+                                          "or_040"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:cold_extra_percent":  0.03
+                                    }
+                  },
+                  {
+                      "id":  "or_040",
+                      "name":  "[or_040] Featherweight",
+                      "description":  "+6% Feather Falling",
+                      "gridX":  -12.01,
+                      "gridY":  -12.73,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_039",
+                                          "or_041"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:feather_falling":  0.06
+                                    }
+                  },
+                  {
+                      "id":  "or_041",
+                      "name":  "[or_041] Vicious",
+                      "description":  "+5% Crit Multiplier",
+                      "gridX":  -12.73,
+                      "gridY":  -12.01,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_040",
+                                          "or_042"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:crit_multiplier":  0.05
+                                    }
+                  },
+                  {
+                      "id":  "or_042",
+                      "name":  "[or_042] Cinders",
+                      "description":  "+2% Burn Chance",
+                      "gridX":  -13.41,
+                      "gridY":  -11.25,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_041",
+                                          "or_043"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:chance_to_burn":  0.02
+                                    }
+                  },
+                  {
+                      "id":  "or_043",
+                      "name":  "[or_043] Smoldering",
+                      "description":  "+8% Burn Duration",
+                      "gridX":  -14.04,
+                      "gridY":  -10.45,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_042",
+                                          "or_044"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:burn_duration":  0.08
+                                    }
+                  },
+                  {
+                      "id":  "or_044",
+                      "name":  "[or_044] Reinforced",
+                      "description":  "+2 Bonus Armor",
+                      "gridX":  -14.62,
+                      "gridY":  -9.62,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_043",
+                                          "or_045"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:bonus_armor":  2.0
+                                    }
+                  },
+                  {
+                      "id":  "or_045",
+                      "name":  "[or_045] Serpentine",
+                      "description":  "+5% Poison, +2 Poison Stacks",
+                      "gridX":  -15.16,
+                      "gridY":  -8.75,
+                      "shape":  "circle",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_044",
+                                          "or_046"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:chance_to_poison":  0.05,
+                                        "cranks-dungeons:poison_max_stacks":  2.0
+                                    }
+                  },
+                  {
+                      "id":  "or_046",
+                      "name":  "[or_046] Mending",
+                      "description":  "+0.12 Life Regen/s",
+                      "gridX":  -15.64,
+                      "gridY":  -7.85,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_045",
+                                          "or_047"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:life_regeneration":  0.12
+                                    }
+                  },
+                  {
+                      "id":  "or_047",
+                      "name":  "[or_047] Ashen Hide",
+                      "description":  "+4% Fire Resistance",
+                      "gridX":  -16.07,
+                      "gridY":  -6.93,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_046",
+                                          "or_048"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:fire_resistance":  0.04
+                                    }
+                  },
+                  {
+                      "id":  "or_048",
+                      "name":  "[or_048] Deep Wound",
+                      "description":  "+3% Bleed Chance",
+                      "gridX":  -16.44,
+                      "gridY":  -5.99,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_047",
+                                          "or_049"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:chance_to_bleed":  0.03
+                                    }
+                  },
+                  {
+                      "id":  "or_049",
+                      "name":  "[or_049] Devastation",
+                      "description":  "+3% Phys Extra Damage",
+                      "gridX":  -16.76,
+                      "gridY":  -5.02,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_048",
+                                          "or_050"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:physical_extra_percent":  0.03
+                                    }
+                  },
+                  {
+                      "id":  "or_050",
+                      "name":  "[or_050] Planted",
+                      "description":  "+4% Knockback Resistance",
+                      "gridX":  -17.03,
+                      "gridY":  -4.04,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_049",
+                                          "or_051"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:knockback_resistance":  0.04
+                                    }
+                  },
+                  {
+                      "id":  "or_051",
+                      "name":  "[or_051] Wraith",
+                      "description":  "+12 Evasion Rating",
+                      "gridX":  -17.23,
+                      "gridY":  -3.04,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_050",
+                                          "or_052"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:evasion_rating":  12.0
+                                    }
+                  },
+                  {
+                      "id":  "or_052",
+                      "name":  "[or_052] Tempest",
+                      "description":  "+3% Movement Speed",
+                      "gridX":  -17.38,
+                      "gridY":  -2.03,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_051",
+                                          "or_053"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:movement_speed":  0.03
+                                    }
+                  },
+                  {
+                      "id":  "or_053",
+                      "name":  "[or_053] Predator",
+                      "description":  "+2% Crit Chance",
+                      "gridX":  -17.47,
+                      "gridY":  -1.02,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_052",
+                                          "or_054"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:crit_chance":  0.02
+                                    }
+                  },
+                  {
+                      "id":  "or_054",
+                      "name":  "[or_054] Chain Lightning",
+                      "description":  "+4% Shock, +2s Shock Duration",
+                      "gridX":  -17.5,
+                      "gridY":  0.0,
+                      "shape":  "circle",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_053",
+                                          "or_055",
+                                          "w_bridge3"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:chance_to_shock":  0.04,
+                                        "cranks-dungeons:shock_duration":  2.0
+                                    }
+                  },
+                  {
+                      "id":  "or_055",
+                      "name":  "[or_055] Charged",
+                      "description":  "+3% Shock Chance",
+                      "gridX":  -17.47,
+                      "gridY":  1.02,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_054",
+                                          "or_056"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:chance_to_shock":  0.03
+                                    }
+                  },
+                  {
+                      "id":  "or_056",
+                      "name":  "[or_056] Flurry",
+                      "description":  "+3% Attack Speed",
+                      "gridX":  -17.38,
+                      "gridY":  2.03,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_055",
+                                          "or_057"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:attack_speed":  0.03
+                                    }
+                  },
+                  {
+                      "id":  "or_057",
+                      "name":  "[or_057] Nimble",
+                      "description":  "+4% Reload Speed",
+                      "gridX":  -17.23,
+                      "gridY":  3.04,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_056",
+                                          "or_058"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:reload_speed":  0.04
+                                    }
+                  },
+                  {
+                      "id":  "or_058",
+                      "name":  "[or_058] Ice Guard",
+                      "description":  "+4% Cold Resistance",
+                      "gridX":  -17.03,
+                      "gridY":  4.04,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_057",
+                                          "or_059"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:cold_resistance":  0.04
+                                    }
+                  },
+                  {
+                      "id":  "or_059",
+                      "name":  "[or_059] Null Shield",
+                      "description":  "+3% Void Resistance",
+                      "gridX":  -16.76,
+                      "gridY":  5.02,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_058",
+                                          "or_060"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:void_resistance":  0.03
+                                    }
+                  },
+                  {
+                      "id":  "or_060",
+                      "name":  "[or_060] Voltage",
+                      "description":  "+3% Lightning Extra Damage",
+                      "gridX":  -16.44,
+                      "gridY":  5.99,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_059",
+                                          "or_061"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:lightning_extra_percent":  0.03
+                                    }
+                  },
+                  {
+                      "id":  "or_061",
+                      "name":  "[or_061] Glacial",
+                      "description":  "+3% Cold Extra Damage",
+                      "gridX":  -16.07,
+                      "gridY":  6.93,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_060",
+                                          "or_062"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:cold_extra_percent":  0.03
+                                    }
+                  },
+                  {
+                      "id":  "or_062",
+                      "name":  "[or_062] Featherweight",
+                      "description":  "+6% Feather Falling",
+                      "gridX":  -15.64,
+                      "gridY":  7.85,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_061",
+                                          "or_063"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:feather_falling":  0.06
+                                    }
+                  },
+                  {
+                      "id":  "or_063",
+                      "name":  "[or_063] Berserker",
+                      "description":  "+5% Atk Speed, +3% Crit",
+                      "gridX":  -15.16,
+                      "gridY":  8.75,
+                      "shape":  "circle",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_062",
+                                          "or_064"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:attack_speed":  0.05,
+                                        "cranks-dungeons:crit_chance":  0.03
+                                    }
+                  },
+                  {
+                      "id":  "or_064",
+                      "name":  "[or_064] Cinders",
+                      "description":  "+2% Burn Chance",
+                      "gridX":  -14.62,
+                      "gridY":  9.62,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_063",
+                                          "or_065"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:chance_to_burn":  0.02
+                                    }
+                  },
+                  {
+                      "id":  "or_065",
+                      "name":  "[or_065] Smoldering",
+                      "description":  "+8% Burn Duration",
+                      "gridX":  -14.04,
+                      "gridY":  10.45,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_064",
+                                          "or_066"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:burn_duration":  0.08
+                                    }
+                  },
+                  {
+                      "id":  "or_066",
+                      "name":  "[or_066] Reinforced",
+                      "description":  "+2 Bonus Armor",
+                      "gridX":  -13.41,
+                      "gridY":  11.25,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_065",
+                                          "or_067"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:bonus_armor":  2.0
+                                    }
+                  },
+                  {
+                      "id":  "or_067",
+                      "name":  "[or_067] Endurance",
+                      "description":  "+6 Max Health",
+                      "gridX":  -12.73,
+                      "gridY":  12.01,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_066",
+                                          "or_068"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:max_health_bonus":  6.0
+                                    }
+                  },
+                  {
+                      "id":  "or_068",
+                      "name":  "[or_068] Mending",
+                      "description":  "+0.12 Life Regen/s",
+                      "gridX":  -12.01,
+                      "gridY":  12.73,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_067",
+                                          "or_069"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:life_regeneration":  0.12
+                                    }
+                  },
+                  {
+                      "id":  "or_069",
+                      "name":  "[or_069] Ashen Hide",
+                      "description":  "+4% Fire Resistance",
+                      "gridX":  -11.25,
+                      "gridY":  13.41,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_068",
+                                          "or_070"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:fire_resistance":  0.04
+                                    }
+                  },
+                  {
+                      "id":  "or_070",
+                      "name":  "[or_070] Deep Wound",
+                      "description":  "+3% Bleed Chance",
+                      "gridX":  -10.45,
+                      "gridY":  14.04,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_069",
+                                          "or_071"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:chance_to_bleed":  0.03
+                                    }
+                  },
+                  {
+                      "id":  "or_071",
+                      "name":  "[or_071] Devastation",
+                      "description":  "+3% Phys Extra Damage",
+                      "gridX":  -9.62,
+                      "gridY":  14.62,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_070",
+                                          "or_072"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:physical_extra_percent":  0.03
+                                    }
+                  },
+                  {
+                      "id":  "or_072",
+                      "name":  "[or_072] Glacial Fury",
+                      "description":  "+6% Cold Extra, +4% Freeze",
+                      "gridX":  -8.75,
+                      "gridY":  15.16,
+                      "shape":  "circle",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_071",
+                                          "or_073"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:cold_extra_percent":  0.06,
+                                        "cranks-dungeons:chance_to_freeze":  0.04
+                                    }
+                  },
+                  {
+                      "id":  "or_073",
+                      "name":  "[or_073] Wraith",
+                      "description":  "+12 Evasion Rating",
+                      "gridX":  -7.85,
+                      "gridY":  15.64,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_072",
+                                          "or_074"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:evasion_rating":  12.0
+                                    }
+                  },
+                  {
+                      "id":  "or_074",
+                      "name":  "[or_074] Tempest",
+                      "description":  "+3% Movement Speed",
+                      "gridX":  -6.93,
+                      "gridY":  16.07,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_073",
+                                          "or_075"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:movement_speed":  0.03
+                                    }
+                  },
+                  {
+                      "id":  "or_075",
+                      "name":  "[or_075] Predator",
+                      "description":  "+2% Crit Chance",
+                      "gridX":  -5.99,
+                      "gridY":  16.44,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_074",
+                                          "or_076"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:crit_chance":  0.02
+                                    }
+                  },
+                  {
+                      "id":  "or_076",
+                      "name":  "[or_076] Coated Bolt",
+                      "description":  "+3% Poison Chance",
+                      "gridX":  -5.02,
+                      "gridY":  16.76,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_075",
+                                          "or_077"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:chance_to_poison":  0.03
+                                    }
+                  },
+                  {
+                      "id":  "or_077",
+                      "name":  "[or_077] Charged",
+                      "description":  "+3% Shock Chance",
+                      "gridX":  -4.04,
+                      "gridY":  17.03,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_076",
+                                          "or_078"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:chance_to_shock":  0.03
+                                    }
+                  },
+                  {
+                      "id":  "or_078",
+                      "name":  "[or_078] Flurry",
+                      "description":  "+3% Attack Speed",
+                      "gridX":  -3.04,
+                      "gridY":  17.23,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_077",
+                                          "or_079"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:attack_speed":  0.03
+                                    }
+                  },
+                  {
+                      "id":  "or_079",
+                      "name":  "[or_079] Nimble",
+                      "description":  "+4% Reload Speed",
+                      "gridX":  -2.03,
+                      "gridY":  17.38,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_078",
+                                          "or_080"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:reload_speed":  0.04
+                                    }
+                  },
+                  {
+                      "id":  "or_080",
+                      "name":  "[or_080] Ice Guard",
+                      "description":  "+4% Cold Resistance",
+                      "gridX":  -1.02,
+                      "gridY":  17.47,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_079",
+                                          "or_081"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:cold_resistance":  0.04
+                                    }
+                  },
+                  {
+                      "id":  "or_081",
+                      "name":  "[or_081] Tesla",
+                      "description":  "+8% Lightning Extra, +4% Shock",
+                      "gridX":  0.0,
+                      "gridY":  17.5,
+                      "shape":  "circle",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_080",
+                                          "or_082"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:lightning_extra_percent":  0.08,
+                                        "cranks-dungeons:chance_to_shock":  0.04
+                                    }
+                  },
+                  {
+                      "id":  "or_082",
+                      "name":  "[or_082] Voltage",
+                      "description":  "+3% Lightning Extra Damage",
+                      "gridX":  1.02,
+                      "gridY":  17.47,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_081",
+                                          "or_083"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:lightning_extra_percent":  0.03
+                                    }
+                  },
+                  {
+                      "id":  "or_083",
+                      "name":  "[or_083] Glacial",
+                      "description":  "+3% Cold Extra Damage",
+                      "gridX":  2.03,
+                      "gridY":  17.38,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_082",
+                                          "or_084"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:cold_extra_percent":  0.03
+                                    }
+                  },
+                  {
+                      "id":  "or_084",
+                      "name":  "[or_084] Featherweight",
+                      "description":  "+6% Feather Falling",
+                      "gridX":  3.04,
+                      "gridY":  17.23,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_083",
+                                          "or_085"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:feather_falling":  0.06
+                                    }
+                  },
+                  {
+                      "id":  "or_085",
+                      "name":  "[or_085] Vicious",
+                      "description":  "+5% Crit Multiplier",
+                      "gridX":  4.04,
+                      "gridY":  17.03,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_084",
+                                          "or_086"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:crit_multiplier":  0.05
+                                    }
+                  },
+                  {
+                      "id":  "or_086",
+                      "name":  "[or_086] Cinders",
+                      "description":  "+2% Burn Chance",
+                      "gridX":  5.02,
+                      "gridY":  16.76,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_085",
+                                          "or_087"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:chance_to_burn":  0.02
+                                    }
+                  },
+                  {
+                      "id":  "or_087",
+                      "name":  "[or_087] Smoldering",
+                      "description":  "+8% Burn Duration",
+                      "gridX":  5.99,
+                      "gridY":  16.44,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_086",
+                                          "or_088"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:burn_duration":  0.08
+                                    }
+                  },
+                  {
+                      "id":  "or_088",
+                      "name":  "[or_088] Reinforced",
+                      "description":  "+2 Bonus Armor",
+                      "gridX":  6.93,
+                      "gridY":  16.07,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_087",
+                                          "or_089"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:bonus_armor":  2.0
+                                    }
+                  },
+                  {
+                      "id":  "or_089",
+                      "name":  "[or_089] Endurance",
+                      "description":  "+6 Max Health",
+                      "gridX":  7.85,
+                      "gridY":  15.64,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_088",
+                                          "or_090"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:max_health_bonus":  6.0
+                                    }
+                  },
+                  {
+                      "id":  "or_090",
+                      "name":  "[or_090] Pyroclast",
+                      "description":  "+5% Fire Res, +4% Fire Extra",
+                      "gridX":  8.75,
+                      "gridY":  15.16,
+                      "shape":  "circle",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_089",
+                                          "or_091"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:fire_resistance":  0.05,
+                                        "cranks-dungeons:fire_extra_percent":  0.04
+                                    }
+                  },
+                  {
+                      "id":  "or_091",
+                      "name":  "[or_091] Ashen Hide",
+                      "description":  "+4% Fire Resistance",
+                      "gridX":  9.62,
+                      "gridY":  14.62,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_090",
+                                          "or_092"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:fire_resistance":  0.04
+                                    }
+                  },
+                  {
+                      "id":  "or_092",
+                      "name":  "[or_092] Deep Wound",
+                      "description":  "+3% Bleed Chance",
+                      "gridX":  10.45,
+                      "gridY":  14.04,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_091",
+                                          "or_093"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:chance_to_bleed":  0.03
+                                    }
+                  },
+                  {
+                      "id":  "or_093",
+                      "name":  "[or_093] Devastation",
+                      "description":  "+3% Phys Extra Damage",
+                      "gridX":  11.25,
+                      "gridY":  13.41,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_092",
+                                          "or_094"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:physical_extra_percent":  0.03
+                                    }
+                  },
+                  {
+                      "id":  "or_094",
+                      "name":  "[or_094] Planted",
+                      "description":  "+4% Knockback Resistance",
+                      "gridX":  12.01,
+                      "gridY":  12.73,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_093",
+                                          "or_095",
+                                          "m_bridge3"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:knockback_resistance":  0.04
+                                    }
+                  },
+                  {
+                      "id":  "or_095",
+                      "name":  "[or_095] Wraith",
+                      "description":  "+12 Evasion Rating",
+                      "gridX":  12.73,
+                      "gridY":  12.01,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_094",
+                                          "or_096"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:evasion_rating":  12.0
+                                    }
+                  },
+                  {
+                      "id":  "or_096",
+                      "name":  "[or_096] Tempest",
+                      "description":  "+3% Movement Speed",
+                      "gridX":  13.41,
+                      "gridY":  11.25,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_095",
+                                          "or_097"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:movement_speed":  0.03
+                                    }
+                  },
+                  {
+                      "id":  "or_097",
+                      "name":  "[or_097] Predator",
+                      "description":  "+2% Crit Chance",
+                      "gridX":  14.04,
+                      "gridY":  10.45,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_096",
+                                          "or_098"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:crit_chance":  0.02
+                                    }
+                  },
+                  {
+                      "id":  "or_098",
+                      "name":  "[or_098] Coated Bolt",
+                      "description":  "+3% Poison Chance",
+                      "gridX":  14.62,
+                      "gridY":  9.62,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_097",
+                                          "or_099"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:chance_to_poison":  0.03
+                                    }
+                  },
+                  {
+                      "id":  "or_099",
+                      "name":  "[or_099] Bloodletter",
+                      "description":  "+6% Bleed, +12% Bleed Duration",
+                      "gridX":  15.16,
+                      "gridY":  8.75,
+                      "shape":  "circle",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_098",
+                                          "or_100"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:chance_to_bleed":  0.06,
+                                        "cranks-dungeons:bleed_duration":  0.12
+                                    }
+                  },
+                  {
+                      "id":  "or_100",
+                      "name":  "[or_100] Flurry",
+                      "description":  "+3% Attack Speed",
+                      "gridX":  15.64,
+                      "gridY":  7.85,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_099",
+                                          "or_101"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:attack_speed":  0.03
+                                    }
+                  },
+                  {
+                      "id":  "or_101",
+                      "name":  "[or_101] Nimble",
+                      "description":  "+4% Reload Speed",
+                      "gridX":  16.07,
+                      "gridY":  6.93,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_100",
+                                          "or_102"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:reload_speed":  0.04
+                                    }
+                  },
+                  {
+                      "id":  "or_102",
+                      "name":  "[or_102] Ice Guard",
+                      "description":  "+4% Cold Resistance",
+                      "gridX":  16.44,
+                      "gridY":  5.99,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_101",
+                                          "or_103"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:cold_resistance":  0.04
+                                    }
+                  },
+                  {
+                      "id":  "or_103",
+                      "name":  "[or_103] Null Shield",
+                      "description":  "+3% Void Resistance",
+                      "gridX":  16.76,
+                      "gridY":  5.02,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_102",
+                                          "or_104"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:void_resistance":  0.03
+                                    }
+                  },
+                  {
+                      "id":  "or_104",
+                      "name":  "[or_104] Voltage",
+                      "description":  "+3% Lightning Extra Damage",
+                      "gridX":  17.03,
+                      "gridY":  4.04,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_103",
+                                          "or_105"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:lightning_extra_percent":  0.03
+                                    }
+                  },
+                  {
+                      "id":  "or_105",
+                      "name":  "[or_105] Glacial",
+                      "description":  "+3% Cold Extra Damage",
+                      "gridX":  17.23,
+                      "gridY":  3.04,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_104",
+                                          "or_106"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:cold_extra_percent":  0.03
+                                    }
+                  },
+                  {
+                      "id":  "or_106",
+                      "name":  "[or_106] Featherweight",
+                      "description":  "+6% Feather Falling",
+                      "gridX":  17.38,
+                      "gridY":  2.03,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_105",
+                                          "or_107"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:feather_falling":  0.06
+                                    }
+                  },
+                  {
+                      "id":  "or_107",
+                      "name":  "[or_107] Vicious",
+                      "description":  "+5% Crit Multiplier",
+                      "gridX":  17.47,
+                      "gridY":  1.02,
+                      "shape":  "square",
+                      "icon":  "",
+                      "connections":  [
+                                          "or_106",
+                                          "or_000"
+                                      ],
+                      "modifiers":  {
+                                        "cranks-dungeons:crit_multiplier":  0.05
+                                    }
+                  }
+              ]
+}

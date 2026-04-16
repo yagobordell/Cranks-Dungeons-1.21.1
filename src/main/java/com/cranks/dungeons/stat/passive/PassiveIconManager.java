@@ -10,67 +10,67 @@ import java.util.Map;
 
 public class PassiveIconManager {
     private static final Map<String, String> ATTRIBUTE_ICONS = new HashMap<>();
-    private static final String DEFAULT_ICON = "textures/gui/passive/generic.png";
+    private static final String DEFAULT_ICON = "passive/generic";
 
     static {
         // --- Offensive ---
-        ATTRIBUTE_ICONS.put("cranks-dungeons:crit_chance", "textures/gui/passive/crit_chance.png");
-        ATTRIBUTE_ICONS.put("cranks-dungeons:crit_multiplier", "textures/gui/passive/crit_chance.png");
-        ATTRIBUTE_ICONS.put("cranks-dungeons:bonus_attack_damage", "textures/gui/passive/physical_damage.png");
-        ATTRIBUTE_ICONS.put("cranks-dungeons:physical_extra_percent", "textures/gui/passive/physical_damage.png");
-        ATTRIBUTE_ICONS.put("cranks-dungeons:attack_speed", "textures/gui/passive/attack_speed.png");
-        ATTRIBUTE_ICONS.put("cranks-dungeons:attack_range", "textures/gui/passive/attack_range.png");
-        ATTRIBUTE_ICONS.put("cranks-dungeons:reload_speed", "textures/gui/passive/reload_speed.png");
-        ATTRIBUTE_ICONS.put("cranks-dungeons:life_steal", "textures/gui/passive/life_steal.png");
-        ATTRIBUTE_ICONS.put("cranks-dungeons:knockback", "textures/gui/passive/knockback.png");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:crit_chance", "passive/crit_chance");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:crit_multiplier", "passive/crit_chance");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:bonus_attack_damage", "passive/physical_damage");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:physical_extra_percent", "passive/physical_damage");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:attack_speed", "passive/attack_speed");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:attack_range", "passive/attack_range");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:reload_speed", "passive/reload_speed");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:life_steal", "passive/life_steal");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:knockback", "passive/knockback");
 
         // --- Elemental (Damage & Resistance) ---
-        ATTRIBUTE_ICONS.put("cranks-dungeons:fire_damage", "textures/gui/passive/fire.png");
-        ATTRIBUTE_ICONS.put("cranks-dungeons:fire_extra_percent", "textures/gui/passive/fire.png");
-        ATTRIBUTE_ICONS.put("cranks-dungeons:fire_resistance", "textures/gui/passive/fire.png");
-        ATTRIBUTE_ICONS.put("cranks-dungeons:cold_damage", "textures/gui/passive/cold.png");
-        ATTRIBUTE_ICONS.put("cranks-dungeons:cold_extra_percent", "textures/gui/passive/cold.png");
-        ATTRIBUTE_ICONS.put("cranks-dungeons:cold_resistance", "textures/gui/passive/cold.png");
-        ATTRIBUTE_ICONS.put("cranks-dungeons:lightning_damage", "textures/gui/passive/lightning.png");
-        ATTRIBUTE_ICONS.put("cranks-dungeons:lightning_extra_percent", "textures/gui/passive/lightning.png");
-        ATTRIBUTE_ICONS.put("cranks-dungeons:lightning_resistance", "textures/gui/passive/lightning.png");
-        ATTRIBUTE_ICONS.put("cranks-dungeons:void_damage", "textures/gui/passive/void.png");
-        ATTRIBUTE_ICONS.put("cranks-dungeons:void_extra_percent", "textures/gui/passive/void.png");
-        ATTRIBUTE_ICONS.put("cranks-dungeons:void_resistance", "textures/gui/passive/void.png");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:fire_damage", "passive/fire");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:fire_extra_percent", "passive/fire");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:fire_resistance", "passive/fire");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:cold_damage", "passive/cold");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:cold_extra_percent", "passive/cold");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:cold_resistance", "passive/cold");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:lightning_damage", "passive/lightning");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:lightning_extra_percent", "passive/lightning");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:lightning_resistance", "passive/lightning");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:void_damage", "passive/void");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:void_extra_percent", "passive/void");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:void_resistance", "passive/void");
 
         // --- Ailments ---
-        ATTRIBUTE_ICONS.put("cranks-dungeons:chance_to_burn", "textures/gui/passive/burn.png");
-        ATTRIBUTE_ICONS.put("cranks-dungeons:burn_damage_percent", "textures/gui/passive/burn.png");
-        ATTRIBUTE_ICONS.put("cranks-dungeons:burn_duration", "textures/gui/passive/burn.png");
-        ATTRIBUTE_ICONS.put("cranks-dungeons:chance_to_poison", "textures/gui/passive/poison.png");
-        ATTRIBUTE_ICONS.put("cranks-dungeons:poison_damage_percent", "textures/gui/passive/poison.png");
-        ATTRIBUTE_ICONS.put("cranks-dungeons:poison_duration", "textures/gui/passive/poison.png");
-        ATTRIBUTE_ICONS.put("cranks-dungeons:poison_max_stacks", "textures/gui/passive/poison.png");
-        ATTRIBUTE_ICONS.put("cranks-dungeons:chance_to_freeze", "textures/gui/passive/freeze.png");
-        ATTRIBUTE_ICONS.put("cranks-dungeons:freeze_duration", "textures/gui/passive/freeze.png");
-        ATTRIBUTE_ICONS.put("cranks-dungeons:chance_to_bleed", "textures/gui/passive/bleed.png");
-        ATTRIBUTE_ICONS.put("cranks-dungeons:bleed_duration", "textures/gui/passive/bleed.png");
-        ATTRIBUTE_ICONS.put("cranks-dungeons:chance_to_shock", "textures/gui/passive/shock.png");
-        ATTRIBUTE_ICONS.put("cranks-dungeons:shock_duration", "textures/gui/passive/shock.png");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:chance_to_burn", "passive/burn");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:burn_damage_percent", "passive/burn");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:burn_duration", "passive/burn");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:chance_to_poison", "passive/poison");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:poison_damage_percent", "passive/poison");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:poison_duration", "passive/poison");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:poison_max_stacks", "passive/poison");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:chance_to_freeze", "passive/freeze");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:freeze_duration", "passive/freeze");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:chance_to_bleed", "passive/bleed");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:bleed_duration", "passive/bleed");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:chance_to_shock", "passive/shock");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:shock_duration", "passive/shock");
 
         // --- Defensive ---
-        ATTRIBUTE_ICONS.put("minecraft:max_health", "textures/gui/passive/max_health_bonus.png");
-        ATTRIBUTE_ICONS.put("cranks-dungeons:max_health_bonus", "textures/gui/passive/max_health_bonus.png");
-        ATTRIBUTE_ICONS.put("cranks-dungeons:life_regeneration", "textures/gui/passive/life_regeneration.png");
-        ATTRIBUTE_ICONS.put("minecraft:armor", "textures/gui/passive/bonus_armor.png");
-        ATTRIBUTE_ICONS.put("cranks-dungeons:bonus_armor", "textures/gui/passive/bonus_armor.png");
-        ATTRIBUTE_ICONS.put("minecraft:armor_toughness", "textures/gui/passive/armor_toughness.png");
-        ATTRIBUTE_ICONS.put("cranks-dungeons:bonus_armor_toughness", "textures/gui/passive/armor_toughness.png");
-        ATTRIBUTE_ICONS.put("cranks-dungeons:energy_shield", "textures/gui/passive/energy_shield.png");
-        ATTRIBUTE_ICONS.put("cranks-dungeons:evasion_rating", "textures/gui/passive/evasion.png");
-        ATTRIBUTE_ICONS.put("cranks-dungeons:knockback_resistance", "textures/gui/passive/knockback.png");
-        ATTRIBUTE_ICONS.put("cranks-dungeons:feather_falling", "textures/gui/passive/feather.png");
+        ATTRIBUTE_ICONS.put("minecraft:max_health", "passive/max_health_bonus");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:max_health_bonus", "passive/max_health_bonus");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:life_regeneration", "passive/life_regeneration");
+        ATTRIBUTE_ICONS.put("minecraft:armor", "passive/bonus_armor");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:bonus_armor", "passive/bonus_armor");
+        ATTRIBUTE_ICONS.put("minecraft:armor_toughness", "passive/armor_toughness");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:bonus_armor_toughness", "passive/armor_toughness");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:energy_shield", "passive/energy_shield");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:evasion_rating", "passive/evasion");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:knockback_resistance", "passive/knockback");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:feather_falling", "passive/feather");
 
         // --- Utility ---
-        ATTRIBUTE_ICONS.put("minecraft:movement_speed", "textures/gui/passive/movement_speed.png");
-        ATTRIBUTE_ICONS.put("cranks-dungeons:movement_speed", "textures/gui/passive/movement_speed.png");
-        ATTRIBUTE_ICONS.put("cranks-dungeons:experience_bonus", "textures/gui/passive/experience.png");
-        ATTRIBUTE_ICONS.put("minecraft:luck", "textures/gui/passive/luck.png");
+        ATTRIBUTE_ICONS.put("minecraft:movement_speed", "passive/movement_speed");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:movement_speed", "passive/movement_speed");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:experience_bonus", "passive/experience");
+        ATTRIBUTE_ICONS.put("minecraft:luck", "passive/luck");
     }
 
     /**
@@ -92,11 +92,11 @@ public class PassiveIconManager {
 
         // Priority 2: Check node ID for class starts
         if (nodeId.startsWith("warrior_")) {
-            return Identifier.of("cranks-dungeons", "textures/gui/passive/warrior.png");
+            return Identifier.of("cranks-dungeons", "passive/warrior");
         } else if (nodeId.startsWith("ranger_")) {
-            return Identifier.of("cranks-dungeons", "textures/gui/passive/ranger.png");
+            return Identifier.of("cranks-dungeons", "passive/ranger");
         } else if (nodeId.startsWith("mercenary_")) {
-            return Identifier.of("cranks-dungeons", "textures/gui/passive/mercenary.png");
+            return Identifier.of("cranks-dungeons", "passive/mercenary");
         }
 
         // Final fallback

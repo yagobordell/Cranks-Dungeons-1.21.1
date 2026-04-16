@@ -21,10 +21,6 @@ This file contains a comprehensive list of all attributes available for use in t
 | `cranks-dungeons:cold_damage` | Flat | Adds flat cold damage to attacks. |
 | `cranks-dungeons:lightning_damage` | Flat | Adds flat lightning damage to attacks. |
 | `cranks-dungeons:void_damage` | Flat | Adds flat void damage to attacks. |
-| `cranks-dungeons:fire_extra_percent` | Percentage | Deals a % of damage as extra Fire damage. |
-| `cranks-dungeons:cold_extra_percent` | Percentage | Deals a % of damage as extra Cold damage. |
-| `cranks-dungeons:lightning_extra_percent` | Percentage | Deals a % of damage as extra Lightning damage. |
-| `cranks-dungeons:void_extra_percent` | Percentage | Deals a % of damage as extra Void damage. |
 | `cranks-dungeons:life_steal` | Percentage | Heals for a % of damage dealt on hit. |
 | `cranks-dungeons:attack_range` | Flat | Increases reach distance for attacks. |
 | `cranks-dungeons:knockback` | Percentage | Increases knockback dealt to enemies. |

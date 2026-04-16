@@ -77,19 +77,29 @@ public class PassiveTreeConfig {
         JsonArray nodesArr = root.getAsJsonArray("nodes");
 
         List<PassiveNode> nodes = new ArrayList<>();
+        Set<String> seenIds = new HashSet<>();
+
         for (JsonElement el : nodesArr) {
             JsonObject obj = el.getAsJsonObject();
-            String id = obj.get("id").getAsString();
+            String id = obj.get("id").getAsString().trim();
+            
+            if (seenIds.contains(id)) {
+                CranksDungeons.LOGGER.error("[PassiveTree] CRITICAL ERROR: Duplicate Node ID '{}' found at gridX: {}, gridY: {}. This node will be IGNORED. Please fix your passive_tree.json!", 
+                    id, obj.get("gridX").getAsInt(), obj.get("gridY").getAsInt());
+                continue;
+            }
+            seenIds.add(id);
+
             String name = obj.get("name").getAsString();
             String description = obj.get("description").getAsString();
-            int gridX = obj.get("gridX").getAsInt();
-            int gridY = obj.get("gridY").getAsInt();
+            double gridX = obj.get("gridX").getAsDouble();
+            double gridY = obj.get("gridY").getAsDouble();
             String shape = obj.has("shape") ? obj.get("shape").getAsString() : null;
 
             List<String> connections = new ArrayList<>();
             if (obj.has("connections")) {
                 for (JsonElement c : obj.getAsJsonArray("connections")) {
-                    connections.add(c.getAsString());
+                    connections.add(c.getAsString().trim());
                 }
             }
 
@@ -131,9 +141,9 @@ public class PassiveTreeConfig {
         for (JsonElement el : classesArr) {
             JsonObject obj = el.getAsJsonObject();
             classes.add(new ClassDefinition(
-                    obj.get("id").getAsString(),
+                    obj.get("id").getAsString().trim(),
                     obj.get("name").getAsString(),
-                    obj.get("startNode").getAsString()
+                    obj.get("startNode").getAsString().trim()
             ));
         }
         return classes;
@@ -214,7 +224,7 @@ public class PassiveTreeConfig {
 
     // ─── JSON Helpers ───────────────────────────────────────────────────────────
 
-    private static JsonObject makeNode(String id, String name, String desc, int gx, int gy,
+    private static JsonObject makeNode(String id, String name, String desc, double gx, double gy,
                                        List<String> connections, Map<String, Double> modifiers, String shape) {
         JsonObject obj = new JsonObject();
         obj.addProperty("id", id);

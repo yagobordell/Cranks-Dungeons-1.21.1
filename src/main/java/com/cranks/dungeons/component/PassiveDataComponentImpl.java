@@ -59,14 +59,15 @@ public class PassiveDataComponentImpl implements PassiveDataComponent, AutoSynce
 
     @Override
     public void unlockNode(String nodeId) {
-        if (unlockedNodes.add(nodeId)) {
+        if (nodeId == null) return;
+        if (unlockedNodes.add(nodeId.trim())) {
             ModComponents.PASSIVE_DATA.sync(this.player);
         }
     }
 
     @Override
     public boolean hasNode(String nodeId) {
-        return unlockedNodes.contains(nodeId);
+        return nodeId != null && unlockedNodes.contains(nodeId.trim());
     }
 
     @Override
@@ -110,7 +111,10 @@ public class PassiveDataComponentImpl implements PassiveDataComponent, AutoSynce
         this.unlockedNodes.clear();
         NbtList list = tag.getList("unlockedNodes").orElse(new NbtList());
         for (int i = 0; i < list.size(); i++) {
-            this.unlockedNodes.add(list.getString(i).orElse(""));
+            String id = list.getString(i).orElse("").trim();
+            if (!id.isEmpty()) {
+                this.unlockedNodes.add(id);
+            }
         }
         System.out.println("[CranksDungeons] Loaded Passive Data for " + player.getName().getString() + " (Class: " + playerClass + ")");
     }
@@ -140,7 +144,7 @@ public class PassiveDataComponentImpl implements PassiveDataComponent, AutoSynce
         this.playerClass = buf.readString();
         this.unspentPoints = buf.readVarInt();
         this.unlockedNodes.clear();
-        buf.readCollection(HashSet::new, (b) -> b.readString()).forEach(this.unlockedNodes::add);
+        buf.readCollection(HashSet::new, (b) -> b.readString().trim()).forEach(this.unlockedNodes::add);
         System.out.println("[CranksDungeons] Synced Passive Data from Server");
     }
 

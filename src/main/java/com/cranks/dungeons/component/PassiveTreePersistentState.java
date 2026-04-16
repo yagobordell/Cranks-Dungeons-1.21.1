@@ -35,10 +35,17 @@ public class PassiveTreePersistentState extends PersistentState {
                 Codec.STRING.listOf().fieldOf("unlockedNodes").forGetter(d -> new ArrayList<>(d.unlockedNodes))
         ).apply(instance, (pc, up, cr, un) -> {
             PlayerPassiveData d = new PlayerPassiveData();
-            d.playerClass = pc;
+            d.playerClass = pc != null ? pc.trim() : "";
             d.unspentPoints = up;
             d.checkedRetroactive = cr;
-            d.unlockedNodes = new HashSet<>(un);
+            d.unlockedNodes = new HashSet<>();
+            if (un != null) {
+                for (String s : un) {
+                    if (s != null && !s.trim().isEmpty()) {
+                        d.unlockedNodes.add(s.trim());
+                    }
+                }
+            }
             return d;
         }));
     }
