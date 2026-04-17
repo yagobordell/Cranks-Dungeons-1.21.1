@@ -269,9 +269,11 @@ public class PassiveSkillTreeScreen extends Screen {
 
                 drawNodeShape(context, nx, ny, colorOutline, colorFill, node.shape(), actualNodeSize, glowAlpha);
                 
-                // Draw Hover Radiant Border (Behind icon)
+                // Draw Hover Radiant Border (Behind icon) - PRECISE DOUBLE RING
                 if (isHovered) {
-                    drawNodeShape(context, nx, ny, 0xFFFFFFFF, 0, node.shape(), actualNodeSize, 0.8f);
+                    int r = (int)(actualNodeSize / 2);
+                    drawProceduralShape(context, nx, ny, r + 2, node.shape(), 0xAAFFFFFF, 0); // Outer halo
+                    drawProceduralShape(context, nx, ny, r, node.shape(), 0xFFFFFFFF, 0);     // Inner white border
                 }
             }
 
@@ -464,11 +466,19 @@ public class PassiveSkillTreeScreen extends Screen {
             case "circle" -> drawProceduralCircle(context, cx, cy, radius, colorOutline, colorFill);
             case "diamond" -> drawProceduralDiamond(context, cx, cy, radius, colorOutline, colorFill);
             case "hexagon" -> drawProceduralHexagon(context, cx, cy, radius, colorOutline, colorFill);
-            default -> { // Square
-                context.fill(cx - radius, cy - radius, cx + radius, cy + radius, colorOutline);
-                context.fill(cx - radius + 1, cy - radius + 1, cx + radius - 1, cy + radius - 1, colorFill);
-            }
+            default -> drawProceduralSquare(context, cx, cy, radius, colorOutline, colorFill);
         }
+    }
+
+    private void drawProceduralSquare(DrawContext context, int cx, int cy, int r, int colorOutline, int colorFill) {
+        if (colorFill != 0) {
+            context.fill(cx - r, cy - r, cx + r, cy + r, colorFill);
+        }
+        // Precise outline
+        context.fill(cx - r, cy - r, cx + r, cy - r + 1, colorOutline); // Top
+        context.fill(cx - r, cy + r - 1, cx + r, cy + r, colorOutline); // Bottom
+        context.fill(cx - r, cy - r, cx - r + 1, cy + r, colorOutline); // Left
+        context.fill(cx + r - 1, cy - r, cx + r, cy + r, colorOutline); // Right
     }
 
     private void drawProceduralCircle(DrawContext context, int cx, int cy, int r, int colorOutline, int colorFill) {

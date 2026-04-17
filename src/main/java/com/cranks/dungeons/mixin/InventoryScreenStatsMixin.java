@@ -199,7 +199,9 @@ public abstract class InventoryScreenStatsMixin {
                                 var inst = player.getAttributeInstance(attr);
                                 if (inst != null) {
                                         for (var mod : inst.getModifiers()) {
-                                                if (mod.id().getNamespace().equals("cranks-dungeons") && mod.id().getPath().startsWith("passive_")) {
+                                                String path = mod.id().getPath();
+                                                if (mod.id().getNamespace().equals("cranks-dungeons") && 
+                                                   (path.startsWith("passive_") || path.equals("max_health_bonus") || path.equals("bonus_armor") || path.equals("bonus_armor_toughness") || path.equals("bonus_attack_damage"))) {
                                                         baseVal += mod.value();
                                                 }
                                         }
@@ -213,7 +215,9 @@ public abstract class InventoryScreenStatsMixin {
                                 var inst = player.getAttributeInstance(attr);
                                 if (inst != null) {
                                         for (var mod : inst.getModifiers()) {
-                                                if (mod.id().getNamespace().equals("cranks-dungeons") && mod.id().getPath().startsWith("passive_")) {
+                                                String path = mod.id().getPath();
+                                                if (mod.id().getNamespace().equals("cranks-dungeons") && 
+                                                   (path.startsWith("passive_") || path.equals("max_health_bonus") || path.equals("bonus_armor") || path.equals("bonus_armor_toughness") || path.equals("bonus_attack_damage"))) {
                                                         sum += mod.value();
                                                 }
                                         }
