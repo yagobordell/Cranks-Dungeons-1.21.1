@@ -37,6 +37,7 @@ public class PassiveSkillTreeScreen extends Screen {
     private static final Identifier LINE_AVAILABLE = Identifier.of("cranks-dungeons", "passive/line_available");
     private static final Identifier LINE_SELECTED = Identifier.of("cranks-dungeons", "passive/line_selected");
     private static final Identifier LINE_UNLOCKED = Identifier.of("cranks-dungeons", "passive/line_unlocked");
+    private static final Identifier LINE_HOVER = Identifier.of("cranks-dungeons", "passive/line_hover");
 
     // NODE SHAPES (Premium Textures)
     private static final Identifier NODE_SQUARE_LOCKED = Identifier.of("cranks-dungeons", "passive/node_square_locked");
@@ -75,6 +76,8 @@ public class PassiveSkillTreeScreen extends Screen {
     private final Set<Edge> edgeCache = new HashSet<>(); // Changed to Set for auto-deduplication
     private final Set<String> canUnlockCache = new HashSet<>();
     private final Map<String, Set<String>> adjacencyMap = new HashMap<>(); // Unified source of truth
+    private final Map<String, Integer> distanceMap = new HashMap<>();
+    private final Set<String> nodesOnHoverPath = new HashSet<>();
     private boolean cacheDirty = true;
 
     public PassiveSkillTreeScreen(Screen parent) {
@@ -223,6 +226,41 @@ public class PassiveSkillTreeScreen extends Screen {
             refreshCaches(data);
             cacheDirty = false;
         }
+        
+        // --- PRE-CALCULATE HOVERED NODE ---
+        PassiveNode hovered = null;
+        Map<String, PassiveNode> allNodesMap = PassiveNodeRegistry.getNodes();
+        for (PassiveNode node : allNodesMap.values()) {
+            double nx = panX + node.gridX() * currentGridScale;
+            double ny = panY + node.gridY() * currentGridScale;
+            
+            // Spatial Culling Check
+            if (nx < -margin || nx > screenW + margin || ny < -margin || ny > screenH + margin) {
+                continue;
+            }
+
+            double multiplier = getNodeSizeMultiplier(node.shape());
+            double actualNodeSize = currentNodeSize * multiplier;
+
+            boolean isHovered = mouseX >= nx - actualNodeSize/2 && mouseX <= nx + actualNodeSize/2 && 
+                               mouseY >= ny - actualNodeSize/2 && mouseY <= ny + actualNodeSize/2;
+            if (isHovered) {
+                hovered = node;
+                break;
+            }
+        }
+
+        // --- CALCULATE HOVER PATH ---
+        nodesOnHoverPath.clear();
+        if (hovered != null) {
+            String currentId = hovered.id();
+            Integer dist = distanceMap.get(currentId);
+            if (dist != null && dist > 0) {
+                traceHoverPath(currentId, dist);
+            } else if (dist != null && dist == 0) {
+                nodesOnHoverPath.add(currentId);
+            }
+        }
 
         // --- DRAW CONNECTIONS ---
         for (Edge edge : edgeCache) {
@@ -264,6 +302,20 @@ public class PassiveSkillTreeScreen extends Screen {
                 baseWidth = 4.5f; 
                 alpha = 0.8f;
             }
+            
+            // Full-Path Hover logic
+            boolean n1OnPath = nodesOnHoverPath.contains(edge.n1.id());
+            boolean n2OnPath = nodesOnHoverPath.contains(edge.n2.id());
+            
+            if (n1OnPath && n2OnPath) {
+                int d1 = distanceMap.getOrDefault(edge.n1.id(), -1);
+                int d2 = distanceMap.getOrDefault(edge.n2.id(), -1);
+                if (Math.abs(d1 - d2) == 1) {
+                    lineTex = LINE_HOVER;
+                    baseWidth = 8.0f;
+                    alpha = 1.0f;
+                }
+            }
 
             // Apply zoom scaling to width so lines don't vanish at distance
             float finalWidth = (float) (baseWidth * Math.sqrt(zoom));
@@ -272,13 +324,11 @@ public class PassiveSkillTreeScreen extends Screen {
         }
         
         // --- DRAW NODES ---
-        PassiveNode hovered = null;
-        Map<String, PassiveNode> allNodesMap = PassiveNodeRegistry.getNodes();
         for (PassiveNode node : allNodesMap.values()) {
-            int nx = (int) (panX + node.gridX() * currentGridScale);
-            int ny = (int) (panY + node.gridY() * currentGridScale);
+            double nx = panX + node.gridX() * currentGridScale;
+            double ny = panY + node.gridY() * currentGridScale;
             
-            // Spatial Culling
+            // Spatial Culling (Wide margin for large keystone glows)
             if (nx < -margin || nx > screenW + margin || ny < -margin || ny > screenH + margin) {
                 continue;
             }
@@ -290,9 +340,7 @@ public class PassiveSkillTreeScreen extends Screen {
             double multiplier = getNodeSizeMultiplier(node.shape());
             double actualNodeSize = currentNodeSize * multiplier;
 
-            boolean isHovered = mouseX >= nx - actualNodeSize/2 && mouseX <= nx + actualNodeSize/2 && 
-                               mouseY >= ny - actualNodeSize/2 && mouseY <= ny + actualNodeSize/2;
-            if (isHovered) hovered = node;
+            boolean isHovered = (hovered != null && node.id().equals(hovered.id()));
 
             if (node.shape() != null && !node.shape().isEmpty()) {
                 String state = "locked";
@@ -315,26 +363,20 @@ public class PassiveSkillTreeScreen extends Screen {
                         default -> NODE_SQUARE_SELECTION;
                     };
                     
-                    int haloSize = (int) (actualNodeSize * 1.15); // Slightly larger for halo effect
-                    context.drawGuiTexture(
-                        net.minecraft.client.gl.RenderPipelines.GUI_TEXTURED,
-                        selectionSprite,
-                        nx - haloSize/2, ny - haloSize/2, haloSize, haloSize,
-                        0xCCFFFFFF // Bright white glow
-                    );
+                    double haloSize = actualNodeSize * 1.15;
+                    drawPrecisionTexture(context, selectionSprite, nx, ny, haloSize, 0xCCFFFFFF);
                 }
             }
 
-            // Draw Icon (TOP LAYER - Maximized for impact)
+            // Draw Icon (TOP LAYER)
             if (node.icon() != null) {
                 String iconPath = node.icon().getPath();
-                // Skip icons that are just shape placeholders (legacy legacy frames)
                 if (!iconPath.equals("passive/circle") && !iconPath.equals("passive/square") && 
                     !iconPath.equals("passive/diamond") && !iconPath.equals("passive/hexagon") && 
                     !iconPath.equals("passive/generic")) {
                     
-                    int iconSize = (int) (actualNodeSize * 0.95);
-                    context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, node.icon(), nx - iconSize/2, ny - iconSize/2, iconSize, iconSize);
+                    double iconSize = actualNodeSize * 0.95;
+                    drawPrecisionTexture(context, node.icon(), nx, ny, iconSize, 0xFFFFFFFF);
                 }
             }
 
@@ -428,14 +470,13 @@ public class PassiveSkillTreeScreen extends Screen {
         edgeCache.clear();
         canUnlockCache.clear();
         adjacencyMap.clear();
+        distanceMap.clear();
         Map<String, PassiveNode> allNodes = PassiveNodeRegistry.getNodes();
         Set<String> unlocked = data.getUnlockedNodes();
 
         // 1. Build Unified Adjacency Map for bi-directional pathing
         for (PassiveNode node : allNodes.values()) {
             for (String connId : node.connections()) {
-                // Only build connections to nodes that actually exist in our registry.
-                // This filters out duplicates rejected by the parser.
                 if (allNodes.containsKey(connId)) {
                     adjacencyMap.computeIfAbsent(node.id(), k -> new HashSet<>()).add(connId);
                     adjacencyMap.computeIfAbsent(connId, k -> new HashSet<>()).add(node.id());
@@ -443,8 +484,9 @@ public class PassiveSkillTreeScreen extends Screen {
             }
         }
 
+        // 2. Populate Logic Caches (Edge + Unlock)
         for (PassiveNode node : allNodes.values()) {
-            // 2. Populate Edge Cache (Strictly for Visualizing valid JSON connections)
+            // Edge Cache (For visual lines)
             for (String connId : node.connections()) {
                 if (node.id().compareTo(connId) < 0) {
                     PassiveNode connected = allNodes.get(connId);
@@ -454,7 +496,7 @@ public class PassiveSkillTreeScreen extends Screen {
                 }
             }
 
-            // 3. Populate Unlock Cache (Using bi-directional adjacencyMap)
+            // Unlock Cache (Reachability logic)
             if (!unlocked.contains(node.id()) && !draftUnlocked.contains(node.id()) && draftPoints > 0) {
                 Set<String> neighbors = adjacencyMap.get(node.id());
                 if (neighbors != null) {
@@ -464,6 +506,47 @@ public class PassiveSkillTreeScreen extends Screen {
                             break;
                         }
                     }
+                }
+            }
+        }
+
+        // 3. Calculate Distances from active tree (BFS)
+        java.util.Queue<String> queue = new java.util.LinkedList<>();
+        for (String id : allNodes.keySet()) {
+            if (unlocked.contains(id) || draftUnlocked.contains(id)) {
+                distanceMap.put(id, 0);
+                queue.add(id);
+            }
+        }
+
+        while (!queue.isEmpty()) {
+            String current = queue.poll();
+            int currentDist = distanceMap.get(current);
+            Set<String> neighbors = adjacencyMap.get(current);
+            if (neighbors != null) {
+                for (String neighbor : neighbors) {
+                    if (!distanceMap.containsKey(neighbor)) {
+                        distanceMap.put(neighbor, currentDist + 1);
+                        queue.add(neighbor);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Traces the shortest path(s) back to the active tree for highlighting.
+     */
+    private void traceHoverPath(String nodeId, int dist) {
+        nodesOnHoverPath.add(nodeId);
+        if (dist <= 0) return;
+
+        Set<String> neighbors = adjacencyMap.get(nodeId);
+        if (neighbors != null) {
+            for (String neighbor : neighbors) {
+                Integer nDist = distanceMap.get(neighbor);
+                if (nDist != null && nDist == dist - 1) {
+                    traceHoverPath(neighbor, nDist);
                 }
             }
         }
@@ -506,10 +589,6 @@ public class PassiveSkillTreeScreen extends Screen {
     }
 
     private void drawNodeShape(DrawContext context, double cx, double cy, String shape, String state, double actualSize) {
-        int hw = (int) (actualSize / 2);
-        int icx = (int) cx;
-        int icy = (int) cy;
-
         Identifier sprite = switch (shape.toLowerCase()) {
             case "circle" -> switch (state) {
                 case "unlocked" -> NODE_CIRCLE_UNLOCKED;
@@ -537,12 +616,24 @@ public class PassiveSkillTreeScreen extends Screen {
             };
         };
 
-        // Draw the textured frame
+        drawPrecisionTexture(context, sprite, cx, cy, actualSize, 0xFFFFFFFF);
+    }
+
+    /**
+     * Draws a texture centered on a double coordinate with high precision rounding
+     * to prevent displacement "jitter" during zooming.
+     */
+    private void drawPrecisionTexture(DrawContext context, Identifier texture, double cx, double cy, double size, int color) {
+        int x = (int) Math.round(cx - size / 2.0);
+        int y = (int) Math.round(cy - size / 2.0);
+        int sx = (int) Math.round(cx + size / 2.0) - x;
+        int sy = (int) Math.round(cy + size / 2.0) - y;
+
         context.drawGuiTexture(
             net.minecraft.client.gl.RenderPipelines.GUI_TEXTURED,
-            sprite,
-            icx - hw, icy - hw, (int)actualSize, (int)actualSize,
-            0xFFFFFFFF // Fully opaque, use texture color
+            texture,
+            x, y, sx, sy,
+            color
         );
     }
 
