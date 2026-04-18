@@ -28,7 +28,7 @@ public class PassiveTreeConfig {
     private static List<PassiveNode> loadedNodes = new ArrayList<>();
     private static List<ClassDefinition> loadedClasses = new ArrayList<>();
 
-    public record ClassDefinition(String id, String name, String startNode) {}
+    public record ClassDefinition(String id, String name, String description, String startNode) {}
 
     /**
      * Load (or generate) the config files and return the parsed nodes.
@@ -143,6 +143,7 @@ public class PassiveTreeConfig {
             classes.add(new ClassDefinition(
                     obj.get("id").getAsString().trim(),
                     obj.get("name").getAsString(),
+                    obj.has("description") ? obj.get("description").getAsString() : "No description provided.",
                     obj.get("startNode").getAsString().trim()
             ));
         }
@@ -214,9 +215,15 @@ public class PassiveTreeConfig {
         JsonObject root = new JsonObject();
         JsonArray classes = new JsonArray();
 
-        classes.add(makeClass("warrior", "Warrior", "warrior_start"));
-        classes.add(makeClass("ranger", "Ranger", "ranger_start"));
-        classes.add(makeClass("mercenary", "Mercenary", "mercenary_start"));
+        classes.add(makeClass("warrior", "Warrior", 
+            "A master of brute force and resilience. Warriors excel at close-quarters combat, trading powerful blows with their enemies while shrugging off damage with heavy armor and high health.", 
+            "warrior_start"));
+        classes.add(makeClass("ranger", "Ranger", 
+            "Quick, lethal, and precise. Rangers dominate from a distance, using their superior movement speed and evasion to stay out of reach while landing deadly critical strikes with bows.", 
+            "ranger_start"));
+        classes.add(makeClass("mercenary", "Mercenary", 
+            "A ruthless tactician who fights for profit. Mercenaries utilize dirty tactics and utility to gain the upper hand, specializing in bleeds, critical multipliers, and experience gains.", 
+            "mercenary_start"));
 
         root.add("classes", classes);
         Files.writeString(CLASSES_FILE, GSON.toJson(root));
@@ -245,10 +252,11 @@ public class PassiveTreeConfig {
         return obj;
     }
 
-    private static JsonObject makeClass(String id, String name, String startNode) {
+    private static JsonObject makeClass(String id, String name, String description, String startNode) {
         JsonObject obj = new JsonObject();
         obj.addProperty("id", id);
         obj.addProperty("name", name);
+        obj.addProperty("description", description);
         obj.addProperty("startNode", startNode);
         return obj;
     }
