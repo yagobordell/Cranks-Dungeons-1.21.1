@@ -14,12 +14,11 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
-import com.mojang.blaze3d.systems.RenderSystem;
-import org.joml.Matrix4f;
 import net.minecraft.sound.SoundEvents;
 import com.cranks.dungeons.registry.ModSounds;
 import com.cranks.dungeons.stat.passive.PassiveStatHelper;
+import net.minecraft.util.Identifier;
+import com.mojang.blaze3d.systems.RenderSystem;
 
 import java.util.Map;
 import java.util.Set;
@@ -33,6 +32,38 @@ public class PassiveSkillTreeScreen extends Screen {
     private double zoom = 1.0;
     private static final int BASE_NODE_SIZE = 28;
     private static final int BASE_GRID_SCALE = 60; // Pixels per grid unit
+
+    private static final Identifier LINE_NORMAL = Identifier.of(com.cranks.dungeons.CranksDungeons.MOD_ID, "passive/line_normal");
+    private static final Identifier LINE_AVAILABLE = Identifier.of("cranks-dungeons", "passive/line_available");
+    private static final Identifier LINE_SELECTED = Identifier.of("cranks-dungeons", "passive/line_selected");
+    private static final Identifier LINE_UNLOCKED = Identifier.of("cranks-dungeons", "passive/line_unlocked");
+
+    // NODE SHAPES (Premium Textures)
+    private static final Identifier NODE_SQUARE_LOCKED = Identifier.of("cranks-dungeons", "passive/node_square_locked");
+    private static final Identifier NODE_SQUARE_AVAILABLE = Identifier.of("cranks-dungeons", "passive/node_square_available");
+    private static final Identifier NODE_SQUARE_DRAFTED = Identifier.of("cranks-dungeons", "passive/node_square_drafted");
+    private static final Identifier NODE_SQUARE_UNLOCKED = Identifier.of("cranks-dungeons", "passive/node_square_unlocked");
+
+    private static final Identifier NODE_CIRCLE_LOCKED = Identifier.of("cranks-dungeons", "passive/node_circle_locked");
+    private static final Identifier NODE_CIRCLE_AVAILABLE = Identifier.of("cranks-dungeons", "passive/node_circle_available");
+    private static final Identifier NODE_CIRCLE_DRAFTED = Identifier.of("cranks-dungeons", "passive/node_circle_drafted");
+    private static final Identifier NODE_CIRCLE_UNLOCKED = Identifier.of("cranks-dungeons", "passive/node_circle_unlocked");
+
+    private static final Identifier NODE_DIAMOND_LOCKED = Identifier.of("cranks-dungeons", "passive/node_diamond_locked");
+    private static final Identifier NODE_DIAMOND_AVAILABLE = Identifier.of("cranks-dungeons", "passive/node_diamond_available");
+    private static final Identifier NODE_DIAMOND_DRAFTED = Identifier.of("cranks-dungeons", "passive/node_diamond_drafted");
+    private static final Identifier NODE_DIAMOND_UNLOCKED = Identifier.of("cranks-dungeons", "passive/node_diamond_unlocked");
+
+    private static final Identifier NODE_HEXAGON_LOCKED = Identifier.of("cranks-dungeons", "passive/node_hexagon_locked");
+    private static final Identifier NODE_HEXAGON_AVAILABLE = Identifier.of("cranks-dungeons", "passive/node_hexagon_available");
+    private static final Identifier NODE_HEXAGON_DRAFTED = Identifier.of("cranks-dungeons", "passive/node_hexagon_drafted");
+    private static final Identifier NODE_HEXAGON_UNLOCKED = Identifier.of("cranks-dungeons", "passive/node_hexagon_unlocked");
+
+    // SELECTION HIGHLIGHTS (Pristine White Glows)
+    private static final Identifier NODE_SQUARE_SELECTION = Identifier.of("cranks-dungeons", "passive/node_square_selection");
+    private static final Identifier NODE_CIRCLE_SELECTION = Identifier.of("cranks-dungeons", "passive/node_circle_selection");
+    private static final Identifier NODE_DIAMOND_SELECTION = Identifier.of("cranks-dungeons", "passive/node_diamond_selection");
+    private static final Identifier NODE_HEXAGON_SELECTION = Identifier.of("cranks-dungeons", "passive/node_hexagon_selection");
 
     private boolean choosingClass = false;
     private final Set<String> draftUnlocked = new HashSet<>();
@@ -61,7 +92,7 @@ public class PassiveSkillTreeScreen extends Screen {
         this.draftPoints = data.getUnspentPoints();
         
         if (this.client != null && this.client.player != null) {
-            this.client.player.playSound(SoundEvents.UI_BUTTON_CLICK.value(), 0.5f, 0.8f);
+            // Player class was set or resumed - no sound on init to keep button clicks clean
         }
 
         if (data.getPlayerClass() == null || data.getPlayerClass().isEmpty()) {
@@ -206,23 +237,38 @@ public class PassiveSkillTreeScreen extends Screen {
                 continue;
             }
 
-            boolean lineActive = (unlocked.contains(edge.n1.id()) || draftUnlocked.contains(edge.n1.id())) && 
-                               (unlocked.contains(edge.n2.id()) || draftUnlocked.contains(edge.n2.id()));
-            
-            // Connection to an UNLOCKABLE node gets a faint green hint
-            boolean leadsToAvailable = !lineActive && 
-                ((unlocked.contains(edge.n1.id()) || draftUnlocked.contains(edge.n1.id())) && canUnlockCache.contains(edge.n2.id())) ||
-                ((unlocked.contains(edge.n2.id()) || draftUnlocked.contains(edge.n2.id())) && canUnlockCache.contains(edge.n1.id()));
+            // Determine State
+            Identifier lineTex = LINE_NORMAL;
+            int color = 0xFFFFFF; // Use texture colors primarily
+            float baseWidth = 3.0f; // Thicker base width
+            float alpha = 0.6f;
 
-            int color = lineActive ? 0xFFFFD700 : (leadsToAvailable ? 0xFF44AA44 : 0xFF444444);
+            boolean n1Unlocked = unlocked.contains(edge.n1.id());
+            boolean n2Unlocked = unlocked.contains(edge.n2.id());
+            boolean n1Drafted = draftUnlocked.contains(edge.n1.id());
+            boolean n2Drafted = draftUnlocked.contains(edge.n2.id());
             
-            if (lineActive) {
-                // Gold Glow
-                drawOptimizedLine(context, x1, y1, x2, y2, color, 4.0f, 0.4f);
-                drawOptimizedLine(context, x1, y1, x2, y2, color, 1.5f, 1.0f);
-            } else {
-                drawOptimizedLine(context, x1, y1, x2, y2, color, 1.5f, 1.0f);
+            boolean n1Active = n1Unlocked || n1Drafted;
+            boolean n2Active = n2Unlocked || n2Drafted;
+
+            if (n1Unlocked && n2Unlocked) {
+                lineTex = LINE_UNLOCKED;
+                baseWidth = 6.0f; // Thickest for unlocked
+                alpha = 1.0f;
+            } else if (n1Active && n2Active) {
+                lineTex = LINE_SELECTED;
+                baseWidth = 6.0f;
+                alpha = 0.9f;
+            } else if ((n1Active && canUnlockCache.contains(edge.n2.id())) || (n2Active && canUnlockCache.contains(edge.n1.id()))) {
+                lineTex = LINE_AVAILABLE;
+                baseWidth = 4.5f; 
+                alpha = 0.8f;
             }
+
+            // Apply zoom scaling to width so lines don't vanish at distance
+            float finalWidth = (float) (baseWidth * Math.sqrt(zoom));
+            
+            drawOptimizedLine(context, (float)x1, (float)y1, (float)x2, (float)y2, lineTex, color, finalWidth, alpha);
         }
         
         // --- DRAW NODES ---
@@ -249,38 +295,47 @@ public class PassiveSkillTreeScreen extends Screen {
             if (isHovered) hovered = node;
 
             if (node.shape() != null && !node.shape().isEmpty()) {
-                int colorOutline = 0xFF444444;
-                int colorFill = 0xFF222222;
-                float glowAlpha = 0.0f;
-
+                String state = "locked";
                 if (isDraft) {
-                    colorOutline = 0xFF00FFFF; // Electric Cyan
-                    colorFill = 0xFF003333;
-                    glowAlpha = 0.6f;
-                } else if (isUnlocked) {
-                    colorOutline = 0xFFFFD700; // Radiant Gold
-                    colorFill = 0xFF443300;
-                    glowAlpha = 0.5f;
+                    state = "drafted";
+                } else if (unlocked.contains(node.id())) {
+                    state = "unlocked";
                 } else if (canUnlock) {
-                    colorOutline = 0xFF55FF55; // Nature Green
-                    colorFill = 0xFF113311;
-                    glowAlpha = 0.4f;
+                    state = "available";
                 }
-
-                drawNodeShape(context, nx, ny, colorOutline, colorFill, node.shape(), actualNodeSize, glowAlpha);
                 
-                // Draw Hover Radiant Border (Behind icon) - PRECISE DOUBLE RING
+                drawNodeShape(context, nx, ny, node.shape(), state, actualNodeSize);
+                
+                // Draw Hover Radiant Glow (Behind icon)
                 if (isHovered) {
-                    int r = (int)(actualNodeSize / 2);
-                    drawProceduralShape(context, nx, ny, r + 2, node.shape(), 0xAAFFFFFF, 0); // Outer halo
-                    drawProceduralShape(context, nx, ny, r, node.shape(), 0xFFFFFFFF, 0);     // Inner white border
+                    Identifier selectionSprite = switch (node.shape().toLowerCase()) {
+                        case "circle" -> NODE_CIRCLE_SELECTION;
+                        case "diamond" -> NODE_DIAMOND_SELECTION;
+                        case "hexagon" -> NODE_HEXAGON_SELECTION;
+                        default -> NODE_SQUARE_SELECTION;
+                    };
+                    
+                    int haloSize = (int) (actualNodeSize * 1.15); // Slightly larger for halo effect
+                    context.drawGuiTexture(
+                        net.minecraft.client.gl.RenderPipelines.GUI_TEXTURED,
+                        selectionSprite,
+                        nx - haloSize/2, ny - haloSize/2, haloSize, haloSize,
+                        0xCCFFFFFF // Bright white glow
+                    );
                 }
             }
 
             // Draw Icon (TOP LAYER - Maximized for impact)
             if (node.icon() != null) {
-                int iconSize = (int) (actualNodeSize * 0.95);
-                context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, node.icon(), nx - iconSize/2, ny - iconSize/2, iconSize, iconSize);
+                String iconPath = node.icon().getPath();
+                // Skip icons that are just shape placeholders (legacy legacy frames)
+                if (!iconPath.equals("passive/circle") && !iconPath.equals("passive/square") && 
+                    !iconPath.equals("passive/diamond") && !iconPath.equals("passive/hexagon") && 
+                    !iconPath.equals("passive/generic")) {
+                    
+                    int iconSize = (int) (actualNodeSize * 0.95);
+                    context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, node.icon(), nx - iconSize/2, ny - iconSize/2, iconSize, iconSize);
+                }
             }
 
         }
@@ -424,103 +479,72 @@ public class PassiveSkillTreeScreen extends Screen {
         };
     }
 
-    private void drawOptimizedLine(DrawContext context, float x1, float y1, float x2, float y2, int color, float width, float alpha) {
+    private void drawOptimizedLine(DrawContext context, float x1, float y1, float x2, float y2, Identifier sprite, int color, float width, float alpha) {
         float dx = x2 - x1;
         float dy = y2 - y1;
         float len = (float) Math.sqrt(dx * dx + dy * dy);
         if (len <= 0) return;
 
-        // Balanced density: enough to look continuous, few enough for 60+ FPS
-        // 1 segment every 10 pixels is usually smooth enough for GUI lines
-        int steps = (int) Math.max(2, len / 10.0f);
-        if (steps > 50) steps = 50; // Cap for performance
-
-        int finalColor = (color & 0x00FFFFFF) | ((int)(alpha * 255) << 24);
+        float angle = (float) Math.atan2(dy, dx);
         float hw = width / 2.0f;
 
-        for (int i = 0; i <= steps; i++) {
-            float t = (float) i / steps;
-            float px = x1 + dx * t;
-            float py = y1 + dy * t;
-            context.fill((int)(px - hw), (int)(py - hw), (int)(px + hw + 1), (int)(py + hw + 1), finalColor);
-        }
+        var matrices = context.getMatrices();
+        matrices.pushMatrix();
+        matrices.translate(x1, y1);
+        matrices.rotate(angle);
+        
+        // Sprite approach: Correct for 1.21.2+ UI and handles color/alpha
+        int finalColor = (color & 0x00FFFFFF) | ((int)(alpha * 255) << 24);
+        context.drawGuiTexture(
+            net.minecraft.client.gl.RenderPipelines.GUI_TEXTURED,
+            sprite,
+            0, (int)-hw, (int)len, (int)width,
+            finalColor
+        );
+        
+        matrices.popMatrix();
     }
 
-    private void drawNodeShape(DrawContext context, double cx, double cy, int colorOutline, int colorFill, String shape, double actualSize, float glowAlpha) {
-        int radius = (int) (actualSize / 2);
+    private void drawNodeShape(DrawContext context, double cx, double cy, String shape, String state, double actualSize) {
+        int hw = (int) (actualSize / 2);
         int icx = (int) cx;
         int icy = (int) cy;
 
-        // Draw Glow (Outer Radiance)
-        if (glowAlpha > 0) {
-            int glowColor = (colorOutline & 0x00FFFFFF) | ((int)(glowAlpha * 120) << 24);
-            drawProceduralShape(context, icx, icy, (int)(actualSize * 0.65), shape, glowColor, 0);
-        }
+        Identifier sprite = switch (shape.toLowerCase()) {
+            case "circle" -> switch (state) {
+                case "unlocked" -> NODE_CIRCLE_UNLOCKED;
+                case "drafted" -> NODE_CIRCLE_DRAFTED;
+                case "available" -> NODE_CIRCLE_AVAILABLE;
+                default -> NODE_CIRCLE_LOCKED;
+            };
+            case "diamond" -> switch (state) {
+                case "unlocked" -> NODE_DIAMOND_UNLOCKED;
+                case "drafted" -> NODE_DIAMOND_DRAFTED;
+                case "available" -> NODE_DIAMOND_AVAILABLE;
+                default -> NODE_DIAMOND_LOCKED;
+            };
+            case "hexagon" -> switch (state) {
+                case "unlocked" -> NODE_HEXAGON_UNLOCKED;
+                case "drafted" -> NODE_HEXAGON_DRAFTED;
+                case "available" -> NODE_HEXAGON_AVAILABLE;
+                default -> NODE_HEXAGON_LOCKED;
+            };
+            default -> switch (state) {
+                case "unlocked" -> NODE_SQUARE_UNLOCKED;
+                case "drafted" -> NODE_SQUARE_DRAFTED;
+                case "available" -> NODE_SQUARE_AVAILABLE;
+                default -> NODE_SQUARE_LOCKED;
+            };
+        };
 
-        // Draw the main shape
-        drawProceduralShape(context, icx, icy, radius, shape, colorOutline, colorFill);
+        // Draw the textured frame
+        context.drawGuiTexture(
+            net.minecraft.client.gl.RenderPipelines.GUI_TEXTURED,
+            sprite,
+            icx - hw, icy - hw, (int)actualSize, (int)actualSize,
+            0xFFFFFFFF // Fully opaque, use texture color
+        );
     }
-
-    private void drawProceduralShape(DrawContext context, int cx, int cy, int radius, String shape, int colorOutline, int colorFill) {
-        switch (shape.toLowerCase()) {
-            case "circle" -> drawProceduralCircle(context, cx, cy, radius, colorOutline, colorFill);
-            case "diamond" -> drawProceduralDiamond(context, cx, cy, radius, colorOutline, colorFill);
-            case "hexagon" -> drawProceduralHexagon(context, cx, cy, radius, colorOutline, colorFill);
-            default -> drawProceduralSquare(context, cx, cy, radius, colorOutline, colorFill);
-        }
-    }
-
-    private void drawProceduralSquare(DrawContext context, int cx, int cy, int r, int colorOutline, int colorFill) {
-        if (colorFill != 0) {
-            context.fill(cx - r, cy - r, cx + r, cy + r, colorFill);
-        }
-        // Precise outline
-        context.fill(cx - r, cy - r, cx + r, cy - r + 1, colorOutline); // Top
-        context.fill(cx - r, cy + r - 1, cx + r, cy + r, colorOutline); // Bottom
-        context.fill(cx - r, cy - r, cx - r + 1, cy + r, colorOutline); // Left
-        context.fill(cx + r - 1, cy - r, cx + r, cy + r, colorOutline); // Right
-    }
-
-    private void drawProceduralCircle(DrawContext context, int cx, int cy, int r, int colorOutline, int colorFill) {
-        // Precise scanline circle with curvature correction at r+0.25
-        for (int y = -r; y <= r; y++) {
-            int xW = (int) Math.round(Math.sqrt((r + 0.25) * (r + 0.25) - y * y));
-            
-            if (colorFill != 0) context.fill(cx - xW, cy + y, cx + xW, cy + y + 1, colorFill);
-            
-            // Draw outline pixels
-            context.fill(cx - xW, cy + y, cx - xW + 1, cy + y + 1, colorOutline);
-            context.fill(cx + xW - 1, cy + y, cx + xW, cy + y + 1, colorOutline);
-            
-            // Seal the top and bottom with a precise horizontal line
-            if (Math.abs(y) == r) {
-                context.fill(cx - xW, cy + y, cx + xW, cy + y + 1, colorOutline);
-            }
-        }
-    }
-
-    private void drawProceduralDiamond(DrawContext context, int cx, int cy, int r, int colorOutline, int colorFill) {
-        for (int y = -r; y <= r; y++) {
-            int xW = r - Math.abs(y);
-            if (colorFill != 0) context.fill(cx - xW, cy + y, cx + xW, cy + y + 1, colorFill);
-            context.fill(cx - xW, cy + y, cx - xW + 1, cy + y + 1, colorOutline);
-            context.fill(cx + xW - 1, cy + y, cx + xW, cy + y + 1, colorOutline);
-        }
-    }
-
-    private void drawProceduralHexagon(DrawContext context, int cx, int cy, int r, int colorOutline, int colorFill) {
-        for (int y = -r; y <= r; y++) {
-            int h = Math.abs(y);
-            int xW;
-            if (h < r / 2) xW = r;
-            else xW = r - (int)((h - r/2.0) * 2);
-            
-            if (colorFill != 0) context.fill(cx - xW, cy + y, cx + xW, cy + y + 1, colorFill);
-            context.fill(cx - xW, cy + y, cx - xW + 1, cy + y + 1, colorOutline);
-            context.fill(cx + xW - 1, cy + y, cx + xW, cy + y + 1, colorOutline);
-        }
-    }
-    
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {

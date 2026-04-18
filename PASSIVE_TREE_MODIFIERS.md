@@ -14,6 +14,7 @@ This file contains a comprehensive list of all attributes available for use in t
 | Identifier | Type | Description |
 | :--- | :--- | :--- |
 | `cranks-dungeons:crit_chance` | Percentage | Chance to deal critical damage. (Base: 5%) |
+| `cranks-dungeons:crit_multiplier` | Percentage | Increases damage dealt by critical strikes. (Base: 1.5x / 150%) |
 | `cranks-dungeons:bonus_attack_damage` | Flat | Extra physical damage added to every hit. |
 | `cranks-dungeons:attack_speed` | Percentage | Increases frequency of attacks. |
 | `cranks-dungeons:fire_damage` | Flat | Adds flat fire damage to attacks. |
@@ -57,10 +58,6 @@ This file contains a comprehensive list of all attributes available for use in t
 | `cranks-dungeons:life_regeneration` | Flat | Amount of health regenerated per second. |
 | `cranks-dungeons:energy_shield` | Flat | Base capacity for Energy Shield. |
 | `cranks-dungeons:evasion_rating` | Flat | Increases chance to completely dodge a hit. |
-| `cranks-dungeons:fire_resistance` | Percentage | Reduces incoming Fire damage. |
-| `cranks-dungeons:cold_resistance` | Percentage | Reduces incoming Cold damage. |
-| `cranks-dungeons:lightning_resistance` | Percentage | Reduces incoming Lightning damage. |
-| `cranks-dungeons:void_resistance` | Percentage | Reduces incoming Void damage. |
 | `cranks-dungeons:knockback_resistance` | Percentage | Reduces knockback taken from enemies. |
 | `cranks-dungeons:feather_falling` | Percentage | Reduces fall damage taken. |
 

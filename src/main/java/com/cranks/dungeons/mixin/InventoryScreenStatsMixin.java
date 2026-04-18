@@ -15,6 +15,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Formatting;
+import net.minecraft.client.sound.PositionedSoundInstance;
+import net.minecraft.sound.SoundEvents;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -111,6 +113,7 @@ public abstract class InventoryScreenStatsMixin {
                         if (isHovering && leftClick && !lastClickState && !draggingScrollbar) {
                                 statsVisible = !statsVisible;
                                 StatsPanelScrollHandler.setStatsVisible(statsVisible);
+                                MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.ui(SoundEvents.UI_BUTTON_CLICK.value(), 1.0F));
                                 System.out.println("[StatsPanel] Toggled statsVisible=" + statsVisible);
                         }
                         lastClickState = leftClick;
@@ -140,6 +143,7 @@ public abstract class InventoryScreenStatsMixin {
                                         mouseY >= skillButtonY && mouseY <= skillButtonY + skillButtonHeight;
 
                         if (isHoveringSkill && leftClick && !lastSkillClickState && !draggingScrollbar) {
+                                MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.ui(SoundEvents.UI_BUTTON_CLICK.value(), 1.0F));
                                 MinecraftClient.getInstance().setScreen(
                                                 new com.cranks.dungeons.client.screen.PassiveSkillTreeScreen(screen));
                         }
@@ -227,12 +231,13 @@ public abstract class InventoryScreenStatsMixin {
 
                         // 1. Physical Damage
                         double baseAD = getPassiveBase.apply(EntityAttributes.ATTACK_DAMAGE);
+                        double bonusAD = player.getAttributeValue(ModAttributes.BONUS_ATTACK_DAMAGE);
                         double weaponAD = getModifierFromStack(weapon, EntityAttributes.ATTACK_DAMAGE);
-                        double attackDamage = (baseAD + weaponAD) * (1.0 + player.getAttributeValue(ModAttributes.ATTACK_DAMAGE_PERCENT));
+                        double attackDamage = (baseAD + bonusAD + weaponAD) * (1.0 + player.getAttributeValue(ModAttributes.ATTACK_DAMAGE_PERCENT));
                         
-                        // Tooltip attribution: Base includes the tree's percentage scaling
+                        // Tooltip attribution: Base includes flat bonus and the tree's percentage scaling
                         double passiveADPercent = getPassivePercentBonus.apply(ModAttributes.ATTACK_DAMAGE_PERCENT);
-                        double tooltipBaseAD = baseAD * (1.0 + passiveADPercent);
+                        double tooltipBaseAD = (baseAD + bonusAD) * (1.0 + passiveADPercent);
                         
                         curY = drawStatWithTooltip(context, tr, panelX, curY, "Physical Damage", attackDamage, tooltipBaseAD,
                                         "", mouseX,
@@ -277,8 +282,7 @@ public abstract class InventoryScreenStatsMixin {
                                         mouseX,
                                         mouseY, panelX, panelWidth);
 
-                        double baseAttackRange = player
-                                        .getAttributeBaseValue(EntityAttributes.ENTITY_INTERACTION_RANGE);
+                        double baseAttackRange = getPassiveBase.apply(EntityAttributes.ENTITY_INTERACTION_RANGE);
                         double attrBonus = 0.0;
                         var instRange = player.getAttributeInstance(ModAttributes.ATTACK_RANGE);
                         if (instRange != null)
@@ -290,7 +294,7 @@ public abstract class InventoryScreenStatsMixin {
 
                         // 4. Critical Strike
                         double critChance = player.getAttributeValue(ModAttributes.CRIT_CHANCE);
-                        double baseCrit = player.getAttributeBaseValue(ModAttributes.CRIT_CHANCE);
+                        double baseCrit = getPassiveBase.apply(ModAttributes.CRIT_CHANCE);
                         critChance += getEnchantmentValue(weapon, "minecraft:crit_chance", 0.075);
                         critChance += getEnchantmentValue(chestplate, "minecraft:crit_chance", 0.075);
                         critChance += getEnchantmentValue(helmet, "minecraft:crit_chance", 0.075);
@@ -301,7 +305,7 @@ public abstract class InventoryScreenStatsMixin {
                                         mouseX, mouseY, panelX, panelWidth);
 
                         double critMult = player.getAttributeValue(ModAttributes.CRIT_MULTIPLIER);
-                        double baseCritMult = player.getAttributeBaseValue(ModAttributes.CRIT_MULTIPLIER);
+                        double baseCritMult = getPassiveBase.apply(ModAttributes.CRIT_MULTIPLIER);
                         curY = drawStatWithTooltip(context, tr, panelX, curY, "Crit Multiplier", critMult * 100,
                                         baseCritMult * 100, "%",
                                         mouseX, mouseY, panelX, panelWidth);
@@ -528,11 +532,11 @@ public abstract class InventoryScreenStatsMixin {
                                         panelX, panelWidth);
                         curY = drawStatWithTooltip(context, tr, panelX, curY, "Log Fortune",
                                         player.getAttributeValue(ModAttributes.LOG_FORTUNE) * 100,
-                                        player.getAttributeBaseValue(ModAttributes.LOG_FORTUNE) * 100, "%", mouseX,
+                                        getPassiveBase.apply(ModAttributes.LOG_FORTUNE) * 100, "%", mouseX,
                                         mouseY, panelX, panelWidth);
                         curY = drawStatWithTooltip(context, tr, panelX, curY, "Dig Fortune",
                                         player.getAttributeValue(ModAttributes.DIG_FORTUNE) * 100,
-                                        player.getAttributeBaseValue(ModAttributes.DIG_FORTUNE) * 100, "%", mouseX,
+                                        getPassiveBase.apply(ModAttributes.DIG_FORTUNE) * 100, "%", mouseX,
                                         mouseY, panelX, panelWidth);
                         curY = drawStatWithTooltip(context, tr, panelX, curY, "Crop Fortune",
                                         EquipmentStatApplier.getItemStatValue(weapon, "crop_fortune") * 100, 0.0, "%",
