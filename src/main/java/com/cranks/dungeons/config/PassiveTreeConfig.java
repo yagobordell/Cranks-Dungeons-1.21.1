@@ -28,7 +28,7 @@ public class PassiveTreeConfig {
     private static List<PassiveNode> loadedNodes = new ArrayList<>();
     private static List<ClassDefinition> loadedClasses = new ArrayList<>();
 
-    public record ClassDefinition(String id, String name, String description, String startNode) {}
+    public record ClassDefinition(String id, String name, String subtitle, String description, String recommendedStats, String color, String startNode) {}
 
     /**
      * Load (or generate) the config files and return the parsed nodes.
@@ -143,7 +143,10 @@ public class PassiveTreeConfig {
             classes.add(new ClassDefinition(
                     obj.get("id").getAsString().trim(),
                     obj.get("name").getAsString(),
+                    obj.has("subtitle") ? obj.get("subtitle").getAsString() : "No subtitle provided.",
                     obj.has("description") ? obj.get("description").getAsString() : "No description provided.",
+                    obj.has("recommendedStats") ? obj.get("recommendedStats").getAsString() : "No recommendations provided.",
+                    obj.has("color") ? obj.get("color").getAsString() : "#000000",
                     obj.get("startNode").getAsString().trim()
             ));
         }
@@ -216,13 +219,22 @@ public class PassiveTreeConfig {
         JsonArray classes = new JsonArray();
 
         classes.add(makeClass("warrior", "Warrior", 
+            "Heavy hitting slow tank, melee.",
             "A master of brute force and resilience. Warriors excel at close-quarters combat, trading powerful blows with their enemies while shrugging off damage with heavy armor and high health.", 
+            "Focus on Max Health, Armor, and Physical Damage. Strength and Resilience are your best friends to survive the front lines while crushing foes.",
+            "#AA0000",
             "warrior_start"));
         classes.add(makeClass("ranger", "Ranger", 
+            "Squishy fast, normal damage, ranged.",
             "Quick, lethal, and precise. Rangers dominate from a distance, using their superior movement speed and evasion to stay out of reach while landing deadly critical strikes with bows.", 
+            "Prioritize Attack Speed, Crit Chance, and Movement Speed. Stay agile and use Evasion to avoid taking hits, as your health pool is limited.",
+            "#00AA00",
             "ranger_start"));
         classes.add(makeClass("mercenary", "Mercenary", 
+            "Jack of all trades, both melee and ranged, decent tankiness and damage.",
             "A ruthless tactician who fights for profit. Mercenaries utilize dirty tactics and utility to gain the upper hand, specializing in bleeds, critical multipliers, and experience gains.", 
+            "Balance between Physical Damage and Utility. Crit Multiplier and Bleed Chance are great for damage, while Experience Bonus helps you outscale your enemies.",
+            "#00AAAA",
             "mercenary_start"));
 
         root.add("classes", classes);
@@ -252,11 +264,14 @@ public class PassiveTreeConfig {
         return obj;
     }
 
-    private static JsonObject makeClass(String id, String name, String description, String startNode) {
+    private static JsonObject makeClass(String id, String name, String subtitle, String description, String recommendedStats, String color, String startNode) {
         JsonObject obj = new JsonObject();
         obj.addProperty("id", id);
         obj.addProperty("name", name);
+        obj.addProperty("subtitle", subtitle);
         obj.addProperty("description", description);
+        obj.addProperty("recommendedStats", recommendedStats);
+        obj.addProperty("color", color);
         obj.addProperty("startNode", startNode);
         return obj;
     }

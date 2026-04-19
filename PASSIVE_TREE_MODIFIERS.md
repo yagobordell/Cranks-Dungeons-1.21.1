@@ -4,7 +4,7 @@ This file contains a comprehensive list of all attributes available for use in t
 
 ## ⚖️ Scaling Rules
 - **Percentage Stats**: Stored as decimals. `0.05` is **5%**, `0.1` is **10%**, `1.0` is **100%**.
-- **Ailment Damage**: `burn_damage_percent` uses `100.0` as baseline. `poison_damage_percent` uses `0.0` as baseline.
+- **Ailment Damage**: `burn_damage_percent` and `poison_damage_percent` both use `0.0` as baseline.
 - **HP Units**: 1.0 Health = **0.5 Hearts**.
 
 ---
@@ -33,7 +33,7 @@ This file contains a comprehensive list of all attributes available for use in t
 | Identifier | Type | Description |
 | :--- | :--- | :--- |
 | `cranks-dungeons:chance_to_burn` | Percentage | Chance to inflict Burn. |
-| `cranks-dungeons:burn_damage_percent` | Percentage | Increases damage of Burn status effect. (Base: 100) |
+| `cranks-dungeons:burn_damage_percent` | Percentage | Increases damage of Burn status effect. (Base: 0) |
 | `cranks-dungeons:burn_duration` | Percentage | Increases duration of Burn. |
 | `cranks-dungeons:chance_to_poison` | Percentage | Chance to inflict Poison. |
 | `cranks-dungeons:poison_damage_percent` | Percentage | Increases damage of Poison status effect. (Base: 0) |
@@ -59,7 +59,6 @@ This file contains a comprehensive list of all attributes available for use in t
 | `cranks-dungeons:energy_shield` | Flat | Base capacity for Energy Shield. |
 | `cranks-dungeons:evasion_rating` | Flat | Increases chance to completely dodge a hit. |
 | `cranks-dungeons:knockback_resistance` | Percentage | Reduces knockback taken from enemies. |
-| `cranks-dungeons:feather_falling` | Percentage | Reduces fall damage taken. |
 
 ---
 

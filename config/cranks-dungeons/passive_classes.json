@@ -1,19 +1,31 @@
 {
-    "classes":  [
-                    {
-                        "id":  "warrior",
-                        "name":  "[warrior] Warrior",
-                        "startNode":  "warrior_start"
-                    },
-                    {
-                        "id":  "ranger",
-                        "name":  "[ranger] Ranger",
-                        "startNode":  "ranger_start"
-                    },
-                    {
-                        "id":  "mercenary",
-                        "name":  "[mercenary] Mercenary",
-                        "startNode":  "mercenary_start"
-                    }
-                ]
+    "classes": [
+        {
+            "id": "warrior",
+            "name": "Warrior",
+            "subtitle": "Heavy hitting slow tank, melee.",
+            "description": "A master of brute force and resilience. Warriors excel at close-quarters combat, trading powerful blows with their enemies while shrugging off damage with heavy armor and high health.",
+            "recommendedStats": "Focus on Max Health, Armor, and Physical Damage. Strength and Resilience are your best friends to survive the front lines while crushing foes.",
+            "color": "#AA0000",
+            "startNode": "warrior_start"
+        },
+        {
+            "id": "ranger",
+            "name": "Ranger",
+            "subtitle": "Squishy fast, normal damage, ranged.",
+            "description": "Quick, lethal, and precise. Rangers dominate from a distance, using their superior movement speed and evasion to stay out of reach while landing deadly critical strikes with bows.",
+            "recommendedStats": "Prioritize Attack Speed, Crit Chance, and Movement Speed. Stay agile and use Evasion to avoid taking hits, as your health pool is limited.",
+            "color": "#00AA00",
+            "startNode": "ranger_start"
+        },
+        {
+            "id": "mercenary",
+            "name": "Mercenary",
+            "subtitle": "Jack of all trades, both melee and ranged, decent tankiness and damage.",
+            "description": "A ruthless tactician who fights for profit. Mercenaries utilize dirty tactics and utility to gain the upper hand, specializing in bleeds, critical multipliers, and experience gains.",
+            "recommendedStats": "Balance between Physical Damage and Utility. Crit Multiplier and Bleed Chance are great for damage, while Experience Bonus helps you outscale your enemies.",
+            "color": "#00AAAA",
+            "startNode": "mercenary_start"
+        }
+    ]
 }

@@ -17,6 +17,7 @@ import net.minecraft.text.Text;
 import net.minecraft.sound.SoundEvents;
 import com.cranks.dungeons.registry.ModSounds;
 import com.cranks.dungeons.stat.passive.PassiveStatHelper;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import com.mojang.blaze3d.systems.RenderSystem;
 
@@ -142,6 +143,10 @@ public class PassiveSkillTreeScreen extends Screen {
             int py = (this.height - panelH) / 2;
             int sidebarW = 100;
 
+            // Close Button for Class Selection Panel
+            this.addDrawableChild(ButtonWidget.builder(Text.literal("✕"), b -> this.close())
+                    .dimensions(px + panelW - 25, py + 5, 20, 20).build()).active = !showingConfirmPopup;
+
             // Sidebar Tabs (Always visible, but disabled during popup)
             this.addDrawableChild(ButtonWidget.builder(Text.literal("Overview"), b -> {
                 selectedClassTab = 0;
@@ -204,6 +209,10 @@ public class PassiveSkillTreeScreen extends Screen {
                         this.init(); // Refresh button text
                     })
                             .dimensions(this.width - 110, 10, 100, 20).build());
+
+            // Close Button for Passive Tree
+            this.addDrawableChild(ButtonWidget.builder(Text.literal("✕"), b -> this.close())
+                    .dimensions(this.width - 135, 10, 20, 20).build());
 
             // Center the view on the starting node for their class (only if not already
             // panned)
@@ -292,16 +301,34 @@ public class PassiveSkillTreeScreen extends Screen {
             // Content Area Rendering
             var classes = com.cranks.dungeons.config.PassiveTreeConfig.getClasses();
             if (selectedClassTab == 0) {
-                context.drawCenteredTextWithShadow(this.textRenderer, "§6Path Selection",
-                        px + sidebarW + (panelW - sidebarW) / 2, py + 15, 0xFFFFFF);
+                int centerX = px + sidebarW + (panelW - sidebarW) / 2;
+                Text title = Text.literal("Path Selection").formatted(Formatting.DARK_BLUE, Formatting.BOLD);
+                context.drawText(this.textRenderer, title, centerX - this.textRenderer.getWidth(title) / 2, py + 15, 0xFF000000, false);
+
                 String intro = "Choose a starting class to begin your journey. Each class provides a unique starting point on the passive tree and specialized early attributes.\n\nSelecting a class is permanent!";
-                drawWrappedText(context, intro, px + sidebarW + 15, py + 45, panelW - sidebarW - 30, 0xFFAAAAAA);
+                drawWrappedText(context, Text.literal(intro), px + sidebarW + 15, py + 45, panelW - sidebarW - 30, 0xFF333333, false);
             } else if (selectedClassTab > 0 && selectedClassTab <= classes.size()) {
                 var def = classes.get(selectedClassTab - 1);
-                context.drawCenteredTextWithShadow(this.textRenderer, "§e" + def.name(),
-                        px + sidebarW + (panelW - sidebarW) / 2, py + 15, 0xFFFFFF);
-                drawWrappedText(context, def.description(), px + sidebarW + 15, py + 45, panelW - sidebarW - 30,
-                        0xFFBBBBBB);
+                int centerX = px + sidebarW + (panelW - sidebarW) / 2;
+                int classColor = parseHexColor(def.color());
+                
+                // Title
+                Text title = Text.literal(def.name()).formatted(Formatting.BOLD);
+                context.drawText(this.textRenderer, title, centerX - this.textRenderer.getWidth(title) / 2, py + 15, classColor, false);
+                
+                // Subtitle (Wrapped & Centered)
+                drawWrappedText(context, Text.literal(def.subtitle()).formatted(Formatting.DARK_GRAY, Formatting.ITALIC), 
+                        centerX, py + 28, panelW - sidebarW - 30, 0xFF000000, true);
+
+                // Detail Description (Left Aligned)
+                drawWrappedText(context, Text.literal(def.description()), px + sidebarW + 15, py + 52, panelW - sidebarW - 30,
+                        0xFF000000, false);
+
+                // Recommended Stats Section
+                int recY = py + 115;
+                context.drawText(this.textRenderer, Text.literal("Recommended Stats:").formatted(Formatting.BOLD), px + sidebarW + 15, recY, classColor, false);
+                drawWrappedText(context, Text.literal(def.recommendedStats()), px + sidebarW + 15, recY + 12, panelW - sidebarW - 30,
+                        0xFF444444, false);
             }
 
             super.render(context, mouseX, mouseY, delta); // Draw background buttons (tabs + select)
@@ -316,12 +343,13 @@ public class PassiveSkillTreeScreen extends Screen {
                 int ppy = (this.height - popupH) / 2;
                 context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, MENU_BACKGROUND, ppx, ppy, popupW, popupH);
 
-                context.drawCenteredTextWithShadow(this.textRenderer,
-                        "§6Path of the "
-                                + (classPendingConfirmation != null ? classPendingConfirmation.toUpperCase() : "Path"),
-                        this.width / 2, ppy + 15, 0xFFFFFF);
+                int centerX = this.width / 2;
+                String classTitle = (classPendingConfirmation != null ? classPendingConfirmation.substring(0, 1).toUpperCase() + classPendingConfirmation.substring(1) : "Path");
+                Text popupTitle = Text.literal("Path of the " + classTitle).formatted(Formatting.DARK_RED, Formatting.BOLD);
+                context.drawText(this.textRenderer, popupTitle, centerX - this.textRenderer.getWidth(popupTitle) / 2, ppy + 15, 0xFF000000, false);
+                
                 String msg = "Are you sure? This decision is PERMANENT!";
-                drawWrappedText(context, msg, ppx + 15, ppy + 40, popupW - 30, 0xFFFFFFFF);
+                drawWrappedText(context, Text.literal(msg), ppx + 15, ppy + 40, popupW - 30, 0xFF000000, false);
 
                 // Re-render ONLY the popup buttons on the top layer
                 if (confirmBtn != null)
@@ -539,12 +567,21 @@ public class PassiveSkillTreeScreen extends Screen {
     /**
      * Helper to draw multiline text with wrapping
      */
-    private void drawWrappedText(DrawContext context, String text, int x, int y, int maxWidth, int color) {
-        var lines = this.textRenderer.wrapLines(Text.literal(text), maxWidth);
+    private void drawWrappedText(DrawContext context, Text text, int x, int y, int maxWidth, int color, boolean centered) {
+        var lines = this.textRenderer.wrapLines(text, maxWidth);
         int currentY = y;
         for (var line : lines) {
-            context.drawText(this.textRenderer, line, x, currentY, color, false);
+            int drawX = centered ? x - this.textRenderer.getWidth(line) / 2 : x;
+            context.drawText(this.textRenderer, line, drawX, currentY, color, false);
             currentY += 10;
+        }
+    }
+
+    private int parseHexColor(String hex) {
+        try {
+            return 0xFF000000 | Integer.parseInt(hex.replace("#", ""), 16);
+        } catch (Exception e) {
+            return 0xFF000000; // Default to Black
         }
     }
 

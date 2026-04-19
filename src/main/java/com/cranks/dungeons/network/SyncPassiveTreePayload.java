@@ -50,7 +50,10 @@ public record SyncPassiveTreePayload(
     private static final PacketCodec<RegistryByteBuf, PassiveTreeConfig.ClassDefinition> CLASS_CODEC = PacketCodec.tuple(
             PacketCodecs.STRING, PassiveTreeConfig.ClassDefinition::id,
             PacketCodecs.STRING, PassiveTreeConfig.ClassDefinition::name,
+            PacketCodecs.STRING, PassiveTreeConfig.ClassDefinition::subtitle,
             PacketCodecs.STRING, PassiveTreeConfig.ClassDefinition::description,
+            PacketCodecs.STRING, PassiveTreeConfig.ClassDefinition::recommendedStats,
+            PacketCodecs.STRING, PassiveTreeConfig.ClassDefinition::color,
             PacketCodecs.STRING, PassiveTreeConfig.ClassDefinition::startNode,
             PassiveTreeConfig.ClassDefinition::new
     );
