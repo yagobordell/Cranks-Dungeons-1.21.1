@@ -275,4 +275,75 @@ public class PassiveTreeConfig {
         obj.addProperty("startNode", startNode);
         return obj;
     }
+
+    // ─── Export ─────────────────────────────────────────────────────────────
+
+    /**
+     * Converts a collection of PassiveNodes back into a pretty-printed JSON string
+     * that matches the passive_tree.json schema.
+     */
+    public static String exportNodesToJson(Collection<PassiveNode> nodes) {
+        JsonObject root = new JsonObject();
+        JsonArray nodesArr = new JsonArray();
+
+        // Sort nodes by ID for a consistent, clean file
+        List<PassiveNode> sorted = new ArrayList<>(nodes);
+        sorted.sort(Comparator.comparing(PassiveNode::id));
+
+        for (PassiveNode node : sorted) {
+            JsonObject obj = new JsonObject();
+            obj.addProperty("id", node.id());
+            obj.addProperty("name", node.name());
+            obj.addProperty("description", node.description());
+            
+            // Format to 3 decimal places to keep the JSON clean
+            obj.addProperty("gridX", Math.round(node.gridX() * 1000.0) / 1000.0);
+            obj.addProperty("gridY", Math.round(node.gridY() * 1000.0) / 1000.0);
+            
+            if (node.shape() != null) {
+                obj.addProperty("shape", node.shape());
+            }
+
+            JsonArray conns = new JsonArray();
+            for (String conn : node.connections()) {
+                conns.add(conn);
+            }
+            obj.add("connections", conns);
+
+            JsonObject mods = new JsonObject();
+            for (Map.Entry<RegistryEntry<EntityAttribute>, Double> entry : node.modifiers().entrySet()) {
+                Identifier id = Registries.ATTRIBUTE.getId(entry.getKey().value());
+                if (id != null) {
+                    mods.addProperty(id.toString(), entry.getValue());
+                }
+            }
+            obj.add("modifiers", mods);
+
+            // Icon is only saved if it's explicitly overwritten from the default
+            if (node.icon() != null) {
+                obj.addProperty("icon", node.icon().toString());
+            } else {
+                obj.addProperty("icon", "");
+            }
+
+            nodesArr.add(obj);
+        }
+
+        root.add("nodes", nodesArr);
+        return GSON.toJson(root);
+    }
+
+    /**
+     * Directly saves the provided nodes to config/cranks-dungeons/passive_tree.json.
+     * Use with CAUTION as it overwrites the file.
+     */
+    public static void saveNodesToFile(Collection<PassiveNode> nodes) {
+        try {
+            String json = exportNodesToJson(nodes);
+            Files.writeString(TREE_FILE, json);
+            CranksDungeons.LOGGER.info("[PassiveTree] Successfully saved {} nodes to config.", nodes.size());
+        } catch (IOException e) {
+            CranksDungeons.LOGGER.error("[PassiveTree] FAILED to save nodes to file!", e);
+        }
+    }
 }

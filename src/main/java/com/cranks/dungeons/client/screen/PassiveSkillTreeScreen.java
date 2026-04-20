@@ -13,13 +13,16 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.widget.ButtonWidget;
+import net.minecraft.client.input.KeyInput;
 import net.minecraft.text.Text;
 import net.minecraft.sound.SoundEvents;
 import com.cranks.dungeons.registry.ModSounds;
 import com.cranks.dungeons.stat.passive.PassiveStatHelper;
+import net.minecraft.client.util.InputUtil;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import com.mojang.blaze3d.systems.RenderSystem;
+import org.lwjgl.glfw.GLFW;
 
 import java.util.Map;
 import java.util.Set;
@@ -112,6 +115,12 @@ public class PassiveSkillTreeScreen extends Screen {
     private String classPendingConfirmation = null;
     private ButtonWidget confirmBtn;
     private ButtonWidget cancelBtn;
+    
+    // designer MODE fields
+    private boolean editMode = false;
+    private PassiveNode draggedNode = null;
+    private PassiveNode connectionSource = null;
+    private boolean isConnecting = false;
 
     public PassiveSkillTreeScreen(Screen parent) {
         super(Text.literal("Passive Skill Tree"));
@@ -223,11 +232,30 @@ public class PassiveSkillTreeScreen extends Screen {
                     panX = (this.width / 2.0) - (start.gridX() * BASE_GRID_SCALE * zoom);
                     panY = (this.height / 2.0) - (start.gridY() * BASE_GRID_SCALE * zoom);
                 } else {
-                    panX = this.width / 2.0;
                     panY = this.height / 2.0;
                 }
             }
+
+            // --- designer MODE BUTTONS ---
+            this.addDrawableChild(ButtonWidget.builder(Text.literal(editMode ? "Designer: ON" : "Designer: OFF"), b -> {
+                editMode = !editMode;
+                if (!editMode) draggedNode = null;
+                this.init();
+            }).dimensions(10, this.height - 30, 90, 20).build());
+
+            if (editMode) {
+                this.addDrawableChild(ButtonWidget.builder(Text.literal("Save to Config"), b -> {
+                    com.cranks.dungeons.config.PassiveTreeConfig.saveNodesToFile(PassiveNodeRegistry.getNodes().values());
+                    if (this.client != null && this.client.player != null) {
+                        this.client.player.sendMessage(Text.literal("Changes saved to passive_tree.json!").formatted(Formatting.GREEN), false);
+                    }
+                }).dimensions(105, this.height - 30, 100, 20).build());
+            }
         }
+    }
+
+    public void refreshCachesProxy() {
+        this.cacheDirty = true;
     }
 
     private void applyChanges() {
@@ -370,6 +398,24 @@ public class PassiveSkillTreeScreen extends Screen {
         context.drawTextWithShadow(this.textRenderer,
                 "Class: " + data.getPlayerClass().substring(0, 1).toUpperCase() + data.getPlayerClass().substring(1),
                 10, 10, 0xFFFFFF);
+
+        if (editMode) {
+            context.drawTextWithShadow(this.textRenderer, "§b[DESIGNER MODE ACTIVE]", 10, 22, 0x55FFFF);
+            if (draggedNode != null) {
+                String coordText = String.format("Dragging: %s (X: %.2f, Y: %.2f)", draggedNode.name(), draggedNode.gridX(), draggedNode.gridY());
+                context.drawTextWithShadow(this.textRenderer, coordText, 10, 34, 0xAAFFAA);
+            } else if (isConnecting && connectionSource != null) {
+                context.drawTextWithShadow(this.textRenderer, "Connecting: " + connectionSource.id() + " -> Click another node", 10, 34, 0xFFFFAA);
+                
+                // Draw Ghost Line
+                double currentGridScale = BASE_GRID_SCALE * zoom;
+                double sx = panX + connectionSource.gridX() * currentGridScale;
+                double sy = panY + connectionSource.gridY() * currentGridScale;
+                drawOptimizedLine(context, (float)sx, (float)sy, (float)mouseX, (float)mouseY, LINE_NORMAL, 0x80FFFFFF, 2.0f, 0.5f);
+            } else {
+                context.drawTextWithShadow(this.textRenderer, "L-Click: Drag | R-Click: Create/Edit | Shift+R-Click: Delete", 10, 34, 0xAAAAAA);
+            }
+        }
 
         // --- SPATIAL CULLING SETUP ---
         double currentGridScale = BASE_GRID_SCALE * zoom;
@@ -852,6 +898,13 @@ public class PassiveSkillTreeScreen extends Screen {
     @Override
     public boolean mouseDragged(Click click, double deltaX, double deltaY) {
         if (!choosingClass) {
+            if (editMode && draggedNode != null) {
+                double currentGridScale = BASE_GRID_SCALE * zoom;
+                draggedNode.setGridX(draggedNode.gridX() + (deltaX / currentGridScale));
+                draggedNode.setGridY(draggedNode.gridY() + (deltaY / currentGridScale));
+                this.cacheDirty = true;
+                return true;
+            }
             panX += deltaX;
             panY += deltaY;
             return true;
@@ -860,16 +913,92 @@ public class PassiveSkillTreeScreen extends Screen {
     }
 
     @Override
+    public boolean mouseReleased(Click click) {
+        if (click.button() == 0) {
+            draggedNode = null;
+        }
+        return super.mouseReleased(click);
+    }
+
+    public boolean keyPressed(KeyInput input) {
+        if (input.key() == 258) { // TAB key
+            editMode = !editMode;
+            if (!editMode) {
+                draggedNode = null;
+                isConnecting = false;
+                connectionSource = null;
+            }
+            this.init();
+            return true;
+        }
+        return super.keyPressed(input);
+    }
+
+    public void startConnecting(PassiveNode source) {
+        this.connectionSource = source;
+        this.isConnecting = true;
+        this.client.setScreen(this);
+    }
+
+    @Override
     public boolean mouseClicked(Click click, boolean bl) {
         double mouseX = click.x();
         double mouseY = click.y();
         int button = click.button();
+        var player = MinecraftClient.getInstance().player;
+        if (player == null) return false;
+
+        if (editMode) {
+            double currentGridScale = BASE_GRID_SCALE * zoom;
+            double currentNodeSize = BASE_NODE_SIZE * zoom;
+            Map<String, PassiveNode> nodesMap = PassiveNodeRegistry.getNodes();
+            PassiveNode hitNode = null;
+
+            for (PassiveNode node : nodesMap.values()) {
+                double nx = panX + node.gridX() * currentGridScale;
+                double ny = panY + node.gridY() * currentGridScale;
+                double sz = currentNodeSize * getNodeSizeMultiplier(node.shape()) / 2.0;
+
+                if (mouseX >= nx - sz && mouseX <= nx + sz && mouseY >= ny - sz && mouseY <= ny + sz) {
+                    hitNode = node;
+                    break;
+                }
+            }
+
+            if (button == 0) { // Left Click: Select/Drag
+                if (hitNode != null) {
+                    if (isConnecting && connectionSource != null && connectionSource != hitNode) {
+                        // Toggle Connection
+                        if (connectionSource.connections().contains(hitNode.id())) {
+                            connectionSource.connections().remove(hitNode.id());
+                            hitNode.connections().remove(connectionSource.id());
+                        } else {
+                            connectionSource.connections().add(hitNode.id());
+                            hitNode.connections().add(connectionSource.id());
+                        }
+                        isConnecting = false;
+                        connectionSource = null;
+                        this.cacheDirty = true;
+                        player.playSound(SoundEvents.BLOCK_ANVIL_PLACE, 0.4f, 1.2f);
+                    } else {
+                        draggedNode = hitNode;
+                        return true;
+                    }
+                }
+            } else if (button == 1) { // Right Click: Open Editor
+                if (hitNode != null) {
+                    this.client.setScreen(new PassiveNodeEditScreen(this, hitNode));
+                } else {
+                    // CREATE NEW NODE
+                    double gx = (mouseX - panX) / currentGridScale;
+                    double gy = (mouseY - panY) / currentGridScale;
+                    this.client.setScreen(new PassiveNodeEditScreen(this, gx, gy));
+                }
+                return true;
+            }
+        }
 
         if (!choosingClass && button == 0) {
-            var player = MinecraftClient.getInstance().player;
-            if (player == null)
-                return false;
-
             PassiveDataComponent data = ModComponents.PASSIVE_DATA.get(player);
             Set<String> unlocked = data.getUnlockedNodes();
 
@@ -921,6 +1050,34 @@ public class PassiveSkillTreeScreen extends Screen {
                     }
                     return true;
                 }
+            }
+        } else if (!choosingClass && button == 1) { // Right Click (Designer Mode)
+            if (editMode) {
+                if (draggedNode != null) {
+                    draggedNode = null; // Drop
+                    if (this.client != null && this.client.player != null) {
+                        this.client.player.playSound(SoundEvents.UI_BUTTON_CLICK.value(), 0.4f, 0.5f);
+                    }
+                } else {
+                    // Pick up
+                    double currentGridScale = BASE_GRID_SCALE * zoom;
+                    double currentNodeSize = BASE_NODE_SIZE * zoom;
+                    Map<String, PassiveNode> nodes = PassiveNodeRegistry.getNodes();
+                    for (PassiveNode node : nodes.values()) {
+                        double nx = panX + node.gridX() * currentGridScale;
+                        double ny = panY + node.gridY() * currentGridScale;
+                        double sz = currentNodeSize * getNodeSizeMultiplier(node.shape()) / 2.0;
+
+                        if (mouseX >= nx - sz && mouseX <= nx + sz && mouseY >= ny - sz && mouseY <= ny + sz) {
+                            draggedNode = node;
+                            if (this.client != null && this.client.player != null) {
+                                this.client.player.playSound(SoundEvents.UI_BUTTON_CLICK.value(), 0.4f, 1.5f);
+                            }
+                            return true;
+                        }
+                    }
+                }
+                return true;
             }
         }
         return super.mouseClicked(click, bl);

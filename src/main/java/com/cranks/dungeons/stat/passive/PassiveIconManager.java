@@ -91,12 +91,12 @@ public class PassiveIconManager {
         }
 
         // Priority 2: Check node ID for class starts
-        if (nodeId.startsWith("warrior_")) {
-            return Identifier.of("cranks-dungeons", "passive/warrior");
-        } else if (nodeId.startsWith("ranger_")) {
-            return Identifier.of("cranks-dungeons", "passive/ranger");
-        } else if (nodeId.startsWith("mercenary_")) {
-            return Identifier.of("cranks-dungeons", "passive/mercenary");
+        if (nodeId.startsWith("marauder_")) {
+            return Identifier.of("cranks-dungeons", "passive/marauder");
+        } else if (nodeId.startsWith("shadow_")) {
+            return Identifier.of("cranks-dungeons", "passive/shadow");
+        } else if (nodeId.startsWith("scoundrel_")) {
+            return Identifier.of("cranks-dungeons", "passive/scoundrel");
         }
 
         // Final fallback
