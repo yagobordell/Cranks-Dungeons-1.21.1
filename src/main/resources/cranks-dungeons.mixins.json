@@ -20,7 +20,6 @@
 		"ElementalDamageMixin",
 		"BonusAttackDamageMixin",
 		"AttackRangeMixin",
-		"AttackSpeedMixin",
 		"MaxHealthMixin",
 		"BonusArmorMixin",
 		"BonusArmorToughnessMixin",
@@ -80,7 +79,10 @@
 		"PartyPvPMixin",
 		"AilmentSyncMixin",
 		"DeathXpPenaltyMixin",
-		"PlayerEntityXpMixin"
+		"PlayerEntityXpMixin",
+		"MobAttackSlowdownMixin$Melee",
+		"MobAttackSlowdownMixin$Bow",
+		"MobAttackSlowdownMixin$Projectile"
 	],
 	"client": [
 		"HideArmorAttributeMixin",

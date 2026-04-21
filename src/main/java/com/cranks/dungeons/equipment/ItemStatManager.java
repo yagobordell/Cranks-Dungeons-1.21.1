@@ -381,6 +381,20 @@ public class ItemStatManager {
         return true;
     }
 
+    public static double getTotalStatValue(ItemStack stack, String baseStatId) {
+        if (stack.isEmpty()) {
+            return 0.0;
+        }
+        double total = 0;
+        List<ItemStat> stats = getStats(stack);
+        for (ItemStat itemStat : stats) {
+            if (itemStat.statId.equals(baseStatId) || itemStat.statId.endsWith("_" + baseStatId)) {
+                total += itemStat.value;
+            }
+        }
+        return total;
+    }
+
     private static Text createStatTooltip(CustomStat stat, double value, int tier) {
         String valueStr = stat.formatValue(value);
 

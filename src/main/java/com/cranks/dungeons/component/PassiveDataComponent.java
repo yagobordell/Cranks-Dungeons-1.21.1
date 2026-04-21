@@ -1,9 +1,10 @@
 package com.cranks.dungeons.component;
 
 import org.ladysnake.cca.api.v3.component.Component;
+import org.ladysnake.cca.api.v3.component.CopyableComponent;
 import java.util.Set;
 
-public interface PassiveDataComponent extends Component {
+public interface PassiveDataComponent extends Component, CopyableComponent<PassiveDataComponent> {
     String getPlayerClass();
     void setPlayerClass(String playerClass);
 

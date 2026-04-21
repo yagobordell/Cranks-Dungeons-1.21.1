@@ -645,33 +645,16 @@ public class PassiveSkillTreeScreen extends Screen {
                 0xFFFFAA00);
         ty += 15;
 
-        var stats = PassiveStatHelper.getDisplayableSummary(MinecraftClient.getInstance().player);
+        // Get unified summary including both unlocked and drafted nodes
+        var stats = PassiveStatHelper.getDisplayableSummary(MinecraftClient.getInstance().player, draftUnlocked);
 
-        // Add draft stats temporarily if we want to show preview (User didn't
-        // explicitly ask but it's better)
-        Map<String, Double> draftSummary = new java.util.TreeMap<>();
-        for (String id : draftUnlocked) {
-            var node = PassiveNodeRegistry.getNode(id);
-            if (node != null && node.modifiers() != null) {
-                for (var entry : node.modifiers().entrySet()) {
-                    String name = entry.getKey().value().getTranslationKey().replace("attribute.name.minecraft.", "")
-                            .replace("attribute.name.cranks-dungeons.", "").replace("_", " ");
-                    name = name.substring(0, 1).toUpperCase() + name.substring(1);
-                    draftSummary.merge(name, entry.getValue(), Double::sum);
-                }
-            }
-        }
-
-        if (stats.isEmpty() && draftSummary.isEmpty()) {
+        if (stats.isEmpty()) {
             context.drawCenteredTextWithShadow(this.textRenderer, "No stats unlocked", panelX + panelWidth / 2, ty + 20,
                     0x80AAAAAA);
         } else {
-            // Merge for display
-            Set<String> allKeys = new java.util.TreeSet<>(stats.keySet());
-            allKeys.addAll(draftSummary.keySet());
-
-            for (String key : allKeys) {
-                double total = stats.getOrDefault(key, 0.0) + draftSummary.getOrDefault(key, 0.0);
+            for (Map.Entry<String, Double> entry : stats.entrySet()) {
+                String key = entry.getKey();
+                double total = entry.getValue();
                 if (total == 0)
                     continue;
 
@@ -680,7 +663,13 @@ public class PassiveSkillTreeScreen extends Screen {
                         key.toLowerCase().contains("chance") ||
                         key.toLowerCase().contains("speed") ||
                         key.toLowerCase().contains("extra") ||
-                        key.toLowerCase().contains("reduction");
+                        key.toLowerCase().contains("reduction") ||
+                        key.toLowerCase().contains("steal") ||
+                        key.toLowerCase().contains("resistance") ||
+                        key.toLowerCase().contains("multiplier") ||
+                        key.toLowerCase().contains("exp") ||
+                        key.toLowerCase().contains("knockback") ||
+                        key.toLowerCase().contains("fortune");
 
                 if (isPercent) {
                     displayVal *= 100.0;
@@ -689,6 +678,8 @@ public class PassiveSkillTreeScreen extends Screen {
                 String valStr = String.format("%+.1f", displayVal);
                 if (isPercent) {
                     valStr += "%";
+                } else {
+                    valStr += PassiveStatHelper.getStatSuffix(key);
                 }
 
                 context.drawTextWithShadow(this.textRenderer, key + ":", panelX + 8, ty, 0xFFAAAAAA);

@@ -98,7 +98,7 @@ public class EquipmentStatApplier {
 
         for (ItemStatManager.ItemStat itemStat : stats) {
             CustomStat stat = StatRegistry.getStat(itemStat.statId);
-            if (stat != null && !stat.getAttribute().equals(EntityAttributes.ATTACK_SPEED)) {
+            if (stat != null) {
                 customStatAttributes.add(stat.getAttribute());
             }
         }
@@ -118,9 +118,6 @@ public class EquipmentStatApplier {
         for (ItemStatManager.ItemStat itemStat : stats) {
             CustomStat stat = StatRegistry.getStat(itemStat.statId);
             if (stat != null) {
-                if (stat.getAttribute().equals(EntityAttributes.ATTACK_SPEED)) {
-                    continue;
-                }
 
                 Identifier modifierId = Identifier.of(
                         CranksDungeons.MOD_ID,
@@ -131,13 +128,37 @@ public class EquipmentStatApplier {
                 AttributeModifierSlot modifierSlot = defaultSlots.getOrDefault(stat.getAttribute(), slot);
                 double combinedValue = defaultValue + itemStat.value;
 
-                EntityAttributeModifier modifier = new EntityAttributeModifier(
-                        modifierId,
-                        combinedValue,
-                        EntityAttributeModifier.Operation.ADD_VALUE
-                );
+                boolean isAttackSpeed = stat.getAttribute().equals(EntityAttributes.ATTACK_SPEED);
 
-                builder.add(stat.getAttribute(), modifier, modifierSlot);
+                if (isAttackSpeed) {
+                    // We MUST separate the base weapon modifier (Operation.ADD_VALUE) 
+                    // from the rune/passive multiplier (Operation.ADD_MULTIPLIED_TOTAL).
+                    // In 1.21, combining them into one ADD_MULTIPLIED_TOTAL with a negative value 
+                    // (like -2.4 + 0.1 = -2.3) results in (1 - 2.3) = -1.3 multiplier, which clamps to 0.
+                    
+                    if (defaultValue != 0) {
+                        builder.add(stat.getAttribute(), new EntityAttributeModifier(
+                                modifierId.withPath(modifierId.getPath() + "_base"),
+                                defaultValue,
+                                EntityAttributeModifier.Operation.ADD_VALUE
+                        ), modifierSlot);
+                    }
+
+                    if (itemStat.value != 0) {
+                        builder.add(stat.getAttribute(), new EntityAttributeModifier(
+                                modifierId.withPath(modifierId.getPath() + "_rune"),
+                                itemStat.value, // value is already a decimal like 0.1 for 10%
+                                EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
+                        ), modifierSlot);
+                    }
+                } else {
+                    EntityAttributeModifier modifier = new EntityAttributeModifier(
+                            modifierId,
+                            combinedValue,
+                            EntityAttributeModifier.Operation.ADD_VALUE
+                    );
+                    builder.add(stat.getAttribute(), modifier, modifierSlot);
+                }
             }
         }
 
@@ -177,14 +198,13 @@ public class EquipmentStatApplier {
     }
 
     private static void applyStatModifier(PlayerEntity player, CustomStat stat, double value) {
-        if (stat.getAttribute().equals(EntityAttributes.ATTACK_SPEED)) {
-            return;
-        }
         Identifier modifierId = Identifier.of(CranksDungeons.MOD_ID, "equipment_" + stat.getId());
+        boolean isAttackSpeed = stat.getAttribute().equals(EntityAttributes.ATTACK_SPEED);
+        
         EntityAttributeModifier modifier = new EntityAttributeModifier(
                 modifierId,
                 value,
-                EntityAttributeModifier.Operation.ADD_VALUE
+                isAttackSpeed ? EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL : EntityAttributeModifier.Operation.ADD_VALUE
         );
 
         var attributeInstance = player.getAttributeInstance(stat.getAttribute());

@@ -545,7 +545,7 @@ public class AilmentManager {
     }
 
     private static float getDamagePercent(LivingEntity entity) {
-        return 100.0f;
+        return 1.0f;
     }
 
     public static void clearAilment(LivingEntity target, AilmentType type) {

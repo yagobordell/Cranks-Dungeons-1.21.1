@@ -25,6 +25,15 @@ public class PassiveDataComponentImpl implements PassiveDataComponent, AutoSynce
     }
 
     @Override
+    public void copyFrom(PassiveDataComponent other, net.minecraft.registry.RegistryWrapper.WrapperLookup registryLookup) {
+        this.playerClass = other.getPlayerClass();
+        this.unspentPoints = other.getUnspentPoints();
+        this.unlockedNodes.clear();
+        this.unlockedNodes.addAll(other.getUnlockedNodes());
+        System.out.println("[CranksDungeons] Copied Passive Data for " + player.getName().getString() + " from old instance.");
+    }
+
+    @Override
     public String getPlayerClass() {
         return playerClass;
     }

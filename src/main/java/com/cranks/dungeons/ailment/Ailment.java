@@ -89,7 +89,7 @@ public class Ailment {
 
     public float getDamagePerTick(float damagePercent) {
         // Return base damage per tick (stacks are handled separately for POISON escalation)
-        return baseDamage * (damagePercent / 100.0f);
+        return baseDamage * damagePercent;
     }
     
     public float getDamagePerTickWithStacks(float damagePercent) {

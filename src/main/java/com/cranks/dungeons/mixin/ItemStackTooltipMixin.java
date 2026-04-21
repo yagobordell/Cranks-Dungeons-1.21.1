@@ -239,18 +239,21 @@ public abstract class ItemStackTooltipMixin {
             if (attributeTotals.containsKey(EntityAttributes.ATTACK_DAMAGE)) {
                 double baseDamage = PLAYER_BASE_ATTACK_DAMAGE + attributeTotals.get(EntityAttributes.ATTACK_DAMAGE);
                 baseDamage += getEnchantmentValue(stack, "minecraft:attack_damage", 4.0);
-                double damagePercent = EquipmentStatApplier.getItemStatValue(stack, "attack_damage_percent");
-                double finalDamage = baseDamage * (1.0 + damagePercent);
+                double totalRuneDamagePercent = ItemStatManager.getTotalStatValue(stack, "attack_damage_percent");
+                double finalDamage = baseDamage * (1.0 + totalRuneDamagePercent);
                 
                 tooltip.add(Text.literal("Physical Damage: ").formatted(Formatting.GRAY)
                         .append(Text.literal(df.format(finalDamage)).formatted(Formatting.WHITE)));
                 addedAny = true;
             }
             if (attributeTotals.containsKey(EntityAttributes.ATTACK_SPEED)) {
+                // FIXED: baseSpeed should only include ADD_VALUE modifiers (flat weapon/tool modifiers)
                 double baseSpeed = PLAYER_BASE_ATTACK_SPEED + attributeTotals.get(EntityAttributes.ATTACK_SPEED);
                 baseSpeed += getEnchantmentValue(stack, "minecraft:attack_speed", 0.2);
-                double speedPercent = EquipmentStatApplier.getItemStatValue(stack, "attack_speed");
-                double finalSpeed = baseSpeed * (1.0 + speedPercent);
+                
+                // FIXED: speedPercent should sum ALL attack speed runes
+                double totalRuneSpeedPercent = ItemStatManager.getTotalStatValue(stack, "attack_speed");
+                double finalSpeed = baseSpeed * (1.0 + totalRuneSpeedPercent);
 
                 tooltip.add(Text.literal("Attack Speed: ").formatted(Formatting.GRAY)
                         .append(Text.literal(df.format(finalSpeed)).formatted(Formatting.WHITE)));
@@ -287,8 +290,12 @@ public abstract class ItemStackTooltipMixin {
                 AttributeModifiersComponent.DEFAULT
         );
 
+        // FIXED: Only sum ADD_VALUE modifiers for the base totals.
+        // Multipliers (from runes) are handled separately in the tooltip logic now.
         for (var entry : attributes.modifiers()) {
-            totals.merge(entry.attribute(), entry.modifier().value(), Double::sum);
+            if (entry.modifier().operation() == net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_VALUE) {
+                totals.merge(entry.attribute(), entry.modifier().value(), Double::sum);
+            }
         }
 
         var enchantments = stack.getEnchantments();

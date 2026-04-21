@@ -313,7 +313,7 @@ public abstract class ElementalDamageMixin {
                 float burnBaseDamage = (float) CombatUtility.getAttributeValue(attacker, ModAttributes.BURN_BASE_DAMAGE, weapon, "burn_base_damage", source);
                 float burnDamagePercent = (float) CombatUtility.getAttributeValue(attacker, ModAttributes.BURN_DAMAGE_PERCENT, weapon, "burn_damage_percent", source);
                 double burnDuration = AilmentType.BURN.getBaseDuration() * (1.0 + attacker.getAttributeValue(ModAttributes.BURN_DURATION));
-                AilmentManager.applyAilment(target, AilmentType.BURN, burnBaseDamage * (1.0f + burnDamagePercent / 100f), burnDuration, attacker);
+                AilmentManager.applyAilment(target, AilmentType.BURN, burnBaseDamage * (1.0f + burnDamagePercent), burnDuration, attacker);
             }
 
             // Poison
@@ -325,7 +325,7 @@ public abstract class ElementalDamageMixin {
                 float poisonBaseDamage = (float) CombatUtility.getAttributeValue(attacker, ModAttributes.POISON_BASE_DAMAGE, weapon, "poison_base_damage", source);
                 float poisonDamagePercent = (float) CombatUtility.getAttributeValue(attacker, ModAttributes.POISON_DAMAGE_PERCENT, weapon, "poison_damage_percent", source);
                 double poisonDuration = AilmentType.POISON.getBaseDuration() * (1.0 + attacker.getAttributeValue(ModAttributes.POISON_DURATION));
-                AilmentManager.applyAilment(target, AilmentType.POISON, poisonBaseDamage * (1.0f + poisonDamagePercent / 100f), poisonDuration, attacker);
+                AilmentManager.applyAilment(target, AilmentType.POISON, poisonBaseDamage * (1.0f + poisonDamagePercent), poisonDuration, attacker);
             }
 
             // Freeze

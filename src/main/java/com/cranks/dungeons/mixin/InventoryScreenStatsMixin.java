@@ -238,15 +238,14 @@ public abstract class InventoryScreenStatsMixin {
                                         "", mouseX, mouseY, panelX, panelWidth);
 
                         // 3. Combat Speed & Range
-                        double baseAS = cranks$getPassiveBase(player, EntityAttributes.ATTACK_SPEED);
-                        double weaponAS = getModifierFromStack(weapon, EntityAttributes.ATTACK_SPEED);
-                        double attackSpeed = (baseAS + weaponAS);
+                        double totalAS = player.getAttributeValue(EntityAttributes.ATTACK_SPEED);
                         double asMultiplier = (1.0 + player.getAttributeValue(ModAttributes.ATTACK_SPEED));
-                        attackSpeed *= asMultiplier;
+                        double finalAS = totalAS * asMultiplier;
                         
+                        double baseASOnly = player.getAttributeBaseValue(EntityAttributes.ATTACK_SPEED);
                         double passiveASMultiplier = (1.0 + cranks$getPassivePercentBonus(player, ModAttributes.ATTACK_SPEED));
                         
-                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Attack Speed", attackSpeed, baseAS * passiveASMultiplier, "",
+                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Attack Speed", finalAS, baseASOnly * passiveASMultiplier, "",
                                         mouseX,
                                         mouseY, panelX, panelWidth);
 
@@ -291,8 +290,8 @@ public abstract class InventoryScreenStatsMixin {
                         double burnPctVal = player.getAttributeValue(ModAttributes.BURN_DAMAGE_PERCENT);
                         double passiveBurnPct = cranks$getPassivePercentBonus(player, ModAttributes.BURN_DAMAGE_PERCENT);
                         curY = drawStatWithTooltip(context, tr, panelX, curY, "Burn Damage",
-                                        player.getAttributeValue(ModAttributes.BURN_BASE_DAMAGE) * (1.0 + burnPctVal / 100.0), 
-                                        cranks$getPassiveBase(player, ModAttributes.BURN_BASE_DAMAGE) * (1.0 + passiveBurnPct / 100.0), "", mouseX, mouseY, panelX, panelWidth);
+                                        player.getAttributeValue(ModAttributes.BURN_BASE_DAMAGE) * (1.0 + burnPctVal), 
+                                        cranks$getPassiveBase(player, ModAttributes.BURN_BASE_DAMAGE) * (1.0 + passiveBurnPct), "", mouseX, mouseY, panelX, panelWidth);
                         
                         curY = drawStatWithTooltip(context, tr, panelX, curY, "Burn Duration",
                                         4.0 * (1.0 + player.getAttributeValue(ModAttributes.BURN_DURATION)), 
@@ -311,8 +310,8 @@ public abstract class InventoryScreenStatsMixin {
                         double poisonPctVal = player.getAttributeValue(ModAttributes.POISON_DAMAGE_PERCENT);
                         double passivePoisonPct = cranks$getPassivePercentBonus(player, ModAttributes.POISON_DAMAGE_PERCENT);
                         curY = drawStatWithTooltip(context, tr, panelX, curY, "Poison Damage",
-                                        player.getAttributeValue(ModAttributes.POISON_BASE_DAMAGE) * (1.0 + poisonPctVal / 100.0), 
-                                        cranks$getPassiveBase(player, ModAttributes.POISON_BASE_DAMAGE) * (1.0 + passivePoisonPct / 100.0), "", mouseX, mouseY, panelX,
+                                        player.getAttributeValue(ModAttributes.POISON_BASE_DAMAGE) * (1.0 + poisonPctVal), 
+                                        cranks$getPassiveBase(player, ModAttributes.POISON_BASE_DAMAGE) * (1.0 + passivePoisonPct), "", mouseX, mouseY, panelX,
                                         panelWidth);
                         
                         curY = drawStatWithTooltip(context, tr, panelX, curY, "Poison Duration",
@@ -603,7 +602,7 @@ public abstract class InventoryScreenStatsMixin {
                                 var p = MinecraftClient.getInstance().player;
                                 double baseDmg = p != null ? p.getAttributeValue(ModAttributes.BURN_BASE_DAMAGE) : 4.0;
                                 double pct = p != null ? p.getAttributeValue(ModAttributes.BURN_DAMAGE_PERCENT) : 100.0;
-                                yield "Chance to ignite enemies. Deal " + String.format("%.1f", baseDmg * pct / 100.0)
+                                yield "Chance to ignite enemies. Deal " + String.format("%.1f", baseDmg * (1.0 + pct))
                                                 + " Fire dmg/s for 4.0s";
                         }
                         case "Poison Chance" -> {
@@ -612,7 +611,7 @@ public abstract class InventoryScreenStatsMixin {
                                                 : 1.0;
                                 double pct = p != null ? p.getAttributeValue(ModAttributes.POISON_DAMAGE_PERCENT) : 0.0;
                                 yield "Chance to poison enemies. Deal "
-                                                + String.format("%.1f", baseDmg * (1.0 + pct / 100.0))
+                                                + String.format("%.1f", baseDmg * (1.0 + pct))
                                                 + " Void dmg/s for 2.0s (Max 20)";
                         }
                         case "Bleed Chance" -> "Chance to cause bleeding. Deal physical damage over 5.0s based on hit";
@@ -689,7 +688,7 @@ public abstract class InventoryScreenStatsMixin {
                 var enchantments = stack.getEnchantments();
                 for (var entry : enchantments.getEnchantmentEntries()) {
                         if (entry.getKey().getKey().get().getValue().toString().equals(enchantmentId))
-                                return baseValue;
+                                return baseValue * entry.getIntValue();
                 }
                 return 0.0;
         }

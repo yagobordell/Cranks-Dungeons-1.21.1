@@ -402,6 +402,19 @@ public class StatRegistry {
                                 true, true, Formatting.DARK_PURPLE,
                                 ALL_WEAPONS);
 
+                // --- Ailment Damage (all weapons) ---
+                registerForTypes("burn_damage_percent", "Increased Burn Damage",
+                                ModAttributes.BURN_DAMAGE_PERCENT,
+                                r(0.01, 0.20, 0.40, 0.60, 1.10), r(0.20, 0.40, 0.60, 1.00, 1.65),
+                                true, true, Formatting.RED,
+                                ALL_WEAPONS);
+
+                registerForTypes("poison_damage_percent", "Increased Poison Damage",
+                                ModAttributes.POISON_DAMAGE_PERCENT,
+                                r(0.01, 0.20, 0.40, 0.60, 1.10), r(0.20, 0.40, 0.60, 1.00, 1.65),
+                                true, true, Formatting.GREEN,
+                                ALL_WEAPONS);
+
                 // --- Proportional Extra Damage (Runes) ---
                 registerForTypes("attack_extra_damage", "Damage as Extra Physical Damage",
                                 ModAttributes.PHYSICAL_EXTRA_PERCENT,
