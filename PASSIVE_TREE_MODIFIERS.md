@@ -22,6 +22,18 @@ This file contains a comprehensive list of all attributes available for use in t
 | `cranks-dungeons:knockback` | Percentage | Increases knockback dealt to enemies. |
 | `cranks-dungeons:life_steal` | Percentage | Heals for a % of damage dealt on hit. |
 | `cranks-dungeons:reload_speed` | Percentage | Increases reload speed for bows/crossbows. |
+| `cranks-dungeons:trident_damage_percent`| Percentage | Increased physical/elemental damage with Tridents. |
+
+### ⚔️ Weapon Specialization
+| Identifier | Type | Description |
+| :--- | :--- | :--- |
+| `cranks-dungeons:sword_damage_percent` | Percentage | Increased physical/elemental damage with Swords. |
+| `cranks-dungeons:axe_damage_percent` | Percentage | Increased physical/elemental damage with Axes. |
+| `cranks-dungeons:mace_damage_percent` | Percentage | Increased physical/elemental damage with Maces. |
+| `cranks-dungeons:spear_damage_percent` | Percentage | Increased physical/elemental damage with Spears. |
+| `cranks-dungeons:bow_damage_percent` | Percentage | Increased physical/elemental damage with Bows. |
+| `cranks-dungeons:crossbow_damage_percent` | Percentage | Increased physical/elemental damage with Crossbows. |
+| `cranks-dungeons:trident_damage_percent` | Percentage | Increased physical/elemental damage with Tridents. |
 
 ### ❄️ Elemental Damage
 | Identifier | Type | Description |
@@ -77,6 +89,7 @@ This file contains a comprehensive list of all attributes available for use in t
 | `cranks-dungeons:energy_shield` | Flat | Absorb shield capacity. |
 | `cranks-dungeons:evasion_rating` | Flat | Chance to dodge hits. |
 | `cranks-dungeons:knockback_resistance` | Percentage | Reduces knockback taken. |
+| `cranks-dungeons:leggings_armor_percent` | Percentage | Increases armor from leggings by a percentage. |
 
 ---
 

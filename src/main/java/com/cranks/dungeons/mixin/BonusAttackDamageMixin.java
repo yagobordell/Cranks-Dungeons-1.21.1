@@ -43,7 +43,8 @@ public class BonusAttackDamageMixin {
             double percentFromWeapon = EquipmentStatApplier.getItemStatValue(weapon, "attack_damage_percent");
             double percentFromChestplate = EquipmentStatApplier.getItemStatValue(chestplate, "attack_damage_percent");
             double attributePercent = attacker.getAttributeValue(ModAttributes.ATTACK_DAMAGE_PERCENT);
-            double totalPercent = percentFromWeapon + percentFromChestplate + attributePercent;
+            double weaponSpecificPercent = CombatUtility.getWeaponSpecificDamageBonus(attacker, weapon);
+            double totalPercent = percentFromWeapon + percentFromChestplate + attributePercent + weaponSpecificPercent;
             
             // Apply percentage to total damage (base + bonus)
             return (float) (damageWithBonus * (1.0 + totalPercent));

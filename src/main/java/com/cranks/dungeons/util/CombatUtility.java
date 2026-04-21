@@ -1,11 +1,13 @@
 package com.cranks.dungeons.util;
 
-import com.cranks.dungeons.util.TridentStackProvider;
+import com.cranks.dungeons.util.WeaponProvider;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.TridentEntity;
 import net.minecraft.item.ItemStack;
+import com.cranks.dungeons.equipment.EquipmentType;
+import com.cranks.dungeons.registry.ModAttributes;
 
 public class CombatUtility {
 
@@ -15,8 +17,11 @@ public class CombatUtility {
      * Otherwise, returns the attacker's main hand stack.
      */
     public static ItemStack getCombatWeapon(DamageSource source, PlayerEntity attacker) {
-        if (source.getSource() instanceof TridentEntity trident) {
-            return ((TridentStackProvider) trident).cranks$getTridentStack();
+        if (source.getSource() instanceof WeaponProvider provider) {
+            ItemStack weapon = provider.cranks$getWeapon();
+            if (weapon != null && !weapon.isEmpty()) {
+                return weapon;
+            }
         }
         return attacker.getMainHandStack();
     }
@@ -52,5 +57,24 @@ public class CombatUtility {
         }
 
         return finalValue;
+    }
+
+    /**
+     * Returns the weapon-specific damage percentage bonus for the player based on the held weapon.
+     */
+    public static double getWeaponSpecificDamageBonus(PlayerEntity attacker, ItemStack weapon) {
+        EquipmentType type = EquipmentType.getTypeForItem(weapon).orElse(null);
+        if (type == null) return 0.0;
+
+        return switch (type) {
+            case SWORD -> attacker.getAttributeValue(ModAttributes.SWORD_DAMAGE_PERCENT);
+            case AXE -> attacker.getAttributeValue(ModAttributes.AXE_DAMAGE_PERCENT);
+            case MACE -> attacker.getAttributeValue(ModAttributes.MACE_DAMAGE_PERCENT);
+            case SPEAR -> attacker.getAttributeValue(ModAttributes.SPEAR_DAMAGE_PERCENT);
+            case BOW -> attacker.getAttributeValue(ModAttributes.BOW_DAMAGE_PERCENT);
+            case CROSSBOW -> attacker.getAttributeValue(ModAttributes.CROSSBOW_DAMAGE_PERCENT);
+            case TRIDENT -> attacker.getAttributeValue(ModAttributes.TRIDENT_DAMAGE_PERCENT);
+            default -> 0.0;
+        };
     }
 }

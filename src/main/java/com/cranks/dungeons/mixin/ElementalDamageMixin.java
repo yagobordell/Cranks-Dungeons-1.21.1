@@ -115,6 +115,9 @@ public abstract class ElementalDamageMixin {
             // This ensures we capture the shock state before any damage kills the entity
             final boolean[] hasShockBeforeDamage = {AilmentManager.hasAilment(target, AilmentType.SHOCK)};
 
+            // Get weapon-specific bonus once
+            double weaponSpecificPercent = CombatUtility.getWeaponSpecificDamageBonus(attacker, weapon);
+
             // === FIRE DAMAGE ===
             double fireBaseDamage = CombatUtility.getAttributeValue(attacker, ModAttributes.FIRE_DAMAGE, weapon, "fire_damage", source);
             fireBaseDamage += getEnchantmentValue(weapon, "minecraft:fire_damage", 4.0);
@@ -122,7 +125,7 @@ public abstract class ElementalDamageMixin {
 
             double fireTotalPercent = CombatUtility.getAttributeValue(attacker, ModAttributes.FIRE_DAMAGE_PERCENT, weapon, "fire_damage_percent", source);
 
-            double fireDamage = fireBaseDamage * (1.0 + fireTotalPercent) * critMultiplier;
+            double fireDamage = fireBaseDamage * (1.0 + fireTotalPercent + weaponSpecificPercent) * critMultiplier;
             
             // === COLD DAMAGE ===
             double coldBaseDamage = CombatUtility.getAttributeValue(attacker, ModAttributes.COLD_DAMAGE, weapon, "cold_damage", source);
@@ -130,7 +133,7 @@ public abstract class ElementalDamageMixin {
 
             double coldTotalPercent = CombatUtility.getAttributeValue(attacker, ModAttributes.COLD_DAMAGE_PERCENT, weapon, "cold_damage_percent", source);
 
-            double coldDamage = coldBaseDamage * (1.0 + coldTotalPercent) * critMultiplier;
+            double coldDamage = coldBaseDamage * (1.0 + coldTotalPercent + weaponSpecificPercent) * critMultiplier;
 
             // === LIGHTNING DAMAGE ===
             double lightningBaseDamage = CombatUtility.getAttributeValue(attacker, ModAttributes.LIGHTNING_DAMAGE, weapon, "lightning_damage", source);
@@ -138,7 +141,7 @@ public abstract class ElementalDamageMixin {
 
             double lightningTotalPercent = CombatUtility.getAttributeValue(attacker, ModAttributes.LIGHTNING_DAMAGE_PERCENT, weapon, "lightning_damage_percent", source);
 
-            double lightningDamage = lightningBaseDamage * (1.0 + lightningTotalPercent) * critMultiplier;
+            double lightningDamage = lightningBaseDamage * (1.0 + lightningTotalPercent + weaponSpecificPercent) * critMultiplier;
 
             // === VOID DAMAGE ===
             double voidBaseDamage = CombatUtility.getAttributeValue(attacker, ModAttributes.VOID_DAMAGE, weapon, "void_damage", source);
@@ -146,7 +149,7 @@ public abstract class ElementalDamageMixin {
 
             double voidTotalPercent = CombatUtility.getAttributeValue(attacker, ModAttributes.VOID_DAMAGE_PERCENT, weapon, "void_damage_percent", source);
 
-            double voidDamage = voidBaseDamage * (1.0 + voidTotalPercent) * critMultiplier;
+            double voidDamage = voidBaseDamage * (1.0 + voidTotalPercent + weaponSpecificPercent) * critMultiplier;
 
             // === PROPORTIONAL EXTRA DAMAGE (RUNES) ===
             // Calculate total basic damage using UNREDUCED values for proportional scaling

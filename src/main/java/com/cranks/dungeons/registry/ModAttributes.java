@@ -80,6 +80,17 @@ public class ModAttributes {
     public static final RegistryEntry<EntityAttribute> PRECISION_MINING = register("precision_mining", 0.0, 0.0, 1.0);
     public static final RegistryEntry<EntityAttribute> BREAKING_RANGE = register("breaking_range", 0.0, 0.0, 5.0);
     public static final RegistryEntry<EntityAttribute> MOVEMENT_SPEED = register("movement_speed", 0.0, 0.0, 10.0);
+
+    // Weapon-specific Damage Percentages (Passive-tree only)
+    public static final RegistryEntry<EntityAttribute> SWORD_DAMAGE_PERCENT = register("sword_damage_percent", 0.0, 0.0, 10.0);
+    public static final RegistryEntry<EntityAttribute> AXE_DAMAGE_PERCENT = register("axe_damage_percent", 0.0, 0.0, 10.0);
+    public static final RegistryEntry<EntityAttribute> MACE_DAMAGE_PERCENT = register("mace_damage_percent", 0.0, 0.0, 10.0);
+    public static final RegistryEntry<EntityAttribute> SPEAR_DAMAGE_PERCENT = register("spear_damage_percent", 0.0, 0.0, 10.0);
+    public static final RegistryEntry<EntityAttribute> BOW_DAMAGE_PERCENT = register("bow_damage_percent", 0.0, 0.0, 10.0);
+    public static final RegistryEntry<EntityAttribute> CROSSBOW_DAMAGE_PERCENT = register("crossbow_damage_percent", 0.0, 0.0, 10.0);
+    public static final RegistryEntry<EntityAttribute> TRIDENT_DAMAGE_PERCENT = register("trident_damage_percent", 0.0, 0.0, 10.0);
+    public static final RegistryEntry<EntityAttribute> LEGGINGS_ARMOR_PERCENT = register("leggings_armor_percent", 0.0, 0.0, 10.0);
+
     public static final RegistryEntry<EntityAttribute> FLYING_SPEED = register("flying_speed", 0.0, 0.0, 10.0);
     public static final RegistryEntry<EntityAttribute> LUCK = register("luck", 0.0, 0.0, 100.0);
     public static final RegistryEntry<EntityAttribute> CROP_FORTUNE = register("crop_fortune",0.0, 0.0, 1.0);

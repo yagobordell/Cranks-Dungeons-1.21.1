@@ -54,9 +54,42 @@ public class PassiveStatHelper {
         }
 
         Map<String, Double> display = new TreeMap<>(); // Sorted by name
+        double totalArmor = 0;
+
         for (Map.Entry<RegistryEntry<EntityAttribute>, Double> entry : raw.entrySet()) {
-            String readableName = getReadableName(entry.getKey());
-            display.put(readableName, entry.getValue());
+            RegistryEntry<EntityAttribute> attr = entry.getKey();
+            double value = entry.getValue();
+            
+            // Special case for Leggings Armor Multiplier
+            if (attr.equals(com.cranks.dungeons.registry.ModAttributes.LEGGINGS_ARMOR_PERCENT)) {
+                double leggingsBaseArmor = 0;
+                net.minecraft.item.ItemStack leggings = player.getEquippedStack(net.minecraft.entity.EquipmentSlot.LEGS);
+                if (!leggings.isEmpty()) {
+                    var comp = leggings.get(net.minecraft.component.DataComponentTypes.ATTRIBUTE_MODIFIERS);
+                    if (comp != null) {
+                        for (var modEntry : comp.modifiers()) {
+                            if (modEntry.attribute().equals(net.minecraft.entity.attribute.EntityAttributes.ARMOR)) {
+                                leggingsBaseArmor += modEntry.modifier().value();
+                            }
+                        }
+                    }
+                }
+                totalArmor += (leggingsBaseArmor * value);
+                continue; // Don't add as a separate entry
+            }
+            
+            // Special case for Flat Bonus Armor
+            if (attr.equals(com.cranks.dungeons.registry.ModAttributes.BONUS_ARMOR)) {
+                totalArmor += value;
+                continue; // Don't add as a separate entry
+            }
+            
+            String readableName = getReadableName(attr);
+            display.put(readableName, value);
+        }
+
+        if (totalArmor != 0) {
+            display.put("Armor", totalArmor);
         }
 
         return display;
