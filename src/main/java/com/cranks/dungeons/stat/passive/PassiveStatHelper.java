@@ -13,14 +13,16 @@ import java.util.TreeMap;
 public class PassiveStatHelper {
 
     /**
-     * Aggregates all modifiers from unlocked nodes in the passive tree for a given player.
+     * Aggregates all modifiers from unlocked nodes in the passive tree for a given
+     * player.
      * This works on both client and server as long as the component is synced.
      */
     public static Map<RegistryEntry<EntityAttribute>, Double> getPassiveTreeSummary(PlayerEntity player) {
         Map<RegistryEntry<EntityAttribute>, Double> summary = new HashMap<>();
-        
+
         PassiveDataComponent data = ModComponents.PASSIVE_DATA.get(player);
-        if (data == null) return summary;
+        if (data == null)
+            return summary;
 
         for (String nodeId : data.getUnlockedNodes()) {
             PassiveNode node = PassiveNodeRegistry.getNode(nodeId);
@@ -30,17 +32,18 @@ public class PassiveStatHelper {
                 }
             }
         }
-        
+
         return summary;
     }
 
     /**
-     * Returns a sorted map of attribute names to their total passive values for display purposes.
+     * Returns a sorted map of attribute names to their total passive values for
+     * display purposes.
      * Optionally includes a set of drafted node IDs to provide a "preview" summary.
      */
     public static Map<String, Double> getDisplayableSummary(PlayerEntity player, java.util.Set<String> draftNodes) {
         Map<RegistryEntry<EntityAttribute>, Double> raw = getPassiveTreeSummary(player);
-        
+
         // Add draft nodes to the summary calculation
         if (draftNodes != null && !draftNodes.isEmpty()) {
             for (String nodeId : draftNodes) {
@@ -59,11 +62,12 @@ public class PassiveStatHelper {
         for (Map.Entry<RegistryEntry<EntityAttribute>, Double> entry : raw.entrySet()) {
             RegistryEntry<EntityAttribute> attr = entry.getKey();
             double value = entry.getValue();
-            
+
             // Special case for Leggings Armor Multiplier
             if (attr.equals(com.cranks.dungeons.registry.ModAttributes.LEGGINGS_ARMOR_PERCENT)) {
                 double leggingsBaseArmor = 0;
-                net.minecraft.item.ItemStack leggings = player.getEquippedStack(net.minecraft.entity.EquipmentSlot.LEGS);
+                net.minecraft.item.ItemStack leggings = player
+                        .getEquippedStack(net.minecraft.entity.EquipmentSlot.LEGS);
                 if (!leggings.isEmpty()) {
                     var comp = leggings.get(net.minecraft.component.DataComponentTypes.ATTRIBUTE_MODIFIERS);
                     if (comp != null) {
@@ -77,13 +81,13 @@ public class PassiveStatHelper {
                 totalArmor += (leggingsBaseArmor * value);
                 continue; // Don't add as a separate entry
             }
-            
+
             // Special case for Flat Bonus Armor
             if (attr.equals(com.cranks.dungeons.registry.ModAttributes.BONUS_ARMOR)) {
                 totalArmor += value;
                 continue; // Don't add as a separate entry
             }
-            
+
             String readableName = getReadableName(attr);
             display.put(readableName, value);
         }
@@ -100,14 +104,14 @@ public class PassiveStatHelper {
      */
     public static String getReadableName(RegistryEntry<EntityAttribute> attribute) {
         String translationKey = attribute.value().getTranslationKey().toLowerCase();
-        
+
         // Targeted mappings for consistency with the rest of the mod
         if (translationKey.contains("attack_damage")) {
             String name = translationKey.replace("attribute.name.minecraft.", "")
-                                      .replace("attribute.name.cranks-dungeons.", "")
-                                      .replace("generic.attack_damage", "physical_damage")
-                                      .replace("attack_damage", "physical_damage")
-                                      .replace("_", " ");
+                    .replace("attribute.name.cranks-dungeons.", "")
+                    .replace("generic.attack_damage", "physical_damage")
+                    .replace("attack_damage", "physical_damage")
+                    .replace("_", " ");
             return name.substring(0, 1).toUpperCase() + name.substring(1);
         }
         if (translationKey.contains("life_regeneration")) {
@@ -116,14 +120,23 @@ public class PassiveStatHelper {
 
         // Default processing for other stats with abbreviations
         String name = translationKey.replace("attribute.name.minecraft.", "")
-                                  .replace("attribute.name.cranks-dungeons.", "")
-                                  .replace("resistance", "res")
-                                  .replace("experience", "exp")
-                                  .replace("regeneration", "regen")
-                                  .replace("_", " ");
-        
-        if (name.isEmpty()) return "Unknown Stat";
-        
+                .replace("attribute.name.cranks-dungeons.", "")
+                .replace("resistance", "res")
+                .replace("experience", "exp")
+                .replace("regeneration", "regen")
+                .replace("armor crit mitigation", "crit defense per armor")
+                .replace("damage against afflicted percent", "dmg vs afflicted")
+                .replace("elemental damage percent", "elemental damage")
+                .replace("melee damage percent", "melee damage")
+                .replace("ranged damage percent", "ranged damage")
+                .replace("one handed damage percent", "one handed damage")
+                .replace("dual wielding damage percent", "dual wield damage")
+                .replace("two handing damage percent", "two hand damage")
+                .replace("_", " ");
+
+        if (name.isEmpty())
+            return "Unknown Stat";
+
         // Capitalize first letter
         return name.substring(0, 1).toUpperCase() + name.substring(1);
     }
@@ -133,12 +146,18 @@ public class PassiveStatHelper {
      */
     public static String getStatSuffix(String name) {
         String lower = name.toLowerCase();
-        if (lower.contains("duration")) return "s";
-        if (lower.contains("range")) return " blocks";
-        if (lower.contains("stacks")) return " max";
-        if (lower.contains("max health")) return " HP";
-        if (lower.contains("health regen")) return " HP/s";
-        if (lower.contains("xp")) return " xp";
+        if (lower.contains("duration"))
+            return "s";
+        if (lower.contains("range"))
+            return " blocks";
+        if (lower.contains("stacks"))
+            return " max";
+        if (lower.contains("max health"))
+            return " HP";
+        if (lower.contains("health regen"))
+            return " HP/s";
+        if (lower.contains("xp"))
+            return " xp";
         return "";
     }
 }

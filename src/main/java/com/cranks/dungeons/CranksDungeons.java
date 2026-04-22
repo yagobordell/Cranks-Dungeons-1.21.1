@@ -94,8 +94,8 @@ public class CranksDungeons implements ModInitializer {
 			PassiveDataComponent data = ModComponents.PASSIVE_DATA.get(handler.player);
 
 			// Restore from PersistentState backup (guarantees persistence across restarts)
-			com.cranks.dungeons.component.PassiveTreePersistentState worldState =
-					com.cranks.dungeons.component.PassiveTreePersistentState.get(server);
+			com.cranks.dungeons.component.PassiveTreePersistentState worldState = com.cranks.dungeons.component.PassiveTreePersistentState
+					.get(server);
 			if (data.getPlayerClass() == null || data.getPlayerClass().isEmpty()) {
 				worldState.loadIntoComponent(handler.player.getUuid(), data);
 			} else {
@@ -104,7 +104,7 @@ public class CranksDungeons implements ModInitializer {
 			}
 
 			data.checkRetroactivePoints(handler.player.experienceLevel);
-			
+
 			// If retroactive checking changed anything, save it
 			worldState.savePlayerData(handler.player.getUuid(), data);
 
@@ -124,6 +124,7 @@ public class CranksDungeons implements ModInitializer {
 						.add(ModAttributes.FLYING_SPEED)
 						.add(ModAttributes.EVASION_RATING, 0.0)
 						.add(ModAttributes.ENERGY_SHIELD, 0.0)
+						.add(ModAttributes.ARMOR_CRIT_MITIGATION, 0.0)
 						.add(ModAttributes.RELOAD_SPEED, 0.0)
 						.add(ModAttributes.CROP_EXPERIENCE, 0.0)
 						// Offensive
@@ -145,6 +146,13 @@ public class CranksDungeons implements ModInitializer {
 						.add(ModAttributes.LIGHTNING_DAMAGE_PERCENT, 0.0)
 						.add(ModAttributes.VOID_DAMAGE, 0.0)
 						.add(ModAttributes.VOID_DAMAGE_PERCENT, 0.0)
+						.add(ModAttributes.DAMAGE_AGAINST_AFFLICTED_PERCENT, 0.0)
+						.add(ModAttributes.ELEMENTAL_DAMAGE_PERCENT, 0.0)
+						.add(ModAttributes.MELEE_DAMAGE_PERCENT, 0.0)
+						.add(ModAttributes.RANGED_DAMAGE_PERCENT, 0.0)
+						.add(ModAttributes.ONE_HANDED_DAMAGE_PERCENT, 0.0)
+						.add(ModAttributes.DUAL_WIELDING_DAMAGE_PERCENT, 0.0)
+						.add(ModAttributes.TWO_HANDING_DAMAGE_PERCENT, 0.0)
 						.add(ModAttributes.CRIT_CHANCE, 0.05)
 						.add(ModAttributes.CRIT_MULTIPLIER, 1.5)
 						.add(ModAttributes.LIFE_STEAL, 0.0)
@@ -192,22 +200,26 @@ public class CranksDungeons implements ModInitializer {
 						.add(ModAttributes.EXPERIENCE_BONUS, 0.0)
 						.add(ModAttributes.PRECISION_MINING, 0.0)
 						.add(ModAttributes.BREAKING_RANGE, 0.0)
-						.add(ModAttributes.MOVEMENT_SPEED, 0.0)
-		);
+						.add(ModAttributes.MOVEMENT_SPEED, 0.0));
 
 		registerCreativeTabItems();
 
-		net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
-			dispatcher.register(net.minecraft.server.command.CommandManager.literal("reloadpassivetree")
-				.requires(source -> true) // Temporary while fixing permission check method 
-				.executes(context -> {
-					com.cranks.dungeons.config.PassiveTreeConfig.load();
-					com.cranks.dungeons.stat.passive.PassiveNodeRegistry.loadFromConfig();
-					com.cranks.dungeons.network.ModNetworking.syncPassiveTreeToAll(context.getSource().getServer());
-					context.getSource().sendFeedback(() -> net.minecraft.text.Text.literal("Passive skill tree reloaded and synced to all players."), true);
-					return 1;
-				}));
-		});
+		net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback.EVENT
+				.register((dispatcher, registryAccess, environment) -> {
+					dispatcher.register(net.minecraft.server.command.CommandManager.literal("reloadpassivetree")
+							.requires(source -> true) // Temporary while fixing permission check method
+							.executes(context -> {
+								com.cranks.dungeons.config.PassiveTreeConfig.load();
+								com.cranks.dungeons.stat.passive.PassiveNodeRegistry.loadFromConfig();
+								com.cranks.dungeons.network.ModNetworking
+										.syncPassiveTreeToAll(context.getSource().getServer());
+								context.getSource().sendFeedback(
+										() -> net.minecraft.text.Text
+												.literal("Passive skill tree reloaded and synced to all players."),
+										true);
+								return 1;
+							}));
+				});
 
 		LOGGER.info("Cranks Dungeons initialized!");
 	}
@@ -278,7 +290,8 @@ public class CranksDungeons implements ModInitializer {
 			"minecraft:respiration",
 			"minecraft:depth_strider",
 			"minecraft:lunge",
-			// Custom stat-based enchantments (minecraft namespace, overridden via data pack)
+			// Custom stat-based enchantments (minecraft namespace, overridden via data
+			// pack)
 			"minecraft:fire_damage",
 			"minecraft:cold_damage",
 			"minecraft:lightning_damage",
@@ -318,8 +331,7 @@ public class CranksDungeons implements ModInitializer {
 			"minecraft:dig_fortune",
 			"minecraft:reload_speed",
 			// Mod-namespaced enchantments
-			"cranks-dungeons:vein_mining"
-	);
+			"cranks-dungeons:vein_mining");
 
 	/** Cached set of allowed enchantment registry keys, built once on first use. */
 	private Set<RegistryKey<Enchantment>> allowedEnchantmentKeys;
@@ -330,8 +342,8 @@ public class CranksDungeons implements ModInitializer {
 			for (String id : ALLOWED_ENCHANTMENT_IDS) {
 				Identifier identifier = Identifier.tryParse(id);
 				if (identifier != null) {
-					RegistryKey<net.minecraft.registry.Registry<Enchantment>> registryKey =
-							RegistryKey.ofRegistry(Identifier.of("minecraft", "enchantment"));
+					RegistryKey<net.minecraft.registry.Registry<Enchantment>> registryKey = RegistryKey
+							.ofRegistry(Identifier.of("minecraft", "enchantment"));
 					allowedEnchantmentKeys.add(RegistryKey.of(registryKey, identifier));
 				}
 			}
@@ -345,13 +357,13 @@ public class CranksDungeons implements ModInitializer {
 		// Remove from both display stacks and search tab stacks
 		var displayStacks = content.getDisplayStacks();
 		var searchStacks = content.getSearchTabStacks();
-		
+
 		displayStacks.removeIf(stack -> shouldRemoveBook(stack, allowed));
 		searchStacks.removeIf(stack -> shouldRemoveBook(stack, allowed));
 	}
 
-
-	private boolean shouldRemoveBook(net.minecraft.item.ItemStack stack, Set<RegistryKey<Enchantment>> allowedEnchantments) {
+	private boolean shouldRemoveBook(net.minecraft.item.ItemStack stack,
+			Set<RegistryKey<Enchantment>> allowedEnchantments) {
 		if (!stack.isOf(Items.ENCHANTED_BOOK)) {
 			return false;
 		}

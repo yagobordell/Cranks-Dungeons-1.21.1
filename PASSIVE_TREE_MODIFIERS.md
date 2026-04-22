@@ -17,12 +17,16 @@ This file contains a comprehensive list of all attributes available for use in t
 | `cranks-dungeons:crit_multiplier` | Percentage | Increases damage dealt by critical strikes. (Base: 1.5x) |
 | `cranks-dungeons:bonus_attack_damage` | Flat | Extra physical damage added to every hit. |
 | `cranks-dungeons:attack_damage_percent`| Percentage | Increased Physical Damage. |
+| `cranks-dungeons:melee_damage_percent` | Percentage | Increased Melee damage (Swords, Axes, Maces, etc). |
+| `cranks-dungeons:ranged_damage_percent` | Percentage | Increased Ranged damage (Bows, Crossbows, Thrown Tridents). |
+| `cranks-dungeons:one_handed_damage_percent` | Percentage | Increased damage when using one weapon and a shield/offhand. |
+| `cranks-dungeons:dual_wielding_damage_percent` | Percentage | Increased damage when using two weapons of the same type. |
+| `cranks-dungeons:two_handing_damage_percent` | Percentage | Increased damage when using a weapon with the offhand empty. |
 | `cranks-dungeons:attack_speed` | Percentage | Increases frequency of attacks. |
 | `cranks-dungeons:attack_range` | Flat | Increases reach distance for attacks. |
 | `cranks-dungeons:knockback` | Percentage | Increases knockback dealt to enemies. |
 | `cranks-dungeons:life_steal` | Percentage | Heals for a % of damage dealt on hit. |
 | `cranks-dungeons:reload_speed` | Percentage | Increases reload speed for bows/crossbows. |
-| `cranks-dungeons:trident_damage_percent`| Percentage | Increased physical/elemental damage with Tridents. |
 
 ### ⚔️ Weapon Specialization
 | Identifier | Type | Description |
@@ -38,6 +42,7 @@ This file contains a comprehensive list of all attributes available for use in t
 ### ❄️ Elemental Damage
 | Identifier | Type | Description |
 | :--- | :--- | :--- |
+| `cranks-dungeons:elemental_damage_percent` | Percentage | Increased Elemental Damage (Fire, Cold, Lightning, Void). |
 | `cranks-dungeons:fire_damage` | Flat | Adds flat fire damage to attacks. |
 | `cranks-dungeons:fire_damage_percent` | Percentage | Increased Fire damage. |
 | `cranks-dungeons:cold_damage` | Flat | Adds flat cold damage to attacks. |
@@ -62,6 +67,7 @@ This file contains a comprehensive list of all attributes available for use in t
 
 | Identifier | Type | Description |
 | :--- | :--- | :--- |
+| `cranks-dungeons:damage_against_afflicted_percent` | Percentage | Increased damage against enemies with an ailment. |
 | `cranks-dungeons:chance_to_burn` | Percentage | Chance to ignite enemies. |
 | `cranks-dungeons:burn_damage_percent` | Percentage | Increased Burn damage. |
 | `cranks-dungeons:burn_duration` | Percentage | Increased Burn duration. |
@@ -90,6 +96,7 @@ This file contains a comprehensive list of all attributes available for use in t
 | `cranks-dungeons:evasion_rating` | Flat | Chance to dodge hits. |
 | `cranks-dungeons:knockback_resistance` | Percentage | Reduces knockback taken. |
 | `cranks-dungeons:leggings_armor_percent` | Percentage | Increases armor from leggings by a percentage. |
+| `cranks-dungeons:armor_crit_mitigation` | Percentage | Percentage of armor that reduces critical extra damage. |
 
 ---
 

@@ -55,7 +55,20 @@ public abstract class CriticalStrikeMixin {
             boolean isCrit = false;
 
             if (critChance > 0 && attacker.getRandom().nextFloat() < critChance) {
-                finalAmount = amount * 1.5f;
+                double critMult = CombatUtility.getAttributeValue(attacker, ModAttributes.CRIT_MULTIPLIER, weapon, "crit_multiplier", source);
+                
+                // --- Armor Crit Mitigation ---
+                float extraDamageMult = (float) (critMult - 1.0);
+                if (target instanceof PlayerEntity defender) {
+                    double mitigationMultiplier = defender.getAttributeValue(ModAttributes.ARMOR_CRIT_MITIGATION);
+                    if (mitigationMultiplier > 0) {
+                        double armor = defender.getAttributeValue(net.minecraft.entity.attribute.EntityAttributes.ARMOR);
+                        double mitigation = Math.min(1.0, armor * mitigationMultiplier);
+                        extraDamageMult *= (float) (1.0 - mitigation);
+                    }
+                }
+                
+                finalAmount = amount * (1.0f + extraDamageMult);
                 isCrit = true;
                 CriticalHitState.setCriticalHit(true);
                 spawnCriticalEffects(world, target);

@@ -238,6 +238,14 @@ public class AilmentManager {
         return false;
     }
 
+    public static boolean isAfflicted(LivingEntity target) {
+        if (target == null) return false;
+        // Check custom ailment list
+        if (!getAilments(target).isEmpty()) return true;
+        // Also check if they are on fire (vanilla or mod burn)
+        return target.isOnFire();
+    }
+
     public static List<Ailment> getAilments(LivingEntity target) {
         return ENTITY_AILMENTS.getOrDefault(target.getUuid(), new ArrayList<>());
     }
