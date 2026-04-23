@@ -42,16 +42,16 @@ public class DamageConversionHelper {
         }
 
         /**
-         * Reduces each damage component in the breakdown by the target's resistances and armor.
-         * Used to ensure the display matches the actual health loss.
+         * Reduces each damage component in the breakdown by the target's resistances and armor,
+         * accounting for attacker's penetration.
          */
-        public void applyResistancesInPlace(LivingEntity target) {
+        public void applyResistancesInPlace(LivingEntity target, Entity attacker) {
             for (Map.Entry<DamageElement, Float> entry : new java.util.HashMap<>(damages).entrySet()) {
                 DamageElement element = entry.getKey();
                 float amount = entry.getValue();
 
                 if (element == DamageElement.PHYSICAL) {
-                    damages.put(element, calculatePhysicalReduction(target, amount));
+                    damages.put(element, calculatePhysicalReduction(target, amount, attacker));
                 } else if (element != DamageElement.DROWN) {
                     double res = switch (element) {
                         case FIRE -> target.getAttributeValue(ModAttributes.FIRE_RESISTANCE);
@@ -60,7 +60,21 @@ public class DamageConversionHelper {
                         case VOID -> target.getAttributeValue(ModAttributes.VOID_RESISTANCE);
                         default -> 0;
                     };
-                    damages.put(element, (float) (amount * (1.0 - res)));
+
+                    double penetration = 0;
+                    if (attacker instanceof LivingEntity le) {
+                        penetration = le.getAttributeValue(ModAttributes.ELEMENTAL_PENETRATION_PERCENT);
+                        penetration += switch (element) {
+                            case FIRE -> le.getAttributeValue(ModAttributes.FIRE_PENETRATION_PERCENT);
+                            case COLD -> le.getAttributeValue(ModAttributes.COLD_PENETRATION_PERCENT);
+                            case LIGHTNING -> le.getAttributeValue(ModAttributes.LIGHTNING_PENETRATION_PERCENT);
+                            case VOID -> le.getAttributeValue(ModAttributes.VOID_PENETRATION_PERCENT);
+                            default -> 0;
+                        };
+                    }
+
+                    double finalRes = Math.max(0, res * (1.0 - penetration));
+                    damages.put(element, (float) (amount * (1.0 - finalRes)));
                 }
             }
         }
@@ -166,22 +180,37 @@ public class DamageConversionHelper {
         return breakdown;
     }
 
-    public static float applyResistances(LivingEntity target, DamageBreakdown breakdown) {
+    public static float applyResistances(LivingEntity target, DamageBreakdown breakdown, Entity attacker) {
         float finalTotal = 0;
         for (Map.Entry<DamageElement, Float> entry : breakdown.getDamages().entrySet()) {
             float amount = entry.getValue();
             double res = 0;
-            switch (entry.getKey()) {
+            DamageElement element = entry.getKey();
+            switch (element) {
                 case FIRE -> res = target.getAttributeValue(ModAttributes.FIRE_RESISTANCE);
                 case COLD -> res = target.getAttributeValue(ModAttributes.COLD_RESISTANCE);
                 case LIGHTNING -> res = target.getAttributeValue(ModAttributes.LIGHTNING_RESISTANCE);
                 case VOID -> res = target.getAttributeValue(ModAttributes.VOID_RESISTANCE);
                 case PHYSICAL -> {
-                    finalTotal += calculatePhysicalReduction(target, amount);
+                    finalTotal += calculatePhysicalReduction(target, amount, attacker);
                     continue;
                 }
             }
-            finalTotal += (float) (amount * (1.0 - res));
+
+            double penetration = 0;
+            if (attacker instanceof LivingEntity le) {
+                penetration = le.getAttributeValue(ModAttributes.ELEMENTAL_PENETRATION_PERCENT);
+                penetration += switch (element) {
+                    case FIRE -> le.getAttributeValue(ModAttributes.FIRE_PENETRATION_PERCENT);
+                    case COLD -> le.getAttributeValue(ModAttributes.COLD_PENETRATION_PERCENT);
+                    case LIGHTNING -> le.getAttributeValue(ModAttributes.LIGHTNING_PENETRATION_PERCENT);
+                    case VOID -> le.getAttributeValue(ModAttributes.VOID_PENETRATION_PERCENT);
+                    default -> 0;
+                };
+            }
+
+            double finalRes = Math.max(0, res * (1.0 - penetration));
+            finalTotal += (float) (amount * (1.0 - finalRes));
         }
         return finalTotal;
     }
@@ -189,9 +218,14 @@ public class DamageConversionHelper {
     /**
      * Calculates the remaining damage after applying the custom Path of Exile 2 inspired armor reduction.
      */
-    public static float calculatePhysicalReduction(LivingEntity target, float amount) {
+    public static float calculatePhysicalReduction(LivingEntity target, float amount, Entity attacker) {
         double ar = target.getAttributeValue(net.minecraft.entity.attribute.EntityAttributes.ARMOR);
         double toughness = target.getAttributeValue(net.minecraft.entity.attribute.EntityAttributes.ARMOR_TOUGHNESS);
+
+        if (attacker instanceof LivingEntity le) {
+            double penetration = le.getAttributeValue(ModAttributes.ARMOR_PENETRATION_PERCENT);
+            ar *= (1.0 - penetration);
+        }
 
         if (ar > 0 && amount > 0) {
             // Stabilized formula: X = (400 + 10 * Damage) / (1 + Toughness / 20)

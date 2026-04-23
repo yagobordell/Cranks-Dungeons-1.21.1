@@ -53,8 +53,9 @@ public class ModAttributes {
             0.0, 0.0, 10.0);
     public static final RegistryEntry<EntityAttribute> VOID_DAMAGE_PERCENT = register("void_damage_percent", 0.0, 0.0,
             10.0);
-    public static final RegistryEntry<EntityAttribute> DAMAGE_AGAINST_AFFLICTED_PERCENT = register(
-            "damage_against_afflicted_percent", 0.0, 0.0, 10.0);
+    public static final RegistryEntry<EntityAttribute> DAMAGE_AGAINST_AFFLICTED_PERCENT = register("damage_against_afflicted_percent", 0.0, 0.0, 10.0);
+    public static final RegistryEntry<EntityAttribute> DAMAGE_WHILE_AFFLICTED_PERCENT = register("damage_while_afflicted_percent", 0.0, 0.0, 10.0);
+    public static final RegistryEntry<EntityAttribute> CRIT_CHANCE_AGAINST_AFFLICTED = register("crit_chance_against_afflicted", 0.0, 0.0, 1.0);
     public static final RegistryEntry<EntityAttribute> ELEMENTAL_DAMAGE_PERCENT = register("elemental_damage_percent",
             0.0, 0.0, 10.0);
     public static final RegistryEntry<EntityAttribute> MELEE_DAMAGE_PERCENT = register("melee_damage_percent", 0.0, 0.0,
@@ -80,6 +81,15 @@ public class ModAttributes {
     public static final RegistryEntry<EntityAttribute> VOID_EXTRA_PERCENT = register("void_extra_percent", 0.0, 0.0,
             5.0);
 
+    public static final RegistryEntry<EntityAttribute> PHYSICAL_AS_EXTRA_FIRE_PERCENT = register(
+            "physical_as_extra_fire_percent", 0.0, 0.0, 5.0);
+    public static final RegistryEntry<EntityAttribute> PHYSICAL_AS_EXTRA_COLD_PERCENT = register(
+            "physical_as_extra_cold_percent", 0.0, 0.0, 5.0);
+    public static final RegistryEntry<EntityAttribute> PHYSICAL_AS_EXTRA_LIGHTNING_PERCENT = register(
+            "physical_as_extra_lightning_percent", 0.0, 0.0, 5.0);
+    public static final RegistryEntry<EntityAttribute> PHYSICAL_AS_EXTRA_VOID_PERCENT = register(
+            "physical_as_extra_void_percent", 0.0, 0.0, 5.0);
+
     public static final RegistryEntry<EntityAttribute> LIFE_STEAL = register("life_steal", 0.0, 0.0, 1.0);
     public static final RegistryEntry<EntityAttribute> CHANCE_TO_BURN = register("chance_to_burn", 0.0, 0.0, 1.0);
     public static final RegistryEntry<EntityAttribute> BURN_BASE_DAMAGE = register("burn_base_damage", 4.0, 0.0, 100.0);
@@ -103,6 +113,17 @@ public class ModAttributes {
 
     public static final RegistryEntry<EntityAttribute> CHANCE_TO_SHOCK = register("chance_to_shock", 0.0, 0.0, 1.0);
     public static final RegistryEntry<EntityAttribute> SHOCK_DURATION = register("shock_duration", 3.0, 0.0, 60.0);
+    public static final RegistryEntry<EntityAttribute> MAX_HEALTH_PERCENT = register("max_health_percent", 0.0, 0.0, 10.0);
+    public static final RegistryEntry<EntityAttribute> ARMOR_PERCENT = register("armor_percent", 0.0, 0.0, 10.0);
+    public static final RegistryEntry<EntityAttribute> ARMOR_TOUGHNESS_PERCENT = register("armor_toughness_percent", 0.0, 0.0, 10.0);
+    public static final RegistryEntry<EntityAttribute> ENERGY_SHIELD_PERCENT = register("energy_shield_percent", 0.0, 0.0, 10.0);
+    public static final RegistryEntry<EntityAttribute> EVASION_RATING_PERCENT = register("evasion_rating_percent", 0.0, 0.0, 10.0);
+    public static final RegistryEntry<EntityAttribute> ARMOR_PENETRATION_PERCENT = register("armor_penetration_percent", 0.0, 0.0, 1.0);
+    public static final RegistryEntry<EntityAttribute> FIRE_PENETRATION_PERCENT = register("fire_penetration_percent", 0.0, 0.0, 1.0);
+    public static final RegistryEntry<EntityAttribute> COLD_PENETRATION_PERCENT = register("cold_penetration_percent", 0.0, 0.0, 1.0);
+    public static final RegistryEntry<EntityAttribute> LIGHTNING_PENETRATION_PERCENT = register("lightning_penetration_percent", 0.0, 0.0, 1.0);
+    public static final RegistryEntry<EntityAttribute> VOID_PENETRATION_PERCENT = register("void_penetration_percent", 0.0, 0.0, 1.0);
+    public static final RegistryEntry<EntityAttribute> ELEMENTAL_PENETRATION_PERCENT = register("elemental_penetration_percent", 0.0, 0.0, 1.0);
 
     public static final RegistryEntry<EntityAttribute> ATTACK_RANGE = register("attack_range", 0.0, 0.0, 10.0);
     public static final RegistryEntry<EntityAttribute> ATTACK_SPEED = register("attack_speed", 0.0, 0.0, 10.0);

@@ -18,6 +18,8 @@ public abstract class BonusArmorToughnessMixin {
 
     @Unique
     private double cranks$lastBonusToughness = Double.NaN;
+    @Unique
+    private double cranks$lastToughnessPercentBonus = Double.NaN;
 
     @Inject(method = "tick", at = @At("HEAD"))
     private void applyBonusArmorToughness(CallbackInfo ci) {
@@ -25,27 +27,47 @@ public abstract class BonusArmorToughnessMixin {
 
         if (!(player instanceof ServerPlayerEntity)) return;
 
-        double bonusToughness = player.getAttributeValue(ModAttributes.BONUS_ARMOR_TOUGHNESS);
+        double toughnessFlatBonus = player.getAttributeValue(ModAttributes.BONUS_ARMOR_TOUGHNESS);
+        double toughnessPercent = player.getAttributeValue(ModAttributes.ARMOR_TOUGHNESS_PERCENT);
 
-        // Only update if the value changed to save performance
-        if (bonusToughness != cranks$lastBonusToughness) {
-            var toughnessAttr = player.getAttributeInstance(EntityAttributes.ARMOR_TOUGHNESS);
-            if (toughnessAttr != null) {
-                Identifier modifierId = Identifier.of(CranksDungeons.MOD_ID, "bonus_armor_toughness");
+        var toughnessAttr = player.getAttributeInstance(EntityAttributes.ARMOR_TOUGHNESS);
+        if (toughnessAttr == null) return;
 
-                toughnessAttr.removeModifier(modifierId);
+        Identifier flatModifierId = Identifier.of(CranksDungeons.MOD_ID, "bonus_armor_toughness");
+        Identifier percentModifierId = Identifier.of(CranksDungeons.MOD_ID, "armor_toughness_passive_percent");
 
-                if (bonusToughness > 0) {
-                    EntityAttributeModifier modifier = new EntityAttributeModifier(
-                            modifierId,
-                            bonusToughness,
-                            EntityAttributeModifier.Operation.ADD_VALUE
-                    );
-                    toughnessAttr.addTemporaryModifier(modifier);
-                }
+        // Apply Flat Bonus
+        if (toughnessFlatBonus != cranks$lastBonusToughness) {
+            toughnessAttr.removeModifier(flatModifierId);
+            if (toughnessFlatBonus > 0) {
+                toughnessAttr.addTemporaryModifier(new EntityAttributeModifier(
+                        flatModifierId,
+                        toughnessFlatBonus,
+                        EntityAttributeModifier.Operation.ADD_VALUE
+                ));
             }
+            cranks$lastBonusToughness = toughnessFlatBonus;
+        }
 
-            cranks$lastBonusToughness = bonusToughness;
+        // Apply Percentage Bonus
+        double currentTotal = toughnessAttr.getValue();
+        double currentPercentModifier = 0;
+        var mod = toughnessAttr.getModifier(percentModifierId);
+        if (mod != null) currentPercentModifier = mod.value();
+
+        double totalWithoutThis = currentTotal - currentPercentModifier;
+        double newPercentBonus = totalWithoutThis * toughnessPercent;
+
+        if (Math.abs(newPercentBonus - cranks$lastToughnessPercentBonus) > 0.01) {
+            toughnessAttr.removeModifier(percentModifierId);
+            if (newPercentBonus > 0) {
+                toughnessAttr.addTemporaryModifier(new EntityAttributeModifier(
+                        percentModifierId,
+                        newPercentBonus,
+                        EntityAttributeModifier.Operation.ADD_VALUE
+                ));
+            }
+            cranks$lastToughnessPercentBonus = newPercentBonus;
         }
     }
 }

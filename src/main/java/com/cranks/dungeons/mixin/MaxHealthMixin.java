@@ -18,6 +18,8 @@ public abstract class MaxHealthMixin {
 
     @Unique
     private double cranks$lastHealthBonus = Double.NaN;
+    @Unique
+    private double cranks$lastHealthPercentBonus = Double.NaN;
 
     @Inject(method = "tick", at = @At("HEAD"))
     private void applyMaxHealthBonus(CallbackInfo ci) {
@@ -25,27 +27,47 @@ public abstract class MaxHealthMixin {
 
         if (!(player instanceof ServerPlayerEntity)) return;
 
-        double healthBonus = player.getAttributeValue(ModAttributes.MAX_HEALTH_BONUS);
+        double healthFlatBonus = player.getAttributeValue(ModAttributes.MAX_HEALTH_BONUS);
+        double healthPercent = player.getAttributeValue(ModAttributes.MAX_HEALTH_PERCENT);
 
-        // Only update if the value changed to save performance
-        if (healthBonus != cranks$lastHealthBonus) {
-            var maxHealthAttr = player.getAttributeInstance(EntityAttributes.MAX_HEALTH);
-            if (maxHealthAttr != null) {
-                Identifier modifierId = Identifier.of(CranksDungeons.MOD_ID, "max_health_bonus");
+        var maxHealthAttr = player.getAttributeInstance(EntityAttributes.MAX_HEALTH);
+        if (maxHealthAttr == null) return;
 
-                maxHealthAttr.removeModifier(modifierId);
+        Identifier flatModifierId = Identifier.of(CranksDungeons.MOD_ID, "max_health_bonus");
+        Identifier percentModifierId = Identifier.of(CranksDungeons.MOD_ID, "max_health_passive_percent");
 
-                if (healthBonus > 0) {
-                    EntityAttributeModifier modifier = new EntityAttributeModifier(
-                            modifierId,
-                            healthBonus,
-                            EntityAttributeModifier.Operation.ADD_VALUE
-                    );
-                    maxHealthAttr.addTemporaryModifier(modifier);
-                }
+        // Apply Flat Bonus
+        if (healthFlatBonus != cranks$lastHealthBonus) {
+            maxHealthAttr.removeModifier(flatModifierId);
+            if (healthFlatBonus > 0) {
+                maxHealthAttr.addTemporaryModifier(new EntityAttributeModifier(
+                        flatModifierId,
+                        healthFlatBonus,
+                        EntityAttributeModifier.Operation.ADD_VALUE
+                ));
             }
+            cranks$lastHealthBonus = healthFlatBonus;
+        }
 
-            cranks$lastHealthBonus = healthBonus;
+        // Apply Percentage Bonus (calculated as flat value of current total minus previous bonus)
+        double currentTotal = maxHealthAttr.getValue();
+        double currentPercentModifier = 0;
+        var mod = maxHealthAttr.getModifier(percentModifierId);
+        if (mod != null) currentPercentModifier = mod.value();
+
+        double totalWithoutThis = currentTotal - currentPercentModifier;
+        double newPercentBonus = totalWithoutThis * healthPercent;
+
+        if (Math.abs(newPercentBonus - cranks$lastHealthPercentBonus) > 0.01) {
+            maxHealthAttr.removeModifier(percentModifierId);
+            if (newPercentBonus > 0) {
+                maxHealthAttr.addTemporaryModifier(new EntityAttributeModifier(
+                        percentModifierId,
+                        newPercentBonus,
+                        EntityAttributeModifier.Operation.ADD_VALUE
+                ));
+            }
+            cranks$lastHealthPercentBonus = newPercentBonus;
         }
     }
 }

@@ -130,6 +130,11 @@ public abstract class ElementalDamageMixin {
                 afflictedBonus = attacker.getAttributeValue(ModAttributes.DAMAGE_AGAINST_AFFLICTED_PERCENT);
             }
 
+            double selfAfflictedBonus = 0;
+            if (AilmentManager.isAfflicted(attacker)) {
+                selfAfflictedBonus = attacker.getAttributeValue(ModAttributes.DAMAGE_WHILE_AFFLICTED_PERCENT);
+            }
+
             double elementalBonus = attacker.getAttributeValue(ModAttributes.ELEMENTAL_DAMAGE_PERCENT);
 
             double typeBonus = 0;
@@ -157,7 +162,7 @@ public abstract class ElementalDamageMixin {
                     weapon, "fire_damage_percent", source);
 
             double fireDamage = fireBaseDamage
-                    * (1.0 + fireTotalPercent + weaponSpecificPercent + afflictedBonus + elementalBonus + typeBonus + wieldingBonus)
+                    * (1.0 + fireTotalPercent + weaponSpecificPercent + afflictedBonus + selfAfflictedBonus + elementalBonus + typeBonus + wieldingBonus)
                     * critMultiplier;
 
             // === COLD DAMAGE ===
@@ -169,7 +174,7 @@ public abstract class ElementalDamageMixin {
                     weapon, "cold_damage_percent", source);
 
             double coldDamage = coldBaseDamage
-                    * (1.0 + coldTotalPercent + weaponSpecificPercent + afflictedBonus + elementalBonus + typeBonus + wieldingBonus)
+                    * (1.0 + coldTotalPercent + weaponSpecificPercent + afflictedBonus + selfAfflictedBonus + elementalBonus + typeBonus + wieldingBonus)
                     * critMultiplier;
 
             // === LIGHTNING DAMAGE ===
@@ -181,7 +186,7 @@ public abstract class ElementalDamageMixin {
                     ModAttributes.LIGHTNING_DAMAGE_PERCENT, weapon, "lightning_damage_percent", source);
 
             double lightningDamage = lightningBaseDamage * (1.0 + lightningTotalPercent + weaponSpecificPercent
-                    + afflictedBonus + elementalBonus + typeBonus + wieldingBonus) * critMultiplier;
+                    + afflictedBonus + selfAfflictedBonus + elementalBonus + typeBonus + wieldingBonus) * critMultiplier;
 
             // === VOID DAMAGE ===
             double voidBaseDamage = CombatUtility.getAttributeValue(attacker, ModAttributes.VOID_DAMAGE, weapon,
@@ -192,7 +197,7 @@ public abstract class ElementalDamageMixin {
                     weapon, "void_damage_percent", source);
 
             double voidDamage = voidBaseDamage
-                    * (1.0 + voidTotalPercent + weaponSpecificPercent + afflictedBonus + elementalBonus + typeBonus + wieldingBonus)
+                    * (1.0 + voidTotalPercent + weaponSpecificPercent + afflictedBonus + selfAfflictedBonus + elementalBonus + typeBonus + wieldingBonus)
                     * critMultiplier;
 
             // === PROPORTIONAL EXTRA DAMAGE (RUNES) ===
@@ -201,7 +206,7 @@ public abstract class ElementalDamageMixin {
 
             double extraPhysicalPercent = CombatUtility.getAttributeValue(attacker,
                     ModAttributes.PHYSICAL_EXTRA_PERCENT, weapon, "attack_extra_damage", source);
-            double finalPhysicalExtraDamage = totalBasicDamage * extraPhysicalPercent;
+            double finalPhysicalExtraDamage = totalBasicDamage * extraPhysicalPercent + unreducedPhysicalDamage * selfAfflictedBonus;
 
             double extraFirePercent = CombatUtility.getAttributeValue(attacker, ModAttributes.FIRE_EXTRA_PERCENT,
                     weapon, "fire_extra_damage", source);
@@ -218,6 +223,19 @@ public abstract class ElementalDamageMixin {
             double extraVoidPercent = CombatUtility.getAttributeValue(attacker, ModAttributes.VOID_EXTRA_PERCENT,
                     weapon, "void_extra_damage", source);
             voidDamage += totalBasicDamage * extraVoidPercent;
+            
+            // Gain % of Physical as Extra Element
+            double physAsFire = attacker.getAttributeValue(ModAttributes.PHYSICAL_AS_EXTRA_FIRE_PERCENT);
+            fireDamage += unreducedPhysicalDamage * physAsFire;
+            
+            double physAsCold = attacker.getAttributeValue(ModAttributes.PHYSICAL_AS_EXTRA_COLD_PERCENT);
+            coldDamage += unreducedPhysicalDamage * physAsCold;
+            
+            double physAsLightning = attacker.getAttributeValue(ModAttributes.PHYSICAL_AS_EXTRA_LIGHTNING_PERCENT);
+            lightningDamage += unreducedPhysicalDamage * physAsLightning;
+            
+            double physAsVoid = attacker.getAttributeValue(ModAttributes.PHYSICAL_AS_EXTRA_VOID_PERCENT);
+            voidDamage += unreducedPhysicalDamage * physAsVoid;
 
             // Apply global PvP reduction to final bonus values
             fireDamage *= pvpMultiplier;
@@ -239,7 +257,7 @@ public abstract class ElementalDamageMixin {
 
             if (finalPhysicalExtraDamage > 0) {
                 float reducedExtraPhysical = DamageConversionHelper.calculatePhysicalReduction(target,
-                        (float) finalPhysicalExtraDamage);
+                        (float) finalPhysicalExtraDamage, attacker);
                 applyElementalDamage(target, world, reducedExtraPhysical, DamageElement.PHYSICAL);
                 totalElementalDamage += reducedExtraPhysical;
                 physicalDamage += reducedExtraPhysical;
@@ -249,7 +267,10 @@ public abstract class ElementalDamageMixin {
 
             if (fireDamage > 0) {
                 double resistance = target.getAttributeValue(ModAttributes.FIRE_RESISTANCE);
-                double finalDamage = fireDamage * (1.0 - resistance);
+                double pen = attacker.getAttributeValue(ModAttributes.ELEMENTAL_PENETRATION_PERCENT)
+                           + attacker.getAttributeValue(ModAttributes.FIRE_PENETRATION_PERCENT);
+                double finalRes = Math.max(0, resistance * (1.0 - pen));
+                double finalDamage = fireDamage * (1.0 - finalRes);
                 if (finalDamage > 0) {
                     // Use proper damage method with fire damage source to ensure death handling
                     applyElementalDamage(target, world, finalDamage, DamageElement.FIRE);
@@ -262,7 +283,10 @@ public abstract class ElementalDamageMixin {
 
             if (!targetDiedFromElemental && coldDamage > 0) {
                 double resistance = target.getAttributeValue(ModAttributes.COLD_RESISTANCE);
-                double finalDamage = coldDamage * (1.0 - resistance);
+                double pen = attacker.getAttributeValue(ModAttributes.ELEMENTAL_PENETRATION_PERCENT)
+                           + attacker.getAttributeValue(ModAttributes.COLD_PENETRATION_PERCENT);
+                double finalRes = Math.max(0, resistance * (1.0 - pen));
+                double finalDamage = coldDamage * (1.0 - finalRes);
                 if (finalDamage > 0) {
                     applyElementalDamage(target, world, finalDamage, DamageElement.COLD);
                     totalElementalDamage += finalDamage;
@@ -274,7 +298,10 @@ public abstract class ElementalDamageMixin {
 
             if (!targetDiedFromElemental && lightningDamage > 0) {
                 double resistance = target.getAttributeValue(ModAttributes.LIGHTNING_RESISTANCE);
-                double finalDamage = lightningDamage * (1.0 - resistance);
+                double pen = attacker.getAttributeValue(ModAttributes.ELEMENTAL_PENETRATION_PERCENT)
+                           + attacker.getAttributeValue(ModAttributes.LIGHTNING_PENETRATION_PERCENT);
+                double finalRes = Math.max(0, resistance * (1.0 - pen));
+                double finalDamage = lightningDamage * (1.0 - finalRes);
 
                 // Trigger shock chain BEFORE applying damage (ensures it works for killing
                 // hits)
@@ -307,7 +334,10 @@ public abstract class ElementalDamageMixin {
 
             if (!targetDiedFromElemental && voidDamage > 0) {
                 double resistance = target.getAttributeValue(ModAttributes.VOID_RESISTANCE);
-                double finalDamage = voidDamage * (1.0 - resistance);
+                double pen = attacker.getAttributeValue(ModAttributes.ELEMENTAL_PENETRATION_PERCENT)
+                           + attacker.getAttributeValue(ModAttributes.VOID_PENETRATION_PERCENT);
+                double finalRes = Math.max(0, resistance * (1.0 - pen));
+                double finalDamage = voidDamage * (1.0 - finalRes);
                 if (finalDamage > 0) {
                     applyElementalDamage(target, world, finalDamage, DamageElement.VOID);
                     totalElementalDamage += finalDamage;

@@ -3,6 +3,7 @@ package com.cranks.dungeons.mixin;
 import com.cranks.dungeons.equipment.EquipmentStatApplier;
 import com.cranks.dungeons.registry.ModAttributes;
 import com.cranks.dungeons.registry.ModSounds;
+import com.cranks.dungeons.ailment.AilmentManager;
 import com.cranks.dungeons.util.CriticalHitState;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
@@ -50,6 +51,10 @@ public abstract class CriticalStrikeMixin {
             critChance += getEnchantmentValue(helmet, "minecraft:crit_chance", 0.075);
             critChance += getEnchantmentValue(leggings, "minecraft:crit_chance", 0.075);
             critChance += getEnchantmentValue(boots, "minecraft:crit_chance", 0.075);
+
+            if (AilmentManager.isAfflicted(target)) {
+                critChance += attacker.getAttributeValue(ModAttributes.CRIT_CHANCE_AGAINST_AFFLICTED);
+            }
 
             float finalAmount = amount;
             boolean isCrit = false;

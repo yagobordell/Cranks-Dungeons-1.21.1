@@ -58,8 +58,23 @@ This file contains a comprehensive list of all attributes available for use in t
 | `cranks-dungeons:physical_extra_percent`| Percentage | Gain % of damage as extra Physical damage. |
 | `cranks-dungeons:fire_extra_percent` | Percentage | Gain % of damage as extra Fire damage. |
 | `cranks-dungeons:cold_extra_percent` | Percentage | Gain % of damage as extra Cold damage. |
-| `cranks-dungeons:lightning_extra_percent`| Percentage | Gain % of damage as extra Lightning damage. |
+| `cranks-dungeons:lightning_extra_percent` | Percentage | Gain % of damage as extra Lightning damage. |
 | `cranks-dungeons:void_extra_percent` | Percentage | Gain % of damage as extra Void damage. |
+| `cranks-dungeons:physical_as_extra_fire_percent` | Percentage | Gain % of Physical damage as extra Fire damage. |
+| `cranks-dungeons:physical_as_extra_cold_percent` | Percentage | Gain % of Physical damage as extra Cold damage. |
+| `cranks-dungeons:physical_as_extra_lightning_percent` | Percentage | Gain % of Physical damage as extra Lightning damage. |
+| `cranks-dungeons:physical_as_extra_void_percent` | Percentage | Gain % of Physical damage as extra Void damage. |
+
+### 🎯 Penetration Modifiers
+
+| Identifier | Type | Description |
+| :--- | :--- | :--- |
+| `cranks-dungeons:armor_penetration_percent` | Percentage | Penetrates a percentage of enemy armor. |
+| `cranks-dungeons:fire_penetration_percent` | Percentage | Penetrates a percentage of enemy Fire Resistance. |
+| `cranks-dungeons:cold_penetration_percent` | Percentage | Penetrates a percentage of enemy Cold Resistance. |
+| `cranks-dungeons:lightning_penetration_percent` | Percentage | Penetrates a percentage of enemy Lightning Resistance. |
+| `cranks-dungeons:void_penetration_percent` | Percentage | Penetrates a percentage of enemy Void Resistance. |
+| `cranks-dungeons:elemental_penetration_percent` | Percentage | Penetrates a percentage of ALL enemy Elemental Resistances. |
 
 ---
 
@@ -68,6 +83,8 @@ This file contains a comprehensive list of all attributes available for use in t
 | Identifier | Type | Description |
 | :--- | :--- | :--- |
 | `cranks-dungeons:damage_against_afflicted_percent` | Percentage | Increased damage against enemies with an ailment. |
+| `cranks-dungeons:damage_while_afflicted_percent` | Percentage | Increased damage while YOU are afflicted with an ailment. |
+| `cranks-dungeons:crit_chance_against_afflicted` | Percentage | Increased Critical Strike chance against enemies with an ailment. |
 | `cranks-dungeons:chance_to_burn` | Percentage | Chance to ignite enemies. |
 | `cranks-dungeons:burn_damage_percent` | Percentage | Increased Burn damage. |
 | `cranks-dungeons:burn_duration` | Percentage | Increased Burn duration. |
@@ -80,7 +97,7 @@ This file contains a comprehensive list of all attributes available for use in t
 | `cranks-dungeons:chance_to_bleed` | Percentage | Chance to cause bleeding. |
 | `cranks-dungeons:bleed_duration` | Percentage | Increased Bleed duration. |
 | `cranks-dungeons:chance_to_shock` | Percentage | Chance to shock enemies. |
-| `cranks-dungeons:shock_duration` | Flat | Duration of shock debuff. |
+| `cranks-dungeons:shock_duration` | Percentage | Duration of shock debuff. |
 
 ---
 
@@ -97,6 +114,11 @@ This file contains a comprehensive list of all attributes available for use in t
 | `cranks-dungeons:knockback_resistance` | Percentage | Reduces knockback taken. |
 | `cranks-dungeons:leggings_armor_percent` | Percentage | Increases armor from leggings by a percentage. |
 | `cranks-dungeons:armor_crit_mitigation` | Percentage | Percentage of armor that reduces critical extra damage. |
+| `cranks-dungeons:max_health_percent` | Percentage | Increased maximum health. |
+| `cranks-dungeons:armor_percent` | Percentage | Increased armor rating. |
+| `cranks-dungeons:armor_toughness_percent` | Percentage | Increased armor toughness rating. |
+| `cranks-dungeons:energy_shield_percent` | Percentage | Increased energy shield capacity. |
+| `cranks-dungeons:evasion_rating_percent` | Percentage | Increased evasion rating. |
 
 ---
 

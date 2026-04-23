@@ -19,9 +19,10 @@ public abstract class BonusArmorMixin {
 
     @Unique
     private double cranks$lastBonusArmor = Double.NaN;
-
     @Unique
     private double cranks$lastLeggingsBonus = Double.NaN;
+    @Unique
+    private double cranks$lastGlobalArmorPercentBonus = Double.NaN;
 
     @Inject(method = "tick", at = @At("HEAD"))
     private void applyBonusArmor(CallbackInfo ci) {
@@ -29,6 +30,7 @@ public abstract class BonusArmorMixin {
         if (!(player instanceof ServerPlayerEntity serverPlayer)) return;
 
         double bonusArmor = player.getAttributeValue(ModAttributes.BONUS_ARMOR);
+        double armorPercent = player.getAttributeValue(ModAttributes.ARMOR_PERCENT);
         
         // Calculate Leggings Armor Multiplier
         double leggingsMultiplier = player.getAttributeValue(ModAttributes.LEGGINGS_ARMOR_PERCENT);
@@ -49,38 +51,58 @@ public abstract class BonusArmorMixin {
             }
         }
 
+        var armorAttr = player.getAttributeInstance(EntityAttributes.ARMOR);
+        if (armorAttr == null) return;
+
+        Identifier flatModifierId = Identifier.of(CranksDungeons.MOD_ID, "bonus_armor");
+        Identifier leggingsModifierId = Identifier.of(CranksDungeons.MOD_ID, "leggings_armor_bonus");
+        Identifier percentModifierId = Identifier.of(CranksDungeons.MOD_ID, "armor_passive_percent");
+
         // Apply Flat Bonus Armor
         if (bonusArmor != cranks$lastBonusArmor) {
-            var armorAttr = player.getAttributeInstance(EntityAttributes.ARMOR);
-            if (armorAttr != null) {
-                Identifier modifierId = Identifier.of(CranksDungeons.MOD_ID, "bonus_armor");
-                armorAttr.removeModifier(modifierId);
-                if (bonusArmor > 0) {
-                    armorAttr.addTemporaryModifier(new EntityAttributeModifier(
-                            modifierId,
-                            bonusArmor,
-                            EntityAttributeModifier.Operation.ADD_VALUE
-                    ));
-                }
+            armorAttr.removeModifier(flatModifierId);
+            if (bonusArmor > 0) {
+                armorAttr.addTemporaryModifier(new EntityAttributeModifier(
+                        flatModifierId,
+                        bonusArmor,
+                        EntityAttributeModifier.Operation.ADD_VALUE
+                ));
             }
             cranks$lastBonusArmor = bonusArmor;
         }
 
         // Apply Leggings Percentage Bonus
         if (leggingsBonus != cranks$lastLeggingsBonus) {
-            var armorAttr = player.getAttributeInstance(EntityAttributes.ARMOR);
-            if (armorAttr != null) {
-                Identifier modifierId = Identifier.of(CranksDungeons.MOD_ID, "leggings_armor_bonus");
-                armorAttr.removeModifier(modifierId);
-                if (leggingsBonus > 0) {
-                    armorAttr.addTemporaryModifier(new EntityAttributeModifier(
-                            modifierId,
-                            leggingsBonus,
-                            EntityAttributeModifier.Operation.ADD_VALUE
-                    ));
-                }
+            armorAttr.removeModifier(leggingsModifierId);
+            if (leggingsBonus > 0) {
+                armorAttr.addTemporaryModifier(new EntityAttributeModifier(
+                        leggingsModifierId,
+                        leggingsBonus,
+                        EntityAttributeModifier.Operation.ADD_VALUE
+                ));
             }
             cranks$lastLeggingsBonus = leggingsBonus;
+        }
+
+        // Apply Global Percentage Bonus
+        double currentTotal = armorAttr.getValue();
+        double currentPercentModifier = 0;
+        var mod = armorAttr.getModifier(percentModifierId);
+        if (mod != null) currentPercentModifier = mod.value();
+
+        double totalWithoutThis = currentTotal - currentPercentModifier;
+        double newPercentBonus = totalWithoutThis * armorPercent;
+
+        if (Math.abs(newPercentBonus - cranks$lastGlobalArmorPercentBonus) > 0.01) {
+            armorAttr.removeModifier(percentModifierId);
+            if (newPercentBonus > 0) {
+                armorAttr.addTemporaryModifier(new EntityAttributeModifier(
+                        percentModifierId,
+                        newPercentBonus,
+                        EntityAttributeModifier.Operation.ADD_VALUE
+                ));
+            }
+            cranks$lastGlobalArmorPercentBonus = newPercentBonus;
         }
     }
 }
