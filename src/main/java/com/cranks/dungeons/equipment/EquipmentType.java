@@ -29,7 +29,7 @@ public enum EquipmentType {
     public static Optional<EquipmentType> getTypeForItem(ItemStack stack) {
         if (stack.isEmpty()) return Optional.empty();
         Item item = stack.getItem();
-        String itemName = item.toString().toLowerCase();
+        String itemName = net.minecraft.registry.Registries.ITEM.getId(item).toString().toLowerCase();
 
         // 1. Check for specific Classes/Items FIRST (Most Accurate)
         if (stack.isOf(Items.ELYTRA)) return Optional.of(ELYTRA);
@@ -55,12 +55,14 @@ public enum EquipmentType {
         // This prevents "waxed_copper" matching "axe"
 
         // Swords
-        if (stack.isIn(ItemTags.SWORDS) || itemName.endsWith("_sword") || itemName.equals("sword")) {
+        if (stack.isIn(ItemTags.SWORDS) || itemName.contains("sword") || 
+            itemName.contains("dagger") || itemName.contains("longsword")) {
             return Optional.of(SWORD);
         }
 
         // Spears (Custom items usually follow the "_spear" naming convention)
-        if (itemName.endsWith("_spear") || itemName.equals("spear")) {
+        if (itemName.contains("spear") || itemName.contains("pike") || 
+            itemName.contains("halberd") || itemName.contains("glaive")) {
             return Optional.of(SPEAR);
         }
 

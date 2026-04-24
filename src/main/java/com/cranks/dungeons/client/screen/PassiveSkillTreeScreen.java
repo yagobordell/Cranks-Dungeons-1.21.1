@@ -121,6 +121,12 @@ public class PassiveSkillTreeScreen extends Screen {
     private PassiveNode draggedNode = null;
     private PassiveNode connectionSource = null;
     private boolean isConnecting = false;
+    
+    // Multi-Selection fields
+    private final Set<String> selectedNodeIds = new HashSet<>();
+    private double selectionStartX, selectionStartY;
+    private double selectionCurrentX, selectionCurrentY;
+    private boolean isSelectingBox = false;
 
     public PassiveSkillTreeScreen(Screen parent) {
         super(Text.literal("Passive Skill Tree"));
@@ -558,6 +564,18 @@ public class PassiveSkillTreeScreen extends Screen {
                 }
 
                 drawNodeShape(context, nx, ny, node.shape(), state, actualNodeSize);
+                
+                // Draw selection highlight (Cyan)
+                if (selectedNodeIds.contains(node.id())) {
+                    Identifier selectionSprite = switch (node.shape().toLowerCase()) {
+                        case "circle" -> NODE_CIRCLE_SELECTION;
+                        case "diamond" -> NODE_DIAMOND_SELECTION;
+                        case "hexagon" -> NODE_HEXAGON_SELECTION;
+                        default -> NODE_SQUARE_SELECTION;
+                    };
+                    double haloSize = actualNodeSize * 1.3;
+                    drawPrecisionTexture(context, selectionSprite, nx, ny, haloSize, 0xFF55FFFF);
+                }
 
                 // Draw Hover Radiant Glow (Behind icon)
                 if (isHovered) {
@@ -602,6 +620,24 @@ public class PassiveSkillTreeScreen extends Screen {
 
         String pointsText = "Unspent Points: " + draftPoints;
         context.drawCenteredTextWithShadow(this.textRenderer, pointsText, this.width / 2, this.height - 48, 0xFFFFAA00);
+
+        if (isSelectingBox) {
+            int x1 = (int) selectionStartX;
+            int y1 = (int) selectionStartY;
+            int x2 = (int) selectionCurrentX;
+            int y2 = (int) selectionCurrentY;
+
+            int minX = Math.min(x1, x2);
+            int maxX = Math.max(x1, x2);
+            int minY = Math.min(y1, y2);
+            int maxY = Math.max(y1, y2);
+
+            context.fill(minX, minY, maxX, maxY, 0x4055FFFF); // Light blue fill
+            context.fill(minX, minY, maxX, minY + 1, 0xFF55FFFF); // Top border
+            context.fill(minX, maxY - 1, maxX, maxY, 0xFF55FFFF); // Bottom border
+            context.fill(minX, minY, minX + 1, maxY, 0xFF55FFFF); // Left border
+            context.fill(maxX - 1, minY, maxX, maxY, 0xFF55FFFF); // Right border
+        }
 
         if (showStatsPanel) {
             renderStatsPanel(context);
@@ -888,13 +924,34 @@ public class PassiveSkillTreeScreen extends Screen {
 
     @Override
     public boolean mouseDragged(Click click, double deltaX, double deltaY) {
+        if (super.mouseDragged(click, deltaX, deltaY)) return true;
         if (!choosingClass) {
-            if (editMode && draggedNode != null) {
-                double currentGridScale = BASE_GRID_SCALE * zoom;
-                draggedNode.setGridX(draggedNode.gridX() + (deltaX / currentGridScale));
-                draggedNode.setGridY(draggedNode.gridY() + (deltaY / currentGridScale));
-                this.cacheDirty = true;
-                return true;
+            if (editMode) {
+                if (isSelectingBox) {
+                    selectionCurrentX = click.x();
+                    selectionCurrentY = click.y();
+                    return true;
+                }
+                if (draggedNode != null) {
+                    double currentGridScale = BASE_GRID_SCALE * zoom;
+                    double moveX = deltaX / currentGridScale;
+                    double moveY = deltaY / currentGridScale;
+
+                    if (selectedNodeIds.contains(draggedNode.id())) {
+                        for (String id : selectedNodeIds) {
+                            PassiveNode node = PassiveNodeRegistry.getNode(id);
+                            if (node != null) {
+                                node.setGridX(node.gridX() + moveX);
+                                node.setGridY(node.gridY() + moveY);
+                            }
+                        }
+                    } else {
+                        draggedNode.setGridX(draggedNode.gridX() + moveX);
+                        draggedNode.setGridY(draggedNode.gridY() + moveY);
+                    }
+                    this.cacheDirty = true;
+                    return true;
+                }
             }
             panX += deltaX;
             panY += deltaY;
@@ -905,7 +962,26 @@ public class PassiveSkillTreeScreen extends Screen {
 
     @Override
     public boolean mouseReleased(Click click) {
+        if (super.mouseReleased(click)) return true;
         if (click.button() == 0) {
+            if (isSelectingBox) {
+                double minX = Math.min(selectionStartX, selectionCurrentX);
+                double maxX = Math.max(selectionStartX, selectionCurrentX);
+                double minY = Math.min(selectionStartY, selectionCurrentY);
+                double maxY = Math.max(selectionStartY, selectionCurrentY);
+
+                double currentGridScale = BASE_GRID_SCALE * zoom;
+                Map<String, PassiveNode> nodesMap = PassiveNodeRegistry.getNodes();
+                for (PassiveNode node : nodesMap.values()) {
+                    double nx = panX + node.gridX() * currentGridScale;
+                    double ny = panY + node.gridY() * currentGridScale;
+
+                    if (nx >= minX && nx <= maxX && ny >= minY && ny <= maxY) {
+                        selectedNodeIds.add(node.id());
+                    }
+                }
+                isSelectingBox = false;
+            }
             draggedNode = null;
         }
         return super.mouseReleased(click);
@@ -918,10 +994,54 @@ public class PassiveSkillTreeScreen extends Screen {
                 draggedNode = null;
                 isConnecting = false;
                 connectionSource = null;
+                selectedNodeIds.clear();
             }
             this.init();
             return true;
         }
+        
+        if (editMode && !selectedNodeIds.isEmpty()) {
+            if (input.key() == GLFW.GLFW_KEY_LEFT_BRACKET || input.key() == GLFW.GLFW_KEY_RIGHT_BRACKET) {
+                double angle = Math.toRadians(input.key() == GLFW.GLFW_KEY_RIGHT_BRACKET ? 15 : -15);
+                
+                // Calculate center
+                double avgX = 0, avgY = 0;
+                int count = 0;
+                for (String id : selectedNodeIds) {
+                    PassiveNode node = PassiveNodeRegistry.getNode(id);
+                    if (node != null) {
+                        avgX += node.gridX();
+                        avgY += node.gridY();
+                        count++;
+                    }
+                }
+                
+                if (count > 0) {
+                    avgX /= count;
+                    avgY /= count;
+                    
+                    for (String id : selectedNodeIds) {
+                        PassiveNode node = PassiveNodeRegistry.getNode(id);
+                        if (node != null) {
+                            double relX = node.gridX() - avgX;
+                            double relY = node.gridY() - avgY;
+                            
+                            double cos = Math.cos(angle);
+                            double sin = Math.sin(angle);
+                            
+                            double newX = avgX + (relX * cos - relY * sin);
+                            double newY = avgY + (relX * sin + relY * cos);
+                            
+                            node.setGridX(newX);
+                            node.setGridY(newY);
+                        }
+                    }
+                    this.cacheDirty = true;
+                    return true;
+                }
+            }
+        }
+        
         return super.keyPressed(input);
     }
 
@@ -933,6 +1053,8 @@ public class PassiveSkillTreeScreen extends Screen {
 
     @Override
     public boolean mouseClicked(Click click, boolean bl) {
+        if (super.mouseClicked(click, bl)) return true;
+
         double mouseX = click.x();
         double mouseY = click.y();
         int button = click.button();
@@ -972,9 +1094,37 @@ public class PassiveSkillTreeScreen extends Screen {
                         this.cacheDirty = true;
                         player.playSound(SoundEvents.BLOCK_ANVIL_PLACE, 0.4f, 1.2f);
                     } else {
-                        draggedNode = hitNode;
+                        boolean shiftHeld = InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow(), GLFW.GLFW_KEY_LEFT_SHIFT) ||
+                                            InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow(), GLFW.GLFW_KEY_RIGHT_SHIFT);
+                        if (shiftHeld) {
+                            // Toggle selection
+                            if (selectedNodeIds.contains(hitNode.id())) {
+                                selectedNodeIds.remove(hitNode.id());
+                            } else {
+                                selectedNodeIds.add(hitNode.id());
+                            }
+                        } else {
+                            // Normal click
+                            if (!selectedNodeIds.contains(hitNode.id())) {
+                                selectedNodeIds.clear();
+                                selectedNodeIds.add(hitNode.id());
+                            }
+                            draggedNode = hitNode;
+                        }
                         return true;
                     }
+                } else {
+                    // Clicking empty space
+                    if (!(InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow(), GLFW.GLFW_KEY_LEFT_SHIFT) ||
+                          InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow(), GLFW.GLFW_KEY_RIGHT_SHIFT))) {
+                        selectedNodeIds.clear();
+                    }
+                    isSelectingBox = true;
+                    selectionStartX = mouseX;
+                    selectionStartY = mouseY;
+                    selectionCurrentX = mouseX;
+                    selectionCurrentY = mouseY;
+                    return true;
                 }
             } else if (button == 1) { // Right Click: Open Editor
                 if (hitNode != null) {

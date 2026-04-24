@@ -765,8 +765,8 @@ public abstract class InventoryScreenStatsMixin {
                         return "Chance to dodge attacks";
                 double rating = player.getAttributeValue(ModAttributes.EVASION_RATING);
                 double armor = player.getAttributeValue(EntityAttributes.ARMOR);
-                // Adjusted armor penalty (0.25x) to match new higher armor scale
-                return (int) (rating / (rating + 400.0 + armor * 0.25) * 100) + "% chance to dodge";
+                // Adjusted armor penalty (4.0x) to match new balancing
+                return (int) (rating / (rating + 400.0 + armor * 4.0) * 100) + "% chance to dodge";
         }
 
         @Unique
@@ -776,12 +776,13 @@ public abstract class InventoryScreenStatsMixin {
                         return "Reduces incoming physical damage";
                 double armor = player.getAttributeValue(EntityAttributes.ARMOR);
                 double toughness = player.getAttributeValue(EntityAttributes.ARMOR_TOUGHNESS);
+                
+                // Show reduction against a standard 30 damage hit (modded baseline)
+                // Formula: Armor / (Armor + (12 * Damage) / (1 + Toughness / 200))
+                double x = (12.0 * 30.0) / (1.0 + (toughness / 200.0));
+                double pdr = armor / (armor + x);
 
-                // Show reduction against a standard 10 damage hit
-                double coeff = 80.0 / (1.0 + (toughness / 20.0));
-                double pdr = armor / (armor + coeff * 10.0);
-
-                return (int) (pdr * 100) + "% PDR (Estimated vs 10 Physical Damage)";
+                return (int) (pdr * 100) + "% PDR (Estimated vs 30 Physical Damage)";
         }
 
         @Unique

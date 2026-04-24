@@ -20,22 +20,40 @@ public abstract class EvasionMixin {
     @Unique
     private float evasionEntropy = 0.5f; // Initial entropy state
 
+    @Inject(method = "tick", at = @At("HEAD"))
+    private void resetEvasionEntropy(org.spongepowered.asm.mixin.injection.callback.CallbackInfo ci) {
+        LivingEntity entity = (LivingEntity) (Object) this;
+        if (entity instanceof com.cranks.dungeons.EnergyShieldProvider provider) {
+            long currentTime = entity.getEntityWorld().getTime();
+            long timeSinceLastHit = currentTime - provider.cranksdungeons$getLastDamageTime();
+
+            // If it's been 6 seconds (120 ticks) since last hit, reset entropy to 0.5
+            // This ensures a fresh fight starts with a clean roll
+            if (timeSinceLastHit > 120L && evasionEntropy != 0.5f) {
+                evasionEntropy = 0.5f;
+            }
+        }
+    }
+
     @Inject(method = "damage", at = @At("HEAD"), cancellable = true)
-    private void handleEvasion(ServerWorld world, DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
+    private void handleEvasion(ServerWorld world, DamageSource source, float amount,
+            CallbackInfoReturnable<Boolean> cir) {
         LivingEntity entity = (LivingEntity) (Object) this;
 
         // Only players (or specific mobs) should evade; exclude void/fall damage
-        if (!(entity instanceof PlayerEntity player) || source.isIn(net.minecraft.registry.tag.DamageTypeTags.BYPASSES_ARMOR)) {
+        if (!(entity instanceof PlayerEntity player)
+                || source.isIn(net.minecraft.registry.tag.DamageTypeTags.BYPASSES_ARMOR)) {
             return;
         }
 
         double rating = player.getAttributeValue(ModAttributes.EVASION_RATING);
-        if (rating <= 0) return;
+        if (rating <= 0)
+            return;
 
         double armor = player.getAttributeValue(EntityAttributes.ARMOR);
 
         double k = 400.0;
-        double dodgeChance = rating / (rating + k + (armor * 0.25));
+        double dodgeChance = rating / (rating + k + (armor * 4.0));
 
         evasionEntropy += (float) dodgeChance;
 
@@ -53,12 +71,12 @@ public abstract class EvasionMixin {
                     player.getZ(),
                     10,
                     0.5, 0.5, 0.5,
-                    0.1
-            );
+                    0.1);
 
             cir.setReturnValue(false);
         } else {
-            if (evasionEntropy < 0.1f) evasionEntropy += 0.05f;
+            if (evasionEntropy < 0.1f)
+                evasionEntropy += 0.05f;
         }
     }
 }

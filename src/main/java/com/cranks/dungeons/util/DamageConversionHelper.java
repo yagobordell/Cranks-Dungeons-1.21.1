@@ -228,10 +228,10 @@ public class DamageConversionHelper {
         }
 
         if (ar > 0 && amount > 0) {
-            // Stabilized formula: X = (400 + 10 * Damage) / (1 + Toughness / 20)
+            // Exact PoE 2 formula: X = (12 * Damage) / (1 + Toughness / 200)
             // PDR = Armor / (Armor + X)
-            // This is less sensitive to hit size than the pure PoE 2 formula, making damage more consistent.
-            double x = (400.0 + 10.0 * amount) / (1.0 + (toughness / 20.0));
+            // This makes armor significantly more dynamic against different hit sizes.
+            double x = (12.0 * amount) / (1.0 + (toughness / 200.0));
             double pdr = ar / (ar + x);
             return (float) (amount * (1.0 - pdr));
         }

@@ -34,17 +34,19 @@ public class EnergyShieldRegenMixin {
     private static final int SYNC_INTERVAL_TICKS = 5;
 
     @Unique
-    private static final int REGEN_DELAY_TICKS = 80; // 4 seconds at 20 TPS
+    private static final int REGEN_DELAY_TICKS = 48; // 4 seconds at 20 TPS
 
     @Unique
-    private static final float REGEN_PERCENT_PER_TICK = 0.006f; // 0.6% per tick = 12% per second
+    private static final float REGEN_PERCENT_PER_TICK = 0.01f; // 1% per tick = 20% per second
 
     @Inject(method = "tick", at = @At("TAIL"))
     private void regenerateEnergyShield(CallbackInfo ci) {
         PlayerEntity self = (PlayerEntity) (Object) this;
 
-        if (!(self instanceof ServerPlayerEntity serverPlayer)) return;
-        if (self.getEntityWorld().isClient()) return;
+        if (!(self instanceof ServerPlayerEntity serverPlayer))
+            return;
+        if (self.getEntityWorld().isClient())
+            return;
 
         ServerWorld world = (ServerWorld) self.getEntityWorld();
         EnergyShieldProvider provider = (EnergyShieldProvider) self;
@@ -79,8 +81,7 @@ public class EnergyShieldRegenMixin {
                         ModSounds.ENERGY_SHIELD_REGEN,
                         SoundCategory.PLAYERS,
                         1.0f,
-                        1.0f
-                );
+                        1.0f);
                 wasRegenerating = true;
             }
 

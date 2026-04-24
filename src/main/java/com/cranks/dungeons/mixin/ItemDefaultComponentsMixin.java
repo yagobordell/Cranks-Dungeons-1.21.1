@@ -18,93 +18,86 @@ public class ItemDefaultComponentsMixin {
     @Inject(method = "getComponents", at = @At("RETURN"), cancellable = true)
     private void modifyDefaultComponents(CallbackInfoReturnable<net.minecraft.component.ComponentMap> cir) {
         Item item = (Item)(Object)this;
-        String itemName = item.toString().toLowerCase();
+        String itemName = net.minecraft.registry.Registries.ITEM.getId(item).toString().toLowerCase();
 
         if (!shouldModify(itemName)) return;
 
         var originalMap = cir.getReturnValue();
         var attributes = originalMap.get(DataComponentTypes.ATTRIBUTE_MODIFIERS);
 
-        if (attributes == null) return;
+        // If it's not a weapon/armor and has no attributes, return
+        if (attributes == null && !isWeapon(itemName) && !isArmor(itemName)) return;
 
         AttributeModifiersComponent.Builder builder = AttributeModifiersComponent.builder();
-
         boolean modified = false;
 
-        for (var entry : attributes.modifiers()) {
-            if (isArmor(itemName) && entry.attribute().equals(EntityAttributes.ARMOR)) {
-                // Only apply armor multiplier for sets that use traditional armor
-                if (usesTraditionalArmor(itemName)) {
-                    double multiplier = getArmorMultiplier(itemName);
-                    builder.add(
-                            entry.attribute(),
-                            new EntityAttributeModifier(
-                                    entry.modifier().id(),
-                                    entry.modifier().value() * multiplier,
-                                    entry.modifier().operation()
-                            ),
-                            entry.slot()
-                    );
+        if (attributes != null) {
+            for (var entry : attributes.modifiers()) {
+                if (isArmor(itemName) && entry.attribute().equals(EntityAttributes.ARMOR)) {
+                    // Only apply armor multiplier for sets that use traditional armor
+                    if (usesTraditionalArmor(itemName)) {
+                        double multiplier = getArmorMultiplier(itemName);
+                        builder.add(
+                                entry.attribute(),
+                                new EntityAttributeModifier(
+                                        entry.modifier().id(),
+                                        entry.modifier().value() * multiplier,
+                                        entry.modifier().operation()
+                                ),
+                                entry.slot()
+                        );
 
-                    // Add armor toughness for sets that use it
-                    if (usesTraditionalArmorToughness(itemName)) {
-                        double toughness = getToughnessBonus(itemName);
-                        if (toughness > 0) {
-                            builder.add(
-                                    EntityAttributes.ARMOR_TOUGHNESS,
-                                    new EntityAttributeModifier(
-                                            Identifier.of("minecraft", "armor.toughness." + getArmorSlot(itemName)),
-                                            toughness,
-                                            EntityAttributeModifier.Operation.ADD_VALUE
-                                    ),
-                                    entry.slot()
-                            );
+                        // Add armor toughness for sets that use it
+                        if (usesTraditionalArmorToughness(itemName)) {
+                            double toughness = getToughnessBonus(itemName);
+                            if (toughness > 0) {
+                                builder.add(
+                                        EntityAttributes.ARMOR_TOUGHNESS,
+                                        new EntityAttributeModifier(
+                                                Identifier.of("minecraft", "armor.toughness." + getArmorSlot(itemName)),
+                                                toughness,
+                                                EntityAttributeModifier.Operation.ADD_VALUE
+                                        ),
+                                        entry.slot()
+                                );
+                            }
                         }
                     }
-                    else {
-
+                    // Add unique bonuses based on armor type
+                    addArmorTypeBonuses(builder, itemName, entry.slot());
+                    modified = true;
+                } else if (isWeapon(itemName)) {
+                    if (entry.attribute().equals(EntityAttributes.ATTACK_DAMAGE)) {
+                        double bonus = getDamageBonus(itemName);
+                        builder.add(
+                                entry.attribute(),
+                                new EntityAttributeModifier(
+                                        entry.modifier().id(),
+                                        entry.modifier().value() + bonus,
+                                        entry.modifier().operation()
+                                ),
+                                entry.slot()
+                        );
+                        modified = true;
+                    } else if (entry.attribute().equals(EntityAttributes.ATTACK_SPEED)) {
+                        double speedBonus = getWeaponSpeedBonus(itemName);
+                        builder.add(
+                                entry.attribute(),
+                                new EntityAttributeModifier(
+                                        entry.modifier().id(),
+                                        entry.modifier().value() + speedBonus,
+                                        entry.modifier().operation()
+                                ),
+                                entry.slot()
+                        );
+                        modified = true;
+                    } else {
+                        builder.add(entry.attribute(), entry.modifier(), entry.slot());
                     }
                 } else {
-                    // For leather/gold/chainmail: DON'T add the armor attribute at all
-                    // This effectively removes their armor value
-                    // (we skip the builder.add call)
-                }
-
-                // Add unique bonuses based on armor type (this applies to ALL armor types)
-                addArmorTypeBonuses(builder, itemName, entry.slot());
-                modified = true;  // Mark as modified for all armor
-
-            } else if (isWeapon(itemName)) {
-                if (entry.attribute().equals(EntityAttributes.ATTACK_DAMAGE)) {
-                    double bonus = getDamageBonus(itemName);
-                    builder.add(
-                            entry.attribute(),
-                            new EntityAttributeModifier(
-                                    entry.modifier().id(),
-                                    entry.modifier().value() + bonus,
-                                    entry.modifier().operation()
-                            ),
-                            entry.slot()
-                    );
-                    modified = true;
-                } else if (entry.attribute().equals(EntityAttributes.ATTACK_SPEED)) {
-                    double speedBonus = getWeaponSpeedBonus(itemName);
-                    builder.add(
-                            entry.attribute(),
-                            new EntityAttributeModifier(
-                                    entry.modifier().id(),
-                                    entry.modifier().value() + speedBonus,
-                                    entry.modifier().operation()
-                            ),
-                            entry.slot()
-                    );
-                    modified = true;
-                } else {
+                    // Keep other modifiers unchanged
                     builder.add(entry.attribute(), entry.modifier(), entry.slot());
                 }
-            } else {
-                // Keep other modifiers unchanged
-                builder.add(entry.attribute(), entry.modifier(), entry.slot());
             }
         }
 
@@ -345,7 +338,8 @@ public class ItemDefaultComponentsMixin {
         if (itemName.contains("sword") || itemName.contains("spear") || 
             itemName.contains("mace") || itemName.contains("trident") ||
             itemName.contains("axe") || itemName.contains("dagger") || 
-            itemName.contains("longsword")) {
+            itemName.contains("longsword") || itemName.contains("pike") ||
+            itemName.contains("halberd") || itemName.contains("glaive")) {
             return true;
         }
 
@@ -534,6 +528,17 @@ public class ItemDefaultComponentsMixin {
                     ModAttributes.KNOCKBACK,
                     new EntityAttributeModifier(
                             Identifier.of("cranks-dungeons", "weapon.knockback"),
+                            knockbackBonus,
+                            EntityAttributeModifier.Operation.ADD_VALUE
+                    ),
+                    net.minecraft.component.type.AttributeModifierSlot.MAINHAND
+            );
+            
+            // ALSO add to vanilla attack knockback so it works with vanilla logic
+            builder.add(
+                    EntityAttributes.ATTACK_KNOCKBACK,
+                    new EntityAttributeModifier(
+                            Identifier.of("cranks-dungeons", "weapon.vanilla_knockback"),
                             knockbackBonus,
                             EntityAttributeModifier.Operation.ADD_VALUE
                     ),
