@@ -39,7 +39,9 @@ public abstract class DamageReductionMixin {
             // to avoid double-ticking damage. 
             // However, we let it through if there's no BURN ailment (e.g. Zombies in the sun)
             // so they still take fire damage and show damage numbers.
-            if (source.isOf(DamageTypes.ON_FIRE) && AilmentManager.hasAilment(entity, AilmentType.BURN)) {
+            if (source.isOf(net.minecraft.entity.damage.DamageTypes.ON_FIRE) && 
+                com.cranks.dungeons.ailment.AilmentManager.hasAilment(entity, com.cranks.dungeons.ailment.AilmentType.BURN) &&
+                !com.cranks.dungeons.ailment.AilmentReactionManager.isReactionInProgress()) {
                 return 0;
             }
 

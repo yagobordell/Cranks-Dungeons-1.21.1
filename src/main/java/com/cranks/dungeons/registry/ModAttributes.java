@@ -113,6 +113,9 @@ public class ModAttributes {
 
     public static final RegistryEntry<EntityAttribute> CHANCE_TO_SHOCK = register("chance_to_shock", 0.0, 0.0, 1.0);
     public static final RegistryEntry<EntityAttribute> SHOCK_DURATION = register("shock_duration", 3.0, 0.0, 60.0);
+    public static final RegistryEntry<EntityAttribute> REACTION_DAMAGE_PERCENT = register("reaction_damage_percent", 0.0, 0.0, 10.0);
+    public static final RegistryEntry<EntityAttribute> REACTION_COOLDOWN_PERCENT = register("reaction_cooldown_percent", 0.0, 0.0, 0.9);
+    public static final RegistryEntry<EntityAttribute> REACTION_RADIUS_PERCENT = register("reaction_radius_percent", 0.0, 0.0, 10.0);
     public static final RegistryEntry<EntityAttribute> MAX_HEALTH_PERCENT = register("max_health_percent", 0.0, 0.0, 10.0);
     public static final RegistryEntry<EntityAttribute> ARMOR_PERCENT = register("armor_percent", 0.0, 0.0, 10.0);
     public static final RegistryEntry<EntityAttribute> ARMOR_TOUGHNESS_PERCENT = register("armor_toughness_percent", 0.0, 0.0, 10.0);

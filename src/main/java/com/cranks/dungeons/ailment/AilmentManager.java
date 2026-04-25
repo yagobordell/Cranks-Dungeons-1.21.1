@@ -250,6 +250,17 @@ public class AilmentManager {
         return ENTITY_AILMENTS.getOrDefault(target.getUuid(), new ArrayList<>());
     }
 
+    public static void refreshAilmentDuration(LivingEntity target, AilmentType type) {
+        List<Ailment> ailments = getAilments(target);
+        for (Ailment ailment : ailments) {
+            if (ailment.getType() == type) {
+                ailment.setRemainingDuration(ailment.getMaxDuration());
+                // Also refresh the status effect visually
+                applyStatusEffect(target, type, ailment.getMaxDuration(), type == AilmentType.POISON ? ailment.getStacks() : 0);
+            }
+        }
+    }
+
     public static void tickAilments(LivingEntity entity) {
         if (entity.getEntityWorld().isClient()) return;
         
@@ -307,6 +318,7 @@ public class AilmentManager {
                     } else {
                         // Update status effect with new stack count
                         applyStatusEffect(entity, AilmentType.POISON, ailment.getRemainingDuration(), ailment.getStacks());
+                        syncAilments(entity);
                     }
                 } else if (ailment.getType() == AilmentType.BLEED) {
                     // For bleed: deal stored damage when it expires
@@ -624,16 +636,15 @@ public class AilmentManager {
         if (lightningDamage <= 0) return;
         
         ServerWorld world = (ServerWorld) entity.getEntityWorld();
-        double radius = 10.0;
+        double radius = 10.0 * (1.0 + (source instanceof net.minecraft.entity.LivingEntity le ? le.getAttributeValue(com.cranks.dungeons.registry.ModAttributes.REACTION_RADIUS_PERCENT) : 0));
         Box box = entity.getBoundingBox().expand(radius);
         List<LivingEntity> nearby = world.getEntitiesByClass(LivingEntity.class, box, e -> 
             e.isAlive() && hasAilment(e, AilmentType.SHOCK)
         );
         
         for (LivingEntity target : nearby) {
-            // Skip the entity that triggered this chain to prevent self-damage
-            // (they already took the original lightning damage from the hit)
-            if (target.getUuid().equals(entity.getUuid())) {
+            // Skip the entity that triggered this chain to prevent self-damage and duplicate numbers
+            if (target == entity) {
                 continue;
             }
             

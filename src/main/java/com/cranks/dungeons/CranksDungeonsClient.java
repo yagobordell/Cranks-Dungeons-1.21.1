@@ -262,5 +262,11 @@ public class CranksDungeonsClient implements ClientModInitializer {
                 com.cranks.dungeons.stat.passive.PassiveNodeRegistry.loadFromConfig();
             });
         });
+
+        ClientPlayNetworking.registerGlobalReceiver(com.cranks.dungeons.network.ReactionEffectPayload.ID, (payload, context) -> {
+            context.client().execute(() -> {
+                com.cranks.dungeons.client.ReactionVisualHelper.playReaction(context.client(), payload.pos(), payload.reactionType());
+            });
+        });
     }
 }

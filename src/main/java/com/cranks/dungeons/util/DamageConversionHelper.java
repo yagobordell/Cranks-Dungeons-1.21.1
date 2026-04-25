@@ -63,12 +63,12 @@ public class DamageConversionHelper {
 
                     double penetration = 0;
                     if (attacker instanceof LivingEntity le) {
-                        penetration = le.getAttributeValue(ModAttributes.ELEMENTAL_PENETRATION_PERCENT);
+                        penetration = getAttributeValueSafe(le, ModAttributes.ELEMENTAL_PENETRATION_PERCENT, 0.0);
                         penetration += switch (element) {
-                            case FIRE -> le.getAttributeValue(ModAttributes.FIRE_PENETRATION_PERCENT);
-                            case COLD -> le.getAttributeValue(ModAttributes.COLD_PENETRATION_PERCENT);
-                            case LIGHTNING -> le.getAttributeValue(ModAttributes.LIGHTNING_PENETRATION_PERCENT);
-                            case VOID -> le.getAttributeValue(ModAttributes.VOID_PENETRATION_PERCENT);
+                            case FIRE -> getAttributeValueSafe(le, ModAttributes.FIRE_PENETRATION_PERCENT, 0.0);
+                            case COLD -> getAttributeValueSafe(le, ModAttributes.COLD_PENETRATION_PERCENT, 0.0);
+                            case LIGHTNING -> getAttributeValueSafe(le, ModAttributes.LIGHTNING_PENETRATION_PERCENT, 0.0);
+                            case VOID -> getAttributeValueSafe(le, ModAttributes.VOID_PENETRATION_PERCENT, 0.0);
                             default -> 0;
                         };
                     }
@@ -223,7 +223,7 @@ public class DamageConversionHelper {
         double toughness = target.getAttributeValue(net.minecraft.entity.attribute.EntityAttributes.ARMOR_TOUGHNESS);
 
         if (attacker instanceof LivingEntity le) {
-            double penetration = le.getAttributeValue(ModAttributes.ARMOR_PENETRATION_PERCENT);
+            double penetration = getAttributeValueSafe(le, ModAttributes.ARMOR_PENETRATION_PERCENT, 0.0);
             ar *= (1.0 - penetration);
         }
 
@@ -236,5 +236,12 @@ public class DamageConversionHelper {
             return (float) (amount * (1.0 - pdr));
         }
         return amount;
+    }
+
+    private static double getAttributeValueSafe(LivingEntity entity, net.minecraft.registry.entry.RegistryEntry<net.minecraft.entity.attribute.EntityAttribute> attribute, double defaultValue) {
+        if (entity.getAttributes().hasAttribute(attribute)) {
+            return entity.getAttributeValue(attribute);
+        }
+        return defaultValue;
     }
 }

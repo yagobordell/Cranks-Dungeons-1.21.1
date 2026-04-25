@@ -99,6 +99,13 @@ This file contains a comprehensive list of all attributes available for use in t
 | `cranks-dungeons:chance_to_shock` | Percentage | Chance to shock enemies. |
 | `cranks-dungeons:shock_duration` | Percentage | Duration of shock debuff. |
 
+### 💥 Elemental Reactions
+| Identifier | Type | Description |
+| :--- | :--- | :--- |
+| `cranks-dungeons:reaction_damage_percent` | Percentage | Increased damage of Shatter, Cauterize, Thermal Shock, and Supercharge. |
+| `cranks-dungeons:reaction_cooldown_percent` | Percentage | Reduces internal cooldown of all reactions. (e.g. 0.5 = 50% faster). |
+| `cranks-dungeons:reaction_radius_percent` | Percentage | Increased radius of Shatter, Miasma, and Shock Chain. |
+
 ---
 
 ## 🛡️ Defensive Modifiers

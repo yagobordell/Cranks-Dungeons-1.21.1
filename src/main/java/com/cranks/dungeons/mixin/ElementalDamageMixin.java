@@ -1,6 +1,7 @@
 package com.cranks.dungeons.mixin;
 
 import com.cranks.dungeons.ailment.AilmentManager;
+import com.cranks.dungeons.ailment.AilmentReactionManager;
 import com.cranks.dungeons.ailment.AilmentType;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import com.cranks.dungeons.damage.DamageElement;
@@ -49,7 +50,7 @@ public abstract class ElementalDamageMixin {
     public abstract float getMaxHealth();
 
     @Unique
-    private boolean cranks$processingElementalDamage = false;
+    private static final ThreadLocal<Boolean> cranks$processingElementalDamage = ThreadLocal.withInitial(() -> false);
 
     // Static flag to prevent shock chain damage from triggering elemental
     // processing
@@ -73,7 +74,7 @@ public abstract class ElementalDamageMixin {
 
         LivingEntity target = (LivingEntity) (Object) this;
 
-        if (cranks$processingElementalDamage) {
+        if (cranks$processingElementalDamage.get()) {
             return;
         }
 
@@ -113,9 +114,14 @@ public abstract class ElementalDamageMixin {
         // double-dipping the 75% PvP reduction
         float unreducedPhysicalDamage = (float) (amount / pvpMultiplier);
         float physicalDamage = amount;
+        
+        // === ELEMENTAL REACTION: SHATTER ===
+        if (physicalDamage > 0) {
+            AilmentReactionManager.triggerReaction(target, DamageElement.PHYSICAL, physicalDamage, attacker);
+        }
 
         try {
-            cranks$processingElementalDamage = true;
+            cranks$processingElementalDamage.set(true);
 
             // Check for shock IMMEDIATELY at start - BEFORE any damage calculations or
             // applications
@@ -271,6 +277,10 @@ public abstract class ElementalDamageMixin {
                            + attacker.getAttributeValue(ModAttributes.FIRE_PENETRATION_PERCENT);
                 double finalRes = Math.max(0, resistance * (1.0 - pen));
                 double finalDamage = fireDamage * (1.0 - finalRes);
+
+                // === ELEMENTAL REACTION: CAUTERIZE ===
+                AilmentReactionManager.triggerReaction(target, DamageElement.FIRE, (float) finalDamage, attacker);
+
                 if (finalDamage > 0) {
                     // Use proper damage method with fire damage source to ensure death handling
                     applyElementalDamage(target, world, finalDamage, DamageElement.FIRE);
@@ -287,6 +297,10 @@ public abstract class ElementalDamageMixin {
                            + attacker.getAttributeValue(ModAttributes.COLD_PENETRATION_PERCENT);
                 double finalRes = Math.max(0, resistance * (1.0 - pen));
                 double finalDamage = coldDamage * (1.0 - finalRes);
+
+                // === ELEMENTAL REACTION: THERMAL SHOCK ===
+                AilmentReactionManager.triggerReaction(target, DamageElement.COLD, (float) finalDamage, attacker);
+
                 if (finalDamage > 0) {
                     applyElementalDamage(target, world, finalDamage, DamageElement.COLD);
                     totalElementalDamage += finalDamage;
@@ -303,15 +317,21 @@ public abstract class ElementalDamageMixin {
                 double finalRes = Math.max(0, resistance * (1.0 - pen));
                 double finalDamage = lightningDamage * (1.0 - finalRes);
 
+                // === ELEMENTAL REACTION: SUPERCHARGE ===
+                // Use Option A: Boost primary hit damage, but keep base damage for the chain
+                float superchargeMultiplier = AilmentReactionManager.triggerReaction(target, DamageElement.LIGHTNING, (float) finalDamage, attacker);
+                double baseDamageForChain = finalDamage;
+                finalDamage *= superchargeMultiplier;
+
                 // Trigger shock chain BEFORE applying damage (ensures it works for killing
                 // hits)
-                boolean shouldChain = hasShockBeforeDamage[0] && finalDamage > 0
+                boolean shouldChain = hasShockBeforeDamage[0] && baseDamageForChain > 0
                         && !AilmentManager.isShockChainInProgress();
 
                 if (shouldChain) {
                     if (AilmentManager.acquireShockChainLock()) {
                         try {
-                            AilmentManager.executeShockChain(target, (float) finalDamage, attacker);
+                            AilmentManager.executeShockChain(target, (float) baseDamageForChain, attacker);
                         } catch (Exception e) {
                             System.err.println("[CranksDungeons] Error in shock chain: " + e.getMessage());
                             e.printStackTrace();
@@ -338,6 +358,10 @@ public abstract class ElementalDamageMixin {
                            + attacker.getAttributeValue(ModAttributes.VOID_PENETRATION_PERCENT);
                 double finalRes = Math.max(0, resistance * (1.0 - pen));
                 double finalDamage = voidDamage * (1.0 - finalRes);
+
+                // === ELEMENTAL REACTION: MIASMA ===
+                AilmentReactionManager.triggerReaction(target, DamageElement.VOID, (float) finalDamage, attacker);
+
                 if (finalDamage > 0) {
                     applyElementalDamage(target, world, finalDamage, DamageElement.VOID);
                     totalElementalDamage += finalDamage;
@@ -468,7 +492,7 @@ public abstract class ElementalDamageMixin {
             }
 
         } finally {
-            cranks$processingElementalDamage = false;
+            cranks$processingElementalDamage.set(false);
         }
     }
 
@@ -580,13 +604,8 @@ public abstract class ElementalDamageMixin {
             }
         }
 
-        // Apply health reduction
-        if (target.getHealth() - damageAmount <= 0) {
-            DamageSource damageSource = getElementalDamageSource(world, element);
-            target.damage(world, damageSource, damageAmount);
-        } else {
-            target.setHealth(target.getHealth() - damageAmount);
-        }
+        // Apply health reduction via helper (no broadcast here, as it's handled at the end of handlePlayerAttacker)
+        com.cranks.dungeons.util.ElementalDamageHelper.applyDamage(target, world, (float) damageAmount, element, null, false, false);
     }
 
     @Unique

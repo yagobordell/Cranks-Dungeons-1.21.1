@@ -2,23 +2,18 @@ package com.cranks.dungeons.mixin;
 
 import com.cranks.dungeons.ailment.AilmentManager;
 import com.cranks.dungeons.ailment.AilmentType;
-import com.cranks.dungeons.client.render.AilmentParticleManager;
-import com.cranks.dungeons.particle.ModParticles;
+import com.cranks.dungeons.network.DamageNumberSender;
 import com.cranks.dungeons.registry.ModAttributes;
-import com.cranks.dungeons.registry.ModSounds;
 import com.cranks.dungeons.util.AilmentHistoryProvider;
 import com.cranks.dungeons.util.DamageBreakdownProvider;
 import com.cranks.dungeons.util.DamageConversionHelper;
-import com.cranks.dungeons.network.DamageNumberSender;
+import com.cranks.dungeons.util.ReactionCooldownProvider;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.attribute.DefaultAttributeContainer;
 import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.particle.ParticleEffect;
-import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.SoundCategory;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -26,12 +21,29 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
 @Mixin(LivingEntity.class)
-public abstract class LivingEntityMixin implements DamageBreakdownProvider, AilmentHistoryProvider {
+public abstract class LivingEntityMixin implements DamageBreakdownProvider, AilmentHistoryProvider, ReactionCooldownProvider {
+
+    @Unique
+    private final Map<String, Long> cranks$reactionCooldowns = new HashMap<>();
+
+    @Override
+    public boolean cranks$canTriggerReaction(String type) {
+        long currentTime = ((LivingEntity) (Object) this).getEntityWorld().getTime();
+        return currentTime >= cranks$reactionCooldowns.getOrDefault(type, 0L);
+    }
+
+    @Override
+    public void cranks$setReactionCooldown(String type, int ticks) {
+        long currentTime = ((LivingEntity) (Object) this).getEntityWorld().getTime();
+        cranks$reactionCooldowns.put(type, currentTime + ticks);
+    }
 
     @Unique
     private DamageConversionHelper.DamageBreakdown cranks$lastDamageBreakdown;
@@ -153,6 +165,9 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
                 .add(ModAttributes.LIGHTNING_DAMAGE_PERCENT)
                 .add(ModAttributes.VOID_DAMAGE_PERCENT)
                 .add(ModAttributes.SHOCK_DURATION)
+                .add(ModAttributes.REACTION_DAMAGE_PERCENT)
+                .add(ModAttributes.REACTION_COOLDOWN_PERCENT)
+                .add(ModAttributes.REACTION_RADIUS_PERCENT)
                 .add(ModAttributes.RELOAD_SPEED);
 
         cir.setReturnValue(builder);
