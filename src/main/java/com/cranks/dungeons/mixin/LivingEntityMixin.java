@@ -168,6 +168,8 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
                 .add(ModAttributes.REACTION_DAMAGE_PERCENT)
                 .add(ModAttributes.REACTION_COOLDOWN_PERCENT)
                 .add(ModAttributes.REACTION_RADIUS_PERCENT)
+                .add(ModAttributes.ARMOR_SPEED_PENALTY_REDUCTION)
+                .add(ModAttributes.LOW_ARMOR_SPEED_BONUS)
                 .add(ModAttributes.RELOAD_SPEED);
 
         cir.setReturnValue(builder);
@@ -179,6 +181,7 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
         if (entity.getEntityWorld().isClient()) return;
 
         AilmentManager.tickAilments(entity);
+        updateArmorSpeed(entity);
 
         // Show accumulated healing
         if (cranks$accumulatedHeal > 0) {
@@ -187,6 +190,46 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
                 DamageNumberSender.broadcastHeal((ServerWorld) entity.getEntityWorld(), entity, (double)Math.round(cranks$accumulatedHeal * 10.0) / 10.0);
                 cranks$accumulatedHeal = 0;
                 cranks$healTimer = 0;
+            }
+        }
+    }
+
+    @Unique
+    private static final net.minecraft.util.Identifier ARMOR_SPEED_MOD_ID = net.minecraft.util.Identifier.of("cranks-dungeons", "armor_speed_penalty");
+
+    @Unique
+    private void updateArmorSpeed(LivingEntity entity) {
+        if (entity.getEntityWorld().isClient()) return;
+
+        double armor = entity.getArmor();
+        double penaltyReduction = entity.getAttributeValue(ModAttributes.ARMOR_SPEED_PENALTY_REDUCTION);
+        double lowArmorBonusAttr = entity.getAttributeValue(ModAttributes.LOW_ARMOR_SPEED_BONUS);
+        
+        double finalModifier = 0;
+
+        // 1. Calculate Penalty (0.5% per 10 armor points)
+        if (armor >= 10) {
+            double penaltySteps = Math.floor(armor / 10.0);
+            double basePenalty = penaltySteps * 0.005; 
+            finalModifier -= basePenalty * (1.0 - penaltyReduction);
+        }
+
+        // 2. Calculate Low Armor Bonus (if armor < 150)
+        if (armor < 150) {
+            double bonus = (150 - armor) * lowArmorBonusAttr;
+            finalModifier += bonus;
+        }
+
+        // Apply modifier
+        net.minecraft.entity.attribute.EntityAttributeInstance speedAttr = entity.getAttributeInstance(net.minecraft.entity.attribute.EntityAttributes.MOVEMENT_SPEED);
+        if (speedAttr != null) {
+            speedAttr.removeModifier(ARMOR_SPEED_MOD_ID);
+            if (finalModifier != 0) {
+                speedAttr.addTemporaryModifier(new net.minecraft.entity.attribute.EntityAttributeModifier(
+                    ARMOR_SPEED_MOD_ID, 
+                    finalModifier, 
+                    net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
+                ));
             }
         }
     }

@@ -122,6 +122,8 @@ public class ModAttributes {
     public static final RegistryEntry<EntityAttribute> ENERGY_SHIELD_PERCENT = register("energy_shield_percent", 0.0, 0.0, 10.0);
     public static final RegistryEntry<EntityAttribute> EVASION_RATING_PERCENT = register("evasion_rating_percent", 0.0, 0.0, 10.0);
     public static final RegistryEntry<EntityAttribute> ARMOR_PENETRATION_PERCENT = register("armor_penetration_percent", 0.0, 0.0, 1.0);
+    public static final RegistryEntry<EntityAttribute> ARMOR_SPEED_PENALTY_REDUCTION = register("armor_speed_penalty_reduction", 0.0, 0.0, 1.0);
+    public static final RegistryEntry<EntityAttribute> LOW_ARMOR_SPEED_BONUS = register("low_armor_speed_bonus", 0.0, 0.0, 1.0);
     public static final RegistryEntry<EntityAttribute> FIRE_PENETRATION_PERCENT = register("fire_penetration_percent", 0.0, 0.0, 1.0);
     public static final RegistryEntry<EntityAttribute> COLD_PENETRATION_PERCENT = register("cold_penetration_percent", 0.0, 0.0, 1.0);
     public static final RegistryEntry<EntityAttribute> LIGHTNING_PENETRATION_PERCENT = register("lightning_penetration_percent", 0.0, 0.0, 1.0);

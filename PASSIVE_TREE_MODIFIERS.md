@@ -134,3 +134,5 @@ This file contains a comprehensive list of all attributes available for use in t
 | Identifier | Type | Description |
 | :--- | :--- | :--- |
 | `cranks-dungeons:movement_speed` | Percentage | Increases walking/running speed. |
+| `cranks-dungeons:armor_speed_penalty_reduction` | Percentage | Reduces the movement speed penalty from wearing armor. (e.g. 1.0 = no penalty). |
+| `cranks-dungeons:low_armor_speed_bonus` | Percentage | Gain movement speed when your total armor is below 150. Scales with the distance from 150. |
