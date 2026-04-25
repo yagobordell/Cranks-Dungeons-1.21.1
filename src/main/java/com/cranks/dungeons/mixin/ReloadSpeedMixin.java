@@ -36,9 +36,13 @@ public abstract class ReloadSpeedMixin {
                 && !(activeStack.getItem() instanceof CrossbowItem)) return;
 
         EntityAttributeInstance inst = self.getAttributeInstance(ModAttributes.RELOAD_SPEED);
-        if (inst == null || inst.getValue() <= 0.0) return;
+        double speed = 0.0;
+        if (inst != null) speed += inst.getValue();
+        
+        // Add rune value from the item itself (allows offhand to work without being global)
+        speed += com.cranks.dungeons.equipment.ItemStatManager.getTotalStatValue(activeStack, "reload_speed");
 
-        double speed = inst.getValue();
+        if (speed <= 0.0) return;
 
         // speed = 0.30  →  30 % faster
         // Whole part:      guaranteed extra ticks each game tick

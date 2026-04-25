@@ -34,8 +34,8 @@ public enum EquipmentType {
         // 1. Check for specific Classes/Items FIRST (Most Accurate)
         if (stack.isOf(Items.ELYTRA)) return Optional.of(ELYTRA);
         if (item instanceof ShieldItem) return Optional.of(SHIELD);
-        if (item instanceof BowItem || itemName.contains("bow")) return Optional.of(BOW);
         if (item instanceof CrossbowItem || itemName.contains("crossbow")) return Optional.of(CROSSBOW);
+        if (item instanceof BowItem || itemName.contains("bow")) return Optional.of(BOW);
         if (item instanceof TridentItem || itemName.contains("trident")) return Optional.of(TRIDENT);
         if (item instanceof MaceItem || itemName.contains("mace")) return Optional.of(MACE);
 
