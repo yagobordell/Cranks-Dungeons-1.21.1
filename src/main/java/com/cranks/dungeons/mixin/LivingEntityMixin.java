@@ -207,10 +207,10 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
         
         double finalModifier = 0;
 
-        // 1. Calculate Penalty (0.5% per 10 armor points)
-        if (armor >= 10) {
-            double penaltySteps = Math.floor(armor / 10.0);
-            double basePenalty = penaltySteps * 0.005; 
+        // 1. Calculate Penalty (5% per 100 armor points)
+        if (armor >= 100) {
+            double penaltySteps = Math.floor(armor / 100.0);
+            double basePenalty = penaltySteps * 0.05; 
             finalModifier -= basePenalty * (1.0 - penaltyReduction);
         }
 
