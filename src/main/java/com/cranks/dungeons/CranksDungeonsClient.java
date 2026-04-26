@@ -14,7 +14,6 @@ import com.cranks.dungeons.damage.DamageElement;
 import com.cranks.dungeons.network.PartyHealthPacket;
 import com.cranks.dungeons.network.PartyInvitePacket;
 import com.cranks.dungeons.network.PartySyncPacket;
-import com.cranks.dungeons.config.ModConfig;
 import com.cranks.dungeons.damage.DamageNumber;
 import com.cranks.dungeons.damage.DamageNumberManager;
 import com.cranks.dungeons.damage.DamageNumberRenderer;
@@ -54,7 +53,6 @@ public class CranksDungeonsClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        ModConfig.load();
         ClientConfigCommand.register();
 
         HandledScreens.register(ModScreenHandlers.RUNIC_ENHANCEMENT_ALTAR, RunicEnhancementAltarScreen::new);
@@ -95,7 +93,7 @@ public class CranksDungeonsClient implements ClientModInitializer {
                 if (context.client().player == null) return;
                 
                 UUID myUuid = context.client().player.getUuid();
-                ModConfig config = ModConfig.get();
+                com.cranks.dungeons.config.ModConfig config = CranksDungeons.CONFIG;
                 
                 // Determine source type
                 boolean isDealt = payload.attackerUuid() != null && payload.attackerUuid().equals(myUuid);
@@ -126,12 +124,12 @@ public class CranksDungeonsClient implements ClientModInitializer {
 
                     // Filter based on config
                     if (entry.isHeal()) {
-                        if (isReceived && !config.showMyReceivedHealing) continue;
-                        if (!isReceived && !config.showOtherPlayerHealing) continue;
+                        if (isReceived && !config.showMyReceivedHealing()) continue;
+                        if (!isReceived && !config.showOtherPlayerHealing()) continue;
                     } else {
-                        if (isDealt && !config.showMyDealtDamage) continue;
-                        if (isReceived && !config.showMyReceivedDamage) continue;
-                        if (isOther && !config.showOtherPlayerDamage) continue;
+                        if (isDealt && !config.showMyDealtDamage()) continue;
+                        if (isReceived && !config.showMyReceivedDamage()) continue;
+                        if (isOther && !config.showOtherPlayerDamage()) continue;
                     }
 
                     // Play combat sound for this element ONLY if we dealt the damage AND it's a direct hit
@@ -198,6 +196,9 @@ public class CranksDungeonsClient implements ClientModInitializer {
         
         // Register party HUD renderer
         PartyHudRenderer.register();
+        
+        // Register new Stat Bar HUD renderer
+        com.cranks.dungeons.client.render.StatBarHudRenderer.register();
         
         // Register party packet handlers
         ClientPlayNetworking.registerGlobalReceiver(PartySyncPacket.ID, (payload, context) -> {

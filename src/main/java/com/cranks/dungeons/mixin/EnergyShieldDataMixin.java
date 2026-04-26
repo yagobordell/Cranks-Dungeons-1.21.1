@@ -24,7 +24,7 @@ public abstract class EnergyShieldDataMixin implements EnergyShieldProvider {
     private long lastDamageTime = 0;
 
     @Unique
-    private float lastSyncedShield = 0.0f;
+    private float lastSyncedShield = -1.0f;
 
     @Override
     public float cranksdungeons$getCurrentEnergyShield() {
@@ -46,16 +46,28 @@ public abstract class EnergyShieldDataMixin implements EnergyShieldProvider {
         this.lastDamageTime = time;
     }
 
+    @Unique
+    private int syncTimer = 0;
+    
+    @Unique
+    private int lifeTicks = 0;
+
     // Sync shield to client every tick if it changed
     @Inject(method = "tick", at = @At("HEAD"))
     private void syncShieldToClient(CallbackInfo ci) {
         if ((Object)this instanceof ServerPlayerEntity player) {
-            // Only sync if changed significantly
-            if (Math.abs(currentEnergyShield - lastSyncedShield) > 0.1f) {
-                lastSyncedShield = currentEnergyShield;
-
-                // Send custom packet or use existing sync mechanism
-                // For now, we'll rely on the client updating from attribute changes
+            syncTimer++;
+            lifeTicks++;
+            // Check every 10 ticks to be responsive but not spammy
+            if (syncTimer >= 10) {
+                syncTimer = 0;
+                // Force sync for the first 5 seconds (100 ticks) to guarantee the client receives it regardless of load times
+                boolean forceSync = lifeTicks <= 100;
+                // Only sync if changed significantly, or if forcing
+                if (forceSync || Math.abs(currentEnergyShield - lastSyncedShield) > 0.05f) {
+                    lastSyncedShield = currentEnergyShield;
+                    net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(player, new com.cranks.dungeons.network.EnergyShieldSyncPacket(currentEnergyShield));
+                }
             }
         }
     }

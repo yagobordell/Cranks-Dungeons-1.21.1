@@ -48,6 +48,10 @@ public class EnergyShieldRegenMixin {
         if (self.getEntityWorld().isClient())
             return;
 
+        // Delay processing for the first second of life to allow attributes and passives to fully initialize
+        if (self.age < 20)
+            return;
+
         ServerWorld world = (ServerWorld) self.getEntityWorld();
         EnergyShieldProvider provider = (EnergyShieldProvider) self;
 

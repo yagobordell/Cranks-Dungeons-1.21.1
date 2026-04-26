@@ -23,6 +23,10 @@ public final class EquipmentChangeHandler {
     // Track players that need shield sync on next tick
     private static final Map<UUID, Integer> pendingShieldSyncs = new HashMap<>();
 
+    public static void scheduleSync(ServerPlayerEntity player, int ticks) {
+        pendingShieldSyncs.put(player.getUuid(), ticks);
+    }
+
     public static void register() {
         ServerEntityEvents.EQUIPMENT_CHANGE.register((entity, slot, previousStack, newStack) -> {
             if (entity instanceof ServerPlayerEntity player) {
@@ -62,7 +66,7 @@ public final class EquipmentChangeHandler {
      * Syncs the current energy shield value to the client after equipment changes.
      * Ensures the shield display updates immediately when max shield changes.
      */
-    private static void syncEnergyShieldToClient(ServerPlayerEntity player) {
+    public static void syncEnergyShieldToClient(ServerPlayerEntity player) {
         if (player instanceof EnergyShieldProvider provider) {
             double maxShield = player.getAttributeValue(ModAttributes.ENERGY_SHIELD);
             float currentShield = provider.cranksdungeons$getCurrentEnergyShield();

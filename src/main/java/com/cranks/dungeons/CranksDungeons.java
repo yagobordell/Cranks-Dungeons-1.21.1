@@ -56,6 +56,7 @@ public class CranksDungeons implements ModInitializer {
 
 	public static final String MOD_ID = "cranks-dungeons";
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
+	public static final com.cranks.dungeons.config.ModConfig CONFIG = com.cranks.dungeons.config.ModConfig.createAndLoad();
 
 	@Override
 	public void onInitialize() {
@@ -104,6 +105,9 @@ public class CranksDungeons implements ModInitializer {
 			}
 
 			data.checkRetroactivePoints(handler.player.experienceLevel);
+
+			// Sync energy shield to client slightly delayed on join to ensure attributes and client are fully loaded
+			com.cranks.dungeons.util.EquipmentChangeHandler.scheduleSync(handler.player, 100);
 
 			// If retroactive checking changed anything, save it
 			worldState.savePlayerData(handler.player.getUuid(), data);

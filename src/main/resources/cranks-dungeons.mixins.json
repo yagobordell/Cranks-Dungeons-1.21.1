@@ -96,7 +96,8 @@
 		"AilmentHeartTextureMixin",
 		"DisableArmorBarMixin",
 		"OverflowingBarsAilmentMixin",
-		"client.LivingEntityRendererMixin"
+		"client.LivingEntityRendererMixin",
+		"client.InGameHudMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

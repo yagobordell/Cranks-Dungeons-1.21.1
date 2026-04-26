@@ -2,7 +2,6 @@ package com.cranks.dungeons.client.party;
 
 import com.cranks.dungeons.CranksDungeons;
 import com.cranks.dungeons.client.ShieldNumberSprites;
-import com.cranks.dungeons.config.ModConfig;
 import com.cranks.dungeons.party.PartyMemberData;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.fabricmc.loader.api.FabricLoader;
@@ -39,15 +38,15 @@ public class PartyHudRenderer implements HudRenderCallback {
         if (client.player == null) return;
         if (client.options.hudHidden) return;
 
-        ModConfig config = ModConfig.get();
-        if (!config.partyHudEnabled) return;
+        com.cranks.dungeons.config.ModConfig config = CranksDungeons.CONFIG;
+        if (!config.partyHudEnabled()) return;
 
         if (!PartyClientData.isInParty()) return;
 
         List<PartyMemberData> members = PartyClientData.getMembers();
         
         // Filter out self if config says so
-        if (!config.partyHudShowSelf) {
+        if (!config.partyHudShowSelf()) {
             members.removeIf(m -> m.uuid().equals(client.player.getUuid()));
         }
         
@@ -56,14 +55,14 @@ public class PartyHudRenderer implements HudRenderCallback {
         int screenWidth = client.getWindow().getScaledWidth();
         int screenHeight = client.getWindow().getScaledHeight();
         
-        int x = config.partyHudX;
-        int y = config.partyHudY;
+        int x = config.partyHudX();
+        int y = config.partyHudY();
         
         if (x < 0) x = 5;
         
-        float scale = config.partyHudSize;
-        int maxRows = config.partyHudMaxRows;
-        int maxColumns = config.partyHudMaxColumns;
+        float scale = config.partyHudSize();
+        int maxRows = config.partyHudMaxRows();
+        int maxColumns = config.partyHudMaxColumns();
         
         int columnCount = (members.size() + maxRows - 1) / maxRows;
         columnCount = Math.min(columnCount, maxColumns);
@@ -118,22 +117,32 @@ public class PartyHudRenderer implements HudRenderCallback {
             maxShield = member.maxEnergyShield();
         }
 
-        int totalHealthHearts = (int) Math.ceil((maxHealth + absorption) / 2.0f);
-        int healthRows = OVERFLOWING_BARS_LOADED ? 1 : Math.max(1, (int) Math.ceil(totalHealthHearts / 10.0));
-        int healthVanillaSpacing = Math.max(10 - (healthRows - 2), 3);
-        int healthRowHeight = (int) (healthVanillaSpacing * scale);
-        int healthTotalHeight = (healthRows - 1) * healthRowHeight;
-
+        boolean useStatBars = CranksDungeons.CONFIG.useStatBars();
         int healthBaseY = y + (int) (12 * scale);
-        int shieldBaseY = healthBaseY - healthTotalHeight - (int) (10 * scale);
-
-        int maxShieldHearts = (int) Math.ceil(maxShield / 2.0f);
-        int shieldRows = OVERFLOWING_BARS_LOADED ? 1 : Math.max(1, (int) Math.ceil(maxShieldHearts / 10.0));
-        int shieldVanillaSpacing = Math.max(10 - (shieldRows - 2), 3);
-        int shieldRowHeight = (int) (shieldVanillaSpacing * scale);
-        int shieldTotalHeight = (shieldRows > 0 && maxShield > 0) ? (shieldRows - 1) * shieldRowHeight : 0;
         
-        int highestBarY = (maxShield > 0) ? (shieldBaseY - shieldTotalHeight) : (healthBaseY - healthTotalHeight);
+        int highestBarY;
+        int shieldBaseY;
+        
+        if (useStatBars) {
+            shieldBaseY = healthBaseY;
+            highestBarY = healthBaseY;
+        } else {
+            int totalHealthHearts = (int) Math.ceil((maxHealth + absorption) / 2.0f);
+            int healthRows = OVERFLOWING_BARS_LOADED ? 1 : Math.max(1, (int) Math.ceil(totalHealthHearts / 10.0));
+            int healthVanillaSpacing = Math.max(10 - (healthRows - 2), 3);
+            int healthRowHeight = (int) (healthVanillaSpacing * scale);
+            int healthTotalHeight = (healthRows - 1) * healthRowHeight;
+
+            shieldBaseY = healthBaseY - healthTotalHeight - (int) (10 * scale);
+
+            int maxShieldHearts = (int) Math.ceil(maxShield / 2.0f);
+            int shieldRows = OVERFLOWING_BARS_LOADED ? 1 : Math.max(1, (int) Math.ceil(maxShieldHearts / 10.0));
+            int shieldVanillaSpacing = Math.max(10 - (shieldRows - 2), 3);
+            int shieldRowHeight = (int) (shieldVanillaSpacing * scale);
+            int shieldTotalHeight = (shieldRows > 0 && maxShield > 0) ? (shieldRows - 1) * shieldRowHeight : 0;
+            
+            highestBarY = (maxShield > 0) ? (shieldBaseY - shieldTotalHeight) : (healthBaseY - healthTotalHeight);
+        }
 
         int iconY, nameY;
         if (member.isAlive()) {
@@ -148,8 +157,12 @@ public class PartyHudRenderer implements HudRenderCallback {
             renderPlayerHead(context, client, member, x + (int) (2 * scale), iconY, scale);
 
             int barsX = x + (int) (24 * scale);
-            renderShieldBar(context, barsX, shieldBaseY, shield, maxShield, member.uuid(), scale);
-            renderHealthBar(context, barsX, healthBaseY, health, maxHealth, absorption, member.uuid(), scale);
+            if (useStatBars) {
+                renderStatBars(context, client, barsX, healthBaseY, health, maxHealth, absorption, shield, maxShield, scale);
+            } else {
+                renderShieldBar(context, barsX, shieldBaseY, shield, maxShield, member.uuid(), scale);
+                renderHealthBar(context, barsX, healthBaseY, health, maxHealth, absorption, member.uuid(), scale);
+            }
         } else {
             iconY = y + (int) (10 * scale);
             nameY = iconY - (int) (10 * scale);
@@ -435,6 +448,76 @@ public class PartyHudRenderer implements HudRenderCallback {
             context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, spriteId, spriteX, spriteY, (int) (16 * scale), (int) (16 * scale));
         }
     }
+
+    private void renderStatBars(DrawContext context, MinecraftClient client, int x, int y, float health, float maxHealth, float absorption, float shield, float maxShield, float scale) {
+        if (maxHealth <= 0) return;
+
+        int barWidth = (int) (com.cranks.dungeons.client.render.StatBarHudRenderer.BAR_WIDTH * scale);
+        int barHeight = (int) (com.cranks.dungeons.client.render.StatBarHudRenderer.BAR_HEIGHT * scale);
+        int fillHeight = (int) (com.cranks.dungeons.client.render.StatBarHudRenderer.FILL_HEIGHT * scale);
+        int maxFillWidth = (int) (com.cranks.dungeons.client.render.StatBarHudRenderer.MAX_FILL_WIDTH * scale);
+
+        // Draw Background Frame
+        context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, com.cranks.dungeons.client.render.StatBarHudRenderer.EMPTY_BAR, x, y, barWidth, barHeight);
+
+        // Draw HP Fill (Red)
+        float hpPercent = net.minecraft.util.math.MathHelper.clamp(health / maxHealth, 0, 1);
+        int hpWidth = (int) (hpPercent * maxFillWidth);
+        if (hpWidth > 0) {
+            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, com.cranks.dungeons.client.render.StatBarHudRenderer.HEALTH_FILL, 
+                    com.cranks.dungeons.client.render.StatBarHudRenderer.MAX_FILL_WIDTH, 
+                    com.cranks.dungeons.client.render.StatBarHudRenderer.FILL_HEIGHT, 0, 0,
+                    x, y, hpWidth, fillHeight);
+        }
+
+        // Draw Absorption Overlay (Yellow) - Covers HP
+        if (absorption > 0) {
+            float absPercent = net.minecraft.util.math.MathHelper.clamp(absorption / maxHealth, 0, 1);
+            int absWidth = (int) (absPercent * maxFillWidth);
+            if (absWidth > 0) {
+                context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, com.cranks.dungeons.client.render.StatBarHudRenderer.ABSORPTION_FILL, 
+                        com.cranks.dungeons.client.render.StatBarHudRenderer.MAX_FILL_WIDTH, 
+                        com.cranks.dungeons.client.render.StatBarHudRenderer.FILL_HEIGHT, 0, 0,
+                        x, y, absWidth, fillHeight);
+            }
+        }
+
+        // Draw Energy Shield Overlay (Blue) - Covers HP & Absorption
+        if (shield > 0 && maxShield > 0) {
+            float shieldPercent = net.minecraft.util.math.MathHelper.clamp(shield / maxShield, 0, 1);
+            int shieldWidth = (int) (shieldPercent * maxFillWidth);
+            if (shieldWidth > 0) {
+                context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, com.cranks.dungeons.client.render.StatBarHudRenderer.SHIELD_FILL, 
+                        com.cranks.dungeons.client.render.StatBarHudRenderer.MAX_FILL_WIDTH, 
+                        com.cranks.dungeons.client.render.StatBarHudRenderer.FILL_HEIGHT, 0, 0,
+                        x, y, shieldWidth, fillHeight);
+            }
+        }
+
+        // Text Display
+        net.minecraft.client.font.TextRenderer textRenderer = client.textRenderer;
+        String text;
+        int color = 0xFFFFFFFF;
+
+        if (shield > 0) {
+            text = (int) shield + " / " + (int) maxShield;
+            color = 0xFF55FFFF; // Cyan/Blue
+        } else {
+            text = (int) health + " / " + (int) maxHealth;
+            if (absorption > 0) {
+                text += " (+" + (int) absorption + ")";
+                color = 0xFFFFAA00; // Gold
+            }
+        }
+
+        int textWidth = textRenderer.getWidth(text);
+        // Center the text relative to the scaled bar
+        int textX = x + (barWidth / 2) - (textWidth / 2);
+        int textY = y + (barHeight / 2) - (textRenderer.fontHeight / 2);
+        
+        context.drawTextWithShadow(textRenderer, text, textX, textY, color);
+    }
+
     
     public static void register() {
         HudRenderCallback.EVENT.register(new PartyHudRenderer());
