@@ -7,7 +7,6 @@ import com.cranks.dungeons.registry.ModAttributes;
 import com.cranks.dungeons.util.AilmentHistoryProvider;
 import com.cranks.dungeons.util.DamageBreakdownProvider;
 import com.cranks.dungeons.util.DamageConversionHelper;
-import com.cranks.dungeons.util.ReactionCooldownProvider;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -28,22 +27,7 @@ import java.util.Set;
 import java.util.UUID;
 
 @Mixin(LivingEntity.class)
-public abstract class LivingEntityMixin implements DamageBreakdownProvider, AilmentHistoryProvider, ReactionCooldownProvider {
-
-    @Unique
-    private final Map<String, Long> cranks$reactionCooldowns = new HashMap<>();
-
-    @Override
-    public boolean cranks$canTriggerReaction(String type) {
-        long currentTime = ((LivingEntity) (Object) this).getEntityWorld().getTime();
-        return currentTime >= cranks$reactionCooldowns.getOrDefault(type, 0L);
-    }
-
-    @Override
-    public void cranks$setReactionCooldown(String type, int ticks) {
-        long currentTime = ((LivingEntity) (Object) this).getEntityWorld().getTime();
-        cranks$reactionCooldowns.put(type, currentTime + ticks);
-    }
+public abstract class LivingEntityMixin implements DamageBreakdownProvider, AilmentHistoryProvider {
 
     @Unique
     private DamageConversionHelper.DamageBreakdown cranks$lastDamageBreakdown;

@@ -34,6 +34,7 @@ public class AilmentReactionManager {
      */
     public static float triggerReaction(LivingEntity target, DamageElement element, float damage, Entity attacker) {
         if (target.getEntityWorld().isClient()) return 1.0f;
+        if (cranks$reactionInProgress.get()) return 1.0f;
         ServerWorld world = (ServerWorld) target.getEntityWorld();
 
         // 1. FREEZE + PHYSICAL = Shatter
@@ -86,11 +87,12 @@ public class AilmentReactionManager {
     }
 
     private static boolean canTrigger(LivingEntity target, String reaction) {
-        return ((ReactionCooldownProvider) target).cranks$canTriggerReaction(reaction);
+        return AilmentManager.canTriggerReaction(target, reaction);
     }
 
     private static void setCooldown(LivingEntity target, String reaction, int ticks) {
-        ((ReactionCooldownProvider) target).cranks$setReactionCooldown(reaction, ticks);
+        AilmentManager.setReactionCooldown(target, reaction, ticks);
+        AilmentManager.syncAilments(target);
     }
 
     private static void applyShatter(LivingEntity target, ServerWorld world, float damage, Entity attacker) {

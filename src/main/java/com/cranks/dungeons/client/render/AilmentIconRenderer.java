@@ -92,7 +92,7 @@ public class AilmentIconRenderer {
                     matrices.push();
                     matrices.translate(i * spacing, 0, 0);
                     
-                    renderIcon(matrices, info.texture(), size, context.consumers());
+                    renderIcon(matrices, info.texture(), size, info.progress(), context.consumers());
                     
                     if (info.stacks() > 1) {
                         renderStacks(matrices, info.stacks(), size, context.consumers());
@@ -143,20 +143,44 @@ public class AilmentIconRenderer {
         vertex(buffer, entry, x - half, y + half, 0, u2, v1);
     }
 
-    private static void renderIcon(MatrixStack matrices, Identifier texture, float size, VertexConsumerProvider consumers) {
+    private static void renderIcon(MatrixStack matrices, Identifier texture, float size, float progress, VertexConsumerProvider consumers) {
         VertexConsumer buffer = consumers.getBuffer(RenderLayers.entityTranslucent(texture));
         MatrixStack.Entry entry = matrices.peek();
         
         float half = size / 2f;
-        vertex(buffer, entry, -half, -half, 0, 0, 1);
-        vertex(buffer, entry, half, -half, 0, 1, 1);
-        vertex(buffer, entry, half, half, 0, 1, 0);
-        vertex(buffer, entry, -half, half, 0, 0, 0);
+        // Base Icon
+        vertex(buffer, entry, -half, -half, 0, 0, 1, 255);
+        vertex(buffer, entry, half, -half, 0, 1, 1, 255);
+        vertex(buffer, entry, half, half, 0, 1, 0, 255);
+        vertex(buffer, entry, -half, half, 0, 0, 0, 255);
+
+        // Cooldown Overlay (if progress < 1.0)
+        if (progress < 0.99f) {
+            // Render a semi-transparent black overlay that shrinks or grows
+            // We'll do a simple vertical "drain" effect for now as it's easier than radial in raw vertices without a shader
+            VertexConsumer overlayBuffer = consumers.getBuffer(RenderLayers.entityTranslucent(Identifier.ofVanilla("textures/misc/white.png")));
+            float h = size * progress;
+            float top = half - h;
+            
+            // Draw dark overlay on the "finished" part
+            vertex(overlayBuffer, entry, -half, half, 0.01f, 0, 0, 160, 0, 0, 0); 
+            vertex(overlayBuffer, entry, half, half, 0.01f, 1, 0, 160, 0, 0, 0);
+            vertex(overlayBuffer, entry, half, top, 0.01f, 1, 1, 160, 0, 0, 0);
+            vertex(overlayBuffer, entry, -half, top, 0.01f, 0, 1, 160, 0, 0, 0);
+        }
     }
 
     private static void vertex(VertexConsumer buffer, MatrixStack.Entry entry, float x, float y, float z, float u, float v) {
+        vertex(buffer, entry, x, y, z, u, v, 255, 255, 255, 255);
+    }
+
+    private static void vertex(VertexConsumer buffer, MatrixStack.Entry entry, float x, float y, float z, float u, float v, int alpha) {
+        vertex(buffer, entry, x, y, z, u, v, alpha, 255, 255, 255);
+    }
+
+    private static void vertex(VertexConsumer buffer, MatrixStack.Entry entry, float x, float y, float z, float u, float v, int alpha, int r, int g, int b) {
         buffer.vertex(entry, x, y, z)
-            .color(255, 255, 255, 255)
+            .color(r, g, b, alpha)
             .texture(u, v)
             .overlay(OverlayTexture.DEFAULT_UV)
             .light(LightmapTextureManager.MAX_LIGHT_COORDINATE)

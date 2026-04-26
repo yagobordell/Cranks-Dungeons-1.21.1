@@ -22,10 +22,11 @@ public record AilmentSyncPayload(int entityId, List<AilmentEntry> ailments) impl
         return ID;
     }
 
-    public record AilmentEntry(Identifier texture, int stacks) {
+    public record AilmentEntry(Identifier texture, int stacks, float progress) {
         public static final PacketCodec<RegistryByteBuf, AilmentEntry> CODEC = PacketCodec.tuple(
                 Identifier.PACKET_CODEC, AilmentEntry::texture,
                 PacketCodecs.VAR_INT, AilmentEntry::stacks,
+                PacketCodecs.FLOAT, AilmentEntry::progress,
                 AilmentEntry::new
         );
     }
