@@ -38,6 +38,8 @@ public class ModNetworking {
         PayloadTypeRegistry.playS2C().register(PartyInvitePacket.ID, PartyInvitePacket.CODEC);
         PayloadTypeRegistry.playS2C().register(SyncPassiveTreePayload.ID, SyncPassiveTreePayload.CODEC);
         PayloadTypeRegistry.playS2C().register(ReactionEffectPayload.ID, ReactionEffectPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(PlayerInfoSyncPacket.ID, PlayerInfoSyncPacket.CODEC);
+        PayloadTypeRegistry.playS2C().register(EntityShieldSyncPacket.ID, EntityShieldSyncPacket.CODEC);
     }
 
     private static boolean isNodeUnlockable(com.cranks.dungeons.component.PassiveDataComponent data, String nodeId) {
@@ -284,5 +286,29 @@ public class ModNetworking {
         for (net.minecraft.server.network.ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
             ServerPlayNetworking.send(player, payload);
         }
+    }
+
+    public static void syncPlayerInfoToTrackers(net.minecraft.server.network.ServerPlayerEntity player, net.minecraft.server.MinecraftServer server) {
+        var data = com.cranks.dungeons.component.ModComponents.PASSIVE_DATA.get(player);
+        String className = data.getPlayerClass();
+        int level = player.experienceLevel;
+        
+        String partyLeaderName = "";
+        var party = PartyManager.getParty(player.getUuid()).orElse(null);
+        if (party != null) {
+            net.minecraft.server.network.ServerPlayerEntity leader = server.getPlayerManager().getPlayer(party.getLeader());
+            if (leader != null) {
+                partyLeaderName = leader.getName().getString();
+            }
+        }
+
+        PlayerInfoSyncPacket packet = new PlayerInfoSyncPacket(player.getId(), level, className, partyLeaderName);
+        
+        // Send to trackers
+        for (net.minecraft.server.network.ServerPlayerEntity tracker : net.fabricmc.fabric.api.networking.v1.PlayerLookup.tracking(player)) {
+            ServerPlayNetworking.send(tracker, packet);
+        }
+        // Also send to self (for HUD consistency if needed)
+        ServerPlayNetworking.send(player, packet);
     }
 }

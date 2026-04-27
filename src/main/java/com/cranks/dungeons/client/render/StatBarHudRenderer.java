@@ -15,6 +15,7 @@ import net.minecraft.util.math.MathHelper;
 public class StatBarHudRenderer implements HudRenderCallback {
 
     public static final Identifier EMPTY_BAR = Identifier.of(CranksDungeons.MOD_ID, "hud/stat_bar/empty");
+    public static final Identifier EMPTY_SHIELD_BAR = Identifier.of(CranksDungeons.MOD_ID, "hud/stat_bar/empty_energy_shield");
     public static final Identifier HEALTH_FILL = Identifier.of(CranksDungeons.MOD_ID, "hud/stat_bar/health");
     public static final Identifier HEALTH_TRAIL = Identifier.of(CranksDungeons.MOD_ID, "hud/stat_bar/health_trail");
     public static final Identifier SHIELD_FILL = Identifier.of(CranksDungeons.MOD_ID, "hud/stat_bar/energy_shield");
@@ -82,6 +83,45 @@ public class StatBarHudRenderer implements HudRenderCallback {
 
         updateTrails(health, shield, absorption);
 
+        // --- Render Shield Bar (Above HP) ---
+        if (maxShield > 0) {
+            int shieldY = y - 7; // 6px height + 1px gap
+            int SHIELD_HEIGHT = 6;
+            
+            // Draw Shield Background
+            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, EMPTY_SHIELD_BAR, x, shieldY, BAR_WIDTH, SHIELD_HEIGHT);
+
+            float shieldPercent = MathHelper.clamp(shield / maxShield, 0, 1);
+            int shieldWidth = (int) (shieldPercent * MAX_FILL_WIDTH);
+            
+            // Draw Shield Trail
+            if (displayedShield > shield) {
+                int trailWidth = (int) (MathHelper.clamp(displayedShield / maxShield, 0, 1) * MAX_FILL_WIDTH);
+                if (trailWidth > shieldWidth) {
+                    context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, SHIELD_TRAIL, MAX_FILL_WIDTH, SHIELD_HEIGHT, shieldWidth, 0,
+                            x + FILL_OFFSET_X + shieldWidth, shieldY + FILL_OFFSET_Y, trailWidth - shieldWidth, SHIELD_HEIGHT);
+                }
+            }
+
+            // Draw Shield Fill
+            if (shieldWidth > 0) {
+                context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, SHIELD_FILL, MAX_FILL_WIDTH, SHIELD_HEIGHT, 0, 0,
+                        x + FILL_OFFSET_X, shieldY + FILL_OFFSET_Y, shieldWidth, SHIELD_HEIGHT);
+            }
+
+            // Shield Text
+            String sText = (int) shield + " / " + (int) maxShield;
+            TextRenderer tr = client.textRenderer;
+            int sTextWidth = tr.getWidth(sText);
+
+            context.getMatrices().pushMatrix();
+            context.getMatrices().translate(x + (BAR_WIDTH / 2f), shieldY + (SHIELD_HEIGHT / 2f));
+            context.getMatrices().scale(0.8f, 0.8f);
+            context.drawTextWithShadow(tr, sText, -(sTextWidth / 2), -(tr.fontHeight / 2), 0xFF55FFFF);
+            context.getMatrices().popMatrix();
+        }
+
+        // --- Render Health Bar ---
         // Draw Background Frame
         context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, EMPTY_BAR, x, y, BAR_WIDTH, BAR_HEIGHT);
 
@@ -115,50 +155,24 @@ public class StatBarHudRenderer implements HudRenderCallback {
             }
         }
 
-        // Draw Absorption Overlay (Yellow) - Covers HP
+        // Draw Absorption Overlay (Yellow)
         if (absWidth > 0) {
             context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, ABSORPTION_FILL, MAX_FILL_WIDTH, FILL_HEIGHT, 0, 0,
                     x + FILL_OFFSET_X, y + FILL_OFFSET_Y, absWidth, FILL_HEIGHT);
         }
 
-        float shieldPercent = maxShield > 0 ? MathHelper.clamp(shield / maxShield, 0, 1) : 0;
-        int shieldWidth = (int) (shieldPercent * MAX_FILL_WIDTH);
-        
-        // Draw Shield Trail
-        if (displayedShield > shield && maxShield > 0) {
-            int trailWidth = (int) (MathHelper.clamp(displayedShield / maxShield, 0, 1) * MAX_FILL_WIDTH);
-            if (trailWidth > shieldWidth) {
-                context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, SHIELD_TRAIL, MAX_FILL_WIDTH, FILL_HEIGHT, shieldWidth, 0,
-                        x + FILL_OFFSET_X + shieldWidth, y + FILL_OFFSET_Y, trailWidth - shieldWidth, FILL_HEIGHT);
-            }
-        }
-
-        // Draw Energy Shield Overlay (Blue) - Covers HP & Absorption
-        if (shieldWidth > 0) {
-            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, SHIELD_FILL, MAX_FILL_WIDTH, FILL_HEIGHT, 0, 0,
-                    x + FILL_OFFSET_X, y + FILL_OFFSET_Y, shieldWidth, FILL_HEIGHT);
-        }
-
-
-        // Text Display
+        // Health Text
         TextRenderer textRenderer = client.textRenderer;
-        String text;
-        int color = 0xFFFFFFFF;
-
-        if (shield > 0) {
-            text = (int) shield + " / " + (int) maxShield;
-            color = 0xFF55FFFF; // Cyan/Blue
-        } else {
-            text = (int) health + " / " + (int) maxHealth;
-            if (absorption > 0) {
-                text += " (+" + (int) absorption + ")";
-                color = 0xFFFFAA00; // Gold
-            }
+        String hText = (int) health + " / " + (int) maxHealth;
+        int hColor = 0xFFFFFFFF;
+        if (absorption > 0) {
+            hText += " (+" + (int) absorption + ")";
+            hColor = 0xFFFFAA00;
         }
 
-        int textWidth = textRenderer.getWidth(text);
-        context.drawTextWithShadow(textRenderer, text, x + (BAR_WIDTH / 2) - (textWidth / 2),
-                y + (BAR_HEIGHT / 2) - (textRenderer.fontHeight / 2), color);
+        int hTextWidth = textRenderer.getWidth(hText);
+        context.drawTextWithShadow(textRenderer, hText, x + (BAR_WIDTH / 2) - (hTextWidth / 2),
+                y + (BAR_HEIGHT / 2) - (textRenderer.fontHeight / 2), hColor);
     }
 
     private void renderHunger(DrawContext context, MinecraftClient client, PlayerEntity player, int x, int y) {

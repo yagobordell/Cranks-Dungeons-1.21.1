@@ -125,7 +125,7 @@ public class PartyHudRenderer implements HudRenderCallback {
         
         if (useStatBars) {
             shieldBaseY = healthBaseY;
-            highestBarY = healthBaseY;
+            highestBarY = (maxShield > 0) ? healthBaseY - (int) (7 * scale) : healthBaseY;
         } else {
             int totalHealthHearts = (int) Math.ceil((maxHealth + absorption) / 2.0f);
             int healthRows = OVERFLOWING_BARS_LOADED ? 1 : Math.max(1, (int) Math.ceil(totalHealthHearts / 10.0));
@@ -454,9 +454,38 @@ public class PartyHudRenderer implements HudRenderCallback {
 
         int barWidth = (int) (com.cranks.dungeons.client.render.StatBarHudRenderer.BAR_WIDTH * scale);
         int barHeight = (int) (com.cranks.dungeons.client.render.StatBarHudRenderer.BAR_HEIGHT * scale);
-        int fillHeight = (int) (com.cranks.dungeons.client.render.StatBarHudRenderer.FILL_HEIGHT * scale);
+        int shieldHeight = (int) (6 * scale); // New 6px height
         int maxFillWidth = (int) (com.cranks.dungeons.client.render.StatBarHudRenderer.MAX_FILL_WIDTH * scale);
 
+        // --- Shield Bar (Above HP) ---
+        if (maxShield > 0) {
+            int shieldY = y - (int) (7 * scale); // 6px height + 1px gap
+            
+            // Draw Shield Background
+            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, com.cranks.dungeons.client.render.StatBarHudRenderer.EMPTY_SHIELD_BAR, x, shieldY, barWidth, shieldHeight);
+
+            float shieldPercent = net.minecraft.util.math.MathHelper.clamp(shield / maxShield, 0, 1);
+            int shieldWidth = (int) (shieldPercent * maxFillWidth);
+            if (shieldWidth > 0) {
+                context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, com.cranks.dungeons.client.render.StatBarHudRenderer.SHIELD_FILL, 
+                        com.cranks.dungeons.client.render.StatBarHudRenderer.MAX_FILL_WIDTH, 
+                        6, 0, 0,
+                        x, shieldY, shieldWidth, shieldHeight);
+            }
+
+            // Shield Text (Smaller)
+            String sText = (int) shield + " / " + (int) maxShield;
+            net.minecraft.client.font.TextRenderer tr = client.textRenderer;
+            int sTextWidth = (int) (tr.getWidth(sText) * 0.75f);
+            
+            context.getMatrices().pushMatrix();
+            context.getMatrices().translate(x + (barWidth / 2f), shieldY + (shieldHeight / 2f));
+            context.getMatrices().scale(0.75f * scale, 0.75f * scale);
+            context.drawTextWithShadow(tr, sText, -(tr.getWidth(sText) / 2), -(tr.fontHeight / 2), 0xFF55FFFF);
+            context.getMatrices().popMatrix();
+        }
+
+        // --- Health Bar ---
         // Draw Background Frame
         context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, com.cranks.dungeons.client.render.StatBarHudRenderer.EMPTY_BAR, x, y, barWidth, barHeight);
 
@@ -467,10 +496,10 @@ public class PartyHudRenderer implements HudRenderCallback {
             context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, com.cranks.dungeons.client.render.StatBarHudRenderer.HEALTH_FILL, 
                     com.cranks.dungeons.client.render.StatBarHudRenderer.MAX_FILL_WIDTH, 
                     com.cranks.dungeons.client.render.StatBarHudRenderer.FILL_HEIGHT, 0, 0,
-                    x, y, hpWidth, fillHeight);
+                    x, y, hpWidth, barHeight);
         }
 
-        // Draw Absorption Overlay (Yellow) - Covers HP
+        // Draw Absorption Overlay (Yellow)
         if (absorption > 0) {
             float absPercent = net.minecraft.util.math.MathHelper.clamp(absorption / maxHealth, 0, 1);
             int absWidth = (int) (absPercent * maxFillWidth);
@@ -478,44 +507,25 @@ public class PartyHudRenderer implements HudRenderCallback {
                 context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, com.cranks.dungeons.client.render.StatBarHudRenderer.ABSORPTION_FILL, 
                         com.cranks.dungeons.client.render.StatBarHudRenderer.MAX_FILL_WIDTH, 
                         com.cranks.dungeons.client.render.StatBarHudRenderer.FILL_HEIGHT, 0, 0,
-                        x, y, absWidth, fillHeight);
+                        x, y, absWidth, barHeight);
             }
         }
 
-        // Draw Energy Shield Overlay (Blue) - Covers HP & Absorption
-        if (shield > 0 && maxShield > 0) {
-            float shieldPercent = net.minecraft.util.math.MathHelper.clamp(shield / maxShield, 0, 1);
-            int shieldWidth = (int) (shieldPercent * maxFillWidth);
-            if (shieldWidth > 0) {
-                context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, com.cranks.dungeons.client.render.StatBarHudRenderer.SHIELD_FILL, 
-                        com.cranks.dungeons.client.render.StatBarHudRenderer.MAX_FILL_WIDTH, 
-                        com.cranks.dungeons.client.render.StatBarHudRenderer.FILL_HEIGHT, 0, 0,
-                        x, y, shieldWidth, fillHeight);
-            }
-        }
-
-        // Text Display
+        // Health Text
         net.minecraft.client.font.TextRenderer textRenderer = client.textRenderer;
-        String text;
-        int color = 0xFFFFFFFF;
-
-        if (shield > 0) {
-            text = (int) shield + " / " + (int) maxShield;
-            color = 0xFF55FFFF; // Cyan/Blue
-        } else {
-            text = (int) health + " / " + (int) maxHealth;
-            if (absorption > 0) {
-                text += " (+" + (int) absorption + ")";
-                color = 0xFFFFAA00; // Gold
-            }
+        String hText = (int) health + " / " + (int) maxHealth;
+        int hColor = 0xFFFFFFFF;
+        if (absorption > 0) {
+            hText += " (+" + (int) absorption + ")";
+            hColor = 0xFFFFAA00;
         }
 
-        int textWidth = textRenderer.getWidth(text);
-        // Center the text relative to the scaled bar
-        int textX = x + (barWidth / 2) - (textWidth / 2);
-        int textY = y + (barHeight / 2) - (textRenderer.fontHeight / 2);
-        
-        context.drawTextWithShadow(textRenderer, text, textX, textY, color);
+        int hTextWidth = (int) (textRenderer.getWidth(hText) * 0.85f);
+        context.getMatrices().pushMatrix();
+        context.getMatrices().translate(x + (barWidth / 2f), y + (barHeight / 2f));
+        context.getMatrices().scale(0.85f * scale, 0.85f * scale);
+        context.drawTextWithShadow(textRenderer, hText, -(textRenderer.getWidth(hText) / 2), -(textRenderer.fontHeight / 2), hColor);
+        context.getMatrices().popMatrix();
     }
 
     

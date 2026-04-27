@@ -159,5 +159,9 @@
   "text.config.cranks-dungeons.option.partyHudMaxRows": "Max Rows",
   "text.config.cranks-dungeons.option.partyHudMaxRows.tooltip": "Maximum number of party members to display in each column",
   "text.config.cranks-dungeons.option.partyHudMaxColumns": "Max Columns",
-  "text.config.cranks-dungeons.option.partyHudMaxColumns.tooltip": "Maximum number of columns for the party HUD layout"
+  "text.config.cranks-dungeons.option.partyHudMaxColumns.tooltip": "Maximum number of columns for the party HUD layout",
+  "text.config.cranks-dungeons.option.showEntityHealthBars": "Show Entity Health Bars",
+  "text.config.cranks-dungeons.option.showEntityHealthBars.tooltip": "Display health bars above the heads of mobs and animals",
+  "text.config.cranks-dungeons.option.showPlayerInfoAboveHead": "Show Player Info Above Head",
+  "text.config.cranks-dungeons.option.showPlayerInfoAboveHead.tooltip": "Display Level, Class, and Party info above other players' heads"
 }

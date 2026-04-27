@@ -66,7 +66,15 @@ public abstract class EnergyShieldDataMixin implements EnergyShieldProvider {
                 // Only sync if changed significantly, or if forcing
                 if (forceSync || Math.abs(currentEnergyShield - lastSyncedShield) > 0.05f) {
                     lastSyncedShield = currentEnergyShield;
+                    
+                    // Send to owner (original packet)
                     net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(player, new com.cranks.dungeons.network.EnergyShieldSyncPacket(currentEnergyShield));
+                    
+                    // Send to trackers (new packet with ID)
+                    com.cranks.dungeons.network.EntityShieldSyncPacket trackingPacket = new com.cranks.dungeons.network.EntityShieldSyncPacket(player.getId(), currentEnergyShield);
+                    for (net.minecraft.server.network.ServerPlayerEntity tracker : net.fabricmc.fabric.api.networking.v1.PlayerLookup.tracking(player)) {
+                        net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(tracker, trackingPacket);
+                    }
                 }
             }
         }

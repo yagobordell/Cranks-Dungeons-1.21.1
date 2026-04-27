@@ -192,6 +192,7 @@ public class CranksDungeonsClient implements ClientModInitializer {
         net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents.AFTER_ENTITIES.register(context -> {
             com.cranks.dungeons.client.render.LightningArcRenderer.render(context);
             com.cranks.dungeons.client.render.AilmentIconRenderer.render(context);
+            com.cranks.dungeons.client.render.EntityStatBarRenderer.render(context);
         });
         
         // Register party HUD renderer
@@ -254,6 +255,18 @@ public class CranksDungeonsClient implements ClientModInitializer {
         ClientPlayNetworking.registerGlobalReceiver(com.cranks.dungeons.network.AilmentSyncPayload.ID, (payload, context) -> {
             context.client().execute(() -> {
                 com.cranks.dungeons.client.render.AilmentIconRenderer.updateAilments(payload.entityId(), payload.ailments());
+            });
+        });
+
+        ClientPlayNetworking.registerGlobalReceiver(com.cranks.dungeons.network.PlayerInfoSyncPacket.ID, (payload, context) -> {
+            context.client().execute(() -> {
+                com.cranks.dungeons.network.PlayerInfoSyncPacket.handle(payload, context.client());
+            });
+        });
+
+        ClientPlayNetworking.registerGlobalReceiver(com.cranks.dungeons.network.EntityShieldSyncPacket.ID, (payload, context) -> {
+            context.client().execute(() -> {
+                com.cranks.dungeons.network.EntityShieldSyncPacket.handle(payload, context.client());
             });
         });
 

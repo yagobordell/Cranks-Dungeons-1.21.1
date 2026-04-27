@@ -8,6 +8,8 @@ public class ModConfigModel {
 
     @SectionHeader("hud")
     public boolean useStatBars = false;
+    public boolean showEntityHealthBars = true;
+    public boolean showPlayerInfoAboveHead = true;
     
     @SectionHeader("combat")
     public boolean showMyDealtDamage = true;
