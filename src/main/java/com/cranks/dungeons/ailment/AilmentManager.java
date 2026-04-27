@@ -396,10 +396,11 @@ public class AilmentManager {
                     if (currentShield >= weightedDamage) {
                         float newShield = currentShield - weightedDamage;
                         esProvider.cranksdungeons$setCurrentEnergyShield(newShield);
-                        if (player instanceof net.minecraft.server.network.ServerPlayerEntity serverPlayer) {
+                        if (entity instanceof net.minecraft.server.network.ServerPlayerEntity serverPlayer) {
+                            float maxShield = (float) entity.getAttributeValue(com.cranks.dungeons.registry.ModAttributes.ENERGY_SHIELD);
                             net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(
                                 serverPlayer,
-                                new com.cranks.dungeons.network.EnergyShieldSyncPacket(newShield)
+                                new com.cranks.dungeons.network.EnergyShieldSyncPacket(newShield, maxShield)
                             );
                         }
                         damageToApply = 0; // Fully absorbed
@@ -407,10 +408,11 @@ public class AilmentManager {
                         float absorptionRatio = currentShield / weightedDamage;
                         damageToApply -= damageToApply * absorptionRatio;
                         esProvider.cranksdungeons$setCurrentEnergyShield(0.0f);
-                        if (player instanceof net.minecraft.server.network.ServerPlayerEntity serverPlayer) {
+                        if (entity instanceof net.minecraft.server.network.ServerPlayerEntity serverPlayer) {
+                            float maxShield = (float) entity.getAttributeValue(com.cranks.dungeons.registry.ModAttributes.ENERGY_SHIELD);
                             net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(
                                 serverPlayer,
-                                new com.cranks.dungeons.network.EnergyShieldSyncPacket(0.0f)
+                                new com.cranks.dungeons.network.EnergyShieldSyncPacket(0.0f, maxShield)
                             );
                         }
                     }

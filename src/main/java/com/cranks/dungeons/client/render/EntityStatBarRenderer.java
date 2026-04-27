@@ -7,6 +7,7 @@ import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.render.*;
+import net.minecraft.client.render.RenderLayers;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
@@ -23,16 +24,36 @@ import java.util.concurrent.ConcurrentHashMap;
 public class EntityStatBarRenderer {
 
     private static final Map<Integer, PlayerInfo> PLAYER_INFO_CACHE = new ConcurrentHashMap<>();
-    private static final Map<Integer, Float> ENTITY_SHIELD_CACHE = new ConcurrentHashMap<>();
+    private static final Map<Integer, ShieldInfo> ENTITY_SHIELD_CACHE = new ConcurrentHashMap<>();
 
     public record PlayerInfo(int level, String className, String partyLeaderName) {}
+    
+    public static class ShieldInfo {
+        public float current;
+        public float max;
+        public float displayed;
+        public long lastUpdateTime;
+        
+        public ShieldInfo(float current, float max) {
+            this.current = current;
+            this.max = max;
+            this.displayed = current;
+            this.lastUpdateTime = System.currentTimeMillis();
+        }
+    }
 
     public static void updatePlayerInfo(int entityId, int level, String className, String partyLeaderName) {
         PLAYER_INFO_CACHE.put(entityId, new PlayerInfo(level, className, partyLeaderName));
     }
 
-    public static void updateEntityShield(int entityId, float shield) {
-        ENTITY_SHIELD_CACHE.put(entityId, shield);
+    public static void updateEntityShield(int entityId, float current, float max) {
+        ENTITY_SHIELD_CACHE.compute(entityId, (id, old) -> {
+            if (old == null) return new ShieldInfo(current, max);
+            old.current = current;
+            old.max = max;
+            old.lastUpdateTime = System.currentTimeMillis();
+            return old;
+        });
     }
 
     private static final Identifier EMPTY_BAR = Identifier.of(CranksDungeons.MOD_ID, "textures/gui/sprites/hud/stat_bar/empty.png");
@@ -73,7 +94,7 @@ public class EntityStatBarRenderer {
                 double dist = living.squaredDistanceTo(client.player);
                 if (dist > 32 * 32) continue;
                 
-                // Occlusion check (if not visible through walls)
+                // Only show nameplate if the entity itself is visible
                 if (!client.player.canSee(living)) continue;
 
                 matrices.push();
@@ -174,17 +195,25 @@ public class EntityStatBarRenderer {
         float xStart = -barWidth / 2f;
 
         // --- Shield Bar (Above HP) ---
-        float shield = 0;
-        float maxShield = (float) entity.getAttributeValue(ModAttributes.ENERGY_SHIELD);
+        ShieldInfo sInfo = ENTITY_SHIELD_CACHE.get(entity.getId());
+        if (sInfo != null && sInfo.max > 0) {
+            // Client-side interpolation for smooth recharge/damage
+            float delta = (System.currentTimeMillis() - sInfo.lastUpdateTime) / 1000f;
+            sInfo.lastUpdateTime = System.currentTimeMillis();
+            
+            if (Math.abs(sInfo.displayed - sInfo.current) > 0.01f) {
+                if (sInfo.displayed < sInfo.current) {
+                    // Smoothly rise (recharge) - increased speed to be snappier
+                    sInfo.displayed = Math.min(sInfo.current, sInfo.displayed + (sInfo.max * 0.4f) * delta);
+                } else {
+                    // Instant drop for damage
+                    sInfo.displayed = sInfo.current;
+                }
+            } else {
+                sInfo.displayed = sInfo.current;
+            }
 
-        if (entity instanceof EnergyShieldProvider provider) {
-            shield = provider.cranksdungeons$getCurrentEnergyShield();
-        } else if (ENTITY_SHIELD_CACHE.containsKey(entity.getId())) {
-            shield = ENTITY_SHIELD_CACHE.get(entity.getId());
-        }
-
-        if (maxShield > 0) {
-            float shieldPercent = MathHelper.clamp(shield / maxShield, 0, 1);
+            float shieldPercent = MathHelper.clamp(sInfo.displayed / sInfo.max, 0, 1);
             float sHeight = 2.66f; // 6px height (6/9 * 4)
             // Background
             drawBar(matrices, consumers, EMPTY_SHIELD_BAR, xStart, yOffset, barWidth, sHeight, 1.0f, 0, 0, 1.0f);
@@ -193,7 +222,7 @@ public class EntityStatBarRenderer {
                 float fillWidth = barWidth * shieldPercent;
                 drawBar(matrices, consumers, SHIELD_FILL, xStart, yOffset, fillWidth, sHeight, 1.0f, -0.01f, 0, shieldPercent);
             }
-            yOffset += 5.5f;
+            yOffset += 3.2f;
         }
 
         // --- Health Bar ---
@@ -223,7 +252,7 @@ public class EntityStatBarRenderer {
     }
 
     private static void drawBar(MatrixStack matrices, VertexConsumerProvider consumers, Identifier texture, float x, float y, float width, float height, float alpha, float zOffset, float uStart, float uEnd) {
-        VertexConsumer buffer = consumers.getBuffer(RenderLayers.entityTranslucent(texture));
+        VertexConsumer buffer = consumers.getBuffer(RenderLayers.textSeeThrough(texture));
         Matrix4f model = matrices.peek().getPositionMatrix();
         
         buffer.vertex(model, x, y, zOffset).color(1f, 1f, 1f, alpha).texture(uStart, 0).overlay(OverlayTexture.DEFAULT_UV).light(LightmapTextureManager.MAX_LIGHT_COORDINATE).normal(0, 1, 0);

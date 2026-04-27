@@ -28,16 +28,16 @@ public abstract class KnockbackProcessorMixin {
         // 1. Apply Attacker's Bonus first (Multiplicative is recommended)
         if (attacker == null) attacker = target.getLastAttacker(); // Fallback for some mixin execution orders
 
-        if (attacker instanceof PlayerEntity player) {
-            ItemStack weapon = player.getMainHandStack();
-            ItemStack chestplate = player.getEquippedStack(net.minecraft.entity.EquipmentSlot.CHEST);
+        if (attacker != null) {
+            ItemStack weapon = attacker.getMainHandStack();
+            ItemStack chestplate = attacker.getEquippedStack(net.minecraft.entity.EquipmentSlot.CHEST);
 
-            double knockbackBonus = player.getAttributeValue(ModAttributes.KNOCKBACK);
-            knockbackBonus += EquipmentStatApplier.getItemStatValue(weapon, "knockback");
+            double knockbackBonus = attacker.getAttributeValue(ModAttributes.KNOCKBACK);
+            if (weapon != null) knockbackBonus += EquipmentStatApplier.getItemStatValue(weapon, "knockback");
 
             // Add enchantment bonuses
-            knockbackBonus += getEnchantmentValue(weapon, "minecraft:bonus_knockback", 0.35);
-            knockbackBonus += getEnchantmentValue(chestplate, "minecraft:bonus_knockback", 0.35);
+            if (weapon != null) knockbackBonus += getEnchantmentValue(weapon, "minecraft:bonus_knockback", 0.35);
+            if (chestplate != null) knockbackBonus += getEnchantmentValue(chestplate, "minecraft:bonus_knockback", 0.35);
 
             // If base strength is 0 (standing attack), give it a base strength from the bonus
             if (finalStrength <= 0.01 && knockbackBonus > 0) {

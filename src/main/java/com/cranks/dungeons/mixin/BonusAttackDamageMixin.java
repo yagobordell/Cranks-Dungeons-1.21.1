@@ -21,7 +21,7 @@ public class BonusAttackDamageMixin {
 
     @ModifyVariable(method = "damage", at = @At("HEAD"), ordinal = 0, argsOnly = true)
     private float applyBonusAttackDamage(float amount, ServerWorld world, DamageSource source) {
-        if (source.getAttacker() instanceof PlayerEntity attacker) {
+        if (source.getAttacker() instanceof LivingEntity attacker) {
             ItemStack weapon = CombatUtility.getCombatWeapon(source, attacker);
             ItemStack chestplate = attacker.getEquippedStack(EquipmentSlot.CHEST);
 
@@ -30,15 +30,15 @@ public class BonusAttackDamageMixin {
                     "bonus_attack_damage", source);
 
             // Add bonus attack damage from weapon/chestplate enchantments
-            bonusDamage += getEnchantmentValue(weapon, "minecraft:attack_damage", 4.0);
-            bonusDamage += getEnchantmentValue(chestplate, "minecraft:attack_damage", 4.0);
+            if (weapon != null) bonusDamage += getEnchantmentValue(weapon, "minecraft:attack_damage", 4.0);
+            if (chestplate != null) bonusDamage += getEnchantmentValue(chestplate, "minecraft:attack_damage", 4.0);
 
             // Apply flat bonus first
             float damageWithBonus = amount + (float) bonusDamage;
 
             // Get percentage multipliers from items and attributes
-            double percentFromWeapon = EquipmentStatApplier.getItemStatValue(weapon, "attack_damage_percent");
-            double percentFromChestplate = EquipmentStatApplier.getItemStatValue(chestplate, "attack_damage_percent");
+            double percentFromWeapon = weapon != null ? EquipmentStatApplier.getItemStatValue(weapon, "attack_damage_percent") : 0;
+            double percentFromChestplate = chestplate != null ? EquipmentStatApplier.getItemStatValue(chestplate, "attack_damage_percent") : 0;
             double attributePercent = attacker.getAttributeValue(ModAttributes.ATTACK_DAMAGE_PERCENT);
             double weaponSpecificPercent = CombatUtility.getWeaponSpecificDamageBonus(attacker, weapon);
 

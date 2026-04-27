@@ -36,7 +36,7 @@ public abstract class CriticalStrikeMixin {
         // Reset crit state
         CriticalHitState.reset();
 
-        if (source.getAttacker() instanceof PlayerEntity attacker) {
+        if (source.getAttacker() instanceof LivingEntity attacker) {
             LivingEntity target = (LivingEntity) (Object) this;
             ItemStack weapon = CombatUtility.getCombatWeapon(source, attacker);
             ItemStack chest = attacker.getEquippedStack(EquipmentSlot.CHEST);
@@ -44,39 +44,35 @@ public abstract class CriticalStrikeMixin {
             ItemStack leggings = attacker.getEquippedStack(EquipmentSlot.LEGS);
             ItemStack boots = attacker.getEquippedStack(EquipmentSlot.FEET);
 
-            // Crit Chance with enchantments from all armor pieces
+            // Crit Chance with enchantments
             double critChance = CombatUtility.getAttributeValue(attacker, ModAttributes.CRIT_CHANCE, weapon, "crit_chance", source);
-            critChance += getEnchantmentValue(weapon, "minecraft:crit_chance", 0.075);
-            critChance += getEnchantmentValue(chest, "minecraft:crit_chance", 0.075);
-            critChance += getEnchantmentValue(helmet, "minecraft:crit_chance", 0.075);
-            critChance += getEnchantmentValue(leggings, "minecraft:crit_chance", 0.075);
-            critChance += getEnchantmentValue(boots, "minecraft:crit_chance", 0.075);
+            if (weapon != null) critChance += getEnchantmentValue(weapon, "minecraft:crit_chance", 0.075);
+            if (chest != null) critChance += getEnchantmentValue(chest, "minecraft:crit_chance", 0.075);
+            if (helmet != null) critChance += getEnchantmentValue(helmet, "minecraft:crit_chance", 0.075);
+            if (leggings != null) critChance += getEnchantmentValue(leggings, "minecraft:crit_chance", 0.075);
+            if (boots != null) critChance += getEnchantmentValue(boots, "minecraft:crit_chance", 0.075);
 
             if (AilmentManager.isAfflicted(target)) {
                 critChance += attacker.getAttributeValue(ModAttributes.CRIT_CHANCE_AGAINST_AFFLICTED);
             }
 
             float finalAmount = amount;
-            boolean isCrit = false;
 
             if (critChance > 0 && attacker.getRandom().nextFloat() < critChance) {
                 double critMult = CombatUtility.getAttributeValue(attacker, ModAttributes.CRIT_MULTIPLIER, weapon, "crit_multiplier", source);
                 
                 // --- Armor Crit Mitigation ---
                 float extraDamageMult = (float) (critMult - 1.0);
-                if (target instanceof PlayerEntity defender) {
-                    double mitigationMultiplier = defender.getAttributeValue(ModAttributes.ARMOR_CRIT_MITIGATION);
-                    if (mitigationMultiplier > 0) {
-                        double armor = defender.getAttributeValue(net.minecraft.entity.attribute.EntityAttributes.ARMOR);
-                        double mitigation = Math.min(1.0, armor * mitigationMultiplier);
-                        extraDamageMult *= (float) (1.0 - mitigation);
-                    }
+                double mitigationMultiplier = target.getAttributeValue(ModAttributes.ARMOR_CRIT_MITIGATION);
+                if (mitigationMultiplier > 0) {
+                    double armor = target.getAttributeValue(net.minecraft.entity.attribute.EntityAttributes.ARMOR);
+                    double mitigation = Math.min(1.0, armor * mitigationMultiplier);
+                    extraDamageMult *= (float) (1.0 - mitigation);
                 }
                 
                 finalAmount = amount * (1.0f + extraDamageMult);
-                isCrit = true;
                 CriticalHitState.setCriticalHit(true);
-                spawnCriticalEffects(world, target);
+                spawnCriticalEffects(world, target, attacker);
             }
 
             double lifeStealStat = CombatUtility.getAttributeValue(attacker, ModAttributes.LIFE_STEAL, weapon, "life_steal", source);
@@ -104,7 +100,7 @@ public abstract class CriticalStrikeMixin {
     }
 
     @Unique
-    private void spawnCriticalEffects(ServerWorld world, LivingEntity target) {
+    private void spawnCriticalEffects(ServerWorld world, LivingEntity target, LivingEntity attacker) {
         // High density enchanted hit particles (Purple/White)
         world.spawnParticles(
                 net.minecraft.particle.ParticleTypes.ENCHANTED_HIT,
@@ -131,7 +127,7 @@ public abstract class CriticalStrikeMixin {
                 null,
                 target.getBlockPos(),
                 ModSounds.CRITICAL_HIT,
-                SoundCategory.PLAYERS,
+                attacker instanceof PlayerEntity ? SoundCategory.PLAYERS : SoundCategory.HOSTILE,
                 1.0f,
                 1.0f
         );

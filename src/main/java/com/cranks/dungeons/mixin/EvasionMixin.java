@@ -40,17 +40,16 @@ public abstract class EvasionMixin {
             CallbackInfoReturnable<Boolean> cir) {
         LivingEntity entity = (LivingEntity) (Object) this;
 
-        // Only players (or specific mobs) should evade; exclude void/fall damage
-        if (!(entity instanceof PlayerEntity player)
-                || source.isIn(net.minecraft.registry.tag.DamageTypeTags.BYPASSES_ARMOR)) {
+        // All living entities can evade; exclude void/fall damage
+        if (source.isIn(net.minecraft.registry.tag.DamageTypeTags.BYPASSES_ARMOR)) {
             return;
         }
 
-        double rating = player.getAttributeValue(ModAttributes.EVASION_RATING);
+        double rating = entity.getAttributeValue(ModAttributes.EVASION_RATING);
         if (rating <= 0)
             return;
 
-        double armor = player.getAttributeValue(EntityAttributes.ARMOR);
+        double armor = entity.getAttributeValue(EntityAttributes.ARMOR);
 
         double k = 400.0;
         double dodgeChance = rating / (rating + k + (armor * 4.0));
@@ -60,15 +59,15 @@ public abstract class EvasionMixin {
         if (evasionEntropy >= 1.0f) {
             evasionEntropy -= 1.0f;
 
-            world.playSound(null, player.getBlockPos(),
+            world.playSound(null, entity.getBlockPos(),
                     net.minecraft.sound.SoundEvents.ENTITY_PLAYER_ATTACK_SWEEP,
-                    net.minecraft.sound.SoundCategory.PLAYERS, 1.0f, 1.5f);
+                    entity instanceof PlayerEntity ? net.minecraft.sound.SoundCategory.PLAYERS : net.minecraft.sound.SoundCategory.HOSTILE, 1.0f, 1.5f);
 
             world.spawnParticles(
                     net.minecraft.particle.ParticleTypes.CLOUD,
-                    player.getX(),
-                    player.getY() + 1.0,
-                    player.getZ(),
+                    entity.getX(),
+                    entity.getY() + entity.getHeight() / 2.0,
+                    entity.getZ(),
                     10,
                     0.5, 0.5, 0.5,
                     0.1);

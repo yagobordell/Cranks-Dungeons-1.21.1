@@ -78,7 +78,7 @@ public final class EquipmentChangeHandler {
             }
 
             // Always sync to client after equipment change to ensure display is correct
-            ServerPlayNetworking.send(player, new EnergyShieldSyncPacket(currentShield));
+            ServerPlayNetworking.send(player, new EnergyShieldSyncPacket(currentShield, (float) maxShield));
 
             CranksDungeons.LOGGER.debug("Synced energy shield to {} (max: {}) for player {}",
                     currentShield, maxShield, player.getName().getString());

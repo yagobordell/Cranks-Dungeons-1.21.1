@@ -1,13 +1,13 @@
 package com.cranks.dungeons.util;
 
 import com.cranks.dungeons.util.WeaponProvider;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.TridentEntity;
 import net.minecraft.item.ItemStack;
 import com.cranks.dungeons.equipment.EquipmentType;
 import com.cranks.dungeons.registry.ModAttributes;
+import net.minecraft.entity.LivingEntity;
 
 public class CombatUtility {
 
@@ -17,7 +17,7 @@ public class CombatUtility {
      * stack.
      * Otherwise, returns the attacker's main hand stack.
      */
-    public static ItemStack getCombatWeapon(DamageSource source, PlayerEntity attacker) {
+    public static ItemStack getCombatWeapon(DamageSource source, LivingEntity attacker) {
         if (source.getSource() instanceof WeaponProvider provider) {
             ItemStack weapon = provider.cranks$getWeapon();
             if (weapon != null && !weapon.isEmpty()) {
@@ -35,15 +35,10 @@ public class CombatUtility {
     }
 
     /**
-     * Returns the attribute value for a player, accounting for trident throws and
+     * Returns the attribute value for an entity, accounting for trident throws and
      * potential doubling.
-     * To prevent doubling (e.g. if the trident returned to hand via Loyalty), we
-     * subtract
-     * the stat value of the player's CURRENTLY held item before adding the stats of
-     * the
-     * weapon being analyzed.
      */
-    public static double getAttributeValue(PlayerEntity attacker,
+    public static double getAttributeValue(LivingEntity attacker,
             net.minecraft.registry.entry.RegistryEntry<net.minecraft.entity.attribute.EntityAttribute> attribute,
             ItemStack weapon, String statId, DamageSource source) {
         double currentTotal = attacker.getAttributeValue(attribute);
@@ -66,10 +61,10 @@ public class CombatUtility {
     }
 
     /**
-     * Returns the weapon-specific damage percentage bonus for the player based on
+     * Returns the weapon-specific damage percentage bonus for the entity based on
      * the held weapon.
      */
-    public static double getWeaponSpecificDamageBonus(PlayerEntity attacker, ItemStack weapon) {
+    public static double getWeaponSpecificDamageBonus(LivingEntity attacker, ItemStack weapon) {
         EquipmentType type = EquipmentType.getTypeForItem(weapon).orElse(null);
         if (type == null)
             return 0.0;
@@ -113,13 +108,13 @@ public class CombatUtility {
         };
     }
 
-    public static boolean isTwoHanding(PlayerEntity player, ItemStack mainWeapon) {
-        ItemStack offhand = player.getOffHandStack();
+    public static boolean isTwoHanding(LivingEntity entity, ItemStack mainWeapon) {
+        ItemStack offhand = entity.getOffHandStack();
         return offhand.isEmpty();
     }
 
-    public static boolean isDualWielding(PlayerEntity player, ItemStack mainWeapon) {
-        ItemStack offhand = player.getOffHandStack();
+    public static boolean isDualWielding(LivingEntity entity, ItemStack mainWeapon) {
+        ItemStack offhand = entity.getOffHandStack();
         if (offhand.isEmpty())
             return false;
 
@@ -129,8 +124,8 @@ public class CombatUtility {
         return mainType != null && mainType == offType;
     }
 
-    public static boolean isOneHanding(PlayerEntity player, ItemStack mainWeapon) {
-        ItemStack offhand = player.getOffHandStack();
+    public static boolean isOneHanding(LivingEntity entity, ItemStack mainWeapon) {
+        ItemStack offhand = entity.getOffHandStack();
         if (offhand.isEmpty())
             return false;
 

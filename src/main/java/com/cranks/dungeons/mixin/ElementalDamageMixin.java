@@ -86,21 +86,21 @@ public abstract class ElementalDamageMixin {
         // Accumulate bleed damage if target has bleed ailment
         AilmentManager.accumulateBleedDamage(target, amount);
 
-        if (source.getAttacker() instanceof PlayerEntity attacker) {
-            handlePlayerAttacker(world, source, amount, attacker, target);
+        if (source.getAttacker() instanceof LivingEntity attacker) {
+            handleLivingAttacker(world, source, amount, attacker, target);
         } else {
             handleNonPlayerDamage(world, source, amount, target);
         }
     }
 
     @Unique
-    private void handlePlayerAttacker(ServerWorld world, DamageSource source, float amount, PlayerEntity attacker,
+    private void handleLivingAttacker(ServerWorld world, DamageSource source, float amount, LivingEntity attacker,
             LivingEntity target) {
         ItemStack weapon = CombatUtility.getCombatWeapon(source, attacker);
         ItemStack chestplate = attacker.getEquippedStack(EquipmentSlot.CHEST);
 
         // Check if this hit was a critical strike
-        boolean isPvP = target instanceof PlayerEntity;
+        boolean isPvP = attacker instanceof PlayerEntity && target instanceof PlayerEntity;
         double pvpMultiplier = isPvP ? 0.25 : 1.0;
 
         boolean isCrit = CriticalHitState.isCriticalHit();
@@ -384,22 +384,23 @@ public abstract class ElementalDamageMixin {
             }
 
             // Play per-element hit sounds
+            SoundCategory soundCategory = attacker instanceof PlayerEntity ? SoundCategory.PLAYERS : SoundCategory.HOSTILE;
             if (finalFireDamage > 0) {
-                world.playSoundFromEntity(null, target, ModSounds.ELEMENTAL_FIRE_HIT, SoundCategory.PLAYERS, 1.5f,
+                world.playSoundFromEntity(null, target, ModSounds.ELEMENTAL_FIRE_HIT, soundCategory, 1.5f,
                         1.0f);
             }
             if (finalColdDamage > 0) {
-                world.playSoundFromEntity(null, target, ModSounds.ELEMENTAL_COLD_HIT, SoundCategory.PLAYERS, 1.0f,
+                world.playSoundFromEntity(null, target, ModSounds.ELEMENTAL_COLD_HIT, soundCategory, 1.0f,
                         1.0f);
             }
             if (finalLightningDamage > 0) {
-                world.playSoundFromEntity(null, target, ModSounds.ELEMENTAL_LIGHTNING_HIT, SoundCategory.PLAYERS, 0.8f,
+                world.playSoundFromEntity(null, target, ModSounds.ELEMENTAL_LIGHTNING_HIT, soundCategory, 0.8f,
                         1.0f);
                 // Note: Shock chain is now triggered at the start of the method (line ~58)
                 // to ensure it works even when the target dies from the hit
             }
             if (finalVoidDamage > 0) {
-                world.playSoundFromEntity(null, target, ModSounds.ELEMENTAL_VOID_HIT, SoundCategory.PLAYERS, 0.6f,
+                world.playSoundFromEntity(null, target, ModSounds.ELEMENTAL_VOID_HIT, soundCategory, 0.6f,
                         1.0f);
             }
 
@@ -560,18 +561,15 @@ public abstract class ElementalDamageMixin {
         if (damageAmount <= 0)
             return;
 
-        // Energy Shield Mitigation for players
-        if (target instanceof PlayerEntity player
-                && target instanceof com.cranks.dungeons.EnergyShieldProvider esProvider) {
+        // Energy Shield Mitigation for all living entities
+        if (target instanceof com.cranks.dungeons.EnergyShieldProvider esProvider) {
             float currentShield = esProvider.cranksdungeons$getCurrentEnergyShield();
 
-            // Check shield cooldown - allow the same-frame hit (currentTime ==
-            // lastDamageTime)
-            // but block if it's a different hit within the cooldown window.
+            // Check shield cooldown
             long currentTime = world.getTime();
             long lastDamageTime = esProvider.cranksdungeons$getLastDamageTime();
             boolean isSameHit = (currentTime == lastDamageTime);
-            boolean onCooldown = (currentTime - lastDamageTime < 10L); // 10L = SHIELD_COOLDOWN_TICKS
+            boolean onCooldown = (currentTime - lastDamageTime < 10L); 
 
             if (currentShield > 0 && (isSameHit || !onCooldown)) {
                 // Weighted damage (Void deals 2x to shields)
@@ -580,13 +578,20 @@ public abstract class ElementalDamageMixin {
                 if (currentShield >= weightedDamage) {
                     float newShield = currentShield - weightedDamage;
                     esProvider.cranksdungeons$setCurrentEnergyShield(newShield);
+                    esProvider.cranksdungeons$setLastDamageTime(currentTime);
 
-                    // Sync to client
-                    if (player instanceof net.minecraft.server.network.ServerPlayerEntity serverPlayer) {
+                    // Sync to owner if player
+                    if (target instanceof net.minecraft.server.network.ServerPlayerEntity serverPlayer) {
+                        float maxShield = (float) target.getAttributeValue(com.cranks.dungeons.registry.ModAttributes.ENERGY_SHIELD);
                         net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(
                                 serverPlayer,
-                                new com.cranks.dungeons.network.EnergyShieldSyncPacket(newShield));
+                                new com.cranks.dungeons.network.EnergyShieldSyncPacket(newShield, maxShield));
                     }
+                    
+                    // Manual knockback for absorbed hits
+                    // Note: Elemental damage usually doesn't apply knockback unless specified,
+                    // but we ensure it works if the hit was a player attack.
+                    
                     return; // Fully absorbed
                 } else {
                     float absorptionRatio = currentShield / weightedDamage;
@@ -594,10 +599,13 @@ public abstract class ElementalDamageMixin {
                     damageAmount -= absorbedHealthDamage;
 
                     esProvider.cranksdungeons$setCurrentEnergyShield(0.0f);
-                    if (player instanceof net.minecraft.server.network.ServerPlayerEntity serverPlayer) {
+                    esProvider.cranksdungeons$setLastDamageTime(currentTime);
+
+                    if (target instanceof net.minecraft.server.network.ServerPlayerEntity serverPlayer) {
+                        float maxShield = (float) target.getAttributeValue(com.cranks.dungeons.registry.ModAttributes.ENERGY_SHIELD);
                         net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(
                                 serverPlayer,
-                                new com.cranks.dungeons.network.EnergyShieldSyncPacket(0.0f));
+                                new com.cranks.dungeons.network.EnergyShieldSyncPacket(0.0f, maxShield));
                     }
                     // Remaining damage falls through to health application below
                 }

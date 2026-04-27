@@ -8,7 +8,7 @@ import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
 import com.cranks.dungeons.CranksDungeons;
 
-public record EnergyShieldSyncPacket(float currentShield) implements CustomPayload {
+public record EnergyShieldSyncPacket(float currentShield, float maxShield) implements CustomPayload {
 
     public static final CustomPayload.Id<EnergyShieldSyncPacket> ID =
             new CustomPayload.Id<>(Identifier.of(CranksDungeons.MOD_ID, "energy_shield_sync"));
@@ -17,6 +17,8 @@ public record EnergyShieldSyncPacket(float currentShield) implements CustomPaylo
             PacketCodec.tuple(
                     PacketCodecs.FLOAT,
                     EnergyShieldSyncPacket::currentShield,
+                    PacketCodecs.FLOAT,
+                    EnergyShieldSyncPacket::maxShield,
                     EnergyShieldSyncPacket::new
             );
 

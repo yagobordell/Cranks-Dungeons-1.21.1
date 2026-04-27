@@ -44,7 +44,6 @@
 		"ItemDefaultComponentsMixin",
 		"EvasionMixin",
 		"EnergyShieldDataMixin",
-		"EnergyShieldInitMixin",
 		"EnergyShieldDamageMixin",
 		"EnergyShieldRegenMixin",
 		"DisableEnchantmentWhileSneakingMixin",

@@ -16,9 +16,9 @@ public class EntityTrackingSyncHandler {
             if (trackedEntity instanceof LivingEntity living) {
                 if (living instanceof EnergyShieldProvider provider) {
                     float currentShield = provider.cranksdungeons$getCurrentEnergyShield();
-                    // No need to send if shield is 0
-                    if (currentShield > 0) {
-                        ServerPlayNetworking.send(player, new EntityShieldSyncPacket(living.getId(), currentShield));
+                    float maxShield = (float) living.getAttributeValue(com.cranks.dungeons.registry.ModAttributes.ENERGY_SHIELD);
+                    if (maxShield > 0) {
+                        ServerPlayNetworking.send(player, new EntityShieldSyncPacket(living.getId(), currentShield, maxShield));
                     }
                 }
 

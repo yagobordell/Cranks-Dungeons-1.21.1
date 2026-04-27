@@ -9,6 +9,7 @@ import com.cranks.dungeons.damage.DamageElement;
 import com.cranks.dungeons.ailment.AilmentManager;
 import com.cranks.dungeons.network.DamageNumberSender;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.damage.DamageTypes;
 import net.minecraft.entity.player.PlayerEntity;
@@ -24,7 +25,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(PlayerEntity.class)
+@Mixin(LivingEntity.class)
 public class EnergyShieldDamageMixin {
 
     private static final long SHIELD_COOLDOWN_TICKS = 10L;
@@ -35,16 +36,16 @@ public class EnergyShieldDamageMixin {
      */
     @ModifyVariable(method = "damage", at = @At("HEAD"), argsOnly = true)
     private float applyEnergyShieldMitigation(float amount, ServerWorld world, DamageSource source) {
-        PlayerEntity self = (PlayerEntity) (Object) this;
-        if (!(self instanceof ServerPlayerEntity serverPlayer)) return amount;
+        LivingEntity self = (LivingEntity) (Object) this;
+        if (world.isClient()) return amount;
         if (amount <= 0) return 0.0f;
 
-        // Bypass shield if player is invulnerable
+        // Bypass shield if entity is invulnerable
         if (self.isInvulnerableTo(world, source)) return 0.0f;
 
-        // Party friendly fire check
-        if (source.getAttacker() instanceof PlayerEntity attacker) {
-            if (com.cranks.dungeons.party.PartyManager.areInSameParty(self.getUuid(), attacker.getUuid())) {
+        // Party friendly fire check (only if target is player)
+        if (self instanceof PlayerEntity player && source.getAttacker() instanceof PlayerEntity attacker) {
+            if (com.cranks.dungeons.party.PartyManager.areInSameParty(player.getUuid(), attacker.getUuid())) {
                 return 0.0f;
             }
         }
@@ -92,24 +93,41 @@ public class EnergyShieldDamageMixin {
             
             triggerShieldVisuals(world, self, currentShield, newShield);
             triggerDamageNumbers(world, self, source, amount);
-            ServerPlayNetworking.send(serverPlayer, new EnergyShieldSyncPacket(newShield));
+            
+            // Sync to owner player if applicable
+            float finalShield = newShield;
+            if (self instanceof ServerPlayerEntity serverPlayer) {
+                ServerPlayNetworking.send(serverPlayer, new EnergyShieldSyncPacket(finalShield, (float) maxShield));
+            } else {
+                com.cranks.dungeons.network.EntityShieldSyncPacket packet = new com.cranks.dungeons.network.EntityShieldSyncPacket(self.getId(), finalShield, (float) maxShield);
+                net.fabricmc.fabric.api.networking.v1.PlayerLookup.tracking(self).forEach(p -> ServerPlayNetworking.send(p, packet));
+            }
 
             // Manual Knockback for fully absorbed hits
             if (!source.isIn(net.minecraft.registry.tag.DamageTypeTags.NO_KNOCKBACK)) {
-                // IMPORTANT: Since super.damage is cancelled, we must manually set the attacker
-                // so that the KnockbackProcessorMixin can find the player and apply weapon bonuses.
                 if (source.getAttacker() instanceof net.minecraft.entity.LivingEntity livingAttacker) {
                     self.setAttacker(livingAttacker);
+                    
+                    double diffX = livingAttacker.getX() - self.getX();
+                    double diffZ = livingAttacker.getZ() - self.getZ();
+                    
+                    if (diffX * diffX + diffZ * diffZ < 1.0E-4D) {
+                        diffX = -Math.sin(livingAttacker.getYaw() * 0.017453292F);
+                        diffZ = Math.cos(livingAttacker.getYaw() * 0.017453292F);
+                    }
+                    
+                    // Reverted to simple base knockback (let Mixins handle scaling)
+                    self.takeKnockback(0.5, diffX, diffZ);
+                } else if (source.getPosition() != null) {
+                    self.takeKnockback(0.5, source.getPosition().x - self.getX(), source.getPosition().z - self.getZ());
                 }
-
-                net.minecraft.util.math.Vec3d vec3d = source.getPosition();
-                if (vec3d != null) {
-                    self.takeKnockback(0.4000000059604645, vec3d.getX() - self.getX(), vec3d.getZ() - self.getZ());
-                } else if (source.getAttacker() != null) {
-                    self.takeKnockback(0.4000000059604645, source.getAttacker().getX() - self.getX(), source.getAttacker().getZ() - self.getZ());
+                
+                // SYNC: Send velocity update packet to all tracking players
+                net.minecraft.network.packet.s2c.play.EntityVelocityUpdateS2CPacket velocityPacket = new net.minecraft.network.packet.s2c.play.EntityVelocityUpdateS2CPacket(self);
+                if (self instanceof ServerPlayerEntity serverPlayer) {
+                    serverPlayer.networkHandler.sendPacket(velocityPacket);
                 }
-                // SYNC: Manually send velocity update packet since damage method is cancelled
-                serverPlayer.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.EntityVelocityUpdateS2CPacket(self));
+                world.getChunkManager().sendToNearbyPlayers(self, velocityPacket);
             }
             
             return 0.0f; 
@@ -124,11 +142,21 @@ public class EnergyShieldDamageMixin {
             
             triggerShieldVisuals(world, self, currentShield, 0.0f);
             triggerDamageNumbers(world, self, source, absorbedAmount);
-            ServerPlayNetworking.send(serverPlayer, new EnergyShieldSyncPacket(0.0f));
+            
+            if (self instanceof ServerPlayerEntity serverPlayer) {
+                ServerPlayNetworking.send(serverPlayer, new EnergyShieldSyncPacket(0.0f, (float) maxShield));
+            } else {
+                com.cranks.dungeons.network.EntityShieldSyncPacket packet = new com.cranks.dungeons.network.EntityShieldSyncPacket(self.getId(), 0.0f, (float) maxShield);
+                net.fabricmc.fabric.api.networking.v1.PlayerLookup.tracking(self).forEach(p -> ServerPlayNetworking.send(p, packet));
+            }
 
-            // Force velocity sync on shield break to prevent "stuttering" or nullified knockback in PvP
+            // Force velocity sync on shield break
             if (!source.isIn(net.minecraft.registry.tag.DamageTypeTags.NO_KNOCKBACK)) {
-                serverPlayer.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.EntityVelocityUpdateS2CPacket(self));
+                if (self instanceof ServerPlayerEntity serverPlayer) {
+                    serverPlayer.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.EntityVelocityUpdateS2CPacket(self));
+                } else {
+                    world.getChunkManager().sendToNearbyPlayers(self, new net.minecraft.network.packet.s2c.play.EntityVelocityUpdateS2CPacket(self));
+                }
             }
 
             return remainingAmount;
@@ -146,7 +174,7 @@ public class EnergyShieldDamageMixin {
     }
 
     @Unique
-    private void triggerDamageNumbers(ServerWorld world, PlayerEntity self, DamageSource source, float actualAbsorbedAmount) {
+    private void triggerDamageNumbers(ServerWorld world, LivingEntity self, DamageSource source, float actualAbsorbedAmount) {
         if (actualAbsorbedAmount <= 0.01f) return;
         
         DamageConversionHelper.DamageBreakdown breakdown = DamageConversionHelper.getBreakdown(source, actualAbsorbedAmount, self);
@@ -165,12 +193,13 @@ public class EnergyShieldDamageMixin {
     }
 
     @Unique
-    private void triggerShieldVisuals(ServerWorld world, PlayerEntity self, float prevShield, float newShield) {
-        world.playSoundFromEntity(null, self, ModSounds.ENERGY_SHIELD_HIT, SoundCategory.PLAYERS, 1.0f, 1.0f);
+    private void triggerShieldVisuals(ServerWorld world, LivingEntity self, float prevShield, float newShield) {
+        SoundCategory category = self instanceof PlayerEntity ? SoundCategory.PLAYERS : SoundCategory.HOSTILE;
+        world.playSoundFromEntity(null, self, ModSounds.ENERGY_SHIELD_HIT, category, 1.0f, 1.0f);
 
         if (prevShield >= 1.0f && newShield < 1.0f) {
-            world.playSoundFromEntity(null, self, ModSounds.ENERGY_SHIELD_BREAK, SoundCategory.PLAYERS, 1.0f, 1.0f);
-            world.spawnParticles(ParticleTypes.END_ROD, self.getX(), self.getY() + 1.0, self.getZ(), 30, 0.5, 0.5, 0.5, 0.1);
+            world.playSoundFromEntity(null, self, ModSounds.ENERGY_SHIELD_BREAK, category, 1.0f, 1.0f);
+            world.spawnParticles(ParticleTypes.END_ROD, self.getX(), self.getY() + self.getHeight() / 2.0, self.getZ(), 30, 0.5, 0.5, 0.5, 0.1);
         }
     }
 }

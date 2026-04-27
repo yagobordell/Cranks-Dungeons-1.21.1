@@ -70,11 +70,13 @@ public abstract class EnergyShieldDataMixin implements EnergyShieldProvider {
                 
                 // Send to owner if it's a player
                 if (living instanceof ServerPlayerEntity player) {
-                    net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(player, new com.cranks.dungeons.network.EnergyShieldSyncPacket(currentEnergyShield));
+                    double maxShield = living.getAttributeValue(com.cranks.dungeons.registry.ModAttributes.ENERGY_SHIELD);
+                    net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(player, new com.cranks.dungeons.network.EnergyShieldSyncPacket(currentEnergyShield, (float) maxShield));
                 }
                 
                 // Send to all trackers
-                com.cranks.dungeons.network.EntityShieldSyncPacket trackingPacket = new com.cranks.dungeons.network.EntityShieldSyncPacket(living.getId(), currentEnergyShield);
+                double maxShield = living.getAttributeValue(com.cranks.dungeons.registry.ModAttributes.ENERGY_SHIELD);
+                com.cranks.dungeons.network.EntityShieldSyncPacket trackingPacket = new com.cranks.dungeons.network.EntityShieldSyncPacket(living.getId(), currentEnergyShield, (float) maxShield);
                 for (net.minecraft.server.network.ServerPlayerEntity tracker : net.fabricmc.fabric.api.networking.v1.PlayerLookup.tracking(living)) {
                     net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(tracker, trackingPacket);
                 }
