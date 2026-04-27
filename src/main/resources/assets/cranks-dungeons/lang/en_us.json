@@ -163,5 +163,22 @@
   "text.config.cranks-dungeons.option.showEntityHealthBars": "Show Entity Health Bars",
   "text.config.cranks-dungeons.option.showEntityHealthBars.tooltip": "Display health bars above the heads of mobs and animals",
   "text.config.cranks-dungeons.option.showPlayerInfoAboveHead": "Show Player Info Above Head",
-  "text.config.cranks-dungeons.option.showPlayerInfoAboveHead.tooltip": "Display Level, Class, and Party info above other players' heads"
+  "text.config.cranks-dungeons.option.showPlayerInfoAboveHead.tooltip": "Display Level, Class, and Party info above other players' heads",
+  "text.config.cranks-dungeons.section.nameplate_self": "My Nameplate (3rd Person)",
+  "text.config.cranks-dungeons.section.nameplate_self.tooltip": "Configure what appears above your own head in F5 mode",
+  "text.config.cranks-dungeons.option.showSelfName": "Show Name",
+  "text.config.cranks-dungeons.option.showSelfLevel": "Show Level/Class",
+  "text.config.cranks-dungeons.option.showSelfBars": "Show Bars",
+  "text.config.cranks-dungeons.option.showSelfParty": "Show Party",
+  "text.config.cranks-dungeons.section.nameplate_other_players": "Other Players Nameplates",
+  "text.config.cranks-dungeons.section.nameplate_other_players.tooltip": "Configure what appears above other players' heads",
+  "text.config.cranks-dungeons.option.showOtherPlayersName": "Show Name",
+  "text.config.cranks-dungeons.option.showOtherPlayersLevel": "Show Level/Class",
+  "text.config.cranks-dungeons.option.showOtherPlayersBars": "Show Bars",
+  "text.config.cranks-dungeons.option.showOtherPlayersParty": "Show Party",
+  "text.config.cranks-dungeons.section.nameplate_mobs": "Mob Nameplates",
+  "text.config.cranks-dungeons.section.nameplate_mobs.tooltip": "Configure what appears above mobs and animals",
+  "text.config.cranks-dungeons.option.showMobsName": "Show Name",
+  "text.config.cranks-dungeons.option.showMobsLevel": "Show Level",
+  "text.config.cranks-dungeons.option.showMobsBars": "Show Bars"
 }

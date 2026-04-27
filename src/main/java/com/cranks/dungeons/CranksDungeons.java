@@ -84,6 +84,7 @@ public class CranksDungeons implements ModInitializer {
 		PartyCommand.register();
 		PartyHealthSyncHandler.register();
 		PlayerInfoSyncHandler.register();
+		EntityTrackingSyncHandler.register();
 		FortuneEventHandler.register();
 		LogFortuneHandler.register();
 		DigFortuneHandler.register();

@@ -53,28 +53,30 @@ public abstract class EnergyShieldDataMixin implements EnergyShieldProvider {
     private int lifeTicks = 0;
 
     // Sync shield to client every tick if it changed
+    // Sync shield to tracking clients periodically if it changed
     @Inject(method = "tick", at = @At("HEAD"))
     private void syncShieldToClient(CallbackInfo ci) {
-        if ((Object)this instanceof ServerPlayerEntity player) {
-            syncTimer++;
-            lifeTicks++;
-            // Check every 10 ticks to be responsive but not spammy
-            if (syncTimer >= 10) {
-                syncTimer = 0;
-                // Force sync for the first 5 seconds (100 ticks) to guarantee the client receives it regardless of load times
-                boolean forceSync = lifeTicks <= 100;
-                // Only sync if changed significantly, or if forcing
-                if (forceSync || Math.abs(currentEnergyShield - lastSyncedShield) > 0.05f) {
-                    lastSyncedShield = currentEnergyShield;
-                    
-                    // Send to owner (original packet)
+        if (!((Object)this instanceof net.minecraft.entity.LivingEntity living)) return;
+        if (living.getEntityWorld().isClient()) return;
+
+        syncTimer++;
+        // Check periodically (10 ticks for players, 20 for mobs to save bandwidth)
+        int interval = (living instanceof PlayerEntity) ? 10 : 20;
+        
+        if (syncTimer >= interval) {
+            syncTimer = 0;
+            if (Math.abs(currentEnergyShield - lastSyncedShield) > 0.05f) {
+                lastSyncedShield = currentEnergyShield;
+                
+                // Send to owner if it's a player
+                if (living instanceof ServerPlayerEntity player) {
                     net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(player, new com.cranks.dungeons.network.EnergyShieldSyncPacket(currentEnergyShield));
-                    
-                    // Send to trackers (new packet with ID)
-                    com.cranks.dungeons.network.EntityShieldSyncPacket trackingPacket = new com.cranks.dungeons.network.EntityShieldSyncPacket(player.getId(), currentEnergyShield);
-                    for (net.minecraft.server.network.ServerPlayerEntity tracker : net.fabricmc.fabric.api.networking.v1.PlayerLookup.tracking(player)) {
-                        net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(tracker, trackingPacket);
-                    }
+                }
+                
+                // Send to all trackers
+                com.cranks.dungeons.network.EntityShieldSyncPacket trackingPacket = new com.cranks.dungeons.network.EntityShieldSyncPacket(living.getId(), currentEnergyShield);
+                for (net.minecraft.server.network.ServerPlayerEntity tracker : net.fabricmc.fabric.api.networking.v1.PlayerLookup.tracking(living)) {
+                    net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(tracker, trackingPacket);
                 }
             }
         }

@@ -63,8 +63,8 @@ public class EntityStatBarRenderer {
 
         for (Entity entity : client.world.getEntities()) {
             if (entity instanceof LivingEntity living && living.isAlive() && !living.isInvisibleTo(client.player)) {
-                // Skip local player
-                if (living == client.player) continue;
+                // Hide local player nameplate in first person
+                if (living == client.player && client.options.getPerspective().isFirstPerson()) continue;
                 
                 boolean isPlayer = living instanceof PlayerEntity;
                 if (isPlayer && !CranksDungeons.CONFIG.showPlayerInfoAboveHead()) continue;
@@ -78,9 +78,9 @@ public class EntityStatBarRenderer {
 
                 matrices.push();
                 
-                // Position above head
+                // Position above head - lowered slightly as requested
                 double wx = MathHelper.lerp(tickDelta, living.lastRenderX, living.getX()) - cameraX;
-                double wy = MathHelper.lerp(tickDelta, living.lastRenderY, living.getY()) - cameraY + living.getHeight() + 0.5;
+                double wy = MathHelper.lerp(tickDelta, living.lastRenderY, living.getY()) - cameraY + living.getHeight() + 0.25;
                 double wz = MathHelper.lerp(tickDelta, living.lastRenderZ, living.getZ()) - cameraZ;
 
                 matrices.translate(wx, wy, wz);
@@ -97,24 +97,78 @@ public class EntityStatBarRenderer {
     }
 
     private static void renderEntityStats(MatrixStack matrices, LivingEntity entity, VertexConsumerProvider consumers, MinecraftClient client) {
+        boolean isSelf = entity == client.player;
         boolean isPlayer = entity instanceof PlayerEntity;
         
-        float scale = 0.02f;
-        matrices.scale(scale, -scale, scale); // Scale down and flip Y for 2D-like coords
+        // Config shortcuts
+        boolean showName, showLevel, showBars, showParty;
+        if (isSelf) {
+            showName = CranksDungeons.CONFIG.showSelfName();
+            showLevel = CranksDungeons.CONFIG.showSelfLevel();
+            showBars = CranksDungeons.CONFIG.showSelfBars();
+            showParty = CranksDungeons.CONFIG.showSelfParty();
+        } else if (isPlayer) {
+            showName = CranksDungeons.CONFIG.showOtherPlayersName();
+            showLevel = CranksDungeons.CONFIG.showOtherPlayersLevel();
+            showBars = CranksDungeons.CONFIG.showOtherPlayersBars();
+            showParty = CranksDungeons.CONFIG.showOtherPlayersParty();
+        } else {
+            showName = CranksDungeons.CONFIG.showMobsName();
+            showLevel = CranksDungeons.CONFIG.showMobsLevel();
+            showBars = CranksDungeons.CONFIG.showMobsBars();
+            showParty = false;
+        }
 
-        float yOffset = 0;
+        if (!showName && !showLevel && !showBars && !showParty) return;
+
+        float scale = 0.02f;
+        matrices.scale(-scale, -scale, scale); // Standard vanilla nametag scaling logic
+
+        // Dynamic yOffset: Start higher if we have more rows to render
+        float yOffset = -30;
+        PlayerInfo info = isPlayer ? PLAYER_INFO_CACHE.get(entity.getId()) : null;
+        
+        if (info != null && !info.partyLeaderName.isEmpty() && showParty) {
+            yOffset -= 10; // Shift everything up to make room for party name
+        }
+        
         TextRenderer textRenderer = client.textRenderer;
 
-        if (isPlayer) {
-            PlayerInfo info = PLAYER_INFO_CACHE.get(entity.getId());
-            if (info != null) {
-                // Top Row: Level and Class
+        if (showName) {
+            String name = entity.getName().getString();
+            int nameWidth = textRenderer.getWidth(name);
+            drawText(matrices, textRenderer, name, -nameWidth / 2f, yOffset, 0xFFFFFFFF, consumers);
+            yOffset += 10;
+        }
+
+        if (isPlayer && info != null) {
+            if (showLevel) {
+                // Second Row: Level and Class
                 String topText = "Lv." + info.level + " " + (info.className.isEmpty() ? "Novice" : capitalize(info.className));
                 int textWidth = textRenderer.getWidth(topText);
-                drawText(matrices, textRenderer, topText, -textWidth / 2f, yOffset, 0xFFFFFFFF, consumers);
+                drawText(matrices, textRenderer, topText, -textWidth / 2f, yOffset, 0xFFCCCCCC, consumers);
+                yOffset += 10;
+            }
+
+            if (showParty && !info.partyLeaderName.isEmpty()) {
+                // Third Row: Party Name
+                String partyText = info.partyLeaderName + "'s Party";
+                int pWidth = textRenderer.getWidth(partyText);
+                drawText(matrices, textRenderer, partyText, -pWidth / 2f, yOffset, 0xFF55FFFF, consumers);
+                yOffset += 10;
+            }
+        } else if (showLevel) {
+            // Mobs can show level too if sync data exists (future proofing)
+            PlayerInfo mobInfo = PLAYER_INFO_CACHE.get(entity.getId());
+            if (mobInfo != null) {
+                String topText = "Lv." + mobInfo.level;
+                int textWidth = textRenderer.getWidth(topText);
+                drawText(matrices, textRenderer, topText, -textWidth / 2f, yOffset, 0xFFCCCCCC, consumers);
                 yOffset += 10;
             }
         }
+
+        if (!showBars) return;
 
         float barWidth = 40;
         float xStart = -barWidth / 2f;
@@ -132,55 +186,40 @@ public class EntityStatBarRenderer {
         if (maxShield > 0) {
             float shieldPercent = MathHelper.clamp(shield / maxShield, 0, 1);
             float sHeight = 2.66f; // 6px height (6/9 * 4)
-            // Background (Z = 0)
-            drawBar(matrices, consumers, EMPTY_SHIELD_BAR, xStart, yOffset, barWidth, sHeight, 1.0f, 0.00f, 0.0f, 1.0f);
-            
+            // Background
+            drawBar(matrices, consumers, EMPTY_SHIELD_BAR, xStart, yOffset, barWidth, sHeight, 1.0f, 0, 0, 1.0f);
+            // Fill - Left-Aligned
             if (shieldPercent > 0) {
-                // Flipped: filled part stays on the RIGHT
                 float fillWidth = barWidth * shieldPercent;
-                float fillX = xStart + (barWidth - fillWidth);
-                drawBar(matrices, consumers, SHIELD_FILL, fillX, yOffset, fillWidth, sHeight, 1.0f, -0.01f, 1.0f - shieldPercent, 1.0f);
+                drawBar(matrices, consumers, SHIELD_FILL, xStart, yOffset, fillWidth, sHeight, 1.0f, -0.01f, 0, shieldPercent);
             }
-            yOffset += 4;
+            yOffset += 5.5f;
         }
 
         // --- Health Bar ---
-        float health = entity.getHealth();
         float maxHealth = entity.getMaxHealth();
+        float health = entity.getHealth();
         float absorption = entity.getAbsorptionAmount();
-        float barHeight = 4; // 9px height
-
-        // Background (Z = 0)
-        drawBar(matrices, consumers, EMPTY_BAR, xStart, yOffset, barWidth, barHeight, 1.0f, 0.0f, 0.0f, 1.0f);
-
-        // HP Fill (Z = -0.01)
         float hpPercent = MathHelper.clamp(health / maxHealth, 0, 1);
+        float barHeight = 4.0f; // 9px height (9/9 * 4)
+
+        // Background
+        drawBar(matrices, consumers, EMPTY_BAR, xStart, yOffset, barWidth, barHeight, 1.0f, 0, 0, 1.0f);
+        
+        // HP Fill - Left-Aligned
         if (hpPercent > 0) {
-            // Depletion from right to left (right-aligned fill)
             float fillWidth = barWidth * hpPercent;
-            float fillX = xStart + (barWidth - fillWidth);
-            drawBar(matrices, consumers, HEALTH_FILL, fillX, yOffset, fillWidth, barHeight, 1.0f, -0.01f, 1.0f - hpPercent, 1.0f);
+            drawBar(matrices, consumers, HEALTH_FILL, xStart, yOffset, fillWidth, barHeight, 1.0f, -0.01f, 0, hpPercent);
         }
 
         // Absorption Fill (Z = -0.02)
         if (absorption > 0) {
             float absPercent = MathHelper.clamp(absorption / maxHealth, 0, 1);
             float absWidth = barWidth * absPercent;
-            float absX = xStart + (barWidth - absWidth);
-            drawBar(matrices, consumers, ABSORPTION_FILL, absX, yOffset, absWidth, barHeight, 1.0f, -0.02f, 1.0f - absPercent, 1.0f);
+            drawBar(matrices, consumers, ABSORPTION_FILL, xStart, yOffset, absWidth, barHeight, 1.0f, -0.02f, 0, absPercent);
         }
         
         yOffset += 5;
-
-        // Party info at the bottom
-        if (isPlayer) {
-            PlayerInfo info = PLAYER_INFO_CACHE.get(entity.getId());
-            if (info != null && !info.partyLeaderName.isEmpty()) {
-                String partyText = info.partyLeaderName + "'s Party";
-                int pWidth = textRenderer.getWidth(partyText);
-                drawText(matrices, textRenderer, partyText, -pWidth / 2f, yOffset, 0xFF55FFFF, consumers);
-            }
-        }
     }
 
     private static void drawBar(MatrixStack matrices, VertexConsumerProvider consumers, Identifier texture, float x, float y, float width, float height, float alpha, float zOffset, float uStart, float uEnd) {
@@ -194,7 +233,7 @@ public class EntityStatBarRenderer {
     }
 
     private static void drawText(MatrixStack matrices, TextRenderer textRenderer, String text, float x, float y, int color, VertexConsumerProvider consumers) {
-        textRenderer.draw(text, x, y, color, false, matrices.peek().getPositionMatrix(), consumers, TextRenderer.TextLayerType.NORMAL, 0, LightmapTextureManager.MAX_LIGHT_COORDINATE);
+        textRenderer.draw(net.minecraft.text.Text.literal(text), x, y, color, true, matrices.peek().getPositionMatrix(), consumers, TextRenderer.TextLayerType.SEE_THROUGH, 0, 0xF000F0);
     }
 
     private static String capitalize(String s) {
