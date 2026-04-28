@@ -4,6 +4,7 @@ import com.cranks.dungeons.ailment.AilmentManager;
 import com.cranks.dungeons.ailment.AilmentReactionManager;
 import com.cranks.dungeons.ailment.AilmentType;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
+import java.util.UUID;
 import com.cranks.dungeons.damage.DamageElement;
 import com.cranks.dungeons.equipment.EquipmentStatApplier;
 import com.cranks.dungeons.network.DamageNumberSender;
@@ -370,8 +371,9 @@ public abstract class ElementalDamageMixin {
             }
 
             // === SEND DAMAGE NUMBERS ===
-            // Broadcast to all nearby players so everyone can see the damage numbers
-            if (attacker instanceof ServerPlayerEntity serverPlayer) {
+            // Broadcast if attacker is player OR target is player
+            if (attacker instanceof ServerPlayerEntity || target instanceof PlayerEntity) {
+                UUID attackerId = (attacker != null) ? attacker.getUuid() : null;
                 DamageNumberSender.broadcast(
                         world, target,
                         physicalDamage,
@@ -379,7 +381,7 @@ public abstract class ElementalDamageMixin {
                         finalColdDamage,
                         finalLightningDamage,
                         finalVoidDamage,
-                        serverPlayer.getUuid(),
+                        attackerId,
                         isCrit);
             }
 

@@ -228,11 +228,15 @@ public class DamageConversionHelper {
         }
 
         if (ar > 0 && amount > 0) {
-            // Exact PoE 2 formula modified: X = (24 * Damage) / (1 + Toughness / 200)
+            // Exact PoE 2 formula modified: X = (38 * Damage) / (1 + Toughness / 200)
             // PDR = Armor / (Armor + X)
             // This makes armor significantly more dynamic against different hit sizes.
-            double x = (24.0 * amount) / (1.0 + (toughness / 200.0));
+            double x = (38.0 * amount) / (1.0 + (toughness / 200.0));
             double pdr = ar / (ar + x);
+            
+            // Cap PDR at 90%
+            pdr = Math.min(0.9, pdr);
+            
             return (float) (amount * (1.0 - pdr));
         }
         return amount;

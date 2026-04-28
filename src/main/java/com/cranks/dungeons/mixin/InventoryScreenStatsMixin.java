@@ -735,7 +735,7 @@ public abstract class InventoryScreenStatsMixin {
                         case "Life Steal" -> "% of damage converted to health";
                         case "Evasion" -> calculateEvasionDescription();
                         case "Armor" -> calculateArmorDescription();
-                        case "Toughness" -> "Improves armor effectiveness against big hits";
+                        case "Toughness" -> calculateToughnessDescription();
                         case "Fire Res" -> "Reduces fire damage taken";
                         case "Cold Res" -> "Reduces cold damage taken";
                         case "Lightning Res" -> "Reduces lightning damage taken";
@@ -775,14 +775,34 @@ public abstract class InventoryScreenStatsMixin {
                 if (player == null)
                         return "Reduces incoming physical damage";
                 double armor = player.getAttributeValue(EntityAttributes.ARMOR);
-                double toughness = player.getAttributeValue(EntityAttributes.ARMOR_TOUGHNESS);
                 
                 // Show reduction against a standard 30 damage hit (modded baseline)
-                // Formula modified: Armor / (Armor + (24 * Damage) / (1 + Toughness / 200))
-                double x = (24.0 * 30.0) / (1.0 + (toughness / 200.0));
+                // Ignoring toughness for the "Armor" specific tooltip
+                double x = 38.0 * 30.0;
                 double pdr = armor / (armor + x);
+                
+                boolean capped = pdr >= 0.9;
+                pdr = Math.min(0.9, pdr);
 
-                return (int) (pdr * 100) + "% PDR (Estimated vs 30 Physical Damage)";
+                return (int) (pdr * 100) + "% PDR against 30 damage with no toughness" + (capped ? " (Capped)" : "");
+        }
+
+        @Unique
+        private String calculateToughnessDescription() {
+                var player = MinecraftClient.getInstance().player;
+                if (player == null)
+                        return "Improves armor effectiveness against big hits";
+                double armor = player.getAttributeValue(EntityAttributes.ARMOR);
+                double toughness = player.getAttributeValue(EntityAttributes.ARMOR_TOUGHNESS);
+                
+                // Show reduction against a standard 30 damage hit including toughness
+                double x = (38.0 * 30.0) / (1.0 + (toughness / 200.0));
+                double pdr = armor / (armor + x);
+                
+                boolean capped = pdr >= 0.9;
+                pdr = Math.min(0.9, pdr);
+
+                return (int) (pdr * 100) + "% PDR against 30 damage with armor toughness" + (capped ? " (Capped)" : "");
         }
 
         @Unique

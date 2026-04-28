@@ -15,7 +15,7 @@ public class RemoveArmorCapMixin {
     @org.spongepowered.asm.mixin.injection.ModifyVariable(method = "<init>", at = @At("HEAD"), argsOnly = true, ordinal = 2)
     private static double uncapArmor(double max) {
         if (max == 30.0 || max == 20.0) {
-            return 1024.0;
+            return 1000000.0;
         }
         return max;
     }
