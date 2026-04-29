@@ -310,6 +310,11 @@ public abstract class InventoryScreenStatsMixin {
                                         mouseX,
                                         mouseY, panelX, panelWidth);
 
+                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Reload Speed",
+                                        player.getAttributeValue(ModAttributes.RELOAD_SPEED),
+                                        cranks$getPassiveBase(player, ModAttributes.RELOAD_SPEED), "", 
+                                        mouseX, mouseY, panelX, panelWidth);
+
                         double baseAttackRange = cranks$getPassiveBase(player,
                                         EntityAttributes.ENTITY_INTERACTION_RANGE);
                         double attrBonus = 0.0;
@@ -562,10 +567,7 @@ public abstract class InventoryScreenStatsMixin {
                                         cranks$getPassiveBase(player, ModAttributes.KNOCKBACK) * 100, "%", mouseX,
                                         mouseY, panelX, panelWidth);
 
-                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Reload Speed",
-                                        player.getAttributeValue(ModAttributes.RELOAD_SPEED),
-                                        cranks$getPassiveBase(player, ModAttributes.RELOAD_SPEED), "", mouseX,
-                                        mouseY, panelX, panelWidth);
+
 
                         curY += 6;
 
@@ -573,9 +575,9 @@ public abstract class InventoryScreenStatsMixin {
                         context.drawText(tr, Text.literal("⚒ Gathering"), panelX + 6, curY, 0xFF404040, false);
                         curY += 11;
 
-                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Gather Speed",
-                                        player.getAttributeValue(ModAttributes.MINING_EFFICIENCY) * 100,
-                                        cranks$getPassiveBase(player, ModAttributes.MINING_EFFICIENCY) * 100, "%",
+                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Harvest Speed",
+                                        player.getAttributeValue(ModAttributes.MINING_EFFICIENCY),
+                                        cranks$getPassiveBase(player, ModAttributes.MINING_EFFICIENCY), "x",
                                         mouseX, mouseY, panelX, panelWidth);
 
                         double precisionChance = 0.0;
@@ -771,7 +773,7 @@ public abstract class InventoryScreenStatsMixin {
                         case "Flying Speed" -> "Elytra flight speed bonus";
                         case "Luck" -> "Increases rarity of drops";
                         case "Exp Bonus" -> "Extra experience gained";
-                        case "Gather Speed" -> "Mining and harvesting speed";
+                        case "Harvest Speed" -> "Overall speed multiplier for breaking and harvesting blocks";
                         case "Repair Chance" -> "Chance that tools avoid durability loss";
                         case "Ore Fortune" -> "Chance to double drops from ores";
                         case "Crop Fortune" -> "Chance to double drops from crops";

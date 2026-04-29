@@ -116,6 +116,14 @@ public class CranksDungeons implements ModInitializer {
 
 			ModNetworking.syncPassiveTreeToPlayer(handler.player);
 			PassiveSkillApplier.updatePlayerPassives(handler.player);
+
+			// Retroactive fix for existing players
+			var reloadInst = handler.player.getAttributeInstance(ModAttributes.RELOAD_SPEED);
+			if (reloadInst != null && reloadInst.getBaseValue() == 0.0)
+				reloadInst.setBaseValue(1.0);
+			var miningInst = handler.player.getAttributeInstance(ModAttributes.MINING_EFFICIENCY);
+			if (miningInst != null && miningInst.getBaseValue() == 0.0)
+				miningInst.setBaseValue(1.0);
 		});
 
 		ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
@@ -131,7 +139,7 @@ public class CranksDungeons implements ModInitializer {
 						.add(ModAttributes.EVASION_RATING, 0.0)
 						.add(ModAttributes.ENERGY_SHIELD, 0.0)
 						.add(ModAttributes.ARMOR_CRIT_MITIGATION, 0.0)
-						.add(ModAttributes.RELOAD_SPEED, 0.0)
+						.add(ModAttributes.RELOAD_SPEED, 1.0)
 						.add(ModAttributes.CROP_EXPERIENCE, 0.0)
 						// Offensive
 						.add(ModAttributes.BONUS_ATTACK_DAMAGE, 0.0)
@@ -217,7 +225,7 @@ public class CranksDungeons implements ModInitializer {
 						.add(ModAttributes.KNOCKBACK, 0.0)
 						.add(ModAttributes.KNOCKBACK_RESISTANCE, 0.0)
 						.add(ModAttributes.LUCK, 0.0)
-						.add(ModAttributes.MINING_EFFICIENCY, 0.0)
+						.add(ModAttributes.MINING_EFFICIENCY, 1.0)
 						.add(ModAttributes.FORTUNE, 0.0)
 						.add(ModAttributes.DURABILITY_BONUS, 0.0)
 						.add(ModAttributes.EXPERIENCE_BONUS, 0.0)

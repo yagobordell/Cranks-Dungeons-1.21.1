@@ -236,7 +236,7 @@ public abstract class ItemStackTooltipMixin {
             }
         } else {
             // WEAPON/TOOL BASE STATS
-            if (attributeTotals.containsKey(EntityAttributes.ATTACK_DAMAGE) && type != EquipmentType.BOW && type != EquipmentType.CROSSBOW) {
+            if (attributeTotals.containsKey(EntityAttributes.ATTACK_DAMAGE) && type != EquipmentType.BOW && type != EquipmentType.CROSSBOW && !isTool(stack)) {
                 double baseDamage = PLAYER_BASE_ATTACK_DAMAGE + attributeTotals.get(EntityAttributes.ATTACK_DAMAGE);
                 baseDamage += getEnchantmentValue(stack, "minecraft:attack_damage", 4.0);
                 double totalRuneDamagePercent = ItemStatManager.getTotalStatValue(stack, "attack_damage_percent");
@@ -246,7 +246,7 @@ public abstract class ItemStackTooltipMixin {
                         .append(Text.literal(df.format(finalDamage)).formatted(Formatting.WHITE)));
                 addedAny = true;
             }
-            if (attributeTotals.containsKey(EntityAttributes.ATTACK_SPEED)) {
+            if (attributeTotals.containsKey(EntityAttributes.ATTACK_SPEED) && !isTool(stack)) {
                 // FIXED: baseSpeed should only include ADD_VALUE modifiers (flat weapon/tool modifiers)
                 double baseSpeed = PLAYER_BASE_ATTACK_SPEED + attributeTotals.get(EntityAttributes.ATTACK_SPEED);
                 baseSpeed += getEnchantmentValue(stack, "minecraft:attack_speed", 0.2);
@@ -261,7 +261,7 @@ public abstract class ItemStackTooltipMixin {
             }
 
             // --- New Identity Stats (Range & Knockback) ---
-            if (type != EquipmentType.BOW && type != EquipmentType.CROSSBOW) {
+            if (type != EquipmentType.BOW && type != EquipmentType.CROSSBOW && !isTool(stack)) {
                 double baseRange = 3.0 + attributeTotals.getOrDefault(ModAttributes.ATTACK_RANGE, 0.0);
                 tooltip.add(Text.literal("Attack Range: ").formatted(Formatting.GRAY)
                         .append(Text.literal(df.format(baseRange)).formatted(Formatting.WHITE)));
@@ -286,6 +286,24 @@ public abstract class ItemStackTooltipMixin {
                 
                 tooltip.add(Text.literal("Reload Speed: ").formatted(Formatting.GRAY)
                         .append(Text.literal(df.format(finalReloadSpeed)).formatted(Formatting.WHITE)));
+                addedAny = true;
+            }
+
+            if (isTool(stack)) {
+                // Show Harvest Speed
+                double miningSpeedBase = attributeTotals.getOrDefault(ModAttributes.MINING_EFFICIENCY, 0.0) + 1.0;
+                double runePercent = ItemStatManager.getTotalStatValue(stack, "mining_efficiency");
+                double finalMiningSpeed = miningSpeedBase * (1.0 + runePercent);
+                
+                tooltip.add(Text.literal("Harvest Speed: ").formatted(Formatting.GRAY)
+                        .append(Text.literal(df.format(finalMiningSpeed)).formatted(Formatting.WHITE)));
+                
+                // Show Mining Range
+                double range = 0.0 + attributeTotals.getOrDefault(ModAttributes.BREAKING_RANGE, 0.0);
+                if (range != 0) {
+                     tooltip.add(Text.literal("Mining Range: ").formatted(Formatting.GRAY)
+                             .append(Text.literal(df.format(range)).formatted(Formatting.WHITE)));
+                }
                 addedAny = true;
             }
 
@@ -422,6 +440,13 @@ public abstract class ItemStackTooltipMixin {
             if (id.equals(enchantmentId)) return baseValue;
         }
         return 0.0;
+    }
+
+    @Unique
+    private boolean isTool(ItemStack stack) {
+        String name = stack.getItem().toString().toLowerCase();
+        return name.contains("pickaxe") || name.contains("shovel") ||
+                name.contains("hoe") || name.contains("axe");
     }
 
     @Unique

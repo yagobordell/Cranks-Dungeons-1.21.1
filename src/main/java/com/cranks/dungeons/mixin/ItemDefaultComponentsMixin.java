@@ -66,22 +66,34 @@ public class ItemDefaultComponentsMixin {
                     modified = true;
                 } else if (isWeapon(itemName)) {
                     if (entry.attribute().equals(EntityAttributes.ATTACK_DAMAGE)) {
-                        double bonus = getDamageBonus(itemName);
+                        double value = entry.modifier().value();
+                        if (isTool(itemName)) {
+                            value = 0.0; // Total 1.0 (player base)
+                        } else {
+                            value += getDamageBonus(itemName);
+                        }
+
                         builder.add(
                                 entry.attribute(),
                                 new EntityAttributeModifier(
                                         entry.modifier().id(),
-                                        entry.modifier().value() + bonus,
+                                        value,
                                         entry.modifier().operation()),
                                 entry.slot());
                         modified = true;
                     } else if (entry.attribute().equals(EntityAttributes.ATTACK_SPEED)) {
-                        double speedBonus = getWeaponSpeedBonus(itemName);
+                        double value = entry.modifier().value();
+                        if (isTool(itemName)) {
+                            value = -3.0; // Total 1.0 (4.0 base - 3.0)
+                        } else {
+                            value += getWeaponSpeedBonus(itemName);
+                        }
+
                         builder.add(
                                 entry.attribute(),
                                 new EntityAttributeModifier(
                                         entry.modifier().id(),
-                                        entry.modifier().value() + speedBonus,
+                                        value,
                                         entry.modifier().operation()),
                                 entry.slot());
                         modified = true;
@@ -309,11 +321,18 @@ public class ItemDefaultComponentsMixin {
                 itemName.contains("axe") || itemName.contains("dagger") ||
                 itemName.contains("longsword") || itemName.contains("pike") ||
                 itemName.contains("halberd") || itemName.contains("glaive") ||
-                itemName.contains("bow") || itemName.contains("crossbow")) {
+                itemName.contains("bow") || itemName.contains("crossbow") ||
+                itemName.contains("pickaxe") || itemName.contains("shovel") ||
+                itemName.contains("hoe")) {
             return true;
         }
 
         return false;
+    }
+
+    private boolean isTool(String itemName) {
+        return itemName.contains("pickaxe") || itemName.contains("shovel") ||
+                itemName.contains("hoe") || itemName.contains("axe");
     }
 
     // Returns true for armor sets that use traditional armor/toughness stats
@@ -600,6 +619,32 @@ public class ItemDefaultComponentsMixin {
                             EntityAttributeModifier.Operation.ADD_VALUE),
                     net.minecraft.component.type.AttributeModifierSlot.MAINHAND);
         }
+
+        // --- Tool Stats (Mining Efficiency / Harvest Speed) ---
+        if (isTool(itemName)) {
+            double miningSpeed = getMiningSpeedBonus(itemName);
+            builder.add(
+                    ModAttributes.MINING_EFFICIENCY,
+                    new EntityAttributeModifier(
+                            Identifier.of("cranks-dungeons", "tool.mining_speed"),
+                            miningSpeed - 1.0, // Default is 1.0
+                            EntityAttributeModifier.Operation.ADD_VALUE),
+                    net.minecraft.component.type.AttributeModifierSlot.MAINHAND);
+        }
+    }
+
+    private double getMiningSpeedBonus(String itemName) {
+        if (itemName.contains("wood"))
+            return 2.0;
+        if (itemName.contains("stone"))
+            return 4.0;
+        if (itemName.contains("iron"))
+            return 6.0;
+        if (itemName.contains("diamond"))
+            return 8.0;
+        if (itemName.contains("netherite") || itemName.contains("gold"))
+            return 12.0;
+        return 2.0;
     }
 
     private double getWeaponRangeBonus(String itemName) {

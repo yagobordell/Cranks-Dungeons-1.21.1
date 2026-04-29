@@ -135,8 +135,8 @@ public class ModAttributes {
     public static final RegistryEntry<EntityAttribute> KNOCKBACK = register("knockback", 0.0, 0.0, 2.0);
 
     // Utility stats
-    public static final RegistryEntry<EntityAttribute> MINING_EFFICIENCY = register("mining_efficiency", 0.0, 0.0,
-            10.0);
+    public static final RegistryEntry<EntityAttribute> MINING_EFFICIENCY = register("mining_efficiency", 1.0, 0.0,
+            100.0);
     public static final RegistryEntry<EntityAttribute> FORTUNE = register("fortune", 0.0, 0.0, 1.0);
     public static final RegistryEntry<EntityAttribute> DURABILITY_BONUS = register("durability_bonus", 0.0, 0.0, 10.0);
     public static final RegistryEntry<EntityAttribute> EXPERIENCE_BONUS = register("experience_bonus", 0.0, 0.0, 10.0);

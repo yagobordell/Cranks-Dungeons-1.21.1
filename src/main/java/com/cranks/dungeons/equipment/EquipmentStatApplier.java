@@ -130,7 +130,8 @@ public class EquipmentStatApplier {
                 double combinedValue = defaultValue + itemStat.value;
 
                 boolean isMultiplicative = stat.getAttribute().equals(EntityAttributes.ATTACK_SPEED) || 
-                                         stat.getAttribute().equals(ModAttributes.RELOAD_SPEED);
+                                         stat.getAttribute().equals(ModAttributes.RELOAD_SPEED) ||
+                                         stat.getAttribute().equals(ModAttributes.MINING_EFFICIENCY);
 
                 if (isMultiplicative) {
                     // We MUST separate the base weapon modifier (Operation.ADD_VALUE) 
