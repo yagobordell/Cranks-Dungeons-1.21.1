@@ -42,19 +42,23 @@ public abstract class ReloadSpeedMixin {
         // Add rune value from the item itself (allows offhand to work without being global)
         speed += com.cranks.dungeons.equipment.ItemStatManager.getTotalStatValue(activeStack, "reload_speed");
 
-        if (speed <= 0.0) return;
+        if (speed == 1.0) return;
 
-        // speed = 0.30  →  30 % faster
-        // Whole part:      guaranteed extra ticks each game tick
-        // Fractional part: probabilistic extra tick (averages out perfectly)
-        int extraTicks = (int) speed;
-        double fractional = speed - extraTicks;
+        // speed = 1.30  -> 30% faster -> extraTicks = 0.3
+        // speed = 0.70  -> 30% slower -> extraTicks = -0.3
+        double extraTicksDouble = speed - 1.0;
+        int extraTicks = (int) extraTicksDouble;
+        double fractional = extraTicksDouble - extraTicks;
 
-        if (fractional > 0.0 && self.getRandom().nextDouble() < fractional) {
-            extraTicks++;
+        // Handle fractional part for both positive and negative values
+        if (fractional != 0.0) {
+            double absFractional = Math.abs(fractional);
+            if (self.getRandom().nextDouble() < absFractional) {
+                extraTicks += (fractional > 0) ? 1 : -1;
+            }
         }
 
-        if (extraTicks > 0) {
+        if (extraTicks != 0) {
             this.itemUseTimeLeft = Math.max(0, this.itemUseTimeLeft - extraTicks);
         }
     }

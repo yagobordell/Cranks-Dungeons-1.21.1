@@ -212,28 +212,33 @@ public abstract class InventoryScreenStatsMixin {
                                 passiveTypeBonus = cranks$getPassivePercentBonus(player,
                                                 ModAttributes.RANGED_DAMAGE_PERCENT);
                         }
-                        
+
                         double wieldingBonus = 0;
                         double passiveWieldingBonus = 0;
                         if (CombatUtility.isTwoHanding(player, weapon)) {
-                            wieldingBonus = player.getAttributeValue(ModAttributes.TWO_HANDING_DAMAGE_PERCENT);
-                            passiveWieldingBonus = cranks$getPassivePercentBonus(player, ModAttributes.TWO_HANDING_DAMAGE_PERCENT);
+                                wieldingBonus = player.getAttributeValue(ModAttributes.TWO_HANDING_DAMAGE_PERCENT);
+                                passiveWieldingBonus = cranks$getPassivePercentBonus(player,
+                                                ModAttributes.TWO_HANDING_DAMAGE_PERCENT);
                         } else if (CombatUtility.isDualWielding(player, weapon)) {
-                            wieldingBonus = player.getAttributeValue(ModAttributes.DUAL_WIELDING_DAMAGE_PERCENT);
-                            passiveWieldingBonus = cranks$getPassivePercentBonus(player, ModAttributes.DUAL_WIELDING_DAMAGE_PERCENT);
+                                wieldingBonus = player.getAttributeValue(ModAttributes.DUAL_WIELDING_DAMAGE_PERCENT);
+                                passiveWieldingBonus = cranks$getPassivePercentBonus(player,
+                                                ModAttributes.DUAL_WIELDING_DAMAGE_PERCENT);
                         } else if (CombatUtility.isOneHanding(player, weapon)) {
-                            wieldingBonus = player.getAttributeValue(ModAttributes.ONE_HANDED_DAMAGE_PERCENT);
-                            passiveWieldingBonus = cranks$getPassivePercentBonus(player, ModAttributes.ONE_HANDED_DAMAGE_PERCENT);
+                                wieldingBonus = player.getAttributeValue(ModAttributes.ONE_HANDED_DAMAGE_PERCENT);
+                                passiveWieldingBonus = cranks$getPassivePercentBonus(player,
+                                                ModAttributes.ONE_HANDED_DAMAGE_PERCENT);
                         }
 
                         double attackDamage = (baseAD + bonusAD + weaponAD) * (1.0
-                                        + player.getAttributeValue(ModAttributes.ATTACK_DAMAGE_PERCENT) + typeBonus + wieldingBonus);
+                                        + player.getAttributeValue(ModAttributes.ATTACK_DAMAGE_PERCENT) + typeBonus
+                                        + wieldingBonus);
 
                         // Tooltip attribution: Base includes flat bonus and the tree's percentage
                         // scaling
                         double passiveADPercent = cranks$getPassivePercentBonus(player,
                                         ModAttributes.ATTACK_DAMAGE_PERCENT);
-                        double tooltipBaseAD = (baseAD + bonusAD) * (1.0 + passiveADPercent + passiveTypeBonus + passiveWieldingBonus);
+                        double tooltipBaseAD = (baseAD + bonusAD)
+                                        * (1.0 + passiveADPercent + passiveTypeBonus + passiveWieldingBonus);
 
                         curY = drawStatWithTooltip(context, tr, panelX, curY, "Physical Damage", attackDamage,
                                         tooltipBaseAD,
@@ -290,10 +295,6 @@ public abstract class InventoryScreenStatsMixin {
                                         ModAttributes.ELEMENTAL_DAMAGE_PERCENT);
                         curY = drawStatWithTooltip(context, tr, panelX, curY, "Elemental Damage", elementalDmgVal * 100,
                                         passiveElemental * 100, "%", mouseX, mouseY, panelX, panelWidth);
-
-                                        
-                        
- 
 
                         // 3. Combat Speed & Range
                         double totalAS = player.getAttributeValue(EntityAttributes.ATTACK_SPEED);
@@ -451,6 +452,29 @@ public abstract class InventoryScreenStatsMixin {
 
                         curY += 6;
 
+                        // --- CATEGORY 1.5: ELEMENTAL REACTIONS ---
+                        context.drawText(tr, Text.literal("✧ Reactions"), panelX + 6, curY, 0xFF404040, false);
+                        curY += 11;
+
+                        double baseReactionDmg = cranks$getPassiveBase(player, ModAttributes.REACTION_DAMAGE_PERCENT);
+                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Reaction Damage",
+                                        player.getAttributeValue(ModAttributes.REACTION_DAMAGE_PERCENT) * 100,
+                                        baseReactionDmg * 100, "%", mouseX, mouseY, panelX, panelWidth);
+
+                        double baseReactionRadius = cranks$getPassiveBase(player,
+                                        ModAttributes.REACTION_RADIUS_PERCENT);
+                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Reaction Radius",
+                                        player.getAttributeValue(ModAttributes.REACTION_RADIUS_PERCENT) * 100,
+                                        baseReactionRadius * 100, "%", mouseX, mouseY, panelX, panelWidth);
+
+                        double baseReactionCooldown = cranks$getPassiveBase(player,
+                                        ModAttributes.REACTION_COOLDOWN_PERCENT);
+                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Reaction CDR",
+                                        player.getAttributeValue(ModAttributes.REACTION_COOLDOWN_PERCENT) * 100,
+                                        baseReactionCooldown * 100, "%", mouseX, mouseY, panelX, panelWidth);
+
+                        curY += 6;
+
                         // --- CATEGORY 2: DEFENSIVE ---
                         context.drawText(tr, Text.literal("🛡 Defensive"), panelX + 6, curY, 0xFF404040, false);
                         curY += 11;
@@ -502,7 +526,6 @@ public abstract class InventoryScreenStatsMixin {
                                         cranks$getPassiveBase(player, ModAttributes.KNOCKBACK_RESISTANCE) * 100, "%",
                                         mouseX, mouseY, panelX, panelWidth);
 
-
                         curY += 6;
 
                         // --- CATEGORY 3: UTILITY ---
@@ -540,8 +563,8 @@ public abstract class InventoryScreenStatsMixin {
                                         mouseY, panelX, panelWidth);
 
                         curY = drawStatWithTooltip(context, tr, panelX, curY, "Reload Speed",
-                                        player.getAttributeValue(ModAttributes.RELOAD_SPEED) * 100,
-                                        cranks$getPassiveBase(player, ModAttributes.RELOAD_SPEED) * 100, "%", mouseX,
+                                        player.getAttributeValue(ModAttributes.RELOAD_SPEED),
+                                        cranks$getPassiveBase(player, ModAttributes.RELOAD_SPEED), "", mouseX,
                                         mouseY, panelX, panelWidth);
 
                         curY += 6;
@@ -594,7 +617,8 @@ public abstract class InventoryScreenStatsMixin {
 
                         // Update total content height for the next frame
                         int totalContentHeight = curY - (panelY + 8 - scrollOffset);
-                        StatsPanelScrollHandler.setMaxScrollOffset(Math.max(0, totalContentHeight - (panelHeight - 16)));
+                        StatsPanelScrollHandler
+                                        .setMaxScrollOffset(Math.max(0, totalContentHeight - (panelHeight - 16)));
 
                         // Debug log once per second
                         long now = System.currentTimeMillis();
@@ -676,6 +700,7 @@ public abstract class InventoryScreenStatsMixin {
         private String getStatDescription(String statName) {
                 return switch (statName) {
                         case "Physical Damage" -> "Physical damage dealt per hit";
+                        case "Total Damage" -> "Combined damage from physical and all elemental sources";
                         case "Elemental Damage" -> "Increased damage for all elements (Fire, Cold, Lightning, Void)";
                         case "One-Hand Bonus" -> "Increased damage when using one weapon and a shield/offhand item";
                         case "Dual Wield Bonus" -> "Increased damage when using two weapons of the same type";
@@ -754,6 +779,9 @@ public abstract class InventoryScreenStatsMixin {
                         case "Dig Fortune" -> "Chance to gain extra materials";
                         case "Crop XP" -> "Experience gained from harvesting crops with a hoe";
                         case "Range" -> "Block interaction distance";
+                        case "Reaction Damage" -> "Increases damage of elemental reactions (Shatter, Miasma, etc.)";
+                        case "Reaction Radius" -> "Increases the area affected by reaction explosions and clouds";
+                        case "Reaction CDR" -> "Reduces the cooldown before a reaction can trigger again";
                         default -> null;
                 };
         }
@@ -775,12 +803,12 @@ public abstract class InventoryScreenStatsMixin {
                 if (player == null)
                         return "Reduces incoming physical damage";
                 double armor = player.getAttributeValue(EntityAttributes.ARMOR);
-                
+
                 // Show reduction against a standard 30 damage hit (modded baseline)
                 // Ignoring toughness for the "Armor" specific tooltip
                 double x = 38.0 * 30.0;
                 double pdr = armor / (armor + x);
-                
+
                 boolean capped = pdr >= 0.9;
                 pdr = Math.min(0.9, pdr);
 
@@ -794,11 +822,11 @@ public abstract class InventoryScreenStatsMixin {
                         return "Improves armor effectiveness against big hits";
                 double armor = player.getAttributeValue(EntityAttributes.ARMOR);
                 double toughness = player.getAttributeValue(EntityAttributes.ARMOR_TOUGHNESS);
-                
+
                 // Show reduction against a standard 30 damage hit including toughness
                 double x = (38.0 * 30.0) / (1.0 + (toughness / 200.0));
                 double pdr = armor / (armor + x);
-                
+
                 boolean capped = pdr >= 0.9;
                 pdr = Math.min(0.9, pdr);
 
@@ -858,17 +886,17 @@ public abstract class InventoryScreenStatsMixin {
                 } else if (CombatUtility.isRanged(weapon, dummySource)) {
                         pct += player.getAttributeValue(ModAttributes.RANGED_DAMAGE_PERCENT);
                 }
-                
+
                 if (CombatUtility.isTwoHanding(player, weapon)) {
-                    pct += player.getAttributeValue(ModAttributes.TWO_HANDING_DAMAGE_PERCENT);
+                        pct += player.getAttributeValue(ModAttributes.TWO_HANDING_DAMAGE_PERCENT);
                 } else if (CombatUtility.isDualWielding(player, weapon)) {
-                    pct += player.getAttributeValue(ModAttributes.DUAL_WIELDING_DAMAGE_PERCENT);
+                        pct += player.getAttributeValue(ModAttributes.DUAL_WIELDING_DAMAGE_PERCENT);
                 } else if (CombatUtility.isOneHanding(player, weapon)) {
-                    pct += player.getAttributeValue(ModAttributes.ONE_HANDED_DAMAGE_PERCENT);
+                        pct += player.getAttributeValue(ModAttributes.ONE_HANDED_DAMAGE_PERCENT);
                 }
 
                 double finalElemental = base * (1.0 + pct);
-                
+
                 // Add Physical as Extra
                 double physAsExtraPercent = player.getAttributeValue(physAsExtraAttribute);
                 finalElemental += totalPhysicalDamage * physAsExtraPercent;
@@ -952,7 +980,6 @@ public abstract class InventoryScreenStatsMixin {
                         draggingScrollbar = false;
                 }
         }
-
 
         @Unique
         private double cranks$getPassiveBase(net.minecraft.entity.LivingEntity player,

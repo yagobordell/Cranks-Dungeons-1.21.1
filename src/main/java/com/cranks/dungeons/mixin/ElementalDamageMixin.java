@@ -57,11 +57,44 @@ public abstract class ElementalDamageMixin {
     // processing
 
     @ModifyVariable(method = "damage", at = @At("HEAD"), argsOnly = true)
-    private float cranks$reducePvPDamage(float amount, ServerWorld world, DamageSource source) {
+    private float cranks$overrideDamage(float amount, ServerWorld world, DamageSource source) {
         LivingEntity target = (LivingEntity) (Object) this;
-        if (source.getAttacker() instanceof PlayerEntity && target instanceof PlayerEntity) {
-            return amount * 0.25f;
+        Entity attackerEntity = source.getAttacker();
+
+        if (attackerEntity instanceof LivingEntity attacker) {
+            ItemStack weapon = CombatUtility.getCombatWeapon(source, attacker);
+            
+            // Check for Ranged Damage Override
+            if (CombatUtility.isRanged(weapon, source)) {
+                // Bows and Crossbows now use our Physical Damage stat for consistency
+                double baseDamage = attacker.getAttributeValue(net.minecraft.entity.attribute.EntityAttributes.ATTACK_DAMAGE);
+                baseDamage += getEnchantmentValue(weapon, "minecraft:power", 3.0);
+                
+                double totalPercent = 1.0 + attacker.getAttributeValue(ModAttributes.ATTACK_DAMAGE_PERCENT)
+                                          + attacker.getAttributeValue(ModAttributes.RANGED_DAMAGE_PERCENT);
+                
+                double drawMultiplier = 1.0;
+                if (weapon.getItem() instanceof net.minecraft.item.BowItem) {
+                    // Normalize draw progress. Vanilla full draw is ~6.0 damage (2.0 base * 3.0 velocity)
+                    // We use the vanilla damage as a proxy for how far the bow was drawn.
+                    drawMultiplier = Math.min(1.0, amount / 6.0);
+                }
+                
+                float newAmount = (float) (baseDamage * totalPercent * drawMultiplier);
+                
+                // Apply PvP reduction
+                if (attacker instanceof PlayerEntity && target instanceof PlayerEntity) {
+                    newAmount *= 0.25f;
+                }
+                return newAmount;
+            }
+
+            // Normal PvP reduction for melee/other
+            if (attacker instanceof PlayerEntity && target instanceof PlayerEntity) {
+                return amount * 0.25f;
+            }
         }
+        
         return amount;
     }
 

@@ -236,7 +236,7 @@ public abstract class ItemStackTooltipMixin {
             }
         } else {
             // WEAPON/TOOL BASE STATS
-            if (attributeTotals.containsKey(EntityAttributes.ATTACK_DAMAGE)) {
+            if (attributeTotals.containsKey(EntityAttributes.ATTACK_DAMAGE) && type != EquipmentType.BOW && type != EquipmentType.CROSSBOW) {
                 double baseDamage = PLAYER_BASE_ATTACK_DAMAGE + attributeTotals.get(EntityAttributes.ATTACK_DAMAGE);
                 baseDamage += getEnchantmentValue(stack, "minecraft:attack_damage", 4.0);
                 double totalRuneDamagePercent = ItemStatManager.getTotalStatValue(stack, "attack_damage_percent");
@@ -261,10 +261,33 @@ public abstract class ItemStackTooltipMixin {
             }
 
             // --- New Identity Stats (Range & Knockback) ---
-            double baseRange = 3.0 + attributeTotals.getOrDefault(ModAttributes.ATTACK_RANGE, 0.0);
-            tooltip.add(Text.literal("Attack Range: ").formatted(Formatting.GRAY)
-                    .append(Text.literal(df.format(baseRange)).formatted(Formatting.WHITE)));
-            addedAny = true;
+            if (type != EquipmentType.BOW && type != EquipmentType.CROSSBOW) {
+                double baseRange = 3.0 + attributeTotals.getOrDefault(ModAttributes.ATTACK_RANGE, 0.0);
+                tooltip.add(Text.literal("Attack Range: ").formatted(Formatting.GRAY)
+                        .append(Text.literal(df.format(baseRange)).formatted(Formatting.WHITE)));
+                addedAny = true;
+            }
+
+            if (type == EquipmentType.BOW || type == EquipmentType.CROSSBOW) {
+                // Show Physical Damage for Ranged
+                double baseDamage = attributeTotals.getOrDefault(EntityAttributes.ATTACK_DAMAGE, 0.0);
+                baseDamage += getEnchantmentValue(stack, "minecraft:power", 3.0);
+                
+                double totalRuneDamagePercent = ItemStatManager.getTotalStatValue(stack, "attack_damage_percent");
+                double finalDamage = baseDamage * (1.0 + totalRuneDamagePercent);
+                
+                tooltip.add(Text.literal("Physical Damage: ").formatted(Formatting.GRAY)
+                        .append(Text.literal(df.format(finalDamage)).formatted(Formatting.WHITE)));
+                
+                // Show Reload Speed
+                double reloadSpeedBase = 1.0 + attributeTotals.getOrDefault(ModAttributes.RELOAD_SPEED, 0.0);
+                double reloadSpeedPercent = ItemStatManager.getTotalStatValue(stack, "reload_speed");
+                double finalReloadSpeed = reloadSpeedBase * (1.0 + reloadSpeedPercent);
+                
+                tooltip.add(Text.literal("Reload Speed: ").formatted(Formatting.GRAY)
+                        .append(Text.literal(df.format(finalReloadSpeed)).formatted(Formatting.WHITE)));
+                addedAny = true;
+            }
 
             if (attributeTotals.containsKey(ModAttributes.KNOCKBACK)) {
                 double kbValue = attributeTotals.get(ModAttributes.KNOCKBACK);

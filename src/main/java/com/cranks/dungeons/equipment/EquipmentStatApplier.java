@@ -3,6 +3,7 @@ package com.cranks.dungeons.equipment;
 import com.cranks.dungeons.CranksDungeons;
 import com.cranks.dungeons.stat.CustomStat;
 import com.cranks.dungeons.stat.StatRegistry;
+import com.cranks.dungeons.registry.ModAttributes;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.AttributeModifierSlot;
 import net.minecraft.component.type.AttributeModifiersComponent;
@@ -128,9 +129,10 @@ public class EquipmentStatApplier {
                 AttributeModifierSlot modifierSlot = defaultSlots.getOrDefault(stat.getAttribute(), slot);
                 double combinedValue = defaultValue + itemStat.value;
 
-                boolean isAttackSpeed = stat.getAttribute().equals(EntityAttributes.ATTACK_SPEED);
+                boolean isMultiplicative = stat.getAttribute().equals(EntityAttributes.ATTACK_SPEED) || 
+                                         stat.getAttribute().equals(ModAttributes.RELOAD_SPEED);
 
-                if (isAttackSpeed) {
+                if (isMultiplicative) {
                     // We MUST separate the base weapon modifier (Operation.ADD_VALUE) 
                     // from the rune/passive multiplier (Operation.ADD_MULTIPLIED_TOTAL).
                     // In 1.21, combining them into one ADD_MULTIPLIED_TOTAL with a negative value 

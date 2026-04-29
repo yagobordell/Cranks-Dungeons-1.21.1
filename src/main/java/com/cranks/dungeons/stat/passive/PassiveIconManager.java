@@ -37,6 +37,11 @@ public class PassiveIconManager {
         ATTRIBUTE_ICONS.put("cranks-dungeons:void_damage", "passive/void");
         ATTRIBUTE_ICONS.put("cranks-dungeons:void_extra_percent", "passive/void");
         ATTRIBUTE_ICONS.put("cranks-dungeons:void_resistance", "passive/void");
+        
+        // --- Reactions ---
+        ATTRIBUTE_ICONS.put("cranks-dungeons:reaction_damage_percent", "passive/reaction");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:reaction_radius_percent", "passive/reaction");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:reaction_cooldown_percent", "passive/reaction");
 
         // --- Ailments ---
         ATTRIBUTE_ICONS.put("cranks-dungeons:chance_to_burn", "passive/burn");
