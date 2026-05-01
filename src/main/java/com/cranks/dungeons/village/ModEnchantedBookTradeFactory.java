@@ -30,7 +30,7 @@ public class ModEnchantedBookTradeFactory implements TradeOffers.Factory {
         // List of mod enchantment IDs - all under minecraft namespace
         String[] modEnchantmentIds = {
             "attack_damage", "attack_range", "attack_speed",
-            "bonus_armor", "bonus_armor_toughness", "bonus_knockback",
+            "bonus_armor", "bonus_knockback",
             "breaking_range", "chance_to_burn", "chance_to_freeze",
             "chance_to_poison", "chance_to_shock", "cold_damage",
             "cold_resistance", "crit_chance", "crop_fortune",

@@ -979,7 +979,6 @@ public abstract class InventoryScreenStatsMixin {
                                         if (path.startsWith("passive_") || path.endsWith("_passive_percent")
                                                         || path.equals("max_health_bonus")
                                                         || path.equals("bonus_armor")
-                                                        || path.equals("bonus_armor_toughness")
                                                         || path.equals("bonus_attack_damage")
                                                         || path.equals("leggings_armor_bonus")) {
                                                 baseVal += mod.value();
@@ -1003,7 +1002,6 @@ public abstract class InventoryScreenStatsMixin {
                                         if (path.startsWith("passive_") || path.endsWith("_passive_percent")
                                                         || path.equals("max_health_bonus")
                                                         || path.equals("bonus_armor")
-                                                        || path.equals("bonus_armor_toughness")
                                                         || path.equals("bonus_attack_damage")
                                                         || path.equals("leggings_armor_bonus")) {
                                                 sum += mod.value();

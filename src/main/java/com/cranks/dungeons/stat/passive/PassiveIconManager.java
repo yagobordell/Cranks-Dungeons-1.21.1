@@ -65,7 +65,6 @@ public class PassiveIconManager {
         ATTRIBUTE_ICONS.put("minecraft:armor", "passive/bonus_armor");
         ATTRIBUTE_ICONS.put("cranks-dungeons:bonus_armor", "passive/bonus_armor");
         ATTRIBUTE_ICONS.put("minecraft:armor_toughness", "passive/armor_toughness");
-        ATTRIBUTE_ICONS.put("cranks-dungeons:bonus_armor_toughness", "passive/armor_toughness");
         ATTRIBUTE_ICONS.put("cranks-dungeons:energy_shield", "passive/energy_shield");
         ATTRIBUTE_ICONS.put("cranks-dungeons:evasion_rating", "passive/evasion");
         ATTRIBUTE_ICONS.put("cranks-dungeons:knockback_resistance", "passive/knockback");

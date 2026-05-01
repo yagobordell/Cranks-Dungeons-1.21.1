@@ -335,7 +335,6 @@ public abstract class ItemStackTooltipMixin {
         for (var enchEntry : enchantments.getEnchantmentEntries()) {
             String id = enchEntry.getKey().getKey().get().getValue().toString();
             if (id.equals("minecraft:bonus_armor")) totals.merge(EntityAttributes.ARMOR, 5.0, Double::sum);
-            if (id.equals("minecraft:bonus_armor_toughness")) totals.merge(EntityAttributes.ARMOR_TOUGHNESS, 2.0, Double::sum);
         }
 
         return totals;

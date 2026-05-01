@@ -171,7 +171,6 @@ public class CranksDungeons implements ModInitializer {
 						.add(ModAttributes.TWO_HANDING_DAMAGE_PERCENT, 0.0)
 						.add(ModAttributes.MAX_HEALTH_PERCENT, 0.0)
 						.add(ModAttributes.ARMOR_PERCENT, 0.0)
-						.add(ModAttributes.ARMOR_TOUGHNESS_PERCENT, 0.0)
 						.add(ModAttributes.ENERGY_SHIELD_PERCENT, 0.0)
 						.add(ModAttributes.EVASION_RATING_PERCENT, 0.0)
 						.add(ModAttributes.ARMOR_PENETRATION_PERCENT, 0.0)
@@ -207,7 +206,6 @@ public class CranksDungeons implements ModInitializer {
 						.add(ModAttributes.LIGHTNING_RESISTANCE, 0.0)
 						.add(ModAttributes.VOID_RESISTANCE, 0.0)
 						.add(ModAttributes.BONUS_ARMOR, 0.0)
-						.add(ModAttributes.BONUS_ARMOR_TOUGHNESS, 0.0)
 						.add(ModAttributes.LIFE_REGENERATION, 0.0)
 						.add(ModAttributes.MAX_HEALTH_BONUS, 0.0)
 						.add(ModAttributes.FEATHER_FALLING, 0.0)
@@ -340,7 +338,6 @@ public class CranksDungeons implements ModInitializer {
 			"minecraft:max_health_bonus",
 			"minecraft:life_regeneration",
 			"minecraft:bonus_armor",
-			"minecraft:bonus_armor_toughness",
 			"minecraft:knockback_resistance",
 			"minecraft:fire_resistance",
 			"minecraft:cold_resistance",

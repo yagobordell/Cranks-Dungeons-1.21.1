@@ -22,7 +22,7 @@
 		"AttackRangeMixin",
 		"MaxHealthMixin",
 		"BonusArmorMixin",
-		"BonusArmorToughnessMixin",
+		"PlayerAttackSpeedMixin",
 		"LuckMixin",
 		"CropFortuneBlockMixin",
 		"CriticalHitMixin",

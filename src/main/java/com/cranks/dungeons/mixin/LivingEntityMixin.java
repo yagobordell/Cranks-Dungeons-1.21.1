@@ -100,7 +100,6 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
                 .add(ModAttributes.VOID_RESISTANCE)
                 .add(ModAttributes.KNOCKBACK_RESISTANCE)
                 .add(ModAttributes.BONUS_ARMOR)
-                .add(ModAttributes.BONUS_ARMOR_TOUGHNESS)
                 .add(ModAttributes.LIFE_REGENERATION)
                 .add(ModAttributes.MAX_HEALTH_BONUS)
                 .add(ModAttributes.FEATHER_FALLING)
@@ -188,7 +187,6 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
                 // Stats Percentages
                 .add(ModAttributes.MAX_HEALTH_PERCENT)
                 .add(ModAttributes.ARMOR_PERCENT)
-                .add(ModAttributes.ARMOR_TOUGHNESS_PERCENT)
                 .add(ModAttributes.ENERGY_SHIELD_PERCENT)
                 .add(ModAttributes.EVASION_RATING_PERCENT)
 

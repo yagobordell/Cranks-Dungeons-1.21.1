@@ -20,8 +20,6 @@ public class ModAttributes {
     public static final RegistryEntry<EntityAttribute> KNOCKBACK_RESISTANCE = register("knockback_resistance", 0.0, 0.0,
             1.0);
     public static final RegistryEntry<EntityAttribute> BONUS_ARMOR = register("bonus_armor", 0.0, 0.0, 120.0);
-    public static final RegistryEntry<EntityAttribute> BONUS_ARMOR_TOUGHNESS = register("bonus_armor_toughness", 0.0,
-            0.0, 120.0);
     public static final RegistryEntry<EntityAttribute> LIFE_REGENERATION = register("life_regeneration", 0.0, 0.0,
             100.0);
     public static final RegistryEntry<EntityAttribute> MAX_HEALTH_BONUS = register("max_health_bonus", 0.0, 0.0,
@@ -118,7 +116,6 @@ public class ModAttributes {
     public static final RegistryEntry<EntityAttribute> REACTION_RADIUS_PERCENT = register("reaction_radius_percent", 0.0, 0.0, 10.0);
     public static final RegistryEntry<EntityAttribute> MAX_HEALTH_PERCENT = register("max_health_percent", 0.0, 0.0, 10.0);
     public static final RegistryEntry<EntityAttribute> ARMOR_PERCENT = register("armor_percent", 0.0, 0.0, 10.0);
-    public static final RegistryEntry<EntityAttribute> ARMOR_TOUGHNESS_PERCENT = register("armor_toughness_percent", 0.0, 0.0, 10.0);
     public static final RegistryEntry<EntityAttribute> ENERGY_SHIELD_PERCENT = register("energy_shield_percent", 0.0, 0.0, 10.0);
     public static final RegistryEntry<EntityAttribute> EVASION_RATING_PERCENT = register("evasion_rating_percent", 0.0, 0.0, 10.0);
     public static final RegistryEntry<EntityAttribute> ARMOR_PENETRATION_PERCENT = register("armor_penetration_percent", 0.0, 0.0, 1.0);
