@@ -11,11 +11,11 @@ import net.minecraft.util.Identifier;
 
 public class ModItems {
 
-    public static final Item RUNIC_TOME_T1 = registerRunicTome("runic_tome_t1", 1, CustomRarity.COMMON);
-    public static final Item RUNIC_TOME_T2 = registerRunicTome("runic_tome_t2", 2, CustomRarity.COMMON);
-    public static final Item RUNIC_TOME_T3 = registerRunicTome("runic_tome_t3", 3, CustomRarity.RARE);
-    public static final Item RUNIC_TOME_T4 = registerRunicTome("runic_tome_t4", 4, CustomRarity.RARE);
-    public static final Item RUNIC_TOME_T5 = registerRunicTome("runic_tome_t5", 5, CustomRarity.UNIQUE);
+    public static final Item TOME_OF_TRANSMUTATION = registerRunicTome("transmutation_tome", RunicTomeItem.TomeType.TRANSMUTATION);
+    public static final Item TOME_OF_AUGMENTATION = registerRunicTome("augmentation_tome", RunicTomeItem.TomeType.AUGMENTATION);
+    public static final Item REGAL_TOME = registerRunicTome("regal_tome", RunicTomeItem.TomeType.REGAL);
+    public static final Item TOME_OF_ALCHEMY = registerRunicTome("alchemy_tome", RunicTomeItem.TomeType.ALCHEMY);
+    public static final Item EXALTED_TOME = registerRunicTome("exalted_tome", RunicTomeItem.TomeType.EXALTED);
 
     // Normal Elemental Tomes
     public static final Item TOME_OF_FIRE = registerElementalTome("fire_tome", Element.FIRE, false, CustomRarity.RARE);
@@ -42,12 +42,12 @@ public class ModItems {
     // Artificial Tome
     public static final Item ARTIFICIAL_TOME = registerArtificialTome("artificial_tome", CustomRarity.UNIQUE);
 
-    private static Item registerRunicTome(String name, int tier, CustomRarity rarity) {
+    private static Item registerRunicTome(String name, RunicTomeItem.TomeType type) {
         Identifier id = Identifier.of(CranksDungeons.MOD_ID, name);
         RegistryKey<Item> key = RegistryKey.of(RegistryKeys.ITEM, id);
 
         return Registry.register(Registries.ITEM, key,
-                new RunicTomeItem(tier, rarity, new Item.Settings().registryKey(key)));
+                new RunicTomeItem(type, new Item.Settings().registryKey(key)));
     }
 
     private static Item registerSwiftnessTome(String name, CustomRarity rarity) {
@@ -110,5 +110,6 @@ public class ModItems {
     }
 
     public static void registerModItems() {
+        CranksDungeons.LOGGER.info("Registering Mod Items for Cranks Dungeons: " + TOME_OF_TRANSMUTATION.getName().getString());
     }
 }

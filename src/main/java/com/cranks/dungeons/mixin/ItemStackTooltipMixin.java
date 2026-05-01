@@ -103,10 +103,16 @@ public abstract class ItemStackTooltipMixin {
         boolean isDefensive = type == EquipmentType.HELMET || type == EquipmentType.CHESTPLATE ||
                 type == EquipmentType.LEGGINGS || type == EquipmentType.BOOTS || 
                 type == EquipmentType.ELYTRA || type == EquipmentType.SHIELD;
+        
+        boolean isTool = type == EquipmentType.PICKAXE || type == EquipmentType.AXE ||
+                type == EquipmentType.SHOVEL || type == EquipmentType.HOE;
 
         boolean addedAny = false;
 
-        if (isDefensive) {
+        if (isTool) {
+            // Hide damage and attack speed for tools in tooltip
+            addedAny = true; // Mark as added so we get a divider if needed
+        } else if (isDefensive) {
             String itemName = stack.getItem().toString().toLowerCase();
             ArmorSetType armorType = getArmorSetType(itemName);
 
@@ -159,10 +165,6 @@ public abstract class ItemStackTooltipMixin {
                         tooltip.add(Text.literal("Armor: ").formatted(Formatting.GRAY)
                                 .append(Text.literal(df.format(attributeTotals.get(EntityAttributes.ARMOR))).formatted(Formatting.WHITE)));
                     }
-                    if (attributeTotals.getOrDefault(EntityAttributes.ARMOR_TOUGHNESS, 0.0) > 0) {
-                        tooltip.add(Text.literal("Toughness: ").formatted(Formatting.GRAY)
-                                .append(Text.literal(df.format(attributeTotals.get(EntityAttributes.ARMOR_TOUGHNESS))).formatted(Formatting.WHITE)));
-                    }
                     if (attributeTotals.getOrDefault(ModAttributes.KNOCKBACK_RESISTANCE, 0.0) > 0) {
                         double kbRes = attributeTotals.get(ModAttributes.KNOCKBACK_RESISTANCE) * 100;
                         tooltip.add(Text.literal("Knockback Resistance: ").formatted(Formatting.GRAY)
@@ -195,10 +197,6 @@ public abstract class ItemStackTooltipMixin {
                         tooltip.add(Text.literal("Armor: ").formatted(Formatting.GRAY)
                                 .append(Text.literal(df.format(attributeTotals.get(EntityAttributes.ARMOR))).formatted(Formatting.WHITE)));
                     }
-                    if (attributeTotals.containsKey(EntityAttributes.ARMOR_TOUGHNESS)) {
-                        tooltip.add(Text.literal("Toughness: ").formatted(Formatting.GRAY)
-                                .append(Text.literal(df.format(attributeTotals.get(EntityAttributes.ARMOR_TOUGHNESS))).formatted(Formatting.WHITE)));
-                    }
                     if (attributeTotals.containsKey(EntityAttributes.MAX_HEALTH)) {
                         tooltip.add(Text.literal("Max Health: ").formatted(Formatting.GRAY)
                                 .append(Text.literal("+" + df.format(attributeTotals.get(EntityAttributes.MAX_HEALTH))).formatted(Formatting.WHITE)));
@@ -214,10 +212,6 @@ public abstract class ItemStackTooltipMixin {
                     if (attributeTotals.containsKey(EntityAttributes.ARMOR)) {
                         tooltip.add(Text.literal("Armor: ").formatted(Formatting.GRAY)
                                 .append(Text.literal(df.format(attributeTotals.get(EntityAttributes.ARMOR))).formatted(Formatting.WHITE)));
-                    }
-                    if (attributeTotals.containsKey(EntityAttributes.ARMOR_TOUGHNESS)) {
-                        tooltip.add(Text.literal("Toughness: ").formatted(Formatting.GRAY)
-                                .append(Text.literal(df.format(attributeTotals.get(EntityAttributes.ARMOR_TOUGHNESS))).formatted(Formatting.WHITE)));
                     }
                     if (attributeTotals.containsKey(ModAttributes.BONUS_ATTACK_DAMAGE)) {
                         tooltip.add(Text.literal("Physical Damage: ").formatted(Formatting.GRAY)
@@ -238,7 +232,6 @@ public abstract class ItemStackTooltipMixin {
             // WEAPON/TOOL BASE STATS
             if (attributeTotals.containsKey(EntityAttributes.ATTACK_DAMAGE) && type != EquipmentType.BOW && type != EquipmentType.CROSSBOW && !isTool(stack)) {
                 double baseDamage = PLAYER_BASE_ATTACK_DAMAGE + attributeTotals.get(EntityAttributes.ATTACK_DAMAGE);
-                baseDamage += getEnchantmentValue(stack, "minecraft:attack_damage", 4.0);
                 double totalRuneDamagePercent = ItemStatManager.getTotalStatValue(stack, "attack_damage_percent");
                 double finalDamage = baseDamage * (1.0 + totalRuneDamagePercent);
                 
@@ -249,7 +242,6 @@ public abstract class ItemStackTooltipMixin {
             if (attributeTotals.containsKey(EntityAttributes.ATTACK_SPEED) && !isTool(stack)) {
                 // FIXED: baseSpeed should only include ADD_VALUE modifiers (flat weapon/tool modifiers)
                 double baseSpeed = PLAYER_BASE_ATTACK_SPEED + attributeTotals.get(EntityAttributes.ATTACK_SPEED);
-                baseSpeed += getEnchantmentValue(stack, "minecraft:attack_speed", 0.2);
                 
                 // FIXED: speedPercent should sum ALL attack speed runes
                 double totalRuneSpeedPercent = ItemStatManager.getTotalStatValue(stack, "attack_speed");
@@ -356,10 +348,33 @@ public abstract class ItemStackTooltipMixin {
 
         if (stats.isEmpty() && !hasCryptic) return;
 
+        List<ItemStatManager.ItemStat> prefixes = new ArrayList<>();
+        List<ItemStatManager.ItemStat> suffixes = new ArrayList<>();
+
         for (ItemStatManager.ItemStat itemStat : stats) {
             CustomStat stat = StatRegistry.getStat(itemStat.statId);
             if (stat != null) {
-                tooltip.add(createRunicStatLine(stat, itemStat.value, itemStat.tier, itemStat.isArtificial));
+                if (stat.getAffixType() == CustomStat.AffixType.PREFIX) {
+                    prefixes.add(itemStat);
+                } else {
+                    suffixes.add(itemStat);
+                }
+            }
+        }
+
+        if (!prefixes.isEmpty()) {
+            tooltip.add(Text.literal("Prefixes:").formatted(Formatting.DARK_GRAY, Formatting.ITALIC));
+            for (ItemStatManager.ItemStat p : prefixes) {
+                CustomStat stat = StatRegistry.getStat(p.statId);
+                tooltip.add(createRunicStatLine(stat, p.value, p.tier, p.isArtificial));
+            }
+        }
+
+        if (!suffixes.isEmpty()) {
+            tooltip.add(Text.literal("Suffixes:").formatted(Formatting.DARK_GRAY, Formatting.ITALIC));
+            for (ItemStatManager.ItemStat s : suffixes) {
+                CustomStat stat = StatRegistry.getStat(s.statId);
+                tooltip.add(createRunicStatLine(stat, s.value, s.tier, s.isArtificial));
             }
         }
 
@@ -381,8 +396,9 @@ public abstract class ItemStackTooltipMixin {
 
         CustomRarity rarity = CustomRarity.getRarity(stack);
         int maxSlots = switch (rarity) {
-            case COMMON -> 1;
-            case RARE -> 2;
+            case NORMAL -> 1;
+            case MAGIC -> 2;
+            case RARE -> 3;
             case UNIQUE -> 3;
         };
 
@@ -444,7 +460,7 @@ public abstract class ItemStackTooltipMixin {
 
     @Unique
     private boolean isTool(ItemStack stack) {
-        String name = stack.getItem().toString().toLowerCase();
+        String name = net.minecraft.registry.Registries.ITEM.getId(stack.getItem()).toString().toLowerCase();
         return name.contains("pickaxe") || name.contains("shovel") ||
                 name.contains("hoe") || name.contains("axe");
     }

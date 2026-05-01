@@ -28,7 +28,8 @@ public class ApplyStatCommand {
                                         int retries = 0;
 
                                         while (addedStats < 5 && retries < maxRetries) {
-                                            boolean success = ItemStatManager.addRandomStat(stack, tier);
+                                            com.cranks.dungeons.stat.CustomStat.AffixType type = com.cranks.dungeons.util.RandomUtil.nextBoolean() ? com.cranks.dungeons.stat.CustomStat.AffixType.PREFIX : com.cranks.dungeons.stat.CustomStat.AffixType.SUFFIX;
+                                            boolean success = ItemStatManager.addRandomStat(stack, tier, type);
                                             if (success) {
                                                 addedStats++;
                                             }

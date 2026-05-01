@@ -4,6 +4,7 @@ import com.cranks.dungeons.CranksDungeons;
 import com.cranks.dungeons.registry.ModAttributes;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 import org.spongepowered.asm.mixin.Mixin;
@@ -24,32 +25,49 @@ public abstract class BonusEnergyShieldMixin {
 
         if (!(player instanceof ServerPlayerEntity)) return;
 
-        double esPercent = player.getAttributeValue(ModAttributes.ENERGY_SHIELD_PERCENT);
+        // Calculate Local ES Bonuses from all slots
+        double totalLocalBonus = 0;
+        for (net.minecraft.entity.EquipmentSlot slot : net.minecraft.entity.EquipmentSlot.values()) {
+            if (!slot.isArmorSlot() && slot != net.minecraft.entity.EquipmentSlot.OFFHAND) continue;
+            
+            ItemStack stack = player.getEquippedStack(slot);
+            if (stack.isEmpty()) continue;
+
+            double baseESOnItem = 0;
+            double itemPercent = 0;
+            
+            var comp = stack.get(net.minecraft.component.DataComponentTypes.ATTRIBUTE_MODIFIERS);
+            if (comp != null) {
+                for (var entry : comp.modifiers()) {
+                    if (entry.attribute().equals(ModAttributes.ENERGY_SHIELD)) {
+                        baseESOnItem += entry.modifier().value();
+                    } else if (entry.attribute().equals(ModAttributes.ENERGY_SHIELD_PERCENT)) {
+                        itemPercent += entry.modifier().value();
+                    }
+                }
+            }
+            
+            if (itemPercent > 0 && baseESOnItem > 0) {
+                totalLocalBonus += baseESOnItem * itemPercent;
+            }
+        }
 
         var esAttr = player.getAttributeInstance(ModAttributes.ENERGY_SHIELD);
         if (esAttr == null) return;
 
-        Identifier percentModifierId = Identifier.of(CranksDungeons.MOD_ID, "energy_shield_passive_percent");
+        Identifier localModifierId = Identifier.of(CranksDungeons.MOD_ID, "local_energy_shield_bonus");
 
-        // Apply Percentage Bonus
-        double currentTotal = esAttr.getValue();
-        double currentPercentModifier = 0;
-        var mod = esAttr.getModifier(percentModifierId);
-        if (mod != null) currentPercentModifier = mod.value();
-
-        double totalWithoutThis = currentTotal - currentPercentModifier;
-        double newPercentBonus = totalWithoutThis * esPercent;
-
-        if (Math.abs(newPercentBonus - cranks$lastESPercentBonus) > 0.01) {
-            esAttr.removeModifier(percentModifierId);
-            if (newPercentBonus > 0) {
+        // Apply Local Bonus
+        if (Math.abs(totalLocalBonus - cranks$lastESPercentBonus) > 0.01) {
+            esAttr.removeModifier(localModifierId);
+            if (totalLocalBonus > 0) {
                 esAttr.addTemporaryModifier(new EntityAttributeModifier(
-                        percentModifierId,
-                        newPercentBonus,
+                        localModifierId,
+                        totalLocalBonus,
                         EntityAttributeModifier.Operation.ADD_VALUE
                 ));
             }
-            cranks$lastESPercentBonus = newPercentBonus;
+            cranks$lastESPercentBonus = totalLocalBonus;
         }
     }
 }

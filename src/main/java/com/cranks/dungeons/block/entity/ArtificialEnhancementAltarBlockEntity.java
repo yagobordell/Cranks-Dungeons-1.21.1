@@ -207,10 +207,13 @@ public class ArtificialEnhancementAltarBlockEntity extends BlockEntity implement
         if (equipTypeOpt.isEmpty()) return;
 
         EquipmentType equipType = equipTypeOpt.get();
+        CustomStat.AffixType requiredType = ItemStatManager.getCrypticAffixType(equipment);
+        
         List<CustomStat> availableStats = StatRegistry.getStatsByEquipmentType(equipType);
 
         List<ItemStatManager.ItemStat> existingStats = ItemStatManager.getStats(equipment);
         availableStats = availableStats.stream()
+                .filter(stat -> stat.getAffixType() == requiredType) // Only show the required type
                 .filter(stat -> {
                     for (var existing : existingStats) {
                         if (existing.statId.equals(stat.getId())) return false;

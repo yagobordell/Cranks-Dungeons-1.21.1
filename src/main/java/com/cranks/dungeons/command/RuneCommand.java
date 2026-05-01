@@ -103,8 +103,8 @@ public class RuneCommand {
         }
 
         // Check if item is full
-        if (!ItemStatManager.canAddStat(heldItem)) {
-            context.getSource().sendError(Text.literal("This item already has the maximum number of stats (5)!").formatted(Formatting.RED));
+        if (!ItemStatManager.canAddStat(heldItem, stat.getAffixType())) {
+            context.getSource().sendError(Text.literal("This item already has the maximum number of " + stat.getAffixType().name().toLowerCase() + " stats!").formatted(Formatting.RED));
             return 0;
         }
 

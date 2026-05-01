@@ -15,13 +15,10 @@ public class EvasionTomeItem extends AbstractTomeItem {
 
     @Override
     public String getStatIdForEquipment(EquipmentType equipType) {
-        return switch (equipType) {
-            case HELMET -> "helmet_evasion_rating";
-            case CHESTPLATE -> "chestplate_evasion_rating";
-            case LEGGINGS -> "leggings_evasion_rating";
-            case BOOTS -> "boots_evasion_rating";
-            default -> null;
-        };
+        if (isArmor(equipType)) {
+            return equipType.name().toLowerCase() + "_evasion_rating";
+        }
+        return null;
     }
 
     @Override
@@ -29,9 +26,9 @@ public class EvasionTomeItem extends AbstractTomeItem {
                               net.minecraft.component.type.TooltipDisplayComponent displayComponent,
                               Consumer<Text> textConsumer, net.minecraft.item.tooltip.TooltipType type) {
 
-        textConsumer.accept(Text.literal("Power sealed within runes").formatted(Formatting.AQUA, Formatting.ITALIC));
-        textConsumer.accept(Text.literal("▶ On Armor:").formatted(Formatting.WHITE));
-        addTierBreakdown(textConsumer, "Evasion Rating", Formatting.WHITE);
+        addTomeDescription(textConsumer);
+
+        addStatRange(textConsumer, EquipmentType.CHESTPLATE, "Armor");
 
         super.appendTooltip(stack, context, displayComponent, textConsumer, type);
     }

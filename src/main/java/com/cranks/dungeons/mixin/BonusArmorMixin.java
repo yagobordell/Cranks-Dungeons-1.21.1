@@ -29,36 +29,54 @@ public abstract class BonusArmorMixin {
         PlayerEntity player = (PlayerEntity) (Object) this;
         if (!(player instanceof ServerPlayerEntity serverPlayer)) return;
 
-        double bonusArmor = player.getAttributeValue(ModAttributes.BONUS_ARMOR);
-        double armorPercent = player.getAttributeValue(ModAttributes.ARMOR_PERCENT);
-        
-        // Calculate Leggings Armor Multiplier
-        double leggingsMultiplier = player.getAttributeValue(ModAttributes.LEGGINGS_ARMOR_PERCENT);
-        double leggingsBonus = 0;
-        if (leggingsMultiplier > 0) {
-            ItemStack leggings = player.getEquippedStack(net.minecraft.entity.EquipmentSlot.LEGS);
-            if (!leggings.isEmpty()) {
-                double leggingsBaseArmor = 0;
-                var comp = leggings.get(net.minecraft.component.DataComponentTypes.ATTRIBUTE_MODIFIERS);
-                if (comp != null) {
-                    for (var entry : comp.modifiers()) {
-                        if (entry.attribute().equals(EntityAttributes.ARMOR)) {
-                            leggingsBaseArmor += entry.modifier().value();
-                        }
+        // Calculate Local Armor Bonuses from all slots
+        double totalLocalBonus = 0;
+        for (net.minecraft.entity.EquipmentSlot slot : net.minecraft.entity.EquipmentSlot.values()) {
+            if (!slot.isArmorSlot() && slot != net.minecraft.entity.EquipmentSlot.OFFHAND) continue;
+            
+            ItemStack stack = player.getEquippedStack(slot);
+            if (stack.isEmpty()) continue;
+
+            double baseArmorOnItem = 0;
+            double itemPercent = 0;
+            
+            var comp = stack.get(net.minecraft.component.DataComponentTypes.ATTRIBUTE_MODIFIERS);
+            if (comp != null) {
+                for (var entry : comp.modifiers()) {
+                    if (entry.attribute().equals(EntityAttributes.ARMOR)) {
+                        baseArmorOnItem += entry.modifier().value();
+                    } else if (entry.attribute().equals(ModAttributes.ARMOR_PERCENT)) {
+                        itemPercent += entry.modifier().value();
                     }
                 }
-                leggingsBonus = leggingsBaseArmor * leggingsMultiplier;
+            }
+            
+            if (itemPercent > 0 && baseArmorOnItem > 0) {
+                totalLocalBonus += baseArmorOnItem * itemPercent;
             }
         }
 
         var armorAttr = player.getAttributeInstance(EntityAttributes.ARMOR);
         if (armorAttr == null) return;
 
+        Identifier localModifierId = Identifier.of(CranksDungeons.MOD_ID, "local_armor_bonus");
+        double bonusArmor = player.getAttributeValue(ModAttributes.BONUS_ARMOR);
         Identifier flatModifierId = Identifier.of(CranksDungeons.MOD_ID, "bonus_armor");
-        Identifier leggingsModifierId = Identifier.of(CranksDungeons.MOD_ID, "leggings_armor_bonus");
-        Identifier percentModifierId = Identifier.of(CranksDungeons.MOD_ID, "armor_passive_percent");
 
-        // Apply Flat Bonus Armor
+        // Apply Local Bonus
+        if (Math.abs(totalLocalBonus - cranks$lastGlobalArmorPercentBonus) > 0.01) {
+            armorAttr.removeModifier(localModifierId);
+            if (totalLocalBonus > 0) {
+                armorAttr.addTemporaryModifier(new EntityAttributeModifier(
+                        localModifierId,
+                        totalLocalBonus,
+                        EntityAttributeModifier.Operation.ADD_VALUE
+                ));
+            }
+            cranks$lastGlobalArmorPercentBonus = totalLocalBonus;
+        }
+
+        // Apply Flat Bonus Armor (Legacy/Misc)
         if (bonusArmor != cranks$lastBonusArmor) {
             armorAttr.removeModifier(flatModifierId);
             if (bonusArmor > 0) {
@@ -69,40 +87,6 @@ public abstract class BonusArmorMixin {
                 ));
             }
             cranks$lastBonusArmor = bonusArmor;
-        }
-
-        // Apply Leggings Percentage Bonus
-        if (leggingsBonus != cranks$lastLeggingsBonus) {
-            armorAttr.removeModifier(leggingsModifierId);
-            if (leggingsBonus > 0) {
-                armorAttr.addTemporaryModifier(new EntityAttributeModifier(
-                        leggingsModifierId,
-                        leggingsBonus,
-                        EntityAttributeModifier.Operation.ADD_VALUE
-                ));
-            }
-            cranks$lastLeggingsBonus = leggingsBonus;
-        }
-
-        // Apply Global Percentage Bonus
-        double currentTotal = armorAttr.getValue();
-        double currentPercentModifier = 0;
-        var mod = armorAttr.getModifier(percentModifierId);
-        if (mod != null) currentPercentModifier = mod.value();
-
-        double totalWithoutThis = currentTotal - currentPercentModifier;
-        double newPercentBonus = totalWithoutThis * armorPercent;
-
-        if (Math.abs(newPercentBonus - cranks$lastGlobalArmorPercentBonus) > 0.01) {
-            armorAttr.removeModifier(percentModifierId);
-            if (newPercentBonus > 0) {
-                armorAttr.addTemporaryModifier(new EntityAttributeModifier(
-                        percentModifierId,
-                        newPercentBonus,
-                        EntityAttributeModifier.Operation.ADD_VALUE
-                ));
-            }
-            cranks$lastGlobalArmorPercentBonus = newPercentBonus;
         }
     }
 }

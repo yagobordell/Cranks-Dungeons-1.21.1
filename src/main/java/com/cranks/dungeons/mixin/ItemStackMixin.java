@@ -31,7 +31,7 @@ public class ItemStackMixin {
         ItemStack stack = (ItemStack) (Object) this;
 
         CustomRarity rarity = CustomRarity.getRarity(stack);
-        if (rarity == CustomRarity.COMMON || rarity.getColor() == Formatting.WHITE) {
+        if (rarity == CustomRarity.NORMAL || rarity.getColor() == Formatting.WHITE) {
             return;
         }
 

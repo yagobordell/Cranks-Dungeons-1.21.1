@@ -2,19 +2,27 @@ package com.cranks.dungeons.item;
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.Formatting;
 
+import java.util.Optional;
+
 public enum CustomRarity {
-    COMMON("Common", Formatting.GRAY),
-    RARE("Rare", Formatting.GREEN),
-    UNIQUE("Unique", Formatting.GOLD);
+    NORMAL("Normal", Formatting.WHITE, 0, 0),
+    MAGIC("Magic", Formatting.AQUA, 1, 1),
+    RARE("Rare", Formatting.YELLOW, 3, 3),
+    UNIQUE("Unique", Formatting.GOLD, 6, 6);
 
     private final String name;
     private final Formatting color;
+    private final int maxPrefixes;
+    private final int maxSuffixes;
 
-    CustomRarity(String name, Formatting color) {
+    CustomRarity(String name, Formatting color, int maxPrefixes, int maxSuffixes) {
         this.name = name;
         this.color = color;
+        this.maxPrefixes = maxPrefixes;
+        this.maxSuffixes = maxSuffixes;
     }
 
     public String getName() {
@@ -25,30 +33,34 @@ public enum CustomRarity {
         return color;
     }
 
-    public static CustomRarity getRarity(ItemStack stack) {
-        if (stack.isEmpty()) return COMMON;
+    public int getMaxPrefixes() {
+        return maxPrefixes;
+    }
 
-        // 1. Check for Uniques FIRST
+    public int getMaxSuffixes() {
+        return maxSuffixes;
+    }
+
+    public static CustomRarity getRarity(ItemStack stack) {
+        if (stack.isEmpty()) return NORMAL;
+
+        // 1. Check for Uniques (Fixed Uniques)
         if (stack.isOf(Items.ELYTRA) || stack.isOf(Items.TRIDENT) || stack.isOf(Items.MACE)) {
             return UNIQUE;
         }
 
-        // 2. Check for Diamond/Netherite Equipment
-        String itemName = stack.getItem().toString().toLowerCase();
-        if (itemName.contains("diamond") || itemName.contains("netherite")) {
-            if (isEquipment(itemName)) {
-                return RARE;
+        // 2. Check NBT for rarity
+        NbtCompound nbt = stack.getOrDefault(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,
+                net.minecraft.component.type.NbtComponent.DEFAULT).copyNbt();
+        if (nbt.contains("Rarity")) {
+            String rarityStr = nbt.getString("Rarity").orElse("NORMAL");
+            try {
+                return CustomRarity.valueOf(rarityStr);
+            } catch (IllegalArgumentException e) {
+                return NORMAL;
             }
         }
 
-        return COMMON;
-    }
-
-    private static boolean isEquipment(String name) {
-        return name.endsWith("sword") || name.endsWith("axe") || name.endsWith("pickaxe") ||
-                name.endsWith("shovel") || name.endsWith("hoe") || name.endsWith("helmet") ||
-                name.endsWith("chestplate") || name.endsWith("leggings") || name.endsWith("boots") ||
-                name.endsWith("spear") || name.endsWith("elytra") || name.endsWith("trident") ||
-                name.endsWith("mace");
+        return NORMAL;
     }
 }

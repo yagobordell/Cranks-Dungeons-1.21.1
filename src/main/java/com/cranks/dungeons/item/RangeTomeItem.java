@@ -9,26 +9,26 @@ import java.util.function.Consumer;
 
 public class RangeTomeItem extends AbstractTomeItem {
 
-    public RangeTomeItem(CustomRarity rarity, Settings settings) {
-        super(rarity, settings);
+    public RangeTomeItem(CustomRarity customRarity, Settings settings) {
+        super(customRarity, settings);
     }
 
     @Override
     public String getStatIdForEquipment(EquipmentType equipType) {
-        return switch (equipType) {
-            case SWORD, SPEAR, MACE, TRIDENT -> equipType.name().toLowerCase() + "_attack_range";
-            default -> null;
-        };
+        if (isWeapon(equipType)) {
+            return equipType.name().toLowerCase() + "_attack_range";
+        }
+        return null;
     }
 
     @Override
     public void appendTooltip(ItemStack stack, TooltipContext context,
-            net.minecraft.component.type.TooltipDisplayComponent displayComponent,
-            Consumer<Text> textConsumer, net.minecraft.item.tooltip.TooltipType type) {
+                              net.minecraft.component.type.TooltipDisplayComponent displayComponent,
+                              Consumer<Text> textConsumer, net.minecraft.item.tooltip.TooltipType type) {
 
-        textConsumer.accept(Text.literal("Power sealed within runes").formatted(Formatting.AQUA, Formatting.ITALIC));
-        textConsumer.accept(Text.literal("▶ On Melee Weapons:").formatted(Formatting.WHITE));
-        addTierBreakdown(textConsumer, "Attack Range", Formatting.WHITE);
+        addTomeDescription(textConsumer);
+
+        addStatRange(textConsumer, EquipmentType.SWORD, "Weapons");
 
         super.appendTooltip(stack, context, displayComponent, textConsumer, type);
     }

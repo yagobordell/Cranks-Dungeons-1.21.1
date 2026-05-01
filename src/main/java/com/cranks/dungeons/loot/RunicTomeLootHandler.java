@@ -176,20 +176,20 @@ public class RunicTomeLootHandler {
      */
     private static void addTier1Drops(LootPool.Builder poolBuilder) {
         poolBuilder
-                .with(ItemEntry.builder(ModItems.RUNIC_TOME_T1)
+                .with(ItemEntry.builder(ModItems.TOME_OF_TRANSMUTATION)
                         .weight(65)
                         .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))
-                .with(ItemEntry.builder(ModItems.RUNIC_TOME_T2)
+                .with(ItemEntry.builder(ModItems.REGAL_TOME)
                         .weight(30)
-                        .quality(2)  // LUCK BONUS
+                        .quality(2)
                         .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))
-                .with(ItemEntry.builder(ModItems.RUNIC_TOME_T3)
+                .with(ItemEntry.builder(ModItems.TOME_OF_AUGMENTATION)
                         .weight(5)
-                        .quality(4)  // LUCK BONUS (strong for rare drop)
+                        .quality(4)
                         .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))
                 .with(ItemEntry.builder(net.minecraft.item.Items.AIR)
                         .weight(1150)
-                        .quality(-2)); // LUCK PENALTY
+                        .quality(-2));
     }
 
     /**
@@ -203,24 +203,24 @@ public class RunicTomeLootHandler {
      */
     private static void addTier2Drops(LootPool.Builder poolBuilder) {
         poolBuilder
-                .with(ItemEntry.builder(ModItems.RUNIC_TOME_T2)
+                .with(ItemEntry.builder(ModItems.REGAL_TOME)
                         .weight(30)
                         .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))
-                .with(ItemEntry.builder(ModItems.RUNIC_TOME_T3)
+                .with(ItemEntry.builder(ModItems.TOME_OF_AUGMENTATION)
                         .weight(45)
-                        .quality(2)  // LUCK BONUS
+                        .quality(2)
                         .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))
-                .with(ItemEntry.builder(ModItems.RUNIC_TOME_T4)
+                .with(ItemEntry.builder(ModItems.TOME_OF_ALCHEMY)
                         .weight(20)
-                        .quality(4)  // LUCK BONUS (strong)
+                        .quality(4)
                         .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))
-                .with(ItemEntry.builder(ModItems.RUNIC_TOME_T5)
+                .with(ItemEntry.builder(ModItems.EXALTED_TOME)
                         .weight(5)
-                        .quality(6)  // LUCK BONUS (very strong for legendary)
+                        .quality(6)
                         .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))
                 .with(ItemEntry.builder(net.minecraft.item.Items.AIR)
                         .weight(1150)
-                        .quality(-2)); // LUCK PENALTY
+                        .quality(-2));
     }
 
     /**
@@ -233,20 +233,20 @@ public class RunicTomeLootHandler {
      */
     private static void addTier3Drops(LootPool.Builder poolBuilder) {
         poolBuilder
-                .with(ItemEntry.builder(ModItems.RUNIC_TOME_T3)
+                .with(ItemEntry.builder(ModItems.TOME_OF_AUGMENTATION)
                         .weight(30)
                         .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))
-                .with(ItemEntry.builder(ModItems.RUNIC_TOME_T4)
+                .with(ItemEntry.builder(ModItems.TOME_OF_ALCHEMY)
                         .weight(40)
-                        .quality(3)  // LUCK BONUS
+                        .quality(3)
                         .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))
-                .with(ItemEntry.builder(ModItems.RUNIC_TOME_T5)
+                .with(ItemEntry.builder(ModItems.EXALTED_TOME)
                         .weight(30)
-                        .quality(6)  // LUCK BONUS (strong for legendary)
+                        .quality(6)
                         .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))
                 .with(ItemEntry.builder(net.minecraft.item.Items.AIR)
                         .weight(1150)
-                        .quality(-3)); // LUCK PENALTY (stronger)
+                        .quality(-3));
     }
 
     /**
@@ -272,11 +272,11 @@ public class RunicTomeLootHandler {
      */
     private static void addTier1ChestDrops(LootPool.Builder poolBuilder) {
         poolBuilder
-                .with(ItemEntry.builder(ModItems.RUNIC_TOME_T1)
+                .with(ItemEntry.builder(ModItems.TOME_OF_TRANSMUTATION)
                         .weight(90)
                         .quality(1)
                         .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))
-                .with(ItemEntry.builder(ModItems.RUNIC_TOME_T2)
+                .with(ItemEntry.builder(ModItems.REGAL_TOME)
                         .weight(10)
                         .quality(2)
                         .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))
@@ -291,11 +291,11 @@ public class RunicTomeLootHandler {
      */
     private static void addTier2ChestDrops(LootPool.Builder poolBuilder) {
         poolBuilder
-                .with(ItemEntry.builder(ModItems.RUNIC_TOME_T1)
+                .with(ItemEntry.builder(ModItems.TOME_OF_TRANSMUTATION)
                         .weight(35)
                         .quality(1)
                         .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))
-                .with(ItemEntry.builder(ModItems.RUNIC_TOME_T2)
+                .with(ItemEntry.builder(ModItems.REGAL_TOME)
                         .weight(65)
                         .quality(2)
                         .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))
@@ -310,11 +310,11 @@ public class RunicTomeLootHandler {
      */
     private static void addTier3ChestDrops(LootPool.Builder poolBuilder) {
         poolBuilder
-                .with(ItemEntry.builder(ModItems.RUNIC_TOME_T1)
+                .with(ItemEntry.builder(ModItems.TOME_OF_TRANSMUTATION)
                         .weight(15)
                         .quality(1)
                         .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))
-                .with(ItemEntry.builder(ModItems.RUNIC_TOME_T2)
+                .with(ItemEntry.builder(ModItems.REGAL_TOME)
                         .weight(85)
                         .quality(2)
                         .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))

@@ -29,10 +29,6 @@ public class BonusAttackDamageMixin {
             double bonusDamage = CombatUtility.getAttributeValue(attacker, ModAttributes.BONUS_ATTACK_DAMAGE, weapon,
                     "bonus_attack_damage", source);
 
-            // Add bonus attack damage from weapon/chestplate enchantments
-            if (weapon != null) bonusDamage += getEnchantmentValue(weapon, "minecraft:attack_damage", 4.0);
-            if (chestplate != null) bonusDamage += getEnchantmentValue(chestplate, "minecraft:attack_damage", 4.0);
-
             // Apply flat bonus first
             float damageWithBonus = amount + (float) bonusDamage;
 
@@ -72,15 +68,4 @@ public class BonusAttackDamageMixin {
         return amount;
     }
 
-    @Unique
-    private double getEnchantmentValue(ItemStack stack, String enchantmentId, double baseValue) {
-        var enchantments = stack.getEnchantments();
-        for (var entry : enchantments.getEnchantmentEntries()) {
-            String id = entry.getKey().getKey().get().getValue().toString();
-            if (id.equals(enchantmentId)) {
-                return baseValue;
-            }
-        }
-        return 0.0;
-    }
 }

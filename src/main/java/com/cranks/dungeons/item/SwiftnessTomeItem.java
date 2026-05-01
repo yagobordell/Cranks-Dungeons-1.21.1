@@ -30,23 +30,13 @@ public class SwiftnessTomeItem extends AbstractTomeItem {
 
     @Override
     public void appendTooltip(ItemStack stack, TooltipContext context,
-            net.minecraft.component.type.TooltipDisplayComponent displayComponent,
-            Consumer<Text> textConsumer, net.minecraft.item.tooltip.TooltipType type) {
+                              net.minecraft.component.type.TooltipDisplayComponent displayComponent,
+                              Consumer<Text> textConsumer, net.minecraft.item.tooltip.TooltipType type) {
 
-        textConsumer.accept(Text.literal("Power sealed within runes").formatted(Formatting.AQUA, Formatting.ITALIC));
+        addTomeDescription(textConsumer);
 
-        textConsumer.accept(Text.literal("▶ On Melee Weapons & Chestplates:").formatted(Formatting.WHITE));
-        addTierBreakdown(textConsumer, "Attack Speed", Formatting.WHITE);
-
-        textConsumer.accept(Text.empty());
-
-        textConsumer.accept(Text.literal("▶ On Ranged Weapons:").formatted(Formatting.WHITE));
-        addTierBreakdown(textConsumer, "Reload Speed", Formatting.WHITE);
-
-        textConsumer.accept(Text.empty());
-
-        textConsumer.accept(Text.literal("▶ On Boots & Elytra:").formatted(Formatting.WHITE));
-        addTierBreakdown(textConsumer, "Movement Speed", Formatting.WHITE);
+        addStatRange(textConsumer, EquipmentType.SWORD, "Weapons");
+        addStatRange(textConsumer, EquipmentType.BOOTS, "Boots");
 
         super.appendTooltip(stack, context, displayComponent, textConsumer, type);
     }

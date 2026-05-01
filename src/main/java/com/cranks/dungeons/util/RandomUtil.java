@@ -29,4 +29,8 @@ public final class RandomUtil {
     public static int nextInt(int origin, int bound) {
         return ThreadLocalRandom.current().nextInt(origin, bound);
     }
+
+    public static boolean nextBoolean() {
+        return ThreadLocalRandom.current().nextBoolean();
+    }
 }

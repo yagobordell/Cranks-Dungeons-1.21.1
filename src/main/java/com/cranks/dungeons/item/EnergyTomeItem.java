@@ -15,14 +15,10 @@ public class EnergyTomeItem extends AbstractTomeItem {
 
     @Override
     public String getStatIdForEquipment(EquipmentType equipType) {
-        return switch (equipType) {
-            case HELMET -> "helmet_energy_shield";
-            case CHESTPLATE -> "chestplate_energy_shield";
-            case LEGGINGS -> "leggings_energy_shield";
-            case BOOTS -> "boots_energy_shield";
-            case ELYTRA -> "elytra_energy_shield";
-            default -> null;
-        };
+        if (isArmor(equipType) || equipType == EquipmentType.ELYTRA) {
+            return equipType.name().toLowerCase() + "_energy_shield";
+        }
+        return null;
     }
 
     @Override
@@ -30,9 +26,9 @@ public class EnergyTomeItem extends AbstractTomeItem {
                               net.minecraft.component.type.TooltipDisplayComponent displayComponent,
                               Consumer<Text> textConsumer, net.minecraft.item.tooltip.TooltipType type) {
 
-        textConsumer.accept(Text.literal("Power sealed within runes").formatted(Formatting.AQUA, Formatting.ITALIC));
-        textConsumer.accept(Text.literal("▶ On Armor & Elytra:").formatted(Formatting.WHITE));
-        addTierBreakdown(textConsumer, "Energy Shield", Formatting.WHITE);
+        addTomeDescription(textConsumer);
+
+        addStatRange(textConsumer, EquipmentType.CHESTPLATE, "Armor");
 
         super.appendTooltip(stack, context, displayComponent, textConsumer, type);
     }

@@ -9,6 +9,11 @@ import net.minecraft.util.Formatting;
 import java.text.DecimalFormat;
 
 public class CustomStat {
+    public enum AffixType {
+        PREFIX,
+        SUFFIX
+    }
+
     private final String id;
     private final String displayName;
     private final EquipmentType equipmentType;
@@ -18,13 +23,14 @@ public class CustomStat {
     private final boolean isPercentage;
     private final boolean displayAsPercentage;
     private final Formatting color;
+    private final AffixType affixType;
 
     // Constructor with all parameters
     public CustomStat(String id, String displayName, EquipmentType equipmentType,
                       RegistryEntry<EntityAttribute> attribute,
                       double[] normalRanges, double[] uncommonRanges,
                       boolean isPercentage, boolean displayAsPercentage,
-                      Formatting color) {
+                      Formatting color, AffixType affixType) {
         this.id = id;
         this.displayName = displayName;
         this.equipmentType = equipmentType;
@@ -34,15 +40,7 @@ public class CustomStat {
         this.isPercentage = isPercentage;
         this.displayAsPercentage = displayAsPercentage;
         this.color = color;
-    }
-
-    // Constructor for non-percentage stats
-    public CustomStat(String id, String displayName, EquipmentType equipmentType,
-                      RegistryEntry<EntityAttribute> attribute,
-                      double[] normalRanges, double[] uncommonRanges,
-                      boolean isPercentage, Formatting color) {
-        this(id, displayName, equipmentType, attribute, normalRanges, uncommonRanges,
-                isPercentage, false, color);
+        this.affixType = affixType;
     }
 
     public String getId() {
@@ -61,17 +59,43 @@ public class CustomStat {
         return attribute;
     }
 
+    public AffixType getAffixType() {
+        return affixType;
+    }
+
     public double rollValue(int tier) {
-        if (tier < 1 || tier > 5) {
-            throw new IllegalArgumentException("Tier must be between 1 and 5");
+        // PoE Tiers are 1 to 10, where 1 is best.
+        // Array index should be 10 - tier (0 to 9)
+        if (tier < 1 || tier > 10) {
+            throw new IllegalArgumentException("Tier must be between 1 and 10");
         }
 
-        double min = normalRanges[tier - 1];
-        double max = uncommonRanges[tier - 1];
+        int index = 10 - tier;
+        // Safety check if ranges array is shorter
+        if (index >= normalRanges.length) index = normalRanges.length - 1;
+
+        double min = normalRanges[index];
+        double max = uncommonRanges[index];
 
         double value = min + (max - min) * RandomUtil.nextDouble(1.0);
 
         return Math.round(value * 1000.0) / 1000.0;
+    }
+
+    public String getFormattedRange(int minTier, int maxTier) {
+        DecimalFormat df = new DecimalFormat("#.##");
+        // minTier is higher number (e.g. 3), maxTier is lower number (e.g. 1)
+        int minIndex = 10 - minTier;
+        int maxIndex = 10 - maxTier;
+        
+        double minVal = normalRanges[minIndex];
+        double maxVal = uncommonRanges[maxIndex]; // Correctly show full potential range
+
+        if (displayAsPercentage || isPercentage) {
+            return "+(" + df.format(minVal * 100) + " - " + df.format(maxVal * 100) + ")% " + displayName;
+        } else {
+            return "+(" + df.format(minVal) + " - " + df.format(maxVal) + ") " + displayName;
+        }
     }
 
     public String formatValue(double value) {

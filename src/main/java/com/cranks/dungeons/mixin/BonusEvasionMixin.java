@@ -4,6 +4,7 @@ import com.cranks.dungeons.CranksDungeons;
 import com.cranks.dungeons.registry.ModAttributes;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 import org.spongepowered.asm.mixin.Mixin;
@@ -24,32 +25,49 @@ public abstract class BonusEvasionMixin {
 
         if (!(player instanceof ServerPlayerEntity)) return;
 
-        double evasionPercent = player.getAttributeValue(ModAttributes.EVASION_RATING_PERCENT);
+        // Calculate Local Evasion Bonuses from all slots
+        double totalLocalBonus = 0;
+        for (net.minecraft.entity.EquipmentSlot slot : net.minecraft.entity.EquipmentSlot.values()) {
+            if (!slot.isArmorSlot()) continue;
+            
+            ItemStack stack = player.getEquippedStack(slot);
+            if (stack.isEmpty()) continue;
+
+            double baseEvasionOnItem = 0;
+            double itemPercent = 0;
+            
+            var comp = stack.get(net.minecraft.component.DataComponentTypes.ATTRIBUTE_MODIFIERS);
+            if (comp != null) {
+                for (var entry : comp.modifiers()) {
+                    if (entry.attribute().equals(ModAttributes.EVASION_RATING)) {
+                        baseEvasionOnItem += entry.modifier().value();
+                    } else if (entry.attribute().equals(ModAttributes.EVASION_RATING_PERCENT)) {
+                        itemPercent += entry.modifier().value();
+                    }
+                }
+            }
+            
+            if (itemPercent > 0 && baseEvasionOnItem > 0) {
+                totalLocalBonus += baseEvasionOnItem * itemPercent;
+            }
+        }
 
         var evasionAttr = player.getAttributeInstance(ModAttributes.EVASION_RATING);
         if (evasionAttr == null) return;
 
-        Identifier percentModifierId = Identifier.of(CranksDungeons.MOD_ID, "evasion_rating_passive_percent");
+        Identifier localModifierId = Identifier.of(CranksDungeons.MOD_ID, "local_evasion_bonus");
 
-        // Apply Percentage Bonus
-        double currentTotal = evasionAttr.getValue();
-        double currentPercentModifier = 0;
-        var mod = evasionAttr.getModifier(percentModifierId);
-        if (mod != null) currentPercentModifier = mod.value();
-
-        double totalWithoutThis = currentTotal - currentPercentModifier;
-        double newPercentBonus = totalWithoutThis * evasionPercent;
-
-        if (Math.abs(newPercentBonus - cranks$lastEvasionPercentBonus) > 0.01) {
-            evasionAttr.removeModifier(percentModifierId);
-            if (newPercentBonus > 0) {
+        // Apply Local Bonus
+        if (Math.abs(totalLocalBonus - cranks$lastEvasionPercentBonus) > 0.01) {
+            evasionAttr.removeModifier(localModifierId);
+            if (totalLocalBonus > 0) {
                 evasionAttr.addTemporaryModifier(new EntityAttributeModifier(
-                        percentModifierId,
-                        newPercentBonus,
+                        localModifierId,
+                        totalLocalBonus,
                         EntityAttributeModifier.Operation.ADD_VALUE
                 ));
             }
-            cranks$lastEvasionPercentBonus = newPercentBonus;
+            cranks$lastEvasionPercentBonus = totalLocalBonus;
         }
     }
 }

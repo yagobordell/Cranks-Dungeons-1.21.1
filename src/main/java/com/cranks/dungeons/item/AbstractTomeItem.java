@@ -2,6 +2,7 @@ package com.cranks.dungeons.item;
 
 import com.cranks.dungeons.equipment.EquipmentType;
 import com.cranks.dungeons.equipment.ItemStatManager;
+import com.cranks.dungeons.stat.CustomStat;
 import com.cranks.dungeons.stat.StatRegistry;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -46,10 +47,11 @@ public abstract class AbstractTomeItem extends Item {
         String statId = getStatIdForEquipment(equipType);
         if (statId == null) return false;
 
-        if (!ItemStatManager.canAddStat(equipment)) return false;
-
         // Verify the stat exists in the registry
-        if (StatRegistry.getStat(statId) == null) return false;
+        var newStat = StatRegistry.getStat(statId);
+        if (newStat == null) return false;
+
+        if (!ItemStatManager.canAddStat(equipment, newStat.getAffixType())) return false;
 
         // Check for duplicates (same stat ID or same underlying attribute)
         var existingStats = ItemStatManager.getStats(equipment);
@@ -57,7 +59,6 @@ public abstract class AbstractTomeItem extends Item {
             if (stat.statId.equals(statId)) return false;
 
             var existingStat = StatRegistry.getStat(stat.statId);
-            var newStat = StatRegistry.getStat(statId);
             if (existingStat != null && newStat != null
                     && existingStat.getAttribute().equals(newStat.getAttribute())) {
                 return false;
@@ -81,9 +82,11 @@ public abstract class AbstractTomeItem extends Item {
      */
     public static Formatting getTierColor(int tier) {
         return switch (tier) {
-            case 1, 2 -> Formatting.GRAY;
-            case 3, 4 -> Formatting.GREEN;
-            case 5    -> Formatting.GOLD;
+            case 1, 2 -> Formatting.GOLD;
+            case 3, 4 -> Formatting.AQUA;
+            case 5, 6 -> Formatting.GREEN;
+            case 7, 8 -> Formatting.GRAY;
+            case 9, 10 -> Formatting.DARK_GRAY;
             default   -> Formatting.WHITE;
         };
     }
@@ -97,17 +100,27 @@ public abstract class AbstractTomeItem extends Item {
     }
 
     /**
-     * Helper to add a tier breakdown section to a tooltip.
-     * Shows how many existing stats map to what tier.
+     * Helper to add a standardized description to specialized tomes.
      */
-    protected void addTierBreakdown(Consumer<Text> textConsumer, String statName, Formatting statColor) {
-        for (int statCount = 0; statCount <= 4; statCount++) {
-            int tier = getTierForStatCount(statCount);
-            Formatting tierColor = getTierColor(tier);
-            textConsumer.accept(Text.literal("  " + statCount + " stats → ")
-                    .formatted(Formatting.GRAY)
-                    .append(Text.literal(statName).formatted(statColor))
-                    .append(Text.literal(" [T" + tier + "]").formatted(tierColor)));
+    protected void addTomeDescription(Consumer<Text> textConsumer) {
+        textConsumer.accept(Text.literal("Upgrades a magic item to a rare item, adding a guranteed modifier").formatted(Formatting.GRAY));
+        textConsumer.accept(Text.empty());
+    }
+
+    protected void addStatRange(Consumer<Text> textConsumer, EquipmentType type, String label) {
+        String statId = getStatIdForEquipment(type);
+        if (statId != null) {
+            CustomStat stat = StatRegistry.getStat(statId);
+            if (stat != null) {
+                // Greater items are Tier 1, standard are Tier 3
+                int tier = 3;
+                if (this instanceof ElementalTomeItem et && et.isGreater()) {
+                    tier = 1;
+                }
+                String range = stat.getFormattedRange(tier, 1);
+                textConsumer.accept(Text.literal(label + ": ").formatted(Formatting.GRAY)
+                        .append(Text.literal(range).formatted(Formatting.WHITE)));
+            }
         }
     }
 

@@ -5,9 +5,18 @@
   "supported_items": "#minecraft:enchantable/weapon_and_chest",
   "weight": 5,
   "max_level": 1,
-  "min_cost": { "base": 10, "per_level_above_first": 0 },
+  "min_cost": { "base": 1, "per_level_above_first": 0 },
   "max_cost": { "base": 30, "per_level_above_first": 0 },
-  "anvil_cost": 2,
+  "anvil_cost": 0,
   "slots": ["mainhand"],
-  "effects": {}
+  "effects": {
+    "minecraft:attributes": [
+      {
+        "id": "minecraft:enchantment.attack_speed",
+        "attribute": "cranks-dungeons:attack_speed",
+        "amount": 0.25,
+        "operation": "add_value"
+      }
+    ]
+  }
 }

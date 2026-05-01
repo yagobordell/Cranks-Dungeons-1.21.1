@@ -23,12 +23,12 @@ public class HealthBonusTomeItem extends AbstractTomeItem {
 
     @Override
     public void appendTooltip(ItemStack stack, TooltipContext context,
-            net.minecraft.component.type.TooltipDisplayComponent displayComponent,
-            Consumer<Text> textConsumer, net.minecraft.item.tooltip.TooltipType type) {
+                              net.minecraft.component.type.TooltipDisplayComponent displayComponent,
+                              Consumer<Text> textConsumer, net.minecraft.item.tooltip.TooltipType type) {
 
-        textConsumer.accept(Text.literal("Power sealed within runes").formatted(Formatting.AQUA, Formatting.ITALIC));
-        textConsumer.accept(Text.literal("▶ On Armor pieces:").formatted(Formatting.WHITE));
-        addTierBreakdown(textConsumer, "Max Health", Formatting.WHITE);
+        addTomeDescription(textConsumer);
+
+        addStatRange(textConsumer, EquipmentType.CHESTPLATE, "Armor");
 
         super.appendTooltip(stack, context, displayComponent, textConsumer, type);
     }

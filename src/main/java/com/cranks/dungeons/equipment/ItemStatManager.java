@@ -1,6 +1,7 @@
 package com.cranks.dungeons.equipment;
 
 import com.cranks.dungeons.item.AbstractTomeItem;
+import com.cranks.dungeons.item.CustomRarity;
 import com.cranks.dungeons.stat.CustomStat;
 import com.cranks.dungeons.stat.StatRegistry;
 import net.minecraft.item.ItemStack;
@@ -14,7 +15,7 @@ import java.util.*;
 public class ItemStatManager {
     private static final String STATS_KEY = "CustomStats";
     private static final String ARTIFICIAL_KEY = "ArtificialStat";
-    private static final int MAX_STATS = 5;
+    private static final String RARITY_KEY = "Rarity";
 
     public static class ItemStat {
         public final String statId;
@@ -33,7 +34,6 @@ public class ItemStatManager {
             this(statId, value, tier, false);
         }
 
-        // Legacy constructor for backwards compatibility
         public ItemStat(String statId, double value) {
             this(statId, value, 1, false);
         }
@@ -55,7 +55,6 @@ public class ItemStatManager {
                         Optional<String> idOpt = statNbt.getString("id");
                         Optional<Double> valueOpt = statNbt.getDouble("value");
 
-                        // Read tier (default to 1 if not present for backwards compatibility)
                         int tier = statNbt.getInt("tier").orElse(1);
                         boolean isArtificial = statNbt.getBoolean("artificial").orElse(false);
 
@@ -70,62 +69,59 @@ public class ItemStatManager {
         return stats;
     }
 
-    public static boolean canAddStat(ItemStack stack) {
-        int count = getStats(stack).size();
-        if (hasCrypticStat(stack)) {
-            count++;
+    public static int getAffixCount(ItemStack stack, CustomStat.AffixType type) {
+        return (int) getStats(stack).stream()
+                .filter(s -> {
+                    CustomStat stat = StatRegistry.getStat(s.statId);
+                    return stat != null && stat.getAffixType() == type;
+                })
+                .count();
+    }
+
+    public static boolean canAddStat(ItemStack stack, CustomStat.AffixType type) {
+        // Tools cannot have stats
+        if (isTool(stack)) return false;
+
+        CustomRarity rarity = CustomRarity.getRarity(stack);
+        int currentCount = getAffixCount(stack, type);
+
+        if (type == CustomStat.AffixType.PREFIX) {
+            return currentCount < rarity.getMaxPrefixes();
+        } else {
+            return currentCount < rarity.getMaxSuffixes();
         }
-        return count < MAX_STATS;
     }
 
-    /**
-     * Check if the item already has an artificial stat.
-     */
-    public static boolean hasArtificialStat(ItemStack stack) {
-        return getStats(stack).stream().anyMatch(s -> s.isArtificial);
+    private static boolean isTool(ItemStack stack) {
+        String itemName = stack.getItem().toString().toLowerCase();
+        return itemName.endsWith("pickaxe") || itemName.endsWith("axe") || 
+               itemName.endsWith("shovel") || itemName.endsWith("hoe");
     }
 
-    /**
-     * Check if the item has a cryptic (unrevealed) artificial stat.
-     */
-    public static boolean hasCrypticStat(ItemStack stack) {
+    public static void setRarity(ItemStack stack, CustomRarity rarity) {
         NbtCompound nbt = stack.getOrDefault(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,
                 net.minecraft.component.type.NbtComponent.DEFAULT).copyNbt();
-        return nbt.getBoolean(ARTIFICIAL_KEY).orElse(false);
+        nbt.putString(RARITY_KEY, rarity.name());
+        stack.set(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,
+                net.minecraft.component.type.NbtComponent.of(nbt));
+    }
+    public static void clearStats(ItemStack stack) {
+        if (stack.isEmpty()) return;
+        NbtCompound nbt = stack.getOrDefault(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,
+                net.minecraft.component.type.NbtComponent.DEFAULT).copyNbt();
+        nbt.remove(STATS_KEY);
+        stack.set(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,
+                net.minecraft.component.type.NbtComponent.of(nbt));
+        EquipmentStatApplier.updateItemAttributes(stack);
     }
 
-    /**
-     * Add a cryptic artificial stat placeholder to the item.
-     * This marks the item as having a cryptic stat that needs to be revealed
-     * at the Artificial Enhancement Altar.
-     */
-    public static boolean addCrypticStat(ItemStack stack) {
-        if (!canAddStat(stack)) return false;
-        if (hasArtificialStat(stack)) return false;
-        if (hasCrypticStat(stack)) return false;
+    public static boolean addRandomStat(ItemStack stack, int tier, CustomStat.AffixType type) {
+        if (!canAddStat(stack, type)) return false;
 
         Optional<EquipmentType> equipType = EquipmentType.getTypeForItem(stack);
         if (equipType.isEmpty()) return false;
 
-        NbtCompound nbt = stack.getOrDefault(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,
-                net.minecraft.component.type.NbtComponent.DEFAULT).copyNbt();
-
-        // Mark as having a cryptic stat
-        nbt.putBoolean(ARTIFICIAL_KEY, true);
-
-        stack.set(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,
-                net.minecraft.component.type.NbtComponent.of(nbt));
-
-        return true;
-    }
-
-    /**
-     * Reveal the cryptic stat by replacing it with a chosen actual stat.
-     */
-    public static boolean revealCrypticStat(ItemStack stack, String statId, int tier) {
-        if (!hasCrypticStat(stack)) return false;
-
-        CustomStat stat = StatRegistry.getStat(statId);
+        CustomStat stat = StatRegistry.getRandomStatForEquipmentType(equipType.get(), type);
         if (stat == null) return false;
 
         // Check for duplicate attributes
@@ -134,9 +130,27 @@ public class ItemStatManager {
                 .anyMatch(s -> {
                     CustomStat existingStat = StatRegistry.getStat(s.statId);
                     if (existingStat == null) return false;
-                    if (s.statId.equals(statId)) return true;
-                    if (existingStat.getAttribute().equals(stat.getAttribute())) return true;
-                    return false;
+                    return existingStat.getAttribute().equals(stat.getAttribute());
+                });
+
+        if (alreadyHasStat) return false;
+
+        return addSpecificStat(stack, stat.getId(), tier);
+    }
+
+    public static boolean addSpecificStat(ItemStack stack, String statId, int tier) {
+        CustomStat stat = StatRegistry.getStat(statId);
+        if (stat == null) return false;
+
+        if (!canAddStat(stack, stat.getAffixType())) return false;
+
+        // Check for duplicate attributes
+        List<ItemStat> existingStats = getStats(stack);
+        boolean alreadyHasStat = existingStats.stream()
+                .anyMatch(s -> {
+                    CustomStat existingStat = StatRegistry.getStat(s.statId);
+                    if (existingStat == null) return false;
+                    return existingStat.getAttribute().equals(stat.getAttribute());
                 });
 
         if (alreadyHasStat) return false;
@@ -146,10 +160,91 @@ public class ItemStatManager {
         NbtCompound nbt = stack.getOrDefault(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,
                 net.minecraft.component.type.NbtComponent.DEFAULT).copyNbt();
 
-        // Remove the cryptic marker
-        nbt.remove(ARTIFICIAL_KEY);
+        NbtList statsList;
+        Optional<NbtList> statsListOpt = nbt.getList(STATS_KEY);
+        if (statsListOpt.isPresent()) {
+            statsList = statsListOpt.get();
+        } else {
+            statsList = new NbtList();
+        }
 
-        // Add the actual stat
+        NbtCompound newStat = new NbtCompound();
+        newStat.putString("id", statId);
+        newStat.putDouble("value", value);
+        newStat.putInt("tier", tier);
+        statsList.add(newStat);
+
+        nbt.put(STATS_KEY, statsList);
+        stack.set(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,
+                net.minecraft.component.type.NbtComponent.of(nbt));
+
+        EquipmentStatApplier.updateItemAttributes(stack);
+        return true;
+    }
+
+    public static double getTotalStatValue(ItemStack stack, String baseStatId) {
+        if (stack.isEmpty()) return 0.0;
+        double total = 0;
+        List<ItemStat> stats = getStats(stack);
+        for (ItemStat itemStat : stats) {
+            if (itemStat.statId.equals(baseStatId) || itemStat.statId.endsWith("_" + baseStatId)) {
+                total += itemStat.value;
+            }
+        }
+        return total;
+    }
+
+    // --- Cryptic Stat Methods (Legacy support, maybe refactor later) ---
+
+    public static final String CRYPTIC_AFFIX_KEY = "CrypticAffix";
+
+    public static boolean hasArtificialStat(ItemStack stack) {
+        return getStats(stack).stream().anyMatch(s -> s.isArtificial);
+    }
+
+    public static boolean hasCrypticStat(ItemStack stack) {
+        if (stack.isEmpty()) return false;
+        NbtCompound nbt = stack.getOrDefault(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,
+                net.minecraft.component.type.NbtComponent.DEFAULT).copyNbt();
+        return nbt.getBoolean(ARTIFICIAL_KEY).orElse(false);
+    }
+
+    public static boolean addCrypticStat(ItemStack stack, CustomStat.AffixType type) {
+        if (stack.isEmpty()) return false;
+        NbtCompound nbt = stack.getOrDefault(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,
+                net.minecraft.component.type.NbtComponent.DEFAULT).copyNbt();
+        nbt.putBoolean(ARTIFICIAL_KEY, true);
+        nbt.putString(CRYPTIC_AFFIX_KEY, type.name());
+        stack.set(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,
+                net.minecraft.component.type.NbtComponent.of(nbt));
+        return true;
+    }
+
+    public static CustomStat.AffixType getCrypticAffixType(ItemStack stack) {
+        NbtCompound nbt = stack.getOrDefault(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,
+                net.minecraft.component.type.NbtComponent.DEFAULT).copyNbt();
+        String name = nbt.getString(CRYPTIC_AFFIX_KEY).orElse("PREFIX");
+        try {
+            return CustomStat.AffixType.valueOf(name);
+        } catch (Exception e) {
+            return CustomStat.AffixType.PREFIX;
+        }
+    }
+
+    public static boolean revealCrypticStat(ItemStack stack, String statId, int tier) {
+        if (!hasCrypticStat(stack)) return false;
+
+        CustomStat stat = StatRegistry.getStat(statId);
+        if (stat == null) return false;
+
+        double value = stat.rollValue(tier);
+
+        NbtCompound nbt = stack.getOrDefault(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,
+                net.minecraft.component.type.NbtComponent.DEFAULT).copyNbt();
+
+        nbt.remove(ARTIFICIAL_KEY);
+        nbt.remove(CRYPTIC_AFFIX_KEY);
+
         NbtList statsList;
         Optional<NbtList> statsListOpt = nbt.getList(STATS_KEY);
         if (statsListOpt.isPresent()) {
@@ -173,240 +268,56 @@ public class ItemStatManager {
         return true;
     }
 
+    // ... (other cryptic methods remain same)
     private static final String CRYPTIC_OPTIONS_KEY = "CrypticOptions";
 
-    /**
-     * Store the rolled stat options on the item itself so they can't be re-rolled.
-     */
     public static void storeCrypticOptions(ItemStack stack, String[] statIds, int[] tiers) {
         NbtCompound nbt = stack.getOrDefault(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,
                 net.minecraft.component.type.NbtComponent.DEFAULT).copyNbt();
-
         NbtCompound options = new NbtCompound();
         for (int i = 0; i < 3; i++) {
             options.putString("stat" + i, statIds[i] != null ? statIds[i] : "");
             options.putInt("tier" + i, tiers[i]);
         }
-
         nbt.put(CRYPTIC_OPTIONS_KEY, options);
         stack.set(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,
                 net.minecraft.component.type.NbtComponent.of(nbt));
     }
 
-    /**
-     * Read stored cryptic options from the item. Returns null if none stored.
-     */
     public static String[] getStoredCrypticStatIds(ItemStack stack) {
         NbtCompound nbt = stack.getOrDefault(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,
                 net.minecraft.component.type.NbtComponent.DEFAULT).copyNbt();
-
         if (!nbt.contains(CRYPTIC_OPTIONS_KEY)) return null;
-
         Optional<NbtCompound> optionsOpt = nbt.getCompound(CRYPTIC_OPTIONS_KEY);
         if (optionsOpt.isEmpty()) return null;
-
         NbtCompound options = optionsOpt.get();
         String[] statIds = new String[3];
         for (int i = 0; i < 3; i++) {
             statIds[i] = options.getString("stat" + i).orElse("");
         }
-
-        // Check if any are actually set
         if (statIds[0].isEmpty() && statIds[1].isEmpty() && statIds[2].isEmpty()) return null;
-
         return statIds;
     }
 
-    /**
-     * Read stored cryptic tiers from the item. Returns null if none stored.
-     */
     public static int[] getStoredCrypticTiers(ItemStack stack) {
         NbtCompound nbt = stack.getOrDefault(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,
                 net.minecraft.component.type.NbtComponent.DEFAULT).copyNbt();
-
         if (!nbt.contains(CRYPTIC_OPTIONS_KEY)) return null;
-
         Optional<NbtCompound> optionsOpt = nbt.getCompound(CRYPTIC_OPTIONS_KEY);
         if (optionsOpt.isEmpty()) return null;
-
         NbtCompound options = optionsOpt.get();
         int[] tiers = new int[3];
         for (int i = 0; i < 3; i++) {
             tiers[i] = options.getInt("tier" + i).orElse(1);
         }
-
         return tiers;
     }
 
-    /**
-     * Remove stored cryptic options from the item (called after revealing).
-     */
     public static void removeCrypticOptions(ItemStack stack) {
         NbtCompound nbt = stack.getOrDefault(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,
                 net.minecraft.component.type.NbtComponent.DEFAULT).copyNbt();
-
         nbt.remove(CRYPTIC_OPTIONS_KEY);
         stack.set(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,
                 net.minecraft.component.type.NbtComponent.of(nbt));
-    }
-
-    public static boolean addRandomStat(ItemStack stack, int tier) {
-        if (!canAddStat(stack)) {
-            return false;
-        }
-
-        Optional<EquipmentType> equipType = EquipmentType.getTypeForItem(stack);
-        if (equipType.isEmpty()) {
-            return false;
-        }
-
-        // Get a random stat for this equipment type
-        CustomStat stat = StatRegistry.getRandomStatForEquipmentType(equipType.get());
-        if (stat == null) {
-            return false;
-        }
-
-        // Check if item already has this stat or one with the same attribute
-        List<ItemStat> existingStats = getStats(stack);
-        CustomStat newTmpStat = stat;
-
-        boolean alreadyHasStat = existingStats.stream()
-                .anyMatch(s -> {
-                    CustomStat existingStat = StatRegistry.getStat(s.statId);
-                    if (existingStat == null) return false;
-
-                    // Check if same stat ID
-                    if (s.statId.equals(newTmpStat.getId())) return true;
-
-                    // Check if same attribute (prevent duplicate attributes)
-                    if (existingStat.getAttribute().equals(newTmpStat.getAttribute())) {
-                        return true;
-                    }
-
-                    return false;
-                });
-
-        if (alreadyHasStat) {
-            return false;
-        }
-
-        double value = stat.rollValue(tier);
-
-        NbtCompound nbt = stack.getOrDefault(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,
-                net.minecraft.component.type.NbtComponent.DEFAULT).copyNbt();
-
-        NbtList statsList;
-        Optional<NbtList> statsListOpt = nbt.getList(STATS_KEY);
-        if (statsListOpt.isPresent()) {
-            statsList = statsListOpt.get();
-        } else {
-            statsList = new NbtList();
-        }
-
-        NbtCompound newStat = new NbtCompound();
-        newStat.putString("id", stat.getId());
-        newStat.putDouble("value", value);
-        newStat.putInt("tier", tier); // Store the tier
-        statsList.add(newStat);
-
-        nbt.put(STATS_KEY, statsList);
-        stack.set(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,
-                net.minecraft.component.type.NbtComponent.of(nbt));
-
-        // Update item attributes for weapons/tools/armor
-        EquipmentStatApplier.updateItemAttributes(stack);
-        return true;
-    }
-
-    /**
-     * Add a specific stat to an item at the given tier.
-     * Used by elemental tomes that grant a predetermined stat.
-     */
-    public static boolean addSpecificStat(ItemStack stack, String statId, int tier) {
-        if (!canAddStat(stack)) {
-            return false;
-        }
-
-        Optional<EquipmentType> equipType = EquipmentType.getTypeForItem(stack);
-        if (equipType.isEmpty()) {
-            return false;
-        }
-
-        CustomStat stat = StatRegistry.getStat(statId);
-        if (stat == null) {
-            return false;
-        }
-
-        // Check if item already has this stat or one with the same attribute
-        List<ItemStat> existingStats = getStats(stack);
-        boolean alreadyHasStat = existingStats.stream()
-                .anyMatch(s -> {
-                    CustomStat existingStat = StatRegistry.getStat(s.statId);
-                    if (existingStat == null) return false;
-                    if (s.statId.equals(statId)) return true;
-                    if (existingStat.getAttribute().equals(stat.getAttribute())) return true;
-                    return false;
-                });
-
-        if (alreadyHasStat) {
-            return false;
-        }
-
-        double value = stat.rollValue(tier);
-
-        NbtCompound nbt = stack.getOrDefault(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,
-                net.minecraft.component.type.NbtComponent.DEFAULT).copyNbt();
-
-        NbtList statsList;
-        Optional<NbtList> statsListOpt = nbt.getList(STATS_KEY);
-        if (statsListOpt.isPresent()) {
-            statsList = statsListOpt.get();
-        } else {
-            statsList = new NbtList();
-        }
-
-        NbtCompound newStat = new NbtCompound();
-        newStat.putString("id", statId);
-        newStat.putDouble("value", value);
-        newStat.putInt("tier", tier);
-        statsList.add(newStat);
-
-        nbt.put(STATS_KEY, statsList);
-        stack.set(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,
-                net.minecraft.component.type.NbtComponent.of(nbt));
-
-        // Update item attributes
-        EquipmentStatApplier.updateItemAttributes(stack);
-
-        return true;
-    }
-
-    public static double getTotalStatValue(ItemStack stack, String baseStatId) {
-        if (stack.isEmpty()) {
-            return 0.0;
-        }
-        double total = 0;
-        List<ItemStat> stats = getStats(stack);
-        for (ItemStat itemStat : stats) {
-            if (itemStat.statId.equals(baseStatId) || itemStat.statId.endsWith("_" + baseStatId)) {
-                total += itemStat.value;
-            }
-        }
-        return total;
-    }
-
-    private static Text createStatTooltip(CustomStat stat, double value, int tier) {
-        String valueStr = stat.formatValue(value);
-
-        Formatting tierColor = getTierColor(tier);
-
-        return Text.literal(valueStr)
-                .formatted(stat.getColor())
-                .append(Text.literal(" (T" + tier + ")")
-                        .formatted(tierColor));
-    }
-
-    private static Formatting getTierColor(int tier) {
-        return AbstractTomeItem.getTierColor(tier);
     }
 }

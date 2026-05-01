@@ -46,11 +46,6 @@ public abstract class CriticalStrikeMixin {
 
             // Crit Chance with enchantments
             double critChance = CombatUtility.getAttributeValue(attacker, ModAttributes.CRIT_CHANCE, weapon, "crit_chance", source);
-            if (weapon != null) critChance += getEnchantmentValue(weapon, "minecraft:crit_chance", 0.075);
-            if (chest != null) critChance += getEnchantmentValue(chest, "minecraft:crit_chance", 0.075);
-            if (helmet != null) critChance += getEnchantmentValue(helmet, "minecraft:crit_chance", 0.075);
-            if (leggings != null) critChance += getEnchantmentValue(leggings, "minecraft:crit_chance", 0.075);
-            if (boots != null) critChance += getEnchantmentValue(boots, "minecraft:crit_chance", 0.075);
 
             if (AilmentManager.isAfflicted(target)) {
                 critChance += attacker.getAttributeValue(ModAttributes.CRIT_CHANCE_AGAINST_AFFLICTED);
@@ -87,17 +82,6 @@ public abstract class CriticalStrikeMixin {
         return amount;
     }
 
-    @Unique
-    private double getEnchantmentValue(ItemStack stack, String enchantmentId, double baseValue) {
-        var enchantments = stack.getEnchantments();
-        for (var entry : enchantments.getEnchantmentEntries()) {
-            String id = entry.getKey().getKey().get().getValue().toString();
-            if (id.equals(enchantmentId)) {
-                return baseValue;
-            }
-        }
-        return 0.0;
-    }
 
     @Unique
     private void spawnCriticalEffects(ServerWorld world, LivingEntity target, LivingEntity attacker) {

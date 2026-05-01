@@ -2,6 +2,7 @@ package com.cranks.dungeons.mixin;
 
 import com.cranks.dungeons.client.StatsPanelScrollHandler;
 import com.cranks.dungeons.equipment.EquipmentStatApplier;
+import com.cranks.dungeons.equipment.ItemStatManager;
 import com.cranks.dungeons.equipment.ToolStatHelper;
 import com.cranks.dungeons.registry.ModAttributes;
 import com.cranks.dungeons.util.CombatUtility;
@@ -310,9 +311,10 @@ public abstract class InventoryScreenStatsMixin {
                                         mouseX,
                                         mouseY, panelX, panelWidth);
 
-                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Reload Speed",
-                                        player.getAttributeValue(ModAttributes.RELOAD_SPEED),
-                                        cranks$getPassiveBase(player, ModAttributes.RELOAD_SPEED), "", 
+                        double totalReload = player.getAttributeValue(ModAttributes.RELOAD_SPEED)
+                                        + ItemStatManager.getTotalStatValue(weapon, "reload_speed");
+                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Reload Speed", totalReload,
+                                        cranks$getPassiveBase(player, ModAttributes.RELOAD_SPEED), "x", 
                                         mouseX, mouseY, panelX, panelWidth);
 
                         double baseAttackRange = cranks$getPassiveBase(player,
@@ -496,10 +498,6 @@ public abstract class InventoryScreenStatsMixin {
                                         player.getAttributeValue(EntityAttributes.ARMOR),
                                         cranks$getPassiveBase(player, EntityAttributes.ARMOR), "", mouseX, mouseY,
                                         panelX, panelWidth);
-                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Toughness",
-                                        player.getAttributeValue(EntityAttributes.ARMOR_TOUGHNESS),
-                                        cranks$getPassiveBase(player, EntityAttributes.ARMOR_TOUGHNESS), "", mouseX,
-                                        mouseY, panelX, panelWidth);
                         curY = drawStatWithTooltip(context, tr, panelX, curY, "Evasion",
                                         player.getAttributeValue(ModAttributes.EVASION_RATING),
                                         cranks$getPassiveBase(player, ModAttributes.EVASION_RATING), "", mouseX, mouseY,
@@ -575,8 +573,10 @@ public abstract class InventoryScreenStatsMixin {
                         context.drawText(tr, Text.literal("⚒ Gathering"), panelX + 6, curY, 0xFF404040, false);
                         curY += 11;
 
+                        double totalHarvest = player.getAttributeValue(ModAttributes.MINING_EFFICIENCY)
+                                        * (1.0 + ItemStatManager.getTotalStatValue(weapon, "mining_efficiency"));
                         curY = drawStatWithTooltip(context, tr, panelX, curY, "Harvest Speed",
-                                        player.getAttributeValue(ModAttributes.MINING_EFFICIENCY),
+                                        totalHarvest,
                                         cranks$getPassiveBase(player, ModAttributes.MINING_EFFICIENCY), "x",
                                         mouseX, mouseY, panelX, panelWidth);
 
@@ -674,6 +674,8 @@ public abstract class InventoryScreenStatsMixin {
                         maxWidth = Math.max(maxWidth, tr.getWidth(line));
                 }
 
+
+
                 int tx = x + 12;
                 int ty = y - 12;
                 int w = maxWidth;
@@ -762,7 +764,6 @@ public abstract class InventoryScreenStatsMixin {
                         case "Life Steal" -> "% of damage converted to health";
                         case "Evasion" -> calculateEvasionDescription();
                         case "Armor" -> calculateArmorDescription();
-                        case "Toughness" -> calculateToughnessDescription();
                         case "Fire Res" -> "Reduces fire damage taken";
                         case "Cold Res" -> "Reduces cold damage taken";
                         case "Lightning Res" -> "Reduces lightning damage taken";
@@ -807,33 +808,15 @@ public abstract class InventoryScreenStatsMixin {
                 double armor = player.getAttributeValue(EntityAttributes.ARMOR);
 
                 // Show reduction against a standard 30 damage hit (modded baseline)
-                // Ignoring toughness for the "Armor" specific tooltip
-                double x = 38.0 * 30.0;
+                double x = 40.0 * 30.0;
                 double pdr = armor / (armor + x);
 
                 boolean capped = pdr >= 0.9;
                 pdr = Math.min(0.9, pdr);
 
-                return (int) (pdr * 100) + "% PDR against 30 damage with no toughness" + (capped ? " (Capped)" : "");
+                return (int) (pdr * 100) + "% General Physical Damage Reduction against 30 damage" + (capped ? " (Capped)" : "");
         }
 
-        @Unique
-        private String calculateToughnessDescription() {
-                var player = MinecraftClient.getInstance().player;
-                if (player == null)
-                        return "Improves armor effectiveness against big hits";
-                double armor = player.getAttributeValue(EntityAttributes.ARMOR);
-                double toughness = player.getAttributeValue(EntityAttributes.ARMOR_TOUGHNESS);
-
-                // Show reduction against a standard 30 damage hit including toughness
-                double x = (38.0 * 30.0) / (1.0 + (toughness / 200.0));
-                double pdr = armor / (armor + x);
-
-                boolean capped = pdr >= 0.9;
-                pdr = Math.min(0.9, pdr);
-
-                return (int) (pdr * 100) + "% PDR against 30 damage with armor toughness" + (capped ? " (Capped)" : "");
-        }
 
         @Unique
         private String calculateCritDefenseDescription() {

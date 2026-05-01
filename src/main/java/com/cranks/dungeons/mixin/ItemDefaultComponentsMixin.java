@@ -598,9 +598,9 @@ public class ItemDefaultComponentsMixin {
                     net.minecraft.component.type.AttributeModifierSlot.MAINHAND);
         }
 
-        // --- Ranged Base Damage ---
+        // Bow / Crossbow Base Stats
         if (itemName.contains("bow") || itemName.contains("crossbow")) {
-            double baseDamage = itemName.contains("crossbow") ? 8.0 : 6.0;
+            double baseDamage = getDamageBonus(itemName);
             builder.add(
                     EntityAttributes.ATTACK_DAMAGE,
                     new EntityAttributeModifier(
@@ -752,6 +752,14 @@ public class ItemDefaultComponentsMixin {
 
         if (itemName.contains("trident")) {
             return 4.0;
+        }
+
+        if (itemName.contains("crossbow")) {
+            return 7.0; // Total 8
+        }
+
+        if (itemName.contains("bow")) {
+            return 5.0; // Total 6
         }
 
         return 0.0;

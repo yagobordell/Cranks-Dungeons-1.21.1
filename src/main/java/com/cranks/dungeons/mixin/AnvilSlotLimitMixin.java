@@ -38,8 +38,9 @@ public abstract class AnvilSlotLimitMixin {
 
         CustomRarity rarity = CustomRarity.getRarity(resultStack);
         int maxSlots = switch (rarity) {
-            case COMMON -> 1;
-            case RARE -> 2;
+            case NORMAL -> 1;
+            case MAGIC -> 2;
+            case RARE -> 3;
             case UNIQUE -> 3;
         };
 

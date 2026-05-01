@@ -220,7 +220,6 @@ public class DamageConversionHelper {
      */
     public static float calculatePhysicalReduction(LivingEntity target, float amount, Entity attacker) {
         double ar = target.getAttributeValue(net.minecraft.entity.attribute.EntityAttributes.ARMOR);
-        double toughness = target.getAttributeValue(net.minecraft.entity.attribute.EntityAttributes.ARMOR_TOUGHNESS);
 
         if (attacker instanceof LivingEntity le) {
             double penetration = getAttributeValueSafe(le, ModAttributes.ARMOR_PENETRATION_PERCENT, 0.0);
@@ -228,10 +227,9 @@ public class DamageConversionHelper {
         }
 
         if (ar > 0 && amount > 0) {
-            // Exact PoE 2 formula modified: X = (38 * Damage) / (1 + Toughness / 200)
-            // PDR = Armor / (Armor + X)
+            // Pure PoE 2 style formula: PDR = Armor / (Armor + (40 * Damage))
             // This makes armor significantly more dynamic against different hit sizes.
-            double x = (38.0 * amount) / (1.0 + (toughness / 200.0));
+            double x = 40.0 * amount;
             double pdr = ar / (ar + x);
             
             // Cap PDR at 90%

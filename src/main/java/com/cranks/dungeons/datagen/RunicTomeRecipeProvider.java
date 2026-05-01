@@ -28,10 +28,10 @@ public class RunicTomeRecipeProvider extends FabricRecipeProvider {
             public void generate() {
                 var itemLookup = wrapperLookup.getOrThrow(RegistryKeys.ITEM);
 
-                createTomeUpgradeRecipe(itemLookup, ModItems.RUNIC_TOME_T1, ModItems.RUNIC_TOME_T2, "t1_to_t2");
-                createTomeUpgradeRecipe(itemLookup, ModItems.RUNIC_TOME_T2, ModItems.RUNIC_TOME_T3, "t2_to_t3");
-                createTomeUpgradeRecipe(itemLookup, ModItems.RUNIC_TOME_T3, ModItems.RUNIC_TOME_T4, "t3_to_t4");
-                createTomeUpgradeRecipe(itemLookup, ModItems.RUNIC_TOME_T4, ModItems.RUNIC_TOME_T5, "t4_to_t5");
+                createTomeUpgradeRecipe(itemLookup, ModItems.TOME_OF_TRANSMUTATION, ModItems.REGAL_TOME, "transmutation_to_regal");
+                createTomeUpgradeRecipe(itemLookup, ModItems.REGAL_TOME, ModItems.TOME_OF_AUGMENTATION, "regal_to_augmentation");
+                createTomeUpgradeRecipe(itemLookup, ModItems.TOME_OF_AUGMENTATION, ModItems.TOME_OF_ALCHEMY, "augmentation_to_alchemy");
+                createTomeUpgradeRecipe(itemLookup, ModItems.TOME_OF_ALCHEMY, ModItems.EXALTED_TOME, "alchemy_to_exalted");
             }
 
             private void createTomeUpgradeRecipe(RegistryWrapper.Impl<Item> itemLookup, Item input, Item output, String name) {
