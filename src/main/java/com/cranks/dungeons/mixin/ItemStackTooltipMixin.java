@@ -231,21 +231,16 @@ public abstract class ItemStackTooltipMixin {
         } else {
             // WEAPON/TOOL BASE STATS
             if (attributeTotals.containsKey(EntityAttributes.ATTACK_DAMAGE) && type != EquipmentType.BOW && type != EquipmentType.CROSSBOW && !isTool(stack)) {
-                double baseDamage = PLAYER_BASE_ATTACK_DAMAGE + attributeTotals.get(EntityAttributes.ATTACK_DAMAGE);
-                double totalRuneDamagePercent = ItemStatManager.getTotalStatValue(stack, "attack_damage_percent");
-                double finalDamage = baseDamage * (1.0 + totalRuneDamagePercent);
+                // attributeTotals now already includes local damage %
+                double finalDamage = PLAYER_BASE_ATTACK_DAMAGE + attributeTotals.get(EntityAttributes.ATTACK_DAMAGE);
                 
                 tooltip.add(Text.literal("Physical Damage: ").formatted(Formatting.GRAY)
                         .append(Text.literal(df.format(finalDamage)).formatted(Formatting.WHITE)));
                 addedAny = true;
             }
             if (attributeTotals.containsKey(EntityAttributes.ATTACK_SPEED) && !isTool(stack)) {
-                // FIXED: baseSpeed should only include ADD_VALUE modifiers (flat weapon/tool modifiers)
-                double baseSpeed = PLAYER_BASE_ATTACK_SPEED + attributeTotals.get(EntityAttributes.ATTACK_SPEED);
-                
-                // FIXED: speedPercent should sum ALL attack speed runes
-                double totalRuneSpeedPercent = ItemStatManager.getTotalStatValue(stack, "attack_speed");
-                double finalSpeed = baseSpeed * (1.0 + totalRuneSpeedPercent);
+                // attributeTotals now already includes local speed %
+                double finalSpeed = PLAYER_BASE_ATTACK_SPEED + attributeTotals.get(EntityAttributes.ATTACK_SPEED);
 
                 tooltip.add(Text.literal("Attack Speed: ").formatted(Formatting.GRAY)
                         .append(Text.literal(df.format(finalSpeed)).formatted(Formatting.WHITE)));
@@ -262,19 +257,16 @@ public abstract class ItemStackTooltipMixin {
 
             if (type == EquipmentType.BOW || type == EquipmentType.CROSSBOW) {
                 // Show Physical Damage for Ranged
-                double baseDamage = attributeTotals.getOrDefault(EntityAttributes.ATTACK_DAMAGE, 0.0);
-                baseDamage += getEnchantmentValue(stack, "minecraft:power", 3.0);
-                
-                double totalRuneDamagePercent = ItemStatManager.getTotalStatValue(stack, "attack_damage_percent");
-                double finalDamage = baseDamage * (1.0 + totalRuneDamagePercent);
+                // attributeTotals now already includes local damage %
+                double finalDamage = attributeTotals.getOrDefault(EntityAttributes.ATTACK_DAMAGE, 0.0);
+                finalDamage += getEnchantmentValue(stack, "minecraft:power", 3.0);
                 
                 tooltip.add(Text.literal("Physical Damage: ").formatted(Formatting.GRAY)
                         .append(Text.literal(df.format(finalDamage)).formatted(Formatting.WHITE)));
                 
                 // Show Reload Speed
-                double reloadSpeedBase = 1.0 + attributeTotals.getOrDefault(ModAttributes.RELOAD_SPEED, 0.0);
-                double reloadSpeedPercent = ItemStatManager.getTotalStatValue(stack, "reload_speed");
-                double finalReloadSpeed = reloadSpeedBase * (1.0 + reloadSpeedPercent);
+                // attributeTotals now already includes local reload speed %
+                double finalReloadSpeed = 1.0 + attributeTotals.getOrDefault(ModAttributes.RELOAD_SPEED, 0.0);
                 
                 tooltip.add(Text.literal("Reload Speed: ").formatted(Formatting.GRAY)
                         .append(Text.literal(df.format(finalReloadSpeed)).formatted(Formatting.WHITE)));
@@ -283,9 +275,8 @@ public abstract class ItemStackTooltipMixin {
 
             if (isTool(stack)) {
                 // Show Harvest Speed
-                double miningSpeedBase = attributeTotals.getOrDefault(ModAttributes.MINING_EFFICIENCY, 0.0) + 1.0;
-                double runePercent = ItemStatManager.getTotalStatValue(stack, "mining_efficiency");
-                double finalMiningSpeed = miningSpeedBase * (1.0 + runePercent);
+                // attributeTotals now already includes local mining efficiency %
+                double finalMiningSpeed = 1.0 + attributeTotals.getOrDefault(ModAttributes.MINING_EFFICIENCY, 0.0);
                 
                 tooltip.add(Text.literal("Harvest Speed: ").formatted(Formatting.GRAY)
                         .append(Text.literal(df.format(finalMiningSpeed)).formatted(Formatting.WHITE)));
@@ -317,20 +308,57 @@ public abstract class ItemStackTooltipMixin {
     @Unique
     private Map<RegistryEntry<EntityAttribute>, Double> calculateItemAttributeTotals(ItemStack stack) {
         Map<RegistryEntry<EntityAttribute>, Double> totals = new HashMap<>();
+        Map<RegistryEntry<EntityAttribute>, Double> localPercentages = new HashMap<>();
         
         AttributeModifiersComponent attributes = stack.getOrDefault(
                 DataComponentTypes.ATTRIBUTE_MODIFIERS,
                 AttributeModifiersComponent.DEFAULT
         );
 
-        // FIXED: Only sum ADD_VALUE modifiers for the base totals.
-        // Multipliers (from runes) are handled separately in the tooltip logic now.
+        // 1. Gather all ADD_VALUE modifiers (flat base stats)
         for (var entry : attributes.modifiers()) {
             if (entry.modifier().operation() == net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_VALUE) {
                 totals.merge(entry.attribute(), entry.modifier().value(), Double::sum);
             }
         }
 
+        // 2. Gather specific percentage attributes that map to base attributes
+        // These are our custom LOCAL percentage attributes
+        double armorPct = totals.getOrDefault(ModAttributes.ARMOR_PERCENT, 0.0);
+        if (armorPct != 0) localPercentages.merge(EntityAttributes.ARMOR, armorPct, Double::sum);
+
+        double esPct = totals.getOrDefault(ModAttributes.ENERGY_SHIELD_PERCENT, 0.0);
+        if (esPct != 0) localPercentages.merge(ModAttributes.ENERGY_SHIELD, esPct, Double::sum);
+
+        double evasionPct = totals.getOrDefault(ModAttributes.EVASION_RATING_PERCENT, 0.0);
+        if (evasionPct != 0) localPercentages.merge(ModAttributes.EVASION_RATING, evasionPct, Double::sum);
+        
+        double healthPct = totals.getOrDefault(ModAttributes.MAX_HEALTH_PERCENT, 0.0);
+        if (healthPct != 0) localPercentages.merge(EntityAttributes.MAX_HEALTH, healthPct, Double::sum);
+
+        double damagePct = totals.getOrDefault(ModAttributes.ATTACK_DAMAGE_PERCENT, 0.0);
+        if (damagePct != 0) localPercentages.merge(EntityAttributes.ATTACK_DAMAGE, damagePct, Double::sum);
+
+        // Attack speed rune uses the base attribute but with Operation.ADD_MULTIPLIED_TOTAL
+        // However, in EquipmentStatApplier, we might have added it as a different modifier.
+        // Let's also check for ADD_MULTIPLIED_TOTAL modifiers on the item.
+        for (var entry : attributes.modifiers()) {
+            if (entry.modifier().operation() == net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL) {
+                localPercentages.merge(entry.attribute(), entry.modifier().value(), Double::sum);
+            }
+        }
+
+        // 3. Apply percentages to flat totals IF the item already has that base stat
+        for (var entry : localPercentages.entrySet()) {
+            RegistryEntry<EntityAttribute> attr = entry.getKey();
+            double pct = entry.getValue();
+            if (totals.containsKey(attr)) {
+                double flat = totals.get(attr);
+                totals.put(attr, flat * (1.0 + pct));
+            }
+        }
+
+        // 4. Add enchantment bonuses (after percentages, as enchantments are usually additive to the final total in PoE)
         var enchantments = stack.getEnchantments();
         for (var enchEntry : enchantments.getEnchantmentEntries()) {
             String id = enchEntry.getKey().getKey().get().getValue().toString();
@@ -339,7 +367,6 @@ public abstract class ItemStackTooltipMixin {
 
         return totals;
     }
-
     @Unique
     private void addRunesSection(ItemStack stack, List<Text> tooltip) {
         List<ItemStatManager.ItemStat> stats = ItemStatManager.getStats(stack);
@@ -395,10 +422,8 @@ public abstract class ItemStackTooltipMixin {
 
         CustomRarity rarity = CustomRarity.getRarity(stack);
         int maxSlots = switch (rarity) {
-            case NORMAL -> 1;
-            case MAGIC -> 2;
-            case RARE -> 3;
             case UNIQUE -> 3;
+            default -> 1;
         };
 
         var enchantmentComponent = stack.getEnchantments();
@@ -429,22 +454,27 @@ public abstract class ItemStackTooltipMixin {
 
     @Unique
     private Formatting getTierColor(int tier) {
-        return switch (tier) {
-            case 1, 2 -> Formatting.GRAY;
-            case 3, 4 -> Formatting.GREEN;
-            case 5 -> Formatting.GOLD;
-            default -> Formatting.WHITE;
-        };
+        return Formatting.WHITE;
     }
 
     @Unique
     private Text modifyItemNameWithRarity(ItemStack stack, Text originalName) {
+        if (isTool(stack)) {
+            return Text.literal(originalName.getString()).formatted(Formatting.WHITE);
+        }
         CustomRarity rarity = CustomRarity.getRarity(stack);
         return Text.literal(originalName.getString())
                 .formatted(Formatting.WHITE)
                 .append(Text.literal(" "))
                 .append(Text.literal("[ " + rarity.getName() + " ]")
                         .formatted(rarity.getColor(), Formatting.ITALIC));
+    }
+
+    @Unique
+    private boolean isTool(ItemStack stack) {
+        String itemName = stack.getItem().toString().toLowerCase();
+        return itemName.endsWith("pickaxe") || itemName.endsWith("axe") ||
+                itemName.endsWith("shovel") || itemName.endsWith("hoe");
     }
 
     @Unique
@@ -457,12 +487,6 @@ public abstract class ItemStackTooltipMixin {
         return 0.0;
     }
 
-    @Unique
-    private boolean isTool(ItemStack stack) {
-        String name = net.minecraft.registry.Registries.ITEM.getId(stack.getItem()).toString().toLowerCase();
-        return name.contains("pickaxe") || name.contains("shovel") ||
-                name.contains("hoe") || name.contains("axe");
-    }
 
     @Unique
     private ArmorSetType getArmorSetType(String itemName) {

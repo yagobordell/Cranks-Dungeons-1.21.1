@@ -22,7 +22,7 @@
       {
         "id": "minecraft:enchantment.energy_shield",
         "attribute": "cranks-dungeons:energy_shield",
-        "amount": 20.0,
+        "amount": 10.0,
         "operation": "add_value"
       }
     ]

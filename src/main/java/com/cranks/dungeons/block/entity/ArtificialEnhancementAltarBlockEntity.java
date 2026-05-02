@@ -235,7 +235,7 @@ public class ArtificialEnhancementAltarBlockEntity extends BlockEntity implement
 
         for (int i = 0; i < 3; i++) {
             statOptions[i] = availableStats.get(i).getId();
-            tierOptions[i] = RandomUtil.nextInt(5) + 1;
+            tierOptions[i] = RandomUtil.nextInt(3) + 1;
         }
 
         optionsGenerated = true;

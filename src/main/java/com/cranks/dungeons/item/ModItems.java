@@ -33,10 +33,6 @@ public class ModItems {
 
 
     // Greater Elemental Tomes
-    public static final Item GREATER_TOME_OF_FIRE = registerElementalTome("greater_fire_tome", Element.FIRE, true, CustomRarity.UNIQUE);
-    public static final Item GREATER_TOME_OF_COLD = registerElementalTome("greater_cold_tome", Element.COLD, true, CustomRarity.UNIQUE);
-    public static final Item GREATER_TOME_OF_LIGHTNING = registerElementalTome("greater_lightning_tome", Element.LIGHTNING, true, CustomRarity.UNIQUE);
-    public static final Item GREATER_TOME_OF_VOID = registerElementalTome("greater_void_tome", Element.VOID, true, CustomRarity.UNIQUE);
     public static final Item GREATER_TOME_OF_PHYSICALITY = registerElementalTome("greater_physicality_tome", Element.PHYSICAL, true, CustomRarity.UNIQUE);
 
     // Artificial Tome

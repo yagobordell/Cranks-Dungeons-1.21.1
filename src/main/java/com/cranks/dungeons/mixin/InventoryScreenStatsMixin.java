@@ -314,7 +314,7 @@ public abstract class InventoryScreenStatsMixin {
                         double totalReload = player.getAttributeValue(ModAttributes.RELOAD_SPEED)
                                         + ItemStatManager.getTotalStatValue(weapon, "reload_speed");
                         curY = drawStatWithTooltip(context, tr, panelX, curY, "Reload Speed", totalReload,
-                                        cranks$getPassiveBase(player, ModAttributes.RELOAD_SPEED), "x", 
+                                        cranks$getPassiveBase(player, ModAttributes.RELOAD_SPEED), "x",
                                         mouseX, mouseY, panelX, panelWidth);
 
                         double baseAttackRange = cranks$getPassiveBase(player,
@@ -565,8 +565,6 @@ public abstract class InventoryScreenStatsMixin {
                                         cranks$getPassiveBase(player, ModAttributes.KNOCKBACK) * 100, "%", mouseX,
                                         mouseY, panelX, panelWidth);
 
-
-
                         curY += 6;
 
                         // --- CATEGORY 4: GATHERING ---
@@ -673,8 +671,6 @@ public abstract class InventoryScreenStatsMixin {
                 for (Text line : lines) {
                         maxWidth = Math.max(maxWidth, tr.getWidth(line));
                 }
-
-
 
                 int tx = x + 12;
                 int ty = y - 12;
@@ -814,9 +810,8 @@ public abstract class InventoryScreenStatsMixin {
                 boolean capped = pdr >= 0.9;
                 pdr = Math.min(0.9, pdr);
 
-                return (int) (pdr * 100) + "% General Physical Damage Reduction against 30 damage" + (capped ? " (Capped)" : "");
+                return (int) (pdr * 100) + "% Physical Damage Reduction" + (capped ? " (Capped)" : "");
         }
-
 
         @Unique
         private String calculateCritDefenseDescription() {

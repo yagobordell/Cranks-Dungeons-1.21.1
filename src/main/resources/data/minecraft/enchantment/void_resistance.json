@@ -22,7 +22,7 @@
       {
         "id": "minecraft:enchantment.void_resistance",
         "attribute": "cranks-dungeons:void_resistance",
-        "amount": 0.03,
+        "amount": 0.05,
         "operation": "add_value"
       }
     ]

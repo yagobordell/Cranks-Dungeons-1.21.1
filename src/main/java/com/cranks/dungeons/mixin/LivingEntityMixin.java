@@ -80,16 +80,19 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
     @Inject(method = "heal", at = @At("HEAD"))
     private void onHeal(float amount, CallbackInfo ci) {
         LivingEntity entity = (LivingEntity) (Object) this;
-        if (entity.getEntityWorld().isClient() || amount <= 0) return;
+        if (entity.getEntityWorld().isClient() || amount <= 0)
+            return;
 
         float actualHeal = Math.min(amount, entity.getMaxHealth() - entity.getHealth());
-        if (actualHeal <= 0) return;
+        if (actualHeal <= 0)
+            return;
 
         cranks$accumulatedHeal += actualHeal;
     }
 
     @Inject(method = "createLivingAttributes", at = @At("RETURN"), cancellable = true)
-    private static void addCustomAttributesToAllEntities(CallbackInfoReturnable<DefaultAttributeContainer.Builder> cir) {
+    private static void addCustomAttributesToAllEntities(
+            CallbackInfoReturnable<DefaultAttributeContainer.Builder> cir) {
         DefaultAttributeContainer.Builder builder = cir.getReturnValue();
 
         builder
@@ -211,7 +214,8 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
     @Inject(method = "tick", at = @At("TAIL"))
     private void tickLivingEntity(CallbackInfo ci) {
         LivingEntity entity = (LivingEntity) (Object) this;
-        if (entity.getEntityWorld().isClient()) return;
+        if (entity.getEntityWorld().isClient())
+            return;
 
         AilmentManager.tickAilments(entity);
         updateArmorSpeed(entity);
@@ -220,7 +224,8 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
         if (cranks$accumulatedHeal > 0) {
             cranks$healTimer++;
             if (cranks$accumulatedHeal >= 1.0f || cranks$healTimer >= 10) {
-                DamageNumberSender.broadcastHeal((ServerWorld) entity.getEntityWorld(), entity, (double)Math.round(cranks$accumulatedHeal * 10.0) / 10.0);
+                DamageNumberSender.broadcastHeal((ServerWorld) entity.getEntityWorld(), entity,
+                        (double) Math.round(cranks$accumulatedHeal * 10.0) / 10.0);
                 cranks$accumulatedHeal = 0;
                 cranks$healTimer = 0;
             }
@@ -228,22 +233,24 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
     }
 
     @Unique
-    private static final net.minecraft.util.Identifier ARMOR_SPEED_MOD_ID = net.minecraft.util.Identifier.of("cranks-dungeons", "armor_speed_penalty");
+    private static final net.minecraft.util.Identifier ARMOR_SPEED_MOD_ID = net.minecraft.util.Identifier
+            .of("cranks-dungeons", "armor_speed_penalty");
 
     @Unique
     private void updateArmorSpeed(LivingEntity entity) {
-        if (entity.getEntityWorld().isClient()) return;
+        if (entity.getEntityWorld().isClient())
+            return;
 
         double armor = entity.getArmor();
         double penaltyReduction = entity.getAttributeValue(ModAttributes.ARMOR_SPEED_PENALTY_REDUCTION);
         double lowArmorBonusAttr = entity.getAttributeValue(ModAttributes.LOW_ARMOR_SPEED_BONUS);
-        
+
         double finalModifier = 0;
 
-        // 1. Calculate Penalty (5% per 100 armor points)
+        // 1. Calculate Penalty (1% per 100 armor points)
         if (armor >= 100) {
             double penaltySteps = Math.floor(armor / 100.0);
-            double basePenalty = penaltySteps * 0.05; 
+            double basePenalty = penaltySteps * 0.03;
             finalModifier -= basePenalty * (1.0 - penaltyReduction);
         }
 
@@ -254,15 +261,15 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
         }
 
         // Apply modifier
-        net.minecraft.entity.attribute.EntityAttributeInstance speedAttr = entity.getAttributeInstance(net.minecraft.entity.attribute.EntityAttributes.MOVEMENT_SPEED);
+        net.minecraft.entity.attribute.EntityAttributeInstance speedAttr = entity
+                .getAttributeInstance(net.minecraft.entity.attribute.EntityAttributes.MOVEMENT_SPEED);
         if (speedAttr != null) {
             speedAttr.removeModifier(ARMOR_SPEED_MOD_ID);
             if (finalModifier != 0) {
                 speedAttr.addTemporaryModifier(new net.minecraft.entity.attribute.EntityAttributeModifier(
-                    ARMOR_SPEED_MOD_ID, 
-                    finalModifier, 
-                    net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
-                ));
+                        ARMOR_SPEED_MOD_ID,
+                        finalModifier,
+                        net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
             }
         }
     }

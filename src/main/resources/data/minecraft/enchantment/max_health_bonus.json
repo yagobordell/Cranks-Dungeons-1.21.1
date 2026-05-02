@@ -14,7 +14,7 @@
       {
         "id": "minecraft:enchantment.max_health_bonus",
         "attribute": "cranks-dungeons:max_health_bonus",
-        "amount": 20.0,
+        "amount": 10.0,
         "operation": "add_value"
       }
     ]

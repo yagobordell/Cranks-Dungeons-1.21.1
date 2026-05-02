@@ -58,7 +58,7 @@ public abstract class BonusEvasionMixin {
         Identifier localModifierId = Identifier.of(CranksDungeons.MOD_ID, "local_evasion_bonus");
 
         // Apply Local Bonus
-        if (Math.abs(totalLocalBonus - cranks$lastEvasionPercentBonus) > 0.01) {
+        if (Double.isNaN(cranks$lastEvasionPercentBonus) || Math.abs(totalLocalBonus - cranks$lastEvasionPercentBonus) > 0.01) {
             evasionAttr.removeModifier(localModifierId);
             if (totalLocalBonus > 0) {
                 evasionAttr.addTemporaryModifier(new EntityAttributeModifier(

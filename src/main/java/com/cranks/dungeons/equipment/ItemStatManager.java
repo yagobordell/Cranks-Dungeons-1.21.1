@@ -110,9 +110,42 @@ public class ItemStatManager {
         NbtCompound nbt = stack.getOrDefault(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,
                 net.minecraft.component.type.NbtComponent.DEFAULT).copyNbt();
         nbt.remove(STATS_KEY);
+        nbt.remove(ARTIFICIAL_KEY);
+        nbt.remove(CRYPTIC_AFFIX_KEY);
+        nbt.remove(CRYPTIC_OPTIONS_KEY);
         stack.set(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,
                 net.minecraft.component.type.NbtComponent.of(nbt));
         EquipmentStatApplier.updateItemAttributes(stack);
+    }
+
+    public static boolean removeRandomAffixOfType(ItemStack stack, CustomStat.AffixType type) {
+        List<ItemStat> stats = getStats(stack);
+        List<Integer> validIndices = new ArrayList<>();
+        
+        for (int i = 0; i < stats.size(); i++) {
+            CustomStat stat = StatRegistry.getStat(stats.get(i).statId);
+            if (stat != null && stat.getAffixType() == type) {
+                validIndices.add(i);
+            }
+        }
+        
+        if (validIndices.isEmpty()) return false;
+        
+        int indexToRemove = validIndices.get(com.cranks.dungeons.util.RandomUtil.nextInt(validIndices.size()));
+        
+        NbtCompound nbt = stack.getOrDefault(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,
+                net.minecraft.component.type.NbtComponent.DEFAULT).copyNbt();
+        Optional<NbtList> statsListOpt = nbt.getList(STATS_KEY);
+        if (statsListOpt.isPresent()) {
+            NbtList statsList = statsListOpt.get();
+            statsList.remove(indexToRemove);
+            nbt.put(STATS_KEY, statsList);
+            stack.set(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,
+                    net.minecraft.component.type.NbtComponent.of(nbt));
+            EquipmentStatApplier.updateItemAttributes(stack);
+            return true;
+        }
+        return false;
     }
 
     public static boolean addRandomStat(ItemStack stack, int tier, CustomStat.AffixType type) {

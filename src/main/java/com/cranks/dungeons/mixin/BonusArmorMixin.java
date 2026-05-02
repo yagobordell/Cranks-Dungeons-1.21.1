@@ -64,7 +64,7 @@ public abstract class BonusArmorMixin {
         Identifier flatModifierId = Identifier.of(CranksDungeons.MOD_ID, "bonus_armor");
 
         // Apply Local Bonus
-        if (Math.abs(totalLocalBonus - cranks$lastGlobalArmorPercentBonus) > 0.01) {
+        if (Double.isNaN(cranks$lastGlobalArmorPercentBonus) || Math.abs(totalLocalBonus - cranks$lastGlobalArmorPercentBonus) > 0.01) {
             armorAttr.removeModifier(localModifierId);
             if (totalLocalBonus > 0) {
                 armorAttr.addTemporaryModifier(new EntityAttributeModifier(
@@ -77,7 +77,7 @@ public abstract class BonusArmorMixin {
         }
 
         // Apply Flat Bonus Armor (Legacy/Misc)
-        if (bonusArmor != cranks$lastBonusArmor) {
+        if (Double.isNaN(cranks$lastBonusArmor) || bonusArmor != cranks$lastBonusArmor) {
             armorAttr.removeModifier(flatModifierId);
             if (bonusArmor > 0) {
                 armorAttr.addTemporaryModifier(new EntityAttributeModifier(

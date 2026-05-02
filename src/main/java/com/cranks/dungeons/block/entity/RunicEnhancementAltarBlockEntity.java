@@ -202,6 +202,11 @@ public class RunicEnhancementAltarBlockEntity extends BlockEntity implements Nam
         // Randomly Prefix or Suffix
         CustomStat.AffixType type = RandomUtil.nextBoolean() ? CustomStat.AffixType.PREFIX : CustomStat.AffixType.SUFFIX;
         
+        // If it selects one that already has the max limit of, it replaces one of them randomly
+        if (!ItemStatManager.canAddStat(result, type)) {
+            ItemStatManager.removeRandomAffixOfType(result, type);
+        }
+        
         boolean success = ItemStatManager.addCrypticStat(result, type);
 
         if (success) {
@@ -239,7 +244,10 @@ public class RunicEnhancementAltarBlockEntity extends BlockEntity implements Nam
                 }
                 break;
             case ALCHEMY:
-                if (rarity == CustomRarity.NORMAL) {
+                if (rarity == CustomRarity.NORMAL || rarity == CustomRarity.MAGIC) {
+                    if (rarity == CustomRarity.MAGIC) {
+                        ItemStatManager.clearStats(result);
+                    }
                     ItemStatManager.setRarity(result, CustomRarity.RARE);
                     // Add 4 mods: 2 prefix, 2 suffix
                     boolean s1 = addAffixOfType(result, CustomStat.AffixType.PREFIX);

@@ -14,7 +14,7 @@
       {
         "id": "minecraft:enchantment.bonus_armor",
         "attribute": "cranks-dungeons:bonus_armor",
-        "amount": 100.0,
+        "amount": 75.0,
         "operation": "add_value"
       }
     ]

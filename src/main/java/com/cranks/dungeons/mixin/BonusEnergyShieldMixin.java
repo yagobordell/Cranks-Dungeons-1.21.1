@@ -58,7 +58,7 @@ public abstract class BonusEnergyShieldMixin {
         Identifier localModifierId = Identifier.of(CranksDungeons.MOD_ID, "local_energy_shield_bonus");
 
         // Apply Local Bonus
-        if (Math.abs(totalLocalBonus - cranks$lastESPercentBonus) > 0.01) {
+        if (Double.isNaN(cranks$lastESPercentBonus) || Math.abs(totalLocalBonus - cranks$lastESPercentBonus) > 0.01) {
             esAttr.removeModifier(localModifierId);
             if (totalLocalBonus > 0) {
                 esAttr.addTemporaryModifier(new EntityAttributeModifier(

@@ -2,27 +2,19 @@
   "description": {
     "translate": "enchantment.minecraft.crit_chance"
   },
-  "supported_items": "#minecraft:enchantable/weapon",
+  "supported_items": "#minecraft:enchantable/weapon_no_chest",
   "weight": 5,
   "max_level": 1,
-  "min_cost": {
-    "base": 1,
-    "per_level_above_first": 0
-  },
-  "max_cost": {
-    "base": 20,
-    "per_level_above_first": 0
-  },
+  "min_cost": { "base": 1, "per_level_above_first": 0 },
+  "max_cost": { "base": 20, "per_level_above_first": 0 },
   "anvil_cost": 0,
-  "slots": [
-    "mainhand"
-  ],
+  "slots": ["mainhand"],
   "effects": {
     "minecraft:attributes": [
       {
         "id": "minecraft:enchantment.crit_chance",
         "attribute": "cranks-dungeons:crit_chance",
-        "amount": 0.1,
+        "amount": 0.05,
         "operation": "add_value"
       }
     ]

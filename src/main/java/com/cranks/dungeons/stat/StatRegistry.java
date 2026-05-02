@@ -131,26 +131,38 @@ public class StatRegistry {
                 // --- Energy Shield (Armor + Elytra) ---
                 registerForTypes("energy_shield", "Energy Shield",
                                 ModAttributes.ENERGY_SHIELD,
-                                r(10.0, 15.0, 21.0, 28.0, 36.0, 45.0, 55.0, 65.0, 70.0, 80.0),
-                                r(12.0, 18.0, 25.0, 34.0, 44.0, 55.0, 65.0, 70.0, 80.0, 100.0),
+                                r(10.0, 10.0, 10.0, 15.0, 20.0, 25.0, 31.0, 36.0, 42.0, 48.0),
+                                r(10.0, 10.0, 15.0, 19.0, 24.0, 30.0, 35.0, 41.0, 47.0, 60.0),
                                 false, Formatting.BLUE, CustomStat.AffixType.PREFIX,
-                                EquipmentType.HELMET, EquipmentType.CHESTPLATE, EquipmentType.LEGGINGS,
-                                EquipmentType.BOOTS,
-                                EquipmentType.ELYTRA);
+                                EquipmentType.CHESTPLATE, EquipmentType.BOOTS);
+
+                registerForTypes("energy_shield", "Energy Shield",
+                                ModAttributes.ENERGY_SHIELD,
+                                r(18.0, 25.0, 31.0, 36.0, 42.0, 48.0, 61.0, 74.0, 81.0, 91.0),
+                                r(24.0, 30.0, 35.0, 41.0, 47.0, 60.0, 73.0, 80.0, 90.0, 96.0),
+                                false, Formatting.BLUE, CustomStat.AffixType.PREFIX,
+                                EquipmentType.HELMET, EquipmentType.LEGGINGS, EquipmentType.ELYTRA);
 
                 // --- Max Health (Armor) ---
                 registerForTypes("max_health", "Maximum health",
                                 EntityAttributes.MAX_HEALTH,
-                                r(10.0, 15.0, 21.0, 28.0, 36.0, 45.0, 55.0, 65.0, 70.0, 80.0),
-                                r(12.0, 18.0, 25.0, 34.0, 44.0, 55.0, 65.0, 70.0, 80.0, 100.0),
+                                r(50.0, 60.0, 70.0, 85.0, 100.0, 120.0, 150.0, 175.0, 190.0, 200.0),
+                                r(59.0, 69.0, 84.0, 99.0, 119.0, 149.0, 174.0, 189.0, 199.0, 214.0),
                                 false, Formatting.DARK_RED, CustomStat.AffixType.PREFIX,
-                                ALL_ARMOR);
+                                EquipmentType.HELMET, EquipmentType.LEGGINGS);
+
+                registerForTypes("max_health", "Maximum health",
+                                EntityAttributes.MAX_HEALTH,
+                                r(1.0, 10.0, 20.0, 30.0, 40.0, 60.0, 70.0, 85.0, 100.0, 120.0),
+                                r(9.0, 19.0, 29.0, 39.0, 59.0, 69.0, 84.0, 99.0, 119.0, 149.0),
+                                false, Formatting.DARK_RED, CustomStat.AffixType.PREFIX,
+                                EquipmentType.CHESTPLATE, EquipmentType.BOOTS);
 
                 // --- Health Regeneration (Armor + Elytra) ---
                 registerForTypes("life_regeneration", "Health Regeneration",
                                 ModAttributes.LIFE_REGENERATION,
-                                r(0.8, 1.5, 2.1, 2.8, 3.6, 4.2, 5.5, 6.0, 5.5, 7.5),
-                                r(1.2, 1.8, 2.5, 3.4, 4.2, 5.0, 6.0, 6.5, 7.5, 8.5),
+                                r(0.05, 0.08, 0.12, 0.18, 0.25, 0.35, 0.45, 0.60, 0.80, 1.00),
+                                r(0.10, 0.15, 0.22, 0.30, 0.42, 0.55, 0.70, 0.90, 1.20, 1.50),
                                 false, Formatting.DARK_RED, CustomStat.AffixType.SUFFIX,
                                 EquipmentType.HELMET, EquipmentType.CHESTPLATE, EquipmentType.LEGGINGS,
                                 EquipmentType.BOOTS,
@@ -159,48 +171,77 @@ public class StatRegistry {
                 // --- Evasion Rating (Armor only) ---
                 registerForTypes("evasion_rating", "Evasion Rating",
                                 ModAttributes.EVASION_RATING,
-                                r(10.0, 18.0, 25.0, 40.0, 55.0, 65.0, 76.0, 85.0, 100.0, 125.0),
-                                r(15.0, 25.0, 35.0, 55.0, 65.0, 76.0, 85.0, 100.0, 120.0, 150.0),
+                                r(19.0, 40.0, 57.0, 71.0, 89.0, 108.0, 143.0, 182.0, 205.0, 233.0),
+                                r(39.0, 56.0, 70.0, 88.0, 107.0, 142.0, 181.0, 204.0, 232.0, 251.0),
                                 false, Formatting.GRAY, CustomStat.AffixType.PREFIX,
-                                ALL_ARMOR);
+                                EquipmentType.HELMET, EquipmentType.LEGGINGS);
+
+                registerForTypes("evasion_rating", "Evasion Rating",
+                                ModAttributes.EVASION_RATING,
+                                r(1.0, 1.0, 15.0, 20.0, 30.0, 40.0, 57.0, 71.0, 89.0, 108.0),
+                                r(1.0, 15.0, 19.0, 29.0, 39.0, 56.0, 70.0, 88.0, 107.0, 142.0),
+                                false, Formatting.GRAY, CustomStat.AffixType.PREFIX,
+                                EquipmentType.CHESTPLATE, EquipmentType.BOOTS);
 
                 // --- Armor (Armor + Shield) ---
                 registerForTypes("armor", "Armor",
                                 EntityAttributes.ARMOR,
-                                r(10.0, 28.0, 40.0, 55.0, 75.0, 100.0, 145.0, 185.0, 230.0, 285.0),
-                                r(18.0, 35.0, 55.0, 80.0, 110.0, 145.0, 185.0, 230.0, 285.0, 350.0),
+                                r(28.0, 51.0, 69.0, 83.0, 103.0, 123.0, 161.0, 203.0, 226.0, 257.0),
+                                r(50.0, 68.0, 82.0, 102.0, 122.0, 160.0, 202.0, 225.0, 256.0, 276.0),
                                 false, Formatting.WHITE, CustomStat.AffixType.PREFIX,
-                                EquipmentType.HELMET, EquipmentType.CHESTPLATE, EquipmentType.LEGGINGS,
-                                EquipmentType.BOOTS,
-                                EquipmentType.SHIELD);
+                                EquipmentType.HELMET, EquipmentType.LEGGINGS, EquipmentType.SHIELD);
+
+                registerForTypes("armor", "Armor",
+                                EntityAttributes.ARMOR,
+                                r(10.0, 10.0, 20.0, 30.0, 40.0, 51.0, 69.0, 83.0, 103.0, 123.0),
+                                r(10.0, 19.0, 29.0, 39.0, 50.0, 68.0, 82.0, 102.0, 122.0, 160.0),
+                                false, Formatting.WHITE, CustomStat.AffixType.PREFIX,
+                                EquipmentType.CHESTPLATE, EquipmentType.BOOTS);
 
                 // --- Increased Armor % (Armor + Shield) ---
                 registerForTypes("armor_percent", "Increased Armor",
                                 ModAttributes.ARMOR_PERCENT,
-                                r(0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50),
-                                r(0.08, 0.13, 0.18, 0.24, 0.30, 0.37, 0.45, 0.52, 0.60, 0.65),
+                                r(0.05, 0.10, 0.15, 0.21, 0.27, 0.43, 0.56, 0.68, 0.80, 0.92),
+                                r(0.09, 0.14, 0.20, 0.26, 0.42, 0.55, 0.67, 0.79, 0.91, 1.0),
                                 true, true, Formatting.WHITE, CustomStat.AffixType.PREFIX,
-                                EquipmentType.HELMET, EquipmentType.CHESTPLATE, EquipmentType.LEGGINGS,
-                                EquipmentType.BOOTS,
-                                EquipmentType.SHIELD);
+                                EquipmentType.CHESTPLATE, EquipmentType.BOOTS);
+
+                registerForTypes("armor_percent", "Increased Armor",
+                                ModAttributes.ARMOR_PERCENT,
+                                r(0.11, 0.21, 0.31, 0.37, 0.43, 0.56, 0.68, 0.80, 0.92, 1.01),
+                                r(0.2, 0.3, 0.36, 0.42, 0.55, 0.67, 0.79, 0.91, 1.0, 1.1),
+                                true, true, Formatting.WHITE, CustomStat.AffixType.PREFIX,
+                                EquipmentType.HELMET, EquipmentType.LEGGINGS, EquipmentType.SHIELD);
 
                 // --- Increased Evasion Rating % (Armor) ---
                 registerForTypes("evasion_rating_percent", "Increased Evasion Rating",
                                 ModAttributes.EVASION_RATING_PERCENT,
-                                r(0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50),
-                                r(0.08, 0.13, 0.18, 0.24, 0.30, 0.37, 0.45, 0.52, 0.60, 0.65),
+                                r(0.05, 0.10, 0.15, 0.21, 0.27, 0.43, 0.56, 0.68, 0.80, 0.92),
+                                r(0.09, 0.14, 0.20, 0.26, 0.42, 0.55, 0.67, 0.79, 0.91, 1.0),
                                 true, true, Formatting.GRAY, CustomStat.AffixType.PREFIX,
-                                ALL_ARMOR);
+                                EquipmentType.CHESTPLATE, EquipmentType.BOOTS);
+
+                registerForTypes("evasion_rating_percent", "Increased Evasion Rating",
+                                ModAttributes.EVASION_RATING_PERCENT,
+                                r(0.11, 0.21, 0.31, 0.37, 0.43, 0.56, 0.68, 0.80, 0.92, 1.01),
+                                r(0.2, 0.3, 0.36, 0.42, 0.55, 0.67, 0.79, 0.91, 1.0, 1.1),
+                                true, true, Formatting.GRAY, CustomStat.AffixType.PREFIX,
+                                EquipmentType.HELMET, EquipmentType.LEGGINGS);
 
                 // --- Increased Energy Shield % (Armor + Elytra) ---
                 registerForTypes("energy_shield_percent", "Increased Energy Shield",
                                 ModAttributes.ENERGY_SHIELD_PERCENT,
-                                r(0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50),
-                                r(0.08, 0.13, 0.18, 0.24, 0.30, 0.37, 0.45, 0.52, 0.60, 0.65),
+                                r(0.05, 0.10, 0.15, 0.21, 0.27, 0.43, 0.56, 0.68, 0.80, 0.92),
+                                r(0.09, 0.14, 0.20, 0.26, 0.42, 0.55, 0.67, 0.79, 0.91, 1.0),
                                 true, true, Formatting.BLUE, CustomStat.AffixType.PREFIX,
-                                EquipmentType.HELMET, EquipmentType.CHESTPLATE, EquipmentType.LEGGINGS,
-                                EquipmentType.BOOTS,
-                                EquipmentType.ELYTRA);
+                                EquipmentType.CHESTPLATE, EquipmentType.BOOTS);
+
+                registerForTypes("energy_shield_percent", "Increased Energy Shield",
+                                ModAttributes.ENERGY_SHIELD_PERCENT,
+                                r(0.11, 0.21, 0.31, 0.37, 0.43, 0.56, 0.68, 0.80, 0.92, 1.01),
+                                r(0.2, 0.3, 0.36, 0.42, 0.55, 0.67, 0.79, 0.91, 1.0, 1.1),
+                                true, true, Formatting.BLUE, CustomStat.AffixType.PREFIX,
+                                EquipmentType.HELMET, EquipmentType.LEGGINGS, EquipmentType.ELYTRA);
 
                 // --- Knockback Resistance (Armor + Shield) ---
                 registerForTypes("knockback_resistance", "Knockback Resistance",
@@ -222,30 +263,30 @@ public class StatRegistry {
                 // Rebalanced for ~25% T1 Normal (3 rolls to cap 75%)
                 registerForTypes("fire_resistance", "Fire Resistance",
                                 ModAttributes.FIRE_RESISTANCE,
-                                r(0.08, 0.12, 0.14, 0.16, 0.18, 0.21, 0.24, 0.27, 0.30, 0.35),
-                                r(0.10, 0.14, 0.16, 0.18, 0.21, 0.24, 0.27, 0.30, 0.35, 0.40),
+                                r(0.06, 0.08, 0.1, 0.11, 0.16, 0.21, 0.26, 0.31, 0.36, 0.41),
+                                r(0.06, 0.08, 0.11, 0.15, 0.2, 0.25, 0.30, 0.35, 0.4, 0.45),
                                 true, true, Formatting.RED, CustomStat.AffixType.SUFFIX,
                                 armorAndShield);
 
                 registerForTypes("cold_resistance", "Cold Resistance",
                                 ModAttributes.COLD_RESISTANCE,
-                                r(0.08, 0.12, 0.14, 0.16, 0.18, 0.21, 0.24, 0.27, 0.30, 0.35),
-                                r(0.10, 0.14, 0.16, 0.18, 0.21, 0.24, 0.27, 0.30, 0.35, 0.40),
+                                r(0.06, 0.08, 0.1, 0.11, 0.16, 0.21, 0.26, 0.31, 0.36, 0.41),
+                                r(0.06, 0.08, 0.11, 0.15, 0.2, 0.25, 0.30, 0.35, 0.4, 0.45),
                                 true, true, Formatting.AQUA, CustomStat.AffixType.SUFFIX,
                                 armorAndShield);
 
                 registerForTypes("lightning_resistance", "Lightning Resistance",
                                 ModAttributes.LIGHTNING_RESISTANCE,
-                                r(0.08, 0.12, 0.14, 0.16, 0.18, 0.21, 0.24, 0.27, 0.30, 0.35),
-                                r(0.10, 0.14, 0.16, 0.18, 0.21, 0.24, 0.27, 0.30, 0.35, 0.40),
+                                r(0.06, 0.08, 0.1, 0.11, 0.16, 0.21, 0.26, 0.31, 0.36, 0.41),
+                                r(0.06, 0.08, 0.11, 0.15, 0.2, 0.25, 0.30, 0.35, 0.4, 0.45),
                                 true, true, Formatting.DARK_BLUE, CustomStat.AffixType.SUFFIX,
                                 armorAndShield);
 
                 // --- Void Resistance (Lowered) ---
                 registerForTypes("void_resistance", "Void Resistance",
                                 ModAttributes.VOID_RESISTANCE,
-                                r(0.05, 0.07, 0.09, 0.10, 0.12, 0.14, 0.16, 0.19, 0.22, 0.26),
-                                r(0.06, 0.09, 0.10, 0.12, 0.14, 0.16, 0.19, 0.22, 0.26, 0.30),
+                                r(0.04, 0.05, 0.06, 0.07, 0.08, 0.12, 0.16, 0.2, 0.24, 0.27),
+                                r(0.04, 0.05, 0.06, 0.07, 0.11, 0.15, 0.19, 0.23, 0.27, 0.30),
                                 true, true, Formatting.DARK_PURPLE, CustomStat.AffixType.SUFFIX,
                                 ALL_ARMOR);
 
@@ -269,13 +310,15 @@ public class StatRegistry {
                                 r(0.25, 0.50, 1.00, 1.75, 2.75, 4.25, 6.50, 9.50, 14.00, 20.00),
                                 r(0.50, 1.00, 1.75, 2.75, 4.25, 6.50, 9.50, 14.00, 20.00, 28.00),
                                 false, false, Formatting.DARK_GREEN, CustomStat.AffixType.SUFFIX,
-                                ALL_ARMOR);
-                // Elytra has different ranges
-                register(new CustomStat("elytra_luck", "Luck",
-                                EquipmentType.ELYTRA, ModAttributes.LUCK,
+                                EquipmentType.CHESTPLATE, EquipmentType.LEGGINGS,
+                                EquipmentType.BOOTS);
+
+                registerForTypes("luck", "Luck",
+                                ModAttributes.LUCK,
                                 r(0.25, 0.50, 1.00, 1.75, 2.75, 4.25, 6.50, 9.50, 14.00, 20.00),
                                 r(0.50, 1.00, 1.75, 2.75, 4.25, 6.50, 9.50, 14.00, 20.00, 28.00),
-                                false, false, Formatting.DARK_GREEN, CustomStat.AffixType.SUFFIX));
+                                false, false, Formatting.DARK_GREEN, CustomStat.AffixType.PREFIX,
+                                EquipmentType.HELMET, EquipmentType.ELYTRA);
 
                 // --- Critical Strike Chance (Armor: Helmet + Chestplate, plus Elytra) ---
                 registerForTypes("crit_chance", "Critical Strike Chance",
@@ -305,39 +348,39 @@ public class StatRegistry {
 
                 register(new CustomStat("chestplate_attack_damage", "Physical Damage",
                                 EquipmentType.CHESTPLATE, EntityAttributes.ATTACK_DAMAGE,
-                                r(0.5, 1.0, 2.0, 3.5, 5.5, 8.0, 11.0, 15.0, 20.0, 26.0),
-                                r(1.0, 2.0, 3.5, 5.5, 8.0, 11.0, 15.0, 20.0, 26.0, 35.0),
+                                r(2.0, 5.0, 10.0, 16.0, 25.0, 32.0, 46.0, 60.0, 84.0, 112.0),
+                                r(3.0, 8.0, 14.0, 23.0, 30.0, 43.0, 57.0, 80.0, 107.0, 124.0),
                                 false, false, Formatting.WHITE, CustomStat.AffixType.SUFFIX));
 
                 register(new CustomStat("chestplate_attack_speed", "Attack Speed",
                                 EquipmentType.CHESTPLATE, EntityAttributes.ATTACK_SPEED,
-                                r(0.05, 0.10, 0.18, 0.28, 0.40, 0.55, 0.72, 0.92, 1.15, 1.40),
-                                r(0.10, 0.18, 0.28, 0.40, 0.55, 0.72, 0.92, 1.15, 1.40, 1.75),
+                                r(0.05, 0.08, 0.12, 0.18, 0.25, 0.33, 0.42, 0.52, 0.63, 0.75),
+                                r(0.10, 0.15, 0.20, 0.28, 0.38, 0.50, 0.65, 0.82, 1.00, 1.25),
                                 true, true, Formatting.YELLOW, CustomStat.AffixType.SUFFIX));
 
                 // --- Chestplate elemental damages ---
                 register(new CustomStat("chestplate_fire_damage", "Fire Damage",
                                 EquipmentType.CHESTPLATE, ModAttributes.FIRE_DAMAGE,
-                                r(0.5, 1.0, 2.0, 3.5, 5.5, 8.0, 11.0, 15.0, 20.0, 26.0),
-                                r(1.0, 2.0, 3.5, 5.5, 8.0, 11.0, 15.0, 20.0, 26.0, 35.0),
+                                r(2.0, 5.0, 10.0, 16.0, 25.0, 32.0, 46.0, 60.0, 84.0, 112.0),
+                                r(3.0, 8.0, 14.0, 23.0, 30.0, 43.0, 57.0, 80.0, 107.0, 124.0),
                                 false, false, Formatting.RED, CustomStat.AffixType.SUFFIX));
 
                 register(new CustomStat("chestplate_cold_damage", "Cold Damage",
                                 EquipmentType.CHESTPLATE, ModAttributes.COLD_DAMAGE,
-                                r(0.5, 1.0, 2.0, 3.5, 5.5, 8.0, 11.0, 15.0, 20.0, 26.0),
-                                r(1.0, 2.0, 3.5, 5.5, 8.0, 11.0, 15.0, 20.0, 26.0, 35.0),
+                                r(2.0, 5.0, 10.0, 16.0, 25.0, 32.0, 46.0, 60.0, 84.0, 112.0),
+                                r(3.0, 8.0, 14.0, 23.0, 30.0, 43.0, 57.0, 80.0, 107.0, 124.0),
                                 false, false, Formatting.AQUA, CustomStat.AffixType.SUFFIX));
 
                 register(new CustomStat("chestplate_lightning_damage", "Lightning Damage",
                                 EquipmentType.CHESTPLATE, ModAttributes.LIGHTNING_DAMAGE,
-                                r(0.5, 1.0, 2.0, 3.5, 5.5, 8.0, 11.0, 15.0, 20.0, 26.0),
-                                r(1.0, 2.0, 3.5, 5.5, 8.0, 11.0, 15.0, 20.0, 26.0, 35.0),
+                                r(2.0, 5.0, 10.0, 16.0, 25.0, 32.0, 46.0, 60.0, 84.0, 112.0),
+                                r(3.0, 8.0, 14.0, 23.0, 30.0, 43.0, 57.0, 80.0, 107.0, 124.0),
                                 false, false, Formatting.DARK_BLUE, CustomStat.AffixType.SUFFIX));
 
                 register(new CustomStat("chestplate_void_damage", "Void Damage",
                                 EquipmentType.CHESTPLATE, ModAttributes.VOID_DAMAGE,
-                                r(0.5, 1.0, 2.0, 3.5, 5.5, 8.0, 11.0, 15.0, 20.0, 26.0),
-                                r(1.0, 2.0, 3.5, 5.5, 8.0, 11.0, 15.0, 20.0, 26.0, 35.0),
+                                r(2.0, 5.0, 10.0, 16.0, 25.0, 32.0, 46.0, 60.0, 84.0, 112.0),
+                                r(3.0, 8.0, 14.0, 23.0, 30.0, 43.0, 57.0, 80.0, 107.0, 124.0),
                                 false, false, Formatting.DARK_PURPLE, CustomStat.AffixType.SUFFIX));
 
                 register(new CustomStat("chestplate_knockback", "Knockback",
@@ -348,8 +391,8 @@ public class StatRegistry {
 
                 register(new CustomStat("chestplate_reload_speed", "Reload Speed",
                                 EquipmentType.CHESTPLATE, ModAttributes.RELOAD_SPEED,
-                                r(0.05, 0.10, 0.18, 0.28, 0.40, 0.55, 0.72, 0.92, 1.15, 1.40),
-                                r(0.10, 0.18, 0.28, 0.40, 0.55, 0.72, 0.92, 1.15, 1.40, 1.75),
+                                r(0.05, 0.08, 0.12, 0.18, 0.25, 0.33, 0.42, 0.52, 0.63, 0.75),
+                                r(0.10, 0.15, 0.20, 0.28, 0.38, 0.50, 0.65, 0.82, 1.00, 1.25),
                                 true, true, Formatting.YELLOW, CustomStat.AffixType.SUFFIX));
 
                 // ===================================================================
@@ -358,8 +401,8 @@ public class StatRegistry {
 
                 register(new CustomStat("boots_movement_speed", "Movement Speed",
                                 EquipmentType.BOOTS, ModAttributes.MOVEMENT_SPEED,
-                                r(0.05, 0.08, 0.12, 0.18, 0.25, 0.33, 0.42, 0.52, 0.63, 0.75),
-                                r(0.10, 0.15, 0.20, 0.28, 0.38, 0.50, 0.65, 0.82, 1.00, 1.25),
+                                r(0.8, 0.9, 1.0, 1.05, 1.1, 1.15, 1.2, 1.25, 1.30, 1.35),
+                                r(0.8, 0.9, 1.0, 1.05, 1.1, 1.15, 1.2, 1.25, 1.30, 1.35),
                                 true, true, Formatting.GREEN, CustomStat.AffixType.PREFIX));
 
                 // ===================================================================
@@ -377,8 +420,8 @@ public class StatRegistry {
                 // --- Attack Speed (melee + trident) ---
                 registerForTypes("attack_speed", "Attack Speed",
                                 EntityAttributes.ATTACK_SPEED,
-                                r(0.20, 0.30, 0.42, 0.55, 0.70, 0.88, 1.08, 1.30, 1.55, 1.85),
-                                r(0.30, 0.42, 0.55, 0.70, 0.88, 1.08, 1.30, 1.55, 1.85, 2.25),
+                                r(0.05, 0.08, 0.12, 0.18, 0.25, 0.33, 0.42, 0.52, 0.63, 0.75),
+                                r(0.10, 0.15, 0.20, 0.28, 0.38, 0.50, 0.65, 0.82, 1.00, 1.25),
                                 true, true, Formatting.YELLOW, CustomStat.AffixType.SUFFIX,
                                 ALL_MELEE_AND_TRIDENT);
 
@@ -421,44 +464,44 @@ public class StatRegistry {
                 // --- Elemental Damages (all weapons) ---
                 registerForTypes("physical_damage", "Physical Damage",
                                 ModAttributes.BONUS_ATTACK_DAMAGE,
-                                r(0.5, 1.0, 2.0, 3.5, 5.5, 8.0, 11.0, 15.0, 20.0, 26.0),
-                                r(1.0, 2.0, 3.5, 5.5, 8.0, 11.0, 15.0, 20.0, 26.0, 35.0),
+                                r(2.0, 5.0, 10.0, 16.0, 25.0, 32.0, 46.0, 60.0, 84.0, 112.0),
+                                r(3.0, 8.0, 14.0, 23.0, 30.0, 43.0, 57.0, 80.0, 107.0, 124.0),
                                 false, Formatting.WHITE, CustomStat.AffixType.PREFIX,
                                 ALL_WEAPONS);
 
                 registerForTypes("fire_damage", "Fire Damage",
                                 ModAttributes.FIRE_DAMAGE,
-                                r(0.5, 1.0, 2.0, 3.5, 5.5, 8.0, 11.0, 15.0, 20.0, 26.0),
-                                r(1.0, 2.0, 3.5, 5.5, 8.0, 11.0, 15.0, 20.0, 26.0, 35.0),
+                                r(2.0, 5.0, 10.0, 16.0, 25.0, 32.0, 46.0, 60.0, 84.0, 112.0),
+                                r(3.0, 8.0, 14.0, 23.0, 30.0, 43.0, 57.0, 80.0, 107.0, 124.0),
                                 false, Formatting.RED, CustomStat.AffixType.PREFIX,
                                 ALL_WEAPONS);
 
                 registerForTypes("cold_damage", "Cold Damage",
                                 ModAttributes.COLD_DAMAGE,
-                                r(0.5, 1.0, 2.0, 3.5, 5.5, 8.0, 11.0, 15.0, 20.0, 26.0),
-                                r(1.0, 2.0, 3.5, 5.5, 8.0, 11.0, 15.0, 20.0, 26.0, 35.0),
+                                r(2.0, 5.0, 10.0, 16.0, 25.0, 32.0, 46.0, 60.0, 84.0, 112.0),
+                                r(3.0, 8.0, 14.0, 23.0, 30.0, 43.0, 57.0, 80.0, 107.0, 124.0),
                                 false, Formatting.AQUA, CustomStat.AffixType.PREFIX,
                                 ALL_WEAPONS);
 
                 registerForTypes("lightning_damage", "Lightning Damage",
                                 ModAttributes.LIGHTNING_DAMAGE,
-                                r(0.5, 1.0, 2.0, 3.5, 5.5, 8.0, 11.0, 15.0, 20.0, 26.0),
-                                r(1.0, 2.0, 3.5, 5.5, 8.0, 11.0, 15.0, 20.0, 26.0, 35.0),
+                                r(2.0, 5.0, 10.0, 16.0, 25.0, 32.0, 46.0, 60.0, 84.0, 112.0),
+                                r(3.0, 8.0, 14.0, 23.0, 30.0, 43.0, 57.0, 80.0, 107.0, 124.0),
                                 false, Formatting.DARK_BLUE, CustomStat.AffixType.PREFIX,
                                 ALL_WEAPONS);
 
                 registerForTypes("void_damage", "Void Damage",
                                 ModAttributes.VOID_DAMAGE,
-                                r(0.5, 1.0, 2.0, 3.5, 5.5, 8.0, 11.0, 15.0, 20.0, 26.0),
-                                r(1.0, 2.0, 3.5, 5.5, 8.0, 11.0, 15.0, 20.0, 26.0, 35.0),
+                                r(2.0, 5.0, 10.0, 16.0, 25.0, 32.0, 46.0, 60.0, 84.0, 112.0),
+                                r(3.0, 8.0, 14.0, 23.0, 30.0, 43.0, 57.0, 80.0, 107.0, 124.0),
                                 false, Formatting.DARK_PURPLE, CustomStat.AffixType.PREFIX,
                                 ALL_WEAPONS);
 
                 // --- Percent Damages (all weapons) ---
                 registerForTypes("attack_damage_percent", "Increased Physical Damage",
                                 ModAttributes.ATTACK_DAMAGE_PERCENT,
-                                r(0.15, 0.20, 0.35, 0.5, 0.8, 1.05, 1.35, 1.5, 1.85, 2.1),
-                                r(0.20, 0.35, 0.5, 0.80, 1.05, 1.35, 1.5, 1.85, 2.1, 2.35),
+                                r(0.2, 0.3, 0.40, 0.5, 0.65, 0.85, 1.1, 1.35, 1.55, 1.7),
+                                r(0.3, 0.4, 0.5, 0.65, 0.85, 1.1, 1.35, 1.55, 1.7, 1.79),
                                 true, true, Formatting.WHITE, CustomStat.AffixType.PREFIX,
                                 ALL_WEAPONS);
 
@@ -549,8 +592,8 @@ public class StatRegistry {
                 // --- Reload Speed (Bow, Crossbow, Chestplate already registered above) ---
                 registerForTypes("reload_speed", "Reload Speed",
                                 ModAttributes.RELOAD_SPEED,
-                                r(0.05, 0.10, 0.18, 0.28, 0.40, 0.55, 0.72, 0.92, 1.15, 1.40),
-                                r(0.10, 0.18, 0.28, 0.40, 0.55, 0.72, 0.92, 1.15, 1.40, 1.75),
+                                r(0.05, 0.08, 0.12, 0.18, 0.25, 0.33, 0.42, 0.52, 0.63, 0.75),
+                                r(0.10, 0.15, 0.20, 0.28, 0.38, 0.50, 0.65, 0.82, 1.00, 1.25),
                                 true, true, Formatting.YELLOW, CustomStat.AffixType.SUFFIX,
                                 ALL_RANGED_WEAPONS);
 
@@ -566,8 +609,8 @@ public class StatRegistry {
 
                 register(new CustomStat("elytra_movement_speed", "Movement Speed",
                                 EquipmentType.ELYTRA, ModAttributes.MOVEMENT_SPEED,
-                                r(0.05, 0.08, 0.12, 0.18, 0.25, 0.33, 0.42, 0.52, 0.63, 0.75),
-                                r(0.10, 0.15, 0.20, 0.28, 0.38, 0.50, 0.65, 0.82, 1.00, 1.25),
+                                r(0.8, 0.9, 1.0, 1.05, 1.1, 1.15, 1.2, 1.25, 1.30, 1.35),
+                                r(0.8, 0.9, 1.0, 1.05, 1.1, 1.15, 1.2, 1.25, 1.30, 1.35),
                                 true, true, Formatting.GREEN, CustomStat.AffixType.PREFIX));
 
                 LOGGER.info("Registered {} custom stats", STATS.size());
