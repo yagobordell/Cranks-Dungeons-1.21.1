@@ -24,13 +24,15 @@ public class CustomStat {
     private final boolean displayAsPercentage;
     private final Formatting color;
     private final AffixType affixType;
+    private final int level;
+    private final int weight;
 
     // Constructor with all parameters
     public CustomStat(String id, String displayName, EquipmentType equipmentType,
                       RegistryEntry<EntityAttribute> attribute,
                       double[] normalRanges, double[] uncommonRanges,
                       boolean isPercentage, boolean displayAsPercentage,
-                      Formatting color, AffixType affixType) {
+                      Formatting color, AffixType affixType, int level, int weight) {
         this.id = id;
         this.displayName = displayName;
         this.equipmentType = equipmentType;
@@ -41,6 +43,17 @@ public class CustomStat {
         this.displayAsPercentage = displayAsPercentage;
         this.color = color;
         this.affixType = affixType;
+        this.level = level;
+        this.weight = weight;
+    }
+
+    public CustomStat(String id, String displayName, EquipmentType equipmentType,
+                      RegistryEntry<EntityAttribute> attribute,
+                      double[] normalRanges, double[] uncommonRanges,
+                      boolean isPercentage, boolean displayAsPercentage,
+                      Formatting color, AffixType affixType) {
+        this(id, displayName, equipmentType, attribute, normalRanges, uncommonRanges,
+             isPercentage, displayAsPercentage, color, affixType, 1, 1000);
     }
 
     public String getId() {
@@ -121,5 +134,13 @@ public class CustomStat {
 
     public Formatting getColor() {
         return color;
+    }
+
+    public int getLevel() {
+        return level;
+    }
+
+    public int getWeight() {
+        return weight;
     }
 }

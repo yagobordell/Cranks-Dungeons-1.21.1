@@ -261,10 +261,18 @@ public class CranksDungeons implements ModInitializer {
 
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.INGREDIENTS).register(content -> {
 			content.add(ModItems.TOME_OF_TRANSMUTATION);
+			content.add(ModItems.GREATER_TOME_OF_TRANSMUTATION);
+			content.add(ModItems.PERFECT_TOME_OF_TRANSMUTATION);
 			content.add(ModItems.TOME_OF_AUGMENTATION);
+			content.add(ModItems.GREATER_TOME_OF_AUGMENTATION);
+			content.add(ModItems.PERFECT_TOME_OF_AUGMENTATION);
 			content.add(ModItems.REGAL_TOME);
+			content.add(ModItems.GREATER_REGAL_TOME);
+			content.add(ModItems.PERFECT_REGAL_TOME);
 			content.add(ModItems.TOME_OF_ALCHEMY);
 			content.add(ModItems.EXALTED_TOME);
+			content.add(ModItems.GREATER_EXALTED_TOME);
+			content.add(ModItems.PERFECT_EXALTED_TOME);
 			content.add(ModItems.TOME_OF_FIRE);
 			content.add(ModItems.TOME_OF_COLD);
 			content.add(ModItems.TOME_OF_LIGHTNING);

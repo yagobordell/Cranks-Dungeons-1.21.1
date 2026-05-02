@@ -149,12 +149,16 @@ public class ItemStatManager {
     }
 
     public static boolean addRandomStat(ItemStack stack, int tier, CustomStat.AffixType type) {
+        return addRandomStat(stack, tier, type, 1, 100);
+    }
+
+    public static boolean addRandomStat(ItemStack stack, int tier, CustomStat.AffixType type, int minLevel, int maxLevel) {
         if (!canAddStat(stack, type)) return false;
 
         Optional<EquipmentType> equipType = EquipmentType.getTypeForItem(stack);
         if (equipType.isEmpty()) return false;
 
-        CustomStat stat = StatRegistry.getRandomStatForEquipmentType(equipType.get(), type);
+        CustomStat stat = StatRegistry.getRandomStatForEquipmentType(equipType.get(), type, minLevel, maxLevel);
         if (stat == null) return false;
 
         // Check for duplicate attributes

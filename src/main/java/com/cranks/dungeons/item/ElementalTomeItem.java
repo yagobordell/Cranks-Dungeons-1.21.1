@@ -29,17 +29,50 @@ public class ElementalTomeItem extends AbstractTomeItem {
         }
     }
 
-    private final Element element;
-    private final boolean isGreater;
+    public enum Tier {
+        NORMAL(1, CustomRarity.RARE, ""),
+        GREATER(40, CustomRarity.UNIQUE, "greater_"),
+        PERFECT(75, CustomRarity.UNIQUE, "perfect_");
 
-    public ElementalTomeItem(Element element, boolean isGreater, CustomRarity rarity, Settings settings) {
-        super(rarity, settings);
-        this.element = element;
-        this.isGreater = isGreater;
+        private final int minLevel;
+        private final CustomRarity rarity;
+        private final String prefix;
+
+        Tier(int minLevel, CustomRarity rarity, String prefix) {
+            this.minLevel = minLevel;
+            this.rarity = rarity;
+            this.prefix = prefix;
+        }
+
+        public int getMinLevel() {
+            return minLevel;
+        }
+
+        public CustomRarity getRarity() {
+            return rarity;
+        }
+
+        public String getPrefix() {
+            return prefix;
+        }
     }
 
-    public boolean isGreater() {
-        return isGreater;
+    private final Element element;
+    private final Tier tier;
+
+    public ElementalTomeItem(Element element, Tier tier, Settings settings) {
+        super(tier.getRarity(), settings);
+        this.element = element;
+        this.tier = tier;
+    }
+
+    public Tier getTier() {
+        return tier;
+    }
+
+    @Override
+    public int getMinStatLevel() {
+        return tier.getMinLevel();
     }
 
     @Override
@@ -47,13 +80,14 @@ public class ElementalTomeItem extends AbstractTomeItem {
         String elementStr = element.name().toLowerCase();
         String typeStr = equipType.name().toLowerCase();
 
-        if (isGreater) {
-            // Greater tomes ONLY give damage percent on all slots
+        if (tier != Tier.NORMAL) {
+            // Greater/Perfect tomes ONLY give damage percent on all slots
             if (element == Element.PHYSICAL) {
                 return typeStr + "_attack_damage_percent";
             }
             return typeStr + "_" + elementStr + "_damage_percent";
-        } else {
+        }
+ else {
             if (isWeapon(equipType)) {
                 return typeStr + "_" + elementStr + "_damage";
             } else if (isArmor(equipType)) {
@@ -73,7 +107,7 @@ public class ElementalTomeItem extends AbstractTomeItem {
 
         addTomeDescription(textConsumer);
 
-        if (isGreater) {
+        if (tier != Tier.NORMAL) {
             // Greater tomes only show damage stats
             addStatRange(textConsumer, EquipmentType.SWORD, "Weapons");
         } else {

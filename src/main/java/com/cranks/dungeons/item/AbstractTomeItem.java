@@ -28,6 +28,10 @@ public abstract class AbstractTomeItem extends Item {
         return customRarity;
     }
 
+    public int getMinStatLevel() {
+        return 1;
+    }
+
     /**
      * Returns the stat ID this tome applies for the given equipment type,
      * or null if the tome cannot be applied to this equipment type.
@@ -112,12 +116,15 @@ public abstract class AbstractTomeItem extends Item {
         if (statId != null) {
             CustomStat stat = StatRegistry.getStat(statId);
             if (stat != null) {
-                // Greater items are Tier 1, standard are Tier 3
-                int tier = 3;
-                if (this instanceof ElementalTomeItem et && et.isGreater()) {
-                    tier = 1;
+                int tierValue = 3;
+                if (this instanceof ElementalTomeItem et) {
+                    tierValue = switch (et.getTier()) {
+                        case NORMAL -> 3;
+                        case GREATER -> 2;
+                        case PERFECT -> 1;
+                    };
                 }
-                String range = stat.getFormattedRange(tier, 1);
+                String range = stat.getFormattedRange(tierValue, 1);
                 textConsumer.accept(Text.literal(label + ": ").formatted(Formatting.GRAY)
                         .append(Text.literal(range).formatted(Formatting.WHITE)));
             }

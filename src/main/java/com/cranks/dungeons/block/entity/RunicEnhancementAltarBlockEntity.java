@@ -224,23 +224,24 @@ public class RunicEnhancementAltarBlockEntity extends BlockEntity implements Nam
         CustomRarity rarity = CustomRarity.getRarity(equipment);
         ItemStack result = equipment.copy();
         boolean success = false;
+        int minLevel = runicTome.getMinStatLevel();
 
         switch (runicTome.getTomeType()) {
-            case TRANSMUTATION:
+            case TRANSMUTATION, GREATER_TRANSMUTATION, PERFECT_TRANSMUTATION:
                 if (rarity == CustomRarity.NORMAL) {
                     ItemStatManager.setRarity(result, CustomRarity.MAGIC);
-                    success = addRandomAffix(result);
+                    success = addRandomAffix(result, minLevel);
                 }
                 break;
-            case AUGMENTATION:
+            case AUGMENTATION, GREATER_AUGMENTATION, PERFECT_AUGMENTATION:
                 if (rarity == CustomRarity.MAGIC) {
-                    success = addRandomAffix(result);
+                    success = addRandomAffix(result, minLevel);
                 }
                 break;
-            case REGAL:
+            case REGAL, GREATER_REGAL, PERFECT_REGAL:
                 if (rarity == CustomRarity.MAGIC) {
                     ItemStatManager.setRarity(result, CustomRarity.RARE);
-                    success = addRandomAffix(result);
+                    success = addRandomAffix(result, minLevel);
                 }
                 break;
             case ALCHEMY:
@@ -250,16 +251,16 @@ public class RunicEnhancementAltarBlockEntity extends BlockEntity implements Nam
                     }
                     ItemStatManager.setRarity(result, CustomRarity.RARE);
                     // Add 4 mods: 2 prefix, 2 suffix
-                    boolean s1 = addAffixOfType(result, CustomStat.AffixType.PREFIX);
-                    boolean s2 = addAffixOfType(result, CustomStat.AffixType.PREFIX);
-                    boolean s3 = addAffixOfType(result, CustomStat.AffixType.SUFFIX);
-                    boolean s4 = addAffixOfType(result, CustomStat.AffixType.SUFFIX);
+                    boolean s1 = addAffixOfType(result, CustomStat.AffixType.PREFIX, minLevel);
+                    boolean s2 = addAffixOfType(result, CustomStat.AffixType.PREFIX, minLevel);
+                    boolean s3 = addAffixOfType(result, CustomStat.AffixType.SUFFIX, minLevel);
+                    boolean s4 = addAffixOfType(result, CustomStat.AffixType.SUFFIX, minLevel);
                     success = s1 || s2 || s3 || s4;
                 }
                 break;
-            case EXALTED:
+            case EXALTED, GREATER_EXALTED, PERFECT_EXALTED:
                 if (rarity == CustomRarity.RARE) {
-                    success = addRandomAffix(result);
+                    success = addRandomAffix(result, minLevel);
                 }
                 break;
         }
@@ -275,21 +276,21 @@ public class RunicEnhancementAltarBlockEntity extends BlockEntity implements Nam
         return false;
     }
 
-    private boolean addRandomAffix(ItemStack stack) {
+    private boolean addRandomAffix(ItemStack stack, int minLevel) {
         CustomStat.AffixType type = RandomUtil.nextBoolean() ? CustomStat.AffixType.PREFIX : CustomStat.AffixType.SUFFIX;
-        boolean success = ItemStatManager.addRandomStat(stack, StatRegistry.rollRandomTier(), type);
+        boolean success = ItemStatManager.addRandomStat(stack, StatRegistry.rollRandomTier(), type, minLevel, 100);
         
         // If first choice failed (maybe slot full), try the other type
         if (!success) {
             type = (type == CustomStat.AffixType.PREFIX) ? CustomStat.AffixType.SUFFIX : CustomStat.AffixType.PREFIX;
-            success = ItemStatManager.addRandomStat(stack, StatRegistry.rollRandomTier(), type);
+            success = ItemStatManager.addRandomStat(stack, StatRegistry.rollRandomTier(), type, minLevel, 100);
         }
         return success;
     }
 
-    private boolean addAffixOfType(ItemStack stack, CustomStat.AffixType type) {
+    private boolean addAffixOfType(ItemStack stack, CustomStat.AffixType type, int minLevel) {
         for (int i = 0; i < 5; i++) { // Try a few times to find a unique stat
-            if (ItemStatManager.addRandomStat(stack, StatRegistry.rollRandomTier(), type)) return true;
+            if (ItemStatManager.addRandomStat(stack, StatRegistry.rollRandomTier(), type, minLevel, 100)) return true;
         }
         return false;
     }
