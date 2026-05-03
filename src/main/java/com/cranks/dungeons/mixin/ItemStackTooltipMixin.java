@@ -431,44 +431,56 @@ public abstract class ItemStackTooltipMixin {
 
     @Unique
     private Formatting getValueColor(ItemStack stack, RegistryEntry<EntityAttribute> attr) {
-        // 1. Check Runes
-        List<ItemStatManager.ItemStat> stats = ItemStatManager.getStats(stack);
-        for (ItemStatManager.ItemStat is : stats) {
+        // 1. Check if the attribute is explicitly modified by Runes/Tomes
+        List<ItemStatManager.ItemStat> itemStats = ItemStatManager.getStats(stack);
+        for (ItemStatManager.ItemStat is : itemStats) {
             CustomStat stat = StatRegistry.getStat(is.statId);
             if (stat != null && stat.getAttribute() != null && 
                 stat.getAttribute().getKey().isPresent() && attr.getKey().isPresent() &&
                 stat.getAttribute().getKey().get().equals(attr.getKey().get())) {
-                return Formatting.BLUE;
+                // If the rune value is non-zero, it's a modification
+                if (is.value != 0) return Formatting.BLUE;
             }
         }
+
+        // 2. Check Enchantments
+        var enchants = stack.getEnchantments();
+        for (var entry : enchants.getEnchantmentEntries()) {
+            // Some enchantments are known to modify damage/speed directly
+            String name = entry.getKey().value().description().getString().toLowerCase();
+            if (attr.equals(EntityAttributes.ATTACK_DAMAGE) && (name.contains("sharpness") || name.contains("power") || name.contains("damage"))) return Formatting.BLUE;
+            if (attr.equals(EntityAttributes.ATTACK_SPEED) && name.contains("haste")) return Formatting.BLUE;
+        }
         
-        // 2. Check local modifiers on the item
-        AttributeModifiersComponent attributes = stack.get(DataComponentTypes.ATTRIBUTE_MODIFIERS);
-        if (attributes != null) {
-            for (var entry : attributes.modifiers()) {
-                if (entry.attribute().getKey().isPresent() && attr.getKey().isPresent() &&
-                    entry.attribute().getKey().get().equals(attr.getKey().get())) {
-                    
-                    // If it's not a base modifier, it's a modification (Blue)
-                    String id = entry.modifier().id().toString();
-                    if (!id.contains("base") && !id.contains("default")) {
-                        return Formatting.BLUE;
-                    }
+        // 3. Compare against Default Item Attributes
+        // This handles "hardcoded" stats like Spear range or custom weapon speeds
+        AttributeModifiersComponent currentAttrs = stack.get(DataComponentTypes.ATTRIBUTE_MODIFIERS);
+        if (currentAttrs != null) {
+            // Get a fresh stack of the same item to see its "true" defaults
+            ItemStack defaultStack = new ItemStack(stack.getItem());
+            AttributeModifiersComponent defaultAttrs = defaultStack.getOrDefault(DataComponentTypes.ATTRIBUTE_MODIFIERS, AttributeModifiersComponent.DEFAULT);
+            
+            double currentVal = 0;
+            boolean hasAttr = false;
+            for (var entry : currentAttrs.modifiers()) {
+                if (entry.attribute().equals(attr)) {
+                    currentVal += entry.modifier().value();
+                    hasAttr = true;
                 }
             }
-        }
-        
-        // 3. Special case for enchantments that modify display value but aren't attributes
-        // (Like Power on Bows or Sharpness which might be handled manually)
-        if (attr.equals(EntityAttributes.ATTACK_DAMAGE)) {
-             // We check if the item has any damage-increasing enchantment
-             var enchants = stack.getEnchantments();
-             for (var entry : enchants.getEnchantmentEntries()) {
-                 String name = entry.getKey().value().description().getString().toLowerCase();
-                 if (name.contains("sharpness") || name.contains("power") || name.contains("damage")) {
-                     return Formatting.BLUE;
-                 }
-             }
+            
+            if (hasAttr) {
+                double defaultVal = 0;
+                for (var entry : defaultAttrs.modifiers()) {
+                    if (entry.attribute().equals(attr)) {
+                        defaultVal += entry.modifier().value();
+                    }
+                }
+                // If current total value differs from default total value, it's modified
+                if (Math.abs(currentVal - defaultVal) > 0.0001) {
+                    return Formatting.BLUE;
+                }
+            }
         }
 
         return Formatting.WHITE;
