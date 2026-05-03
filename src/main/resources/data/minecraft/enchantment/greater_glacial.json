@@ -1,0 +1,40 @@
+{
+  "description": {
+    "translate": "enchantment.minecraft.greater_glacial"
+  },
+  "supported_items": "#minecraft:enchantable/combat_equipment",
+  "weight": 2,
+  "max_level": 1,
+  "min_cost": {
+    "base": 15,
+    "per_level_above_first": 0
+  },
+  "max_cost": {
+    "base": 65,
+    "per_level_above_first": 0
+  },
+  "anvil_cost": 4,
+  "slots": [
+    "mainhand",
+    "head",
+    "chest",
+    "legs",
+    "feet"
+  ],
+  "effects": {
+    "minecraft:attributes": [
+      {
+        "id": "minecraft:enchantment.greater_glacial.cold_damage",
+        "attribute": "cranks-dungeons:cold_damage",
+        "amount": 15,
+        "operation": "add_value"
+      },
+      {
+        "id": "minecraft:enchantment.greater_glacial_armor.cold_resistance",
+        "attribute": "cranks-dungeons:cold_resistance",
+        "amount": 0.14,
+        "operation": "add_value"
+      }
+    ]
+  }
+}

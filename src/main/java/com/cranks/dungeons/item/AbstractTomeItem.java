@@ -107,8 +107,8 @@ public abstract class AbstractTomeItem extends Item {
      * Helper to add a standardized description to specialized tomes.
      */
     protected void addTomeDescription(Consumer<Text> textConsumer) {
-        textConsumer.accept(Text.literal("Upgrades a magic item to a rare item, adding a guranteed modifier").formatted(Formatting.GRAY));
-        textConsumer.accept(Text.empty());
+        textConsumer.accept(Text.literal("Upgrades a magic item to a rare item,").formatted(Formatting.GRAY));
+        textConsumer.accept(Text.literal("adding a guaranteed modifier").formatted(Formatting.GRAY));
     }
 
     protected void addStatRange(Consumer<Text> textConsumer, EquipmentType type, String label) {
@@ -121,7 +121,6 @@ public abstract class AbstractTomeItem extends Item {
                     tierValue = switch (et.getTier()) {
                         case NORMAL -> 3;
                         case GREATER -> 2;
-                        case PERFECT -> 1;
                     };
                 }
                 String range = stat.getFormattedRange(tierValue, 1);

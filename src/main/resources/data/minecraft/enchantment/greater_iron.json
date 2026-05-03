@@ -1,0 +1,52 @@
+{
+  "description": {
+    "translate": "enchantment.minecraft.greater_iron"
+  },
+  "supported_items": "#minecraft:enchantable/combat_equipment",
+  "weight": 2,
+  "max_level": 1,
+  "min_cost": {
+    "base": 15,
+    "per_level_above_first": 0
+  },
+  "max_cost": {
+    "base": 65,
+    "per_level_above_first": 0
+  },
+  "anvil_cost": 4,
+  "slots": [
+    "mainhand",
+    "head",
+    "chest",
+    "legs",
+    "feet"
+  ],
+  "effects": {
+    "minecraft:attributes": [
+      {
+        "id": "minecraft:enchantment.greater_iron.physical_damage",
+        "attribute": "cranks-dungeons:attack_damage_percent",
+        "amount": 0.2,
+        "operation": "add_value"
+      },
+      {
+        "id": "minecraft:enchantment.greater_iron_armor.armor_percent",
+        "attribute": "cranks-dungeons:armor_percent",
+        "amount": 0.2,
+        "operation": "add_value"
+      },
+      {
+        "id": "minecraft:enchantment.greater_iron_armor.evasion_percent",
+        "attribute": "cranks-dungeons:evasion_rating_percent",
+        "amount": 0.2,
+        "operation": "add_value"
+      },
+      {
+        "id": "minecraft:enchantment.greater_iron_armor.energy_shield_percent",
+        "attribute": "cranks-dungeons:energy_shield_percent",
+        "amount": 0.2,
+        "operation": "add_value"
+      }
+    ]
+  }
+}

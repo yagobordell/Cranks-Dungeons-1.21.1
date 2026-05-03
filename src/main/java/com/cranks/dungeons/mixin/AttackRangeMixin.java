@@ -61,14 +61,14 @@ public class AttackRangeMixin {
         // Update the method's return value
         cir.setReturnValue(baseRange + totalBonus);
 
-        // Re-apply a temporary modifier on ENTITY_INTERACTION_RANGE so other mods see the same value
+        // Re-apply a temporary modifier on ENTITY_INTERACTION_RANGE so other mods see
+        // the same value
         EntityAttributeInstance rangeAttr = player.getAttributeInstance(EntityAttributes.ENTITY_INTERACTION_RANGE);
         if (rangeAttr != null) {
             rangeAttr.addTemporaryModifier(new EntityAttributeModifier(
                     RANGE_SYNC_ID,
                     totalBonus,
-                    EntityAttributeModifier.Operation.ADD_VALUE
-            ));
+                    EntityAttributeModifier.Operation.ADD_VALUE));
         }
     }
 

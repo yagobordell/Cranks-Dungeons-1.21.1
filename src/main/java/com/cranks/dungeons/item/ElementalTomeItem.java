@@ -12,11 +12,11 @@ import java.util.function.Consumer;
 public class ElementalTomeItem extends AbstractTomeItem {
 
     public enum Element {
-        FIRE("Fire"),
-        COLD("Cold"),
-        LIGHTNING("Lightning"),
-        VOID("Void"),
-        PHYSICAL("Physical");
+        FIRE("Flames"),
+        COLD("Ice"),
+        LIGHTNING("Electricity"),
+        VOID("Ruin"),
+        PHYSICAL("Abrasion");
 
         private final String displayName;
 
@@ -31,8 +31,7 @@ public class ElementalTomeItem extends AbstractTomeItem {
 
     public enum Tier {
         NORMAL(1, CustomRarity.RARE, ""),
-        GREATER(40, CustomRarity.UNIQUE, "greater_"),
-        PERFECT(75, CustomRarity.UNIQUE, "perfect_");
+        GREATER(40, CustomRarity.UNIQUE, "greater_");
 
         private final int minLevel;
         private final CustomRarity rarity;
@@ -80,15 +79,27 @@ public class ElementalTomeItem extends AbstractTomeItem {
         String elementStr = element.name().toLowerCase();
         String typeStr = equipType.name().toLowerCase();
 
+        // Greater/Perfect tomes give "Extra Damage as Element" on weapons
         if (tier != Tier.NORMAL) {
-            // Greater/Perfect tomes ONLY give damage percent on all slots
-            if (element == Element.PHYSICAL) {
-                return typeStr + "_attack_damage_percent";
-            }
-            return typeStr + "_" + elementStr + "_damage_percent";
-        }
- else {
             if (isWeapon(equipType)) {
+                if (element == Element.PHYSICAL) {
+                    return typeStr + "_attack_extra_damage";
+                }
+                return typeStr + "_" + elementStr + "_extra_damage";
+            } else if (isArmor(equipType)) {
+                // ONLY Physicality tomes give armor % at higher tiers
+                if (element == Element.PHYSICAL) {
+                    return typeStr + "_armor_percent";
+                }
+                return null;
+            }
+            return null;
+        } else {
+            // Normal tomes give flat damage on weapons or flat resistance/armor on armor
+            if (isWeapon(equipType)) {
+                if (element == Element.PHYSICAL) {
+                    return typeStr + "_physical_damage";
+                }
                 return typeStr + "_" + elementStr + "_damage";
             } else if (isArmor(equipType)) {
                 if (element == Element.PHYSICAL) {
@@ -108,8 +119,12 @@ public class ElementalTomeItem extends AbstractTomeItem {
         addTomeDescription(textConsumer);
 
         if (tier != Tier.NORMAL) {
-            // Greater tomes only show damage stats
+            // Greater tomes always show weapon stats
             addStatRange(textConsumer, EquipmentType.SWORD, "Weapons");
+            // Only Physicality Greater/Perfect tomes show armor stats
+            if (element == Element.PHYSICAL) {
+                addStatRange(textConsumer, EquipmentType.CHESTPLATE, "Armor");
+            }
         } else {
             addStatRange(textConsumer, EquipmentType.SWORD, "Weapons");
             addStatRange(textConsumer, EquipmentType.CHESTPLATE, "Armor");

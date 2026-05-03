@@ -56,7 +56,8 @@ public class CranksDungeons implements ModInitializer {
 
 	public static final String MOD_ID = "cranks-dungeons";
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
-	public static final com.cranks.dungeons.config.ModConfig CONFIG = com.cranks.dungeons.config.ModConfig.createAndLoad();
+	public static final com.cranks.dungeons.config.ModConfig CONFIG = com.cranks.dungeons.config.ModConfig
+			.createAndLoad();
 
 	@Override
 	public void onInitialize() {
@@ -108,7 +109,8 @@ public class CranksDungeons implements ModInitializer {
 
 			data.checkRetroactivePoints(handler.player.experienceLevel);
 
-			// Sync energy shield to client slightly delayed on join to ensure attributes and client are fully loaded
+			// Sync energy shield to client slightly delayed on join to ensure attributes
+			// and client are fully loaded
 			com.cranks.dungeons.util.EquipmentChangeHandler.scheduleSync(handler.player, 100);
 
 			// If retroactive checking changed anything, save it
@@ -273,18 +275,27 @@ public class CranksDungeons implements ModInitializer {
 			content.add(ModItems.EXALTED_TOME);
 			content.add(ModItems.GREATER_EXALTED_TOME);
 			content.add(ModItems.PERFECT_EXALTED_TOME);
+			// Elemental Tomes
 			content.add(ModItems.TOME_OF_FIRE);
+			content.add(ModItems.GREATER_TOME_OF_FIRE);
+
 			content.add(ModItems.TOME_OF_COLD);
+			content.add(ModItems.GREATER_TOME_OF_COLD);
+
 			content.add(ModItems.TOME_OF_LIGHTNING);
+			content.add(ModItems.GREATER_TOME_OF_LIGHTNING);
+
 			content.add(ModItems.TOME_OF_VOID);
+			content.add(ModItems.GREATER_TOME_OF_VOID);
+
 			content.add(ModItems.TOME_OF_PHYSICALITY);
+			content.add(ModItems.GREATER_TOME_OF_PHYSICALITY);
+
+			// Utility Tomes
 			content.add(ModItems.TOME_OF_SWIFTNESS);
 			content.add(ModItems.TOME_OF_ENERGY);
 			content.add(ModItems.TOME_OF_EVASION);
-			content.add(ModItems.GREATER_TOME_OF_PHYSICALITY);
 			content.add(ModItems.TOME_OF_HEALTH_BONUS);
-			content.add(ModItems.TOME_OF_HEALTH_REGEN);
-			content.add(ModItems.TOME_OF_RANGE);
 			content.add(ModItems.ARTIFICIAL_TOME);
 		});
 
@@ -323,47 +334,34 @@ public class CranksDungeons implements ModInitializer {
 			"minecraft:respiration",
 			"minecraft:depth_strider",
 			"minecraft:lunge",
-			// Custom stat-based enchantments (minecraft namespace, overridden via data
-			// pack)
-			"minecraft:fire_damage",
-			"minecraft:cold_damage",
-			"minecraft:lightning_damage",
-			"minecraft:void_damage",
-			"minecraft:attack_damage",
-			"minecraft:attack_speed",
-			"minecraft:crit_chance",
-			"minecraft:chance_to_burn",
-			"minecraft:chance_to_poison",
-			"minecraft:chance_to_freeze",
-			"minecraft:chance_to_shock",
-			"minecraft:life_steal",
-			"minecraft:bonus_knockback",
-			"minecraft:attack_range",
-			"minecraft:max_health_bonus",
-			"minecraft:life_regeneration",
-			"minecraft:bonus_armor",
-			"minecraft:knockback_resistance",
-			"minecraft:fire_resistance",
-			"minecraft:cold_resistance",
-			"minecraft:lightning_resistance",
-			"minecraft:void_resistance",
-			"minecraft:experience_bonus",
-			"minecraft:luck_bonus",
-			"minecraft:movement_speed_bonus",
-			"minecraft:feather_falling_bonus",
-			"minecraft:mining_efficiency",
-			"minecraft:ore_fortune",
-			"minecraft:log_fortune",
-			"minecraft:energy_shield",
-			"minecraft:evasion_rating",
-			"minecraft:durability_bonus",
-			"minecraft:repair_chance",
-			"minecraft:breaking_range",
-			"minecraft:crop_fortune",
-			"minecraft:dig_fortune",
-			"minecraft:reload_speed",
-			// Mod-namespaced enchantments
-			"cranks-dungeons:vein_mining");
+			"cranks-dungeons:vein_mining",
+
+			// New Hybrid Stat Enchantments
+			"minecraft:body",
+			"minecraft:greater_body",
+			"minecraft:desert",
+			"minecraft:greater_desert",
+			"minecraft:glacial",
+			"minecraft:greater_glacial",
+			"minecraft:storm",
+			"minecraft:greater_storm",
+			"minecraft:iron",
+			"minecraft:greater_iron",
+			"minecraft:vision",
+			"minecraft:greater_vision",
+			"minecraft:alacrity",
+			"minecraft:greater_alacrity",
+
+			// Gathering & Utility
+			"minecraft:sundering",
+			"minecraft:greater_sundering",
+			"minecraft:avarice",
+			"minecraft:greater_avarice",
+			"minecraft:preservation",
+			"minecraft:greater_preservation",
+			"minecraft:reach",
+			"minecraft:greater_reach"
+	);
 
 	/** Cached set of allowed enchantment registry keys, built once on first use. */
 	private Set<RegistryKey<Enchantment>> allowedEnchantmentKeys;

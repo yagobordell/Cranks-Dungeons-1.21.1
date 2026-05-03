@@ -1,0 +1,43 @@
+{
+  "description": {
+    "translate": "enchantment.minecraft.alacrity"
+  },
+  "supported_items": "#minecraft:enchantable/combat_equipment",
+  "weight": 5,
+  "max_level": 1,
+  "min_cost": {
+    "base": 1,
+    "per_level_above_first": 0
+  },
+  "max_cost": {
+    "base": 50,
+    "per_level_above_first": 0
+  },
+  "anvil_cost": 2,
+  "slots": [
+    "mainhand",
+    "feet"
+  ],
+  "effects": {
+    "minecraft:attributes": [
+      {
+        "id": "minecraft:enchantment.alacrity.attack_speed",
+        "attribute": "cranks-dungeons:attack_speed",
+        "amount": 0.12,
+        "operation": "add_value"
+      },
+      {
+        "id": "minecraft:enchantment.alacrity.reload_speed",
+        "attribute": "cranks-dungeons:reload_speed",
+        "amount": 0.12,
+        "operation": "add_value"
+      },
+      {
+        "id": "minecraft:enchantment.alacrity_boots.movement_speed",
+        "attribute": "cranks-dungeons:movement_speed",
+        "amount": 0.2,
+        "operation": "add_value"
+      }
+    ]
+  }
+}

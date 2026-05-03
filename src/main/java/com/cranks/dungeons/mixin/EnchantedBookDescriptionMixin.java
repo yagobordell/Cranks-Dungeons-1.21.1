@@ -35,7 +35,6 @@ public class EnchantedBookDescriptionMixin {
                 net.minecraft.component.type.ItemEnchantmentsComponent.DEFAULT);
 
 
-        int descriptionsAdded = 0;
 
         for (var entry : enchantments.getEnchantmentEntries()) {
             String enchantId = entry.getKey().getKey().get().getValue().toString();
@@ -50,15 +49,16 @@ public class EnchantedBookDescriptionMixin {
                     String line = tooltip.get(i).getString();
 
                     if (line.equals(displayName)) {
+                        int offset = 1;
+                        tooltip.add(i + offset++, Text.empty());
+                        
                         Text description1 = Text.translatable(descKey1).formatted(Formatting.GRAY, Formatting.ITALIC);
-                        tooltip.add(i + 1 + descriptionsAdded, description1);
-                        descriptionsAdded++;
+                        tooltip.add(i + offset++, description1);
 
                         try {
                             Text description2 = Text.translatable(descKey2).formatted(Formatting.GRAY, Formatting.ITALIC);
                             if (!description2.getString().equals(descKey2)) {
-                                tooltip.add(i + 1 + descriptionsAdded, description2);
-                                descriptionsAdded++;
+                                tooltip.add(i + offset++, description2);
                             }
                         } catch (Exception e) {
                         }
@@ -84,6 +84,28 @@ public class EnchantedBookDescriptionMixin {
                 name.equals("soul_speed") ||
                 name.equals("aqua_affinity") ||
                 name.equals("wind_burst") ||
-                name.equals("vein_mining");
+                name.equals("vein_mining") ||
+                name.equals("body") ||
+                name.equals("greater_body") ||
+                name.equals("desert") ||
+                name.equals("greater_desert") ||
+                name.equals("glacial") ||
+                name.equals("greater_glacial") ||
+                name.equals("storm") ||
+                name.equals("greater_storm") ||
+                name.equals("iron") ||
+                name.equals("greater_iron") ||
+                name.equals("vision") ||
+                name.equals("greater_vision") ||
+                name.equals("alacrity") ||
+                name.equals("greater_alacrity") ||
+                name.equals("sundering") ||
+                name.equals("greater_sundering") ||
+                name.equals("avarice") ||
+                name.equals("greater_avarice") ||
+                name.equals("preservation") ||
+                name.equals("greater_preservation") ||
+                name.equals("reach") ||
+                name.equals("greater_reach");
     }
 }

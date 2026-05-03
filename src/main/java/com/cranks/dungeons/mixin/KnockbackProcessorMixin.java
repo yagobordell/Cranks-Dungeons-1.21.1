@@ -13,12 +13,7 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 @Mixin(value = LivingEntity.class, priority = 1000)
 public abstract class KnockbackProcessorMixin {
 
-    @ModifyVariable(
-            method = "takeKnockback",
-            at = @At("HEAD"),
-            ordinal = 0,
-            argsOnly = true
-    )
+    @ModifyVariable(method = "takeKnockback", at = @At("HEAD"), ordinal = 0, argsOnly = true)
     private double calculateFinalKnockback(double strength) {
         LivingEntity target = (LivingEntity) (Object) this;
         LivingEntity attacker = target.getAttacker();
@@ -26,23 +21,28 @@ public abstract class KnockbackProcessorMixin {
         double finalStrength = strength;
 
         // 1. Apply Attacker's Bonus first (Multiplicative is recommended)
-        if (attacker == null) attacker = target.getLastAttacker(); // Fallback for some mixin execution orders
+        if (attacker == null)
+            attacker = target.getLastAttacker(); // Fallback for some mixin execution orders
 
         if (attacker != null) {
             ItemStack weapon = attacker.getMainHandStack();
             ItemStack chestplate = attacker.getEquippedStack(net.minecraft.entity.EquipmentSlot.CHEST);
 
             double knockbackBonus = attacker.getAttributeValue(ModAttributes.KNOCKBACK);
-            if (weapon != null) knockbackBonus += EquipmentStatApplier.getItemStatValue(weapon, "knockback");
+            if (weapon != null)
+                knockbackBonus += EquipmentStatApplier.getItemStatValue(weapon, "knockback");
 
             // Add enchantment bonuses
-            if (weapon != null) knockbackBonus += getEnchantmentValue(weapon, "minecraft:bonus_knockback", 0.35);
-            if (chestplate != null) knockbackBonus += getEnchantmentValue(chestplate, "minecraft:bonus_knockback", 0.35);
+            if (weapon != null)
+                knockbackBonus += getEnchantmentValue(weapon, "minecraft:bonus_knockback", 0.35);
+            if (chestplate != null)
+                knockbackBonus += getEnchantmentValue(chestplate, "minecraft:bonus_knockback", 0.35);
 
-            // If base strength is 0 (standing attack), give it a base strength from the bonus
+            // If base strength is 0 (standing attack), give it a base strength from the
+            // bonus
             if (finalStrength <= 0.01 && knockbackBonus > 0) {
                 // Increased base floor to 0.35 * bonus to ensure visibility for Spears
-                finalStrength = Math.max(0.2, knockbackBonus * 0.4); 
+                finalStrength = Math.max(0.2, knockbackBonus * 0.4);
             } else {
                 // Otherwise amplify existing knockback (sprinting/crit)
                 finalStrength *= (1.0 + knockbackBonus);

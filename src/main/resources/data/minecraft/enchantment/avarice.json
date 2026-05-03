@@ -1,0 +1,32 @@
+{
+  "description": { "translate": "enchantment.minecraft.avarice" },
+  "supported_items": "#minecraft:enchantable/tools_all",
+  "weight": 10, "max_level": 1,
+  "min_cost": { "base": 1, "per_level_above_first": 0 },
+  "max_cost": { "base": 50, "per_level_above_first": 0 },
+  "anvil_cost": 2, "slots": ["mainhand"],
+  "effects": {
+    "minecraft:attributes": [
+      {
+        "id": "minecraft:enchantment.avarice.fortune",
+        "attribute": "cranks-dungeons:fortune",
+        "amount": 0.2, "operation": "add_value"
+      },
+      {
+        "id": "minecraft:enchantment.avarice.crop_fortune",
+        "attribute": "cranks-dungeons:crop_fortune",
+        "amount": 0.2, "operation": "add_value"
+      },
+      {
+        "id": "minecraft:enchantment.avarice.log_fortune",
+        "attribute": "cranks-dungeons:log_fortune",
+        "amount": 0.2, "operation": "add_value"
+      },
+      {
+        "id": "minecraft:enchantment.avarice.dig_fortune",
+        "attribute": "cranks-dungeons:dig_fortune",
+        "amount": 0.2, "operation": "add_value"
+      }
+    ]
+  }
+}

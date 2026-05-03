@@ -395,8 +395,8 @@ public class StatRegistry {
 
                 register(new CustomStat("chestplate_attack_speed", "Attack Speed",
                                 EquipmentType.CHESTPLATE, EntityAttributes.ATTACK_SPEED,
-                                r(0.05, 0.08, 0.12, 0.18, 0.25, 0.33, 0.42, 0.52, 0.63, 0.75),
-                                r(0.10, 0.15, 0.20, 0.28, 0.38, 0.50, 0.65, 0.82, 1.00, 1.25),
+                                r(0.05, 0.1, 0.15, 0.2, 0.28, 0.38, 0.5, 0.65, 0.82, 1.0),
+                                r(0.08, 0.12, 0.18, 0.25, 0.33, 0.42, 0.58, 0.81, 0.98, 1.25),
                                 true, true, Formatting.YELLOW, CustomStat.AffixType.SUFFIX,
                                 37, 3900));
 
@@ -470,8 +470,8 @@ public class StatRegistry {
                 // --- Attack Speed (melee + trident) ---
                 registerForTypes("attack_speed", "Attack Speed",
                                 EntityAttributes.ATTACK_SPEED,
-                                r(0.05, 0.08, 0.12, 0.18, 0.25, 0.33, 0.42, 0.52, 0.63, 0.75),
-                                r(0.10, 0.15, 0.20, 0.28, 0.38, 0.50, 0.65, 0.82, 1.00, 1.25),
+                                r(0.05, 0.1, 0.15, 0.2, 0.28, 0.38, 0.5, 0.65, 0.82, 1.0),
+                                r(0.08, 0.12, 0.18, 0.25, 0.33, 0.42, 0.58, 0.81, 0.98, 1.25),
                                 true, true, Formatting.YELLOW, CustomStat.AffixType.SUFFIX,
                                 37, 3900,
                                 ALL_MELEE_AND_TRIDENT);

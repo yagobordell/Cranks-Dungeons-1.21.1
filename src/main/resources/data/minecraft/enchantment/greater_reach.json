@@ -1,0 +1,17 @@
+{
+  "description": { "translate": "enchantment.minecraft.greater_reach" },
+  "supported_items": "#minecraft:enchantable/tools_all",
+  "weight": 5, "max_level": 1,
+  "min_cost": { "base": 15, "per_level_above_first": 0 },
+  "max_cost": { "base": 65, "per_level_above_first": 0 },
+  "anvil_cost": 4, "slots": ["mainhand"],
+  "effects": {
+    "minecraft:attributes": [
+      {
+        "id": "minecraft:enchantment.greater_reach.breaking_range",
+        "attribute": "cranks-dungeons:breaking_range",
+        "amount": 3.0, "operation": "add_value"
+      }
+    ]
+  }
+}

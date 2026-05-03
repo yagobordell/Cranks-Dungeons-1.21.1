@@ -1,6 +1,7 @@
 package com.cranks.dungeons.equipment;
 
 import net.minecraft.component.DataComponentTypes;
+import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.item.*;
 import net.minecraft.registry.tag.ItemTags;
 import java.util.*;
@@ -96,5 +97,20 @@ public enum EquipmentType {
 
     public static boolean canEnhance(ItemStack stack) {
         return getTypeForItem(stack).isPresent();
+    }
+
+    /**
+     * Returns the set of EquipmentSlot values that are applicable for this item type.
+     * Used to filter enchantment effects by slot so weapon enchants don't show armor stats and vice versa.
+     */
+    public Set<EquipmentSlot> getApplicableSlots() {
+        return switch (this) {
+            case HELMET    -> Set.of(EquipmentSlot.HEAD);
+            case CHESTPLATE -> Set.of(EquipmentSlot.CHEST);
+            case LEGGINGS  -> Set.of(EquipmentSlot.LEGS);
+            case BOOTS     -> Set.of(EquipmentSlot.FEET);
+            // All weapon/tool types go in the mainhand
+            default        -> Set.of(EquipmentSlot.MAINHAND);
+        };
     }
 }

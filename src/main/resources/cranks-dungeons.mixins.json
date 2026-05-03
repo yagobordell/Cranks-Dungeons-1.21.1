@@ -81,7 +81,10 @@
 		"PlayerEntityXpMixin",
 		"MobAttackSlowdownMixin$Melee",
 		"MobAttackSlowdownMixin$Bow",
-		"MobAttackSlowdownMixin$Projectile"
+		"MobAttackSlowdownMixin$Projectile",
+		"EnchantmentLevelMixin",
+		"EnchantmentHelperMixin",
+		"ItemStackAttributeMixin"
 	],
 	"client": [
 		"HideArmorAttributeMixin",

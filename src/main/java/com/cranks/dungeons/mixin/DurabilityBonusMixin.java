@@ -17,7 +17,6 @@ public class DurabilityBonusMixin {
         double durabilityBonus = ToolStatHelper.getDurabilityBonus(stack);
         durabilityBonus += getDurabilityBonusFromEnchantments(stack);
 
-
         if (durabilityBonus > 0) {
             int baseDurability = cir.getReturnValue();
             int newDurability = (int) (baseDurability * (1.0 + durabilityBonus));
