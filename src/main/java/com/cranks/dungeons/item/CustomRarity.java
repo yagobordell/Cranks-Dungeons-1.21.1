@@ -55,7 +55,7 @@ public enum CustomRarity {
         if (nbt.contains("Rarity")) {
             String rarityStr = nbt.getString("Rarity").orElse("NORMAL");
             try {
-                return CustomRarity.valueOf(rarityStr);
+                return CustomRarity.valueOf(rarityStr.toUpperCase());
             } catch (IllegalArgumentException e) {
                 return NORMAL;
             }
