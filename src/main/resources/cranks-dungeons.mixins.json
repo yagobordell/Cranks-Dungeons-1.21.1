@@ -96,7 +96,8 @@
 		"DisableArmorBarMixin",
 		"OverflowingBarsAilmentMixin",
 		"client.LivingEntityRendererMixin",
-		"client.InGameHudMixin"
+		"client.InGameHudMixin",
+		"client.TooltipBackgroundMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

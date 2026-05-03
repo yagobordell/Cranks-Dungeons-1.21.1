@@ -19,6 +19,7 @@ import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import com.cranks.dungeons.client.RarityTooltipContext;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -44,6 +45,7 @@ public abstract class ItemStackTooltipMixin {
 
         // Only process items that are part of our RPG system
         if (customStats.isEmpty() && equipType.isEmpty()) {
+            RarityTooltipContext.clear(); // not an RPG item — no custom frame
             return;
         }
 
@@ -87,6 +89,11 @@ public abstract class ItemStackTooltipMixin {
         // Update the actual tooltip list
         tooltip.clear();
         tooltip.addAll(newTooltip);
+
+        // Store the rarity so TooltipBackgroundMixin can swap the frame texture.
+        // getTooltip() is called synchronously on the render thread right before
+        // the background is drawn, so this is safe without locks.
+        RarityTooltipContext.set(CustomRarity.getRarity(stack));
     }
 
     @Unique
