@@ -39,6 +39,16 @@ public class ItemStatManager {
         }
     }
 
+    public static double getAttributeValue(ItemStack stack, net.minecraft.registry.entry.RegistryEntry<net.minecraft.entity.attribute.EntityAttribute> attribute) {
+        return getStats(stack).stream()
+                .filter(s -> {
+                    CustomStat stat = StatRegistry.getStat(s.statId);
+                    return stat != null && stat.getAttribute().equals(attribute);
+                })
+                .mapToDouble(s -> s.value)
+                .sum();
+    }
+
     public static List<ItemStat> getStats(ItemStack stack) {
         List<ItemStat> stats = new ArrayList<>();
         NbtCompound nbt = stack.getOrDefault(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,

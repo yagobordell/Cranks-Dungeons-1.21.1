@@ -323,6 +323,15 @@ public class StatRegistry {
                                 75, 8000,
                                 ALL_ARMOR);
 
+                // --- Thorns (Armor) ---
+                registerForTypes("thorns", "Thorns",
+                                ModAttributes.THORNS_DAMAGE,
+                                r(2.0, 5.0, 8.0, 12.0, 18.0, 25.0, 35.0, 48.0, 65.0, 85.0),
+                                r(3.0, 6.0, 10.0, 15.0, 22.0, 30.0, 42.0, 58.0, 78.0, 100.0),
+                                false, Formatting.GRAY, CustomStat.AffixType.SUFFIX,
+                                30, 6000,
+                                ALL_ARMOR);
+
                 // --- Experience Bonus (Armor + Elytra) ---
                 registerForTypes("experience_bonus", "Experience Bonus",
                                 ModAttributes.EXPERIENCE_BONUS,
@@ -672,6 +681,15 @@ public class StatRegistry {
                                 25, 2000,
                                 ALL_RANGED_WEAPONS);
 
+                // --- Projectile Speed (Ranged) ---
+                registerForTypes("projectile_speed", "Projectile Speed",
+                                ModAttributes.PROJECTILE_SPEED,
+                                r(0.1, 0.15, 0.22, 0.3, 0.4, 0.52, 0.65, 0.8, 1.0, 1.25),
+                                r(0.15, 0.22, 0.3, 0.4, 0.52, 0.65, 0.8, 1.0, 1.25, 1.5),
+                                true, true, Formatting.YELLOW, CustomStat.AffixType.PREFIX,
+                                35, 4000,
+                                EquipmentType.BOW, EquipmentType.CROSSBOW, EquipmentType.TRIDENT);
+
                 // ===================================================================
                 // ELYTRA-ONLY STATS
                 // ===================================================================
@@ -689,6 +707,15 @@ public class StatRegistry {
                                 r(0.8, 0.9, 1.0, 1.05, 1.1, 1.15, 1.2, 1.25, 1.30, 1.35),
                                 true, true, Formatting.GREEN, CustomStat.AffixType.PREFIX,
                                 35, 400));
+
+                // --- Enchantment Effectiveness (All Gear) ---
+                registerForTypes("enchantment_effectiveness", "Increased Enchantment Effectiveness",
+                                ModAttributes.ENCHANTMENT_EFFECTIVENESS,
+                                r(0.05, 0.08, 0.12, 0.18, 0.25, 0.33, 0.42, 0.52, 0.65, 0.8),
+                                r(0.08, 0.12, 0.18, 0.25, 0.33, 0.42, 0.52, 0.65, 0.8, 1.0),
+                                true, true, Formatting.LIGHT_PURPLE, CustomStat.AffixType.SUFFIX,
+                                70, 1500,
+                                ALL_GEAR);
 
                 LOGGER.info("Registered {} custom stats", STATS.size());
         }

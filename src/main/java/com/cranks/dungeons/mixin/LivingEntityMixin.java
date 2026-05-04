@@ -109,6 +109,8 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
                 .add(ModAttributes.ENERGY_SHIELD)
                 .add(ModAttributes.EVASION_RATING)
                 .add(ModAttributes.ARMOR_CRIT_MITIGATION)
+                .add(ModAttributes.THORNS_DAMAGE)
+                .add(ModAttributes.ENCHANTMENT_EFFECTIVENESS)
 
                 // Offensive
                 .add(ModAttributes.CRIT_CHANCE)
@@ -206,7 +208,8 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
                 .add(ModAttributes.REACTION_RADIUS_PERCENT)
                 .add(ModAttributes.ARMOR_SPEED_PENALTY_REDUCTION)
                 .add(ModAttributes.LOW_ARMOR_SPEED_BONUS)
-                .add(ModAttributes.RELOAD_SPEED);
+                .add(ModAttributes.RELOAD_SPEED)
+                .add(ModAttributes.PROJECTILE_SPEED);
 
         cir.setReturnValue(builder);
     }
@@ -235,6 +238,22 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
     @Unique
     private static final net.minecraft.util.Identifier ARMOR_SPEED_MOD_ID = net.minecraft.util.Identifier
             .of("cranks-dungeons", "armor_speed_penalty");
+
+    @Inject(method = "damage", at = @At("TAIL"))
+    private void applyThorns(ServerWorld world, DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
+        if (!cir.getReturnValue() || amount <= 0) return;
+
+        LivingEntity defender = (LivingEntity) (Object) this;
+        Entity attacker = source.getAttacker();
+
+        if (attacker instanceof LivingEntity livingAttacker && attacker != defender) {
+            double thorns = defender.getAttributeValue(ModAttributes.THORNS_DAMAGE);
+            // Only direct hits (not projectiles, not thorns, not fire, etc.)
+            if (thorns > 0 && source.getSource() == attacker && !source.isOf(net.minecraft.entity.damage.DamageTypes.THORNS)) {
+                livingAttacker.damage(world, defender.getDamageSources().thorns(defender), (float) thorns);
+            }
+        }
+    }
 
     @Unique
     private void updateArmorSpeed(LivingEntity entity) {

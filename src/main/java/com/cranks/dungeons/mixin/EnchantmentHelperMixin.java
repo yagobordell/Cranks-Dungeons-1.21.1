@@ -40,7 +40,18 @@ public class EnchantmentHelperMixin {
                 return;
             }
 
-            original.accept(attr, modifier);
+            // Scale effectiveness
+            double effectiveness = com.cranks.dungeons.equipment.ItemStatManager.getAttributeValue(stack, com.cranks.dungeons.registry.ModAttributes.ENCHANTMENT_EFFECTIVENESS);
+            if (effectiveness > 0) {
+                EntityAttributeModifier scaledModifier = new EntityAttributeModifier(
+                        modifier.id(),
+                        modifier.value() * (1.0 + effectiveness),
+                        modifier.operation()
+                );
+                original.accept(attr, scaledModifier);
+            } else {
+                original.accept(attr, modifier);
+            }
         };
     }
 }

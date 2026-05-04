@@ -28,6 +28,8 @@ public class ModAttributes {
     public static final RegistryEntry<EntityAttribute> ENERGY_SHIELD = register("energy_shield", 0.0, 0.0, 1024.0);
     public static final RegistryEntry<EntityAttribute> ARMOR_CRIT_MITIGATION = register("armor_crit_mitigation", 0.0,
             0.0, 1.0);
+    public static final RegistryEntry<EntityAttribute> THORNS_DAMAGE = register("thorns_damage", 0.0, 0.0, 100.0);
+    public static final RegistryEntry<EntityAttribute> ENCHANTMENT_EFFECTIVENESS = register("enchantment_effectiveness", 0.0, 0.0, 10.0);
 
     // Offensive stats
     public static final RegistryEntry<EntityAttribute> CRIT_CHANCE = register("crit_chance", 0.05, 0.0, 1.0);
@@ -39,6 +41,7 @@ public class ModAttributes {
     public static final RegistryEntry<EntityAttribute> LIGHTNING_DAMAGE = register("lightning_damage", 0.0, 0.0, 100.0);
     public static final RegistryEntry<EntityAttribute> VOID_DAMAGE = register("void_damage", 0.0, 0.0, 100.0);
     public static final RegistryEntry<EntityAttribute> RELOAD_SPEED = register("reload_speed", 1.0, 0.0, 10.0);
+    public static final RegistryEntry<EntityAttribute> PROJECTILE_SPEED = register("projectile_speed", 0.0, 0.0, 10.0);
 
     // Percentual damage (stored as item stats, not used as attributes directly)
     public static final RegistryEntry<EntityAttribute> ATTACK_DAMAGE_PERCENT = register("attack_damage_percent", 0.0,

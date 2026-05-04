@@ -84,7 +84,8 @@
 		"MobAttackSlowdownMixin$Projectile",
 		"EnchantmentLevelMixin",
 		"EnchantmentHelperMixin",
-		"ItemStackAttributeMixin"
+		"ItemStackAttributeMixin",
+		"ProjectileEntityMixin"
 	],
 	"client": [
 		"HideArmorAttributeMixin",
