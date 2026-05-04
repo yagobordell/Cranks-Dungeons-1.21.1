@@ -115,12 +115,13 @@ public class RunicEnhancementAltarBlockEntity extends BlockEntity implements Nam
 
     @Override
     public int[] getAvailableSlots(Direction side) {
-        return new int[]{EQUIPMENT_SLOT, TOME_SLOT, RESULT_SLOT};
+        return new int[] { EQUIPMENT_SLOT, TOME_SLOT, RESULT_SLOT };
     }
 
     @Override
     public boolean canInsert(int slot, ItemStack stack, @Nullable Direction dir) {
-        if (slot == RESULT_SLOT) return false;
+        if (slot == RESULT_SLOT)
+            return false;
         if (slot == EQUIPMENT_SLOT) {
             return EquipmentType.getTypeForItem(stack).isPresent();
         }
@@ -141,7 +142,8 @@ public class RunicEnhancementAltarBlockEntity extends BlockEntity implements Nam
         ItemStack equipment = getStack(EQUIPMENT_SLOT);
         ItemStack tome = getStack(TOME_SLOT);
 
-        if (equipment.isEmpty() || tome.isEmpty()) return false;
+        if (equipment.isEmpty() || tome.isEmpty())
+            return false;
 
         // Handle Artificial Tomes
         if (tome.getItem() instanceof ArtificialTomeItem) {
@@ -164,13 +166,16 @@ public class RunicEnhancementAltarBlockEntity extends BlockEntity implements Nam
     private boolean trySpecificTomeEnhance(ItemStack equipment, ItemStack tome, AbstractTomeItem abstractTome) {
         EquipmentType equipType = EquipmentType.getTypeForItem(equipment).get();
         String statId = abstractTome.getStatIdForEquipment(equipType);
-        if (statId == null) return false;
+        if (statId == null)
+            return false;
 
         CustomStat stat = StatRegistry.getStat(statId);
-        if (stat == null) return false;
+        if (stat == null)
+            return false;
 
         // Specialized tomes upgrade Magic to Rare
-        if (CustomRarity.getRarity(equipment) != CustomRarity.MAGIC) return false;
+        if (CustomRarity.getRarity(equipment) != CustomRarity.MAGIC)
+            return false;
 
         ItemStack result = equipment.copy();
         ItemStatManager.setRarity(result, CustomRarity.RARE);
@@ -192,21 +197,26 @@ public class RunicEnhancementAltarBlockEntity extends BlockEntity implements Nam
 
     private boolean tryArtificialEnhance(ItemStack equipment, ItemStack tome) {
         // Artificial tomes can only be used on a rare item
-        if (CustomRarity.getRarity(equipment) != CustomRarity.RARE) return false;
-        
-        if (ItemStatManager.hasArtificialStat(equipment)) return false;
-        if (ItemStatManager.hasCrypticStat(equipment)) return false;
+        if (CustomRarity.getRarity(equipment) != CustomRarity.RARE)
+            return false;
+
+        if (ItemStatManager.hasArtificialStat(equipment))
+            return false;
+        if (ItemStatManager.hasCrypticStat(equipment))
+            return false;
 
         ItemStack result = equipment.copy();
-        
+
         // Randomly Prefix or Suffix
-        CustomStat.AffixType type = RandomUtil.nextBoolean() ? CustomStat.AffixType.PREFIX : CustomStat.AffixType.SUFFIX;
-        
-        // If it selects one that already has the max limit of, it replaces one of them randomly
+        CustomStat.AffixType type = RandomUtil.nextBoolean() ? CustomStat.AffixType.PREFIX
+                : CustomStat.AffixType.SUFFIX;
+
+        // If it selects one that already has the max limit of, it replaces one of them
+        // randomly
         if (!ItemStatManager.canAddStat(result, type)) {
             ItemStatManager.removeRandomAffixOfType(result, type);
         }
-        
+
         boolean success = ItemStatManager.addCrypticStat(result, type);
 
         if (success) {

@@ -62,6 +62,14 @@ public abstract class ItemStackTooltipMixin {
         // 1. Build the new "Item Card"
         List<Text> newTooltip = new ArrayList<>();
 
+        boolean showDetails = false;
+        try {
+            var window = MinecraftClient.getInstance().getWindow();
+            showDetails = InputUtil.isKeyPressed(window, GLFW.GLFW_KEY_LEFT_SHIFT) ||
+                    InputUtil.isKeyPressed(window, GLFW.GLFW_KEY_RIGHT_SHIFT);
+        } catch (Exception ignored) {
+        }
+
         // Item Name (Centered-ish title)
         newTooltip.add(modifyItemNameWithRarity(stack, tooltip.get(0)));
 
@@ -79,22 +87,15 @@ public abstract class ItemStackTooltipMixin {
         }
 
         // 3. Enchantment Section
-        addEnchantmentsSection(stack, newTooltip);
-        addDivider(newTooltip);
+        addEnchantmentsSection(stack, newTooltip, showDetails);
 
         // 4. Magical Runes Section
-        boolean showDetails = false;
-        try {
-            var window = MinecraftClient.getInstance().getWindow();
-            showDetails = InputUtil.isKeyPressed(window, GLFW.GLFW_KEY_LEFT_SHIFT) ||
-                    InputUtil.isKeyPressed(window, GLFW.GLFW_KEY_RIGHT_SHIFT);
-        } catch (Exception ignored) {
-        }
-
         addRunesSection(stack, newTooltip, showDetails);
 
-        if (!showDetails && (!customStats.isEmpty() || ItemStatManager.hasCrypticStat(stack))) {
-            addDivider(newTooltip); // Only add divider before the shift hint
+        var enchantmentComponent = stack.getEnchantments();
+        boolean hasEnchants = !enchantmentComponent.isEmpty();
+
+        if (!showDetails && (hasEnchants || !customStats.isEmpty() || ItemStatManager.hasCrypticStat(stack))) {
             newTooltip.add(Text.literal("Hold ").formatted(Formatting.GRAY)
                     .append(Text.literal("SHIFT").formatted(Formatting.YELLOW))
                     .append(Text.literal(" for details").formatted(Formatting.GRAY)));
@@ -128,7 +129,7 @@ public abstract class ItemStackTooltipMixin {
     @Unique
     private void addBaseStatsSection(ItemStack stack, List<Text> tooltip, EquipmentType type) {
         DecimalFormat df = new DecimalFormat("#.#");
-        Map<RegistryEntry<EntityAttribute>, Double> attributeTotals = calculateItemAttributeTotals(stack, type);
+        Map<String, Double> attributeTotals = calculateItemAttributeTotals(stack, type, true);
 
         boolean isDefensive = type == EquipmentType.HELMET || type == EquipmentType.CHESTPLATE ||
                 type == EquipmentType.LEGGINGS || type == EquipmentType.BOOTS ||
@@ -147,13 +148,15 @@ public abstract class ItemStackTooltipMixin {
 
             switch (armorType) {
                 case LEATHER -> {
-                    if (attributeTotals.getOrDefault(ModAttributes.EVASION_RATING, 0.0) > 0) {
+                    String evasionKey = ModAttributes.EVASION_RATING.value().getTranslationKey();
+                    if (attributeTotals.getOrDefault(evasionKey, 0.0) > 0) {
                         tooltip.add(Text.literal("Evasion Rating: ").formatted(Formatting.GRAY)
-                                .append(Text.literal(df.format(attributeTotals.get(ModAttributes.EVASION_RATING)))
+                                .append(Text.literal(df.format(attributeTotals.get(evasionKey)))
                                         .formatted(getValueColor(stack, ModAttributes.EVASION_RATING))));
                     }
-                    if (attributeTotals.getOrDefault(ModAttributes.MOVEMENT_SPEED, 0.0) != 0) {
-                        double moveSpeed = attributeTotals.get(ModAttributes.MOVEMENT_SPEED) * 100;
+                    String movementKey = ModAttributes.MOVEMENT_SPEED.value().getTranslationKey();
+                    if (attributeTotals.getOrDefault(movementKey, 0.0) != 0) {
+                        double moveSpeed = attributeTotals.get(movementKey) * 100;
                         tooltip.add(Text.literal("Movement Speed: ").formatted(Formatting.GRAY)
                                 .append(Text.literal(df.format(moveSpeed) + "%")
                                         .formatted(getValueColor(stack, ModAttributes.MOVEMENT_SPEED))));
@@ -161,31 +164,36 @@ public abstract class ItemStackTooltipMixin {
                     addedAny = true;
                 }
                 case GOLD -> {
-                    if (attributeTotals.getOrDefault(ModAttributes.ENERGY_SHIELD, 0.0) > 0) {
+                    String esKey = ModAttributes.ENERGY_SHIELD.value().getTranslationKey();
+                    if (attributeTotals.getOrDefault(esKey, 0.0) > 0) {
                         tooltip.add(Text.literal("Energy Shield: ").formatted(Formatting.GRAY)
-                                .append(Text.literal(df.format(attributeTotals.get(ModAttributes.ENERGY_SHIELD)))
+                                .append(Text.literal(df.format(attributeTotals.get(esKey)))
                                         .formatted(getValueColor(stack, ModAttributes.ENERGY_SHIELD))));
                     }
-                    if (attributeTotals.getOrDefault(ModAttributes.LUCK, 0.0) > 0) {
+                    String luckKey = ModAttributes.LUCK.value().getTranslationKey();
+                    if (attributeTotals.getOrDefault(luckKey, 0.0) > 0) {
                         tooltip.add(Text.literal("Luck: ").formatted(Formatting.GRAY)
-                                .append(Text.literal(df.format(attributeTotals.get(ModAttributes.LUCK)))
+                                .append(Text.literal(df.format(attributeTotals.get(luckKey)))
                                         .formatted(getValueColor(stack, ModAttributes.LUCK))));
                     }
                     addedAny = true;
                 }
                 case CHAINMAIL -> {
-                    if (attributeTotals.getOrDefault(ModAttributes.EVASION_RATING, 0.0) > 0) {
+                    String evasionKey = ModAttributes.EVASION_RATING.value().getTranslationKey();
+                    if (attributeTotals.getOrDefault(evasionKey, 0.0) > 0) {
                         tooltip.add(Text.literal("Evasion Rating: ").formatted(Formatting.GRAY)
-                                .append(Text.literal(df.format(attributeTotals.get(ModAttributes.EVASION_RATING)))
+                                .append(Text.literal(df.format(attributeTotals.get(evasionKey)))
                                         .formatted(getValueColor(stack, ModAttributes.EVASION_RATING))));
                     }
-                    if (attributeTotals.getOrDefault(ModAttributes.ENERGY_SHIELD, 0.0) > 0) {
+                    String esKey = ModAttributes.ENERGY_SHIELD.value().getTranslationKey();
+                    if (attributeTotals.getOrDefault(esKey, 0.0) > 0) {
                         tooltip.add(Text.literal("Energy Shield: ").formatted(Formatting.GRAY)
-                                .append(Text.literal(df.format(attributeTotals.get(ModAttributes.ENERGY_SHIELD)))
+                                .append(Text.literal(df.format(attributeTotals.get(esKey)))
                                         .formatted(getValueColor(stack, ModAttributes.ENERGY_SHIELD))));
                     }
-                    if (attributeTotals.getOrDefault(EntityAttributes.ATTACK_SPEED, 0.0) != 0) {
-                        double speed = attributeTotals.get(EntityAttributes.ATTACK_SPEED) * 100;
+                    String speedKey = EntityAttributes.ATTACK_SPEED.value().getTranslationKey();
+                    if (attributeTotals.getOrDefault(speedKey, 0.0) != 0) {
+                        double speed = attributeTotals.get(speedKey) * 100;
                         tooltip.add(Text.literal("Attack Speed: ").formatted(Formatting.GRAY)
                                 .append(Text.literal(df.format(speed) + "%")
                                         .formatted(getValueColor(stack, EntityAttributes.ATTACK_SPEED))));
@@ -193,36 +201,41 @@ public abstract class ItemStackTooltipMixin {
                     addedAny = true;
                 }
                 case COPPER, IRON -> {
-                    if (attributeTotals.getOrDefault(EntityAttributes.ARMOR, 0.0) > 0) {
+                    String armorKey = EntityAttributes.ARMOR.value().getTranslationKey();
+                    if (attributeTotals.getOrDefault(armorKey, 0.0) > 0) {
                         tooltip.add(Text.literal("Armor: ").formatted(Formatting.GRAY)
-                                .append(Text.literal(df.format(attributeTotals.get(EntityAttributes.ARMOR)))
+                                .append(Text.literal(df.format(attributeTotals.get(armorKey)))
                                         .formatted(getValueColor(stack, EntityAttributes.ARMOR))));
                     }
-                    if (attributeTotals.getOrDefault(ModAttributes.KNOCKBACK_RESISTANCE, 0.0) > 0) {
-                        double kbRes = attributeTotals.get(ModAttributes.KNOCKBACK_RESISTANCE) * 100;
+                    String kbResKey = ModAttributes.KNOCKBACK_RESISTANCE.value().getTranslationKey();
+                    if (attributeTotals.getOrDefault(kbResKey, 0.0) > 0) {
+                        double kbRes = attributeTotals.get(kbResKey) * 100;
                         tooltip.add(Text.literal("Knockback Resistance: ").formatted(Formatting.GRAY)
                                 .append(Text.literal(df.format(kbRes) + "%")
                                         .formatted(getValueColor(stack, ModAttributes.KNOCKBACK_RESISTANCE))));
                     }
                     if (armorType == ArmorSetType.COPPER) {
-                        if (attributeTotals.getOrDefault(ModAttributes.FIRE_RESISTANCE, 0.0) > 0) {
+                        String fireKey = ModAttributes.FIRE_RESISTANCE.value().getTranslationKey();
+                        if (attributeTotals.getOrDefault(fireKey, 0.0) > 0) {
                             tooltip.add(Text.literal("Fire Resistance: ").formatted(Formatting.GRAY)
                                     .append(Text
-                                            .literal(df.format(attributeTotals.get(ModAttributes.FIRE_RESISTANCE) * 100)
+                                            .literal(df.format(attributeTotals.get(fireKey) * 100)
                                                     + "%")
                                             .formatted(getValueColor(stack, ModAttributes.FIRE_RESISTANCE))));
                         }
-                        if (attributeTotals.getOrDefault(ModAttributes.COLD_RESISTANCE, 0.0) > 0) {
+                        String coldKey = ModAttributes.COLD_RESISTANCE.value().getTranslationKey();
+                        if (attributeTotals.getOrDefault(coldKey, 0.0) > 0) {
                             tooltip.add(Text.literal("Cold Resistance: ").formatted(Formatting.GRAY)
                                     .append(Text
-                                            .literal(df.format(attributeTotals.get(ModAttributes.COLD_RESISTANCE) * 100)
+                                            .literal(df.format(attributeTotals.get(coldKey) * 100)
                                                     + "%")
                                             .formatted(getValueColor(stack, ModAttributes.COLD_RESISTANCE))));
                         }
-                        if (attributeTotals.getOrDefault(ModAttributes.LIGHTNING_RESISTANCE, 0.0) > 0) {
+                        String lightKey = ModAttributes.LIGHTNING_RESISTANCE.value().getTranslationKey();
+                        if (attributeTotals.getOrDefault(lightKey, 0.0) > 0) {
                             tooltip.add(Text.literal("Lightning Resistance: ").formatted(Formatting.GRAY)
                                     .append(Text.literal(
-                                            df.format(attributeTotals.get(ModAttributes.LIGHTNING_RESISTANCE) * 100)
+                                            df.format(attributeTotals.get(lightKey) * 100)
                                                     + "%")
                                             .formatted(getValueColor(stack, ModAttributes.LIGHTNING_RESISTANCE))));
                         }
@@ -230,32 +243,36 @@ public abstract class ItemStackTooltipMixin {
                     addedAny = true;
                 }
                 case DIAMOND -> {
-                    if (attributeTotals.containsKey(EntityAttributes.ARMOR)) {
+                    String armorKey = EntityAttributes.ARMOR.value().getTranslationKey();
+                    if (attributeTotals.containsKey(armorKey)) {
                         tooltip.add(Text.literal("Armor: ").formatted(Formatting.GRAY)
-                                .append(Text.literal(df.format(attributeTotals.get(EntityAttributes.ARMOR)))
+                                .append(Text.literal(df.format(attributeTotals.get(armorKey)))
                                         .formatted(getValueColor(stack, EntityAttributes.ARMOR))));
                     }
                     addedAny = true;
                 }
                 case NETHERITE -> {
-                    if (attributeTotals.containsKey(EntityAttributes.ARMOR)) {
+                    String armorKey = EntityAttributes.ARMOR.value().getTranslationKey();
+                    if (attributeTotals.containsKey(armorKey)) {
                         tooltip.add(Text.literal("Armor: ").formatted(Formatting.GRAY)
-                                .append(Text.literal(df.format(attributeTotals.get(EntityAttributes.ARMOR)))
+                                .append(Text.literal(df.format(attributeTotals.get(armorKey)))
                                         .formatted(getValueColor(stack, EntityAttributes.ARMOR))));
                     }
-                    if (attributeTotals.containsKey(ModAttributes.BONUS_ATTACK_DAMAGE)) {
+                    String dmgKey = EntityAttributes.ATTACK_DAMAGE.value().getTranslationKey();
+                    if (attributeTotals.containsKey(dmgKey)) {
                         tooltip.add(Text.literal("Physical Damage: ").formatted(Formatting.GRAY)
                                 .append(Text
                                         .literal(
-                                                "+" + df.format(attributeTotals.get(ModAttributes.BONUS_ATTACK_DAMAGE)))
-                                        .formatted(getValueColor(stack, ModAttributes.BONUS_ATTACK_DAMAGE))));
+                                                "+" + df.format(attributeTotals.get(dmgKey)))
+                                        .formatted(getValueColor(stack, EntityAttributes.ATTACK_DAMAGE))));
                     }
                     addedAny = true;
                 }
                 default -> {
-                    if (attributeTotals.containsKey(EntityAttributes.ARMOR)) {
+                    String armorKey = EntityAttributes.ARMOR.value().getTranslationKey();
+                    if (attributeTotals.containsKey(armorKey)) {
                         tooltip.add(Text.literal("Armor: ").formatted(Formatting.GRAY)
-                                .append(Text.literal(df.format(attributeTotals.get(EntityAttributes.ARMOR)))
+                                .append(Text.literal(df.format(attributeTotals.get(armorKey)))
                                         .formatted(getValueColor(stack, EntityAttributes.ARMOR))));
                         addedAny = true;
                     }
@@ -263,55 +280,64 @@ public abstract class ItemStackTooltipMixin {
             }
 
             // Universal Defensive Stats
-            if (attributeTotals.getOrDefault(EntityAttributes.MAX_HEALTH, 0.0) > 0) {
+            String healthKey = EntityAttributes.MAX_HEALTH.value().getTranslationKey();
+            if (attributeTotals.getOrDefault(healthKey, 0.0) > 0) {
                 tooltip.add(Text.literal("Max Health: ").formatted(Formatting.GRAY)
-                        .append(Text.literal("+" + df.format(attributeTotals.get(EntityAttributes.MAX_HEALTH)))
+                        .append(Text.literal("+" + df.format(attributeTotals.get(healthKey)))
                                 .formatted(getValueColor(stack, EntityAttributes.MAX_HEALTH))));
                 addedAny = true;
             }
-            if (attributeTotals.getOrDefault(ModAttributes.LIFE_REGENERATION, 0.0) > 0) {
+            String regenKey = ModAttributes.LIFE_REGENERATION.value().getTranslationKey();
+            if (attributeTotals.getOrDefault(regenKey, 0.0) > 0) {
                 tooltip.add(Text.literal("Health Regen: ").formatted(Formatting.GRAY)
-                        .append(Text.literal("+" + df.format(attributeTotals.get(ModAttributes.LIFE_REGENERATION)))
+                        .append(Text.literal("+" + df.format(attributeTotals.get(regenKey)))
                                 .formatted(getValueColor(stack, ModAttributes.LIFE_REGENERATION))));
                 addedAny = true;
             }
         } else {
             // WEAPON/TOOL BASE STATS
-            if (attributeTotals.containsKey(EntityAttributes.ATTACK_DAMAGE) && type != EquipmentType.BOW
+            String damageKey = EntityAttributes.ATTACK_DAMAGE.value().getTranslationKey();
+            if (attributeTotals.containsKey(damageKey) && type != EquipmentType.BOW
                     && type != EquipmentType.CROSSBOW && !isTool(stack)) {
-                double finalDamage = PLAYER_BASE_ATTACK_DAMAGE + attributeTotals.get(EntityAttributes.ATTACK_DAMAGE);
+                double finalDamage = PLAYER_BASE_ATTACK_DAMAGE + attributeTotals.get(damageKey);
                 tooltip.add(Text.literal("Physical Damage: ").formatted(Formatting.GRAY)
                         .append(Text.literal(df.format(finalDamage))
                                 .formatted(getValueColor(stack, EntityAttributes.ATTACK_DAMAGE))));
                 addedAny = true;
             }
-            if (attributeTotals.containsKey(EntityAttributes.ATTACK_SPEED) && !isTool(stack)) {
-                double finalSpeed = PLAYER_BASE_ATTACK_SPEED + attributeTotals.get(EntityAttributes.ATTACK_SPEED);
+            String speedKey = EntityAttributes.ATTACK_SPEED.value().getTranslationKey();
+            if (attributeTotals.containsKey(speedKey) && !isTool(stack)) {
+                double finalSpeed = PLAYER_BASE_ATTACK_SPEED + attributeTotals.get(speedKey);
                 tooltip.add(Text.literal("Attack Speed: ").formatted(Formatting.GRAY)
                         .append(Text.literal(df.format(finalSpeed))
                                 .formatted(getValueColor(stack, EntityAttributes.ATTACK_SPEED))));
                 addedAny = true;
             }
             if (type != EquipmentType.BOW && type != EquipmentType.CROSSBOW && !isTool(stack)) {
-                double baseRange = 3.0 + attributeTotals.getOrDefault(ModAttributes.ATTACK_RANGE, 0.0);
+                String rangeKey = ModAttributes.ATTACK_RANGE.value().getTranslationKey();
+                double baseRange = 3.0 + attributeTotals.getOrDefault(rangeKey, 0.0);
                 tooltip.add(Text.literal("Attack Range: ").formatted(Formatting.GRAY)
                         .append(Text.literal(df.format(baseRange))
                                 .formatted(getValueColor(stack, ModAttributes.ATTACK_RANGE))));
                 addedAny = true;
             }
             if (type == EquipmentType.BOW || type == EquipmentType.CROSSBOW) {
-                double finalDamage = attributeTotals.getOrDefault(EntityAttributes.ATTACK_DAMAGE, 0.0);
+                String bowDamageKey = EntityAttributes.ATTACK_DAMAGE.value().getTranslationKey();
+                double finalDamage = attributeTotals.getOrDefault(bowDamageKey, 0.0);
                 tooltip.add(Text.literal("Physical Damage: ").formatted(Formatting.GRAY)
                         .append(Text.literal(df.format(finalDamage))
                                 .formatted(getValueColor(stack, EntityAttributes.ATTACK_DAMAGE))));
-                double finalReloadSpeed = 1.0 + attributeTotals.getOrDefault(ModAttributes.RELOAD_SPEED, 0.0);
+                
+                String reloadKey = ModAttributes.RELOAD_SPEED.value().getTranslationKey();
+                double finalReloadSpeed = 1.0 + attributeTotals.getOrDefault(reloadKey, 0.0);
                 tooltip.add(Text.literal("Reload Speed: ").formatted(Formatting.GRAY)
                         .append(Text.literal(df.format(finalReloadSpeed))
                                 .formatted(getValueColor(stack, ModAttributes.RELOAD_SPEED))));
                 addedAny = true;
             }
             if (isTool(stack)) {
-                double finalMiningSpeed = 1.0 + attributeTotals.getOrDefault(ModAttributes.MINING_EFFICIENCY, 0.0);
+                String miningKey = ModAttributes.MINING_EFFICIENCY.value().getTranslationKey();
+                double finalMiningSpeed = 1.0 + attributeTotals.getOrDefault(miningKey, 0.0);
                 tooltip.add(Text.literal("Harvest Speed: ").formatted(Formatting.GRAY)
                         .append(Text.literal(df.format(finalMiningSpeed))
                                 .formatted(getValueColor(stack, ModAttributes.MINING_EFFICIENCY))));
@@ -325,84 +351,99 @@ public abstract class ItemStackTooltipMixin {
     }
 
     @Unique
-    private Map<RegistryEntry<EntityAttribute>, Double> calculateItemAttributeTotals(ItemStack stack,
-            EquipmentType equipType) {
-        Map<RegistryEntry<EntityAttribute>, Double> totals = new HashMap<>();
-        Map<RegistryEntry<EntityAttribute>, Double> localPercentages = new HashMap<>();
+    private Map<String, Double> calculateItemAttributeTotals(ItemStack stack,
+            EquipmentType equipType, boolean includeModifications) {
+        Map<String, Double> totals = new HashMap<>();
+        Map<String, Double> localPercentages = new HashMap<>();
 
-        AttributeModifiersComponent attributes = stack.getOrDefault(
+        // 1. Start with Vanilla Defaults
+        ItemStack defaultStack = new ItemStack(stack.getItem());
+        AttributeModifiersComponent baseAttributes = defaultStack.getOrDefault(
                 DataComponentTypes.ATTRIBUTE_MODIFIERS,
                 AttributeModifiersComponent.DEFAULT);
 
-        // 1. Gather all ADD_VALUE modifiers from components
-        for (var entry : attributes.modifiers()) {
-            if (entry.modifier()
-                    .operation() == net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_VALUE) {
-                totals.merge(entry.attribute(), entry.modifier().value(), Double::sum);
+        for (var entry : baseAttributes.modifiers()) {
+            if (entry.modifier().operation() == net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_VALUE) {
+                String key = entry.attribute().value().getTranslationKey();
+                totals.merge(key, entry.modifier().value(), Double::sum);
             }
         }
 
-        // 2. Gather attribute modifiers from enchantments (each enchantment JSON is now
-        // scoped to one slot type)
-        var enchantments = stack.getEnchantments();
-        for (var enchEntry : enchantments.getEnchantmentEntries()) {
-            var enchantment = enchEntry.getKey().value();
-            int level = enchEntry.getIntValue();
+        if (includeModifications) {
+            // 2. Gather attribute modifiers from Runes
+            List<com.cranks.dungeons.equipment.ItemStatManager.ItemStat> runeStats = com.cranks.dungeons.equipment.ItemStatManager.getStats(stack);
+            for (com.cranks.dungeons.equipment.ItemStatManager.ItemStat is : runeStats) {
+                com.cranks.dungeons.stat.CustomStat stat = com.cranks.dungeons.stat.StatRegistry.getStat(is.statId);
+                if (stat != null && stat.getAttribute() != null) {
+                    String key = stat.getAttribute().value().getTranslationKey();
+                    totals.merge(key, is.value, Double::sum);
+                }
+            }
 
-            var attributeEffects = enchantment.effects().get(EnchantmentEffectComponentTypes.ATTRIBUTES);
-            if (attributeEffects != null) {
-                for (AttributeEnchantmentEffect effect : attributeEffects) {
-                    RegistryEntry<EntityAttribute> attr = effect.attribute();
-                    boolean isWeaponAttr = com.cranks.dungeons.util.EnchantmentFilterUtil.isWeaponAttribute(attr);
-                    boolean isArmorAttr = com.cranks.dungeons.util.EnchantmentFilterUtil.isArmorAttribute(attr);
-                    
-                    boolean isWeapon = com.cranks.dungeons.util.EnchantmentFilterUtil.isWeapon(stack);
-                    boolean isArmor = com.cranks.dungeons.util.EnchantmentFilterUtil.isArmor(stack);
+            // 3. Gather attribute modifiers from Enchantments
+            var enchantments = stack.getEnchantments();
+            for (var enchEntry : enchantments.getEnchantmentEntries()) {
+                var enchantment = enchEntry.getKey().value();
+                int level = enchEntry.getIntValue();
 
-                    if (isWeaponAttr && !isWeapon) continue;
-                    if (isArmorAttr && !isArmor) continue;
+                var attributeEffects = enchantment.effects().get(EnchantmentEffectComponentTypes.ATTRIBUTES);
+                if (attributeEffects != null) {
+                    for (AttributeEnchantmentEffect effect : attributeEffects) {
+                        RegistryEntry<EntityAttribute> attr = effect.attribute();
+                        boolean isWeaponAttr = com.cranks.dungeons.util.EnchantmentFilterUtil.isWeaponAttribute(attr);
+                        boolean isArmorAttr = com.cranks.dungeons.util.EnchantmentFilterUtil.isArmorAttribute(attr);
+                        boolean isWeapon = com.cranks.dungeons.util.EnchantmentFilterUtil.isWeapon(stack);
+                        boolean isArmor = com.cranks.dungeons.util.EnchantmentFilterUtil.isArmor(stack);
 
-                    totals.merge(attr, (double) effect.amount().getValue(level), Double::sum);
+                        if (isWeaponAttr && !isWeapon) continue;
+                        if (isArmorAttr && !isArmor) continue;
+
+                        String key = attr.value().getTranslationKey();
+                        totals.merge(key, (double) effect.amount().getValue(level), Double::sum);
+                    }
                 }
             }
         }
 
-        // 3. Gather specific percentage attributes that map to base attributes
-        double armorPct = totals.getOrDefault(ModAttributes.ARMOR_PERCENT, 0.0);
-        if (armorPct != 0)
-            localPercentages.merge(EntityAttributes.ARMOR, armorPct, Double::sum);
-
-        double esPct = totals.getOrDefault(ModAttributes.ENERGY_SHIELD_PERCENT, 0.0);
-        if (esPct != 0)
-            localPercentages.merge(ModAttributes.ENERGY_SHIELD, esPct, Double::sum);
-
-        double evasionPct = totals.getOrDefault(ModAttributes.EVASION_RATING_PERCENT, 0.0);
-        if (evasionPct != 0)
-            localPercentages.merge(ModAttributes.EVASION_RATING, evasionPct, Double::sum);
-
-        double healthPct = totals.getOrDefault(ModAttributes.MAX_HEALTH_PERCENT, 0.0);
-        if (healthPct != 0)
-            localPercentages.merge(EntityAttributes.MAX_HEALTH, healthPct, Double::sum);
-
-        double damagePct = totals.getOrDefault(ModAttributes.ATTACK_DAMAGE_PERCENT, 0.0);
-        if (damagePct != 0)
-            localPercentages.merge(EntityAttributes.ATTACK_DAMAGE, damagePct, Double::sum);
-
-        // Also check for ADD_MULTIPLIED_TOTAL modifiers on the item components
-        for (var entry : attributes.modifiers()) {
-            if (entry.modifier()
-                    .operation() == net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL) {
-                localPercentages.merge(entry.attribute(), entry.modifier().value(), Double::sum);
-            }
+        // 3.5 Merge BONUS_ATTACK_DAMAGE into ATTACK_DAMAGE
+        String bonusDmgKey = ModAttributes.BONUS_ATTACK_DAMAGE.value().getTranslationKey();
+        if (totals.containsKey(bonusDmgKey)) {
+            String atkDmgKey = EntityAttributes.ATTACK_DAMAGE.value().getTranslationKey();
+            totals.merge(atkDmgKey, totals.remove(bonusDmgKey), Double::sum);
         }
 
-        // 4. Apply percentages to flat totals
+        // 4. Gather specific percentage attributes that map to base attributes
+        String armorKey = EntityAttributes.ARMOR.value().getTranslationKey();
+        String armorPctKey = ModAttributes.ARMOR_PERCENT.value().getTranslationKey();
+        double armorPct = totals.getOrDefault(armorPctKey, 0.0);
+        if (armorPct != 0) localPercentages.merge(armorKey, armorPct, Double::sum);
+
+        String esKey = ModAttributes.ENERGY_SHIELD.value().getTranslationKey();
+        String esPctKey = ModAttributes.ENERGY_SHIELD_PERCENT.value().getTranslationKey();
+        double esPct = totals.getOrDefault(esPctKey, 0.0);
+        if (esPct != 0) localPercentages.merge(esKey, esPct, Double::sum);
+
+        String evasionKey = ModAttributes.EVASION_RATING.value().getTranslationKey();
+        String evasionPctKey = ModAttributes.EVASION_RATING_PERCENT.value().getTranslationKey();
+        double evasionPct = totals.getOrDefault(evasionPctKey, 0.0);
+        if (evasionPct != 0) localPercentages.merge(evasionKey, evasionPct, Double::sum);
+
+        String healthKey = EntityAttributes.MAX_HEALTH.value().getTranslationKey();
+        String healthPctKey = ModAttributes.MAX_HEALTH_PERCENT.value().getTranslationKey();
+        double healthPct = totals.getOrDefault(healthPctKey, 0.0);
+        if (healthPct != 0) localPercentages.merge(healthKey, healthPct, Double::sum);
+
+        String damageKey = EntityAttributes.ATTACK_DAMAGE.value().getTranslationKey();
+        String damagePctKey = ModAttributes.ATTACK_DAMAGE_PERCENT.value().getTranslationKey();
+        double damagePct = totals.getOrDefault(damagePctKey, 0.0);
+        if (damagePct != 0) localPercentages.merge(damageKey, damagePct, Double::sum);
+
+        // 5. Apply percentages
         for (var entry : localPercentages.entrySet()) {
-            RegistryEntry<EntityAttribute> attr = entry.getKey();
+            String key = entry.getKey();
             double pct = entry.getValue();
-            if (totals.containsKey(attr)) {
-                double flat = totals.get(attr);
-                totals.put(attr, flat * (1.0 + pct));
+            if (totals.containsKey(key)) {
+                totals.put(key, totals.get(key) * (1.0 + pct));
             }
         }
 
@@ -456,10 +497,12 @@ public abstract class ItemStackTooltipMixin {
                     .append(Text.literal("Cryptic Stat").formatted(Formatting.DARK_GREEN))
                     .append(Text.literal(" ??").formatted(Formatting.DARK_GREEN, Formatting.OBFUSCATED)));
         }
+
+        addDivider(tooltip);
     }
 
     @Unique
-    private void addEnchantmentsSection(ItemStack stack, List<Text> tooltip) {
+    private void addEnchantmentsSection(ItemStack stack, List<Text> tooltip, boolean showDetails) {
         Optional<EquipmentType> type = EquipmentType.getTypeForItem(stack);
         if (type.isPresent() && type.get() == EquipmentType.SHIELD) {
             return;
@@ -473,6 +516,7 @@ public abstract class ItemStackTooltipMixin {
 
         var enchantmentComponent = stack.getEnchantments();
         int enchantsCount = 0;
+        DecimalFormat df = new DecimalFormat("#.#");
 
         for (var entry : enchantmentComponent.getEnchantmentEntries()) {
             if (enchantsCount >= maxSlots)
@@ -482,21 +526,23 @@ public abstract class ItemStackTooltipMixin {
             tooltip.add(Text.literal("✦ ").formatted(Formatting.DARK_AQUA)
                     .append(Text.literal(enchantName.getString()).formatted(Formatting.AQUA)));
 
-            String id = entry.getKey().getKey().get().getValue().toString();
-            String name = id.contains(":") ? id.split(":")[1] : id;
+            if (showDetails) {
+                String id = entry.getKey().getKey().get().getValue().toString();
+                String name = id.contains(":") ? id.split(":")[1] : id;
 
-            // Try to add descriptions
-            String descKey1 = "enchantment.cranks-dungeons." + name + ".desc";
-            String descKey2 = "enchantment.cranks-dungeons." + name + ".desc2";
+                // Try to add descriptions
+                String descKey1 = "enchantment.cranks-dungeons." + name + ".desc";
+                String descKey2 = "enchantment.cranks-dungeons." + name + ".desc2";
 
-            MutableText desc1 = Text.translatable(descKey1);
-            if (!desc1.getString().equals(descKey1)) {
-                tooltip.add(desc1.formatted(Formatting.GRAY, Formatting.ITALIC));
-            }
+                MutableText desc1 = Text.translatable(descKey1);
+                if (!desc1.getString().equals(descKey1)) {
+                    tooltip.add(desc1.formatted(Formatting.GRAY, Formatting.ITALIC));
+                }
 
-            MutableText desc2 = Text.translatable(descKey2);
-            if (!desc2.getString().equals(descKey2)) {
-                tooltip.add(desc2.formatted(Formatting.GRAY, Formatting.ITALIC));
+                MutableText desc2 = Text.translatable(descKey2);
+                if (!desc2.getString().equals(descKey2)) {
+                    tooltip.add(desc2.formatted(Formatting.GRAY, Formatting.ITALIC));
+                }
             }
 
             enchantsCount++;
@@ -505,6 +551,10 @@ public abstract class ItemStackTooltipMixin {
         for (int i = enchantsCount; i < maxSlots; i++) {
             tooltip.add(Text.literal("✧ ").formatted(Formatting.DARK_GRAY)
                     .append(Text.literal("Empty Enchantment Slot").formatted(Formatting.DARK_GRAY)));
+        }
+
+        if (maxSlots > 0) {
+            addDivider(tooltip);
         }
     }
 
@@ -521,61 +571,21 @@ public abstract class ItemStackTooltipMixin {
 
     @Unique
     private Formatting getValueColor(ItemStack stack, RegistryEntry<EntityAttribute> attr) {
-        // 1. Check if the attribute is explicitly modified by Runes/Tomes
-        List<ItemStatManager.ItemStat> itemStats = ItemStatManager.getStats(stack);
-        for (ItemStatManager.ItemStat is : itemStats) {
-            CustomStat stat = StatRegistry.getStat(is.statId);
-            if (stat != null && stat.getAttribute() != null &&
-                    stat.getAttribute().getKey().isPresent() && attr.getKey().isPresent() &&
-                    stat.getAttribute().getKey().get().equals(attr.getKey().get())) {
-                // If the rune value is non-zero, it's a modification
-                if (is.value != 0)
-                    return Formatting.BLUE;
-            }
-        }
+        Optional<EquipmentType> typeOpt = EquipmentType.getTypeForItem(stack);
+        if (typeOpt.isEmpty()) return Formatting.WHITE;
+        
+        EquipmentType type = typeOpt.get();
+        String attrKey = attr.value().getTranslationKey();
+        
+        Map<String, Double> currentTotals = calculateItemAttributeTotals(stack, type, true);
+        double currentVal = currentTotals.getOrDefault(attrKey, 0.0);
 
-        // 2. Check Enchantments
-        var enchants = stack.getEnchantments();
-        for (var entry : enchants.getEnchantmentEntries()) {
-            // Some enchantments are known to modify damage/speed directly
-            String name = entry.getKey().value().description().getString().toLowerCase();
-            if (attr.equals(EntityAttributes.ATTACK_DAMAGE)
-                    && (name.contains("sharpness") || name.contains("power") || name.contains("damage")))
-                return Formatting.BLUE;
-            if (attr.equals(EntityAttributes.ATTACK_SPEED) && name.contains("haste"))
-                return Formatting.BLUE;
-        }
+        ItemStack defaultStack = new ItemStack(stack.getItem());
+        Map<String, Double> defaultTotals = calculateItemAttributeTotals(defaultStack, type, false);
+        double defaultVal = defaultTotals.getOrDefault(attrKey, 0.0);
 
-        // 3. Compare against Default Item Attributes
-        // This handles "hardcoded" stats like Spear range or custom weapon speeds
-        AttributeModifiersComponent currentAttrs = stack.get(DataComponentTypes.ATTRIBUTE_MODIFIERS);
-        if (currentAttrs != null) {
-            // Get a fresh stack of the same item to see its "true" defaults
-            ItemStack defaultStack = new ItemStack(stack.getItem());
-            AttributeModifiersComponent defaultAttrs = defaultStack.getOrDefault(DataComponentTypes.ATTRIBUTE_MODIFIERS,
-                    AttributeModifiersComponent.DEFAULT);
-
-            double currentVal = 0;
-            boolean hasAttr = false;
-            for (var entry : currentAttrs.modifiers()) {
-                if (entry.attribute().equals(attr)) {
-                    currentVal += entry.modifier().value();
-                    hasAttr = true;
-                }
-            }
-
-            if (hasAttr) {
-                double defaultVal = 0;
-                for (var entry : defaultAttrs.modifiers()) {
-                    if (entry.attribute().equals(attr)) {
-                        defaultVal += entry.modifier().value();
-                    }
-                }
-                // If current total value differs from default total value, it's modified
-                if (Math.abs(currentVal - defaultVal) > 0.0001) {
-                    return Formatting.BLUE;
-                }
-            }
+        if (Math.abs(currentVal - defaultVal) > 0.0001) {
+            return Formatting.BLUE;
         }
 
         return Formatting.WHITE;
@@ -628,5 +638,33 @@ public abstract class ItemStackTooltipMixin {
         if (itemName.contains("netherite"))
             return ArmorSetType.NETHERITE;
         return ArmorSetType.NONE;
+    }
+
+    @Unique
+    private boolean attributesMatch(RegistryEntry<EntityAttribute> e1, RegistryEntry<EntityAttribute> e2) {
+        if (e1 == e2) return true;
+        if (e1 == null || e2 == null) return false;
+        if (e1.equals(e2)) return true;
+        return e1.getKey().isPresent() && e2.getKey().isPresent() && e1.getKey().get().equals(e2.getKey().get());
+    }
+
+    @Unique
+    private boolean isPercentageModifierFor(RegistryEntry<EntityAttribute> modifierAttr, RegistryEntry<EntityAttribute> baseAttr) {
+        if (attributesMatch(baseAttr, net.minecraft.entity.attribute.EntityAttributes.ATTACK_DAMAGE)) {
+            return attributesMatch(modifierAttr, ModAttributes.ATTACK_DAMAGE_PERCENT);
+        }
+        if (attributesMatch(baseAttr, net.minecraft.entity.attribute.EntityAttributes.ARMOR)) {
+            return attributesMatch(modifierAttr, ModAttributes.ARMOR_PERCENT);
+        }
+        if (attributesMatch(baseAttr, net.minecraft.entity.attribute.EntityAttributes.MAX_HEALTH)) {
+            return attributesMatch(modifierAttr, ModAttributes.MAX_HEALTH_PERCENT);
+        }
+        if (attributesMatch(baseAttr, ModAttributes.ENERGY_SHIELD)) {
+            return attributesMatch(modifierAttr, ModAttributes.ENERGY_SHIELD_PERCENT);
+        }
+        if (attributesMatch(baseAttr, ModAttributes.EVASION_RATING)) {
+            return attributesMatch(modifierAttr, ModAttributes.EVASION_RATING_PERCENT);
+        }
+        return false;
     }
 }

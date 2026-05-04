@@ -35,7 +35,8 @@ public class SwiftnessTomeItem extends AbstractTomeItem {
 
         addTomeDescription(textConsumer);
 
-        addStatRange(textConsumer, EquipmentType.SWORD, "Weapons");
+        addStatRange(textConsumer, EquipmentType.SWORD, "Melee Weapons");
+        addStatRange(textConsumer, EquipmentType.BOW, "Ranged Weapons");
         addStatRange(textConsumer, EquipmentType.BOOTS, "Boots");
 
         super.appendTooltip(stack, context, displayComponent, textConsumer, type);
