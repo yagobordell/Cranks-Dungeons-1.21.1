@@ -81,13 +81,13 @@ public enum EquipmentType {
         }
 
         // Other Tools
-        if (stack.isIn(ItemTags.PICKAXES) || itemName.endsWith("_pickaxe") || itemName.equals("pickaxe")) {
+        if (stack.isIn(ItemTags.PICKAXES) || itemName.contains("pickaxe")) {
             return Optional.of(PICKAXE);
         }
-        if (stack.isIn(ItemTags.SHOVELS) || itemName.endsWith("_shovel") || itemName.equals("shovel")) {
+        if (stack.isIn(ItemTags.SHOVELS) || itemName.contains("shovel")) {
             return Optional.of(SHOVEL);
         }
-        if (stack.isIn(ItemTags.HOES) || itemName.endsWith("_hoe") || itemName.equals("hoe")) {
+        if (stack.isIn(ItemTags.HOES) || itemName.contains("hoe")) {
             return Optional.of(HOE);
         }
 

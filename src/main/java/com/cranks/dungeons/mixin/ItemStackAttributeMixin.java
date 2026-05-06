@@ -20,26 +20,52 @@ public class ItemStackAttributeMixin {
             argsOnly = true,
             index = 2
     )
-    private BiConsumer<RegistryEntry<EntityAttribute>, EntityAttributeModifier> filterAttributes(
+    private BiConsumer<RegistryEntry<EntityAttribute>, EntityAttributeModifier> filterAndScaleAttributes(
             BiConsumer<RegistryEntry<EntityAttribute>, EntityAttributeModifier> original) {
         
         ItemStack stack = (ItemStack) (Object) this;
         
         return (attr, modifier) -> {
+            boolean isMiningEfficiency = attr.value() == com.cranks.dungeons.registry.ModAttributes.MINING_EFFICIENCY.value();
+            
             boolean isWeaponAttr = EnchantmentFilterUtil.isWeaponAttribute(attr);
             boolean isArmorAttr = EnchantmentFilterUtil.isArmorAttribute(attr);
             
             boolean isWeapon = EnchantmentFilterUtil.isWeapon(stack);
             boolean isArmor = EnchantmentFilterUtil.isArmor(stack);
 
-            if (isWeaponAttr && !isWeapon) {
-                return;
-            }
-            if (isArmorAttr && !isArmor) {
-                return;
+            if (isWeaponAttr && !isWeapon) return;
+            if (isArmorAttr && !isArmor) return;
+
+            // Scale effectiveness (only for enchantments or non-base modifiers)
+            // Note: Base modifiers from runes are already scaled in EquipmentStatApplier
+            // but enchantments are handled here.
+            double effectiveness = com.cranks.dungeons.equipment.ItemStatManager.getAttributeValue(stack, com.cranks.dungeons.registry.ModAttributes.ENCHANTMENT_EFFECTIVENESS);
+            
+            EntityAttributeModifier.Operation operation = modifier.operation();
+            double value = modifier.value();
+
+            // Special case: Mining Efficiency (Gathering Speed) from enchantments should be multiplicative
+            // We detect it's an enchantment if it's using ADD_VALUE (runes use MULTIPLIED_TOTAL)
+            if (isMiningEfficiency && operation == EntityAttributeModifier.Operation.ADD_VALUE) {
+                operation = EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL;
             }
 
-            original.accept(attr, modifier);
+            // Only scale if it's not a rune (runes are handled in EquipmentStatApplier)
+            // We can detect runes by their modifier ID path or by the fact they already use MULTIPLIED_TOTAL
+            boolean isRune = modifier.id().getPath().contains("_rune");
+            double finalValue = isRune ? value : value * (1.0 + effectiveness);
+
+            if (finalValue != value || operation != modifier.operation()) {
+                EntityAttributeModifier newModifier = new EntityAttributeModifier(
+                        modifier.id(),
+                        finalValue,
+                        operation
+                );
+                original.accept(attr, newModifier);
+            } else {
+                original.accept(attr, modifier);
+            }
         };
     }
 }

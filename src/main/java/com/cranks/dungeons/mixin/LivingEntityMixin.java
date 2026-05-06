@@ -209,7 +209,9 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
                 .add(ModAttributes.ARMOR_SPEED_PENALTY_REDUCTION)
                 .add(ModAttributes.LOW_ARMOR_SPEED_BONUS)
                 .add(ModAttributes.RELOAD_SPEED)
-                .add(ModAttributes.PROJECTILE_SPEED);
+                .add(ModAttributes.PROJECTILE_SPEED)
+                .add(ModAttributes.THORNS_DAMAGE)
+                .add(ModAttributes.ENCHANTMENT_EFFECTIVENESS);
 
         cir.setReturnValue(builder);
     }

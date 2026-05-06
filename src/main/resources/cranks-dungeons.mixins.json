@@ -83,7 +83,6 @@
 		"MobAttackSlowdownMixin$Bow",
 		"MobAttackSlowdownMixin$Projectile",
 		"EnchantmentLevelMixin",
-		"EnchantmentHelperMixin",
 		"ItemStackAttributeMixin",
 		"ProjectileEntityMixin"
 	],

@@ -41,7 +41,7 @@ public abstract class ItemStackTooltipMixin {
     private static final double PLAYER_BASE_ATTACK_DAMAGE = 1.0;
     private static final double PLAYER_BASE_ATTACK_SPEED = 4.0;
 
-    @Inject(method = "getTooltip", at = @At("RETURN"))
+    @Inject(method = "getTooltip", at = @At("RETURN"), cancellable = true)
     private void customTooltipFormat(Item.TooltipContext context, net.minecraft.entity.player.PlayerEntity player,
             TooltipType type, CallbackInfoReturnable<List<Text>> cir) {
         ItemStack stack = (ItemStack) (Object) this;
@@ -76,6 +76,9 @@ public abstract class ItemStackTooltipMixin {
         // Item Type (Centered-ish subtitle)
         if (equipType.isPresent()) {
             newTooltip.add(Text.literal(equipType.get().getName()).formatted(Formatting.DARK_GRAY, Formatting.ITALIC));
+            addDivider(newTooltip);
+        } else if (ItemStatManager.getStats(stack).size() > 0) {
+            newTooltip.add(Text.literal("Magical Item").formatted(Formatting.DARK_GRAY, Formatting.ITALIC));
             addDivider(newTooltip);
         } else {
             addDivider(newTooltip);
@@ -115,8 +118,7 @@ public abstract class ItemStackTooltipMixin {
             }
         }
 
-        tooltip.clear();
-        tooltip.addAll(newTooltip);
+        cir.setReturnValue(newTooltip);
         RarityTooltipContext.set(CustomRarity.getRarity(stack));
     }
 
@@ -140,9 +142,7 @@ public abstract class ItemStackTooltipMixin {
 
         boolean addedAny = false;
 
-        if (isTool) {
-            addedAny = true;
-        } else if (isDefensive) {
+        if (isDefensive) {
             String itemName = stack.getItem().toString().toLowerCase();
             ArmorSetType armorType = getArmorSetType(itemName);
 
@@ -296,9 +296,29 @@ public abstract class ItemStackTooltipMixin {
             }
         } else {
             // WEAPON/TOOL BASE STATS
+            // TOOLS
+            if (type == EquipmentType.PICKAXE || type == EquipmentType.AXE || 
+                type == EquipmentType.SHOVEL || type == EquipmentType.HOE) {
+                
+                String miningKey = ModAttributes.MINING_EFFICIENCY.value().getTranslationKey();
+                double bonusMining = attributeTotals.getOrDefault(miningKey, 0.0);
+                tooltip.add(Text.literal("Gathering Speed: ").formatted(Formatting.GRAY)
+                        .append(Text.literal(df.format(1.0 + bonusMining))
+                                .formatted(getValueColor(stack, ModAttributes.MINING_EFFICIENCY))));
+
+                String breakRangeKey = ModAttributes.BREAKING_RANGE.value().getTranslationKey();
+                double bonusBreakRange = attributeTotals.getOrDefault(breakRangeKey, 0.0);
+                tooltip.add(Text.literal("Breaking Range: ").formatted(Formatting.GRAY)
+                        .append(Text.literal(df.format(4.5 + bonusBreakRange))
+                                .formatted(getValueColor(stack, ModAttributes.BREAKING_RANGE))));
+
+                addedAny = true;
+            }
+
+            // WEAPONS (Physical Damage & Attack Speed)
             String damageKey = EntityAttributes.ATTACK_DAMAGE.value().getTranslationKey();
             if (attributeTotals.containsKey(damageKey) && type != EquipmentType.BOW
-                    && type != EquipmentType.CROSSBOW && !isTool(stack)) {
+                    && type != EquipmentType.CROSSBOW && !isTool) {
                 double finalDamage = PLAYER_BASE_ATTACK_DAMAGE + attributeTotals.get(damageKey);
                 tooltip.add(Text.literal("Physical Damage: ").formatted(Formatting.GRAY)
                         .append(Text.literal(df.format(finalDamage))
@@ -306,21 +326,14 @@ public abstract class ItemStackTooltipMixin {
                 addedAny = true;
             }
             String speedKey = EntityAttributes.ATTACK_SPEED.value().getTranslationKey();
-            if (attributeTotals.containsKey(speedKey) && !isTool(stack)) {
+            if (attributeTotals.containsKey(speedKey) && !isTool) {
                 double finalSpeed = PLAYER_BASE_ATTACK_SPEED + attributeTotals.get(speedKey);
                 tooltip.add(Text.literal("Attack Speed: ").formatted(Formatting.GRAY)
                         .append(Text.literal(df.format(finalSpeed))
                                 .formatted(getValueColor(stack, EntityAttributes.ATTACK_SPEED))));
                 addedAny = true;
             }
-            if (type != EquipmentType.BOW && type != EquipmentType.CROSSBOW && !isTool(stack)) {
-                String rangeKey = ModAttributes.ATTACK_RANGE.value().getTranslationKey();
-                double baseRange = 3.0 + attributeTotals.getOrDefault(rangeKey, 0.0);
-                tooltip.add(Text.literal("Attack Range: ").formatted(Formatting.GRAY)
-                        .append(Text.literal(df.format(baseRange))
-                                .formatted(getValueColor(stack, ModAttributes.ATTACK_RANGE))));
-                addedAny = true;
-            }
+
             if (type == EquipmentType.BOW || type == EquipmentType.CROSSBOW) {
                 String bowDamageKey = EntityAttributes.ATTACK_DAMAGE.value().getTranslationKey();
                 double finalDamage = attributeTotals.getOrDefault(bowDamageKey, 0.0);
@@ -333,14 +346,6 @@ public abstract class ItemStackTooltipMixin {
                 tooltip.add(Text.literal("Reload Speed: ").formatted(Formatting.GRAY)
                         .append(Text.literal(df.format(finalReloadSpeed))
                                 .formatted(getValueColor(stack, ModAttributes.RELOAD_SPEED))));
-                addedAny = true;
-            }
-            if (isTool(stack)) {
-                String miningKey = ModAttributes.MINING_EFFICIENCY.value().getTranslationKey();
-                double finalMiningSpeed = 1.0 + attributeTotals.getOrDefault(miningKey, 0.0);
-                tooltip.add(Text.literal("Harvest Speed: ").formatted(Formatting.GRAY)
-                        .append(Text.literal(df.format(finalMiningSpeed))
-                                .formatted(getValueColor(stack, ModAttributes.MINING_EFFICIENCY))));
                 addedAny = true;
             }
         }
@@ -382,6 +387,9 @@ public abstract class ItemStackTooltipMixin {
 
             // 3. Gather attribute modifiers from Enchantments
             var enchantments = stack.getEnchantments();
+            Map<String, Double> multBase = new HashMap<>();
+            Map<String, Double> multTotal = new HashMap<>();
+
             for (var enchEntry : enchantments.getEnchantmentEntries()) {
                 var enchantment = enchEntry.getKey().value();
                 int level = enchEntry.getIntValue();
@@ -390,6 +398,8 @@ public abstract class ItemStackTooltipMixin {
                 if (attributeEffects != null) {
                     for (AttributeEnchantmentEffect effect : attributeEffects) {
                         RegistryEntry<EntityAttribute> attr = effect.attribute();
+                        
+                        // Apply the same filtering as EnchantmentHelperMixin
                         boolean isWeaponAttr = com.cranks.dungeons.util.EnchantmentFilterUtil.isWeaponAttribute(attr);
                         boolean isArmorAttr = com.cranks.dungeons.util.EnchantmentFilterUtil.isArmorAttribute(attr);
                         boolean isWeapon = com.cranks.dungeons.util.EnchantmentFilterUtil.isWeapon(stack);
@@ -399,9 +409,32 @@ public abstract class ItemStackTooltipMixin {
                         if (isArmorAttr && !isArmor) continue;
 
                         String key = attr.value().getTranslationKey();
-                        totals.merge(key, (double) effect.amount().getValue(level), Double::sum);
+                        double value = (double) effect.amount().getValue(level);
+
+                        // Scale effectiveness
+                        double effectiveness = com.cranks.dungeons.equipment.ItemStatManager.getAttributeValue(stack, com.cranks.dungeons.registry.ModAttributes.ENCHANTMENT_EFFECTIVENESS);
+                        if (effectiveness > 0) {
+                            value *= (1.0 + effectiveness);
+                        }
+
+                        // Special case: Mining Efficiency (Gathering Speed) should be multiplicative
+                        if (attr.equals(com.cranks.dungeons.registry.ModAttributes.MINING_EFFICIENCY)) {
+                            multTotal.merge(key, value, Double::sum);
+                        } else {
+                            // Default to ADD_VALUE for enchantments in vanilla
+                            totals.merge(key, value, Double::sum);
+                        }
                     }
                 }
+            }
+
+            // Apply multipliers (though Mining Efficiency is the main one currently using this in our logic)
+            for (var entry : multTotal.entrySet()) {
+                String key = entry.getKey();
+                double currentBonus = totals.getOrDefault(key, 0.0);
+                double multValue = entry.getValue();
+                // Formula: (Base(1.0) + FlatBonuses) * (1.0 + MultBonuses) - Base(1.0)
+                totals.put(key, (1.0 + currentBonus) * (1.0 + multValue) - 1.0);
             }
         }
 

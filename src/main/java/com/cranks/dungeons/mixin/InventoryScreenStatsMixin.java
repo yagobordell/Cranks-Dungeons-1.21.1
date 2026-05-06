@@ -571,11 +571,11 @@ public abstract class InventoryScreenStatsMixin {
                         context.drawText(tr, Text.literal("⚒ Gathering"), panelX + 6, curY, 0xFF404040, false);
                         curY += 11;
 
-                        double totalHarvest = player.getAttributeValue(ModAttributes.MINING_EFFICIENCY)
-                                        * (1.0 + ItemStatManager.getTotalStatValue(weapon, "mining_efficiency"));
-                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Harvest Speed",
-                                        totalHarvest,
-                                        cranks$getPassiveBase(player, ModAttributes.MINING_EFFICIENCY), "x",
+                        // Gathering Speed
+                        double gatheringSpeed = player.getAttributeValue(ModAttributes.MINING_EFFICIENCY);
+                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Gathering Speed",
+                                        gatheringSpeed,
+                                        cranks$getPassiveBase(player, ModAttributes.MINING_EFFICIENCY), "",
                                         mouseX, mouseY, panelX, panelWidth);
 
                         double precisionChance = 0.0;
@@ -770,7 +770,7 @@ public abstract class InventoryScreenStatsMixin {
                         case "Flying Speed" -> "Elytra flight speed bonus";
                         case "Luck" -> "Increases rarity of drops";
                         case "Exp Bonus" -> "Extra experience gained";
-                        case "Harvest Speed" -> "Overall speed multiplier for breaking and harvesting blocks";
+                        case "Gathering Speed" -> "Overall speed multiplier for breaking and harvesting blocks";
                         case "Repair Chance" -> "Chance that tools avoid durability loss";
                         case "Ore Fortune" -> "Chance to double drops from ores";
                         case "Crop Fortune" -> "Chance to double drops from crops";

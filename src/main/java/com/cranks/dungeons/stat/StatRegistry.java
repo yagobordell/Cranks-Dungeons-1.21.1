@@ -656,21 +656,14 @@ public class StatRegistry {
                                 15, 1500,
                                 ALL_RANGED_WEAPONS);
 
-                // --- Attack Range (Sword, Mace: same; Spear, Trident: different) ---
-                registerForTypes("attack_range", "Attack Range",
-                                ModAttributes.ATTACK_RANGE,
-                                r(0.15, 0.20, 0.35, 0.5, 0.8, 1.05, 1.35, 1.5, 1.85, 2.1),
-                                r(0.20, 0.35, 0.5, 0.80, 1.05, 1.35, 1.5, 1.85, 2.1, 2.35),
-                                false, Formatting.GREEN, CustomStat.AffixType.SUFFIX,
-                                25, 500,
-                                EquipmentType.SWORD, EquipmentType.MACE);
-                registerForTypes("attack_range", "Attack Range",
-                                ModAttributes.ATTACK_RANGE,
-                                r(0.1, 0.2, 0.35, 0.55, 0.80, 1.10, 1.45, 1.85, 2.30, 2.80),
-                                r(0.2, 0.35, 0.55, 0.80, 1.10, 1.45, 1.85, 2.30, 2.80, 3.50),
-                                false, Formatting.GREEN, CustomStat.AffixType.SUFFIX,
-                                25, 500,
-                                EquipmentType.SPEAR, EquipmentType.TRIDENT);
+                // --- Breaking Range (Tools) ---
+                registerForTypes("breaking_range", "Breaking Range",
+                                ModAttributes.BREAKING_RANGE,
+                                r(0.5, 0.8, 1.2, 1.6, 2.1, 2.7, 3.4, 4.2, 5.1, 6.2),
+                                r(0.8, 1.2, 1.6, 2.1, 2.7, 3.4, 4.2, 5.1, 6.2, 7.5),
+                                true, true, Formatting.GREEN, CustomStat.AffixType.PREFIX,
+                                30, 2000,
+                                EquipmentType.PICKAXE, EquipmentType.AXE, EquipmentType.SHOVEL, EquipmentType.HOE);
 
                 // --- Reload Speed (Bow, Crossbow, Chestplate already registered above) ---
                 registerForTypes("reload_speed", "Reload Speed",
