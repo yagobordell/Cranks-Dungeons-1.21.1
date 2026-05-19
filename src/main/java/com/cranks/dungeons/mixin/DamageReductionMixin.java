@@ -40,8 +40,7 @@ public abstract class DamageReductionMixin {
             // However, we let it through if there's no BURN ailment (e.g. Zombies in the sun)
             // so they still take fire damage and show damage numbers.
             if (source.isOf(net.minecraft.entity.damage.DamageTypes.ON_FIRE) && 
-                com.cranks.dungeons.ailment.AilmentManager.hasAilment(entity, com.cranks.dungeons.ailment.AilmentType.BURN) &&
-                !com.cranks.dungeons.ailment.AilmentReactionManager.isReactionInProgress()) {
+                com.cranks.dungeons.ailment.AilmentManager.hasAilment(entity, com.cranks.dungeons.ailment.AilmentType.BURN)) {
                 return 0;
             }
 

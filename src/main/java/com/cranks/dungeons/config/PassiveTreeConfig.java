@@ -199,7 +199,7 @@ public class PassiveTreeConfig {
 
         // Mercenary tree
         nodes.add(makeNode("mercenary_start", "Path of the Mercenary", "Start your journey as a Mercenary.",
-                5, -10, List.of("merc_utility_1", "merc_combat_1", "reaction_start"), Map.of(), "diamond"));
+                5, -10, List.of("merc_utility_1", "merc_combat_1"), Map.of(), "diamond"));
         nodes.add(makeNode("merc_utility_1", "Opportunist", "+5% Experience Bonus",
                 4, -9, List.of("mercenary_start", "merc_ruthless"),
                 Map.of("cranks-dungeons:experience_bonus", 0.05), null));
@@ -209,20 +209,6 @@ public class PassiveTreeConfig {
         nodes.add(makeNode("merc_ruthless", "Ruthless", "+10% Crit Multiplier",
                 5, -8, List.of("merc_utility_1", "merc_combat_1"),
                 Map.of("cranks-dungeons:crit_multiplier", 0.10), "circle"));
-
-        // Reaction Mastery branch (connecting to Mercenary)
-        nodes.add(makeNode("reaction_start", "Elemental Affinity", "+5% Reaction Damage",
-                5, -11, List.of("mercenary_start", "reaction_damage_1", "reaction_radius_1"), 
-                Map.of("cranks-dungeons:reaction_damage_percent", 0.05), "diamond"));
-        nodes.add(makeNode("reaction_damage_1", "Explosive Force", "+10% Reaction Damage",
-                4, -12, List.of("reaction_start", "reaction_mastery"),
-                Map.of("cranks-dungeons:reaction_damage_percent", 0.10), null));
-        nodes.add(makeNode("reaction_radius_1", "Widespread Impact", "+15% Reaction Radius",
-                6, -12, List.of("reaction_start", "reaction_mastery"),
-                Map.of("cranks-dungeons:reaction_radius_percent", 0.15), null));
-        nodes.add(makeNode("reaction_mastery", "Reaction Mastery", "+10% Reaction CDR",
-                5, -13, List.of("reaction_damage_1", "reaction_radius_1"),
-                Map.of("cranks-dungeons:reaction_cooldown_percent", 0.10), "circle"));
 
         root.add("nodes", nodes);
         Files.writeString(TREE_FILE, GSON.toJson(root));

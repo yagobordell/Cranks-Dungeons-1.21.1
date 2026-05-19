@@ -459,28 +459,6 @@ public abstract class InventoryScreenStatsMixin {
 
                         curY += 6;
 
-                        // --- CATEGORY 1.5: ELEMENTAL REACTIONS ---
-                        context.drawText(tr, Text.literal("✧ Reactions"), panelX + 6, curY, 0xFF404040, false);
-                        curY += 11;
-
-                        double baseReactionDmg = cranks$getPassiveBase(player, ModAttributes.REACTION_DAMAGE_PERCENT);
-                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Reaction Damage",
-                                        player.getAttributeValue(ModAttributes.REACTION_DAMAGE_PERCENT) * 100,
-                                        baseReactionDmg * 100, "%", mouseX, mouseY, panelX, panelWidth);
-
-                        double baseReactionRadius = cranks$getPassiveBase(player,
-                                        ModAttributes.REACTION_RADIUS_PERCENT);
-                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Reaction Radius",
-                                        player.getAttributeValue(ModAttributes.REACTION_RADIUS_PERCENT) * 100,
-                                        baseReactionRadius * 100, "%", mouseX, mouseY, panelX, panelWidth);
-
-                        double baseReactionCooldown = cranks$getPassiveBase(player,
-                                        ModAttributes.REACTION_COOLDOWN_PERCENT);
-                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Reaction CDR",
-                                        player.getAttributeValue(ModAttributes.REACTION_COOLDOWN_PERCENT) * 100,
-                                        baseReactionCooldown * 100, "%", mouseX, mouseY, panelX, panelWidth);
-
-                        curY += 6;
 
                         // --- CATEGORY 2: DEFENSIVE ---
                         context.drawText(tr, Text.literal("🛡 Defensive"), panelX + 6, curY, 0xFF404040, false);
@@ -778,9 +756,7 @@ public abstract class InventoryScreenStatsMixin {
                         case "Dig Fortune" -> "Chance to gain extra materials";
                         case "Crop XP" -> "Experience gained from harvesting crops with a hoe";
                         case "Range" -> "Block interaction distance";
-                        case "Reaction Damage" -> "Increases damage of elemental reactions (Shatter, Miasma, etc.)";
-                        case "Reaction Radius" -> "Increases the area affected by reaction explosions and clouds";
-                        case "Reaction CDR" -> "Reduces the cooldown before a reaction can trigger again";
+
                         default -> null;
                 };
         }

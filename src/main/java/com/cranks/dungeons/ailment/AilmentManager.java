@@ -38,7 +38,6 @@ import java.util.UUID;
 public class AilmentManager {
 
     private static final Map<java.util.UUID, List<Ailment>> ENTITY_AILMENTS = new ConcurrentHashMap<>();
-    private static final Map<Integer, Map<String, com.cranks.dungeons.util.ReactionCooldownProvider.CooldownInfo>> REACTION_COOLDOWNS = new ConcurrentHashMap<>();
     private static final int POISON_STACK_CAP = 20;
     
     // Track entities currently being processed by shock chain to prevent recursion
@@ -204,11 +203,11 @@ public class AilmentManager {
 
         List<AilmentSyncPayload.AilmentEntry> entries = new java.util.ArrayList<>();
         
-        checkAndAddSyncEntry(entity, ModEffects.BURN, Identifier.of(com.cranks.dungeons.CranksDungeons.MOD_ID, "textures/mob_effect/burn.png"), entries, "thermal_shock");
-        checkAndAddSyncEntry(entity, ModEffects.POISON, Identifier.of(com.cranks.dungeons.CranksDungeons.MOD_ID, "textures/mob_effect/poison.png"), entries, "miasma");
-        checkAndAddSyncEntry(entity, ModEffects.FREEZE, Identifier.of(com.cranks.dungeons.CranksDungeons.MOD_ID, "textures/mob_effect/freeze.png"), entries, "shatter");
-        checkAndAddSyncEntry(entity, ModEffects.SHOCK, Identifier.of(com.cranks.dungeons.CranksDungeons.MOD_ID, "textures/mob_effect/shock.png"), entries, "supercharge");
-        checkAndAddSyncEntry(entity, ModEffects.BLEED, Identifier.of(com.cranks.dungeons.CranksDungeons.MOD_ID, "textures/mob_effect/bleed.png"), entries, "cauterize");
+        checkAndAddSyncEntry(entity, ModEffects.BURN, Identifier.of(com.cranks.dungeons.CranksDungeons.MOD_ID, "textures/mob_effect/burn.png"), entries);
+        checkAndAddSyncEntry(entity, ModEffects.POISON, Identifier.of(com.cranks.dungeons.CranksDungeons.MOD_ID, "textures/mob_effect/poison.png"), entries);
+        checkAndAddSyncEntry(entity, ModEffects.FREEZE, Identifier.of(com.cranks.dungeons.CranksDungeons.MOD_ID, "textures/mob_effect/freeze.png"), entries);
+        checkAndAddSyncEntry(entity, ModEffects.SHOCK, Identifier.of(com.cranks.dungeons.CranksDungeons.MOD_ID, "textures/mob_effect/shock.png"), entries);
+        checkAndAddSyncEntry(entity, ModEffects.BLEED, Identifier.of(com.cranks.dungeons.CranksDungeons.MOD_ID, "textures/mob_effect/bleed.png"), entries);
 
         AilmentSyncPayload payload = new AilmentSyncPayload(entity.getId(), entries);
         
@@ -223,31 +222,10 @@ public class AilmentManager {
         }
     }
 
-    private static void checkAndAddSyncEntry(LivingEntity entity, net.minecraft.registry.entry.RegistryEntry<StatusEffect> effect, Identifier texture, List<AilmentSyncPayload.AilmentEntry> entries, String reactionType) {
+    private static void checkAndAddSyncEntry(LivingEntity entity, net.minecraft.registry.entry.RegistryEntry<StatusEffect> effect, Identifier texture, List<AilmentSyncPayload.AilmentEntry> entries) {
         StatusEffectInstance instance = entity.getStatusEffect(effect);
-        float progress = 0.0f;
-        boolean reactionActive = false;
-
-        // Check reaction cooldown first
-        Map<String, com.cranks.dungeons.util.ReactionCooldownProvider.CooldownInfo> cooldowns = REACTION_COOLDOWNS.get(entity.getId());
-        if (cooldowns != null && reactionType != null) {
-            var info = cooldowns.get(reactionType);
-            if (info != null) {
-                long currentTime = entity.getEntityWorld().getTime();
-                if (currentTime < info.endTime()) {
-                    long remaining = info.endTime() - currentTime;
-                    progress = (float) remaining / (float) info.totalDuration();
-                    reactionActive = true;
-                }
-            }
-        }
-
-        if (reactionActive) {
-            // Reaction is on cooldown, show it even if the ailment expired
-            entries.add(new AilmentSyncPayload.AilmentEntry(texture, instance != null ? instance.getAmplifier() + 1 : 1, progress));
-        } else if (instance != null) {
-            // No reaction cooldown, but ailment is active -> No timer
-            entries.add(new AilmentSyncPayload.AilmentEntry(texture, instance.getAmplifier() + 1, 0.0f));
+        if (instance != null) {
+            entries.add(new AilmentSyncPayload.AilmentEntry(texture, instance.getAmplifier() + 1));
         }
     }
 
@@ -295,16 +273,6 @@ public class AilmentManager {
         // Periodic sync for duration progress and reaction cooldowns
         if (entity.getEntityWorld().getTime() % 10 == 0) {
             syncAilments(entity);
-        }
-
-        // Cleanup reaction cooldowns
-        Map<String, com.cranks.dungeons.util.ReactionCooldownProvider.CooldownInfo> cooldowns = REACTION_COOLDOWNS.get(entity.getId());
-        if (cooldowns != null && !cooldowns.isEmpty()) {
-            long currentTime = entity.getEntityWorld().getTime();
-            cooldowns.entrySet().removeIf(entry -> currentTime >= entry.getValue().endTime());
-            if (cooldowns.isEmpty()) {
-                REACTION_COOLDOWNS.remove(entity.getId());
-            }
         }
 
         List<Ailment> ailments = getAilments(entity);
@@ -676,7 +644,7 @@ public class AilmentManager {
         if (lightningDamage <= 0) return;
         
         ServerWorld world = (ServerWorld) entity.getEntityWorld();
-        double radius = 10.0 * (1.0 + (source instanceof net.minecraft.entity.LivingEntity le ? le.getAttributeValue(com.cranks.dungeons.registry.ModAttributes.REACTION_RADIUS_PERCENT) : 0));
+        double radius = 10.0;
         Box box = entity.getBoundingBox().expand(radius);
         List<LivingEntity> nearby = world.getEntitiesByClass(LivingEntity.class, box, e -> 
             e.isAlive() && hasAilment(e, AilmentType.SHOCK)
@@ -774,16 +742,4 @@ public class AilmentManager {
     }
     
 
-    public static void setReactionCooldown(LivingEntity entity, String type, int ticks) {
-        Map<String, com.cranks.dungeons.util.ReactionCooldownProvider.CooldownInfo> cooldowns = REACTION_COOLDOWNS.computeIfAbsent(entity.getId(), k -> new ConcurrentHashMap<>());
-        long currentTime = entity.getEntityWorld().getTime();
-        cooldowns.put(type, new com.cranks.dungeons.util.ReactionCooldownProvider.CooldownInfo(currentTime + ticks, ticks));
-    }
-
-    public static boolean canTriggerReaction(LivingEntity entity, String type) {
-        Map<String, com.cranks.dungeons.util.ReactionCooldownProvider.CooldownInfo> cooldowns = REACTION_COOLDOWNS.get(entity.getId());
-        if (cooldowns == null) return true;
-        com.cranks.dungeons.util.ReactionCooldownProvider.CooldownInfo info = cooldowns.get(type);
-        return info == null || entity.getEntityWorld().getTime() >= info.endTime();
-    }
 }

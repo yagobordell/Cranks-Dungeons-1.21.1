@@ -203,9 +203,6 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
                 .add(ModAttributes.VOID_PENETRATION_PERCENT)
                 .add(ModAttributes.ELEMENTAL_PENETRATION_PERCENT)
 
-                .add(ModAttributes.REACTION_DAMAGE_PERCENT)
-                .add(ModAttributes.REACTION_COOLDOWN_PERCENT)
-                .add(ModAttributes.REACTION_RADIUS_PERCENT)
                 .add(ModAttributes.ARMOR_SPEED_PENALTY_REDUCTION)
                 .add(ModAttributes.LOW_ARMOR_SPEED_BONUS)
                 .add(ModAttributes.RELOAD_SPEED)

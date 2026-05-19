@@ -37,7 +37,6 @@ public class ModNetworking {
         PayloadTypeRegistry.playS2C().register(PartyHealthPacket.ID, PartyHealthPacket.CODEC);
         PayloadTypeRegistry.playS2C().register(PartyInvitePacket.ID, PartyInvitePacket.CODEC);
         PayloadTypeRegistry.playS2C().register(SyncPassiveTreePayload.ID, SyncPassiveTreePayload.CODEC);
-        PayloadTypeRegistry.playS2C().register(ReactionEffectPayload.ID, ReactionEffectPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(PlayerInfoSyncPacket.ID, PlayerInfoSyncPacket.CODEC);
         PayloadTypeRegistry.playS2C().register(EntityShieldSyncPacket.ID, EntityShieldSyncPacket.CODEC);
     }

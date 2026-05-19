@@ -23,6 +23,7 @@ import com.cranks.dungeons.network.StatOptionsSyncPacket;
 import com.cranks.dungeons.network.ShockArcPayload;
 import com.cranks.dungeons.screen.ArtificialEnhancementAltarScreen;
 import com.cranks.dungeons.screen.ArtificialEnhancementAltarScreenHandler;
+import net.minecraft.client.MinecraftClient;
 import com.cranks.dungeons.screen.ModScreenHandlers;
 import com.cranks.dungeons.screen.RunicEnhancementAltarScreen;
 import net.fabricmc.api.ClientModInitializer;
@@ -189,10 +190,12 @@ public class CranksDungeonsClient implements ClientModInitializer {
             DamageNumberRenderer.renderHud(context, 0f);
         });
 
-        net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents.AFTER_ENTITIES.register(context -> {
-            com.cranks.dungeons.client.render.LightningArcRenderer.render(context);
-            com.cranks.dungeons.client.render.AilmentIconRenderer.render(context);
-            com.cranks.dungeons.client.render.EntityStatBarRenderer.render(context);
+        net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents.END_MAIN.register(context -> {
+            net.minecraft.client.render.VertexConsumerProvider.Immediate consumers = MinecraftClient.getInstance().getBufferBuilders().getEntityVertexConsumers();
+            com.cranks.dungeons.client.render.LightningArcRenderer.render(context, consumers);
+            com.cranks.dungeons.client.render.AilmentIconRenderer.render(context, consumers);
+            com.cranks.dungeons.client.render.EntityStatBarRenderer.render(context, consumers);
+            consumers.draw();
         });
         
         // Register party HUD renderer
@@ -274,12 +277,6 @@ public class CranksDungeonsClient implements ClientModInitializer {
             context.client().execute(() -> {
                 com.cranks.dungeons.config.PassiveTreeConfig.setNodesAndClasses(payload.nodes(), payload.classes());
                 com.cranks.dungeons.stat.passive.PassiveNodeRegistry.loadFromConfig();
-            });
-        });
-
-        ClientPlayNetworking.registerGlobalReceiver(com.cranks.dungeons.network.ReactionEffectPayload.ID, (payload, context) -> {
-            context.client().execute(() -> {
-                com.cranks.dungeons.client.ReactionVisualHelper.playReaction(context.client(), payload.pos(), payload.reactionType());
             });
         });
     }

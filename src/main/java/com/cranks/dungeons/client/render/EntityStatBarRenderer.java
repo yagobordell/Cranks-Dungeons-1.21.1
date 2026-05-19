@@ -62,7 +62,7 @@ public class EntityStatBarRenderer {
     private static final Identifier SHIELD_FILL = Identifier.of(CranksDungeons.MOD_ID, "textures/gui/sprites/hud/stat_bar/energy_shield.png");
     private static final Identifier ABSORPTION_FILL = Identifier.of(CranksDungeons.MOD_ID, "textures/gui/sprites/hud/stat_bar/absorption.png");
 
-    public static void render(WorldRenderContext context) {
+    public static void render(WorldRenderContext context, VertexConsumerProvider consumers) {
         if (!CranksDungeons.CONFIG.useStatBars()) return;
 
         MinecraftClient client = MinecraftClient.getInstance();
@@ -110,7 +110,7 @@ public class EntityStatBarRenderer {
                 matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(-camera.getYaw()));
                 matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(camera.getPitch()));
 
-                renderEntityStats(matrices, living, context.consumers(), client);
+                renderEntityStats(matrices, living, consumers, client);
 
                 matrices.pop();
             }

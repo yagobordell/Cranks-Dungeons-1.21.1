@@ -37,7 +37,7 @@ public class AilmentIconRenderer {
 
     private static final Identifier FONT_TEXTURE = Identifier.ofVanilla("textures/font/ascii.png");
 
-    public static void render(WorldRenderContext context) {
+    public static void render(WorldRenderContext context, VertexConsumerProvider consumers) {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.world == null || client.player == null) return;
 
@@ -92,10 +92,10 @@ public class AilmentIconRenderer {
                     matrices.push();
                     matrices.translate(i * spacing, 0, 0);
                     
-                    renderIcon(matrices, info.texture(), size, info.progress(), context.consumers());
+                    renderIcon(matrices, info.texture(), size, consumers);
                     
                     if (info.stacks() > 1) {
-                        renderStacks(matrices, info.stacks(), size, context.consumers());
+                        renderStacks(matrices, info.stacks(), size, consumers);
                     }
                     
                     matrices.pop();
@@ -143,7 +143,7 @@ public class AilmentIconRenderer {
         vertex(buffer, entry, x - half, y + half, 0, u2, v1);
     }
 
-    private static void renderIcon(MatrixStack matrices, Identifier texture, float size, float progress, VertexConsumerProvider consumers) {
+    private static void renderIcon(MatrixStack matrices, Identifier texture, float size, VertexConsumerProvider consumers) {
         VertexConsumer buffer = consumers.getBuffer(RenderLayers.entityTranslucent(texture));
         MatrixStack.Entry entry = matrices.peek();
         
@@ -153,21 +153,6 @@ public class AilmentIconRenderer {
         vertex(buffer, entry, half, -half, 0, 1, 1, 255);
         vertex(buffer, entry, half, half, 0, 1, 0, 255);
         vertex(buffer, entry, -half, half, 0, 0, 0, 255);
-
-        // Cooldown Overlay (if progress < 1.0)
-        if (progress < 0.99f) {
-            // Render a semi-transparent black overlay that shrinks or grows
-            // We'll do a simple vertical "drain" effect for now as it's easier than radial in raw vertices without a shader
-            VertexConsumer overlayBuffer = consumers.getBuffer(RenderLayers.entityTranslucent(Identifier.ofVanilla("textures/misc/white.png")));
-            float h = size * progress;
-            float top = half - h;
-            
-            // Draw dark overlay on the "finished" part
-            vertex(overlayBuffer, entry, -half, half, 0.01f, 0, 0, 160, 0, 0, 0); 
-            vertex(overlayBuffer, entry, half, half, 0.01f, 1, 0, 160, 0, 0, 0);
-            vertex(overlayBuffer, entry, half, top, 0.01f, 1, 1, 160, 0, 0, 0);
-            vertex(overlayBuffer, entry, -half, top, 0.01f, 0, 1, 160, 0, 0, 0);
-        }
     }
 
     private static void vertex(VertexConsumer buffer, MatrixStack.Entry entry, float x, float y, float z, float u, float v) {

@@ -1,7 +1,6 @@
 package com.cranks.dungeons.mixin;
 
 import com.cranks.dungeons.ailment.AilmentManager;
-import com.cranks.dungeons.ailment.AilmentReactionManager;
 import com.cranks.dungeons.ailment.AilmentType;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import java.util.UUID;
@@ -151,10 +150,6 @@ public abstract class ElementalDamageMixin {
         float unreducedPhysicalDamage = (float) (amount / pvpMultiplier);
         float physicalDamage = amount;
 
-        // === ELEMENTAL REACTION: SHATTER ===
-        if (physicalDamage > 0) {
-            AilmentReactionManager.triggerReaction(target, DamageElement.PHYSICAL, physicalDamage, attacker);
-        }
 
         try {
             cranks$processingElementalDamage.set(true);
@@ -319,8 +314,6 @@ public abstract class ElementalDamageMixin {
                 double finalRes = Math.max(0, resistance * (1.0 - pen));
                 double finalDamage = fireDamage * (1.0 - finalRes);
 
-                // === ELEMENTAL REACTION: CAUTERIZE ===
-                AilmentReactionManager.triggerReaction(target, DamageElement.FIRE, (float) finalDamage, attacker);
 
                 if (finalDamage > 0) {
                     // Use proper damage method with fire damage source to ensure death handling
@@ -339,8 +332,6 @@ public abstract class ElementalDamageMixin {
                 double finalRes = Math.max(0, resistance * (1.0 - pen));
                 double finalDamage = coldDamage * (1.0 - finalRes);
 
-                // === ELEMENTAL REACTION: THERMAL SHOCK ===
-                AilmentReactionManager.triggerReaction(target, DamageElement.COLD, (float) finalDamage, attacker);
 
                 if (finalDamage > 0) {
                     applyElementalDamage(target, world, finalDamage, DamageElement.COLD);
@@ -358,12 +349,7 @@ public abstract class ElementalDamageMixin {
                 double finalRes = Math.max(0, resistance * (1.0 - pen));
                 double finalDamage = lightningDamage * (1.0 - finalRes);
 
-                // === ELEMENTAL REACTION: SUPERCHARGE ===
-                // Use Option A: Boost primary hit damage, but keep base damage for the chain
-                float superchargeMultiplier = AilmentReactionManager.triggerReaction(target, DamageElement.LIGHTNING,
-                        (float) finalDamage, attacker);
                 double baseDamageForChain = finalDamage;
-                finalDamage *= superchargeMultiplier;
 
                 // Trigger shock chain BEFORE applying damage (ensures it works for killing
                 // hits)
@@ -401,8 +387,6 @@ public abstract class ElementalDamageMixin {
                 double finalRes = Math.max(0, resistance * (1.0 - pen));
                 double finalDamage = voidDamage * (1.0 - finalRes);
 
-                // === ELEMENTAL REACTION: MIASMA ===
-                AilmentReactionManager.triggerReaction(target, DamageElement.VOID, (float) finalDamage, attacker);
 
                 if (finalDamage > 0) {
                     applyElementalDamage(target, world, finalDamage, DamageElement.VOID);

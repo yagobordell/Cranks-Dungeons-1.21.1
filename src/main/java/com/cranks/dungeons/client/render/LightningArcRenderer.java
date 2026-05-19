@@ -14,14 +14,14 @@ import java.util.List;
 public class LightningArcRenderer {
     private static final Random RANDOM = Random.create();
 
-    public static void render(WorldRenderContext context) {
+    public static void render(WorldRenderContext context, net.minecraft.client.render.VertexConsumerProvider consumers) {
         List<LightningArcManager.ArcInstance> arcs = LightningArcManager.getActiveArcs();
         if (arcs.isEmpty()) return;
 
         MatrixStack matrices = context.matrices();
         Vec3d cameraPos = context.gameRenderer().getCamera().getCameraPos();
         // Use the discovered lightning() method in RenderLayers (plural)
-        VertexConsumer buffer = context.consumers().getBuffer(RenderLayers.lightning());
+        VertexConsumer buffer = consumers.getBuffer(RenderLayers.lightning());
         
         matrices.push();
         matrices.translate(-cameraPos.x, -cameraPos.y, -cameraPos.z);
