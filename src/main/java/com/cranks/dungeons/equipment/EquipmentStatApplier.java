@@ -95,72 +95,118 @@ public class EquipmentStatApplier {
 
         AttributeModifierSlot slot = getSlotForEquipmentType(type);
         AttributeModifiersComponent.Builder builder = AttributeModifiersComponent.builder();
-        Set<RegistryEntry<EntityAttribute>> customStatAttributes = new HashSet<>();
+
+        // 1. Gather local percent modifiers and identify flat runes
+        double localAttackDamagePercent = 0;
+        double localArmorPercent = 0;
+        double localEvasionPercent = 0;
+        double localEnergyShieldPercent = 0;
+
+        Map<RegistryEntry<EntityAttribute>, Double> flatRuneValues = new HashMap<>();
+        Map<RegistryEntry<EntityAttribute>, CustomStat> attributeToStatMap = new HashMap<>();
 
         for (ItemStatManager.ItemStat itemStat : stats) {
             CustomStat stat = StatRegistry.getStat(itemStat.statId);
             if (stat != null) {
-                customStatAttributes.add(stat.getAttribute());
+                RegistryEntry<EntityAttribute> attr = stat.getAttribute();
+                if (attr.equals(ModAttributes.ATTACK_DAMAGE_PERCENT)) localAttackDamagePercent += itemStat.value;
+                else if (attr.equals(ModAttributes.ARMOR_PERCENT)) localArmorPercent += itemStat.value;
+                else if (attr.equals(ModAttributes.EVASION_RATING_PERCENT)) localEvasionPercent += itemStat.value;
+                else if (attr.equals(ModAttributes.ENERGY_SHIELD_PERCENT)) localEnergyShieldPercent += itemStat.value;
+                else {
+                    flatRuneValues.merge(attr, itemStat.value, Double::sum);
+                    attributeToStatMap.put(attr, stat);
+                }
             }
         }
 
-        Map<RegistryEntry<EntityAttribute>, Double> defaultValues = new HashMap<>();
+        // 2. Gather default values from the original item
+        Map<RegistryEntry<EntityAttribute>, Double> finalFlatValues = new HashMap<>();
         Map<RegistryEntry<EntityAttribute>, AttributeModifierSlot> defaultSlots = new HashMap<>();
+        Map<RegistryEntry<EntityAttribute>, EntityAttributeModifier> unhandledDefaults = new HashMap<>();
 
         for (var entry : originalDefaults.modifiers()) {
-            if (customStatAttributes.contains(entry.attribute())) {
-                defaultValues.put(entry.attribute(), entry.modifier().value());
-                defaultSlots.put(entry.attribute(), entry.slot());
+            RegistryEntry<EntityAttribute> attr = entry.attribute();
+            if (attr.equals(EntityAttributes.ATTACK_DAMAGE) ||
+                attr.equals(EntityAttributes.ARMOR) ||
+                attr.equals(ModAttributes.EVASION_RATING) ||
+                attr.equals(ModAttributes.ENERGY_SHIELD) ||
+                flatRuneValues.containsKey(attr)) {
+                
+                finalFlatValues.put(attr, entry.modifier().value());
+                defaultSlots.put(attr, entry.slot());
             } else {
-                builder.add(entry.attribute(), entry.modifier(), entry.slot());
+                unhandledDefaults.put(attr, entry.modifier());
+                defaultSlots.put(attr, entry.slot());
             }
         }
 
-        for (ItemStatManager.ItemStat itemStat : stats) {
-            CustomStat stat = StatRegistry.getStat(itemStat.statId);
-            if (stat != null) {
+        // Add rune flat values to the final flat values
+        for (var entry : flatRuneValues.entrySet()) {
+            finalFlatValues.merge(entry.getKey(), entry.getValue(), Double::sum);
+        }
 
-                Identifier modifierId = Identifier.of(
-                        CranksDungeons.MOD_ID,
-                        "item_" + stat.getId()
-                );
+        // 3. Apply Local Percentages
+        if (localAttackDamagePercent > 0 && finalFlatValues.containsKey(EntityAttributes.ATTACK_DAMAGE)) {
+            finalFlatValues.put(EntityAttributes.ATTACK_DAMAGE, finalFlatValues.get(EntityAttributes.ATTACK_DAMAGE) * (1.0 + localAttackDamagePercent));
+        }
+        if (localArmorPercent > 0 && finalFlatValues.containsKey(EntityAttributes.ARMOR)) {
+            finalFlatValues.put(EntityAttributes.ARMOR, finalFlatValues.get(EntityAttributes.ARMOR) * (1.0 + localArmorPercent));
+        }
+        if (localEvasionPercent > 0 && finalFlatValues.containsKey(ModAttributes.EVASION_RATING)) {
+            finalFlatValues.put(ModAttributes.EVASION_RATING, finalFlatValues.get(ModAttributes.EVASION_RATING) * (1.0 + localEvasionPercent));
+        }
+        if (localEnergyShieldPercent > 0 && finalFlatValues.containsKey(ModAttributes.ENERGY_SHIELD)) {
+            finalFlatValues.put(ModAttributes.ENERGY_SHIELD, finalFlatValues.get(ModAttributes.ENERGY_SHIELD) * (1.0 + localEnergyShieldPercent));
+        }
 
-                double defaultValue = defaultValues.getOrDefault(stat.getAttribute(), 0.0);
-                AttributeModifierSlot modifierSlot = defaultSlots.getOrDefault(stat.getAttribute(), slot);
-                double combinedValue = defaultValue + itemStat.value;
+        // 4. Build Modifiers
+        // Re-add unhandled defaults
+        for (var entry : unhandledDefaults.entrySet()) {
+            builder.add(entry.getKey(), entry.getValue(), defaultSlots.getOrDefault(entry.getKey(), slot));
+        }
 
-                boolean isMultiplicative = stat.getAttribute().equals(EntityAttributes.ATTACK_SPEED) || 
-                                         stat.getAttribute().equals(ModAttributes.RELOAD_SPEED) ||
-                                         stat.getAttribute().equals(ModAttributes.MINING_EFFICIENCY);
+        // Add calculated attributes
+        for (var entry : finalFlatValues.entrySet()) {
+            RegistryEntry<EntityAttribute> attr = entry.getKey();
+            double combinedValue = entry.getValue();
+            AttributeModifierSlot modifierSlot = defaultSlots.getOrDefault(attr, slot);
+            CustomStat stat = attributeToStatMap.get(attr);
+            String statId = stat != null ? stat.getId() : attr.value().getTranslationKey().replace("attribute.name.", "");
+            
+            Identifier modifierId = Identifier.of(CranksDungeons.MOD_ID, "item_" + statId.replace(".", "_"));
 
-                if (isMultiplicative) {
-                    // We MUST separate the base weapon modifier (Operation.ADD_VALUE) 
-                    // from the rune/passive multiplier (Operation.ADD_MULTIPLIED_TOTAL).
-                    // In 1.21, combining them into one ADD_MULTIPLIED_TOTAL with a negative value 
-                    // (like -2.4 + 0.1 = -2.3) results in (1 - 2.3) = -1.3 multiplier, which clamps to 0.
-                    
-                    if (defaultValue != 0) {
-                        builder.add(stat.getAttribute(), new EntityAttributeModifier(
-                                modifierId.withPath(modifierId.getPath() + "_base"),
-                                defaultValue,
-                                EntityAttributeModifier.Operation.ADD_VALUE
-                        ), modifierSlot);
-                    }
+            boolean isMultiplicative = attr.equals(EntityAttributes.ATTACK_SPEED) || 
+                                       attr.equals(ModAttributes.RELOAD_SPEED) ||
+                                       attr.equals(ModAttributes.MINING_EFFICIENCY);
 
-                    if (itemStat.value != 0) {
-                        builder.add(stat.getAttribute(), new EntityAttributeModifier(
-                                modifierId.withPath(modifierId.getPath() + "_rune"),
-                                itemStat.value, // value is already a decimal like 0.1 for 10%
-                                EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
-                        ), modifierSlot);
-                    }
-                } else {
+            if (isMultiplicative) {
+                double defaultValue = unhandledDefaults.containsKey(attr) ? 0 : originalDefaults.modifiers().stream().filter(m -> m.attribute().equals(attr)).mapToDouble(m -> m.modifier().value()).findFirst().orElse(0.0);
+                double runeValue = flatRuneValues.getOrDefault(attr, 0.0);
+                
+                if (defaultValue != 0) {
+                    builder.add(attr, new EntityAttributeModifier(
+                            modifierId.withPath(modifierId.getPath() + "_base"),
+                            defaultValue,
+                            EntityAttributeModifier.Operation.ADD_VALUE
+                    ), modifierSlot);
+                }
+
+                if (runeValue != 0) {
+                    builder.add(attr, new EntityAttributeModifier(
+                            modifierId.withPath(modifierId.getPath() + "_rune"),
+                            runeValue,
+                            EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
+                    ), modifierSlot);
+                }
+            } else {
+                if (combinedValue != 0) {
                     EntityAttributeModifier modifier = new EntityAttributeModifier(
                             modifierId,
                             combinedValue,
                             EntityAttributeModifier.Operation.ADD_VALUE
                     );
-                    builder.add(stat.getAttribute(), modifier, modifierSlot);
+                    builder.add(attr, modifier, modifierSlot);
                 }
             }
         }

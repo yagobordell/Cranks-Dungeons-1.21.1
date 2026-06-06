@@ -315,7 +315,6 @@ public abstract class ItemStackTooltipMixin {
                 addedAny = true;
             }
 
-            // WEAPONS (Physical Damage & Attack Speed)
             String damageKey = EntityAttributes.ATTACK_DAMAGE.value().getTranslationKey();
             if (attributeTotals.containsKey(damageKey) && type != EquipmentType.BOW
                     && type != EquipmentType.CROSSBOW && !isTool) {
@@ -323,6 +322,8 @@ public abstract class ItemStackTooltipMixin {
                 tooltip.add(Text.literal("Physical Damage: ").formatted(Formatting.GRAY)
                         .append(Text.literal(df.format(finalDamage))
                                 .formatted(getValueColor(stack, EntityAttributes.ATTACK_DAMAGE))));
+                
+                addElementalDamageLines(tooltip, attributeTotals, df);
                 addedAny = true;
             }
             String speedKey = EntityAttributes.ATTACK_SPEED.value().getTranslationKey();
@@ -341,6 +342,8 @@ public abstract class ItemStackTooltipMixin {
                         .append(Text.literal(df.format(finalDamage))
                                 .formatted(getValueColor(stack, EntityAttributes.ATTACK_DAMAGE))));
                 
+                addElementalDamageLines(tooltip, attributeTotals, df);
+                
                 String reloadKey = ModAttributes.RELOAD_SPEED.value().getTranslationKey();
                 double finalReloadSpeed = 1.0 + attributeTotals.getOrDefault(reloadKey, 0.0);
                 tooltip.add(Text.literal("Reload Speed: ").formatted(Formatting.GRAY)
@@ -352,6 +355,33 @@ public abstract class ItemStackTooltipMixin {
 
         if (addedAny) {
             addDivider(tooltip);
+        }
+    }
+
+    @Unique
+    private void addElementalDamageLines(List<Text> tooltip, Map<String, Double> attributeTotals, DecimalFormat df) {
+        String fireKey = ModAttributes.FIRE_DAMAGE.value().getTranslationKey();
+        if (attributeTotals.containsKey(fireKey) && attributeTotals.get(fireKey) > 0) {
+            tooltip.add(Text.literal("Fire Damage: ").formatted(Formatting.RED)
+                    .append(Text.literal(df.format(attributeTotals.get(fireKey))).formatted(Formatting.RED)));
+        }
+
+        String coldKey = ModAttributes.COLD_DAMAGE.value().getTranslationKey();
+        if (attributeTotals.containsKey(coldKey) && attributeTotals.get(coldKey) > 0) {
+            tooltip.add(Text.literal("Cold Damage: ").formatted(Formatting.AQUA)
+                    .append(Text.literal(df.format(attributeTotals.get(coldKey))).formatted(Formatting.AQUA)));
+        }
+
+        String lightningKey = ModAttributes.LIGHTNING_DAMAGE.value().getTranslationKey();
+        if (attributeTotals.containsKey(lightningKey) && attributeTotals.get(lightningKey) > 0) {
+            tooltip.add(Text.literal("Lightning Damage: ").formatted(Formatting.DARK_BLUE)
+                    .append(Text.literal(df.format(attributeTotals.get(lightningKey))).formatted(Formatting.DARK_BLUE)));
+        }
+
+        String voidKey = ModAttributes.VOID_DAMAGE.value().getTranslationKey();
+        if (attributeTotals.containsKey(voidKey) && attributeTotals.get(voidKey) > 0) {
+            tooltip.add(Text.literal("Void Damage: ").formatted(Formatting.DARK_PURPLE)
+                    .append(Text.literal(df.format(attributeTotals.get(voidKey))).formatted(Formatting.DARK_PURPLE)));
         }
     }
 

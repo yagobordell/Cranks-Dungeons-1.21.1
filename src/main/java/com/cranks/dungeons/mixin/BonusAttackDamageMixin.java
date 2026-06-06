@@ -33,8 +33,6 @@ public class BonusAttackDamageMixin {
             float damageWithBonus = amount + (float) bonusDamage;
 
             // Get percentage multipliers from items and attributes
-            double percentFromWeapon = weapon != null ? EquipmentStatApplier.getItemStatValue(weapon, "attack_damage_percent") : 0;
-            double percentFromChestplate = chestplate != null ? EquipmentStatApplier.getItemStatValue(chestplate, "attack_damage_percent") : 0;
             double attributePercent = attacker.getAttributeValue(ModAttributes.ATTACK_DAMAGE_PERCENT);
             double weaponSpecificPercent = CombatUtility.getWeaponSpecificDamageBonus(attacker, weapon);
 
@@ -50,7 +48,7 @@ public class BonusAttackDamageMixin {
                 typeBonus = attacker.getAttributeValue(ModAttributes.RANGED_DAMAGE_PERCENT);
             }
 
-            double totalPercent = percentFromWeapon + percentFromChestplate + attributePercent + weaponSpecificPercent
+            double totalPercent = attributePercent + weaponSpecificPercent
                     + afflictedBonus + typeBonus;
 
             if (CombatUtility.isTwoHanding(attacker, weapon)) {

@@ -29,52 +29,11 @@ public abstract class BonusArmorMixin {
         PlayerEntity player = (PlayerEntity) (Object) this;
         if (!(player instanceof ServerPlayerEntity serverPlayer)) return;
 
-        // Calculate Local Armor Bonuses from all slots
-        double totalLocalBonus = 0;
-        for (net.minecraft.entity.EquipmentSlot slot : net.minecraft.entity.EquipmentSlot.values()) {
-            if (!slot.isArmorSlot() && slot != net.minecraft.entity.EquipmentSlot.OFFHAND) continue;
-            
-            ItemStack stack = player.getEquippedStack(slot);
-            if (stack.isEmpty()) continue;
-
-            double baseArmorOnItem = 0;
-            double itemPercent = 0;
-            
-            var comp = stack.get(net.minecraft.component.DataComponentTypes.ATTRIBUTE_MODIFIERS);
-            if (comp != null) {
-                for (var entry : comp.modifiers()) {
-                    if (entry.attribute().equals(EntityAttributes.ARMOR)) {
-                        baseArmorOnItem += entry.modifier().value();
-                    } else if (entry.attribute().equals(ModAttributes.ARMOR_PERCENT)) {
-                        itemPercent += entry.modifier().value();
-                    }
-                }
-            }
-            
-            if (itemPercent > 0 && baseArmorOnItem > 0) {
-                totalLocalBonus += baseArmorOnItem * itemPercent;
-            }
-        }
-
         var armorAttr = player.getAttributeInstance(EntityAttributes.ARMOR);
         if (armorAttr == null) return;
 
-        Identifier localModifierId = Identifier.of(CranksDungeons.MOD_ID, "local_armor_bonus");
         double bonusArmor = player.getAttributeValue(ModAttributes.BONUS_ARMOR);
         Identifier flatModifierId = Identifier.of(CranksDungeons.MOD_ID, "bonus_armor");
-
-        // Apply Local Bonus
-        if (Double.isNaN(cranks$lastGlobalArmorPercentBonus) || Math.abs(totalLocalBonus - cranks$lastGlobalArmorPercentBonus) > 0.01) {
-            armorAttr.removeModifier(localModifierId);
-            if (totalLocalBonus > 0) {
-                armorAttr.addTemporaryModifier(new EntityAttributeModifier(
-                        localModifierId,
-                        totalLocalBonus,
-                        EntityAttributeModifier.Operation.ADD_VALUE
-                ));
-            }
-            cranks$lastGlobalArmorPercentBonus = totalLocalBonus;
-        }
 
         // Apply Flat Bonus Armor (Legacy/Misc)
         if (Double.isNaN(cranks$lastBonusArmor) || bonusArmor != cranks$lastBonusArmor) {
