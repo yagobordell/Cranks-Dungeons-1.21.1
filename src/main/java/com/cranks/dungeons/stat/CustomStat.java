@@ -105,9 +105,17 @@ public class CustomStat {
         double maxVal = uncommonRanges[maxIndex]; // Correctly show full potential range
 
         if (displayAsPercentage || isPercentage) {
-            return "+(" + df.format(minVal * 100) + " - " + df.format(maxVal * 100) + ")% " + displayName;
+            String range = "(" + df.format(minVal * 100) + " - " + df.format(maxVal * 100) + ")%";
+            if (displayName.contains("Extra")) {
+                return "Gain " + range + " of " + displayName;
+            }
+            return "+" + range + " " + displayName;
         } else {
-            return "+(" + df.format(minVal) + " - " + df.format(maxVal) + ") " + displayName;
+            String range = "(" + df.format(minVal) + " - " + df.format(maxVal) + ")";
+            if (displayName.endsWith("Damage")) {
+                return "Adds " + range + " " + displayName + " to Attacks";
+            }
+            return "+" + range + " " + displayName;
         }
     }
 

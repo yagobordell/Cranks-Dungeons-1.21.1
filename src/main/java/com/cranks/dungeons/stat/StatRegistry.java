@@ -329,7 +329,7 @@ public class StatRegistry {
                                 r(2.0, 5.0, 8.0, 12.0, 18.0, 25.0, 35.0, 48.0, 65.0, 85.0),
                                 r(3.0, 6.0, 10.0, 15.0, 22.0, 30.0, 42.0, 58.0, 78.0, 100.0),
                                 false, Formatting.GRAY, CustomStat.AffixType.SUFFIX,
-                                30, 6000,
+                                10, 6000,
                                 ALL_ARMOR);
 
                 // --- Experience Bonus (Armor + Elytra) ---
@@ -338,7 +338,7 @@ public class StatRegistry {
                                 r(0.05, 0.10, 0.18, 0.28, 0.42, 0.62, 0.82, 1.20, 1.60, 1.80),
                                 r(0.10, 0.18, 0.28, 0.40, 0.55, 0.75, 1.0, 1.40, 1.80, 2.0),
                                 true, true, Formatting.DARK_GREEN, CustomStat.AffixType.SUFFIX,
-                                79, 6000,
+                                30, 6000,
                                 ALL_ARMOR);
                 // Elytra has different ranges
                 register(new CustomStat("elytra_experience_bonus", "Experience Bonus",
@@ -346,7 +346,7 @@ public class StatRegistry {
                                 r(0.05, 0.10, 0.18, 0.28, 0.42, 0.62, 0.82, 1.20, 1.60, 1.80),
                                 r(0.10, 0.18, 0.28, 0.40, 0.55, 0.75, 1.0, 1.40, 1.80, 2.0),
                                 true, true, Formatting.DARK_GREEN, CustomStat.AffixType.SUFFIX,
-                                50, 1500));
+                                30, 1500));
 
                 // --- Luck (Armor + Elytra) ---
                 registerForTypes("luck", "Luck",
@@ -354,7 +354,7 @@ public class StatRegistry {
                                 r(0.25, 0.50, 1.00, 1.75, 2.75, 4.25, 6.50, 9.50, 14.00, 20.00),
                                 r(0.50, 1.00, 1.75, 2.75, 4.25, 6.50, 9.50, 14.00, 20.00, 28.00),
                                 false, false, Formatting.DARK_GREEN, CustomStat.AffixType.SUFFIX,
-                                40, 1000,
+                                60, 1000,
                                 EquipmentType.CHESTPLATE, EquipmentType.LEGGINGS,
                                 EquipmentType.BOOTS);
 
@@ -363,7 +363,7 @@ public class StatRegistry {
                                 r(0.25, 0.50, 1.00, 1.75, 2.75, 4.25, 6.50, 9.50, 14.00, 20.00),
                                 r(0.50, 1.00, 1.75, 2.75, 4.25, 6.50, 9.50, 14.00, 20.00, 28.00),
                                 false, false, Formatting.DARK_GREEN, CustomStat.AffixType.PREFIX,
-                                40, 1000,
+                                60, 1000,
                                 EquipmentType.HELMET, EquipmentType.ELYTRA);
 
                 // --- Critical Strike Chance (Armor: Helmet + Chestplate, plus Elytra) ---
@@ -400,14 +400,14 @@ public class StatRegistry {
                                 r(2.0, 5.0, 10.0, 16.0, 25.0, 32.0, 46.0, 60.0, 84.0, 112.0),
                                 r(3.0, 8.0, 14.0, 23.0, 30.0, 43.0, 57.0, 80.0, 107.0, 124.0),
                                 false, false, Formatting.WHITE, CustomStat.AffixType.SUFFIX,
-                                10, 3000));
+                                30, 3000));
 
                 register(new CustomStat("chestplate_attack_speed", "Attack Speed",
                                 EquipmentType.CHESTPLATE, EntityAttributes.ATTACK_SPEED,
                                 r(0.05, 0.1, 0.15, 0.2, 0.28, 0.38, 0.5, 0.65, 0.82, 1.0),
                                 r(0.08, 0.12, 0.18, 0.25, 0.33, 0.42, 0.58, 0.81, 0.98, 1.25),
                                 true, true, Formatting.YELLOW, CustomStat.AffixType.SUFFIX,
-                                37, 2000));
+                                30, 2000));
 
                 // --- Chestplate elemental damages ---
                 register(new CustomStat("chestplate_fire_damage", "Fire Damage",
@@ -415,28 +415,28 @@ public class StatRegistry {
                                 r(2.0, 5.0, 10.0, 16.0, 25.0, 32.0, 46.0, 60.0, 84.0, 112.0),
                                 r(3.0, 8.0, 14.0, 23.0, 30.0, 43.0, 57.0, 80.0, 107.0, 124.0),
                                 false, false, Formatting.RED, CustomStat.AffixType.SUFFIX,
-                                20, 2500));
+                                30, 2500));
 
                 register(new CustomStat("chestplate_cold_damage", "Cold Damage",
                                 EquipmentType.CHESTPLATE, ModAttributes.COLD_DAMAGE,
                                 r(2.0, 5.0, 10.0, 16.0, 25.0, 32.0, 46.0, 60.0, 84.0, 112.0),
                                 r(3.0, 8.0, 14.0, 23.0, 30.0, 43.0, 57.0, 80.0, 107.0, 124.0),
                                 false, false, Formatting.AQUA, CustomStat.AffixType.SUFFIX,
-                                20, 2500));
+                                30, 2500));
 
                 register(new CustomStat("chestplate_lightning_damage", "Lightning Damage",
                                 EquipmentType.CHESTPLATE, ModAttributes.LIGHTNING_DAMAGE,
                                 r(2.0, 5.0, 10.0, 16.0, 25.0, 32.0, 46.0, 60.0, 84.0, 112.0),
                                 r(3.0, 8.0, 14.0, 23.0, 30.0, 43.0, 57.0, 80.0, 107.0, 124.0),
                                 false, false, Formatting.DARK_BLUE, CustomStat.AffixType.SUFFIX,
-                                20, 2500));
+                                30, 2500));
 
                 register(new CustomStat("chestplate_void_damage", "Void Damage",
                                 EquipmentType.CHESTPLATE, ModAttributes.VOID_DAMAGE,
                                 r(2.0, 5.0, 10.0, 16.0, 25.0, 32.0, 46.0, 60.0, 84.0, 112.0),
                                 r(3.0, 8.0, 14.0, 23.0, 30.0, 43.0, 57.0, 80.0, 107.0, 124.0),
                                 false, false, Formatting.DARK_PURPLE, CustomStat.AffixType.SUFFIX,
-                                35, 1500));
+                                30, 1500));
 
                 register(new CustomStat("chestplate_knockback", "Knockback",
                                 EquipmentType.CHESTPLATE, ModAttributes.KNOCKBACK,
@@ -450,7 +450,7 @@ public class StatRegistry {
                                 r(0.05, 0.08, 0.12, 0.18, 0.25, 0.33, 0.42, 0.52, 0.63, 0.75),
                                 r(0.10, 0.15, 0.20, 0.28, 0.38, 0.50, 0.65, 0.82, 1.00, 1.25),
                                 true, true, Formatting.YELLOW, CustomStat.AffixType.SUFFIX,
-                                35, 2000));
+                                15, 2000));
 
                 // ===================================================================
                 // BOOTS-ONLY STATS
@@ -461,7 +461,7 @@ public class StatRegistry {
                                 r(0.8, 0.9, 1.0, 1.05, 1.1, 1.15, 1.2, 1.25, 1.30, 1.35),
                                 r(0.8, 0.9, 1.0, 1.05, 1.1, 1.15, 1.2, 1.25, 1.30, 1.35),
                                 true, true, Formatting.GREEN, CustomStat.AffixType.PREFIX,
-                                35, 4000));
+                                60, 4000));
 
                 // ===================================================================
                 // WEAPON STATS (Shared across weapon types)
@@ -473,7 +473,7 @@ public class StatRegistry {
                                 r(0.5, 1.0, 2.0, 3.5, 5.5, 8.0, 11.0, 15.0, 20.0, 26.0),
                                 r(1.0, 2.0, 3.5, 5.5, 8.0, 11.0, 15.0, 20.0, 26.0, 35.0),
                                 false, Formatting.WHITE, CustomStat.AffixType.PREFIX,
-                                1, 12000,
+                                60, 12000,
                                 ALL_WEAPONS);
 
                 // --- Attack Speed (melee + trident) ---
@@ -482,7 +482,7 @@ public class StatRegistry {
                                 r(0.05, 0.1, 0.15, 0.2, 0.28, 0.38, 0.5, 0.65, 0.82, 1.0),
                                 r(0.08, 0.12, 0.18, 0.25, 0.33, 0.42, 0.58, 0.81, 0.98, 1.25),
                                 true, true, Formatting.YELLOW, CustomStat.AffixType.SUFFIX,
-                                37, 2000,
+                                60, 2000,
                                 ALL_MELEE_AND_TRIDENT);
 
                 // --- Ailment Chances (all weapons) ---
@@ -491,7 +491,7 @@ public class StatRegistry {
                                 r(0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1),
                                 r(0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1),
                                 true, true, Formatting.RED, CustomStat.AffixType.SUFFIX,
-                                20, 5000,
+                                30, 5000,
                                 ALL_WEAPONS);
 
                 registerForTypes("chance_to_poison", "Poison Chance",
@@ -499,7 +499,7 @@ public class StatRegistry {
                                 r(0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1),
                                 r(0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1),
                                 true, true, Formatting.GREEN, CustomStat.AffixType.SUFFIX,
-                                20, 5000,
+                                30, 5000,
                                 ALL_WEAPONS);
 
                 registerForTypes("chance_to_freeze", "Freeze Chance",
@@ -507,7 +507,7 @@ public class StatRegistry {
                                 r(0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1),
                                 r(0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1),
                                 true, true, Formatting.AQUA, CustomStat.AffixType.SUFFIX,
-                                20, 5000,
+                                30, 5000,
                                 ALL_WEAPONS);
 
                 registerForTypes("chance_to_bleed", "Bleed Chance",
@@ -515,7 +515,7 @@ public class StatRegistry {
                                 r(0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1),
                                 r(0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1),
                                 true, true, Formatting.DARK_RED, CustomStat.AffixType.SUFFIX,
-                                20, 5000,
+                                30, 5000,
                                 ALL_WEAPONS);
 
                 registerForTypes("chance_to_shock", "Shock Chance",
@@ -523,7 +523,7 @@ public class StatRegistry {
                                 r(0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1),
                                 r(0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1),
                                 true, true, Formatting.YELLOW, CustomStat.AffixType.SUFFIX,
-                                20, 5000,
+                                30, 5000,
                                 ALL_WEAPONS);
 
                 // --- Elemental Damages (all weapons) ---

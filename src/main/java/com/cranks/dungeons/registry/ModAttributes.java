@@ -28,18 +28,18 @@ public class ModAttributes {
     public static final RegistryEntry<EntityAttribute> ENERGY_SHIELD = register("energy_shield", 0.0, 0.0, 1024.0);
     public static final RegistryEntry<EntityAttribute> ARMOR_CRIT_MITIGATION = register("armor_crit_mitigation", 0.0,
             0.0, 1.0);
-    public static final RegistryEntry<EntityAttribute> THORNS_DAMAGE = register("thorns_damage", 0.0, 0.0, 100.0);
+    public static final RegistryEntry<EntityAttribute> THORNS_DAMAGE = register("thorns_damage", 0.0, 0.0, 10000.0);
     public static final RegistryEntry<EntityAttribute> ENCHANTMENT_EFFECTIVENESS = register("enchantment_effectiveness", 0.0, 0.0, 10.0);
 
     // Offensive stats
     public static final RegistryEntry<EntityAttribute> CRIT_CHANCE = register("crit_chance", 0.05, 0.0, 1.0);
     public static final RegistryEntry<EntityAttribute> CRIT_MULTIPLIER = register("crit_multiplier", 1.5, 1.0, 10.0);
     public static final RegistryEntry<EntityAttribute> BONUS_ATTACK_DAMAGE = register("bonus_attack_damage", 0.0, 0.0,
-            100.0);
-    public static final RegistryEntry<EntityAttribute> FIRE_DAMAGE = register("fire_damage", 0.0, 0.0, 100.0);
-    public static final RegistryEntry<EntityAttribute> COLD_DAMAGE = register("cold_damage", 0.0, 0.0, 100.0);
-    public static final RegistryEntry<EntityAttribute> LIGHTNING_DAMAGE = register("lightning_damage", 0.0, 0.0, 100.0);
-    public static final RegistryEntry<EntityAttribute> VOID_DAMAGE = register("void_damage", 0.0, 0.0, 100.0);
+            10000.0);
+    public static final RegistryEntry<EntityAttribute> FIRE_DAMAGE = register("fire_damage", 0.0, 0.0, 10000.0);
+    public static final RegistryEntry<EntityAttribute> COLD_DAMAGE = register("cold_damage", 0.0, 0.0, 10000.0);
+    public static final RegistryEntry<EntityAttribute> LIGHTNING_DAMAGE = register("lightning_damage", 0.0, 0.0, 10000.0);
+    public static final RegistryEntry<EntityAttribute> VOID_DAMAGE = register("void_damage", 0.0, 0.0, 10000.0);
     public static final RegistryEntry<EntityAttribute> RELOAD_SPEED = register("reload_speed", 1.0, 0.0, 10.0);
     public static final RegistryEntry<EntityAttribute> PROJECTILE_SPEED = register("projectile_speed", 0.0, 0.0, 10.0);
 
@@ -93,14 +93,14 @@ public class ModAttributes {
 
     public static final RegistryEntry<EntityAttribute> LIFE_STEAL = register("life_steal", 0.0, 0.0, 1.0);
     public static final RegistryEntry<EntityAttribute> CHANCE_TO_BURN = register("chance_to_burn", 0.0, 0.0, 1.0);
-    public static final RegistryEntry<EntityAttribute> BURN_BASE_DAMAGE = register("burn_base_damage", 4.0, 0.0, 100.0);
+    public static final RegistryEntry<EntityAttribute> BURN_BASE_DAMAGE = register("burn_base_damage", 4.0, 0.0, 10000.0);
     public static final RegistryEntry<EntityAttribute> BURN_DAMAGE_PERCENT = register("burn_damage_percent", 0.0, 0.0,
             100.0);
     public static final RegistryEntry<EntityAttribute> BURN_DURATION = register("burn_duration", 0.0, 0.0, 10.0);
 
     public static final RegistryEntry<EntityAttribute> CHANCE_TO_POISON = register("chance_to_poison", 0.0, 0.0, 1.0);
     public static final RegistryEntry<EntityAttribute> POISON_BASE_DAMAGE = register("poison_base_damage", 1.0, 0.0,
-            100.0);
+            10000.0);
     public static final RegistryEntry<EntityAttribute> POISON_DAMAGE_PERCENT = register("poison_damage_percent", 0.0,
             0.0, 100.0);
     public static final RegistryEntry<EntityAttribute> POISON_DURATION = register("poison_duration", 0.0, 0.0, 10.0);

@@ -190,60 +190,22 @@ public abstract class ElementalDamageMixin {
                 wieldingBonus = attacker.getAttributeValue(ModAttributes.ONE_HANDED_DAMAGE_PERCENT);
             }
 
-            // === FIRE DAMAGE ===
+            // === GATHER BASE DAMAGES ===
             double fireBaseDamage = CombatUtility.getAttributeValue(attacker, ModAttributes.FIRE_DAMAGE, weapon,
-                    "fire_damage", source);
-            fireBaseDamage += getEnchantmentValue(weapon, "minecraft:fire_damage", 4.0);
+                    "fire_damage", source) + getEnchantmentValue(weapon, "minecraft:fire_damage", 4.0);
 
-            double fireTotalPercent = CombatUtility.getAttributeValue(attacker, ModAttributes.FIRE_DAMAGE_PERCENT,
-                    weapon, "fire_damage_percent", source);
-
-            double fireDamage = fireBaseDamage
-                    * (1.0 + fireTotalPercent + weaponSpecificPercent + afflictedBonus + selfAfflictedBonus
-                            + elementalBonus + typeBonus + wieldingBonus)
-                    * critMultiplier;
-
-            // === COLD DAMAGE ===
             double coldBaseDamage = CombatUtility.getAttributeValue(attacker, ModAttributes.COLD_DAMAGE, weapon,
-                    "cold_damage", source);
-            coldBaseDamage += getEnchantmentValue(weapon, "minecraft:cold_damage", 4.0);
+                    "cold_damage", source) + getEnchantmentValue(weapon, "minecraft:cold_damage", 4.0);
 
-            double coldTotalPercent = CombatUtility.getAttributeValue(attacker, ModAttributes.COLD_DAMAGE_PERCENT,
-                    weapon, "cold_damage_percent", source);
-
-            double coldDamage = coldBaseDamage
-                    * (1.0 + coldTotalPercent + weaponSpecificPercent + afflictedBonus + selfAfflictedBonus
-                            + elementalBonus + typeBonus + wieldingBonus)
-                    * critMultiplier;
-
-            // === LIGHTNING DAMAGE ===
             double lightningBaseDamage = CombatUtility.getAttributeValue(attacker, ModAttributes.LIGHTNING_DAMAGE,
-                    weapon, "lightning_damage", source);
-            lightningBaseDamage += getEnchantmentValue(weapon, "minecraft:lightning_damage", 4.0);
+                    weapon, "lightning_damage", source) + getEnchantmentValue(weapon, "minecraft:lightning_damage", 4.0);
 
-            double lightningTotalPercent = CombatUtility.getAttributeValue(attacker,
-                    ModAttributes.LIGHTNING_DAMAGE_PERCENT, weapon, "lightning_damage_percent", source);
-
-            double lightningDamage = lightningBaseDamage * (1.0 + lightningTotalPercent + weaponSpecificPercent
-                    + afflictedBonus + selfAfflictedBonus + elementalBonus + typeBonus + wieldingBonus)
-                    * critMultiplier;
-
-            // === VOID DAMAGE ===
             double voidBaseDamage = CombatUtility.getAttributeValue(attacker, ModAttributes.VOID_DAMAGE, weapon,
-                    "void_damage", source);
-            voidBaseDamage += getEnchantmentValue(weapon, "minecraft:void_damage", 4.0);
-
-            double voidTotalPercent = CombatUtility.getAttributeValue(attacker, ModAttributes.VOID_DAMAGE_PERCENT,
-                    weapon, "void_damage_percent", source);
-
-            double voidDamage = voidBaseDamage
-                    * (1.0 + voidTotalPercent + weaponSpecificPercent + afflictedBonus + selfAfflictedBonus
-                            + elementalBonus + typeBonus + wieldingBonus)
-                    * critMultiplier;
+                    "void_damage", source) + getEnchantmentValue(weapon, "minecraft:void_damage", 4.0);
 
             // === PROPORTIONAL EXTRA DAMAGE (RUNES) ===
             // Calculate total basic damage using UNREDUCED values for proportional scaling
-            double totalBasicDamage = unreducedPhysicalDamage + fireDamage + coldDamage + lightningDamage + voidDamage;
+            double totalBasicDamage = unreducedPhysicalDamage + fireBaseDamage + coldBaseDamage + lightningBaseDamage + voidBaseDamage;
 
             double extraPhysicalPercent = CombatUtility.getAttributeValue(attacker,
                     ModAttributes.PHYSICAL_EXTRA_PERCENT, weapon, "attack_extra_damage", source);
@@ -252,32 +214,52 @@ public abstract class ElementalDamageMixin {
 
             double extraFirePercent = CombatUtility.getAttributeValue(attacker, ModAttributes.FIRE_EXTRA_PERCENT,
                     weapon, "fire_extra_damage", source);
-            fireDamage += totalBasicDamage * extraFirePercent;
+            fireBaseDamage += totalBasicDamage * extraFirePercent;
 
             double extraColdPercent = CombatUtility.getAttributeValue(attacker, ModAttributes.COLD_EXTRA_PERCENT,
                     weapon, "cold_extra_damage", source);
-            coldDamage += totalBasicDamage * extraColdPercent;
+            coldBaseDamage += totalBasicDamage * extraColdPercent;
 
             double extraLightningPercent = CombatUtility.getAttributeValue(attacker,
                     ModAttributes.LIGHTNING_EXTRA_PERCENT, weapon, "lightning_extra_damage", source);
-            lightningDamage += totalBasicDamage * extraLightningPercent;
+            lightningBaseDamage += totalBasicDamage * extraLightningPercent;
 
             double extraVoidPercent = CombatUtility.getAttributeValue(attacker, ModAttributes.VOID_EXTRA_PERCENT,
                     weapon, "void_extra_damage", source);
-            voidDamage += totalBasicDamage * extraVoidPercent;
+            voidBaseDamage += totalBasicDamage * extraVoidPercent;
 
             // Gain % of Physical as Extra Element
             double physAsFire = attacker.getAttributeValue(ModAttributes.PHYSICAL_AS_EXTRA_FIRE_PERCENT);
-            fireDamage += unreducedPhysicalDamage * physAsFire;
+            fireBaseDamage += unreducedPhysicalDamage * physAsFire;
 
             double physAsCold = attacker.getAttributeValue(ModAttributes.PHYSICAL_AS_EXTRA_COLD_PERCENT);
-            coldDamage += unreducedPhysicalDamage * physAsCold;
+            coldBaseDamage += unreducedPhysicalDamage * physAsCold;
 
             double physAsLightning = attacker.getAttributeValue(ModAttributes.PHYSICAL_AS_EXTRA_LIGHTNING_PERCENT);
-            lightningDamage += unreducedPhysicalDamage * physAsLightning;
+            lightningBaseDamage += unreducedPhysicalDamage * physAsLightning;
 
             double physAsVoid = attacker.getAttributeValue(ModAttributes.PHYSICAL_AS_EXTRA_VOID_PERCENT);
-            voidDamage += unreducedPhysicalDamage * physAsVoid;
+            voidBaseDamage += unreducedPhysicalDamage * physAsVoid;
+
+            // === APPLY MULTIPLIERS ===
+            double baseMultiplier = weaponSpecificPercent + afflictedBonus + selfAfflictedBonus
+                    + elementalBonus + typeBonus + wieldingBonus;
+
+            double fireTotalPercent = CombatUtility.getAttributeValue(attacker, ModAttributes.FIRE_DAMAGE_PERCENT,
+                    weapon, "fire_damage_percent", source);
+            double fireDamage = fireBaseDamage * (1.0 + fireTotalPercent + baseMultiplier) * critMultiplier;
+
+            double coldTotalPercent = CombatUtility.getAttributeValue(attacker, ModAttributes.COLD_DAMAGE_PERCENT,
+                    weapon, "cold_damage_percent", source);
+            double coldDamage = coldBaseDamage * (1.0 + coldTotalPercent + baseMultiplier) * critMultiplier;
+
+            double lightningTotalPercent = CombatUtility.getAttributeValue(attacker,
+                    ModAttributes.LIGHTNING_DAMAGE_PERCENT, weapon, "lightning_damage_percent", source);
+            double lightningDamage = lightningBaseDamage * (1.0 + lightningTotalPercent + baseMultiplier) * critMultiplier;
+
+            double voidTotalPercent = CombatUtility.getAttributeValue(attacker, ModAttributes.VOID_DAMAGE_PERCENT,
+                    weapon, "void_damage_percent", source);
+            double voidDamage = voidBaseDamage * (1.0 + voidTotalPercent + baseMultiplier) * critMultiplier;
 
             // Apply global PvP reduction to final bonus values
             fireDamage *= pvpMultiplier;

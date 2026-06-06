@@ -184,8 +184,8 @@ public abstract class InventoryScreenStatsMixin {
 
                         int curY = panelY + 8 - scrollOffset;
 
-                        // --- CATEGORY 1: OFFENSIVE ---
-                        context.drawText(tr, Text.literal("⚔ Offensive"), panelX + 6, curY, 0xFF404040, false);
+                        // --- CATEGORY 1: DEFENCE ---
+                        context.drawText(tr, Text.literal("🛡 Defence"), panelX + 6, curY, 0xFF404040, false);
                         curY += 11;
 
                         ItemStack weapon = player.getMainHandStack();
@@ -194,274 +194,8 @@ public abstract class InventoryScreenStatsMixin {
                         ItemStack leggings = player.getEquippedStack(EquipmentSlot.LEGS);
                         ItemStack boots = player.getEquippedStack(EquipmentSlot.FEET);
 
-                        // 1. Physical Damage
-                        double baseAD = cranks$getPassiveBase(player, EntityAttributes.ATTACK_DAMAGE);
-                        double bonusAD = player.getAttributeValue(ModAttributes.BONUS_ATTACK_DAMAGE);
-                        double weaponAD = getModifierFromStack(weapon, EntityAttributes.ATTACK_DAMAGE);
-
-                        double typeBonus = 0;
-                        double passiveTypeBonus = 0;
-                        // Use a dummy damage source for the helper check
-                        net.minecraft.entity.damage.DamageSource dummySource = player.getDamageSources()
-                                        .playerAttack(player);
-                        if (CombatUtility.isMelee(weapon, dummySource)) {
-                                typeBonus = player.getAttributeValue(ModAttributes.MELEE_DAMAGE_PERCENT);
-                                passiveTypeBonus = cranks$getPassivePercentBonus(player,
-                                                ModAttributes.MELEE_DAMAGE_PERCENT);
-                        } else if (CombatUtility.isRanged(weapon, dummySource)) {
-                                typeBonus = player.getAttributeValue(ModAttributes.RANGED_DAMAGE_PERCENT);
-                                passiveTypeBonus = cranks$getPassivePercentBonus(player,
-                                                ModAttributes.RANGED_DAMAGE_PERCENT);
-                        }
-
-                        double wieldingBonus = 0;
-                        double passiveWieldingBonus = 0;
-                        if (CombatUtility.isTwoHanding(player, weapon)) {
-                                wieldingBonus = player.getAttributeValue(ModAttributes.TWO_HANDING_DAMAGE_PERCENT);
-                                passiveWieldingBonus = cranks$getPassivePercentBonus(player,
-                                                ModAttributes.TWO_HANDING_DAMAGE_PERCENT);
-                        } else if (CombatUtility.isDualWielding(player, weapon)) {
-                                wieldingBonus = player.getAttributeValue(ModAttributes.DUAL_WIELDING_DAMAGE_PERCENT);
-                                passiveWieldingBonus = cranks$getPassivePercentBonus(player,
-                                                ModAttributes.DUAL_WIELDING_DAMAGE_PERCENT);
-                        } else if (CombatUtility.isOneHanding(player, weapon)) {
-                                wieldingBonus = player.getAttributeValue(ModAttributes.ONE_HANDED_DAMAGE_PERCENT);
-                                passiveWieldingBonus = cranks$getPassivePercentBonus(player,
-                                                ModAttributes.ONE_HANDED_DAMAGE_PERCENT);
-                        }
-
-                        double attackDamage = (baseAD + bonusAD + weaponAD) * (1.0
-                                        + player.getAttributeValue(ModAttributes.ATTACK_DAMAGE_PERCENT) + typeBonus
-                                        + wieldingBonus);
-
-                        // Tooltip attribution: Base includes flat bonus and the tree's percentage
-                        // scaling
-                        double passiveADPercent = cranks$getPassivePercentBonus(player,
-                                        ModAttributes.ATTACK_DAMAGE_PERCENT);
-                        double tooltipBaseAD = (baseAD + bonusAD)
-                                        * (1.0 + passiveADPercent + passiveTypeBonus + passiveWieldingBonus);
-
-                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Physical Damage", attackDamage,
-                                        tooltipBaseAD,
-                                        "", mouseX,
-                                        mouseY, panelX, panelWidth);
-
-                        // 2. Elemental Damages (Moved here)
-                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Fire Damage",
-                                        calculateFinalElementalDamage(player, weapon, chestplate, attackDamage,
-                                                        ModAttributes.FIRE_DAMAGE, "minecraft:fire_damage",
-                                                        ModAttributes.PHYSICAL_AS_EXTRA_FIRE_PERCENT),
-                                        cranks$getPassiveBase(player, ModAttributes.FIRE_DAMAGE) * (1.0
-                                                        + cranks$getPassivePercentBonus(player,
-                                                                        ModAttributes.FIRE_DAMAGE_PERCENT)
-                                                        + cranks$getPassivePercentBonus(player,
-                                                                        ModAttributes.ELEMENTAL_DAMAGE_PERCENT)),
-                                        "", mouseX, mouseY, panelX, panelWidth);
-
-                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Cold Damage",
-                                        calculateFinalElementalDamage(player, weapon, chestplate, attackDamage,
-                                                        ModAttributes.COLD_DAMAGE, "minecraft:cold_damage",
-                                                        ModAttributes.PHYSICAL_AS_EXTRA_COLD_PERCENT),
-                                        cranks$getPassiveBase(player, ModAttributes.COLD_DAMAGE) * (1.0
-                                                        + cranks$getPassivePercentBonus(player,
-                                                                        ModAttributes.COLD_DAMAGE_PERCENT)
-                                                        + cranks$getPassivePercentBonus(player,
-                                                                        ModAttributes.ELEMENTAL_DAMAGE_PERCENT)),
-                                        "", mouseX, mouseY, panelX, panelWidth);
-
-                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Lightning Damage",
-                                        calculateFinalElementalDamage(player, weapon, chestplate, attackDamage,
-                                                        ModAttributes.LIGHTNING_DAMAGE, "minecraft:lightning_damage",
-                                                        ModAttributes.PHYSICAL_AS_EXTRA_LIGHTNING_PERCENT),
-                                        cranks$getPassiveBase(player, ModAttributes.LIGHTNING_DAMAGE) * (1.0
-                                                        + cranks$getPassivePercentBonus(player,
-                                                                        ModAttributes.LIGHTNING_DAMAGE_PERCENT)
-                                                        + cranks$getPassivePercentBonus(player,
-                                                                        ModAttributes.ELEMENTAL_DAMAGE_PERCENT)),
-                                        "", mouseX, mouseY, panelX, panelWidth);
-
-                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Void Damage",
-                                        calculateFinalElementalDamage(player, weapon, chestplate, attackDamage,
-                                                        ModAttributes.VOID_DAMAGE, "minecraft:void_damage",
-                                                        ModAttributes.PHYSICAL_AS_EXTRA_VOID_PERCENT),
-                                        cranks$getPassiveBase(player, ModAttributes.VOID_DAMAGE) * (1.0
-                                                        + cranks$getPassivePercentBonus(player,
-                                                                        ModAttributes.VOID_DAMAGE_PERCENT)
-                                                        + cranks$getPassivePercentBonus(player,
-                                                                        ModAttributes.ELEMENTAL_DAMAGE_PERCENT)),
-                                        "", mouseX, mouseY, panelX, panelWidth);
-
-                        double elementalDmgVal = player.getAttributeValue(ModAttributes.ELEMENTAL_DAMAGE_PERCENT);
-                        double passiveElemental = cranks$getPassivePercentBonus(player,
-                                        ModAttributes.ELEMENTAL_DAMAGE_PERCENT);
-                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Elemental Damage", elementalDmgVal * 100,
-                                        passiveElemental * 100, "%", mouseX, mouseY, panelX, panelWidth);
-
-                        // 3. Combat Speed & Range
-                        double totalAS = player.getAttributeValue(EntityAttributes.ATTACK_SPEED);
-                        double asMultiplier = (1.0 + player.getAttributeValue(ModAttributes.ATTACK_SPEED));
-                        double finalAS = totalAS * asMultiplier;
-
-                        double baseASOnly = player.getAttributeBaseValue(EntityAttributes.ATTACK_SPEED);
-                        double passiveASMultiplier = (1.0
-                                        + cranks$getPassivePercentBonus(player, ModAttributes.ATTACK_SPEED));
-
-                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Attack Speed", finalAS,
-                                        baseASOnly * passiveASMultiplier, "",
-                                        mouseX,
-                                        mouseY, panelX, panelWidth);
-
-                        double totalReload = player.getAttributeValue(ModAttributes.RELOAD_SPEED)
-                                        + ItemStatManager.getTotalStatValue(weapon, "reload_speed");
-                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Reload Speed", totalReload,
-                                        cranks$getPassiveBase(player, ModAttributes.RELOAD_SPEED), "x",
-                                        mouseX, mouseY, panelX, panelWidth);
-
-                        double baseAttackRange = cranks$getPassiveBase(player,
-                                        EntityAttributes.ENTITY_INTERACTION_RANGE);
-                        double attrBonus = 0.0;
-                        var instRange = player.getAttributeInstance(ModAttributes.ATTACK_RANGE);
-                        if (instRange != null)
-                                attrBonus = instRange.getValue();
-                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Attack Range",
-                                        baseAttackRange + attrBonus
-                                                        + getEnchantmentValue(weapon, "minecraft:attack_range", 1.0),
-                                        baseAttackRange, " blocks", mouseX, mouseY, panelX, panelWidth);
-
-                        // 4. Critical Strike
-                        double critChance = player.getAttributeValue(ModAttributes.CRIT_CHANCE);
-                        double baseCrit = cranks$getPassiveBase(player, ModAttributes.CRIT_CHANCE);
-                        critChance += getEnchantmentValue(weapon, "minecraft:crit_chance", 0.075);
-                        critChance += getEnchantmentValue(chestplate, "minecraft:crit_chance", 0.075);
-                        critChance += getEnchantmentValue(helmet, "minecraft:crit_chance", 0.075);
-                        critChance += getEnchantmentValue(leggings, "minecraft:crit_chance", 0.075);
-                        critChance += getEnchantmentValue(boots, "minecraft:crit_chance", 0.075);
-                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Crit Chance", critChance * 100,
-                                        baseCrit * 100, "%",
-                                        mouseX, mouseY, panelX, panelWidth);
-
-                        double critMult = player.getAttributeValue(ModAttributes.CRIT_MULTIPLIER);
-                        double baseCritMult = cranks$getPassiveBase(player, ModAttributes.CRIT_MULTIPLIER);
-                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Crit Multiplier", critMult * 100,
-                                        baseCritMult * 100, "%",
-                                        mouseX, mouseY, panelX, panelWidth);
-
-                        // 5. Ailments (Restored secondary stats)
-                        // BURN
-                        double baseBurn = cranks$getPassiveBase(player, ModAttributes.CHANCE_TO_BURN);
-                        double totalBurn = player.getAttributeValue(ModAttributes.CHANCE_TO_BURN)
-                                        + getEnchantmentValue(weapon, "minecraft:chance_to_burn", 0.05)
-                                        + getEnchantmentValue(chestplate, "minecraft:chance_to_burn", 0.05);
-                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Burn Chance", totalBurn * 100,
-                                        baseBurn * 100, "%", mouseX, mouseY, panelX, panelWidth);
-
-                        double defaultBurnBase = ModAttributes.BURN_BASE_DAMAGE.value().getDefaultValue();
-                        double burnPctVal = player.getAttributeValue(ModAttributes.BURN_DAMAGE_PERCENT);
-                        double passiveBurnPct = cranks$getPassivePercentBonus(player,
-                                        ModAttributes.BURN_DAMAGE_PERCENT);
-                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Burn Damage",
-                                        player.getAttributeValue(ModAttributes.BURN_BASE_DAMAGE) * (1.0 + burnPctVal),
-                                        cranks$getPassiveBase(player, ModAttributes.BURN_BASE_DAMAGE)
-                                                        * (1.0 + passiveBurnPct),
-                                        "", mouseX, mouseY, panelX, panelWidth);
-
-                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Burn Duration",
-                                        4.0 * (1.0 + player.getAttributeValue(ModAttributes.BURN_DURATION)),
-                                        4.0 * (1.0 + cranks$getPassivePercentBonus(player,
-                                                        ModAttributes.BURN_DURATION)),
-                                        "s",
-                                        mouseX, mouseY, panelX, panelWidth);
-
-                        // POISON
-                        double basePoison = cranks$getPassiveBase(player, ModAttributes.CHANCE_TO_POISON);
-                        double totalPoison = player.getAttributeValue(ModAttributes.CHANCE_TO_POISON)
-                                        + getEnchantmentValue(weapon, "minecraft:chance_to_poison", 0.05)
-                                        + getEnchantmentValue(chestplate, "minecraft:chance_to_poison", 0.05);
-                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Poison Chance", totalPoison * 100,
-                                        basePoison * 100, "%", mouseX, mouseY, panelX, panelWidth);
-
-                        double defaultPoisonBase = ModAttributes.POISON_BASE_DAMAGE.value().getDefaultValue();
-                        double poisonPctVal = player.getAttributeValue(ModAttributes.POISON_DAMAGE_PERCENT);
-                        double passivePoisonPct = cranks$getPassivePercentBonus(player,
-                                        ModAttributes.POISON_DAMAGE_PERCENT);
-                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Poison Damage",
-                                        player.getAttributeValue(ModAttributes.POISON_BASE_DAMAGE)
-                                                        * (1.0 + poisonPctVal),
-                                        cranks$getPassiveBase(player, ModAttributes.POISON_BASE_DAMAGE)
-                                                        * (1.0 + passivePoisonPct),
-                                        "", mouseX, mouseY, panelX,
-                                        panelWidth);
-
-                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Poison Duration",
-                                        2.0 * (1.0 + player.getAttributeValue(ModAttributes.POISON_DURATION)),
-                                        2.0 * (1.0 + cranks$getPassivePercentBonus(player,
-                                                        ModAttributes.POISON_DURATION)),
-                                        "s",
-                                        mouseX, mouseY, panelX, panelWidth);
-
-                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Poison Stacks",
-                                        20.0 + player.getAttributeValue(ModAttributes.POISON_MAX_STACKS),
-                                        20.0 + cranks$getPassiveBase(player, ModAttributes.POISON_MAX_STACKS), " max",
-                                        mouseX, mouseY, panelX, panelWidth);
-
-                        // BLEED
-                        double baseBleed = cranks$getPassiveBase(player, ModAttributes.CHANCE_TO_BLEED);
-                        double totalBleed = player.getAttributeValue(ModAttributes.CHANCE_TO_BLEED)
-                                        + getEnchantmentValue(weapon, "minecraft:chance_to_bleed", 0.05)
-                                        + getEnchantmentValue(chestplate, "minecraft:chance_to_bleed", 0.05);
-                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Bleed Chance", totalBleed * 100,
-                                        baseBleed * 100, "%", mouseX, mouseY, panelX, panelWidth);
-
-                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Bleed Duration",
-                                        5.0 * (1.0 + player.getAttributeValue(ModAttributes.BLEED_DURATION)),
-                                        5.0 * (1.0 + cranks$getPassivePercentBonus(player,
-                                                        ModAttributes.BLEED_DURATION)),
-                                        "s",
-                                        mouseX, mouseY, panelX, panelWidth);
-
-                        // FREEZE
-                        double baseFreeze = cranks$getPassiveBase(player, ModAttributes.CHANCE_TO_FREEZE);
-                        double totalFreeze = player.getAttributeValue(ModAttributes.CHANCE_TO_FREEZE)
-                                        + getEnchantmentValue(weapon, "minecraft:chance_to_freeze", 0.05)
-                                        + getEnchantmentValue(chestplate, "minecraft:chance_to_freeze", 0.05);
-                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Freeze Chance", totalFreeze * 100,
-                                        baseFreeze * 100, "%", mouseX, mouseY, panelX, panelWidth);
-
-                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Freeze Duration",
-                                        4.0 * (1.0 + player.getAttributeValue(ModAttributes.FREEZE_DURATION)),
-                                        4.0 * (1.0 + cranks$getPassivePercentBonus(player,
-                                                        ModAttributes.FREEZE_DURATION)),
-                                        "s",
-                                        mouseX, mouseY, panelX, panelWidth);
-
-                        // SHOCK
-                        double baseShock = cranks$getPassiveBase(player, ModAttributes.CHANCE_TO_SHOCK);
-                        double totalShock = player.getAttributeValue(ModAttributes.CHANCE_TO_SHOCK)
-                                        + getEnchantmentValue(weapon, "minecraft:chance_to_shock", 0.05)
-                                        + getEnchantmentValue(chestplate, "minecraft:chance_to_shock", 0.05);
-                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Shock Chance", totalShock * 100,
-                                        baseShock * 100, "%", mouseX, mouseY, panelX, panelWidth);
-
-                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Shock Duration",
-                                        player.getAttributeValue(ModAttributes.SHOCK_DURATION),
-                                        cranks$getPassiveBase(player, ModAttributes.SHOCK_DURATION), "s", mouseX,
-                                        mouseY,
-                                        panelX, panelWidth);
-
-                        // 6. Life Steal
-                        double baseLifeSteal = cranks$getPassiveBase(player, ModAttributes.LIFE_STEAL);
-                        double totalLifeSteal = player.getAttributeValue(ModAttributes.LIFE_STEAL)
-                                        + getEnchantmentValue(weapon, "minecraft:life_steal", 0.06)
-                                        + getEnchantmentValue(chestplate, "minecraft:life_steal", 0.06);
-                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Life Steal", totalLifeSteal * 100,
-                                        baseLifeSteal * 100, "%", mouseX,
-                                        mouseY, panelX, panelWidth);
-
-                        curY += 6;
-
-
-                        // --- CATEGORY 2: DEFENSIVE ---
-                        context.drawText(tr, Text.literal("🛡 Defensive"), panelX + 6, curY, 0xFF404040, false);
+                        // --- CATEGORY 1: LIFE ---
+                        context.drawText(tr, Text.literal("Life"), panelX + 6, curY, 0xFF404040, false);
                         curY += 11;
 
                         curY = drawStatWithTooltip(context, tr, panelX, curY, "Max Health",
@@ -472,20 +206,45 @@ public abstract class InventoryScreenStatsMixin {
                                         player.getAttributeValue(ModAttributes.LIFE_REGENERATION),
                                         cranks$getPassiveBase(player, ModAttributes.LIFE_REGENERATION), " HP/s", mouseX,
                                         mouseY, panelX, panelWidth);
-                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Armor",
-                                        player.getAttributeValue(EntityAttributes.ARMOR),
-                                        cranks$getPassiveBase(player, EntityAttributes.ARMOR), "", mouseX, mouseY,
-                                        panelX, panelWidth);
-                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Evasion",
-                                        player.getAttributeValue(ModAttributes.EVASION_RATING),
-                                        cranks$getPassiveBase(player, ModAttributes.EVASION_RATING), "", mouseX, mouseY,
-                                        panelX, panelWidth);
+                        double baseLifeSteal = cranks$getPassiveBase(player, ModAttributes.LIFE_STEAL);
+                        double totalLifeSteal = player.getAttributeValue(ModAttributes.LIFE_STEAL)
+                                        + getEnchantmentValue(weapon, "minecraft:life_steal", 0.06)
+                                        + getEnchantmentValue(chestplate, "minecraft:life_steal", 0.06);
+                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Life Steal", totalLifeSteal * 100,
+                                        baseLifeSteal * 100, "%", mouseX,
+                                        mouseY, panelX, panelWidth);
+                        curY += 6;
+
+                        // --- CATEGORY 2: ENERGY SHIELD ---
+                        context.drawText(tr, Text.literal("Energy Shield"), panelX + 6, curY, 0xFF404040, false);
+                        curY += 11;
                         curY = drawStatWithTooltip(context, tr, panelX, curY, "Energy Shield",
                                         player.getAttributeValue(ModAttributes.ENERGY_SHIELD),
                                         cranks$getPassiveBase(player, ModAttributes.ENERGY_SHIELD), "", mouseX, mouseY,
                                         panelX, panelWidth);
+                        curY += 6;
 
-                        // Resistances Group
+                        // --- CATEGORY 3: ARMOUR ---
+                        context.drawText(tr, Text.literal("Armour"), panelX + 6, curY, 0xFF404040, false);
+                        curY += 11;
+                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Armor",
+                                        player.getAttributeValue(EntityAttributes.ARMOR),
+                                        cranks$getPassiveBase(player, EntityAttributes.ARMOR), "", mouseX, mouseY,
+                                        panelX, panelWidth);
+                        curY += 6;
+
+                        // --- CATEGORY 4: EVASION ---
+                        context.drawText(tr, Text.literal("Evasion"), panelX + 6, curY, 0xFF404040, false);
+                        curY += 11;
+                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Evasion",
+                                        player.getAttributeValue(ModAttributes.EVASION_RATING),
+                                        cranks$getPassiveBase(player, ModAttributes.EVASION_RATING), "", mouseX, mouseY,
+                                        panelX, panelWidth);
+                        curY += 6;
+
+                        // --- CATEGORY 5: RESISTANCES ---
+                        context.drawText(tr, Text.literal("Resistances"), panelX + 6, curY, 0xFF404040, false);
+                        curY += 11;
                         curY = drawStatWithTooltip(context, tr, panelX, curY, "Fire Res",
                                         player.getAttributeValue(ModAttributes.FIRE_RESISTANCE) * 100,
                                         cranks$getPassiveBase(player, ModAttributes.FIRE_RESISTANCE) * 100, "%", mouseX,
@@ -509,8 +268,78 @@ public abstract class InventoryScreenStatsMixin {
 
                         curY += 6;
 
-                        // --- CATEGORY 3: UTILITY ---
-                        context.drawText(tr, Text.literal("✦ Utility"), panelX + 6, curY, 0xFF404040, false);
+                        // --- CATEGORY 6: CRITICAL ---
+                        context.drawText(tr, Text.literal("Critical"), panelX + 6, curY, 0xFF404040, false);
+                        curY += 11;
+
+                        // 4. Critical Strike
+                        double critChance = player.getAttributeValue(ModAttributes.CRIT_CHANCE);
+                        double baseCrit = cranks$getPassiveBase(player, ModAttributes.CRIT_CHANCE);
+                        critChance += getEnchantmentValue(weapon, "minecraft:crit_chance", 0.075);
+                        critChance += getEnchantmentValue(chestplate, "minecraft:crit_chance", 0.075);
+                        critChance += getEnchantmentValue(helmet, "minecraft:crit_chance", 0.075);
+                        critChance += getEnchantmentValue(leggings, "minecraft:crit_chance", 0.075);
+                        critChance += getEnchantmentValue(boots, "minecraft:crit_chance", 0.075);
+                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Crit Chance", critChance * 100,
+                                        baseCrit * 100, "%",
+                                        mouseX, mouseY, panelX, panelWidth);
+
+                        double critMult = player.getAttributeValue(ModAttributes.CRIT_MULTIPLIER);
+                        double baseCritMult = cranks$getPassiveBase(player, ModAttributes.CRIT_MULTIPLIER);
+                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Crit Multiplier", critMult * 100,
+                                        baseCritMult * 100, "%",
+                                        mouseX, mouseY, panelX, panelWidth);
+
+                        curY += 6;
+
+                        // --- CATEGORY 7: AILMENTS ---
+                        context.drawText(tr, Text.literal("Ailments"), panelX + 6, curY, 0xFF404040, false);
+                        curY += 11;
+
+                        // BURN
+                        double baseBurn = cranks$getPassiveBase(player, ModAttributes.CHANCE_TO_BURN);
+                        double totalBurn = player.getAttributeValue(ModAttributes.CHANCE_TO_BURN)
+                                        + getEnchantmentValue(weapon, "minecraft:chance_to_burn", 0.05)
+                                        + getEnchantmentValue(chestplate, "minecraft:chance_to_burn", 0.05);
+                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Burn", totalBurn * 100,
+                                        baseBurn * 100, "%", mouseX, mouseY, panelX, panelWidth);
+
+                        // POISON
+                        double basePoison = cranks$getPassiveBase(player, ModAttributes.CHANCE_TO_POISON);
+                        double totalPoison = player.getAttributeValue(ModAttributes.CHANCE_TO_POISON)
+                                        + getEnchantmentValue(weapon, "minecraft:chance_to_poison", 0.05)
+                                        + getEnchantmentValue(chestplate, "minecraft:chance_to_poison", 0.05);
+                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Poison", totalPoison * 100,
+                                        basePoison * 100, "%", mouseX, mouseY, panelX, panelWidth);
+
+                        // BLEED
+                        double baseBleed = cranks$getPassiveBase(player, ModAttributes.CHANCE_TO_BLEED);
+                        double totalBleed = player.getAttributeValue(ModAttributes.CHANCE_TO_BLEED)
+                                        + getEnchantmentValue(weapon, "minecraft:chance_to_bleed", 0.05)
+                                        + getEnchantmentValue(chestplate, "minecraft:chance_to_bleed", 0.05);
+                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Bleed", totalBleed * 100,
+                                        baseBleed * 100, "%", mouseX, mouseY, panelX, panelWidth);
+
+                        // FREEZE
+                        double baseFreeze = cranks$getPassiveBase(player, ModAttributes.CHANCE_TO_FREEZE);
+                        double totalFreeze = player.getAttributeValue(ModAttributes.CHANCE_TO_FREEZE)
+                                        + getEnchantmentValue(weapon, "minecraft:chance_to_freeze", 0.05)
+                                        + getEnchantmentValue(chestplate, "minecraft:chance_to_freeze", 0.05);
+                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Freeze", totalFreeze * 100,
+                                        baseFreeze * 100, "%", mouseX, mouseY, panelX, panelWidth);
+
+                        // SHOCK
+                        double baseShock = cranks$getPassiveBase(player, ModAttributes.CHANCE_TO_SHOCK);
+                        double totalShock = player.getAttributeValue(ModAttributes.CHANCE_TO_SHOCK)
+                                        + getEnchantmentValue(weapon, "minecraft:chance_to_shock", 0.05)
+                                        + getEnchantmentValue(chestplate, "minecraft:chance_to_shock", 0.05);
+                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Shock", totalShock * 100,
+                                        baseShock * 100, "%", mouseX, mouseY, panelX, panelWidth);
+
+                        curY += 6;
+
+                        // --- CATEGORY 8: MISC ---
+                        context.drawText(tr, Text.literal("Misc"), panelX + 6, curY, 0xFF404040, false);
                         curY += 11;
 
                         double passiveMovePercent = cranks$getPassivePercentBonus(player, ModAttributes.MOVEMENT_SPEED);
@@ -545,8 +374,8 @@ public abstract class InventoryScreenStatsMixin {
 
                         curY += 6;
 
-                        // --- CATEGORY 4: GATHERING ---
-                        context.drawText(tr, Text.literal("⚒ Gathering"), panelX + 6, curY, 0xFF404040, false);
+                        // --- CATEGORY 9: GATHERING ---
+                        context.drawText(tr, Text.literal("Gathering"), panelX + 6, curY, 0xFF404040, false);
                         curY += 11;
 
                         // Gathering Speed
@@ -701,25 +530,38 @@ public abstract class InventoryScreenStatsMixin {
                         case "Attack Range" -> "Maximum melee attack distance";
                         case "Knockback" -> "How far enemies are pushed back";
                         case "Reload Speed" -> "How much faster bows/crossbows charge";
-                        case "Burn Chance" -> {
+                        case "Burn" -> {
                                 var p = MinecraftClient.getInstance().player;
                                 double baseDmg = p != null ? p.getAttributeValue(ModAttributes.BURN_BASE_DAMAGE) : 4.0;
-                                double pct = p != null ? p.getAttributeValue(ModAttributes.BURN_DAMAGE_PERCENT) : 100.0;
+                                double pct = p != null ? p.getAttributeValue(ModAttributes.BURN_DAMAGE_PERCENT) : 0.0;
+                                double dur = p != null ? 4.0 * (1.0 + p.getAttributeValue(ModAttributes.BURN_DURATION)) : 4.0;
                                 yield "Chance to ignite enemies. Deal " + String.format("%.1f", baseDmg * (1.0 + pct))
-                                                + " Fire dmg/s for 4.0s";
+                                                + " Fire dmg/s for " + String.format("%.1f", dur) + "s";
                         }
-                        case "Poison Chance" -> {
+                        case "Poison" -> {
                                 var p = MinecraftClient.getInstance().player;
-                                double baseDmg = p != null ? p.getAttributeValue(ModAttributes.POISON_BASE_DAMAGE)
-                                                : 1.0;
+                                double baseDmg = p != null ? p.getAttributeValue(ModAttributes.POISON_BASE_DAMAGE) : 1.0;
                                 double pct = p != null ? p.getAttributeValue(ModAttributes.POISON_DAMAGE_PERCENT) : 0.0;
-                                yield "Chance to poison enemies. Deal "
-                                                + String.format("%.1f", baseDmg * (1.0 + pct))
-                                                + " Void dmg/s for 2.0s (Max 20)";
+                                double dur = p != null ? 2.0 * (1.0 + p.getAttributeValue(ModAttributes.POISON_DURATION)) : 2.0;
+                                double max = p != null ? 20.0 + p.getAttributeValue(ModAttributes.POISON_MAX_STACKS) : 20.0;
+                                yield "Chance to poison enemies. Deal " + String.format("%.1f", baseDmg * (1.0 + pct))
+                                                + " Void dmg/s for " + String.format("%.1f", dur) + "s (Max " + (int)max + ")";
                         }
-                        case "Bleed Chance" -> "Chance to cause bleeding. Deal physical damage over 5.0s based on hit";
-                        case "Freeze Chance" -> "Chance to freeze enemies for 4.0s";
-                        case "Shock Chance" -> "Chance to shock enemies for 10.0s, increasing damage taken";
+                        case "Bleed" -> {
+                                var p = MinecraftClient.getInstance().player;
+                                double dur = p != null ? 5.0 * (1.0 + p.getAttributeValue(ModAttributes.BLEED_DURATION)) : 5.0;
+                                yield "Chance to cause bleeding. Deal physical damage over " + String.format("%.1f", dur) + "s based on hit";
+                        }
+                        case "Freeze" -> {
+                                var p = MinecraftClient.getInstance().player;
+                                double dur = p != null ? 4.0 * (1.0 + p.getAttributeValue(ModAttributes.FREEZE_DURATION)) : 4.0;
+                                yield "Chance to freeze enemies for " + String.format("%.1f", dur) + "s";
+                        }
+                        case "Shock" -> {
+                                var p = MinecraftClient.getInstance().player;
+                                double dur = p != null ? p.getAttributeValue(ModAttributes.SHOCK_DURATION) : 10.0;
+                                yield "Chance to shock enemies for " + String.format("%.1f", dur) + "s, increasing damage taken";
+                        }
                         case "Burn Damage" -> "Fire damage dealt per second by burning";
                         case "Burn Duration" -> "How long enemies stay ignited";
                         case "Poison Damage" -> "Void damage dealt per second by poison";
