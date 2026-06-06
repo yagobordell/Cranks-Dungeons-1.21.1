@@ -527,13 +527,6 @@ public class StatRegistry {
                                 ALL_WEAPONS);
 
                 // --- Elemental Damages (all weapons) ---
-                registerForTypes("physical_damage", "Physical Damage",
-                                ModAttributes.BONUS_ATTACK_DAMAGE,
-                                r(2.0, 5.0, 10.0, 16.0, 25.0, 32.0, 46.0, 60.0, 84.0, 112.0),
-                                r(3.0, 8.0, 14.0, 23.0, 30.0, 43.0, 57.0, 80.0, 107.0, 124.0),
-                                false, Formatting.WHITE, CustomStat.AffixType.PREFIX,
-                                75, 12000,
-                                ALL_WEAPONS);
 
                 registerForTypes("fire_damage", "Fire Damage",
                                 ModAttributes.FIRE_DAMAGE,
@@ -709,6 +702,55 @@ public class StatRegistry {
                                 true, true, Formatting.LIGHT_PURPLE, CustomStat.AffixType.SUFFIX,
                                 70, 1500,
                                 ALL_GEAR);
+                // --- Core Attributes (All Gear) ---
+                registerForTypes("strength", "Strength",
+                                ModAttributes.STRENGTH,
+                                r(5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0, 50.0),
+                                r(10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0, 50.0, 60.0),
+                                false, Formatting.RED, CustomStat.AffixType.SUFFIX,
+                                30, 8000,
+                                ALL_GEAR);
+
+                registerForTypes("dexterity", "Dexterity",
+                                ModAttributes.DEXTERITY,
+                                r(5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0, 50.0),
+                                r(10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0, 50.0, 60.0),
+                                false, Formatting.GREEN, CustomStat.AffixType.SUFFIX,
+                                30, 8000,
+                                ALL_GEAR);
+
+                registerForTypes("intelligence", "Intelligence",
+                                ModAttributes.INTELLIGENCE,
+                                r(5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0, 50.0),
+                                r(10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0, 50.0, 60.0),
+                                false, Formatting.BLUE, CustomStat.AffixType.SUFFIX,
+                                30, 8000,
+                                ALL_GEAR);
+
+                // --- Shield Blocking Mechanics (Shield only) ---
+                registerForTypes("chance_to_block", "Chance to Block",
+                                ModAttributes.CHANCE_TO_BLOCK,
+                                r(0.05, 0.08, 0.12, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45),
+                                r(0.08, 0.12, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50),
+                                true, true, Formatting.WHITE, CustomStat.AffixType.PREFIX,
+                                50, 4000,
+                                EquipmentType.SHIELD);
+
+                registerForTypes("block_value", "Block Value",
+                                ModAttributes.BLOCK_VALUE,
+                                r(10.0, 20.0, 30.0, 40.0, 50.0, 65.0, 80.0, 100.0, 120.0, 150.0),
+                                r(20.0, 30.0, 40.0, 50.0, 65.0, 80.0, 100.0, 120.0, 150.0, 200.0),
+                                false, Formatting.GRAY, CustomStat.AffixType.PREFIX,
+                                50, 4000,
+                                EquipmentType.SHIELD);
+
+                registerForTypes("health_on_block", "Health Gained on Block",
+                                ModAttributes.HEALTH_ON_BLOCK,
+                                r(2.0, 4.0, 6.0, 8.0, 10.0, 15.0, 20.0, 25.0, 30.0, 40.0),
+                                r(4.0, 6.0, 8.0, 10.0, 15.0, 20.0, 25.0, 30.0, 40.0, 50.0),
+                                false, Formatting.RED, CustomStat.AffixType.SUFFIX,
+                                60, 2000,
+                                EquipmentType.SHIELD);
 
                 LOGGER.info("Registered {} custom stats", STATS.size());
         }

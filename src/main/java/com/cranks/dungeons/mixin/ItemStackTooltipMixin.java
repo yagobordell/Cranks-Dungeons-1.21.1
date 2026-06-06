@@ -76,6 +76,7 @@ public abstract class ItemStackTooltipMixin {
         // Item Type (Centered-ish subtitle)
         if (equipType.isPresent()) {
             newTooltip.add(Text.literal(equipType.get().getName()).formatted(Formatting.DARK_GRAY, Formatting.ITALIC));
+            addRequirementsSection(player, stack, newTooltip);
             addDivider(newTooltip);
         } else if (ItemStatManager.getStats(stack).size() > 0) {
             newTooltip.add(Text.literal("Magical Item").formatted(Formatting.DARK_GRAY, Formatting.ITALIC));
@@ -292,6 +293,30 @@ public abstract class ItemStackTooltipMixin {
                 tooltip.add(Text.literal("Health Regen: ").formatted(Formatting.GRAY)
                         .append(Text.literal("+" + df.format(attributeTotals.get(regenKey)))
                                 .formatted(getValueColor(stack, ModAttributes.LIFE_REGENERATION))));
+                addedAny = true;
+            }
+
+            String blockChanceKey = ModAttributes.CHANCE_TO_BLOCK.value().getTranslationKey();
+            if (attributeTotals.getOrDefault(blockChanceKey, 0.0) > 0) {
+                tooltip.add(Text.literal("Chance to Block: ").formatted(Formatting.GRAY)
+                        .append(Text.literal(df.format(attributeTotals.get(blockChanceKey) * 100) + "%")
+                                .formatted(getValueColor(stack, ModAttributes.CHANCE_TO_BLOCK))));
+                addedAny = true;
+            }
+
+            String blockValueKey = ModAttributes.BLOCK_VALUE.value().getTranslationKey();
+            if (attributeTotals.getOrDefault(blockValueKey, 0.0) > 0) {
+                tooltip.add(Text.literal("Block Value: ").formatted(Formatting.GRAY)
+                        .append(Text.literal(df.format(attributeTotals.get(blockValueKey)))
+                                .formatted(getValueColor(stack, ModAttributes.BLOCK_VALUE))));
+                addedAny = true;
+            }
+
+            String healthBlockKey = ModAttributes.HEALTH_ON_BLOCK.value().getTranslationKey();
+            if (attributeTotals.getOrDefault(healthBlockKey, 0.0) > 0) {
+                tooltip.add(Text.literal("Health on Block: ").formatted(Formatting.GRAY)
+                        .append(Text.literal(df.format(attributeTotals.get(healthBlockKey)))
+                                .formatted(getValueColor(stack, ModAttributes.HEALTH_ON_BLOCK))));
                 addedAny = true;
             }
         } else {
@@ -652,6 +677,40 @@ public abstract class ItemStackTooltipMixin {
         }
 
         return Formatting.WHITE;
+    }
+
+    @Unique
+    private void addRequirementsSection(net.minecraft.entity.player.PlayerEntity player, ItemStack stack, List<Text> tooltip) {
+        int[] reqs = com.cranks.dungeons.equipment.ItemRequirementManager.getRequirements(stack);
+        if (reqs[0] == 0 && reqs[1] == 0 && reqs[2] == 0) return;
+
+        boolean meets = player == null || com.cranks.dungeons.equipment.ItemRequirementManager.meetsRequirements(player, stack);
+        
+        MutableText reqText = Text.literal("Requires: ").formatted(Formatting.GRAY);
+        boolean first = true;
+        
+        if (reqs[0] > 0) {
+            boolean hasStr = player == null || player.getAttributeValue(ModAttributes.STRENGTH) >= reqs[0];
+            reqText.append(Text.literal(reqs[0] + " Str").formatted(hasStr ? Formatting.WHITE : Formatting.RED));
+            first = false;
+        }
+        if (reqs[1] > 0) {
+            if (!first) reqText.append(Text.literal(", ").formatted(Formatting.GRAY));
+            boolean hasDex = player == null || player.getAttributeValue(ModAttributes.DEXTERITY) >= reqs[1];
+            reqText.append(Text.literal(reqs[1] + " Dex").formatted(hasDex ? Formatting.WHITE : Formatting.RED));
+            first = false;
+        }
+        if (reqs[2] > 0) {
+            if (!first) reqText.append(Text.literal(", ").formatted(Formatting.GRAY));
+            boolean hasInt = player == null || player.getAttributeValue(ModAttributes.INTELLIGENCE) >= reqs[2];
+            reqText.append(Text.literal(reqs[2] + " Int").formatted(hasInt ? Formatting.WHITE : Formatting.RED));
+        }
+
+        tooltip.add(reqText);
+        
+        if (!meets) {
+            tooltip.add(Text.literal("Stats are reduced because requirements are not met!").formatted(Formatting.RED, Formatting.ITALIC));
+        }
     }
 
     @Unique

@@ -142,6 +142,16 @@ public class ModAttributes {
     public static final RegistryEntry<EntityAttribute> MOVEMENT_SPEED = register("movement_speed", 0.0, 0.0, 10.0);
     public static final RegistryEntry<EntityAttribute> REPAIR_CHANCE = register("repair_chance", 0.0, 0.0, 1.0);
 
+    // Core Base Attributes
+    public static final RegistryEntry<EntityAttribute> STRENGTH = register("strength", 0.0, 0.0, 10000.0);
+    public static final RegistryEntry<EntityAttribute> DEXTERITY = register("dexterity", 0.0, 0.0, 10000.0);
+    public static final RegistryEntry<EntityAttribute> INTELLIGENCE = register("intelligence", 0.0, 0.0, 10000.0);
+
+    // Shield Block Mechanics
+    public static final RegistryEntry<EntityAttribute> CHANCE_TO_BLOCK = register("chance_to_block", 0.0, 0.0, 1.0);
+    public static final RegistryEntry<EntityAttribute> BLOCK_VALUE = register("block_value", 0.0, 0.0, 100000.0);
+    public static final RegistryEntry<EntityAttribute> HEALTH_ON_BLOCK = register("health_on_block", 0.0, 0.0, 10000.0);
+
     // Weapon-specific Damage Percentages (Passive-tree only)
     public static final RegistryEntry<EntityAttribute> SWORD_DAMAGE_PERCENT = register("sword_damage_percent", 0.0, 0.0,
             10.0);

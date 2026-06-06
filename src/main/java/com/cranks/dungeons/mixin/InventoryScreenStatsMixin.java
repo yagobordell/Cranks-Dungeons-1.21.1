@@ -184,9 +184,19 @@ public abstract class InventoryScreenStatsMixin {
 
                         int curY = panelY + 8 - scrollOffset;
 
-                        // --- CATEGORY 1: DEFENCE ---
-                        context.drawText(tr, Text.literal("🛡 Defence"), panelX + 6, curY, 0xFF404040, false);
+                        // --- CATEGORY 0: ATTRIBUTES ---
+                        context.drawText(tr, Text.literal("Attributes"), panelX + 6, curY, 0xFF404040, false);
                         curY += 11;
+                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Strength",
+                                        player.getAttributeValue(ModAttributes.STRENGTH),
+                                        cranks$getPassiveBase(player, ModAttributes.STRENGTH), "", mouseX, mouseY, panelX, panelWidth);
+                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Dexterity",
+                                        player.getAttributeValue(ModAttributes.DEXTERITY),
+                                        cranks$getPassiveBase(player, ModAttributes.DEXTERITY), "", mouseX, mouseY, panelX, panelWidth);
+                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Intelligence",
+                                        player.getAttributeValue(ModAttributes.INTELLIGENCE),
+                                        cranks$getPassiveBase(player, ModAttributes.INTELLIGENCE), "", mouseX, mouseY, panelX, panelWidth);
+                        curY += 6;
 
                         ItemStack weapon = player.getMainHandStack();
                         ItemStack chestplate = player.getEquippedStack(EquipmentSlot.CHEST);

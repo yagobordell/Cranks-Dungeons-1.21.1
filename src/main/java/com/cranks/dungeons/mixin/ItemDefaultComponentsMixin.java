@@ -26,8 +26,8 @@ public class ItemDefaultComponentsMixin {
         var originalMap = cir.getReturnValue();
         var attributes = originalMap.get(DataComponentTypes.ATTRIBUTE_MODIFIERS);
 
-        // If it's not a weapon/armor and has no attributes, return
-        if (attributes == null && !isWeapon(itemName) && !isArmor(itemName))
+        // If it's not a weapon/armor/shield and has no attributes, return
+        if (attributes == null && !isWeapon(itemName) && !isArmor(itemName) && !itemName.contains("shield"))
             return;
 
         AttributeModifiersComponent.Builder builder = AttributeModifiersComponent.builder();
@@ -110,6 +110,12 @@ public class ItemDefaultComponentsMixin {
         // Add additional weapon attributes that aren't in vanilla defaults
         if (isWeapon(itemName)) {
             addWeaponNativeAttributes(builder, itemName);
+            modified = true;
+        }
+
+        if (itemName.contains("shield")) {
+            builder.add(ModAttributes.CHANCE_TO_BLOCK, new EntityAttributeModifier(Identifier.of("cranks-dungeons", "shield.chance_to_block"), 0.3, EntityAttributeModifier.Operation.ADD_VALUE), net.minecraft.component.type.AttributeModifierSlot.ANY);
+            builder.add(ModAttributes.BLOCK_VALUE, new EntityAttributeModifier(Identifier.of("cranks-dungeons", "shield.block_value"), 3.0, EntityAttributeModifier.Operation.ADD_VALUE), net.minecraft.component.type.AttributeModifierSlot.ANY);
             modified = true;
         }
 
@@ -302,7 +308,7 @@ public class ItemDefaultComponentsMixin {
     }
 
     private boolean shouldModify(String itemName) {
-        return isArmor(itemName) || isWeapon(itemName);
+        return isArmor(itemName) || isWeapon(itemName) || itemName.contains("shield");
     }
 
     private boolean isArmor(String itemName) {

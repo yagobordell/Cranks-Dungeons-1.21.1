@@ -203,6 +203,14 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
                 .add(ModAttributes.VOID_PENETRATION_PERCENT)
                 .add(ModAttributes.ELEMENTAL_PENETRATION_PERCENT)
 
+                // Attributes & Blocking
+                .add(ModAttributes.STRENGTH)
+                .add(ModAttributes.DEXTERITY)
+                .add(ModAttributes.INTELLIGENCE)
+                .add(ModAttributes.CHANCE_TO_BLOCK)
+                .add(ModAttributes.BLOCK_VALUE)
+                .add(ModAttributes.HEALTH_ON_BLOCK)
+
                 .add(ModAttributes.ARMOR_SPEED_PENALTY_REDUCTION)
                 .add(ModAttributes.LOW_ARMOR_SPEED_BONUS)
                 .add(ModAttributes.RELOAD_SPEED)
@@ -213,6 +221,105 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
         cir.setReturnValue(builder);
     }
 
+    @Unique
+    private double cranks$lastStrength = -1;
+    @Unique
+    private double cranks$lastDexterity = -1;
+    @Unique
+    private double cranks$lastIntelligence = -1;
+
+    @Unique
+    private static final net.minecraft.util.Identifier INTRINSIC_HEALTH_MOD_ID = net.minecraft.util.Identifier.of("cranks-dungeons", "intrinsic_health");
+    @Unique
+    private static final net.minecraft.util.Identifier INTRINSIC_MELEE_MOD_ID = net.minecraft.util.Identifier.of("cranks-dungeons", "intrinsic_melee");
+    @Unique
+    private static final net.minecraft.util.Identifier INTRINSIC_EVASION_MOD_ID = net.minecraft.util.Identifier.of("cranks-dungeons", "intrinsic_evasion");
+    @Unique
+    private static final net.minecraft.util.Identifier INTRINSIC_ES_MOD_ID = net.minecraft.util.Identifier.of("cranks-dungeons", "intrinsic_es");
+
+    @Unique
+    private void updateModifier(LivingEntity entity, net.minecraft.registry.entry.RegistryEntry<net.minecraft.entity.attribute.EntityAttribute> attribute, net.minecraft.util.Identifier id, double value, net.minecraft.entity.attribute.EntityAttributeModifier.Operation operation) {
+        net.minecraft.entity.attribute.EntityAttributeInstance instance = entity.getAttributeInstance(attribute);
+        if (instance != null) {
+            instance.removeModifier(id);
+            if (value != 0) {
+                instance.addTemporaryModifier(new net.minecraft.entity.attribute.EntityAttributeModifier(id, value, operation));
+            }
+        }
+    }
+
+    @Unique
+    private void updateIntrinsicAttributes(LivingEntity entity) {
+        if (entity.getEntityWorld().isClient()) return;
+
+        double str = entity.getAttributeValue(ModAttributes.STRENGTH);
+        double dex = entity.getAttributeValue(ModAttributes.DEXTERITY);
+        double intel = entity.getAttributeValue(ModAttributes.INTELLIGENCE);
+
+        if (str != cranks$lastStrength) {
+            cranks$lastStrength = str;
+            double hpBonus = Math.floor(str / 10.0) * 5.0;
+            double meleeBonus = Math.floor(str / 10.0) * 0.02;
+            updateModifier(entity, net.minecraft.entity.attribute.EntityAttributes.MAX_HEALTH, INTRINSIC_HEALTH_MOD_ID, hpBonus, net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_VALUE);
+            updateModifier(entity, ModAttributes.MELEE_DAMAGE_PERCENT, INTRINSIC_MELEE_MOD_ID, meleeBonus, net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_VALUE);
+        }
+
+        if (dex != cranks$lastDexterity) {
+            cranks$lastDexterity = dex;
+            double evasionBonus = Math.floor(dex / 10.0) * 20.0;
+            updateModifier(entity, ModAttributes.EVASION_RATING, INTRINSIC_EVASION_MOD_ID, evasionBonus, net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_VALUE);
+        }
+
+        if (intel != cranks$lastIntelligence) {
+            cranks$lastIntelligence = intel;
+            double esBonus = Math.floor(intel / 10.0) * 5.0;
+            updateModifier(entity, ModAttributes.ENERGY_SHIELD, INTRINSIC_ES_MOD_ID, esBonus, net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_VALUE);
+        }
+    }
+
+    @Unique
+    private void updateRequirementPenalties(LivingEntity entity) {
+        if (!(entity instanceof net.minecraft.entity.player.PlayerEntity player)) return;
+
+        double attackPenalty = 0;
+        double armorPenalty = 0;
+        double evasionPenalty = 0;
+        double esPenalty = 0;
+
+        net.minecraft.item.ItemStack mainhand = player.getMainHandStack();
+        if (!mainhand.isEmpty() && !com.cranks.dungeons.equipment.ItemRequirementManager.meetsRequirements(player, mainhand)) {
+            net.minecraft.component.type.AttributeModifiersComponent mods = mainhand.getOrDefault(net.minecraft.component.DataComponentTypes.ATTRIBUTE_MODIFIERS, net.minecraft.component.type.AttributeModifiersComponent.DEFAULT);
+            for (net.minecraft.component.type.AttributeModifiersComponent.Entry entry : mods.modifiers()) {
+                if (entry.slot() == net.minecraft.component.type.AttributeModifierSlot.MAINHAND) {
+                    if (entry.attribute().equals(net.minecraft.entity.attribute.EntityAttributes.ATTACK_DAMAGE)) {
+                        attackPenalty += entry.modifier().value() * 0.5;
+                    }
+                }
+            }
+        }
+
+        for (net.minecraft.entity.EquipmentSlot slot : new net.minecraft.entity.EquipmentSlot[]{net.minecraft.entity.EquipmentSlot.HEAD, net.minecraft.entity.EquipmentSlot.CHEST, net.minecraft.entity.EquipmentSlot.LEGS, net.minecraft.entity.EquipmentSlot.FEET, net.minecraft.entity.EquipmentSlot.OFFHAND}) {
+            net.minecraft.item.ItemStack armor = player.getEquippedStack(slot);
+            if (!armor.isEmpty() && !com.cranks.dungeons.equipment.ItemRequirementManager.meetsRequirements(player, armor)) {
+                net.minecraft.component.type.AttributeModifiersComponent mods = armor.getOrDefault(net.minecraft.component.DataComponentTypes.ATTRIBUTE_MODIFIERS, net.minecraft.component.type.AttributeModifiersComponent.DEFAULT);
+                for (net.minecraft.component.type.AttributeModifiersComponent.Entry entry : mods.modifiers()) {
+                    if (entry.attribute().equals(net.minecraft.entity.attribute.EntityAttributes.ARMOR)) {
+                        armorPenalty += entry.modifier().value() * 0.5;
+                    } else if (entry.attribute().equals(ModAttributes.EVASION_RATING)) {
+                        evasionPenalty += entry.modifier().value() * 0.5;
+                    } else if (entry.attribute().equals(ModAttributes.ENERGY_SHIELD)) {
+                        esPenalty += entry.modifier().value() * 0.5;
+                    }
+                }
+            }
+        }
+
+        updateModifier(entity, net.minecraft.entity.attribute.EntityAttributes.ATTACK_DAMAGE, net.minecraft.util.Identifier.of("cranks-dungeons", "req_penalty_damage"), -attackPenalty, net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_VALUE);
+        updateModifier(entity, net.minecraft.entity.attribute.EntityAttributes.ARMOR, net.minecraft.util.Identifier.of("cranks-dungeons", "req_penalty_armor"), -armorPenalty, net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_VALUE);
+        updateModifier(entity, ModAttributes.EVASION_RATING, net.minecraft.util.Identifier.of("cranks-dungeons", "req_penalty_evasion"), -evasionPenalty, net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_VALUE);
+        updateModifier(entity, ModAttributes.ENERGY_SHIELD, net.minecraft.util.Identifier.of("cranks-dungeons", "req_penalty_es"), -esPenalty, net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_VALUE);
+    }
+
     @Inject(method = "tick", at = @At("TAIL"))
     private void tickLivingEntity(CallbackInfo ci) {
         LivingEntity entity = (LivingEntity) (Object) this;
@@ -221,6 +328,8 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
 
         AilmentManager.tickAilments(entity);
         updateArmorSpeed(entity);
+        updateIntrinsicAttributes(entity);
+        updateRequirementPenalties(entity);
 
         // Show accumulated healing
         if (cranks$accumulatedHeal > 0) {
