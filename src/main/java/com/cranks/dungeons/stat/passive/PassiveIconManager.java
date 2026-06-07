@@ -47,12 +47,15 @@ public class PassiveIconManager {
         ATTRIBUTE_ICONS.put("cranks-dungeons:poison_damage_percent", "passive/poison");
         ATTRIBUTE_ICONS.put("cranks-dungeons:poison_duration", "passive/poison");
         ATTRIBUTE_ICONS.put("cranks-dungeons:poison_max_stacks", "passive/poison");
-        ATTRIBUTE_ICONS.put("cranks-dungeons:chance_to_freeze", "passive/freeze");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:freeze_buildup_percent", "passive/freeze");
         ATTRIBUTE_ICONS.put("cranks-dungeons:freeze_duration", "passive/freeze");
         ATTRIBUTE_ICONS.put("cranks-dungeons:chance_to_bleed", "passive/bleed");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:bleed_burst_damage_percent", "passive/bleed");
         ATTRIBUTE_ICONS.put("cranks-dungeons:bleed_duration", "passive/bleed");
         ATTRIBUTE_ICONS.put("cranks-dungeons:chance_to_shock", "passive/shock");
         ATTRIBUTE_ICONS.put("cranks-dungeons:shock_duration", "passive/shock");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:electrocute_buildup_percent", "passive/shock");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:electrocute_duration", "passive/shock");
 
         // --- Defensive ---
         ATTRIBUTE_ICONS.put("minecraft:max_health", "passive/max_health_bonus");

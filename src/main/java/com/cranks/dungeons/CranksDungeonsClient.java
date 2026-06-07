@@ -54,6 +54,9 @@ public class CranksDungeonsClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
+        com.cranks.dungeons.scratch.RenderLayerDumper.dump();
+        // Register default HUD component (stamina/energy overlay);
+
         ClientConfigCommand.register();
 
         HandledScreens.register(ModScreenHandlers.RUNIC_ENHANCEMENT_ALTAR, RunicEnhancementAltarScreen::new);
@@ -174,6 +177,8 @@ public class CranksDungeonsClient implements ClientModInitializer {
                 }
             });
         });
+
+
 
         ClientPlayNetworking.registerGlobalReceiver(
                 EnergyShieldSyncPacket.ID,

@@ -824,7 +824,7 @@
         "n0119"
       ],
       "modifiers": {
-        "cranks-dungeons:chance_to_freeze": 0.1
+        "cranks-dungeons:freeze_buildup_percent": 0.1
       },
       "icon": "cranks-dungeons:passive/freeze"
     },

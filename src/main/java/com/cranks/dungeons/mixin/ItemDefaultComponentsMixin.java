@@ -415,13 +415,13 @@ public class ItemDefaultComponentsMixin {
 
     private double getGoldLuck(String itemName) {
         if (itemName.contains("helmet"))
-            return 1.0;
+            return 0.01; // 1%
         if (itemName.contains("chestplate"))
-            return 2.0;
+            return 0.03; // 3%
         if (itemName.contains("leggings"))
-            return 1.0;
+            return 0.02; // 2%
         if (itemName.contains("boots"))
-            return 1.0;
+            return 0.01; // 1%
         return 0.0;
     }
 

@@ -194,10 +194,14 @@ public class CranksDungeons implements ModInitializer {
 						.add(ModAttributes.CHANCE_TO_POISON, 0.0)
 						.add(ModAttributes.POISON_BASE_DAMAGE, 1.0)
 						.add(ModAttributes.POISON_DAMAGE_PERCENT, 0.0)
-						.add(ModAttributes.CHANCE_TO_FREEZE, 0.0)
+						.add(ModAttributes.FREEZE_BUILDUP_PERCENT, 0.0)
 						.add(ModAttributes.CHANCE_TO_BLEED, 0.0)
+						.add(ModAttributes.BLEED_BURST_DAMAGE_PERCENT, 0.0)
 						.add(ModAttributes.CHANCE_TO_SHOCK, 0.0)
 						.add(ModAttributes.SHOCK_DURATION, 3.0)
+						.add(ModAttributes.ELECTROCUTE_BUILDUP_PERCENT, 0.0)
+						.add(ModAttributes.ELECTROCUTE_DURATION, 0.0)
+						.add(ModAttributes.BURN_DAMAGE_PERCENT, 0.0)
 						.add(ModAttributes.BURN_DURATION, 0.0)
 						.add(ModAttributes.POISON_DURATION, 0.0)
 						.add(ModAttributes.POISON_MAX_STACKS, 0.0)
@@ -254,6 +258,15 @@ public class CranksDungeons implements ModInitializer {
 				});
 
 		LOGGER.info("Cranks Dungeons initialized!");
+		com.cranks.dungeons.scratch.FindSeeThrough.print();
+        com.cranks.dungeons.scratch.PrintEntityMethods.print();
+        com.cranks.dungeons.scratch.PrintRenderLayers.print();
+        for (java.lang.reflect.Method m : net.minecraft.entity.AnimationState.class.getDeclaredMethods()) {
+            LOGGER.info("ANIM_METHOD: " + m.getName() + " " + m.getReturnType().getName() + " params: " + m.getParameterCount());
+        }
+        for (var field : net.minecraft.entity.AnimationState.class.getDeclaredFields()) {
+            LOGGER.info("AnimationState field: " + field.getName());
+        }
 	}
 
 	private void registerCreativeTabItems() {

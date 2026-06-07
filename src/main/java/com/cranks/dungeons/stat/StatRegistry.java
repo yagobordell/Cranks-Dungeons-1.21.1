@@ -483,10 +483,10 @@ public class StatRegistry {
                                 30, 5000,
                                 ALL_WEAPONS);
 
-                registerForTypes("chance_to_freeze", "Freeze Chance",
-                                ModAttributes.CHANCE_TO_FREEZE,
-                                r(0.01, 0.01, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.08, 0.10),
-                                r(0.01, 0.01, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.08, 0.10),
+                registerForTypes("freeze_buildup_percent", "Increased Freeze Buildup",
+                                ModAttributes.FREEZE_BUILDUP_PERCENT,
+                                r(0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50),
+                                r(0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50),
                                 true, true, Formatting.AQUA, CustomStat.AffixType.SUFFIX,
                                 30, 5000,
                                 ALL_WEAPONS);
@@ -504,6 +504,30 @@ public class StatRegistry {
                                 r(0.01, 0.01, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.08, 0.10),
                                 r(0.01, 0.01, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.08, 0.10),
                                 true, true, Formatting.YELLOW, CustomStat.AffixType.SUFFIX,
+                                30, 5000,
+                                ALL_WEAPONS);
+
+                registerForTypes("electrocute_buildup_percent", "Increased Electrocute Buildup",
+                                ModAttributes.ELECTROCUTE_BUILDUP_PERCENT,
+                                r(0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50),
+                                r(0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50),
+                                true, true, Formatting.YELLOW, CustomStat.AffixType.SUFFIX,
+                                30, 5000,
+                                ALL_WEAPONS);
+
+                registerForTypes("burn_damage_percent", "Increased Burn Damage",
+                                ModAttributes.BURN_DAMAGE_PERCENT,
+                                r(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0),
+                                r(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0),
+                                true, true, Formatting.RED, CustomStat.AffixType.SUFFIX,
+                                30, 5000,
+                                ALL_WEAPONS);
+
+                registerForTypes("bleed_burst_damage_percent", "Increased Bleed Burst Damage",
+                                ModAttributes.BLEED_BURST_DAMAGE_PERCENT,
+                                r(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0),
+                                r(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0),
+                                true, true, Formatting.DARK_RED, CustomStat.AffixType.SUFFIX,
                                 30, 5000,
                                 ALL_WEAPONS);
 

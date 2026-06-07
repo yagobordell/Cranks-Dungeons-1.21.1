@@ -139,7 +139,7 @@ tasks.register('patchJarForCCA') {
 				mv1.visitMaxs(2, 2)
 				mv1.visitEnd()
 			}
-	
+
 			if (!hasReadData) {
 				def mv2 = cw.visitMethod(
 					org.objectweb.asm.Opcodes.ACC_PUBLIC,
@@ -189,3 +189,4 @@ publishing {
 	}
 }
 
+apply from: 'print_methods.gradle'

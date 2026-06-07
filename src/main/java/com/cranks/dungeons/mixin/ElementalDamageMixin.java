@@ -432,74 +432,103 @@ public abstract class ElementalDamageMixin {
                 attacker.heal(healing);
             }
 
-            // Burn
+            // Burn (Scales from Fire Damage)
             double chanceToBurn = CombatUtility.getAttributeValue(attacker, ModAttributes.CHANCE_TO_BURN, weapon,
                     "chance_to_burn", source) +
                     getEnchantmentValue(weapon, "minecraft:chance_to_burn", 0.05) +
                     getEnchantmentValue(chestplate, "minecraft:chance_to_burn", 0.05);
 
-            if (Math.random() < chanceToBurn) {
-                float burnBaseDamage = (float) CombatUtility.getAttributeValue(attacker, ModAttributes.BURN_BASE_DAMAGE,
-                        weapon, "burn_base_damage", source);
+            if (finalFireDamage > 0 && Math.random() < chanceToBurn) {
                 float burnDamagePercent = (float) CombatUtility.getAttributeValue(attacker,
                         ModAttributes.BURN_DAMAGE_PERCENT, weapon, "burn_damage_percent", source);
+                // Burn deals 50% of fire damage over its duration as base
+                float burnBaseDamage = (float) finalFireDamage * 0.5f;
                 double burnDuration = AilmentType.BURN.getBaseDuration()
                         * (1.0 + attacker.getAttributeValue(ModAttributes.BURN_DURATION));
                 AilmentManager.applyAilment(target, AilmentType.BURN, burnBaseDamage * (1.0f + burnDamagePercent),
                         burnDuration, attacker);
             }
 
-            // Poison
+            // Poison (Scales from Physical and Void Damage)
             double chanceToPoison = CombatUtility.getAttributeValue(attacker, ModAttributes.CHANCE_TO_POISON, weapon,
                     "chance_to_poison", source) +
                     getEnchantmentValue(weapon, "minecraft:chance_to_poison", 0.05) +
                     getEnchantmentValue(chestplate, "minecraft:chance_to_poison", 0.05);
 
-            if (Math.random() < chanceToPoison) {
-                float poisonBaseDamage = (float) CombatUtility.getAttributeValue(attacker,
-                        ModAttributes.POISON_BASE_DAMAGE, weapon, "poison_base_damage", source);
+            if ((physicalDamage > 0 || finalVoidDamage > 0) && Math.random() < chanceToPoison) {
                 float poisonDamagePercent = (float) CombatUtility.getAttributeValue(attacker,
                         ModAttributes.POISON_DAMAGE_PERCENT, weapon, "poison_damage_percent", source);
+                // Poison deals 20% of physical+void damage per second
+                float poisonBaseDamage = (physicalDamage + (float)finalVoidDamage) * 0.2f;
                 double poisonDuration = AilmentType.POISON.getBaseDuration()
                         * (1.0 + attacker.getAttributeValue(ModAttributes.POISON_DURATION));
                 AilmentManager.applyAilment(target, AilmentType.POISON, poisonBaseDamage * (1.0f + poisonDamagePercent),
                         poisonDuration, attacker);
             }
 
-            // Freeze
-            double chanceToFreeze = CombatUtility.getAttributeValue(attacker, ModAttributes.CHANCE_TO_FREEZE, weapon,
-                    "chance_to_freeze", source) +
-                    getEnchantmentValue(weapon, "minecraft:chance_to_freeze", 0.05) +
-                    getEnchantmentValue(chestplate, "minecraft:chance_to_freeze", 0.05);
-
-            if (Math.random() < chanceToFreeze) {
-                double freezeDuration = AilmentType.FREEZE.getBaseDuration()
-                        * (1.0 + attacker.getAttributeValue(ModAttributes.FREEZE_DURATION));
-                AilmentManager.applyAilment(target, AilmentType.FREEZE, 0.0f, freezeDuration, attacker);
+            // Freeze Buildup (Scales from Cold Damage vs Max Health)
+            if (finalColdDamage > 0) {
+                float freezeBuildupMultiplier = 1.0f + (float) CombatUtility.getAttributeValue(attacker, ModAttributes.FREEZE_BUILDUP_PERCENT, weapon,
+                        "freeze_buildup_percent", source) +
+                        (float) getEnchantmentValue(weapon, "minecraft:freeze_buildup_percent", 0.05) +
+                        (float) getEnchantmentValue(chestplate, "minecraft:freeze_buildup_percent", 0.05);
+                
+                float ailmentThreshold = Math.max(1.0f, target.getMaxHealth());
+                float buildupAmount = ((float)finalColdDamage * 5.0f / ailmentThreshold) * freezeBuildupMultiplier;
+                
+                if (buildupAmount > 0) {
+                    double freezeDuration = AilmentType.FREEZE.getBaseDuration()
+                            * (1.0 + attacker.getAttributeValue(ModAttributes.FREEZE_DURATION));
+                    AilmentManager.addFreezeBuildup(target, buildupAmount, freezeDuration, attacker);
+                }
             }
 
-            // Bleed
+            // Bleed (Scales from Physical Damage)
             double chanceToBleed = CombatUtility.getAttributeValue(attacker, ModAttributes.CHANCE_TO_BLEED, weapon,
                     "chance_to_bleed", source) +
                     getEnchantmentValue(weapon, "minecraft:chance_to_bleed", 0.05) +
                     getEnchantmentValue(chestplate, "minecraft:chance_to_bleed", 0.05);
 
-            if (Math.random() < chanceToBleed) {
+            if (physicalDamage > 0 && Math.random() < chanceToBleed) {
+                float bleedBurstPercent = (float) CombatUtility.getAttributeValue(attacker, ModAttributes.BLEED_BURST_DAMAGE_PERCENT, weapon,
+                        "bleed_burst_damage_percent", source) +
+                        (float) getEnchantmentValue(weapon, "minecraft:bleed_burst_damage_percent", 0.10);
+                
+                // Bleed deals 100% of physical damage as burst
+                float bleedBurstDamage = physicalDamage * (1.0f + bleedBurstPercent);
                 double bleedDuration = AilmentType.BLEED.getBaseDuration()
                         * (1.0 + attacker.getAttributeValue(ModAttributes.BLEED_DURATION));
-                AilmentManager.applyAilment(target, AilmentType.BLEED, 0.0f, bleedDuration, attacker);
+                AilmentManager.applyAilment(target, AilmentType.BLEED, bleedBurstDamage, bleedDuration, attacker);
             }
 
-            // Shock
+            // Shock (Enables Chain Lightning)
             double chanceToShock = CombatUtility.getAttributeValue(attacker, ModAttributes.CHANCE_TO_SHOCK, weapon,
                     "chance_to_shock", source) +
                     getEnchantmentValue(weapon, "minecraft:chance_to_shock", 0.05) +
                     getEnchantmentValue(chestplate, "minecraft:chance_to_shock", 0.05);
 
-            if (Math.random() < chanceToShock) {
+            if (finalLightningDamage > 0 && Math.random() < chanceToShock) {
                 double shockDuration = CombatUtility.getAttributeValue(attacker, ModAttributes.SHOCK_DURATION, weapon,
                         "shock_duration", source);
                 AilmentManager.applyAilment(target, AilmentType.SHOCK, 0.0f, shockDuration, attacker);
+            }
+
+            // Electrocute Buildup (Scales from Lightning Damage vs Max Health, faster than freeze)
+            if (finalLightningDamage > 0) {
+                float electrocuteBuildupMultiplier = 1.0f + (float) CombatUtility.getAttributeValue(attacker, ModAttributes.ELECTROCUTE_BUILDUP_PERCENT, weapon,
+                        "electrocute_buildup_percent", source) +
+                        (float) getEnchantmentValue(weapon, "minecraft:electrocute_buildup_percent", 0.05) +
+                        (float) getEnchantmentValue(chestplate, "minecraft:electrocute_buildup_percent", 0.05);
+                
+                float ailmentThreshold = Math.max(1.0f, target.getMaxHealth());
+                // Electrocute is easier to charge (x3 multiplier to buildup)
+                float buildupAmount = ((float)finalLightningDamage * 3.0f / ailmentThreshold) * electrocuteBuildupMultiplier;
+                
+                if (buildupAmount > 0) {
+                    double electrocuteDuration = AilmentType.ELECTROCUTE.getBaseDuration()
+                            * (1.0 + attacker.getAttributeValue(ModAttributes.ELECTROCUTE_DURATION));
+                    AilmentManager.addElectrocuteBuildup(target, buildupAmount, electrocuteDuration, attacker);
+                }
             }
 
         } finally {

@@ -1,0 +1,10 @@
+tasks.register('printRenderLayerMethods') {
+    doLast {
+        def urlClassLoader = new URLClassLoader(configurations.compileClasspath.collect { it.toURI().toURL() } as URL[], ClassLoader.getSystemClassLoader())
+        def renderLayerClass = urlClassLoader.loadClass("net.minecraft.client.render.RenderLayer")
+        renderLayerClass.getDeclaredMethods().each { method ->
+            println "RenderLayer METHOD: ${method.name}"
+            method.getParameterTypes().each { p -> println "  param: ${p.name}" }
+        }
+    }
+}

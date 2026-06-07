@@ -1,0 +1,260 @@
+﻿Compiled from "LivingEntityRendererMixin.java"
+public abstract class com.cranks.dungeons.mixin.client.LivingEntityRendererMixin<T extends net.minecraft.entity.LivingEntity, S extends net.minecraft.client.render.entity.state.LivingEntityRenderState, M extends net.minecraft.client.render.entity.model.EntityModel<? super S>> {
+  public com.cranks.dungeons.mixin.client.LivingEntityRendererMixin();
+    Code:
+       0: aload_0
+       1: invokespecial #1                  // Method java/lang/Object."<init>":()V
+       4: return
+
+  private void hideNametag(T, double, org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable<java.lang.Boolean>);
+    Code:
+       0: aload_1
+       1: instanceof    #7                  // class net/minecraft/entity/player/PlayerEntity
+       4: ifne          14
+       7: aload_1
+       8: invokevirtual #9                  // Method net/minecraft/entity/LivingEntity.hasCustomName:()Z
+      11: ifeq          32
+      14: getstatic     #15                 // Field com/cranks/dungeons/CranksDungeons.CONFIG:Lcom/cranks/dungeons/config/ModConfig;
+      17: invokevirtual #21                 // Method com/cranks/dungeons/config/ModConfig.showPlayerInfoAboveHead:()Z
+      20: ifeq          32
+      23: aload         4
+      25: iconst_0
+      26: invokestatic  #26                 // Method java/lang/Boolean.valueOf:(Z)Ljava/lang/Boolean;
+      29: invokevirtual #32                 // Method org/spongepowered/asm/mixin/injection/callback/CallbackInfoReturnable.setReturnValue:(Ljava/lang/Object;)V
+      32: return
+
+  private void freezeRenderState(T, S, float, org.spongepowered.asm.mixin.injection.callback.CallbackInfo);
+    Code:
+       0: aload_1
+       1: getstatic     #38                 // Field com/cranks/dungeons/effect/ModEffects.FREEZE:Lnet/minecraft/registry/entry/RegistryEntry;
+       4: invokevirtual #44                 // Method net/minecraft/entity/LivingEntity.hasStatusEffect:(Lnet/minecraft/registry/entry/RegistryEntry;)Z
+       7: ifne          20
+      10: aload_1
+      11: getstatic     #48                 // Field com/cranks/dungeons/effect/ModEffects.ELECTROCUTE:Lnet/minecraft/registry/entry/RegistryEntry;
+      14: invokevirtual #44                 // Method net/minecraft/entity/LivingEntity.hasStatusEffect:(Lnet/minecraft/registry/entry/RegistryEntry;)Z
+      17: ifeq          24
+      20: iconst_1
+      21: goto          25
+      24: iconst_0
+      25: istore        5
+      27: iload         5
+      29: ifeq          271
+      32: aload_2
+      33: aload_1
+      34: getfield      #51                 // Field net/minecraft/entity/LivingEntity.age:I
+      37: i2f
+      38: putfield      #55                 // Field net/minecraft/client/render/entity/state/LivingEntityRenderState.age:F
+      41: aload_2
+      42: aload_1
+      43: invokevirtual #60                 // Method net/minecraft/entity/LivingEntity.getBodyYaw:()F
+      46: putfield      #64                 // Field net/minecraft/client/render/entity/state/LivingEntityRenderState.bodyYaw:F
+      49: aload_2
+      50: aload_1
+      51: invokevirtual #67                 // Method net/minecraft/entity/LivingEntity.getPitch:()F
+      54: putfield      #70                 // Field net/minecraft/client/render/entity/state/LivingEntityRenderState.pitch:F
+      57: invokestatic  #73                 // Method net/minecraft/util/Util.getMeasuringTimeMs:()J
+      60: lstore        6
+      62: aload_2
+      63: invokevirtual #79                 // Method java/lang/Object.getClass:()Ljava/lang/Class;
+      66: invokestatic  #83                 // Method com/cranks/dungeons/util/AnimationStateCacher.getAnimFields:(Ljava/lang/Class;)Ljava/util/List;
+      69: invokeinterface #89,  1           // InterfaceMethod java/util/List.iterator:()Ljava/util/Iterator;
+      74: astore        8
+      76: aload         8
+      78: invokeinterface #95,  1           // InterfaceMethod java/util/Iterator.hasNext:()Z
+      83: ifeq          271
+      86: aload         8
+      88: invokeinterface #100,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+      93: checkcast     #104                // class java/lang/reflect/Field
+      96: astore        9
+      98: aload         9
+     100: aload_2
+     101: invokevirtual #106                // Method java/lang/reflect/Field.get:(Ljava/lang/Object;)Ljava/lang/Object;
+     104: checkcast     #110                // class net/minecraft/entity/AnimationState
+     107: astore        10
+     109: aload         10
+     111: ifnull        263
+     114: aload         10
+     116: invokevirtual #79                 // Method java/lang/Object.getClass:()Ljava/lang/Class;
+     119: invokevirtual #112                // Method java/lang/Class.getDeclaredFields:()[Ljava/lang/reflect/Field;
+     122: astore        11
+     124: aconst_null
+     125: astore        12
+     127: aconst_null
+     128: astore        13
+     130: aload         11
+     132: astore        14
+     134: aload         14
+     136: arraylength
+     137: istore        15
+     139: iconst_0
+     140: istore        16
+     142: iload         16
+     144: iload         15
+     146: if_icmpge     194
+     149: aload         14
+     151: iload         16
+     153: aaload
+     154: astore        17
+     156: aload         17
+     158: invokevirtual #118                // Method java/lang/reflect/Field.getType:()Ljava/lang/Class;
+     161: getstatic     #121                // Field java/lang/Long.TYPE:Ljava/lang/Class;
+     164: if_acmpne     188
+     167: aload         12
+     169: ifnonnull     179
+     172: aload         17
+     174: astore        12
+     176: goto          188
+     179: aload         13
+     181: ifnonnull     188
+     184: aload         17
+     186: astore        13
+     188: iinc          16, 1
+     191: goto          142
+     194: aload         12
+     196: ifnull        263
+     199: aload         13
+     201: ifnull        263
+     204: aload         12
+     206: iconst_1
+     207: invokevirtual #127                // Method java/lang/reflect/Field.setAccessible:(Z)V
+     210: aload         13
+     212: iconst_1
+     213: invokevirtual #127                // Method java/lang/reflect/Field.setAccessible:(Z)V
+     216: aload         12
+     218: aload         10
+     220: invokevirtual #131                // Method java/lang/reflect/Field.getLong:(Ljava/lang/Object;)J
+     223: lstore        14
+     225: aload         13
+     227: aload         10
+     229: invokevirtual #131                // Method java/lang/reflect/Field.getLong:(Ljava/lang/Object;)J
+     232: lstore        16
+     234: lload         14
+     236: lload         16
+     238: lcmp
+     239: ifle          254
+     242: aload         12
+     244: aload         10
+     246: lload         6
+     248: invokevirtual #135                // Method java/lang/reflect/Field.setLong:(Ljava/lang/Object;J)V
+     251: goto          263
+     254: aload         13
+     256: aload         10
+     258: lload         6
+     260: invokevirtual #135                // Method java/lang/reflect/Field.setLong:(Ljava/lang/Object;J)V
+     263: goto          268
+     266: astore        10
+     268: goto          76
+     271: aload_2
+     272: instanceof    #141                // class com/cranks/dungeons/client/render/StunRenderState
+     275: ifeq          334
+     278: aload_2
+     279: checkcast     #141                // class com/cranks/dungeons/client/render/StunRenderState
+     282: astore        6
+     284: aload         6
+     286: aload_1
+     287: getstatic     #38                 // Field com/cranks/dungeons/effect/ModEffects.FREEZE:Lnet/minecraft/registry/entry/RegistryEntry;
+     290: invokevirtual #44                 // Method net/minecraft/entity/LivingEntity.hasStatusEffect:(Lnet/minecraft/registry/entry/RegistryEntry;)Z
+     293: invokeinterface #143,  2          // InterfaceMethod com/cranks/dungeons/client/render/StunRenderState.cranks$setFrozen:(Z)V
+     298: aload         6
+     300: aload_1
+     301: getstatic     #48                 // Field com/cranks/dungeons/effect/ModEffects.ELECTROCUTE:Lnet/minecraft/registry/entry/RegistryEntry;
+     304: invokevirtual #44                 // Method net/minecraft/entity/LivingEntity.hasStatusEffect:(Lnet/minecraft/registry/entry/RegistryEntry;)Z
+     307: invokeinterface #146,  2          // InterfaceMethod com/cranks/dungeons/client/render/StunRenderState.cranks$setElectrocuted:(Z)V
+     312: aload         6
+     314: aload_1
+     315: invokevirtual #149                // Method net/minecraft/entity/LivingEntity.getWidth:()F
+     318: invokeinterface #152,  2          // InterfaceMethod com/cranks/dungeons/client/render/StunRenderState.cranks$setWidth:(F)V
+     323: aload         6
+     325: aload_1
+     326: invokevirtual #156                // Method net/minecraft/entity/LivingEntity.getHeight:()F
+     329: invokeinterface #159,  2          // InterfaceMethod com/cranks/dungeons/client/render/StunRenderState.cranks$setHeight:(F)V
+     334: return
+    Exception table:
+       from    to  target type
+          98   263   266   Class java/lang/Exception
+
+  private void renderVisuals(S, net.minecraft.client.util.math.MatrixStack, net.minecraft.client.render.VertexConsumerProvider, int, org.spongepowered.asm.mixin.injection.callback.CallbackInfo);
+    Code:
+       0: aload_1
+       1: instanceof    #141                // class com/cranks/dungeons/client/render/StunRenderState
+       4: ifeq          177
+       7: aload_1
+       8: checkcast     #141                // class com/cranks/dungeons/client/render/StunRenderState
+      11: astore        6
+      13: aload         6
+      15: invokeinterface #162,  1          // InterfaceMethod com/cranks/dungeons/client/render/StunRenderState.cranks$isFrozen:()Z
+      20: ifeq          116
+      23: aload_2
+      24: invokevirtual #165                // Method net/minecraft/client/util/math/MatrixStack.push:()V
+      27: aload         6
+      29: invokeinterface #170,  1          // InterfaceMethod com/cranks/dungeons/client/render/StunRenderState.cranks$getWidth:()F
+      34: ldc           #173                // float 0.5f
+      36: fadd
+      37: fstore        7
+      39: aload         6
+      41: invokeinterface #174,  1          // InterfaceMethod com/cranks/dungeons/client/render/StunRenderState.cranks$getHeight:()F
+      46: ldc           #173                // float 0.5f
+      48: fadd
+      49: fstore        8
+      51: fload         7
+      53: fload         8
+      55: invokestatic  #177                // Method java/lang/Math.max:(FF)F
+      58: fstore        9
+      60: aload_2
+      61: fconst_0
+      62: fload         8
+      64: fconst_2
+      65: fdiv
+      66: fconst_0
+      67: invokevirtual #183                // Method net/minecraft/client/util/math/MatrixStack.translate:(FFF)V
+      70: aload_2
+      71: fload         9
+      73: fload         9
+      75: fload         9
+      77: invokevirtual #187                // Method net/minecraft/client/util/math/MatrixStack.scale:(FFF)V
+      80: aload_2
+      81: ldc           #190                // float -0.5f
+      83: ldc           #190                // float -0.5f
+      85: ldc           #190                // float -0.5f
+      87: invokevirtual #183                // Method net/minecraft/client/util/math/MatrixStack.translate:(FFF)V
+      90: invokestatic  #191                // Method net/minecraft/client/MinecraftClient.getInstance:()Lnet/minecraft/client/MinecraftClient;
+      93: invokevirtual #197                // Method net/minecraft/client/MinecraftClient.getBlockRenderManager:()Lnet/minecraft/client/render/block/BlockRenderManager;
+      96: getstatic     #201                // Field net/minecraft/block/Blocks.ICE:Lnet/minecraft/block/Block;
+      99: invokevirtual #207                // Method net/minecraft/block/Block.getDefaultState:()Lnet/minecraft/block/BlockState;
+     102: aload_2
+     103: aload_3
+     104: iload         4
+     106: getstatic     #213                // Field net/minecraft/client/render/OverlayTexture.DEFAULT_UV:I
+     109: invokevirtual #218                // Method net/minecraft/client/render/block/BlockRenderManager.renderBlockAsEntity:(Lnet/minecraft/block/BlockState;Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;II)V
+     112: aload_2
+     113: invokevirtual #224                // Method net/minecraft/client/util/math/MatrixStack.pop:()V
+     116: aload         6
+     118: invokeinterface #227,  1          // InterfaceMethod com/cranks/dungeons/client/render/StunRenderState.cranks$isElectrocuted:()Z
+     123: ifeq          177
+     126: aload_0
+     127: invokevirtual #230                // Method getModel:()Lnet/minecraft/client/render/entity/model/EntityModel;
+     130: astore        7
+     132: aload         7
+     134: ifnull        177
+     137: aload_1
+     138: getfield      #55                 // Field net/minecraft/client/render/entity/state/LivingEntityRenderState.age:F
+     141: ldc           #236                // float 0.01f
+     143: fmul
+     144: fstore        8
+     146: aload_3
+     147: ldc           #237                // String minecraft
+     149: ldc           #239                // String textures/entity/creeper/creeper_armor.png
+     151: invokestatic  #241                // Method net/minecraft/util/Identifier.of:(Ljava/lang/String;Ljava/lang/String;)Lnet/minecraft/util/Identifier;
+     154: invokestatic  #247                // Method net/minecraft/client/render/RenderLayers.textSeeThrough:(Lnet/minecraft/util/Identifier;)Lnet/minecraft/client/render/RenderLayer;
+     157: invokeinterface #253,  2          // InterfaceMethod net/minecraft/client/render/VertexConsumerProvider.getBuffer:(Lnet/minecraft/client/render/RenderLayer;)Lnet/minecraft/client/render/VertexConsumer;
+     162: astore        9
+     164: aload         7
+     166: aload_2
+     167: aload         9
+     169: iload         4
+     171: getstatic     #213                // Field net/minecraft/client/render/OverlayTexture.DEFAULT_UV:I
+     174: invokevirtual #259                // Method net/minecraft/client/render/entity/model/EntityModel.render:(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumer;II)V
+     177: return
+
+  public abstract M getModel();
+}

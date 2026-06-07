@@ -31,9 +31,14 @@ public abstract class MobAttackSlowdownMixin {
 
         @Inject(method = "tick", at = @At("TAIL"))
         private void slowMeleeAttack(CallbackInfo ci) {
-            if (this.bonus$mob != null && this.bonus$mob.hasStatusEffect(ModEffects.FREEZE)) {
-                if (this.bonus$mob.getEntityWorld().getTime() % 2 == 0 && this.cooldown > 0) {
-                    this.cooldown++;
+            if (this.bonus$mob != null && this.cooldown > 0) {
+                if (this.bonus$mob.hasStatusEffect(ModEffects.FREEZE) || this.bonus$mob.hasStatusEffect(ModEffects.ELECTROCUTE)) {
+                    this.cooldown++; // Full freeze = cooldown doesn't tick down
+                } else {
+                    float buildup = com.cranks.dungeons.ailment.AilmentManager.getFreezeBuildup(this.bonus$mob.getUuid());
+                    if (buildup > 0 && Math.random() < buildup * 0.35) {
+                        this.cooldown++; // Fractional slowdown
+                    }
                 }
             }
         }
@@ -51,9 +56,14 @@ public abstract class MobAttackSlowdownMixin {
 
         @Inject(method = "tick", at = @At("TAIL"))
         private void slowBowAttack(CallbackInfo ci) {
-            if (this.bonus$mob != null && this.bonus$mob.hasStatusEffect(ModEffects.FREEZE)) {
-                if (this.bonus$mob.getEntityWorld().getTime() % 2 == 0 && this.cooldown > 0) {
-                    this.cooldown++;
+            if (this.bonus$mob != null && this.cooldown > 0) {
+                if (this.bonus$mob.hasStatusEffect(ModEffects.FREEZE) || this.bonus$mob.hasStatusEffect(ModEffects.ELECTROCUTE)) {
+                    this.cooldown++; // Full freeze = cooldown doesn't tick down
+                } else {
+                    float buildup = com.cranks.dungeons.ailment.AilmentManager.getFreezeBuildup(this.bonus$mob.getUuid());
+                    if (buildup > 0 && Math.random() < buildup * 0.35) {
+                        this.cooldown++;
+                    }
                 }
             }
         }
@@ -62,18 +72,11 @@ public abstract class MobAttackSlowdownMixin {
     @Mixin(CrossbowAttackGoal.class)
     public static abstract class Crossbow {
         @Unique private MobEntity bonus$mob;
-        // CrossbowAttackGoal logic is slightly different, it uses a state machine
-        // but it still has a cooldown after firing.
 
         @Inject(method = "<init>", at = @At("RETURN"))
         private void captureMob(net.minecraft.entity.mob.HostileEntity mob, double speed, float range, CallbackInfo ci) {
             this.bonus$mob = mob;
         }
-        
-        // CrossbowAttackGoal doesn't have a simple cooldown field in some versions,
-        // it relies on the item use time or internal timers.
-        // However, we can slow down the overall tick or modify the state.
-        // For simplicity, we skip Crossbow for now OR find its timer.
     }
 
     @Mixin(ProjectileAttackGoal.class)
@@ -88,9 +91,14 @@ public abstract class MobAttackSlowdownMixin {
 
         @Inject(method = "tick", at = @At("TAIL"))
         private void slowProjectileAttack(CallbackInfo ci) {
-            if (this.bonus$mob != null && this.bonus$mob.hasStatusEffect(ModEffects.FREEZE)) {
-                if (this.bonus$mob.getEntityWorld().getTime() % 2 == 0 && this.updateCountdownTicks > 0) {
+            if (this.bonus$mob != null && this.updateCountdownTicks > 0) {
+                if (this.bonus$mob.hasStatusEffect(ModEffects.FREEZE) || this.bonus$mob.hasStatusEffect(ModEffects.ELECTROCUTE)) {
                     this.updateCountdownTicks++;
+                } else {
+                    float buildup = com.cranks.dungeons.ailment.AilmentManager.getFreezeBuildup(this.bonus$mob.getUuid());
+                    if (buildup > 0 && Math.random() < buildup * 0.35) {
+                        this.updateCountdownTicks++;
+                    }
                 }
             }
         }

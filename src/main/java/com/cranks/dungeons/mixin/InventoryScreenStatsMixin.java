@@ -331,11 +331,11 @@ public abstract class InventoryScreenStatsMixin {
                                         baseBleed * 100, "%", mouseX, mouseY, panelX, panelWidth);
 
                         // FREEZE
-                        double baseFreeze = cranks$getPassiveBase(player, ModAttributes.CHANCE_TO_FREEZE);
-                        double totalFreeze = player.getAttributeValue(ModAttributes.CHANCE_TO_FREEZE)
-                                        + getEnchantmentValue(weapon, "minecraft:chance_to_freeze", 0.05)
-                                        + getEnchantmentValue(chestplate, "minecraft:chance_to_freeze", 0.05);
-                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Freeze", totalFreeze * 100,
+                        double baseFreeze = cranks$getPassiveBase(player, ModAttributes.FREEZE_BUILDUP_PERCENT);
+                        double totalFreeze = player.getAttributeValue(ModAttributes.FREEZE_BUILDUP_PERCENT)
+                                        + getEnchantmentValue(weapon, "minecraft:freeze_buildup_percent", 0.05)
+                                        + getEnchantmentValue(chestplate, "minecraft:freeze_buildup_percent", 0.05);
+                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Freeze Buildup", totalFreeze * 100,
                                         baseFreeze * 100, "%", mouseX, mouseY, panelX, panelWidth);
 
                         // SHOCK
@@ -345,6 +345,14 @@ public abstract class InventoryScreenStatsMixin {
                                         + getEnchantmentValue(chestplate, "minecraft:chance_to_shock", 0.05);
                         curY = drawStatWithTooltip(context, tr, panelX, curY, "Shock", totalShock * 100,
                                         baseShock * 100, "%", mouseX, mouseY, panelX, panelWidth);
+
+                        // ELECTROCUTE
+                        double baseElectrocute = cranks$getPassiveBase(player, ModAttributes.ELECTROCUTE_BUILDUP_PERCENT);
+                        double totalElectrocute = player.getAttributeValue(ModAttributes.ELECTROCUTE_BUILDUP_PERCENT)
+                                        + getEnchantmentValue(weapon, "minecraft:electrocute_buildup_percent", 0.05)
+                                        + getEnchantmentValue(chestplate, "minecraft:electrocute_buildup_percent", 0.05);
+                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Electrocute Buildup", totalElectrocute * 100,
+                                        baseElectrocute * 100, "%", mouseX, mouseY, panelX, panelWidth);
 
                         curY += 6;
 

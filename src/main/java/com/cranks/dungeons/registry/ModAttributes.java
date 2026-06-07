@@ -107,13 +107,18 @@ public class ModAttributes {
     public static final RegistryEntry<EntityAttribute> POISON_MAX_STACKS = register("poison_max_stacks", 0.0, 0.0,
             100.0);
 
-    public static final RegistryEntry<EntityAttribute> CHANCE_TO_FREEZE = register("chance_to_freeze", 0.0, 0.0, 1.0);
+    public static final RegistryEntry<EntityAttribute> FREEZE_BUILDUP_PERCENT = register("freeze_buildup_percent", 0.0, 0.0, 10.0);
     public static final RegistryEntry<EntityAttribute> FREEZE_DURATION = register("freeze_duration", 0.0, 0.0, 10.0);
+    
     public static final RegistryEntry<EntityAttribute> CHANCE_TO_BLEED = register("chance_to_bleed", 0.0, 0.0, 1.0);
     public static final RegistryEntry<EntityAttribute> BLEED_DURATION = register("bleed_duration", 0.0, 0.0, 10.0);
+    public static final RegistryEntry<EntityAttribute> BLEED_BURST_DAMAGE_PERCENT = register("bleed_burst_damage_percent", 0.0, 0.0, 100.0);
 
     public static final RegistryEntry<EntityAttribute> CHANCE_TO_SHOCK = register("chance_to_shock", 0.0, 0.0, 1.0);
     public static final RegistryEntry<EntityAttribute> SHOCK_DURATION = register("shock_duration", 3.0, 0.0, 60.0);
+    
+    public static final RegistryEntry<EntityAttribute> ELECTROCUTE_BUILDUP_PERCENT = register("electrocute_buildup_percent", 0.0, 0.0, 10.0);
+    public static final RegistryEntry<EntityAttribute> ELECTROCUTE_DURATION = register("electrocute_duration", 0.0, 0.0, 10.0);
     public static final RegistryEntry<EntityAttribute> MAX_HEALTH_PERCENT = register("max_health_percent", 0.0, 0.0, 10.0);
     public static final RegistryEntry<EntityAttribute> ARMOR_PERCENT = register("armor_percent", 0.0, 0.0, 10.0);
     public static final RegistryEntry<EntityAttribute> ENERGY_SHIELD_PERCENT = register("energy_shield_percent", 0.0, 0.0, 10.0);

@@ -14,6 +14,7 @@ public class ModEffects {
     public static RegistryEntry<StatusEffect> FREEZE;
     public static RegistryEntry<StatusEffect> BLEED;
     public static RegistryEntry<StatusEffect> SHOCK;
+    public static RegistryEntry<StatusEffect> ELECTROCUTE;
 
     public static void registerEffects() {
         Identifier burnId = Identifier.of(CranksDungeons.MOD_ID, "burn");
@@ -35,6 +36,10 @@ public class ModEffects {
         Identifier shockId = Identifier.of(CranksDungeons.MOD_ID, "shock");
         Registry.register(Registries.STATUS_EFFECT, shockId, new ShockStatusEffect());
         SHOCK = Registries.STATUS_EFFECT.getEntry(shockId).orElseThrow();
+        
+        Identifier electrocuteId = Identifier.of(CranksDungeons.MOD_ID, "electrocute");
+        Registry.register(Registries.STATUS_EFFECT, electrocuteId, new ElectrocuteStatusEffect());
+        ELECTROCUTE = Registries.STATUS_EFFECT.getEntry(electrocuteId).orElseThrow();
 
         CranksDungeons.LOGGER.info("Registering effects for " + CranksDungeons.MOD_ID);
     }

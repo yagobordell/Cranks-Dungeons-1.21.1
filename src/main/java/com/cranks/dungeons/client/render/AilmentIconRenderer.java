@@ -35,7 +35,7 @@ public class AilmentIconRenderer {
         return AILMENT_CACHE.getOrDefault(entityId, List.of());
     }
 
-    private static final Identifier FONT_TEXTURE = Identifier.ofVanilla("textures/font/ascii.png");
+
 
     public static void render(WorldRenderContext context, VertexConsumerProvider consumers) {
         MinecraftClient client = MinecraftClient.getInstance();
@@ -66,9 +66,9 @@ public class AilmentIconRenderer {
 
                 matrices.push();
                 
-                // Position above head
+                // Position above head, high enough to clear the stat bar
                 double wx = MathHelper.lerp(tickDelta, living.lastRenderX, living.getX()) - cameraX;
-                double wy = MathHelper.lerp(tickDelta, living.lastRenderY, living.getY()) - cameraY + living.getHeight() + 0.85;
+                double wy = MathHelper.lerp(tickDelta, living.lastRenderY, living.getY()) - cameraY + living.getHeight() + 1.1;
                 double wz = MathHelper.lerp(tickDelta, living.lastRenderZ, living.getZ()) - cameraZ;
 
                 matrices.translate(wx, wy, wz);
@@ -94,8 +94,20 @@ public class AilmentIconRenderer {
                     
                     renderIcon(matrices, info.texture(), size, consumers);
                     
-                    if (info.stacks() > 1) {
-                        renderStacks(matrices, info.stacks(), size, consumers);
+                    // Flush the icon so that the see-through text draws completely over it
+                    if (consumers instanceof net.minecraft.client.render.VertexConsumerProvider.Immediate immediate) {
+                        immediate.draw();
+                    }
+                    
+                    if (info.texture().getPath().contains("buildup")) {
+                        renderStacks(matrices, info.stacks() + "%", size, consumers);
+                    } else if (info.stacks() > 1) {
+                        renderStacks(matrices, "x" + info.stacks(), size, consumers);
+                    }
+                    
+                    // Flush the text
+                    if (consumers instanceof net.minecraft.client.render.VertexConsumerProvider.Immediate immediate) {
+                        immediate.draw();
                     }
                     
                     matrices.pop();
@@ -106,53 +118,47 @@ public class AilmentIconRenderer {
         }
     }
 
-    private static void renderStacks(MatrixStack matrices, int stacks, float iconSize, VertexConsumerProvider consumers) {
+    private static void renderStacks(MatrixStack matrices, String text, float iconSize, VertexConsumerProvider consumers) {
+        TextRenderer textRenderer = MinecraftClient.getInstance().textRenderer;
+        
         matrices.push();
-        // Shift to bottom-right corner, push forward by -0.2f
-        matrices.translate(-iconSize * 0.45f, -iconSize * 0.3f, -0.2f);
         
-        String text = "x" + stacks;
-        float charSize = iconSize * 0.4f;
-        float charSpacing = charSize * 0.6f;
+        // Position vertically centered, and slightly pulled forward in text space
+        matrices.translate(0, 0, -0.05f);
         
-        VertexConsumer buffer = consumers.getBuffer(RenderLayers.entityTranslucent(FONT_TEXTURE));
-        MatrixStack.Entry entry = matrices.peek();
-
-        for (int i = 0; i < text.length(); i++) {
-            char c = text.charAt(i);
-            drawChar(buffer, entry, c, i * charSpacing, 0, charSize);
-        }
+        // Scale down from world space to text space
+        float textScale = iconSize * 0.035f;
+        matrices.scale(-textScale, -textScale, textScale);
+        
+        // Center the text
+        float textWidth = textRenderer.getWidth(text);
+        
+        textRenderer.draw(
+            text,
+            -textWidth / 2f,
+            0,
+            0xFFFFFFFF, // white with full alpha
+            true, // shadow for readability
+            matrices.peek().getPositionMatrix(),
+            consumers,
+            TextRenderer.TextLayerType.NORMAL,
+            0x40000000, // semi-transparent black background
+            LightmapTextureManager.MAX_LIGHT_COORDINATE
+        );
         
         matrices.pop();
     }
 
-    private static void drawChar(VertexConsumer buffer, MatrixStack.Entry entry, char c, float x, float y, float size) {
-        // ASCII font texture is 16x16 grid
-        int uIdx = c % 16;
-        int vIdx = c / 16;
-        float u1 = uIdx / 16f;
-        float v1 = vIdx / 16f;
-        float u2 = (uIdx + 1) / 16f;
-        float v2 = (vIdx + 1) / 16f;
-
-        float half = size / 2f;
-        // Flip UVs (u1/u2 swap) to fix mirroring
-        vertex(buffer, entry, x - half, y - half, 0, u2, v2);
-        vertex(buffer, entry, x + half, y - half, 0, u1, v2);
-        vertex(buffer, entry, x + half, y + half, 0, u1, v1);
-        vertex(buffer, entry, x - half, y + half, 0, u2, v1);
-    }
-
     private static void renderIcon(MatrixStack matrices, Identifier texture, float size, VertexConsumerProvider consumers) {
-        VertexConsumer buffer = consumers.getBuffer(RenderLayers.entityTranslucent(texture));
+        VertexConsumer buffer = consumers.getBuffer(RenderLayers.text(texture));
         MatrixStack.Entry entry = matrices.peek();
         
         float half = size / 2f;
-        // Base Icon
-        vertex(buffer, entry, -half, -half, 0, 0, 1, 255);
-        vertex(buffer, entry, half, -half, 0, 1, 1, 255);
-        vertex(buffer, entry, half, half, 0, 1, 0, 255);
-        vertex(buffer, entry, -half, half, 0, 0, 0, 255);
+        // +X is left on screen, +Y is up. Trace CCW: Top-Left -> Bottom-Left -> Bottom-Right -> Top-Right
+        vertex(buffer, entry, half, half, 0, 0, 0, 255);      // Top-Left (U=0, V=0)
+        vertex(buffer, entry, half, -half, 0, 0, 1, 255);     // Bottom-Left (U=0, V=1)
+        vertex(buffer, entry, -half, -half, 0, 1, 1, 255);    // Bottom-Right (U=1, V=1)
+        vertex(buffer, entry, -half, half, 0, 1, 0, 255);     // Top-Right (U=1, V=0)
     }
 
     private static void vertex(VertexConsumer buffer, MatrixStack.Entry entry, float x, float y, float z, float u, float v) {

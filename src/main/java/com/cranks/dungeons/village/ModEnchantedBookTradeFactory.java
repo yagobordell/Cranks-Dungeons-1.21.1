@@ -31,7 +31,7 @@ public class ModEnchantedBookTradeFactory implements TradeOffers.Factory {
         String[] modEnchantmentIds = {
             "attack_damage", "attack_range", "attack_speed",
             "bonus_armor", "bonus_knockback",
-            "breaking_range", "chance_to_burn", "chance_to_freeze",
+            "breaking_range", "chance_to_burn", "freeze_buildup_percent",
             "chance_to_poison", "chance_to_shock", "cold_damage",
             "cold_resistance", "crit_chance", "crop_fortune",
             "depth_strider", "dig_fortune", "durability_bonus",
@@ -43,7 +43,7 @@ public class ModEnchantedBookTradeFactory implements TradeOffers.Factory {
             "max_health_bonus", "mining_efficiency", "movement_speed_bonus",
             "ore_fortune", "reload_speed", "repair_chance", "respiration",
             "riptide", "soul_speed", "void_damage", "void_resistance",
-            "wind_burst"
+            "wind_burst", "electrocute_buildup_percent", "burn_damage_percent", "bleed_burst_damage_percent"
         };
         
         // Populate mod enchantment keys list

@@ -84,7 +84,9 @@
 		"MobAttackSlowdownMixin$Projectile",
 		"EnchantmentLevelMixin",
 		"ItemStackAttributeMixin",
-		"ProjectileEntityMixin"
+		"ProjectileEntityMixin",
+		"ServerWorldFreezeMixin",
+		"ClientWorldFreezeMixin"
 	],
 	"client": [
 		"HideArmorAttributeMixin",
@@ -99,8 +101,10 @@
 		"DisableArmorBarMixin",
 		"OverflowingBarsAilmentMixin",
 		"client.LivingEntityRendererMixin",
+		"client.LivingEntityRenderStateMixin",
 		"client.InGameHudMixin",
-		"client.TooltipBackgroundMixin"
+		"client.TooltipBackgroundMixin",
+		"FreezeVisualMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

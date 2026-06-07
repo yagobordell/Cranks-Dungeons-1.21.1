@@ -38,6 +38,10 @@ import java.util.UUID;
 public class AilmentManager {
 
     private static final Map<java.util.UUID, List<Ailment>> ENTITY_AILMENTS = new ConcurrentHashMap<>();
+    private static final Map<java.util.UUID, Float> FREEZE_BUILDUP = new ConcurrentHashMap<>();
+    private static final Map<java.util.UUID, Float> ELECTROCUTE_BUILDUP = new ConcurrentHashMap<>();
+    private static final Map<java.util.UUID, Long> FREEZE_BUILDUP_LAST_HIT = new ConcurrentHashMap<>();
+    private static final Map<java.util.UUID, Long> ELECTROCUTE_BUILDUP_LAST_HIT = new ConcurrentHashMap<>();
     private static final int POISON_STACK_CAP = 20;
     
     // Track entities currently being processed by shock chain to prevent recursion
@@ -82,6 +86,52 @@ public class AilmentManager {
         } else {
             BLEED_DAMAGE_IN_PROGRESS.remove(entityUuid);
         }
+    }
+
+    public static float getFreezeBuildup(UUID entityUuid) {
+        return FREEZE_BUILDUP.getOrDefault(entityUuid, 0.0f);
+    }
+
+    public static float getElectrocuteBuildup(UUID entityUuid) {
+        return ELECTROCUTE_BUILDUP.getOrDefault(entityUuid, 0.0f);
+    }
+
+    public static void addFreezeBuildup(LivingEntity target, float amount, double duration, Entity source) {
+        if (hasAilment(target, AilmentType.FREEZE)) {
+            com.cranks.dungeons.CranksDungeons.LOGGER.info("[FREEZE_DEBUG] addFreezeBuildup BLOCKED - entity already has FREEZE ailment");
+            return;
+        }
+        float current = getFreezeBuildup(target.getUuid());
+        float newBuildup = current + amount;
+        com.cranks.dungeons.CranksDungeons.LOGGER.info("[FREEZE_DEBUG] addFreezeBuildup: current={} + amount={} = newBuildup={} ({}%)", 
+            String.format("%.4f", current), String.format("%.4f", amount), String.format("%.4f", newBuildup), (int)(newBuildup * 100));
+        
+        if (newBuildup >= 1.0f) {
+            com.cranks.dungeons.CranksDungeons.LOGGER.info("[FREEZE_DEBUG] THRESHOLD REACHED! Removing buildup and applying FREEZE ailment");
+            FREEZE_BUILDUP.remove(target.getUuid());
+            FREEZE_BUILDUP_LAST_HIT.remove(target.getUuid());
+            applyAilment(target, AilmentType.FREEZE, 0.0f, duration, source);
+        } else {
+            FREEZE_BUILDUP.put(target.getUuid(), newBuildup);
+            FREEZE_BUILDUP_LAST_HIT.put(target.getUuid(), target.getEntityWorld().getTime());
+        }
+        syncAilments(target);
+    }
+
+    public static void addElectrocuteBuildup(LivingEntity target, float amount, double duration, Entity source) {
+        if (hasAilment(target, AilmentType.ELECTROCUTE)) return;
+        float current = getElectrocuteBuildup(target.getUuid());
+        float newBuildup = current + amount;
+        
+        if (newBuildup >= 1.0f) {
+            ELECTROCUTE_BUILDUP.remove(target.getUuid());
+            ELECTROCUTE_BUILDUP_LAST_HIT.remove(target.getUuid());
+            applyAilment(target, AilmentType.ELECTROCUTE, 0.0f, duration, source);
+        } else {
+            ELECTROCUTE_BUILDUP.put(target.getUuid(), newBuildup);
+            ELECTROCUTE_BUILDUP_LAST_HIT.put(target.getUuid(), target.getEntityWorld().getTime());
+        }
+        syncAilments(target);
     }
 
     public static void applyAilment(LivingEntity target, AilmentType type, float baseDamage, double duration, Entity source) {
@@ -155,7 +205,7 @@ public class AilmentManager {
         int ticks = (int)(duration * 20);
         switch (type) {
             case BURN -> {
-                StatusEffectInstance instance = StatusEffectHelper.create(
+                StatusEffectInstance instance = new StatusEffectInstance(
                         ModEffects.BURN, ticks, 0, false, false, true);
                 if (instance != null) {
                     target.addStatusEffect(instance);
@@ -167,29 +217,36 @@ public class AilmentManager {
                 // For poison, use stack count as amplifier
                 // amplifier 0 = +1, 1 = +2, etc. (from potion.potency translations)
                 int amplifier = Math.max(0, stackCount - 1);
-                StatusEffectInstance instance = StatusEffectHelper.create(
+                StatusEffectInstance instance = new StatusEffectInstance(
                         ModEffects.POISON, ticks, amplifier, false, false, true);
                 if (instance != null) {
                     target.addStatusEffect(instance);
                 }
             }
             case FREEZE -> {
-                StatusEffectInstance instance = StatusEffectHelper.create(
+                StatusEffectInstance instance = new StatusEffectInstance(
                         ModEffects.FREEZE, ticks, 0, false, false, true);
                 if (instance != null) {
                     target.addStatusEffect(instance);
                 }
             }
             case BLEED -> {
-                StatusEffectInstance instance = StatusEffectHelper.create(
+                StatusEffectInstance instance = new StatusEffectInstance(
                         ModEffects.BLEED, ticks, 0, false, false, true);
                 if (instance != null) {
                     target.addStatusEffect(instance);
                 }
             }
             case SHOCK -> {
-                StatusEffectInstance instance = StatusEffectHelper.create(
+                StatusEffectInstance instance = new StatusEffectInstance(
                         ModEffects.SHOCK, ticks, 0, false, false, true);
+                if (instance != null) {
+                    target.addStatusEffect(instance);
+                }
+            }
+            case ELECTROCUTE -> {
+                StatusEffectInstance instance = new StatusEffectInstance(
+                        ModEffects.ELECTROCUTE, ticks, 0, false, false, true);
                 if (instance != null) {
                     target.addStatusEffect(instance);
                 }
@@ -208,6 +265,20 @@ public class AilmentManager {
         checkAndAddSyncEntry(entity, ModEffects.FREEZE, Identifier.of(com.cranks.dungeons.CranksDungeons.MOD_ID, "textures/mob_effect/freeze.png"), entries);
         checkAndAddSyncEntry(entity, ModEffects.SHOCK, Identifier.of(com.cranks.dungeons.CranksDungeons.MOD_ID, "textures/mob_effect/shock.png"), entries);
         checkAndAddSyncEntry(entity, ModEffects.BLEED, Identifier.of(com.cranks.dungeons.CranksDungeons.MOD_ID, "textures/mob_effect/bleed.png"), entries);
+        checkAndAddSyncEntry(entity, ModEffects.ELECTROCUTE, Identifier.of(com.cranks.dungeons.CranksDungeons.MOD_ID, "textures/mob_effect/electrocute.png"), entries);
+
+        float freezeBuildup = getFreezeBuildup(entity.getUuid());
+        if (freezeBuildup > 0 && !entity.hasStatusEffect(ModEffects.FREEZE)) {
+            int displayPercent = (int)(freezeBuildup * 100);
+            com.cranks.dungeons.CranksDungeons.LOGGER.info("[FREEZE_DEBUG] SYNC: freezeBuildup={} -> displayPercent={}%", 
+                String.format("%.4f", freezeBuildup), displayPercent);
+            entries.add(new AilmentSyncPayload.AilmentEntry(Identifier.of(com.cranks.dungeons.CranksDungeons.MOD_ID, "textures/mob_effect/freeze_buildup.png"), displayPercent));
+        }
+
+        float electrocuteBuildup = getElectrocuteBuildup(entity.getUuid());
+        if (electrocuteBuildup > 0 && !entity.hasStatusEffect(ModEffects.ELECTROCUTE)) {
+            entries.add(new AilmentSyncPayload.AilmentEntry(Identifier.of(com.cranks.dungeons.CranksDungeons.MOD_ID, "textures/mob_effect/electrocute_buildup.png"), (int)(electrocuteBuildup * 100)));
+        }
 
         AilmentSyncPayload payload = new AilmentSyncPayload(entity.getId(), entries);
         
@@ -270,8 +341,44 @@ public class AilmentManager {
             return;
         }
 
+        // Decay buildups
+        boolean buildupChanged = false;
+        long currentTime = entity.getEntityWorld().getTime();
+        
+        if (FREEZE_BUILDUP.containsKey(entity.getUuid())) {
+            long lastHit = FREEZE_BUILDUP_LAST_HIT.getOrDefault(entity.getUuid(), 0L);
+            if (currentTime - lastHit > 40) { // 2 seconds grace period
+                float current = FREEZE_BUILDUP.get(entity.getUuid());
+                float newBuildup = current - 0.0025f; // Decay 5% per second (0.0025 per tick)
+                com.cranks.dungeons.CranksDungeons.LOGGER.info("[FREEZE_DEBUG] DECAY: current={} -> newBuildup={} ({}%)", 
+                    String.format("%.4f", current), String.format("%.4f", newBuildup), (int)(newBuildup * 100));
+                if (newBuildup <= 0) {
+                    FREEZE_BUILDUP.remove(entity.getUuid());
+                    FREEZE_BUILDUP_LAST_HIT.remove(entity.getUuid());
+                } else {
+                    FREEZE_BUILDUP.put(entity.getUuid(), newBuildup);
+                }
+                buildupChanged = true;
+            }
+        }
+        
+        if (ELECTROCUTE_BUILDUP.containsKey(entity.getUuid())) {
+            long lastHit = ELECTROCUTE_BUILDUP_LAST_HIT.getOrDefault(entity.getUuid(), 0L);
+            if (currentTime - lastHit > 40) { // 2 seconds grace period
+                float current = ELECTROCUTE_BUILDUP.get(entity.getUuid());
+                float newBuildup = current - 0.01f; // Decay 20% per second (0.01 per tick)
+                if (newBuildup <= 0) {
+                    ELECTROCUTE_BUILDUP.remove(entity.getUuid());
+                    ELECTROCUTE_BUILDUP_LAST_HIT.remove(entity.getUuid());
+                } else {
+                    ELECTROCUTE_BUILDUP.put(entity.getUuid(), newBuildup);
+                }
+                buildupChanged = true;
+            }
+        }
+
         // Periodic sync for duration progress and reaction cooldowns
-        if (entity.getEntityWorld().getTime() % 10 == 0) {
+        if (entity.getEntityWorld().getTime() % 10 == 0 || buildupChanged) {
             syncAilments(entity);
         }
 
@@ -336,6 +443,15 @@ public class AilmentManager {
                     entity.removeStatusEffect(ModEffects.BLEED);
                 } else {
                     toRemove.add(ailment);
+                    if (ailment.getType() == AilmentType.BURN) {
+                        entity.removeStatusEffect(ModEffects.BURN);
+                    } else if (ailment.getType() == AilmentType.FREEZE) {
+                        entity.removeStatusEffect(ModEffects.FREEZE);
+                    } else if (ailment.getType() == AilmentType.SHOCK) {
+                        entity.removeStatusEffect(ModEffects.SHOCK);
+                    } else if (ailment.getType() == AilmentType.ELECTROCUTE) {
+                        entity.removeStatusEffect(ModEffects.ELECTROCUTE);
+                    }
                 }
             }
         }
@@ -597,11 +713,14 @@ public class AilmentManager {
 
     public static void clearAllAilments(LivingEntity target) {
         ENTITY_AILMENTS.remove(target.getUuid());
+        FREEZE_BUILDUP.remove(target.getUuid());
+        ELECTROCUTE_BUILDUP.remove(target.getUuid());
         target.removeStatusEffect(ModEffects.POISON);
         target.removeStatusEffect(ModEffects.BURN);
         target.removeStatusEffect(ModEffects.FREEZE);
         target.removeStatusEffect(ModEffects.BLEED);
         target.removeStatusEffect(ModEffects.SHOCK);
+        target.removeStatusEffect(ModEffects.ELECTROCUTE);
     }
 
     public static double getAilmentDuration(LivingEntity target, AilmentType type) {
