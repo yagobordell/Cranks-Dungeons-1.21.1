@@ -66,6 +66,7 @@ public class CranksDungeons implements ModInitializer {
 		ModNetworking.registerServerReceivers();
 		EnchantmentDisableTickHandler.register();
 		EquipmentChangeHandler.register();
+		com.cranks.dungeons.util.TwoHandedWeaponHandler.register();
 		ModBlockEntities.register();
 		ModItems.registerModItems();
 		ModScreenHandlers.register();

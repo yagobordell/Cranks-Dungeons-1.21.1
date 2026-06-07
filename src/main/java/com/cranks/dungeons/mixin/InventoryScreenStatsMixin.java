@@ -516,6 +516,9 @@ public abstract class InventoryScreenStatsMixin {
         @Unique
         private String getStatDescription(String statName) {
                 return switch (statName) {
+                        case "Strength" -> "Every 10 Strength grants +5 Max Health";
+                        case "Dexterity" -> "Every 10 Dexterity grants +20 Evasion Rating";
+                        case "Intelligence" -> "Every 10 Intelligence grants +5 Maximum Mana";
                         case "Physical Damage" -> "Physical damage dealt per hit";
                         case "Total Damage" -> "Combined damage from physical and all elemental sources";
                         case "Elemental Damage" -> "Increased damage for all elements (Fire, Cold, Lightning, Void)";

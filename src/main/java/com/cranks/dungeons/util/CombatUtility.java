@@ -108,12 +108,17 @@ public class CombatUtility {
         };
     }
 
+    public static boolean isTwoHandedWeapon(ItemStack stack) {
+        EquipmentType type = EquipmentType.getTypeForItem(stack).orElse(null);
+        return type == EquipmentType.SPEAR || type == EquipmentType.BOW || type == EquipmentType.CROSSBOW || type == EquipmentType.TRIDENT;
+    }
+
     public static boolean isTwoHanding(LivingEntity entity, ItemStack mainWeapon) {
-        ItemStack offhand = entity.getOffHandStack();
-        return offhand.isEmpty();
+        return isTwoHandedWeapon(mainWeapon);
     }
 
     public static boolean isDualWielding(LivingEntity entity, ItemStack mainWeapon) {
+        if (isTwoHandedWeapon(mainWeapon)) return false;
         ItemStack offhand = entity.getOffHandStack();
         if (offhand.isEmpty())
             return false;
@@ -125,14 +130,6 @@ public class CombatUtility {
     }
 
     public static boolean isOneHanding(LivingEntity entity, ItemStack mainWeapon) {
-        ItemStack offhand = entity.getOffHandStack();
-        if (offhand.isEmpty())
-            return false;
-
-        EquipmentType mainType = EquipmentType.getTypeForItem(mainWeapon).orElse(null);
-        EquipmentType offType = EquipmentType.getTypeForItem(offhand).orElse(null);
-
-        // If offhand is not a weapon of the same type, it's one handing
-        return mainType != offType;
+        return !isTwoHandedWeapon(mainWeapon) && !mainWeapon.isEmpty();
     }
 }

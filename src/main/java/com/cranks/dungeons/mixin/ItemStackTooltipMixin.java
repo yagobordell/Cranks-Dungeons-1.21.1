@@ -75,7 +75,12 @@ public abstract class ItemStackTooltipMixin {
 
         // Item Type (Centered-ish subtitle)
         if (equipType.isPresent()) {
-            newTooltip.add(Text.literal(equipType.get().getName()).formatted(Formatting.DARK_GRAY, Formatting.ITALIC));
+            String handedness = "";
+            EquipmentType typeEnum = equipType.get();
+            if (typeEnum != EquipmentType.SHIELD && typeEnum != EquipmentType.HELMET && typeEnum != EquipmentType.CHESTPLATE && typeEnum != EquipmentType.LEGGINGS && typeEnum != EquipmentType.BOOTS && typeEnum != EquipmentType.ELYTRA) {
+                handedness = com.cranks.dungeons.util.CombatUtility.isTwoHandedWeapon(stack) ? " - Two Handed" : " - One Handed";
+            }
+            newTooltip.add(Text.literal(equipType.get().getName() + handedness).formatted(Formatting.DARK_GRAY, Formatting.ITALIC));
             addRequirementsSection(player, stack, newTooltip);
             addDivider(newTooltip);
         } else if (ItemStatManager.getStats(stack).size() > 0) {

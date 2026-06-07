@@ -25,9 +25,21 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import net.minecraft.item.ItemStack;
 
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityMixin implements DamageBreakdownProvider, AilmentHistoryProvider {
+
+    @Inject(method = "getOffHandStack", at = @At("RETURN"), cancellable = true)
+    private void hideOffhandWhenTwoHanding(CallbackInfoReturnable<ItemStack> cir) {
+        if ((Object)this instanceof PlayerEntity player) {
+            ItemStack actualOffhand = cir.getReturnValue();
+            if (com.cranks.dungeons.util.CombatUtility.isTwoHandedWeapon(player.getMainHandStack()) ||
+                com.cranks.dungeons.util.CombatUtility.isTwoHandedWeapon(actualOffhand)) {
+                cir.setReturnValue(ItemStack.EMPTY);
+            }
+        }
+    }
 
     @Unique
     private DamageConversionHelper.DamageBreakdown cranks$lastDamageBreakdown;
@@ -259,9 +271,7 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
         if (str != cranks$lastStrength) {
             cranks$lastStrength = str;
             double hpBonus = Math.floor(str / 10.0) * 5.0;
-            double meleeBonus = Math.floor(str / 10.0) * 0.02;
             updateModifier(entity, net.minecraft.entity.attribute.EntityAttributes.MAX_HEALTH, INTRINSIC_HEALTH_MOD_ID, hpBonus, net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_VALUE);
-            updateModifier(entity, ModAttributes.MELEE_DAMAGE_PERCENT, INTRINSIC_MELEE_MOD_ID, meleeBonus, net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_VALUE);
         }
 
         if (dex != cranks$lastDexterity) {
@@ -272,8 +282,7 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
 
         if (intel != cranks$lastIntelligence) {
             cranks$lastIntelligence = intel;
-            double esBonus = Math.floor(intel / 10.0) * 5.0;
-            updateModifier(entity, ModAttributes.ENERGY_SHIELD, INTRINSIC_ES_MOD_ID, esBonus, net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_VALUE);
+            // PoE 2: Intelligence gives Mana (Mana system not yet implemented)
         }
     }
 
