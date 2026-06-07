@@ -466,7 +466,7 @@ public abstract class ElementalDamageMixin {
                         poisonDuration, attacker);
             }
 
-            // Freeze Buildup (Scales from Cold Damage vs Max Health)
+            // Freeze Buildup (Scales from Cold Damage vs Max Health, slower than electrocute)
             if (finalColdDamage > 0) {
                 float freezeBuildupMultiplier = 1.0f + (float) CombatUtility.getAttributeValue(attacker, ModAttributes.FREEZE_BUILDUP_PERCENT, weapon,
                         "freeze_buildup_percent", source) +
@@ -474,7 +474,8 @@ public abstract class ElementalDamageMixin {
                         (float) getEnchantmentValue(chestplate, "minecraft:freeze_buildup_percent", 0.05);
                 
                 float ailmentThreshold = Math.max(1.0f, target.getMaxHealth());
-                float buildupAmount = ((float)finalColdDamage * 5.0f / ailmentThreshold) * freezeBuildupMultiplier;
+                // Freeze is harder to charge (x2 multiplier) because it lasts longer
+                float buildupAmount = ((float)finalColdDamage * 2.0f / ailmentThreshold) * freezeBuildupMultiplier;
                 
                 if (buildupAmount > 0) {
                     double freezeDuration = AilmentType.FREEZE.getBaseDuration()
@@ -521,8 +522,8 @@ public abstract class ElementalDamageMixin {
                         (float) getEnchantmentValue(chestplate, "minecraft:electrocute_buildup_percent", 0.05);
                 
                 float ailmentThreshold = Math.max(1.0f, target.getMaxHealth());
-                // Electrocute is easier to charge (x3 multiplier to buildup)
-                float buildupAmount = ((float)finalLightningDamage * 3.0f / ailmentThreshold) * electrocuteBuildupMultiplier;
+                // Electrocute is easier to charge (x8 multiplier to buildup) because it is a shorter stun
+                float buildupAmount = ((float)finalLightningDamage * 8.0f / ailmentThreshold) * electrocuteBuildupMultiplier;
                 
                 if (buildupAmount > 0) {
                     double electrocuteDuration = AilmentType.ELECTROCUTE.getBaseDuration()

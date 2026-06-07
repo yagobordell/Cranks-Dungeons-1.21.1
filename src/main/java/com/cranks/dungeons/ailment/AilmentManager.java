@@ -192,6 +192,22 @@ public class AilmentManager {
         ailments.add(ailment);
         ENTITY_AILMENTS.put(target.getUuid(), ailments);
 
+        // Play apply sound and particles
+        if (type == AilmentType.FREEZE) {
+            // Play sound multiple times to artificially boost the peak volume
+            target.getEntityWorld().playSound(null, target.getBlockPos(), com.cranks.dungeons.registry.ModSounds.FREEZE_APPLY, net.minecraft.sound.SoundCategory.HOSTILE, 1.0f, 1.0f);
+            target.getEntityWorld().playSound(null, target.getBlockPos(), com.cranks.dungeons.registry.ModSounds.FREEZE_APPLY, net.minecraft.sound.SoundCategory.HOSTILE, 1.0f, 0.9f);
+            target.getEntityWorld().playSound(null, target.getBlockPos(), com.cranks.dungeons.registry.ModSounds.FREEZE_APPLY, net.minecraft.sound.SoundCategory.HOSTILE, 1.0f, 1.1f);
+            if (target.getEntityWorld() instanceof net.minecraft.server.world.ServerWorld serverWorld) {
+                serverWorld.spawnParticles(net.minecraft.particle.ParticleTypes.SNOWFLAKE, target.getX(), target.getBodyY(0.5), target.getZ(), 30, target.getWidth() / 2.0, target.getHeight() / 2.0, target.getWidth() / 2.0, 0.05);
+            }
+        } else if (type == AilmentType.ELECTROCUTE) {
+            target.getEntityWorld().playSound(null, target.getBlockPos(), com.cranks.dungeons.registry.ModSounds.ELECTROCUTED_APPLY, net.minecraft.sound.SoundCategory.HOSTILE, 1.0f, 1.0f);
+            if (target.getEntityWorld() instanceof net.minecraft.server.world.ServerWorld serverWorld) {
+                serverWorld.spawnParticles(net.minecraft.particle.ParticleTypes.ELECTRIC_SPARK, target.getX(), target.getBodyY(0.5), target.getZ(), 20, target.getWidth() / 2.0, target.getHeight() / 2.0, target.getWidth() / 2.0, 0.1);
+            }
+        }
+
         // Apply status effect - pass stack count for poison (1-20), or 0 for burn
         int displayValue = (type == AilmentType.POISON) ? ailment.getStacks() : 0;
         applyStatusEffect(target, type, duration, displayValue);

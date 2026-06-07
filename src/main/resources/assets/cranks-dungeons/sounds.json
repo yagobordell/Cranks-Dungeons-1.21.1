@@ -115,5 +115,15 @@
     "sounds": [
       { "name": "minecraft:ui/button/click", "volume": 0.6, "pitch": 1.4, "type": "event" }
     ]
+  },
+  "freeze": {
+    "sounds": [
+      { "name": "cranks-dungeons:freeze", "volume": 1.0, "pitch": 1.0 }
+    ]
+  },
+  "electrocuted": {
+    "sounds": [
+      { "name": "cranks-dungeons:electrocuted", "volume": 1.0, "pitch": 1.0 }
+    ]
   }
 }

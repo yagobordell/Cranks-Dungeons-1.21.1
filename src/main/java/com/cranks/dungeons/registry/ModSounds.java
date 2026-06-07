@@ -27,6 +27,8 @@ public class ModSounds {
     public static final SoundEvent BURN_LOOP = register("burn_loop");
     public static final SoundEvent POISON_TICK = register("poison_tick");
     public static final SoundEvent FREEZE_MOVE = register("freeze_move");
+    public static final SoundEvent FREEZE_APPLY = register("freeze");
+    public static final SoundEvent ELECTROCUTED_APPLY = register("electrocuted");
     public static final SoundEvent BLEED_HIT = register("bleed_hit");
     public static final SoundEvent BLEED_BURST = register("bleed_burst");
     

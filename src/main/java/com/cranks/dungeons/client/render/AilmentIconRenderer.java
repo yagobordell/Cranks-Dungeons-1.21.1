@@ -141,7 +141,7 @@ public class AilmentIconRenderer {
             true, // shadow for readability
             matrices.peek().getPositionMatrix(),
             consumers,
-            TextRenderer.TextLayerType.NORMAL,
+            TextRenderer.TextLayerType.SEE_THROUGH,
             0x40000000, // semi-transparent black background
             LightmapTextureManager.MAX_LIGHT_COORDINATE
         );
@@ -150,7 +150,7 @@ public class AilmentIconRenderer {
     }
 
     private static void renderIcon(MatrixStack matrices, Identifier texture, float size, VertexConsumerProvider consumers) {
-        VertexConsumer buffer = consumers.getBuffer(RenderLayers.text(texture));
+        VertexConsumer buffer = consumers.getBuffer(RenderLayers.textSeeThrough(texture));
         MatrixStack.Entry entry = matrices.peek();
         
         float half = size / 2f;
