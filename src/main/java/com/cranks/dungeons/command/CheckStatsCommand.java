@@ -97,17 +97,17 @@ public class CheckStatsCommand {
                         player.sendMessage(Text.literal("✦ Utility").formatted(Formatting.GREEN, Formatting.BOLD), false);
 
                         double speed = player.getAttributeValue(ModAttributes.MOVEMENT_SPEED);
-                        double luck = player.getAttributeValue(ModAttributes.LUCK);
+                        double itemRarity = player.getAttributeValue(ModAttributes.ITEM_RARITY_PERCENT);
                         double expBonus = player.getAttributeValue(ModAttributes.EXPERIENCE_BONUS);
 
                         ItemStack tool = player.getMainHandStack();
-                        double miningEff = EquipmentStatApplier.getItemStatValue(tool, "mining_efficiency");
+                        double miningEff = EquipmentStatApplier.getItemStatValue(tool, "gathering_speed");
                         double fortune = EquipmentStatApplier.getItemStatValue(tool, "fortune");
                         double precision = EquipmentStatApplier.getItemStatValue(tool, "precision_mining");
                         double breakRange = EquipmentStatApplier.getItemStatValue(tool, "breaking_range");
 
                         if (speed > 0) sendStat(player, "Movement Speed", speed * 100, 0, "%");
-                        if (luck > 0) sendStat(player, "Luck", luck, 0, "");
+                        if (itemRarity > 0) sendStat(player, "Item Rarity", itemRarity * 100, 0, "%");
                         if (expBonus > 0) sendStat(player, "Experience Bonus", expBonus * 100, 0, "%");
                         if (miningEff > 0) sendStat(player, "Mining Efficiency", miningEff * 100, 0, "%");
                         if (fortune > 0) sendStat(player, "Fortune Chance", fortune * 100, 0, "%");

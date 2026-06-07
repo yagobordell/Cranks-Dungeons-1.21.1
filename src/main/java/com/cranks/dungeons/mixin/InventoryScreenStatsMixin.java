@@ -363,9 +363,9 @@ public abstract class InventoryScreenStatsMixin {
                                         cranks$getPassiveBase(player, ModAttributes.FLYING_SPEED) * 100, "%", mouseX,
                                         mouseY, panelX, panelWidth);
 
-                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Luck",
-                                        player.getAttributeValue(EntityAttributes.LUCK),
-                                        cranks$getPassiveBase(player, EntityAttributes.LUCK), "", mouseX, mouseY,
+                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Item Rarity",
+                                        player.getAttributeValue(ModAttributes.ITEM_RARITY_PERCENT) * 100,
+                                        cranks$getPassiveBase(player, ModAttributes.ITEM_RARITY_PERCENT) * 100, "%", mouseX, mouseY,
                                         panelX,
                                         panelWidth);
 
@@ -601,7 +601,7 @@ public abstract class InventoryScreenStatsMixin {
                         case "Crit Defense" -> calculateCritDefenseDescription();
                         case "Move Speed" -> "Movement speed modifier";
                         case "Flying Speed" -> "Elytra flight speed bonus";
-                        case "Luck" -> "Increases rarity of drops";
+                        case "Item Rarity" -> "Increases rarity of items found";
                         case "Exp Bonus" -> "Extra experience gained";
                         case "Gathering Speed" -> "Overall speed multiplier for breaking and harvesting blocks";
                         case "Repair Chance" -> "Chance that tools avoid durability loss";

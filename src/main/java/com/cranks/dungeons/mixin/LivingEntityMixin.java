@@ -161,7 +161,7 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
                 .add(ModAttributes.BREAKING_RANGE)
                 .add(ModAttributes.MOVEMENT_SPEED)
                 .add(ModAttributes.FLYING_SPEED)
-                .add(ModAttributes.LUCK)
+                .add(ModAttributes.ITEM_RARITY_PERCENT)
                 .add(ModAttributes.CROP_FORTUNE)
                 .add(ModAttributes.LOG_FORTUNE)
                 .add(ModAttributes.DIG_FORTUNE)

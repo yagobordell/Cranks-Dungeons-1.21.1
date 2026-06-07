@@ -138,6 +138,8 @@ public abstract class ItemStackTooltipMixin {
     private void addBaseStatsSection(ItemStack stack, List<Text> tooltip, EquipmentType type) {
         DecimalFormat df = new DecimalFormat("#.#");
         Map<String, Double> attributeTotals = calculateItemAttributeTotals(stack, type, true);
+        ItemStack defaultStack = new ItemStack(stack.getItem());
+        Map<String, Double> defaultTotals = calculateItemAttributeTotals(defaultStack, type, false);
 
         boolean isDefensive = type == EquipmentType.HELMET || type == EquipmentType.CHESTPLATE ||
                 type == EquipmentType.LEGGINGS || type == EquipmentType.BOOTS ||
@@ -176,11 +178,11 @@ public abstract class ItemStackTooltipMixin {
                                 .append(Text.literal(df.format(attributeTotals.get(esKey)))
                                         .formatted(getValueColor(stack, ModAttributes.ENERGY_SHIELD))));
                     }
-                    String luckKey = ModAttributes.LUCK.value().getTranslationKey();
+                    String luckKey = ModAttributes.ITEM_RARITY_PERCENT.value().getTranslationKey();
                     if (attributeTotals.getOrDefault(luckKey, 0.0) > 0) {
-                        tooltip.add(Text.literal("Luck: ").formatted(Formatting.GRAY)
-                                .append(Text.literal(df.format(attributeTotals.get(luckKey)))
-                                        .formatted(getValueColor(stack, ModAttributes.LUCK))));
+                        tooltip.add(Text.literal("Item Rarity: ").formatted(Formatting.GRAY)
+                                .append(Text.literal(df.format(attributeTotals.get(luckKey) * 100) + "%")
+                                        .formatted(getValueColor(stack, ModAttributes.ITEM_RARITY_PERCENT))));
                     }
                     addedAny = true;
                 }
@@ -287,14 +289,14 @@ public abstract class ItemStackTooltipMixin {
 
             // Universal Defensive Stats
             String healthKey = EntityAttributes.MAX_HEALTH.value().getTranslationKey();
-            if (attributeTotals.getOrDefault(healthKey, 0.0) > 0) {
+            if (attributeTotals.getOrDefault(healthKey, 0.0) > 0 && defaultTotals.getOrDefault(healthKey, 0.0) > 0) {
                 tooltip.add(Text.literal("Max Health: ").formatted(Formatting.GRAY)
                         .append(Text.literal("+" + df.format(attributeTotals.get(healthKey)))
                                 .formatted(getValueColor(stack, EntityAttributes.MAX_HEALTH))));
                 addedAny = true;
             }
             String regenKey = ModAttributes.LIFE_REGENERATION.value().getTranslationKey();
-            if (attributeTotals.getOrDefault(regenKey, 0.0) > 0) {
+            if (attributeTotals.getOrDefault(regenKey, 0.0) > 0 && defaultTotals.getOrDefault(regenKey, 0.0) > 0) {
                 tooltip.add(Text.literal("Health Regen: ").formatted(Formatting.GRAY)
                         .append(Text.literal("+" + df.format(attributeTotals.get(regenKey)))
                                 .formatted(getValueColor(stack, ModAttributes.LIFE_REGENERATION))));
@@ -302,7 +304,7 @@ public abstract class ItemStackTooltipMixin {
             }
 
             String blockChanceKey = ModAttributes.CHANCE_TO_BLOCK.value().getTranslationKey();
-            if (attributeTotals.getOrDefault(blockChanceKey, 0.0) > 0) {
+            if (attributeTotals.getOrDefault(blockChanceKey, 0.0) > 0 && defaultTotals.getOrDefault(blockChanceKey, 0.0) > 0) {
                 tooltip.add(Text.literal("Chance to Block: ").formatted(Formatting.GRAY)
                         .append(Text.literal(df.format(attributeTotals.get(blockChanceKey) * 100) + "%")
                                 .formatted(getValueColor(stack, ModAttributes.CHANCE_TO_BLOCK))));
@@ -310,7 +312,7 @@ public abstract class ItemStackTooltipMixin {
             }
 
             String blockValueKey = ModAttributes.BLOCK_VALUE.value().getTranslationKey();
-            if (attributeTotals.getOrDefault(blockValueKey, 0.0) > 0) {
+            if (attributeTotals.getOrDefault(blockValueKey, 0.0) > 0 && defaultTotals.getOrDefault(blockValueKey, 0.0) > 0) {
                 tooltip.add(Text.literal("Block Value: ").formatted(Formatting.GRAY)
                         .append(Text.literal(df.format(attributeTotals.get(blockValueKey)))
                                 .formatted(getValueColor(stack, ModAttributes.BLOCK_VALUE))));

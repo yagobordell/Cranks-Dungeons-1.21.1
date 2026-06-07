@@ -138,7 +138,7 @@ public class CranksDungeons implements ModInitializer {
 						.add(ModAttributes.CROP_FORTUNE, 0.0)
 						.add(ModAttributes.LOG_FORTUNE, 0.0)
 						.add(ModAttributes.DIG_FORTUNE, 0.0)
-						.add(ModAttributes.FLYING_SPEED)
+						.add(ModAttributes.FLYING_SPEED, 0.0)
 						.add(ModAttributes.EVASION_RATING, 0.0)
 						.add(ModAttributes.ENERGY_SHIELD, 0.0)
 						.add(ModAttributes.ARMOR_CRIT_MITIGATION, 0.0)
@@ -225,7 +225,7 @@ public class CranksDungeons implements ModInitializer {
 						// Misc
 						.add(ModAttributes.KNOCKBACK, 0.0)
 						.add(ModAttributes.KNOCKBACK_RESISTANCE, 0.0)
-						.add(ModAttributes.LUCK, 0.0)
+						.add(ModAttributes.ITEM_RARITY_PERCENT, 0.0)
 						.add(ModAttributes.MINING_EFFICIENCY, 1.0)
 						.add(ModAttributes.FORTUNE, 0.0)
 						.add(ModAttributes.DURABILITY_BONUS, 0.0)

@@ -171,7 +171,7 @@ public class ModAttributes {
             0.0, 10.0);
 
     public static final RegistryEntry<EntityAttribute> FLYING_SPEED = register("flying_speed", 0.0, 0.0, 10.0);
-    public static final RegistryEntry<EntityAttribute> LUCK = register("luck", 0.0, 0.0, 100.0);
+    public static final RegistryEntry<EntityAttribute> ITEM_RARITY_PERCENT = register("item_rarity_percent", 0.0, 0.0, 1000.0);
     public static final RegistryEntry<EntityAttribute> CROP_FORTUNE = register("crop_fortune", 0.0, 0.0, 1.0);
     public static final RegistryEntry<EntityAttribute> LOG_FORTUNE = register("log_fortune", 0.0, 0.0, 1.0);
     public static final RegistryEntry<EntityAttribute> DIG_FORTUNE = register("dig_fortune", 0.0, 0.0, 1.0);

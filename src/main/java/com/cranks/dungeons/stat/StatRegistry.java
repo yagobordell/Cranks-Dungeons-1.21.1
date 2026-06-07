@@ -338,23 +338,14 @@ public class StatRegistry {
                                 true, true, Formatting.DARK_GREEN, CustomStat.AffixType.SUFFIX,
                                 30, 1500));
 
-                // --- Luck (Armor + Elytra) ---
-                registerForTypes("luck", "Luck",
-                                ModAttributes.LUCK,
-                                r(0.3, 0.5, 1.2, 2.4, 4.2, 6.3, 9.0, 12.2, 15.9, 20.0),
-                                r(0.5, 0.8, 1.9, 3.6, 5.9, 9.0, 12.7, 17.1, 22.2, 28.0),
-                                false, false, Formatting.DARK_GREEN, CustomStat.AffixType.SUFFIX,
-                                60, 1000,
-                                EquipmentType.CHESTPLATE, EquipmentType.LEGGINGS,
-                                EquipmentType.BOOTS);
-
-                registerForTypes("luck", "Luck",
-                                ModAttributes.LUCK,
-                                r(0.3, 0.5, 1.2, 2.4, 4.2, 6.3, 9.0, 12.2, 15.9, 20.0),
-                                r(0.5, 0.8, 1.9, 3.6, 5.9, 9.0, 12.7, 17.1, 22.2, 28.0),
-                                false, false, Formatting.DARK_GREEN, CustomStat.AffixType.PREFIX,
-                                60, 1000,
-                                EquipmentType.HELMET, EquipmentType.ELYTRA);
+                // --- Item Rarity (Helmets + Boots) ---
+                registerForTypes("item_rarity", "Increased Rarity of Items Found",
+                                ModAttributes.ITEM_RARITY_PERCENT,
+                                r(0.04, 0.05, 0.06, 0.07, 0.09, 0.10, 0.12, 0.13, 0.15, 0.17),
+                                r(0.06, 0.07, 0.08, 0.10, 0.11, 0.13, 0.14, 0.15, 0.17, 0.18),
+                                true, true, Formatting.DARK_GREEN, CustomStat.AffixType.SUFFIX,
+                                30, 1500,
+                                EquipmentType.HELMET, EquipmentType.BOOTS);
 
                 // --- Critical Strike Chance (Armor: Helmet + Chestplate, plus Elytra) ---
                 registerForTypes("crit_chance", "Critical Strike Chance",

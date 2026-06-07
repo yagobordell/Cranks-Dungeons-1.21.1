@@ -177,19 +177,20 @@ public class RunicTomeLootHandler {
     private static void addTier1Drops(LootPool.Builder poolBuilder) {
         poolBuilder
                 .with(ItemEntry.builder(ModItems.TOME_OF_TRANSMUTATION)
-                        .weight(65)
+                        .weight(6500)
+                        .quality(6500)
                         .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))
                 .with(ItemEntry.builder(ModItems.REGAL_TOME)
-                        .weight(30)
-                        .quality(2)
+                        .weight(3000)
+                        .quality(3000)
                         .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))
                 .with(ItemEntry.builder(ModItems.TOME_OF_AUGMENTATION)
-                        .weight(5)
-                        .quality(4)
+                        .weight(500)
+                        .quality(500)
                         .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))
                 .with(ItemEntry.builder(net.minecraft.item.Items.AIR)
-                        .weight(1150)
-                        .quality(-2));
+                        .weight(115000)
+                        .quality(0));
     }
 
     /**
@@ -204,23 +205,24 @@ public class RunicTomeLootHandler {
     private static void addTier2Drops(LootPool.Builder poolBuilder) {
         poolBuilder
                 .with(ItemEntry.builder(ModItems.REGAL_TOME)
-                        .weight(30)
+                        .weight(3000)
+                        .quality(3000)
                         .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))
                 .with(ItemEntry.builder(ModItems.TOME_OF_AUGMENTATION)
-                        .weight(45)
-                        .quality(2)
+                        .weight(4500)
+                        .quality(4500)
                         .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))
                 .with(ItemEntry.builder(ModItems.TOME_OF_ALCHEMY)
-                        .weight(20)
-                        .quality(4)
+                        .weight(2000)
+                        .quality(2000)
                         .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))
                 .with(ItemEntry.builder(ModItems.EXALTED_TOME)
-                        .weight(5)
-                        .quality(6)
+                        .weight(500)
+                        .quality(500)
                         .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))
                 .with(ItemEntry.builder(net.minecraft.item.Items.AIR)
-                        .weight(1150)
-                        .quality(-2));
+                        .weight(115000)
+                        .quality(0));
     }
 
     /**
@@ -234,19 +236,20 @@ public class RunicTomeLootHandler {
     private static void addTier3Drops(LootPool.Builder poolBuilder) {
         poolBuilder
                 .with(ItemEntry.builder(ModItems.TOME_OF_AUGMENTATION)
-                        .weight(30)
+                        .weight(3000)
+                        .quality(3000)
                         .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))
                 .with(ItemEntry.builder(ModItems.TOME_OF_ALCHEMY)
-                        .weight(40)
-                        .quality(3)
+                        .weight(4000)
+                        .quality(4000)
                         .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))
                 .with(ItemEntry.builder(ModItems.EXALTED_TOME)
-                        .weight(30)
-                        .quality(6)
+                        .weight(3000)
+                        .quality(3000)
                         .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))
                 .with(ItemEntry.builder(net.minecraft.item.Items.AIR)
-                        .weight(1150)
-                        .quality(-3));
+                        .weight(115000)
+                        .quality(0));
     }
 
     /**
@@ -273,16 +276,16 @@ public class RunicTomeLootHandler {
     private static void addTier1ChestDrops(LootPool.Builder poolBuilder) {
         poolBuilder
                 .with(ItemEntry.builder(ModItems.TOME_OF_TRANSMUTATION)
-                        .weight(90)
-                        .quality(1)
+                        .weight(9000)
+                        .quality(9000)
                         .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))
                 .with(ItemEntry.builder(ModItems.REGAL_TOME)
-                        .weight(10)
-                        .quality(2)
+                        .weight(1000)
+                        .quality(1000)
                         .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))
                 .with(ItemEntry.builder(net.minecraft.item.Items.AIR)
-                        .weight(850)
-                        .quality(-2));
+                        .weight(85000)
+                        .quality(0));
     }
 
     /**
@@ -292,16 +295,16 @@ public class RunicTomeLootHandler {
     private static void addTier2ChestDrops(LootPool.Builder poolBuilder) {
         poolBuilder
                 .with(ItemEntry.builder(ModItems.TOME_OF_TRANSMUTATION)
-                        .weight(35)
-                        .quality(1)
+                        .weight(3500)
+                        .quality(3500)
                         .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))
                 .with(ItemEntry.builder(ModItems.REGAL_TOME)
-                        .weight(65)
-                        .quality(2)
+                        .weight(6500)
+                        .quality(6500)
                         .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))
                 .with(ItemEntry.builder(net.minecraft.item.Items.AIR)
-                        .weight(800)
-                        .quality(-2));
+                        .weight(80000)
+                        .quality(0));
     }
 
     /**
@@ -311,16 +314,16 @@ public class RunicTomeLootHandler {
     private static void addTier3ChestDrops(LootPool.Builder poolBuilder) {
         poolBuilder
                 .with(ItemEntry.builder(ModItems.TOME_OF_TRANSMUTATION)
-                        .weight(15)
-                        .quality(1)
+                        .weight(1500)
+                        .quality(1500)
                         .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))
                 .with(ItemEntry.builder(ModItems.REGAL_TOME)
-                        .weight(85)
-                        .quality(2)
+                        .weight(8500)
+                        .quality(8500)
                         .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))
                 .with(ItemEntry.builder(net.minecraft.item.Items.AIR)
-                        .weight(750)
-                        .quality(-3));
+                        .weight(75000)
+                        .quality(0));
     }
 
     private static EntityType<?> getEntityTypeFromLootTable(RegistryKey<LootTable> key) {

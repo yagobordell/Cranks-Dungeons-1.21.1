@@ -22,8 +22,8 @@ public class LuckMixin {
         // Only run on server side
         if (!(player instanceof ServerPlayerEntity)) return;
 
-        // Get luck bonus from custom attribute
-        double luckBonus = player.getAttributeValue(ModAttributes.LUCK);
+        // Get luck bonus from custom attribute (Item Rarity)
+        double luckBonus = player.getAttributeValue(ModAttributes.ITEM_RARITY_PERCENT);
 
         var luckAttr = player.getAttributeInstance(EntityAttributes.LUCK);
         if (luckAttr != null) {

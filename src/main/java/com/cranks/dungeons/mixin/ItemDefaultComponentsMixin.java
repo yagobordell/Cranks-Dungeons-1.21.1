@@ -180,7 +180,7 @@ public class ItemDefaultComponentsMixin {
 
             double luck = getGoldLuck(itemName);
             builder.add(
-                    ModAttributes.LUCK,
+                    ModAttributes.ITEM_RARITY_PERCENT,
                     new EntityAttributeModifier(
                             Identifier.of("cranks-dungeons", "armor.luck." + armorSlot),
                             luck,
