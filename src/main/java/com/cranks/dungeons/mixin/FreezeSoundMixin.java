@@ -16,7 +16,13 @@ public class FreezeSoundMixin {
     private void cancelSoundWhenFrozen(SoundEvent sound, float volume, float pitch, CallbackInfo ci) {
         Entity entity = (Entity) (Object) this;
         if (entity instanceof LivingEntity living) {
-            boolean isStunned = living.hasStatusEffect(ModEffects.FREEZE) || living.hasStatusEffect(ModEffects.ELECTROCUTE);
+            boolean isStunned;
+            if (living.getEntityWorld().isClient()) {
+                isStunned = com.cranks.dungeons.util.ClientAilmentHelper.isStunned(living);
+            } else {
+                isStunned = com.cranks.dungeons.ailment.AilmentManager.hasAilment(living, com.cranks.dungeons.ailment.AilmentType.FREEZE) ||
+                            com.cranks.dungeons.ailment.AilmentManager.hasAilment(living, com.cranks.dungeons.ailment.AilmentType.ELECTROCUTE);
+            }
             if (isStunned) {
                 ci.cancel();
             }

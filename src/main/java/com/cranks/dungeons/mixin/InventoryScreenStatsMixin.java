@@ -330,14 +330,6 @@ public abstract class InventoryScreenStatsMixin {
                         curY = drawStatWithTooltip(context, tr, panelX, curY, "Bleed", totalBleed * 100,
                                         baseBleed * 100, "%", mouseX, mouseY, panelX, panelWidth);
 
-                        // FREEZE
-                        double baseFreeze = cranks$getPassiveBase(player, ModAttributes.FREEZE_BUILDUP_PERCENT);
-                        double totalFreeze = player.getAttributeValue(ModAttributes.FREEZE_BUILDUP_PERCENT)
-                                        + getEnchantmentValue(weapon, "minecraft:freeze_buildup_percent", 0.05)
-                                        + getEnchantmentValue(chestplate, "minecraft:freeze_buildup_percent", 0.05);
-                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Freeze Buildup", totalFreeze * 100,
-                                        baseFreeze * 100, "%", mouseX, mouseY, panelX, panelWidth);
-
                         // SHOCK
                         double baseShock = cranks$getPassiveBase(player, ModAttributes.CHANCE_TO_SHOCK);
                         double totalShock = player.getAttributeValue(ModAttributes.CHANCE_TO_SHOCK)
@@ -345,6 +337,14 @@ public abstract class InventoryScreenStatsMixin {
                                         + getEnchantmentValue(chestplate, "minecraft:chance_to_shock", 0.05);
                         curY = drawStatWithTooltip(context, tr, panelX, curY, "Shock", totalShock * 100,
                                         baseShock * 100, "%", mouseX, mouseY, panelX, panelWidth);
+
+                        // FREEZE
+                        double baseFreeze = cranks$getPassiveBase(player, ModAttributes.FREEZE_BUILDUP_PERCENT);
+                        double totalFreeze = player.getAttributeValue(ModAttributes.FREEZE_BUILDUP_PERCENT)
+                                        + getEnchantmentValue(weapon, "minecraft:freeze_buildup_percent", 0.05)
+                                        + getEnchantmentValue(chestplate, "minecraft:freeze_buildup_percent", 0.05);
+                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Freeze Buildup", totalFreeze * 100,
+                                        baseFreeze * 100, "%", mouseX, mouseY, panelX, panelWidth);
 
                         // ELECTROCUTE
                         double baseElectrocute = cranks$getPassiveBase(player, ModAttributes.ELECTROCUTE_BUILDUP_PERCENT);
@@ -573,10 +573,15 @@ public abstract class InventoryScreenStatsMixin {
                                 double dur = p != null ? 5.0 * (1.0 + p.getAttributeValue(ModAttributes.BLEED_DURATION)) : 5.0;
                                 yield "Chance to cause bleeding. Deal physical damage over " + String.format("%.1f", dur) + "s based on hit";
                         }
-                        case "Freeze" -> {
+                        case "Freeze Buildup" -> {
                                 var p = MinecraftClient.getInstance().player;
                                 double dur = p != null ? 4.0 * (1.0 + p.getAttributeValue(ModAttributes.FREEZE_DURATION)) : 4.0;
                                 yield "Chance to freeze enemies for " + String.format("%.1f", dur) + "s";
+                        }
+                        case "Electrocute Buildup" -> {
+                                var p = MinecraftClient.getInstance().player;
+                                double dur = p != null ? 0.75 * (1.0 + p.getAttributeValue(ModAttributes.ELECTROCUTE_DURATION)) : 0.75;
+                                yield "Chance to electrocute enemies for " + String.format("%.2f", dur) + "s, instantly stopping their actions";
                         }
                         case "Shock" -> {
                                 var p = MinecraftClient.getInstance().player;

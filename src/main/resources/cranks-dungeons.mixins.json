@@ -73,6 +73,7 @@
 		"WitherDamageCancelMixin",
 		"FreezeSlowdownMixin",
 		"FreezeSoundMixin",
+		"FreezeMobSoundMixin",
 		"DrowningDamageMixin",
 		"DrowningHealBlockMixin",
 		"PartyPvPMixin",
@@ -85,8 +86,7 @@
 		"EnchantmentLevelMixin",
 		"ItemStackAttributeMixin",
 		"ProjectileEntityMixin",
-		"ServerWorldFreezeMixin",
-		"ClientWorldFreezeMixin"
+		"LivingEntityTickFreezeMixin"
 	],
 	"client": [
 		"HideArmorAttributeMixin",
@@ -104,7 +104,8 @@
 		"client.LivingEntityRenderStateMixin",
 		"client.InGameHudMixin",
 		"client.TooltipBackgroundMixin",
-		"FreezeVisualMixin"
+		"FreezeVisualMixin",
+		"client.LivingEntityClientTickFreezeMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

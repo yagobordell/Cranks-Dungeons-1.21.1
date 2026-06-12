@@ -20,7 +20,7 @@ public class CombatAudioHelper {
         float pitch = 0.95f + (float) Math.min(damage / 150.0, 0.55);
         
         // Crits get an extra boost in pitch and volume
-        float volume = isCrit ? 1.0f : 0.7f;
+        float volume = isCrit ? 0.6f : 0.4f;
         if (isCrit) {
             pitch += 0.1f;
         }

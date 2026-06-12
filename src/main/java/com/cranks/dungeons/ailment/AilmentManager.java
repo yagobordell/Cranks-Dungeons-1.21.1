@@ -326,6 +326,13 @@ public class AilmentManager {
         return false;
     }
 
+    private static void playFreezeEndEffect(LivingEntity target) {
+        target.getEntityWorld().playSound(null, target.getBlockPos(), com.cranks.dungeons.registry.ModSounds.FREEZE_END, net.minecraft.sound.SoundCategory.HOSTILE, 3.0f, 1.0f);
+        if (target.getEntityWorld() instanceof net.minecraft.server.world.ServerWorld serverWorld) {
+            serverWorld.spawnParticles(net.minecraft.particle.ParticleTypes.SNOWFLAKE, target.getX(), target.getBodyY(0.5), target.getZ(), 20, target.getWidth() / 2.0, target.getHeight() / 2.0, target.getWidth() / 2.0, 0.05);
+        }
+    }
+
     public static boolean isAfflicted(LivingEntity target) {
         if (target == null) return false;
         // Check custom ailment list
@@ -463,6 +470,7 @@ public class AilmentManager {
                         entity.removeStatusEffect(ModEffects.BURN);
                     } else if (ailment.getType() == AilmentType.FREEZE) {
                         entity.removeStatusEffect(ModEffects.FREEZE);
+                        playFreezeEndEffect(entity);
                     } else if (ailment.getType() == AilmentType.SHOCK) {
                         entity.removeStatusEffect(ModEffects.SHOCK);
                     } else if (ailment.getType() == AilmentType.ELECTROCUTE) {
@@ -719,6 +727,9 @@ public class AilmentManager {
         } else if (type == AilmentType.BURN) {
             target.removeStatusEffect(ModEffects.BURN);
         } else if (type == AilmentType.FREEZE) {
+            if (target.hasStatusEffect(ModEffects.FREEZE)) {
+                playFreezeEndEffect(target);
+            }
             target.removeStatusEffect(ModEffects.FREEZE);
         } else if (type == AilmentType.BLEED) {
             target.removeStatusEffect(ModEffects.BLEED);
@@ -733,6 +744,9 @@ public class AilmentManager {
         ELECTROCUTE_BUILDUP.remove(target.getUuid());
         target.removeStatusEffect(ModEffects.POISON);
         target.removeStatusEffect(ModEffects.BURN);
+        if (target.hasStatusEffect(ModEffects.FREEZE)) {
+            playFreezeEndEffect(target);
+        }
         target.removeStatusEffect(ModEffects.FREEZE);
         target.removeStatusEffect(ModEffects.BLEED);
         target.removeStatusEffect(ModEffects.SHOCK);

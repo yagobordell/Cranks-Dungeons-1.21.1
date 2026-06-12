@@ -121,6 +121,8 @@ public class CranksDungeonsClient implements ClientModInitializer {
                     }
                 }
 
+                boolean playedCritSound = false;
+
                 int count = payload.entries().size();
                 for (int i = 0; i < count; i++) {
                     DamageNumberPayload.DamageEntry entry = payload.entries().get(i);
@@ -138,7 +140,14 @@ public class CranksDungeonsClient implements ClientModInitializer {
 
                     // Play combat sound for this element ONLY if we dealt the damage AND it's a direct hit
                     if (!entry.isHeal() && isDealt && payload.forceDisplay()) {
-                        com.cranks.dungeons.client.CombatAudioHelper.playCombatSound(element, entry.damage(), entry.isCrit());
+                        if (entry.isCrit()) {
+                            if (!playedCritSound) {
+                                com.cranks.dungeons.client.CombatAudioHelper.playCombatSound(element, entry.damage(), true);
+                                playedCritSound = true;
+                            }
+                        } else {
+                            com.cranks.dungeons.client.CombatAudioHelper.playCombatSound(element, entry.damage(), false);
+                        }
                     }
 
                     double offsetX = 0;

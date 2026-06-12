@@ -20,47 +20,26 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, S extend
         }
     }
 
-    @Inject(method = "updateRenderState(Lnet/minecraft/entity/LivingEntity;Lnet/minecraft/client/render/entity/state/LivingEntityRenderState;F)V", at = @At("TAIL"))
-    private void freezeRenderState(T entity, S state, float tickDelta, org.spongepowered.asm.mixin.injection.callback.CallbackInfo ci) {
-        boolean isStunned = entity.hasStatusEffect(com.cranks.dungeons.effect.ModEffects.FREEZE) || entity.hasStatusEffect(com.cranks.dungeons.effect.ModEffects.ELECTROCUTE);
-        if (isStunned) {
-            state.age = entity.age;
-            state.bodyYaw = entity.getBodyYaw();
-            state.pitch = entity.getPitch();
+    @org.spongepowered.asm.mixin.Unique
+    private static final ThreadLocal<Boolean> cranks$isCurrentlyFrozen = ThreadLocal.withInitial(() -> false);
 
-            long currentTime = net.minecraft.util.Util.getMeasuringTimeMs();
-            for (java.lang.reflect.Field field : com.cranks.dungeons.util.AnimationStateCacher.getAnimFields(state.getClass())) {
-                try {
-                    net.minecraft.entity.AnimationState animState = (net.minecraft.entity.AnimationState) field.get(state);
-                    if (animState != null) {
-                        java.lang.reflect.Field[] fields = animState.getClass().getDeclaredFields();
-                        java.lang.reflect.Field longField1 = null;
-                        java.lang.reflect.Field longField2 = null;
-                        
-                        for (java.lang.reflect.Field f : fields) {
-                            if (f.getType() == long.class) {
-                                if (longField1 == null) longField1 = f;
-                                else if (longField2 == null) longField2 = f;
-                            }
-                        }
-                        
-                        if (longField1 != null && longField2 != null) {
-                            longField1.setAccessible(true);
-                            longField2.setAccessible(true);
-                            long val1 = longField1.getLong(animState);
-                            long val2 = longField2.getLong(animState);
-                            
-                            if (val1 > val2) {
-                                longField1.setLong(animState, currentTime);
-                            } else {
-                                longField2.setLong(animState, currentTime);
-                            }
-                        }
-                    }
-                } catch (Exception e) {}
-            }
+    @Inject(method = "updateRenderState(Lnet/minecraft/entity/LivingEntity;Lnet/minecraft/client/render/entity/state/LivingEntityRenderState;F)V", at = @At("HEAD"))
+    private void captureStunState(T entity, S state, float tickDelta, org.spongepowered.asm.mixin.injection.callback.CallbackInfo ci) {
+        cranks$isCurrentlyFrozen.set(com.cranks.dungeons.util.ClientAilmentHelper.isStunned(entity));
+    }
+
+    @org.spongepowered.asm.mixin.injection.ModifyVariable(method = "updateRenderState(Lnet/minecraft/entity/LivingEntity;Lnet/minecraft/client/render/entity/state/LivingEntityRenderState;F)V", at = @At("HEAD"), argsOnly = true, ordinal = 0)
+    private float modifyTickDelta(float original) {
+        if (cranks$isCurrentlyFrozen.get()) {
+            return 0.0f;
         }
-        
+        return original;
+    }
+
+
+
+    @Inject(method = "updateRenderState(Lnet/minecraft/entity/LivingEntity;Lnet/minecraft/client/render/entity/state/LivingEntityRenderState;F)V", at = @At("TAIL"))
+    private void addStunState(T entity, S state, float tickDelta, org.spongepowered.asm.mixin.injection.callback.CallbackInfo ci) {
         if (state instanceof com.cranks.dungeons.client.render.StunRenderState stunState) {
             boolean isFrozen = false;
             boolean isElectrocuted = false;

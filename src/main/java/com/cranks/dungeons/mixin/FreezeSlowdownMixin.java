@@ -41,7 +41,7 @@ public class FreezeSlowdownMixin {
         float buildup = com.cranks.dungeons.ailment.AilmentManager.getFreezeBuildup(entity.getUuid());
         
         double moveSlow = isStunned ? -1.0 : (buildup > 0 ? buildup * -0.25 : 0);
-        double attackSlow = isStunned ? -1.0 : (buildup > 0 ? buildup * -0.20 : 0);
+        double attackSlow = isStunned ? -1.0 : 0;
         
         boolean shouldApplyMove = moveSlow != 0;
         boolean shouldApplyAttack = attackSlow != 0;
@@ -120,11 +120,6 @@ public class FreezeSlowdownMixin {
             entity.setYaw(cranks$frozenYaw);
             entity.setPitch(cranks$frozenPitch);
 
-            // Freeze all limb and hand animations
-            entity.limbAnimator.setSpeed(0.0f);
-            entity.handSwingProgress = 0;
-            entity.handSwingTicks = 0;
-            
             // Kill all movement input
             entity.sidewaysSpeed = 0;
             entity.forwardSpeed = 0;
@@ -135,5 +130,12 @@ public class FreezeSlowdownMixin {
         } else {
             cranks$wasFrozenLastTick = false;
         }
+    }
+
+    @org.spongepowered.asm.mixin.injection.ModifyVariable(method = "getHandSwingProgress", at = @At("HEAD"), argsOnly = true)
+    private float freezeHandSwingTickDelta(float tickDelta) {
+        LivingEntity entity = (LivingEntity) (Object) this;
+        boolean isStunned = entity.hasStatusEffect(ModEffects.FREEZE) || entity.hasStatusEffect(ModEffects.ELECTROCUTE);
+        return isStunned ? 0.0f : tickDelta;
     }
 }
