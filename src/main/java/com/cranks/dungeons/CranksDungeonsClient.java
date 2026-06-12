@@ -41,14 +41,12 @@ import java.util.UUID;
 public class CranksDungeonsClient implements ClientModInitializer {
 
     static class DamageNumberFormatter {
+        private static final java.text.DecimalFormat df = new java.text.DecimalFormat("#.#");
         public static String formatDamage(double damage) {
             if (damage >= 1000) {
-                return String.format("%.1fk", damage / 1000.0);
+                return df.format(damage / 1000.0) + "k";
             }
-            if (damage < 10) {
-                return String.format("%.1f", damage);
-            }
-            return String.format("%.0f", damage);
+            return df.format(damage);
         }
     }
 

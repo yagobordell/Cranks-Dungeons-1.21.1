@@ -739,16 +739,6 @@ public abstract class ItemStackTooltipMixin {
                 itemName.endsWith("shovel") || itemName.endsWith("hoe");
     }
 
-    @Unique
-    private double getEnchantmentValue(ItemStack stack, String enchantmentId, double baseValue) {
-        var enchantments = stack.getEnchantments();
-        for (var entry : enchantments.getEnchantmentEntries()) {
-            String id = entry.getKey().getKey().get().getValue().toString();
-            if (id.equals(enchantmentId))
-                return baseValue;
-        }
-        return 0.0;
-    }
 
     @Unique
     private ArmorSetType getArmorSetType(String itemName) {

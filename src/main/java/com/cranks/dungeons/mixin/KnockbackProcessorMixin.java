@@ -34,9 +34,9 @@ public abstract class KnockbackProcessorMixin {
 
             // Add enchantment bonuses
             if (weapon != null)
-                knockbackBonus += getEnchantmentValue(weapon, "minecraft:bonus_knockback", 0.35);
+                knockbackBonus += com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, weapon, "minecraft:bonus_knockback", 0.35);
             if (chestplate != null)
-                knockbackBonus += getEnchantmentValue(chestplate, "minecraft:bonus_knockback", 0.35);
+                knockbackBonus += com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, chestplate, "minecraft:bonus_knockback", 0.35);
 
             // If base strength is 0 (standing attack), give it a base strength from the
             // bonus
@@ -60,15 +60,5 @@ public abstract class KnockbackProcessorMixin {
         return finalStrength;
     }
 
-    @Unique
-    private double getEnchantmentValue(ItemStack stack, String enchantmentId, double baseValue) {
-        var enchantments = stack.getEnchantments();
-        for (var entry : enchantments.getEnchantmentEntries()) {
-            String id = entry.getKey().getKey().get().getValue().toString();
-            if (id.equals(enchantmentId)) {
-                return baseValue;
-            }
-        }
-        return 0.0;
-    }
+
 }

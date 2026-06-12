@@ -51,7 +51,7 @@ public class AttackRangeMixin {
 
         // 2) Optional enchantment bonus from the weapon
         ItemStack weapon = player.getMainHandStack();
-        double enchantBonus = getEnchantmentValue(weapon, "minecraft:attack_range", 1.0);
+        double enchantBonus = com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(player, weapon, "minecraft:attack_range", 1.0);
 
         double totalBonus = attrBonus + enchantBonus;
         if (totalBonus <= 0.0) {
@@ -70,17 +70,5 @@ public class AttackRangeMixin {
                     totalBonus,
                     EntityAttributeModifier.Operation.ADD_VALUE));
         }
-    }
-
-    @Unique
-    private double getEnchantmentValue(ItemStack stack, String enchantmentId, double baseValue) {
-        var enchantments = stack.getEnchantments();
-        for (var entry : enchantments.getEnchantmentEntries()) {
-            String id = entry.getKey().getKey().get().getValue().toString();
-            if (id.equals(enchantmentId)) {
-                return baseValue;
-            }
-        }
-        return 0.0;
     }
 }

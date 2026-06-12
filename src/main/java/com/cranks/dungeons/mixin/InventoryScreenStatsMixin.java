@@ -218,8 +218,8 @@ public abstract class InventoryScreenStatsMixin {
                                         mouseY, panelX, panelWidth);
                         double baseLifeSteal = cranks$getPassiveBase(player, ModAttributes.LIFE_STEAL);
                         double totalLifeSteal = player.getAttributeValue(ModAttributes.LIFE_STEAL)
-                                        + getEnchantmentValue(weapon, "minecraft:life_steal", 0.06)
-                                        + getEnchantmentValue(chestplate, "minecraft:life_steal", 0.06);
+                                        + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(player, weapon, "minecraft:life_steal", 0.06)
+                                        + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(player, chestplate, "minecraft:life_steal", 0.06);
                         curY = drawStatWithTooltip(context, tr, panelX, curY, "Life Steal", totalLifeSteal * 100,
                                         baseLifeSteal * 100, "%", mouseX,
                                         mouseY, panelX, panelWidth);
@@ -285,11 +285,11 @@ public abstract class InventoryScreenStatsMixin {
                         // 4. Critical Strike
                         double critChance = player.getAttributeValue(ModAttributes.CRIT_CHANCE);
                         double baseCrit = cranks$getPassiveBase(player, ModAttributes.CRIT_CHANCE);
-                        critChance += getEnchantmentValue(weapon, "minecraft:crit_chance", 0.075);
-                        critChance += getEnchantmentValue(chestplate, "minecraft:crit_chance", 0.075);
-                        critChance += getEnchantmentValue(helmet, "minecraft:crit_chance", 0.075);
-                        critChance += getEnchantmentValue(leggings, "minecraft:crit_chance", 0.075);
-                        critChance += getEnchantmentValue(boots, "minecraft:crit_chance", 0.075);
+                        critChance += com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(player, weapon, "minecraft:crit_chance", 0.075);
+                        critChance += com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(player, chestplate, "minecraft:crit_chance", 0.075);
+                        critChance += com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(player, helmet, "minecraft:crit_chance", 0.075);
+                        critChance += com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(player, leggings, "minecraft:crit_chance", 0.075);
+                        critChance += com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(player, boots, "minecraft:crit_chance", 0.075);
                         curY = drawStatWithTooltip(context, tr, panelX, curY, "Crit Chance", critChance * 100,
                                         baseCrit * 100, "%",
                                         mouseX, mouseY, panelX, panelWidth);
@@ -309,48 +309,48 @@ public abstract class InventoryScreenStatsMixin {
                         // BURN
                         double baseBurn = cranks$getPassiveBase(player, ModAttributes.CHANCE_TO_BURN);
                         double totalBurn = player.getAttributeValue(ModAttributes.CHANCE_TO_BURN)
-                                        + getEnchantmentValue(weapon, "minecraft:chance_to_burn", 0.05)
-                                        + getEnchantmentValue(chestplate, "minecraft:chance_to_burn", 0.05);
+                                        + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(player, weapon, "minecraft:chance_to_burn", 0.05)
+                                        + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(player, chestplate, "minecraft:chance_to_burn", 0.05);
                         curY = drawStatWithTooltip(context, tr, panelX, curY, "Burn", totalBurn * 100,
                                         baseBurn * 100, "%", mouseX, mouseY, panelX, panelWidth);
 
                         // POISON
                         double basePoison = cranks$getPassiveBase(player, ModAttributes.CHANCE_TO_POISON);
                         double totalPoison = player.getAttributeValue(ModAttributes.CHANCE_TO_POISON)
-                                        + getEnchantmentValue(weapon, "minecraft:chance_to_poison", 0.05)
-                                        + getEnchantmentValue(chestplate, "minecraft:chance_to_poison", 0.05);
+                                        + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(player, weapon, "minecraft:chance_to_poison", 0.05)
+                                        + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(player, chestplate, "minecraft:chance_to_poison", 0.05);
                         curY = drawStatWithTooltip(context, tr, panelX, curY, "Poison", totalPoison * 100,
                                         basePoison * 100, "%", mouseX, mouseY, panelX, panelWidth);
 
                         // BLEED
                         double baseBleed = cranks$getPassiveBase(player, ModAttributes.CHANCE_TO_BLEED);
                         double totalBleed = player.getAttributeValue(ModAttributes.CHANCE_TO_BLEED)
-                                        + getEnchantmentValue(weapon, "minecraft:chance_to_bleed", 0.05)
-                                        + getEnchantmentValue(chestplate, "minecraft:chance_to_bleed", 0.05);
+                                        + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(player, weapon, "minecraft:chance_to_bleed", 0.05)
+                                        + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(player, chestplate, "minecraft:chance_to_bleed", 0.05);
                         curY = drawStatWithTooltip(context, tr, panelX, curY, "Bleed", totalBleed * 100,
                                         baseBleed * 100, "%", mouseX, mouseY, panelX, panelWidth);
 
                         // SHOCK
                         double baseShock = cranks$getPassiveBase(player, ModAttributes.CHANCE_TO_SHOCK);
                         double totalShock = player.getAttributeValue(ModAttributes.CHANCE_TO_SHOCK)
-                                        + getEnchantmentValue(weapon, "minecraft:chance_to_shock", 0.05)
-                                        + getEnchantmentValue(chestplate, "minecraft:chance_to_shock", 0.05);
+                                        + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(player, weapon, "minecraft:chance_to_shock", 0.05)
+                                        + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(player, chestplate, "minecraft:chance_to_shock", 0.05);
                         curY = drawStatWithTooltip(context, tr, panelX, curY, "Shock", totalShock * 100,
                                         baseShock * 100, "%", mouseX, mouseY, panelX, panelWidth);
 
                         // FREEZE
                         double baseFreeze = cranks$getPassiveBase(player, ModAttributes.FREEZE_BUILDUP_PERCENT);
                         double totalFreeze = player.getAttributeValue(ModAttributes.FREEZE_BUILDUP_PERCENT)
-                                        + getEnchantmentValue(weapon, "minecraft:freeze_buildup_percent", 0.05)
-                                        + getEnchantmentValue(chestplate, "minecraft:freeze_buildup_percent", 0.05);
+                                        + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(player, weapon, "minecraft:freeze_buildup_percent", 0.05)
+                                        + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(player, chestplate, "minecraft:freeze_buildup_percent", 0.05);
                         curY = drawStatWithTooltip(context, tr, panelX, curY, "Freeze Buildup", totalFreeze * 100,
                                         baseFreeze * 100, "%", mouseX, mouseY, panelX, panelWidth);
 
                         // ELECTROCUTE
                         double baseElectrocute = cranks$getPassiveBase(player, ModAttributes.ELECTROCUTE_BUILDUP_PERCENT);
                         double totalElectrocute = player.getAttributeValue(ModAttributes.ELECTROCUTE_BUILDUP_PERCENT)
-                                        + getEnchantmentValue(weapon, "minecraft:electrocute_buildup_percent", 0.05)
-                                        + getEnchantmentValue(chestplate, "minecraft:electrocute_buildup_percent", 0.05);
+                                        + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(player, weapon, "minecraft:electrocute_buildup_percent", 0.05)
+                                        + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(player, chestplate, "minecraft:electrocute_buildup_percent", 0.05);
                         curY = drawStatWithTooltip(context, tr, panelX, curY, "Electrocute Buildup", totalElectrocute * 100,
                                         baseElectrocute * 100, "%", mouseX, mouseY, panelX, panelWidth);
 
@@ -384,8 +384,8 @@ public abstract class InventoryScreenStatsMixin {
                                         mouseY, panelX, panelWidth);
 
                         double totalKB = player.getAttributeValue(ModAttributes.KNOCKBACK)
-                                        + getEnchantmentValue(weapon, "minecraft:bonus_knockback", 0.35)
-                                        + getEnchantmentValue(chestplate, "minecraft:bonus_knockback", 0.35);
+                                        + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(player, weapon, "minecraft:bonus_knockback", 0.35)
+                                        + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(player, chestplate, "minecraft:bonus_knockback", 0.35);
                         curY = drawStatWithTooltip(context, tr, panelX, curY, "Knockback", totalKB * 100,
                                         cranks$getPassiveBase(player, ModAttributes.KNOCKBACK) * 100, "%", mouseX,
                                         mouseY, panelX, panelWidth);
@@ -439,6 +439,31 @@ public abstract class InventoryScreenStatsMixin {
                         curY = drawStatWithTooltip(context, tr, panelX, curY, "Crop XP",
                                         EquipmentStatApplier.getItemStatValue(weapon, "crop_experience"), 0.0, " xp",
                                         mouseX, mouseY, panelX, panelWidth);
+
+                        // --- CATEGORY 10: CUSTOM RUNES ---
+                        List<com.cranks.dungeons.equipment.ItemStatManager.ItemStat> allRunes = new ArrayList<>();
+                        if (!weapon.isEmpty()) allRunes.addAll(ItemStatManager.getStats(weapon));
+                        if (!chestplate.isEmpty()) allRunes.addAll(ItemStatManager.getStats(chestplate));
+                        if (!helmet.isEmpty()) allRunes.addAll(ItemStatManager.getStats(helmet));
+                        if (!leggings.isEmpty()) allRunes.addAll(ItemStatManager.getStats(leggings));
+                        if (!boots.isEmpty()) allRunes.addAll(ItemStatManager.getStats(boots));
+
+                        allRunes.removeIf(itemStat -> itemStat.statId.equals("leggings_physical_thorns") || itemStat.statId.equals("armor_applies_to_elemental"));
+
+                        if (!allRunes.isEmpty()) {
+                                context.drawText(tr, Text.literal("Custom Runes"), panelX + 6, curY, 0xFF404040, false);
+                                curY += 11;
+                                for (var itemStat : allRunes) {
+                                        com.cranks.dungeons.stat.CustomStat stat = com.cranks.dungeons.stat.StatRegistry.getStat(itemStat.statId);
+                                        if (stat != null) {
+                                                String name = stat.getDisplayName();
+                                                String formattedVal = stat.formatValue(itemStat.value);
+                                                context.drawText(tr, Text.literal("• " + name + ": " + formattedVal), panelX + 8, curY, 0xFF404040, false);
+                                                curY += 10;
+                                        }
+                                }
+                                curY += 6;
+                        }
 
                         // Update total content height for the next frame
                         int totalContentHeight = curY - (panelY + 8 - scrollOffset);
@@ -671,16 +696,6 @@ public abstract class InventoryScreenStatsMixin {
         }
 
         @Unique
-        private double getEnchantmentValue(ItemStack stack, String enchantmentId, double baseValue) {
-                var enchantments = stack.getEnchantments();
-                for (var entry : enchantments.getEnchantmentEntries()) {
-                        if (entry.getKey().getKey().get().getValue().toString().equals(enchantmentId))
-                                return baseValue * entry.getIntValue();
-                }
-                return 0.0;
-        }
-
-        @Unique
         private double calculateFinalElementalDamage(
                         net.minecraft.entity.player.PlayerEntity player, ItemStack weapon, ItemStack chestplate,
                         double totalPhysicalDamage,
@@ -688,7 +703,7 @@ public abstract class InventoryScreenStatsMixin {
                         String enchantmentId,
                         net.minecraft.registry.entry.RegistryEntry<net.minecraft.entity.attribute.EntityAttribute> physAsExtraAttribute) {
                 double base = player.getAttributeValue(damageAttribute)
-                                + getEnchantmentValue(weapon, enchantmentId, 4.0);
+                                + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(player, weapon, enchantmentId, 4.0);
 
                 // Lookup corresponding percent attribute
                 double pct = 0;

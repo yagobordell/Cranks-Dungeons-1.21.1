@@ -61,6 +61,11 @@ public class DamageConversionHelper {
                         default -> 0;
                     };
 
+                    double armorAppliesPercent = getAttributeValueSafe(target, ModAttributes.ARMOR_APPLIES_TO_ELEMENTAL, 0.0);
+                    if (armorAppliesPercent > 0) {
+                        amount = calculateArmorReduction(target, amount, 0.0, armorAppliesPercent);
+                    }
+
                     double penetration = 0;
                     if (attacker instanceof LivingEntity le) {
                         penetration = getAttributeValueSafe(le, ModAttributes.ELEMENTAL_PENETRATION_PERCENT, 0.0);
@@ -197,6 +202,11 @@ public class DamageConversionHelper {
                 }
             }
 
+            double armorAppliesPercent = getAttributeValueSafe(target, ModAttributes.ARMOR_APPLIES_TO_ELEMENTAL, 0.0);
+            if (armorAppliesPercent > 0) {
+                amount = calculateArmorReduction(target, amount, 0.0, armorAppliesPercent);
+            }
+
             double penetration = 0;
             if (attacker instanceof LivingEntity le) {
                 penetration = le.getAttributeValue(ModAttributes.ELEMENTAL_PENETRATION_PERCENT);
@@ -215,14 +225,10 @@ public class DamageConversionHelper {
         return finalTotal;
     }
 
-    /**
-     * Calculates the remaining damage after applying the custom Path of Exile 2 inspired armor reduction.
-     */
-    public static float calculatePhysicalReduction(LivingEntity target, float amount, Entity attacker) {
-        double ar = target.getAttributeValue(net.minecraft.entity.attribute.EntityAttributes.ARMOR);
+    public static float calculateArmorReduction(LivingEntity target, float amount, double penetration, double armorMultiplier) {
+        double ar = target.getAttributeValue(net.minecraft.entity.attribute.EntityAttributes.ARMOR) * armorMultiplier;
 
-        if (attacker instanceof LivingEntity le) {
-            double penetration = getAttributeValueSafe(le, ModAttributes.ARMOR_PENETRATION_PERCENT, 0.0);
+        if (penetration > 0) {
             ar *= (1.0 - penetration);
         }
 
@@ -238,6 +244,17 @@ public class DamageConversionHelper {
             return (float) (amount * (1.0 - pdr));
         }
         return amount;
+    }
+
+    /**
+     * Calculates the remaining damage after applying the custom Path of Exile 2 inspired armor reduction.
+     */
+    public static float calculatePhysicalReduction(LivingEntity target, float amount, Entity attacker) {
+        double penetration = 0.0;
+        if (attacker instanceof LivingEntity le) {
+            penetration = getAttributeValueSafe(le, ModAttributes.ARMOR_PENETRATION_PERCENT, 0.0);
+        }
+        return calculateArmorReduction(target, amount, penetration, 1.0);
     }
 
     private static double getAttributeValueSafe(LivingEntity entity, net.minecraft.registry.entry.RegistryEntry<net.minecraft.entity.attribute.EntityAttribute> attribute, double defaultValue) {

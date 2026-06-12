@@ -92,7 +92,11 @@ public class CustomStat {
 
         double value = min + (max - min) * RandomUtil.nextDouble(1.0);
 
-        return Math.round(value * 1000.0) / 1000.0;
+        if (isPercentage || displayAsPercentage) {
+            return Math.round(value * 1000.0) / 1000.0;
+        } else {
+            return Math.round(value);
+        }
     }
 
     public String getFormattedRange(int minTier, int maxTier) {
@@ -111,8 +115,8 @@ public class CustomStat {
             }
             return "+" + range + " " + displayName;
         } else {
-            String range = "(" + df.format(minVal) + " - " + df.format(maxVal) + ")";
-            if (displayName.endsWith("Damage")) {
+            String range = "(" + Math.round(minVal) + " - " + Math.round(maxVal) + ")";
+            if (displayName.endsWith("Damage") && !displayName.contains("Thorns")) {
                 return "Adds " + range + " " + displayName + " to Attacks";
             }
             return "+" + range + " " + displayName;
@@ -120,7 +124,7 @@ public class CustomStat {
     }
 
     public String formatValue(double value) {
-        DecimalFormat df = new DecimalFormat("#.#");
+        DecimalFormat df = new DecimalFormat("#.##");
 
         if (displayAsPercentage) {
             String formattedValue = df.format(value * 100) + "%";
@@ -131,11 +135,10 @@ public class CustomStat {
         } else if (isPercentage) {
             return df.format(value * 100) + " " + displayName;
         } else {
-            // Whole numbers
-            if (displayName.endsWith("Damage")) {
-                return "Adds " + df.format(value) + " " + displayName + " to Attacks";
+            if (displayName.endsWith("Damage") && !displayName.contains("Thorns")) {
+                return "Adds " + Math.round(value) + " " + displayName + " to Attacks";
             } else {
-                return "+" + df.format(value) + " to " + displayName;
+                return "+" + Math.round(value) + " " + displayName;
             }
         }
     }

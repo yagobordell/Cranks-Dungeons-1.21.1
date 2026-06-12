@@ -30,15 +30,45 @@ public class EnergyShieldDamageMixin {
 
     private static final long SHIELD_COOLDOWN_TICKS = 10L;
 
+    @Unique
+    private static final ThreadLocal<Boolean> cranks$processingThorns = ThreadLocal.withInitial(() -> false);
+
     /**
      * Overhaul: We use ModifyVariable to subtract damage from the shield and return 
      * the remaining damage that should deal to health.
+     * 
+     * THORNS: This is also where we apply thorns damage, because this ModifyVariable
+     * is the very first code that runs in the damage method. If we put thorns in a
+     * separate @Inject at HEAD, it may be skipped when the cancelShieldedDamage
+     * method cancels the entire damage call after ES fully absorbs the hit.
      */
     @ModifyVariable(method = "damage", at = @At("HEAD"), argsOnly = true)
     private float applyEnergyShieldMitigation(float amount, ServerWorld world, DamageSource source) {
         LivingEntity self = (LivingEntity) (Object) this;
         if (world.isClient()) return amount;
         if (amount <= 0) return 0.0f;
+
+        // === THORNS DAMAGE (melee only) ===
+        // Thorns only triggers on melee hits: source.getSource() must be a LivingEntity
+        // (not a projectile like Arrow). We read thorns from item stats directly.
+        if (!cranks$processingThorns.get() && !source.isOf(DamageTypes.THORNS)) {
+            net.minecraft.entity.Entity sourceEntity = source.getSource();
+            // Only melee: sourceEntity is the attacker itself (not a projectile)
+            if (sourceEntity instanceof LivingEntity livingAttacker && sourceEntity != self) {
+                double thorns = cranks$getTotalThorns(self);
+                if (thorns > 0) {
+                    try {
+                        cranks$processingThorns.set(true);
+                        int oldTimeUntilRegen = livingAttacker.timeUntilRegen;
+                        livingAttacker.timeUntilRegen = 0;
+                        livingAttacker.damage(world, self.getDamageSources().thorns(self), (float) thorns);
+                        livingAttacker.timeUntilRegen = oldTimeUntilRegen;
+                    } finally {
+                        cranks$processingThorns.set(false);
+                    }
+                }
+            }
+        }
 
         // Bypass shield if entity is invulnerable
         if (self.isInvulnerableTo(world, source)) return 0.0f;
@@ -54,6 +84,7 @@ public class EnergyShieldDamageMixin {
         if (source.isIn(DamageTypeTags.BYPASSES_INVULNERABILITY) || source.isOf(DamageTypes.DROWN)) {
             return amount;
         }
+
 
         EnergyShieldProvider provider = (EnergyShieldProvider) self;
         float currentShield = provider.cranksdungeons$getCurrentEnergyShield();
@@ -201,5 +232,42 @@ public class EnergyShieldDamageMixin {
             world.playSoundFromEntity(null, self, ModSounds.ENERGY_SHIELD_BREAK, category, 1.0f, 1.0f);
             world.spawnParticles(ParticleTypes.END_ROD, self.getX(), self.getY() + self.getHeight() / 2.0, self.getZ(), 30, 0.5, 0.5, 0.5, 0.1);
         }
+    }
+
+    /**
+     * Reads total thorns damage from all equipped armor pieces by checking their item stats directly.
+     * Applies a 50% penalty for each armor piece where the player doesn't meet requirements.
+     */
+    @Unique
+    private static double cranks$getTotalThorns(LivingEntity entity) {
+        double totalThorns = 0;
+        net.minecraft.entity.EquipmentSlot[] armorSlots = {
+            net.minecraft.entity.EquipmentSlot.HEAD,
+            net.minecraft.entity.EquipmentSlot.CHEST,
+            net.minecraft.entity.EquipmentSlot.LEGS,
+            net.minecraft.entity.EquipmentSlot.FEET
+        };
+        for (net.minecraft.entity.EquipmentSlot slot : armorSlots) {
+            net.minecraft.item.ItemStack stack = entity.getEquippedStack(slot);
+            if (!stack.isEmpty()) {
+                // Check if player meets requirements for this armor piece
+                boolean meetsReqs = true;
+                if (entity instanceof net.minecraft.entity.player.PlayerEntity player) {
+                    meetsReqs = com.cranks.dungeons.equipment.ItemRequirementManager.meetsRequirements(player, stack);
+                }
+                
+                java.util.List<com.cranks.dungeons.equipment.ItemStatManager.ItemStat> stats =
+                    com.cranks.dungeons.equipment.ItemStatManager.getStats(stack);
+                for (var stat : stats) {
+                    com.cranks.dungeons.stat.CustomStat customStat = com.cranks.dungeons.stat.StatRegistry.getStat(stat.statId);
+                    if (customStat != null && customStat.getAttribute().equals(ModAttributes.THORNS_DAMAGE)) {
+                        // Apply 50% penalty if requirements not met (matches the global penalty system)
+                        double value = meetsReqs ? stat.value : stat.value * 0.5;
+                        totalThorns += value;
+                    }
+                }
+            }
+        }
+        return totalThorns;
     }
 }

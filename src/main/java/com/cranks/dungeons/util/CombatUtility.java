@@ -46,10 +46,16 @@ public class CombatUtility {
         // 1. Get the "Armor + Base" part by subtracting whatever is currently in hand
         ItemStack held = attacker.getMainHandStack();
         double heldStat = com.cranks.dungeons.equipment.EquipmentStatApplier.getItemStatValue(held, statId);
+        if (attacker instanceof PlayerEntity p && !held.isEmpty() && !com.cranks.dungeons.equipment.ItemRequirementManager.meetsRequirements(p, held)) {
+            heldStat *= 0.5;
+        }
         double armorAndBase = currentTotal - heldStat;
 
         // 2. Add the projectile weapon's stat
         double weaponStat = com.cranks.dungeons.equipment.EquipmentStatApplier.getItemStatValue(weapon, statId);
+        if (attacker instanceof PlayerEntity p && !weapon.isEmpty() && !com.cranks.dungeons.equipment.ItemRequirementManager.meetsRequirements(p, weapon)) {
+            weaponStat *= 0.5;
+        }
         double finalValue = armorAndBase + weaponStat;
 
         // 3. Apply the global trident throw nerf (8/12 = 0.66x) to the WHOLE value
@@ -58,6 +64,26 @@ public class CombatUtility {
         }
 
         return finalValue;
+    }
+
+    /**
+     * Retrieves the value of an enchantment on an item stack, penalized by 50% if the player does not meet the item's attribute requirements.
+     */
+    public static double getEnchantmentValue(LivingEntity entity, ItemStack stack, String enchantmentId, double baseValue) {
+        if (stack.isEmpty()) return 0.0;
+        
+        var enchantments = stack.getEnchantments();
+        for (var entry : enchantments.getEnchantmentEntries()) {
+            String id = entry.getKey().getKey().get().getValue().toString();
+            if (id.equals(enchantmentId)) {
+                double val = baseValue;
+                if (entity instanceof PlayerEntity p && !com.cranks.dungeons.equipment.ItemRequirementManager.meetsRequirements(p, stack)) {
+                    val *= 0.5;
+                }
+                return val;
+            }
+        }
+        return 0.0;
     }
 
     /**
@@ -82,30 +108,13 @@ public class CombatUtility {
     }
 
     public static boolean isMelee(ItemStack weapon, DamageSource source) {
-        if (source.isIn(net.minecraft.registry.tag.DamageTypeTags.IS_PROJECTILE))
+        if (source.isIn(net.minecraft.registry.tag.DamageTypeTags.IS_PROJECTILE) || source.isOf(net.minecraft.entity.damage.DamageTypes.THORNS) || source.isOf(net.minecraft.entity.damage.DamageTypes.MAGIC))
             return false;
-        EquipmentType type = EquipmentType.getTypeForItem(weapon).orElse(null);
-        if (type == null)
-            return true; // Default to melee
-        return switch (type) {
-            case SWORD, SPEAR, MACE, AXE, PICKAXE, SHOVEL, HOE -> true;
-            case BOW, CROSSBOW -> false;
-            case TRIDENT -> !isTridentThrow(source);
-            default -> true;
-        };
+        return source.isOf(net.minecraft.entity.damage.DamageTypes.PLAYER_ATTACK) || source.isOf(net.minecraft.entity.damage.DamageTypes.MOB_ATTACK);
     }
 
     public static boolean isRanged(ItemStack weapon, DamageSource source) {
-        if (source.isIn(net.minecraft.registry.tag.DamageTypeTags.IS_PROJECTILE))
-            return true;
-        EquipmentType type = EquipmentType.getTypeForItem(weapon).orElse(null);
-        if (type == null)
-            return false;
-        return switch (type) {
-            case BOW, CROSSBOW -> true;
-            case TRIDENT -> isTridentThrow(source);
-            default -> false;
-        };
+        return source.isIn(net.minecraft.registry.tag.DamageTypeTags.IS_PROJECTILE);
     }
 
     public static boolean isTwoHandedWeapon(ItemStack stack) {

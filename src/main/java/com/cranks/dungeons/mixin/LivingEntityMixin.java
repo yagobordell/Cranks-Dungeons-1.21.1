@@ -290,46 +290,57 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
     }
 
     @Unique
+    private final Map<String, Double> cranks$activeRequirementPenalties = new HashMap<>();
+
+    @Unique
     private void updateRequirementPenalties(LivingEntity entity) {
         if (!(entity instanceof net.minecraft.entity.player.PlayerEntity player)) return;
 
-        double attackPenalty = 0;
-        double armorPenalty = 0;
-        double evasionPenalty = 0;
-        double esPenalty = 0;
+        Map<String, Double> newPenalties = new HashMap<>();
 
-        net.minecraft.item.ItemStack mainhand = player.getMainHandStack();
-        if (!mainhand.isEmpty() && !com.cranks.dungeons.equipment.ItemRequirementManager.meetsRequirements(player, mainhand)) {
-            net.minecraft.component.type.AttributeModifiersComponent mods = mainhand.getOrDefault(net.minecraft.component.DataComponentTypes.ATTRIBUTE_MODIFIERS, net.minecraft.component.type.AttributeModifiersComponent.DEFAULT);
-            for (net.minecraft.component.type.AttributeModifiersComponent.Entry entry : mods.modifiers()) {
-                if (entry.slot() == net.minecraft.component.type.AttributeModifierSlot.MAINHAND) {
-                    if (entry.attribute().equals(net.minecraft.entity.attribute.EntityAttributes.ATTACK_DAMAGE)) {
-                        attackPenalty += entry.modifier().value() * 0.5;
-                    }
-                }
+        // Check all equipped items
+        for (net.minecraft.entity.EquipmentSlot slot : net.minecraft.entity.EquipmentSlot.values()) {
+            net.minecraft.item.ItemStack stack = player.getEquippedStack(slot);
+            if (!stack.isEmpty() && !com.cranks.dungeons.equipment.ItemRequirementManager.meetsRequirements(player, stack)) {
+                stack.applyAttributeModifiers(slot, (attr, modifier) -> {
+                    String penaltyKey = attr.getIdAsString() + "|" + modifier.operation().getId();
+                    double penaltyAmount = modifier.value() * 0.5;
+                    newPenalties.merge(penaltyKey, penaltyAmount, Double::sum);
+                });
             }
         }
 
-        for (net.minecraft.entity.EquipmentSlot slot : new net.minecraft.entity.EquipmentSlot[]{net.minecraft.entity.EquipmentSlot.HEAD, net.minecraft.entity.EquipmentSlot.CHEST, net.minecraft.entity.EquipmentSlot.LEGS, net.minecraft.entity.EquipmentSlot.FEET, net.minecraft.entity.EquipmentSlot.OFFHAND}) {
-            net.minecraft.item.ItemStack armor = player.getEquippedStack(slot);
-            if (!armor.isEmpty() && !com.cranks.dungeons.equipment.ItemRequirementManager.meetsRequirements(player, armor)) {
-                net.minecraft.component.type.AttributeModifiersComponent mods = armor.getOrDefault(net.minecraft.component.DataComponentTypes.ATTRIBUTE_MODIFIERS, net.minecraft.component.type.AttributeModifiersComponent.DEFAULT);
-                for (net.minecraft.component.type.AttributeModifiersComponent.Entry entry : mods.modifiers()) {
-                    if (entry.attribute().equals(net.minecraft.entity.attribute.EntityAttributes.ARMOR)) {
-                        armorPenalty += entry.modifier().value() * 0.5;
-                    } else if (entry.attribute().equals(ModAttributes.EVASION_RATING)) {
-                        evasionPenalty += entry.modifier().value() * 0.5;
-                    } else if (entry.attribute().equals(ModAttributes.ENERGY_SHIELD)) {
-                        esPenalty += entry.modifier().value() * 0.5;
-                    }
-                }
+        // Apply new penalties and update tracked ones
+        for (Map.Entry<String, Double> entry : newPenalties.entrySet()) {
+            String[] parts = entry.getKey().split("\\|", 2);
+            net.minecraft.registry.entry.RegistryEntry<net.minecraft.entity.attribute.EntityAttribute> attr = net.minecraft.registry.Registries.ATTRIBUTE.getEntry(net.minecraft.util.Identifier.of(parts[0])).orElse(null);
+            if (attr == null) continue;
+            
+            // Extract operation from the second part (we need to map ID back to Operation)
+            net.minecraft.entity.attribute.EntityAttributeModifier.Operation op = net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_VALUE;
+            if (parts[1].equals("add_multiplied_base")) op = net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE;
+            else if (parts[1].equals("add_multiplied_total")) op = net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL;
+
+            updateModifier(entity, attr, net.minecraft.util.Identifier.of("cranks-dungeons", "req_penalty_" + parts[0].replace(':', '_') + "_" + parts[1]), -entry.getValue(), op);
+        }
+
+        // Remove any penalties that are no longer active
+        for (String oldKey : cranks$activeRequirementPenalties.keySet()) {
+            if (!newPenalties.containsKey(oldKey)) {
+                String[] parts = oldKey.split("\\|", 2);
+                net.minecraft.registry.entry.RegistryEntry<net.minecraft.entity.attribute.EntityAttribute> attr = net.minecraft.registry.Registries.ATTRIBUTE.getEntry(net.minecraft.util.Identifier.of(parts[0])).orElse(null);
+                if (attr == null) continue;
+                
+                net.minecraft.entity.attribute.EntityAttributeModifier.Operation op = net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_VALUE;
+                if (parts[1].equals("add_multiplied_base")) op = net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE;
+                else if (parts[1].equals("add_multiplied_total")) op = net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL;
+
+                updateModifier(entity, attr, net.minecraft.util.Identifier.of("cranks-dungeons", "req_penalty_" + parts[0].replace(':', '_') + "_" + parts[1]), 0.0, op);
             }
         }
 
-        updateModifier(entity, net.minecraft.entity.attribute.EntityAttributes.ATTACK_DAMAGE, net.minecraft.util.Identifier.of("cranks-dungeons", "req_penalty_damage"), -attackPenalty, net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_VALUE);
-        updateModifier(entity, net.minecraft.entity.attribute.EntityAttributes.ARMOR, net.minecraft.util.Identifier.of("cranks-dungeons", "req_penalty_armor"), -armorPenalty, net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_VALUE);
-        updateModifier(entity, ModAttributes.EVASION_RATING, net.minecraft.util.Identifier.of("cranks-dungeons", "req_penalty_evasion"), -evasionPenalty, net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_VALUE);
-        updateModifier(entity, ModAttributes.ENERGY_SHIELD, net.minecraft.util.Identifier.of("cranks-dungeons", "req_penalty_es"), -esPenalty, net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_VALUE);
+        cranks$activeRequirementPenalties.clear();
+        cranks$activeRequirementPenalties.putAll(newPenalties);
     }
 
     @Inject(method = "tick", at = @At("TAIL"))
@@ -359,21 +370,6 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
     private static final net.minecraft.util.Identifier ARMOR_SPEED_MOD_ID = net.minecraft.util.Identifier
             .of("cranks-dungeons", "armor_speed_penalty");
 
-    @Inject(method = "damage", at = @At("TAIL"))
-    private void applyThorns(ServerWorld world, DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
-        if (!cir.getReturnValue() || amount <= 0) return;
-
-        LivingEntity defender = (LivingEntity) (Object) this;
-        Entity attacker = source.getAttacker();
-
-        if (attacker instanceof LivingEntity livingAttacker && attacker != defender) {
-            double thorns = defender.getAttributeValue(ModAttributes.THORNS_DAMAGE);
-            // Only direct hits (not projectiles, not thorns, not fire, etc.)
-            if (thorns > 0 && source.getSource() == attacker && !source.isOf(net.minecraft.entity.damage.DamageTypes.THORNS)) {
-                livingAttacker.damage(world, defender.getDamageSources().thorns(defender), (float) thorns);
-            }
-        }
-    }
 
     @Unique
     private void updateArmorSpeed(LivingEntity entity) {

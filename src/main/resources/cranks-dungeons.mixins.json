@@ -86,7 +86,8 @@
 		"EnchantmentLevelMixin",
 		"ItemStackAttributeMixin",
 		"ProjectileEntityMixin",
-		"LivingEntityTickFreezeMixin"
+		"LivingEntityTickFreezeMixin",
+		"LivingEntityAccessor"
 	],
 	"client": [
 		"HideArmorAttributeMixin",

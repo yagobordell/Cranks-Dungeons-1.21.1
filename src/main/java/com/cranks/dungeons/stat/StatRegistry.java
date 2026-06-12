@@ -322,6 +322,15 @@ public class StatRegistry {
                                 10, 6000,
                                 ALL_ARMOR);
 
+                // --- Armor Applies to Elemental Damage (Armor Suffix) ---
+                registerForTypes("armor_applies_to_elemental", "% of Armour also applies to Elemental Damage",
+                                ModAttributes.ARMOR_APPLIES_TO_ELEMENTAL,
+                                r(0.14, 0.17, 0.20, 0.23, 0.27, 0.31, 0.35, 0.39, 0.43, 0.47),
+                                r(0.16, 0.19, 0.22, 0.26, 0.30, 0.34, 0.38, 0.42, 0.46, 0.50),
+                                true, true, Formatting.DARK_AQUA, CustomStat.AffixType.SUFFIX,
+                                35, 2000,
+                                ALL_ARMOR);
+
                 // --- Experience Bonus (Armor + Elytra) ---
                 registerForTypes("experience_bonus", "Experience Bonus",
                                 ModAttributes.EXPERIENCE_BONUS,
@@ -432,6 +441,17 @@ public class StatRegistry {
                                 r(0.10, 0.11, 0.16, 0.23, 0.33, 0.45, 0.61, 0.80, 1.01, 1.25),
                                 true, true, Formatting.YELLOW, CustomStat.AffixType.SUFFIX,
                                 15, 2000));
+
+                // ===================================================================
+                // LEGGINGS-ONLY STATS
+                // ===================================================================
+
+                register(new CustomStat("leggings_physical_thorns", "Physical Thorns Damage",
+                                EquipmentType.LEGGINGS, ModAttributes.THORNS_DAMAGE,
+                                r(1.0, 6.0, 13.0, 23.0, 36.0, 51.0, 71.0, 96.0, 126.0, 161.0),
+                                r(5.0, 12.0, 22.0, 35.0, 50.0, 70.0, 95.0, 125.0, 160.0, 220.0),
+                                false, false, Formatting.GRAY, CustomStat.AffixType.PREFIX,
+                                10, 6000));
 
                 // ===================================================================
                 // BOOTS-ONLY STATS

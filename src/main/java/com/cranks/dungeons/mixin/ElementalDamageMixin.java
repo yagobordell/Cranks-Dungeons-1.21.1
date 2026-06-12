@@ -68,7 +68,7 @@ public abstract class ElementalDamageMixin {
                 // Bows and Crossbows now use our Physical Damage stat for consistency
                 double baseDamage = attacker
                         .getAttributeValue(net.minecraft.entity.attribute.EntityAttributes.ATTACK_DAMAGE);
-                baseDamage += getEnchantmentValue(weapon, "minecraft:power", 3.0);
+                baseDamage += com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, weapon, "minecraft:power", 3.0);
 
                 double totalPercent = 1.0 + attacker.getAttributeValue(ModAttributes.ATTACK_DAMAGE_PERCENT)
                         + attacker.getAttributeValue(ModAttributes.RANGED_DAMAGE_PERCENT);
@@ -192,16 +192,16 @@ public abstract class ElementalDamageMixin {
 
             // === GATHER BASE DAMAGES ===
             double fireBaseDamage = CombatUtility.getAttributeValue(attacker, ModAttributes.FIRE_DAMAGE, weapon,
-                    "fire_damage", source) + getEnchantmentValue(weapon, "minecraft:fire_damage", 4.0);
+                    "fire_damage", source) + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, weapon, "minecraft:fire_damage", 4.0);
 
             double coldBaseDamage = CombatUtility.getAttributeValue(attacker, ModAttributes.COLD_DAMAGE, weapon,
-                    "cold_damage", source) + getEnchantmentValue(weapon, "minecraft:cold_damage", 4.0);
+                    "cold_damage", source) + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, weapon, "minecraft:cold_damage", 4.0);
 
             double lightningBaseDamage = CombatUtility.getAttributeValue(attacker, ModAttributes.LIGHTNING_DAMAGE,
-                    weapon, "lightning_damage", source) + getEnchantmentValue(weapon, "minecraft:lightning_damage", 4.0);
+                    weapon, "lightning_damage", source) + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, weapon, "minecraft:lightning_damage", 4.0);
 
             double voidBaseDamage = CombatUtility.getAttributeValue(attacker, ModAttributes.VOID_DAMAGE, weapon,
-                    "void_damage", source) + getEnchantmentValue(weapon, "minecraft:void_damage", 4.0);
+                    "void_damage", source) + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, weapon, "minecraft:void_damage", 4.0);
 
             // === PROPORTIONAL EXTRA DAMAGE (RUNES) ===
             // Calculate total basic damage using UNREDUCED values for proportional scaling
@@ -289,7 +289,12 @@ public abstract class ElementalDamageMixin {
                     targetDiedFromElemental = true;
             }
 
+            double armorAppliesPercent = target.getAttributes().hasAttribute(ModAttributes.ARMOR_APPLIES_TO_ELEMENTAL) ? target.getAttributeValue(ModAttributes.ARMOR_APPLIES_TO_ELEMENTAL) : 0.0;
+
             if (fireDamage > 0) {
+                if (armorAppliesPercent > 0) {
+                    fireDamage = DamageConversionHelper.calculateArmorReduction(target, (float)fireDamage, 0.0, armorAppliesPercent);
+                }
                 double resistance = target.getAttributeValue(ModAttributes.FIRE_RESISTANCE);
                 double pen = attacker.getAttributeValue(ModAttributes.ELEMENTAL_PENETRATION_PERCENT)
                         + attacker.getAttributeValue(ModAttributes.FIRE_PENETRATION_PERCENT);
@@ -308,6 +313,9 @@ public abstract class ElementalDamageMixin {
             }
 
             if (!targetDiedFromElemental && coldDamage > 0) {
+                if (armorAppliesPercent > 0) {
+                    coldDamage = DamageConversionHelper.calculateArmorReduction(target, (float)coldDamage, 0.0, armorAppliesPercent);
+                }
                 double resistance = target.getAttributeValue(ModAttributes.COLD_RESISTANCE);
                 double pen = attacker.getAttributeValue(ModAttributes.ELEMENTAL_PENETRATION_PERCENT)
                         + attacker.getAttributeValue(ModAttributes.COLD_PENETRATION_PERCENT);
@@ -325,6 +333,9 @@ public abstract class ElementalDamageMixin {
             }
 
             if (!targetDiedFromElemental && lightningDamage > 0) {
+                if (armorAppliesPercent > 0) {
+                    lightningDamage = DamageConversionHelper.calculateArmorReduction(target, (float)lightningDamage, 0.0, armorAppliesPercent);
+                }
                 double resistance = target.getAttributeValue(ModAttributes.LIGHTNING_RESISTANCE);
                 double pen = attacker.getAttributeValue(ModAttributes.ELEMENTAL_PENETRATION_PERCENT)
                         + attacker.getAttributeValue(ModAttributes.LIGHTNING_PENETRATION_PERCENT);
@@ -363,6 +374,9 @@ public abstract class ElementalDamageMixin {
             }
 
             if (!targetDiedFromElemental && voidDamage > 0) {
+                if (armorAppliesPercent > 0) {
+                    voidDamage = DamageConversionHelper.calculateArmorReduction(target, (float)voidDamage, 0.0, armorAppliesPercent);
+                }
                 double resistance = target.getAttributeValue(ModAttributes.VOID_RESISTANCE);
                 double pen = attacker.getAttributeValue(ModAttributes.ELEMENTAL_PENETRATION_PERCENT)
                         + attacker.getAttributeValue(ModAttributes.VOID_PENETRATION_PERCENT);
@@ -417,8 +431,8 @@ public abstract class ElementalDamageMixin {
             // Life Steal
             double lifeSteal = CombatUtility.getAttributeValue(attacker, ModAttributes.LIFE_STEAL, weapon, "life_steal",
                     source) +
-                    getEnchantmentValue(weapon, "minecraft:life_steal", 0.06) +
-                    getEnchantmentValue(chestplate, "minecraft:life_steal", 0.06);
+                    com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, weapon, "minecraft:life_steal", 0.06) +
+                    com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, chestplate, "minecraft:life_steal", 0.06);
 
             if (lifeSteal > 0) {
                 float totalDamage = physicalDamage + (float) totalElementalDamage;
@@ -435,8 +449,8 @@ public abstract class ElementalDamageMixin {
             // Burn (Scales from Fire Damage)
             double chanceToBurn = CombatUtility.getAttributeValue(attacker, ModAttributes.CHANCE_TO_BURN, weapon,
                     "chance_to_burn", source) +
-                    getEnchantmentValue(weapon, "minecraft:chance_to_burn", 0.05) +
-                    getEnchantmentValue(chestplate, "minecraft:chance_to_burn", 0.05);
+                    com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, weapon, "minecraft:chance_to_burn", 0.05) +
+                    com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, chestplate, "minecraft:chance_to_burn", 0.05);
 
             if (finalFireDamage > 0 && Math.random() < chanceToBurn) {
                 float burnDamagePercent = (float) CombatUtility.getAttributeValue(attacker,
@@ -452,8 +466,8 @@ public abstract class ElementalDamageMixin {
             // Poison (Scales from Physical and Void Damage)
             double chanceToPoison = CombatUtility.getAttributeValue(attacker, ModAttributes.CHANCE_TO_POISON, weapon,
                     "chance_to_poison", source) +
-                    getEnchantmentValue(weapon, "minecraft:chance_to_poison", 0.05) +
-                    getEnchantmentValue(chestplate, "minecraft:chance_to_poison", 0.05);
+                    com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, weapon, "minecraft:chance_to_poison", 0.05) +
+                    com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, chestplate, "minecraft:chance_to_poison", 0.05);
 
             if ((physicalDamage > 0 || finalVoidDamage > 0) && Math.random() < chanceToPoison) {
                 float poisonDamagePercent = (float) CombatUtility.getAttributeValue(attacker,
@@ -470,8 +484,8 @@ public abstract class ElementalDamageMixin {
             if (finalColdDamage > 0) {
                 float freezeBuildupMultiplier = 1.0f + (float) CombatUtility.getAttributeValue(attacker, ModAttributes.FREEZE_BUILDUP_PERCENT, weapon,
                         "freeze_buildup_percent", source) +
-                        (float) getEnchantmentValue(weapon, "minecraft:freeze_buildup_percent", 0.05) +
-                        (float) getEnchantmentValue(chestplate, "minecraft:freeze_buildup_percent", 0.05);
+                        (float) com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, weapon, "minecraft:freeze_buildup_percent", 0.05) +
+                        (float) com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, chestplate, "minecraft:freeze_buildup_percent", 0.05);
                 
                 float ailmentThreshold = Math.max(1.0f, target.getMaxHealth());
                 // Freeze is harder to charge (x2 multiplier) because it lasts longer
@@ -487,13 +501,13 @@ public abstract class ElementalDamageMixin {
             // Bleed (Scales from Physical Damage)
             double chanceToBleed = CombatUtility.getAttributeValue(attacker, ModAttributes.CHANCE_TO_BLEED, weapon,
                     "chance_to_bleed", source) +
-                    getEnchantmentValue(weapon, "minecraft:chance_to_bleed", 0.05) +
-                    getEnchantmentValue(chestplate, "minecraft:chance_to_bleed", 0.05);
+                    com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, weapon, "minecraft:chance_to_bleed", 0.05) +
+                    com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, chestplate, "minecraft:chance_to_bleed", 0.05);
 
             if (physicalDamage > 0 && Math.random() < chanceToBleed) {
                 float bleedBurstPercent = (float) CombatUtility.getAttributeValue(attacker, ModAttributes.BLEED_BURST_DAMAGE_PERCENT, weapon,
                         "bleed_burst_damage_percent", source) +
-                        (float) getEnchantmentValue(weapon, "minecraft:bleed_burst_damage_percent", 0.10);
+                        (float) com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, weapon, "minecraft:bleed_burst_damage_percent", 0.10);
                 
                 // Bleed deals 100% of physical damage as burst
                 float bleedBurstDamage = physicalDamage * (1.0f + bleedBurstPercent);
@@ -505,8 +519,8 @@ public abstract class ElementalDamageMixin {
             // Shock (Enables Chain Lightning)
             double chanceToShock = CombatUtility.getAttributeValue(attacker, ModAttributes.CHANCE_TO_SHOCK, weapon,
                     "chance_to_shock", source) +
-                    getEnchantmentValue(weapon, "minecraft:chance_to_shock", 0.05) +
-                    getEnchantmentValue(chestplate, "minecraft:chance_to_shock", 0.05);
+                    com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, weapon, "minecraft:chance_to_shock", 0.05) +
+                    com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, chestplate, "minecraft:chance_to_shock", 0.05);
 
             if (finalLightningDamage > 0 && Math.random() < chanceToShock) {
                 double shockDuration = CombatUtility.getAttributeValue(attacker, ModAttributes.SHOCK_DURATION, weapon,
@@ -518,8 +532,8 @@ public abstract class ElementalDamageMixin {
             if (finalLightningDamage > 0) {
                 float electrocuteBuildupMultiplier = 1.0f + (float) CombatUtility.getAttributeValue(attacker, ModAttributes.ELECTROCUTE_BUILDUP_PERCENT, weapon,
                         "electrocute_buildup_percent", source) +
-                        (float) getEnchantmentValue(weapon, "minecraft:electrocute_buildup_percent", 0.05) +
-                        (float) getEnchantmentValue(chestplate, "minecraft:electrocute_buildup_percent", 0.05);
+                        (float) com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, weapon, "minecraft:electrocute_buildup_percent", 0.05) +
+                        (float) com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, chestplate, "minecraft:electrocute_buildup_percent", 0.05);
                 
                 float ailmentThreshold = Math.max(1.0f, target.getMaxHealth());
                 // Electrocute is easier to charge (x8 multiplier to buildup) because it is a shorter stun
@@ -583,17 +597,7 @@ public abstract class ElementalDamageMixin {
         }
     }
 
-    @Unique
-    private double getEnchantmentValue(ItemStack stack, String enchantmentId, double baseValue) {
-        var enchantments = stack.getEnchantments();
-        for (var entry : enchantments.getEnchantmentEntries()) {
-            String id = entry.getKey().getKey().get().getValue().toString();
-            if (id.equals(enchantmentId)) {
-                return baseValue;
-            }
-        }
-        return 0.0;
-    }
+
 
     @Unique
     private void applyElementalDamage(LivingEntity target, ServerWorld world, double damage, DamageElement element) {
