@@ -231,7 +231,13 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
                 .add(ModAttributes.RELOAD_SPEED)
                 .add(ModAttributes.PROJECTILE_SPEED)
                 .add(ModAttributes.THORNS_DAMAGE)
-                .add(ModAttributes.ENCHANTMENT_EFFECTIVENESS);
+                .add(ModAttributes.ENCHANTMENT_EFFECTIVENESS)
+
+                // Pure Damage Conversions
+                .add(ModAttributes.PHYSICAL_TO_FIRE_CONVERSION_PERCENT)
+                .add(ModAttributes.PHYSICAL_TO_COLD_CONVERSION_PERCENT)
+                .add(ModAttributes.PHYSICAL_TO_LIGHTNING_CONVERSION_PERCENT)
+                .add(ModAttributes.PHYSICAL_TO_VOID_CONVERSION_PERCENT);
 
         cir.setReturnValue(builder);
     }
@@ -305,6 +311,19 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
                 stack.applyAttributeModifiers(slot, (attr, modifier) -> {
                     String penaltyKey = attr.getIdAsString() + "|" + modifier.operation().getId();
                     double penaltyAmount = modifier.value() * 0.5;
+
+                    // Special handling for weapon base attack speed
+                    // Weapons use negative modifiers to reduce the player's base 4.0 attack speed.
+                    // If we just halve the modifier, it becomes less negative (faster).
+                    // Instead, we halve the weapon's final attack speed (4.0 + modifier).
+                    String attrId = attr.getIdAsString();
+                    if ((attrId.equals("minecraft:attack_speed") || attrId.equals("minecraft:generic.attack_speed"))
+                            && modifier.operation() == net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_VALUE
+                            && modifier.value() < 0
+                            && (slot == net.minecraft.entity.EquipmentSlot.MAINHAND || slot == net.minecraft.entity.EquipmentSlot.OFFHAND)) {
+                        penaltyAmount = (4.0 + modifier.value()) * 0.5;
+                    }
+
                     newPenalties.merge(penaltyKey, penaltyAmount, Double::sum);
                 });
             }

@@ -633,8 +633,12 @@ public class PassiveSkillTreeScreen extends Screen {
             else if (canUnlockCache.contains(hovered.id()))
                 title = "§a[AVAILABLE] §6" + hovered.name();
 
-            context.drawTooltip(this.textRenderer, Text.literal(title + "\n§7" + hovered.description()), mouseX,
-                    mouseY);
+            java.util.List<Text> tooltipTexts = new java.util.ArrayList<>();
+            tooltipTexts.add(Text.literal(title));
+            if (hovered.description() != null && !hovered.description().isEmpty()) {
+                tooltipTexts.add(Text.literal("§7" + hovered.description()));
+            }
+            context.drawTooltip(this.textRenderer, tooltipTexts, mouseX, mouseY);
         }
 
         String pointsText = "Unspent Points: " + draftPoints;

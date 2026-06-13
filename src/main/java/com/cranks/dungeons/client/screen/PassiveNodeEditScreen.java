@@ -31,7 +31,6 @@ public class PassiveNodeEditScreen extends Screen {
     private TextFieldWidget nameField;
     private TextFieldWidget descField;
     private TextFieldWidget shapeField;
-    private TextFieldWidget statsField;
 
     private List<String> allAttributeIds = new ArrayList<>();
     private List<String> filteredSuggestions = new ArrayList<>();
@@ -39,7 +38,40 @@ public class PassiveNodeEditScreen extends Screen {
     private boolean showSuggestions = false;
     
     private boolean isAttrSelection = false;
+    private ButtonWidget toggleAttrBtn;
     private TextFieldWidget attrAmountField;
+
+    private List<ModifierRow> modifierRows = new ArrayList<>();
+    private ButtonWidget addModBtn;
+
+    private ButtonWidget saveBtn;
+    private ButtonWidget cancelBtn;
+    private ButtonWidget deleteBtn;
+    private ButtonWidget connectBtn;
+
+    private class ModifierRow {
+        TextFieldWidget attrField;
+        TextFieldWidget valField;
+        ButtonWidget removeBtn;
+
+        ModifierRow(String attr, String val, int index) {
+            int rightX = width / 2 + 10;
+            int y = 40 + (index * 25);
+            
+            attrField = new TextFieldWidget(textRenderer, rightX, y, 135, 20, Text.literal("Attribute"));
+            attrField.setMaxLength(128);
+            attrField.setText(attr);
+
+            valField = new TextFieldWidget(textRenderer, rightX + 140, y, 40, 20, Text.literal("Value"));
+            valField.setMaxLength(32);
+            valField.setText(val);
+
+            removeBtn = ButtonWidget.builder(Text.literal("X").formatted(Formatting.RED), b -> {
+                modifierRows.remove(this);
+                rebuildRows();
+            }).dimensions(rightX + 185, y, 20, 20).build();
+        }
+    }
 
     public PassiveNodeEditScreen(PassiveSkillTreeScreen parent, PassiveNode node) {
         super(Text.literal("Edit Node: " + (node != null ? node.id() : "New Node")));
@@ -59,185 +91,306 @@ public class PassiveNodeEditScreen extends Screen {
 
     @Override
     protected void init() {
-        allAttributeIds = Registries.ATTRIBUTE.getIds().stream().map(Identifier::toString).sorted().toList();
+        allAttributeIds = Registries.ATTRIBUTE.getIds().stream()
+                .filter(id -> id.getNamespace().equals("cranks-dungeons"))
+                .map(Identifier::getPath)
+                .filter(id -> !com.cranks.dungeons.stat.passive.PassiveStatHelper.BLACKLISTED_PASSIVE_ATTRIBUTES.contains(id))
+                .sorted()
+                .toList();
         
         int centerX = this.width / 2;
-        int startY = 40;
+        int leftX = centerX - 210;
+        int rightX = centerX + 10;
         int fieldW = 200;
 
-        // ID Field
-        idField = new TextFieldWidget(this.textRenderer, centerX - fieldW/2, startY, fieldW, 20, Text.literal("ID"));
+        idField = new TextFieldWidget(this.textRenderer, leftX, 40, fieldW, 20, Text.literal("ID"));
         idField.setMaxLength(64);
-        idField.setText(nodeToEdit != null ? nodeToEdit.id() : "new_node_id");
-        idField.setEditable(nodeToEdit == null); // Can't rename ID of existing node safely here
-        this.addDrawableChild(idField);
-        startY += 30;
-
-        // Name Field
-        nameField = new TextFieldWidget(this.textRenderer, centerX - fieldW/2, startY, fieldW, 20, Text.literal("Name"));
-        nameField.setText(nodeToEdit != null ? nodeToEdit.name() : "New Node Name");
-        this.addDrawableChild(nameField);
-        startY += 30;
-
-        // Desc Field
-        descField = new TextFieldWidget(this.textRenderer, centerX - fieldW/2, startY, fieldW, 20, Text.literal("Description"));
-        descField.setMaxLength(256);
-        descField.setText(nodeToEdit != null ? nodeToEdit.description() : "Node description...");
-        this.addDrawableChild(descField);
-        startY += 30;
-
-        // Shape Field
-        shapeField = new TextFieldWidget(this.textRenderer, centerX - fieldW/2, startY, fieldW, 20, Text.literal("Shape"));
-        shapeField.setText(nodeToEdit != null ? nodeToEdit.shape() : "square");
-        this.addDrawableChild(shapeField);
-        startY += 30;
-
-        // Modifiers Field (Format: attr:id=val,attr:id2=val2)
-        statsField = new TextFieldWidget(this.textRenderer, centerX - fieldW/2, startY, fieldW, 20, Text.literal("Modifiers"));
-        statsField.setMaxLength(512);
         if (nodeToEdit != null) {
-            String modStr = nodeToEdit.modifiers().entrySet().stream()
-                    .map(e -> Registries.ATTRIBUTE.getId(e.getKey().value()).toString() + "=" + e.getValue())
-                    .collect(Collectors.joining(","));
-            statsField.setText(modStr);
+            idField.setText(nodeToEdit.id());
+        } else {
+            int maxId = 0;
+            for (String key : PassiveNodeRegistry.getNodes().keySet()) {
+                if (key.startsWith("node_")) {
+                    try {
+                        int num = Integer.parseInt(key.substring(5));
+                        if (num > maxId) maxId = num;
+                    } catch (NumberFormatException ignored) {}
+                }
+            }
+            idField.setText("node_" + (maxId + 1));
         }
-        this.addDrawableChild(statsField);
-        startY += 30;
+        idField.setEditable(false);
+        this.addDrawableChild(idField);
 
-        // Is Attribute Selection Button
+        nameField = new TextFieldWidget(this.textRenderer, leftX, 85, fieldW, 20, Text.literal("Name"));
+        if (nodeToEdit != null) nameField.setText(nodeToEdit.name());
+        this.addDrawableChild(nameField);
+
+        descField = new TextFieldWidget(this.textRenderer, leftX, 130, fieldW, 20, Text.literal("Description"));
+        descField.setMaxLength(256);
+        if (nodeToEdit != null) descField.setText(nodeToEdit.description());
+        this.addDrawableChild(descField);
+
+        shapeField = new TextFieldWidget(this.textRenderer, leftX, 175, fieldW, 20, Text.literal("Shape"));
+        if (nodeToEdit != null) shapeField.setText(nodeToEdit.shape());
+        this.addDrawableChild(shapeField);
+
         isAttrSelection = nodeToEdit != null && nodeToEdit.isAttributeSelection();
-        ButtonWidget toggleAttrBtn = ButtonWidget.builder(Text.literal("Is Attr Choice: " + isAttrSelection), b -> {
+        toggleAttrBtn = ButtonWidget.builder(Text.literal("Is Attr Choice: " + isAttrSelection), b -> {
             isAttrSelection = !isAttrSelection;
             b.setMessage(Text.literal("Is Attr Choice: " + isAttrSelection));
-        }).dimensions(centerX - fieldW/2, startY, 95, 20).build();
+            rebuildRows();
+        }).dimensions(leftX, 220, fieldW, 20).build();
         this.addDrawableChild(toggleAttrBtn);
 
-        // Attribute Selection Amount Field
-        attrAmountField = new TextFieldWidget(this.textRenderer, centerX + 5, startY, 95, 20, Text.literal("Amount"));
-        attrAmountField.setText(nodeToEdit != null ? String.valueOf(nodeToEdit.attributeSelectionAmount()) : "0.0");
+        attrAmountField = new TextFieldWidget(this.textRenderer, rightX, 40, fieldW, 20, Text.literal("Amount"));
+        attrAmountField.setText(nodeToEdit != null ? String.valueOf(nodeToEdit.attributeSelectionAmount()) : "");
         this.addDrawableChild(attrAmountField);
-        startY += 40;
-
-        // Save Button
-        this.addDrawableChild(ButtonWidget.builder(Text.literal("Save Settings"), b -> {
-            saveNode();
-            MinecraftClient.getInstance().setScreen(parent);
-        }).dimensions(centerX - 105, startY, 100, 20).build());
-
-        // Cancel Button
-        this.addDrawableChild(ButtonWidget.builder(Text.literal("Cancel"), b -> {
-            MinecraftClient.getInstance().setScreen(parent);
-        }).dimensions(centerX + 5, startY, 100, 20).build());
-
-        startY += 25;
-
-        // EXTRA BUTTONS FOR EXISTING NODES
+        
+        // Modifiers loading
+        modifierRows.clear();
         if (nodeToEdit != null) {
-            // Delete Button
-            this.addDrawableChild(ButtonWidget.builder(Text.literal("Delete Node").formatted(Formatting.RED), b -> {
+            int i = 0;
+            for (Map.Entry<RegistryEntry<EntityAttribute>, Double> entry : nodeToEdit.modifiers().entrySet()) {
+                if (i >= 5) break;
+                String attr = Registries.ATTRIBUTE.getId(entry.getKey().value()).toString();
+                if (attr.startsWith("minecraft:")) continue;
+                if (attr.startsWith("cranks-dungeons:")) {
+                    attr = attr.substring(16);
+                }
+                String val = String.valueOf(entry.getValue());
+                modifierRows.add(new ModifierRow(attr, val, i));
+                i++;
+            }
+        }
+        
+        if (modifierRows.isEmpty()) {
+            modifierRows.add(new ModifierRow("", "", 0));
+        }
+
+        addModBtn = ButtonWidget.builder(Text.literal("+ Add Modifier"), b -> {
+            if (modifierRows.size() < 5) {
+                modifierRows.add(new ModifierRow("", "", modifierRows.size()));
+                rebuildRows();
+            }
+        }).dimensions(rightX, 165, 205, 20).build();
+
+        int btnY = 270;
+        if (nodeToEdit != null) {
+            saveBtn = ButtonWidget.builder(Text.literal("Save Settings"), b -> {
+                saveNode();
+                MinecraftClient.getInstance().setScreen(parent);
+            }).dimensions(centerX - 210, btnY, 100, 20).build();
+            
+            cancelBtn = ButtonWidget.builder(Text.literal("Cancel"), b -> {
+                MinecraftClient.getInstance().setScreen(parent);
+            }).dimensions(centerX - 100, btnY, 100, 20).build();
+
+            deleteBtn = ButtonWidget.builder(Text.literal("Delete Node").formatted(Formatting.RED), b -> {
                 PassiveNodeRegistry.getNodes().remove(nodeToEdit.id());
-                // Scrub connections
                 for (PassiveNode other : PassiveNodeRegistry.getNodes().values()) {
                     other.connections().remove(nodeToEdit.id());
                 }
                 parent.refreshCachesProxy();
                 MinecraftClient.getInstance().setScreen(parent);
-            }).dimensions(centerX - 105, startY, 100, 20).build());
+            }).dimensions(centerX + 10, btnY, 100, 20).build();
 
-            // Connect Button
-            this.addDrawableChild(ButtonWidget.builder(Text.literal("Connect/Link"), b -> {
-                saveNode(); // Save current state first
+            connectBtn = ButtonWidget.builder(Text.literal("Connect/Link"), b -> {
+                saveNode();
                 parent.startConnecting(PassiveNodeRegistry.getNodes().get(idField.getText()));
-            }).dimensions(centerX + 5, startY, 100, 20).build());
+            }).dimensions(centerX + 120, btnY, 100, 20).build();
+            
+            this.addDrawableChild(deleteBtn);
+            this.addDrawableChild(connectBtn);
+        } else {
+            saveBtn = ButtonWidget.builder(Text.literal("Create Node"), b -> {
+                saveNode();
+                MinecraftClient.getInstance().setScreen(parent);
+            }).dimensions(centerX - 105, btnY, 100, 20).build();
+            
+            cancelBtn = ButtonWidget.builder(Text.literal("Cancel"), b -> {
+                MinecraftClient.getInstance().setScreen(parent);
+            }).dimensions(centerX + 5, btnY, 100, 20).build();
+        }
+
+        this.addDrawableChild(saveBtn);
+        this.addDrawableChild(cancelBtn);
+
+        rebuildRows();
+    }
+
+    private void rebuildRows() {
+        for (Object child : new ArrayList<>(this.children())) {
+            if (child instanceof TextFieldWidget || child instanceof ButtonWidget) {
+                if (child != idField && child != nameField && child != descField && child != shapeField
+                        && child != toggleAttrBtn
+                        && child != saveBtn && child != cancelBtn
+                        && child != deleteBtn && child != connectBtn) {
+                    this.remove((net.minecraft.client.gui.Element) child);
+                }
+            }
+        }
+        
+        if (isAttrSelection) {
+            this.addDrawableChild(attrAmountField);
+            attrAmountField.setVisible(true);
+        } else {
+            attrAmountField.setVisible(false);
+            int i = 0;
+            for (ModifierRow row : modifierRows) {
+                int y = 40 + (i * 25);
+                row.attrField.setY(y);
+                row.valField.setY(y);
+                row.removeBtn.setY(y);
+                
+                row.attrField.setVisible(true);
+                row.valField.setVisible(true);
+                row.removeBtn.active = true;
+                
+                this.addDrawableChild(row.attrField);
+                this.addDrawableChild(row.valField);
+                this.addDrawableChild(row.removeBtn);
+                i++;
+            }
+            
+            int bottomY = 40 + (modifierRows.size() * 25);
+            addModBtn.setY(bottomY);
+            if (modifierRows.size() < 5) {
+                this.addDrawableChild(addModBtn);
+            }
         }
     }
 
     private void saveNode() {
         String id = idField.getText().trim();
+        if (id.isEmpty()) id = "new_node";
         String name = nameField.getText().trim();
         String desc = descField.getText().trim();
         String shape = shapeField.getText().trim();
-        Map<RegistryEntry<EntityAttribute>, Double> mods = parseModifiers(statsField.getText());
+        if (shape.isEmpty()) shape = "square";
+
+        Map<RegistryEntry<EntityAttribute>, Double> mods = new LinkedHashMap<>();
+        if (!isAttrSelection) {
+            for (ModifierRow row : modifierRows) {
+                String attr = row.attrField.getText().trim();
+                String valStr = row.valField.getText().trim();
+                if (!attr.isEmpty() && !valStr.isEmpty()) {
+                    if (!attr.contains(":")) {
+                        attr = "cranks-dungeons:" + attr;
+                    }
+                    if (attr.startsWith("minecraft:")) continue;
+                    try {
+                        double val = Double.parseDouble(valStr);
+                        Identifier attrId = Identifier.tryParse(attr);
+                        if (attrId != null) {
+                            Registries.ATTRIBUTE.getOptionalValue(attrId).ifPresent(a -> {
+                                mods.put(Registries.ATTRIBUTE.getEntry(a), val);
+                            });
+                        }
+                    } catch (NumberFormatException ignored) {}
+                }
+            }
+        }
         
         double attrAmount = 0.0;
-        try {
-            attrAmount = Double.parseDouble(attrAmountField.getText().trim());
-        } catch (NumberFormatException e) {
-            attrAmount = 0.0;
+        if (isAttrSelection) {
+            try {
+                attrAmount = Double.parseDouble(attrAmountField.getText().trim());
+            } catch (NumberFormatException ignored) {}
         }
 
         if (nodeToEdit != null) {
-            // Update existing
             nodeToEdit.setGridX(gridX);
             nodeToEdit.setGridY(gridY);
-            // We'd need more setters if we wanted to change desc/name on the fly, 
-            // but for simplicity in this dev tool we can just replace the node in the registry
             PassiveNode newNode = new PassiveNode(id, name, desc, gridX, gridY, 
                     nodeToEdit.connections(), mods, nodeToEdit.icon(), shape,
                     isAttrSelection, attrAmount);
             PassiveNodeRegistry.getNodes().put(id, newNode);
         } else {
-            // Create new
             PassiveNode newNode = new PassiveNode(id, name, desc, gridX, gridY, 
                     new ArrayList<>(), mods, null, shape, isAttrSelection, attrAmount);
             PassiveNodeRegistry.getNodes().put(id, newNode);
         }
-        parent.refreshCachesProxy(); // Trigger UI refresh
-    }
-
-    private Map<RegistryEntry<EntityAttribute>, Double> parseModifiers(String text) {
-        Map<RegistryEntry<EntityAttribute>, Double> map = new LinkedHashMap<>();
-        if (text.isEmpty()) return map;
-        
-        String[] parts = text.split(",");
-        for (String part : parts) {
-            String[] kv = part.split("=");
-            if (kv.length == 2) {
-                Identifier attrId = Identifier.tryParse(kv[0].trim());
-                if (attrId != null) {
-                    Registries.ATTRIBUTE.getOptionalValue(attrId).ifPresent(attr -> {
-                        map.put(Registries.ATTRIBUTE.getEntry(attr), Double.parseDouble(kv[1].trim()));
-                    });
-                }
-            }
-        }
-        return map;
+        parent.refreshCachesProxy();
     }
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        // Use fill instead of renderBackground to avoid "Can only blur once per frame" crash
         context.fill(0, 0, this.width, this.height, 0x90000000);
         context.fill(10, 10, this.width - 10, this.height - 10, 0x80000000);
         
         context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 15, 0xFFFFFF);
         
-        context.drawTextWithShadow(this.textRenderer, "Node ID:", this.width / 2 - 100, idField.getY() - 12, 0xAAAAAA);
-        context.drawTextWithShadow(this.textRenderer, "Display Name:", this.width / 2 - 100, nameField.getY() - 12, 0xAAAAAA);
-        context.drawTextWithShadow(this.textRenderer, "Description:", this.width / 2 - 100, descField.getY() - 12, 0xAAAAAA);
-        context.drawTextWithShadow(this.textRenderer, "Shape (square/circle/diamond/hexagon):", this.width / 2 - 100, shapeField.getY() - 12, 0xAAAAAA);
-        context.drawTextWithShadow(this.textRenderer, "Modifiers (attr=val,attr2=val2):", this.width / 2 - 100, statsField.getY() - 12, 0xAAAAAA);
+        int leftX = this.width / 2 - 210;
+        int rightX = this.width / 2 + 10;
+
+        context.drawTextWithShadow(this.textRenderer, "Node ID (Auto-generated):", leftX, idField.getY() - 12, 0xFFAAAAAA);
+        context.drawTextWithShadow(this.textRenderer, "Display Name:", leftX, nameField.getY() - 12, 0xFFAAAAAA);
+        context.drawTextWithShadow(this.textRenderer, "Description:", leftX, descField.getY() - 12, 0xFFAAAAAA);
+        context.drawTextWithShadow(this.textRenderer, "Shape (square/circle/diamond/hexagon):", leftX, shapeField.getY() - 12, 0xFFAAAAAA);
+        
+        if (isAttrSelection) {
+            context.drawTextWithShadow(this.textRenderer, "Attribute Amount:", rightX, attrAmountField.getY() - 12, 0xFFAAAAAA);
+        } else {
+            context.drawTextWithShadow(this.textRenderer, "Modifiers (Attr ID & Value):", rightX, 40 - 12, 0xFFAAAAAA);
+        }
 
         super.render(context, mouseX, mouseY, delta);
+        
+        // Render Placeholders
+        drawPlaceholder(context, nameField, "e.g. Brawler's Might");
+        drawPlaceholder(context, descField, "e.g. Grants +5 Strength");
+        drawPlaceholder(context, shapeField, "e.g. square");
+        
+        if (isAttrSelection) {
+            drawPlaceholder(context, attrAmountField, "e.g. 5.0");
+        } else {
+            for (ModifierRow row : modifierRows) {
+                drawPlaceholder(context, row.attrField, "e.g. max_health");
+                drawPlaceholder(context, row.valField, "5.0");
+            }
+        }
 
         renderSuggestions(context);
+    }
+    
+    private void drawPlaceholder(DrawContext context, TextFieldWidget field, String text) {
+        if (field.isVisible() && field.getText().isEmpty() && !field.isFocused()) {
+            context.drawTextWithShadow(this.textRenderer, text, field.getX() + 4, field.getY() + 6, 0xFF888888);
+        }
+    }
+
+    private TextFieldWidget getActiveAttrField() {
+        if (isAttrSelection) return null;
+        for (ModifierRow row : modifierRows) {
+            if (row.attrField.isFocused()) {
+                return row.attrField;
+            }
+        }
+        return null;
     }
 
     private void renderSuggestions(DrawContext context) {
         updateSuggestions();
         if (!showSuggestions || filteredSuggestions.isEmpty()) return;
+        
+        TextFieldWidget activeField = getActiveAttrField();
+        if (activeField == null) return;
 
-        int x = statsField.getX();
-        int y = statsField.getY() + statsField.getHeight();
-        int w = statsField.getWidth();
+        int x = activeField.getX();
+        int y = activeField.getY() + activeField.getHeight();
+        int w = activeField.getWidth();
         int h = Math.min(filteredSuggestions.size(), 5) * 12 + 2;
 
+        if (y + h > this.height) {
+            y = activeField.getY() - h;
+        }
+
         context.fill(x, y, x + w, y + h, 0xFF000000);
-        // Draw white border using 4 fill calls
-        context.fill(x, y, x + w, y + 1, 0xFFFFFFFF); // TOP
-        context.fill(x, y + h - 1, x + w, y + h, 0xFFFFFFFF); // BOTTOM
-        context.fill(x, y, x + 1, y + h, 0xFFFFFFFF); // LEFT
-        context.fill(x + w - 1, y, x + w, y + h, 0xFFFFFFFF); // RIGHT
+        context.fill(x, y, x + w, y + 1, 0xFFFFFFFF);
+        context.fill(x, y + h - 1, x + w, y + h, 0xFFFFFFFF);
+        context.fill(x, y, x + 1, y + h, 0xFFFFFFFF);
+        context.fill(x + w - 1, y, x + w, y + h, 0xFFFFFFFF);
 
         for (int i = 0; i < Math.min(filteredSuggestions.size(), 5); i++) {
             int color = (i == selectedSuggestion) ? 0xFFFFFF00 : 0xFFFFFFFF;
@@ -246,30 +399,23 @@ public class PassiveNodeEditScreen extends Screen {
     }
 
     private void updateSuggestions() {
-        if (!statsField.isFocused()) {
+        TextFieldWidget activeField = getActiveAttrField();
+        if (activeField == null) {
             showSuggestions = false;
             return;
         }
 
-        String text = statsField.getText();
-        int cursor = statsField.getCursor();
-        
-        // Find current word being typed
-        int start = Math.max(0, text.lastIndexOf(',', cursor - 1) + 1);
-        String currentPart = text.substring(start, cursor).trim();
-        
-        if (currentPart.contains("=")) {
-            showSuggestions = false;
-            return;
-        }
+        String text = activeField.getText().trim();
 
-        if (currentPart.isEmpty()) {
-            showSuggestions = false;
+        if (text.isEmpty()) {
+            filteredSuggestions = allAttributeIds.stream().limit(10).collect(Collectors.toList());
+            showSuggestions = true;
+            if (selectedSuggestion >= filteredSuggestions.size()) selectedSuggestion = 0;
             return;
         }
 
         filteredSuggestions = allAttributeIds.stream()
-                .filter(id -> id.contains(currentPart))
+                .filter(id -> id.contains(text))
                 .limit(10)
                 .collect(Collectors.toList());
         
@@ -281,15 +427,15 @@ public class PassiveNodeEditScreen extends Screen {
     public boolean keyPressed(KeyInput input) {
         int keyCode = input.key();
         if (showSuggestions && !filteredSuggestions.isEmpty()) {
-            if (keyCode == 264) { // DOWN
+            if (keyCode == 264) {
                 selectedSuggestion = (selectedSuggestion + 1) % Math.min(filteredSuggestions.size(), 5);
                 return true;
             }
-            if (keyCode == 265) { // UP
+            if (keyCode == 265) {
                 selectedSuggestion = (selectedSuggestion - 1 + Math.min(filteredSuggestions.size(), 5)) % Math.min(filteredSuggestions.size(), 5);
                 return true;
             }
-            if (keyCode == 257 || keyCode == 258) { // ENTER or TAB
+            if (keyCode == 257 || keyCode == 258) {
                 applySuggestion();
                 return true;
             }
@@ -298,15 +444,13 @@ public class PassiveNodeEditScreen extends Screen {
     }
 
     private void applySuggestion() {
-        String text = statsField.getText();
-        int cursor = statsField.getCursor();
-        int start = Math.max(0, text.lastIndexOf(',', cursor - 1) + 1);
+        TextFieldWidget activeField = getActiveAttrField();
+        if (activeField == null || filteredSuggestions.isEmpty()) return;
         
         String suggestion = filteredSuggestions.get(selectedSuggestion);
-        String newText = text.substring(0, start) + suggestion + text.substring(cursor);
-        statsField.setText(newText);
-        statsField.setSelectionStart(start + suggestion.length());
-        statsField.setSelectionEnd(start + suggestion.length());
+        activeField.setText(suggestion);
+        activeField.setSelectionStart(suggestion.length());
+        activeField.setSelectionEnd(suggestion.length());
         showSuggestions = false;
     }
 }

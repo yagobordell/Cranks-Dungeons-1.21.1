@@ -9,8 +9,18 @@ import net.minecraft.registry.entry.RegistryEntry;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.Set;
 
 public class PassiveStatHelper {
+
+    public static final Set<String> BLACKLISTED_PASSIVE_ATTRIBUTES = Set.of(
+            "enchantment_effectiveness", "feather_falling", "attack_range",
+            "fire_damage", "cold_damage", "lightning_damage", "void_damage",
+            "freeze_duration", "electrocute_duration",
+            "mining_efficiency", "fortune", "durability_bonus", "experience_bonus",
+            "precision_mining", "breaking_range", "repair_chance", "flying_speed",
+            "item_rarity_percent", "crop_fortune", "log_fortune", "dig_fortune", "crop_experience"
+    );
 
     /**
      * Aggregates all modifiers from unlocked nodes in the passive tree for a given
@@ -41,6 +51,12 @@ public class PassiveStatHelper {
                 
                 if (node.modifiers() != null) {
                     for (Map.Entry<RegistryEntry<EntityAttribute>, Double> entry : node.modifiers().entrySet()) {
+                        String idStr = entry.getKey().getIdAsString();
+                        if (!idStr.startsWith("cranks-dungeons:")) continue;
+                        
+                        String id = idStr.substring(16);
+                        if (BLACKLISTED_PASSIVE_ATTRIBUTES.contains(id)) continue;
+                        
                         summary.merge(entry.getKey(), entry.getValue(), Double::sum);
                     }
                 }
@@ -79,6 +95,12 @@ public class PassiveStatHelper {
                     
                     if (node.modifiers() != null) {
                         for (Map.Entry<RegistryEntry<EntityAttribute>, Double> entry : node.modifiers().entrySet()) {
+                            String idStr = entry.getKey().getIdAsString();
+                            if (!idStr.startsWith("cranks-dungeons:")) continue;
+                            
+                            String id = idStr.substring(16);
+                            if (BLACKLISTED_PASSIVE_ATTRIBUTES.contains(id)) continue;
+                            
                             raw.merge(entry.getKey(), entry.getValue(), Double::sum);
                         }
                     }
@@ -167,6 +189,10 @@ public class PassiveStatHelper {
                 .replace("physical as extra cold percent", "phys as cold")
                 .replace("physical as extra lightning percent", "phys as light.")
                 .replace("physical as extra void percent", "phys as void")
+                .replace("physical to fire conversion percent", "phys to fire conversion")
+                .replace("physical to cold conversion percent", "phys to cold conversion")
+                .replace("physical to lightning conversion percent", "phys to light. conversion")
+                .replace("physical to void conversion percent", "phys to void conversion")
                 .replace("crit chance against afflicted", "crit chance vs afflicted")
                 .replace("armor penetration percent", "armor penetration")
                 .replace("fire penetration percent", "fire penetration")

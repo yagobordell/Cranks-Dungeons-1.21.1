@@ -92,6 +92,16 @@ public class ModAttributes {
     public static final RegistryEntry<EntityAttribute> PHYSICAL_AS_EXTRA_VOID_PERCENT = register(
             "physical_as_extra_void_percent", 0.0, 0.0, 5.0);
 
+    // Pure Damage Conversions
+    public static final RegistryEntry<EntityAttribute> PHYSICAL_TO_FIRE_CONVERSION_PERCENT = register(
+            "physical_to_fire_conversion_percent", 0.0, 0.0, 1.0);
+    public static final RegistryEntry<EntityAttribute> PHYSICAL_TO_COLD_CONVERSION_PERCENT = register(
+            "physical_to_cold_conversion_percent", 0.0, 0.0, 1.0);
+    public static final RegistryEntry<EntityAttribute> PHYSICAL_TO_LIGHTNING_CONVERSION_PERCENT = register(
+            "physical_to_lightning_conversion_percent", 0.0, 0.0, 1.0);
+    public static final RegistryEntry<EntityAttribute> PHYSICAL_TO_VOID_CONVERSION_PERCENT = register(
+            "physical_to_void_conversion_percent", 0.0, 0.0, 1.0);
+
     public static final RegistryEntry<EntityAttribute> LIFE_STEAL = register("life_steal", 0.0, 0.0, 1.0);
     public static final RegistryEntry<EntityAttribute> CHANCE_TO_BURN = register("chance_to_burn", 0.0, 0.0, 1.0);
     public static final RegistryEntry<EntityAttribute> BURN_BASE_DAMAGE = register("burn_base_damage", 4.0, 0.0, 10000.0);

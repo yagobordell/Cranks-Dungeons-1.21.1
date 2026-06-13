@@ -52,6 +52,9 @@ public abstract class ElementalDamageMixin {
     @Unique
     private static final ThreadLocal<Boolean> cranks$processingElementalDamage = ThreadLocal.withInitial(() -> false);
 
+    @Unique
+    private static final ThreadLocal<Float> cranks$originalDamageAmount = ThreadLocal.withInitial(() -> 0f);
+
     // Static flag to prevent shock chain damage from triggering elemental
     // processing
 
@@ -65,9 +68,7 @@ public abstract class ElementalDamageMixin {
 
             // Check for Ranged Damage Override
             if (CombatUtility.isRanged(weapon, source)) {
-                // Bows and Crossbows now use our Physical Damage stat for consistency
-                double baseDamage = attacker
-                        .getAttributeValue(net.minecraft.entity.attribute.EntityAttributes.ATTACK_DAMAGE);
+                double baseDamage = attacker.getAttributeValue(net.minecraft.entity.attribute.EntityAttributes.ATTACK_DAMAGE);
                 baseDamage += com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, weapon, "minecraft:power", 3.0);
 
                 double totalPercent = 1.0 + attacker.getAttributeValue(ModAttributes.ATTACK_DAMAGE_PERCENT)
@@ -75,32 +76,45 @@ public abstract class ElementalDamageMixin {
 
                 double drawMultiplier = 1.0;
                 if (weapon.getItem() instanceof net.minecraft.item.BowItem) {
-                    // Normalize draw progress. Vanilla full draw is ~6.0 damage (2.0 base * 3.0
-                    // velocity)
-                    // We use the vanilla damage as a proxy for how far the bow was drawn.
                     drawMultiplier = Math.min(1.0, amount / 6.0);
                 }
 
-                float newAmount = (float) (baseDamage * totalPercent * drawMultiplier);
-
-                // Apply PvP reduction
-                if (attacker instanceof PlayerEntity && target instanceof PlayerEntity) {
-                    newAmount *= 0.25f;
-                }
-                return newAmount;
+                amount = (float) (baseDamage * totalPercent * drawMultiplier);
             }
 
-            // Normal PvP reduction for melee/other
+            // Normal PvP reduction for melee/other and ranged
             if (attacker instanceof PlayerEntity && target instanceof PlayerEntity) {
-                return amount * 0.25f;
+                amount *= 0.25f;
             }
+            
+            // Store the full amount BEFORE conversion so applyElementalDamageOnHit uses it as the base!
+            cranks$originalDamageAmount.set(amount);
+            
+            // PURE DAMAGE CONVERSION REDUCTION
+            double toFire = attacker.getAttributeValue(ModAttributes.PHYSICAL_TO_FIRE_CONVERSION_PERCENT);
+            double toCold = attacker.getAttributeValue(ModAttributes.PHYSICAL_TO_COLD_CONVERSION_PERCENT);
+            double toLightning = attacker.getAttributeValue(ModAttributes.PHYSICAL_TO_LIGHTNING_CONVERSION_PERCENT);
+            double toVoid = attacker.getAttributeValue(ModAttributes.PHYSICAL_TO_VOID_CONVERSION_PERCENT);
+            
+            double totalConversion = toFire + toCold + toLightning + toVoid;
+            if (totalConversion > 1.0) totalConversion = 1.0;
+            
+            if (totalConversion > 0) {
+                amount = (float) (amount * (1.0 - totalConversion));
+                if (amount <= 0.0f && totalConversion >= 1.0) {
+                    amount = 0.001f; // Keep a tiny amount so the vanilla hit validates
+                }
+            }
+            
+            return amount;
         }
 
+        cranks$originalDamageAmount.set(amount);
         return amount;
     }
 
     @Inject(method = "damage", at = @At("RETURN"))
-    private void applyElementalDamageOnHit(ServerWorld world, DamageSource source, float amount,
+    private void applyElementalDamageOnHit(ServerWorld world, DamageSource source, float argAmount,
             CallbackInfoReturnable<Boolean> cir) {
         // Skip if damage didn't succeed or already processing
         if (!cir.getReturnValue()) {
@@ -117,14 +131,17 @@ public abstract class ElementalDamageMixin {
         if (AilmentManager.isShockChainInProgress()) {
             return;
         }
+        
+        float actualAmount = cranks$originalDamageAmount.get();
+        if (actualAmount <= 0) actualAmount = argAmount;
 
         // Accumulate bleed damage if target has bleed ailment
-        AilmentManager.accumulateBleedDamage(target, amount);
+        AilmentManager.accumulateBleedDamage(target, actualAmount);
 
         if (source.getAttacker() instanceof LivingEntity attacker) {
-            handleLivingAttacker(world, source, amount, attacker, target);
+            handleLivingAttacker(world, source, actualAmount, attacker, target);
         } else {
-            handleNonPlayerDamage(world, source, amount, target);
+            handleNonPlayerDamage(world, source, actualAmount, target);
         }
     }
 
@@ -203,6 +220,36 @@ public abstract class ElementalDamageMixin {
             double voidBaseDamage = CombatUtility.getAttributeValue(attacker, ModAttributes.VOID_DAMAGE, weapon,
                     "void_damage", source) + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, weapon, "minecraft:void_damage", 4.0);
 
+            // === PURE DAMAGE CONVERSIONS ===
+            double originalUnreducedPhysical = unreducedPhysicalDamage;
+            
+            double toFire = attacker.getAttributeValue(ModAttributes.PHYSICAL_TO_FIRE_CONVERSION_PERCENT);
+            double toCold = attacker.getAttributeValue(ModAttributes.PHYSICAL_TO_COLD_CONVERSION_PERCENT);
+            double toLightning = attacker.getAttributeValue(ModAttributes.PHYSICAL_TO_LIGHTNING_CONVERSION_PERCENT);
+            double toVoid = attacker.getAttributeValue(ModAttributes.PHYSICAL_TO_VOID_CONVERSION_PERCENT);
+            
+            double totalConversion = toFire + toCold + toLightning + toVoid;
+            if (totalConversion > 1.0) {
+                toFire /= totalConversion;
+                toCold /= totalConversion;
+                toLightning /= totalConversion;
+                toVoid /= totalConversion;
+            }
+
+            double convertedFire = originalUnreducedPhysical * toFire;
+            double convertedCold = originalUnreducedPhysical * toCold;
+            double convertedLightning = originalUnreducedPhysical * toLightning;
+            double convertedVoid = originalUnreducedPhysical * toVoid;
+            
+            double totalConverted = convertedFire + convertedCold + convertedLightning + convertedVoid;
+            unreducedPhysicalDamage -= totalConverted;
+            physicalDamage -= totalConverted * pvpMultiplier; // Also reduce physicalDamage to affect poison/bleed base
+
+            fireBaseDamage += convertedFire;
+            coldBaseDamage += convertedCold;
+            lightningBaseDamage += convertedLightning;
+            voidBaseDamage += convertedVoid;
+
             // === PROPORTIONAL EXTRA DAMAGE (RUNES) ===
             // Calculate total basic damage using UNREDUCED values for proportional scaling
             double totalBasicDamage = unreducedPhysicalDamage + fireBaseDamage + coldBaseDamage + lightningBaseDamage + voidBaseDamage;
@@ -230,16 +277,16 @@ public abstract class ElementalDamageMixin {
 
             // Gain % of Physical as Extra Element
             double physAsFire = attacker.getAttributeValue(ModAttributes.PHYSICAL_AS_EXTRA_FIRE_PERCENT);
-            fireBaseDamage += unreducedPhysicalDamage * physAsFire;
+            fireBaseDamage += originalUnreducedPhysical * physAsFire;
 
             double physAsCold = attacker.getAttributeValue(ModAttributes.PHYSICAL_AS_EXTRA_COLD_PERCENT);
-            coldBaseDamage += unreducedPhysicalDamage * physAsCold;
+            coldBaseDamage += originalUnreducedPhysical * physAsCold;
 
             double physAsLightning = attacker.getAttributeValue(ModAttributes.PHYSICAL_AS_EXTRA_LIGHTNING_PERCENT);
-            lightningBaseDamage += unreducedPhysicalDamage * physAsLightning;
+            lightningBaseDamage += originalUnreducedPhysical * physAsLightning;
 
             double physAsVoid = attacker.getAttributeValue(ModAttributes.PHYSICAL_AS_EXTRA_VOID_PERCENT);
-            voidBaseDamage += unreducedPhysicalDamage * physAsVoid;
+            voidBaseDamage += originalUnreducedPhysical * physAsVoid;
 
             // === APPLY MULTIPLIERS ===
             double baseMultiplier = weaponSpecificPercent + afflictedBonus + selfAfflictedBonus

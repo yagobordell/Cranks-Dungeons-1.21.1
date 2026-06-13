@@ -65,6 +65,14 @@ This file contains a comprehensive list of all attributes available for use in t
 | `cranks-dungeons:physical_as_extra_lightning_percent` | Percentage | Gain % of Physical damage as extra Lightning damage. |
 | `cranks-dungeons:physical_as_extra_void_percent` | Percentage | Gain % of Physical damage as extra Void damage. |
 
+### 🔄 Pure Damage Conversions
+| Identifier | Type | Description |
+| :--- | :--- | :--- |
+| `cranks-dungeons:physical_to_fire_conversion_percent` | Percentage | Converts a % of Physical Damage entirely to Fire Damage. |
+| `cranks-dungeons:physical_to_cold_conversion_percent` | Percentage | Converts a % of Physical Damage entirely to Cold Damage. |
+| `cranks-dungeons:physical_to_lightning_conversion_percent` | Percentage | Converts a % of Physical Damage entirely to Lightning Damage. |
+| `cranks-dungeons:physical_to_void_conversion_percent` | Percentage | Converts a % of Physical Damage entirely to Void Damage. |
+
 ### 🎯 Penetration Modifiers
 
 | Identifier | Type | Description |
