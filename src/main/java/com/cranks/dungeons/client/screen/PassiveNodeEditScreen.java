@@ -37,6 +37,9 @@ public class PassiveNodeEditScreen extends Screen {
     private List<String> filteredSuggestions = new ArrayList<>();
     private int selectedSuggestion = 0;
     private boolean showSuggestions = false;
+    
+    private boolean isAttrSelection = false;
+    private TextFieldWidget attrAmountField;
 
     public PassiveNodeEditScreen(PassiveSkillTreeScreen parent, PassiveNode node) {
         super(Text.literal("Edit Node: " + (node != null ? node.id() : "New Node")));
@@ -99,6 +102,20 @@ public class PassiveNodeEditScreen extends Screen {
             statsField.setText(modStr);
         }
         this.addDrawableChild(statsField);
+        startY += 30;
+
+        // Is Attribute Selection Button
+        isAttrSelection = nodeToEdit != null && nodeToEdit.isAttributeSelection();
+        ButtonWidget toggleAttrBtn = ButtonWidget.builder(Text.literal("Is Attr Choice: " + isAttrSelection), b -> {
+            isAttrSelection = !isAttrSelection;
+            b.setMessage(Text.literal("Is Attr Choice: " + isAttrSelection));
+        }).dimensions(centerX - fieldW/2, startY, 95, 20).build();
+        this.addDrawableChild(toggleAttrBtn);
+
+        // Attribute Selection Amount Field
+        attrAmountField = new TextFieldWidget(this.textRenderer, centerX + 5, startY, 95, 20, Text.literal("Amount"));
+        attrAmountField.setText(nodeToEdit != null ? String.valueOf(nodeToEdit.attributeSelectionAmount()) : "0.0");
+        this.addDrawableChild(attrAmountField);
         startY += 40;
 
         // Save Button
@@ -141,6 +158,13 @@ public class PassiveNodeEditScreen extends Screen {
         String desc = descField.getText().trim();
         String shape = shapeField.getText().trim();
         Map<RegistryEntry<EntityAttribute>, Double> mods = parseModifiers(statsField.getText());
+        
+        double attrAmount = 0.0;
+        try {
+            attrAmount = Double.parseDouble(attrAmountField.getText().trim());
+        } catch (NumberFormatException e) {
+            attrAmount = 0.0;
+        }
 
         if (nodeToEdit != null) {
             // Update existing
@@ -149,12 +173,13 @@ public class PassiveNodeEditScreen extends Screen {
             // We'd need more setters if we wanted to change desc/name on the fly, 
             // but for simplicity in this dev tool we can just replace the node in the registry
             PassiveNode newNode = new PassiveNode(id, name, desc, gridX, gridY, 
-                    nodeToEdit.connections(), mods, nodeToEdit.icon(), shape);
+                    nodeToEdit.connections(), mods, nodeToEdit.icon(), shape,
+                    isAttrSelection, attrAmount);
             PassiveNodeRegistry.getNodes().put(id, newNode);
         } else {
             // Create new
             PassiveNode newNode = new PassiveNode(id, name, desc, gridX, gridY, 
-                    new ArrayList<>(), mods, null, shape);
+                    new ArrayList<>(), mods, null, shape, isAttrSelection, attrAmount);
             PassiveNodeRegistry.getNodes().put(id, newNode);
         }
         parent.refreshCachesProxy(); // Trigger UI refresh

@@ -40,7 +40,7 @@ public class FreezeSlowdownMixin {
         boolean isStunned = entity.hasStatusEffect(ModEffects.FREEZE) || entity.hasStatusEffect(ModEffects.ELECTROCUTE);
         float buildup = com.cranks.dungeons.ailment.AilmentManager.getFreezeBuildup(entity.getUuid());
         
-        double moveSlow = isStunned ? -1.0 : (buildup > 0 ? buildup * -0.25 : 0);
+        double moveSlow = isStunned ? -1.0 : (buildup > 0 ? buildup * -0.30 : 0);
         double attackSlow = isStunned ? -1.0 : 0;
         
         boolean shouldApplyMove = moveSlow != 0;

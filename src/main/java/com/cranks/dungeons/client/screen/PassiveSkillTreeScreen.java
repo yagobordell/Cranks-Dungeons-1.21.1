@@ -94,9 +94,13 @@ public class PassiveSkillTreeScreen extends Screen {
     private static final Identifier STATS_BACKGROUND = Identifier.of("cranks-dungeons", "passive/stats_background");
 
     private boolean choosingClass = false;
-    private final Set<String> draftUnlocked = new HashSet<>();
+    private final Map<String, String> draftUnlocked = new HashMap<>();
     private int draftPoints;
     private boolean showStatsPanel = false;
+    
+    private String activeChoiceNodeId = null;
+    private int choicePopupX = 0;
+    private int choicePopupY = 0;
 
     // --- Unified Logic & Rendering Caches ---
     private record Edge(PassiveNode n1, PassiveNode n2) {
@@ -268,22 +272,22 @@ public class PassiveSkillTreeScreen extends Screen {
         if (!draftUnlocked.isEmpty()) {
             var player = MinecraftClient.getInstance().player;
             if (player != null) {
-                player.playSound(ModSounds.PASSIVE_POINT_APPLY, 0.8f, 1.0f);
+                net.minecraft.client.network.ClientPlayNetworkHandler handler = MinecraftClient.getInstance().getNetworkHandler();
+                net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking.send(
+                        new com.cranks.dungeons.network.BulkUnlockNodesPayload(new HashMap<>(draftUnlocked)));
+                var data = ModComponents.PASSIVE_DATA.get(player);
+                for (String id : draftUnlocked.keySet()) {
+                    data.unlockNode(id);
+                    String choice = draftUnlocked.get(id);
+                    if (choice != null && !choice.isEmpty()) {
+                        data.setNodeChoice(id, choice);
+                    }
+                }
+
+                draftUnlocked.clear();
+                this.init();
+                this.cacheDirty = true;
             }
-
-            ClientPlayNetworking.send(
-                    new com.cranks.dungeons.network.BulkUnlockNodesPayload(new java.util.ArrayList<>(draftUnlocked)));
-
-            // Update client-side points and unlocked nodes BEFORE clearing the draft
-            var data = ModComponents.PASSIVE_DATA.get(player);
-            data.setUnspentPoints(draftPoints);
-            for (String id : draftUnlocked) {
-                data.unlockNode(id);
-            }
-
-            draftUnlocked.clear();
-            this.init();
-            this.cacheDirty = true;
         }
     }
 
@@ -473,10 +477,10 @@ public class PassiveSkillTreeScreen extends Screen {
 
         // --- DRAW CONNECTIONS ---
         for (Edge edge : edgeCache) {
-            int x1 = (int) (panX + edge.n1.gridX() * currentGridScale);
-            int y1 = (int) (panY + edge.n1.gridY() * currentGridScale);
-            int x2 = (int) (panX + edge.n2.gridX() * currentGridScale);
-            int y2 = (int) (panY + edge.n2.gridY() * currentGridScale);
+            float x1 = (float) (panX + edge.n1.gridX() * currentGridScale);
+            float y1 = (float) (panY + edge.n1.gridY() * currentGridScale);
+            float x2 = (float) (panX + edge.n2.gridX() * currentGridScale);
+            float y2 = (float) (panY + edge.n2.gridY() * currentGridScale);
 
             // Spatial Culling
             if ((x1 < -margin && x2 < -margin) || (x1 > screenW + margin && x2 > screenW + margin) ||
@@ -492,8 +496,8 @@ public class PassiveSkillTreeScreen extends Screen {
 
             boolean n1Unlocked = unlocked.contains(edge.n1.id());
             boolean n2Unlocked = unlocked.contains(edge.n2.id());
-            boolean n1Drafted = draftUnlocked.contains(edge.n1.id());
-            boolean n2Drafted = draftUnlocked.contains(edge.n2.id());
+            boolean n1Drafted = draftUnlocked.containsKey(edge.n1.id());
+            boolean n2Drafted = draftUnlocked.containsKey(edge.n2.id());
 
             boolean n1Active = n1Unlocked || n1Drafted;
             boolean n2Active = n2Unlocked || n2Drafted;
@@ -544,8 +548,8 @@ public class PassiveSkillTreeScreen extends Screen {
                 continue;
             }
 
-            boolean isUnlocked = unlocked.contains(node.id()) || draftUnlocked.contains(node.id());
-            boolean isDraft = draftUnlocked.contains(node.id());
+            boolean isUnlocked = unlocked.contains(node.id()) || draftUnlocked.containsKey(node.id());
+            boolean isDraft = draftUnlocked.containsKey(node.id());
             boolean canUnlock = canUnlockCache.contains(node.id());
 
             double multiplier = getNodeSizeMultiplier(node.shape());
@@ -592,14 +596,29 @@ public class PassiveSkillTreeScreen extends Screen {
             }
 
             // Draw Icon (TOP LAYER)
-            if (node.icon() != null) {
-                String iconPath = node.icon().getPath();
+            Identifier iconToDraw = node.icon();
+            if (node.isAttributeSelection()) {
+                String choice = null;
+                if (unlocked.contains(node.id())) {
+                    choice = ModComponents.PASSIVE_DATA.get(player).getNodeChoice(node.id());
+                } else if (draftUnlocked.containsKey(node.id())) {
+                    choice = draftUnlocked.get(node.id());
+                }
+                
+                if ("strength".equals(choice)) iconToDraw = Identifier.of("cranks-dungeons", "passive/strength");
+                else if ("dexterity".equals(choice)) iconToDraw = Identifier.of("cranks-dungeons", "passive/dexterity");
+                else if ("intelligence".equals(choice)) iconToDraw = Identifier.of("cranks-dungeons", "passive/intelligence");
+                // if null, it stays node.icon() which can be a generic selection icon
+            }
+
+            if (iconToDraw != null) {
+                String iconPath = iconToDraw.getPath();
                 if (!iconPath.equals("passive/circle") && !iconPath.equals("passive/square") &&
                         !iconPath.equals("passive/diamond") && !iconPath.equals("passive/hexagon") &&
                         !iconPath.equals("passive/generic")) {
 
                     double iconSize = actualNodeSize * 0.95;
-                    drawPrecisionTexture(context, node.icon(), nx, ny, iconSize, 0xFFFFFFFF);
+                    drawPrecisionTexture(context, iconToDraw, nx, ny, iconSize, 0xFFFFFFFF);
                 }
             }
 
@@ -607,8 +626,8 @@ public class PassiveSkillTreeScreen extends Screen {
 
         if (hovered != null) {
             String title = "§6" + hovered.name();
-            if (draftUnlocked.contains(hovered.id()))
-                title = "§b[SELECTED] §6" + hovered.name();
+            if (draftUnlocked.containsKey(hovered.id()))
+                title = "§b[DRAFTED] §6" + hovered.name();
             else if (unlocked.contains(hovered.id()))
                 title = "§e[UNLOCKED] §6" + hovered.name();
             else if (canUnlockCache.contains(hovered.id()))
@@ -641,6 +660,30 @@ public class PassiveSkillTreeScreen extends Screen {
 
         if (showStatsPanel) {
             renderStatsPanel(context);
+        }
+
+        if (activeChoiceNodeId != null) {
+            int cx = choicePopupX;
+            int cy = choicePopupY;
+            
+            // Draw background for buttons
+            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, MENU_BACKGROUND, cx - 4, cy - 4, 58, 72);
+            
+            // Button STR
+            Identifier btnStr = (mouseX >= cx && mouseX <= cx + 50 && mouseY >= cy && mouseY <= cy + 20) ? Identifier.of("minecraft", "widget/button_highlighted") : Identifier.of("minecraft", "widget/button");
+            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, btnStr, cx, cy, 50, 20);
+            
+            // Button DEX
+            Identifier btnDex = (mouseX >= cx && mouseX <= cx + 50 && mouseY >= cy + 22 && mouseY <= cy + 42) ? Identifier.of("minecraft", "widget/button_highlighted") : Identifier.of("minecraft", "widget/button");
+            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, btnDex, cx, cy + 22, 50, 20);
+            
+            // Button INT
+            Identifier btnInt = (mouseX >= cx && mouseX <= cx + 50 && mouseY >= cy + 44 && mouseY <= cy + 64) ? Identifier.of("minecraft", "widget/button_highlighted") : Identifier.of("minecraft", "widget/button");
+            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, btnInt, cx, cy + 44, 50, 20);
+            
+            context.drawText(this.textRenderer, net.minecraft.text.Text.literal("STR"), cx + 16, cy + 6, 0xFFFF5555, true);
+            context.drawText(this.textRenderer, net.minecraft.text.Text.literal("DEX"), cx + 16, cy + 28, 0xFF55FF55, true);
+            context.drawText(this.textRenderer, net.minecraft.text.Text.literal("INT"), cx + 18, cy + 50, 0xFF5555FF, true);
         }
 
         super.render(context, mouseX, mouseY, delta);
@@ -681,7 +724,6 @@ public class PassiveSkillTreeScreen extends Screen {
                 0xFFFFAA00);
         ty += 15;
 
-        // Get unified summary including both unlocked and drafted nodes
         var stats = PassiveStatHelper.getDisplayableSummary(MinecraftClient.getInstance().player, draftUnlocked);
 
         if (stats.isEmpty()) {
@@ -760,11 +802,11 @@ public class PassiveSkillTreeScreen extends Screen {
             }
 
             // Unlock Cache (Reachability logic)
-            if (!unlocked.contains(node.id()) && !draftUnlocked.contains(node.id()) && draftPoints > 0) {
+            if (!unlocked.contains(node.id()) && !draftUnlocked.containsKey(node.id()) && draftPoints > 0) {
                 Set<String> neighbors = adjacencyMap.get(node.id());
                 if (neighbors != null) {
                     for (String conn : neighbors) {
-                        if (unlocked.contains(conn) || draftUnlocked.contains(conn)) {
+                        if (unlocked.contains(conn) || draftUnlocked.containsKey(conn)) {
                             canUnlockCache.add(node.id());
                             break;
                         }
@@ -776,7 +818,7 @@ public class PassiveSkillTreeScreen extends Screen {
         // 3. Calculate Distances from active tree (BFS)
         java.util.Queue<String> queue = new java.util.LinkedList<>();
         for (String id : allNodes.keySet()) {
-            if (unlocked.contains(id) || draftUnlocked.contains(id)) {
+            if (unlocked.contains(id) || draftUnlocked.containsKey(id)) {
                 distanceMap.put(id, 0);
                 queue.add(id);
             }
@@ -836,19 +878,26 @@ public class PassiveSkillTreeScreen extends Screen {
             return;
 
         float angle = (float) Math.atan2(dy, dx);
-        float hw = width / 2.0f;
 
         var matrices = context.getMatrices();
         matrices.pushMatrix();
         matrices.translate(x1, y1);
         matrices.rotate(angle);
 
-        // Sprite approach: Correct for 1.21.2+ UI and handles color/alpha
+        // Scale a fixed integer base to achieve sub-pixel float width/length
+        float baseLen = 1000.0f;
+        float baseWidth = 100.0f;
+        
+        float scaleX = len / baseLen;
+        float scaleY = width / baseWidth;
+        
+        matrices.scale(scaleX, scaleY);
+
         int finalColor = (color & 0x00FFFFFF) | ((int) (alpha * 255) << 24);
         context.drawGuiTexture(
                 net.minecraft.client.gl.RenderPipelines.GUI_TEXTURED,
                 sprite,
-                0, (int) -hw, (int) len, (int) width,
+                0, (int) (-baseWidth / 2.0f), (int) baseLen, (int) baseWidth,
                 finalColor);
 
         matrices.popMatrix();
@@ -890,18 +939,29 @@ public class PassiveSkillTreeScreen extends Screen {
      * Draws a texture centered on a double coordinate with high precision rounding
      * to prevent displacement "jitter" during zooming.
      */
-    private void drawPrecisionTexture(DrawContext context, Identifier texture, double cx, double cy, double size,
-            int color) {
-        int x = (int) Math.round(cx - size / 2.0);
-        int y = (int) Math.round(cy - size / 2.0);
-        int sx = (int) Math.round(cx + size / 2.0) - x;
-        int sy = (int) Math.round(cy + size / 2.0) - y;
+    private void drawPrecisionTexture(DrawContext context, Identifier texture, double cx, double cy, double size, int color) {
+        var matrices = context.getMatrices();
+        matrices.pushMatrix();
+        // Translate with full float precision
+        matrices.translate((float) cx, (float) cy);
+
+        // Scale a fixed integer base to achieve sub-pixel float size
+        float baseSize = 256.0f;
+        float scale = (float) (size / baseSize);
+        matrices.scale(scale, scale);
+
+        int drawW = (int) baseSize;
+        int drawH = (int) baseSize;
+        int drawX = -drawW / 2;
+        int drawY = -drawH / 2;
 
         context.drawGuiTexture(
                 net.minecraft.client.gl.RenderPipelines.GUI_TEXTURED,
                 texture,
-                x, y, sx, sy,
+                drawX, drawY, drawW, drawH,
                 color);
+
+        matrices.popMatrix();
     }
 
     @Override
@@ -1139,6 +1199,39 @@ public class PassiveSkillTreeScreen extends Screen {
             }
         }
 
+        // If an attribute choice popup is open
+        if (activeChoiceNodeId != null) {
+            int cx = choicePopupX;
+            int cy = choicePopupY;
+            if (mouseX >= cx && mouseX <= cx + 50 && mouseY >= cy && mouseY <= cy + 20) {
+                draftUnlocked.put(activeChoiceNodeId, "strength");
+                draftPoints--;
+                MinecraftClient.getInstance().player.playSound(com.cranks.dungeons.registry.ModSounds.PASSIVE_NODE_SELECT, 0.6f, 1.2f);
+                activeChoiceNodeId = null;
+                this.cacheDirty = true;
+                return true;
+            }
+            if (mouseX >= cx && mouseX <= cx + 50 && mouseY >= cy + 22 && mouseY <= cy + 42) {
+                draftUnlocked.put(activeChoiceNodeId, "dexterity");
+                draftPoints--;
+                MinecraftClient.getInstance().player.playSound(com.cranks.dungeons.registry.ModSounds.PASSIVE_NODE_SELECT, 0.6f, 1.2f);
+                activeChoiceNodeId = null;
+                this.cacheDirty = true;
+                return true;
+            }
+            if (mouseX >= cx && mouseX <= cx + 50 && mouseY >= cy + 44 && mouseY <= cy + 64) {
+                draftUnlocked.put(activeChoiceNodeId, "intelligence");
+                draftPoints--;
+                MinecraftClient.getInstance().player.playSound(com.cranks.dungeons.registry.ModSounds.PASSIVE_NODE_SELECT, 0.6f, 1.2f);
+                activeChoiceNodeId = null;
+                this.cacheDirty = true;
+                return true;
+            }
+            // Click outside closes the popup
+            activeChoiceNodeId = null;
+            return true;
+        }
+
         if (!choosingClass && button == 0) {
             PassiveDataComponent data = ModComponents.PASSIVE_DATA.get(player);
             Set<String> unlocked = data.getUnlockedNodes();
@@ -1157,7 +1250,7 @@ public class PassiveSkillTreeScreen extends Screen {
 
                 if (mouseX >= nx - halfSize && mouseX <= nx + halfSize && mouseY >= ny - halfSize
                         && mouseY <= ny + halfSize) {
-                    if (draftUnlocked.contains(node.id())) {
+                    if (draftUnlocked.containsKey(node.id())) {
                         // Toggle OFF: Unselect drafted node
                         draftUnlocked.remove(node.id());
                         draftPoints++;
@@ -1176,7 +1269,7 @@ public class PassiveSkillTreeScreen extends Screen {
                     Set<String> neighbors = adjacencyMap.get(node.id());
                     if (neighbors != null) {
                         for (String conn : neighbors) {
-                            if (unlocked.contains(conn) || draftUnlocked.contains(conn)) {
+                            if (unlocked.contains(conn) || draftUnlocked.containsKey(conn)) {
                                 canUnlock = true;
                                 break;
                             }
@@ -1184,10 +1277,17 @@ public class PassiveSkillTreeScreen extends Screen {
                     }
 
                     if (draftPoints > 0 && canUnlock) {
-                        draftUnlocked.add(node.id());
-                        draftPoints--;
-                        player.playSound(ModSounds.PASSIVE_NODE_SELECT, 0.6f, 1.2f); // Pitched up for select
-                        this.cacheDirty = true;
+                        if (node.isAttributeSelection()) {
+                            activeChoiceNodeId = node.id();
+                            choicePopupX = (int) mouseX;
+                            choicePopupY = (int) mouseY - 25;
+                            player.playSound(com.cranks.dungeons.registry.ModSounds.PASSIVE_NODE_SELECT, 0.6f, 1.2f);
+                        } else {
+                            draftUnlocked.put(node.id(), "");
+                            draftPoints--;
+                            player.playSound(com.cranks.dungeons.registry.ModSounds.PASSIVE_NODE_SELECT, 0.6f, 1.2f); // Pitched up for select
+                            this.cacheDirty = true;
+                        }
                     }
                     return true;
                 }
@@ -1253,7 +1353,7 @@ public class PassiveSkillTreeScreen extends Screen {
             Set<String> neighbors = adjacencyMap.get(currentId);
             if (neighbors != null) {
                 for (String neighborId : neighbors) {
-                    if (!stillReachable.contains(neighborId) && draftUnlocked.contains(neighborId)) {
+                    if (!stillReachable.contains(neighborId) && draftUnlocked.containsKey(neighborId)) {
                         stillReachable.add(neighborId);
                         queue.add(neighborId);
                     }
@@ -1262,10 +1362,10 @@ public class PassiveSkillTreeScreen extends Screen {
         }
 
         // Prune orphans
-        java.util.Iterator<String> it = draftUnlocked.iterator();
+        java.util.Iterator<Map.Entry<String, String>> it = draftUnlocked.entrySet().iterator();
         while (it.hasNext()) {
-            String draftId = it.next();
-            if (!stillReachable.contains(draftId)) {
+            Map.Entry<String, String> entry = it.next();
+            if (!stillReachable.contains(entry.getKey())) {
                 it.remove();
                 draftPoints++;
                 this.cacheDirty = true;

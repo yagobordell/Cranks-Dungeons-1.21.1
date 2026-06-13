@@ -1,0 +1,1 @@
+package com.cranks.dungeons; import net.minecraft.client.gui.DrawContext; public class TestCompile { public static void main(String[] args) { for (java.lang.reflect.Method m : DrawContext.class.getDeclaredMethods()) { if(m.getName().startsWith("draw")) System.out.println(m.getName() + " " + java.util.Arrays.toString(m.getParameterTypes())); } } }

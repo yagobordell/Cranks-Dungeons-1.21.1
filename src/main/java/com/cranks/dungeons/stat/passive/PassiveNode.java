@@ -17,10 +17,12 @@ public class PassiveNode {
     private final Map<RegistryEntry<EntityAttribute>, Double> modifiers;
     private final Identifier icon;
     private final String shape;
+    private final boolean isAttributeSelection;
+    private final double attributeSelectionAmount;
 
     public PassiveNode(String id, String name, String description, double gridX, double gridY,
                        List<String> connections, Map<RegistryEntry<EntityAttribute>, Double> modifiers,
-                       Identifier icon, String shape) {
+                       Identifier icon, String shape, boolean isAttributeSelection, double attributeSelectionAmount) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -30,6 +32,8 @@ public class PassiveNode {
         this.modifiers = modifiers;
         this.icon = icon;
         this.shape = shape;
+        this.isAttributeSelection = isAttributeSelection;
+        this.attributeSelectionAmount = attributeSelectionAmount;
     }
 
     public String id() { return id; }
@@ -41,6 +45,8 @@ public class PassiveNode {
     public Map<RegistryEntry<EntityAttribute>, Double> modifiers() { return modifiers; }
     public Identifier icon() { return icon; }
     public String shape() { return shape; }
+    public boolean isAttributeSelection() { return isAttributeSelection; }
+    public double attributeSelectionAmount() { return attributeSelectionAmount; }
 
     public void setGridX(double gridX) { this.gridX = gridX; }
     public void setGridY(double gridY) { this.gridY = gridY; }

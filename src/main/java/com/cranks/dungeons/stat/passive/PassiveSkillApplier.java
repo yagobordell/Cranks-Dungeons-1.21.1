@@ -22,17 +22,7 @@ public class PassiveSkillApplier {
 
         removeAllModifiers(player);
 
-        PassiveDataComponent data = ModComponents.PASSIVE_DATA.get(player);
-        Map<RegistryEntry<EntityAttribute>, Double> totalStats = new HashMap<>();
-
-        for (String nodeId : data.getUnlockedNodes()) {
-            PassiveNode node = PassiveNodeRegistry.getNode(nodeId);
-            if (node != null && node.modifiers() != null) {
-                for (Map.Entry<RegistryEntry<EntityAttribute>, Double> entry : node.modifiers().entrySet()) {
-                    totalStats.merge(entry.getKey(), entry.getValue(), Double::sum);
-                }
-            }
-        }
+        Map<RegistryEntry<EntityAttribute>, Double> totalStats = PassiveStatHelper.getPassiveTreeSummary(player);
 
         for (Map.Entry<RegistryEntry<EntityAttribute>, Double> entry : totalStats.entrySet()) {
             applyStatModifier(player, entry.getKey(), entry.getValue());

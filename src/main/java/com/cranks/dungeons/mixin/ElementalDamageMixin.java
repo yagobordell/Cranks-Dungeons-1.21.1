@@ -571,16 +571,12 @@ public abstract class ElementalDamageMixin {
             // Check for shock BEFORE calculating damage
             boolean hasShockBeforeDamage = AilmentManager.hasAilment(target, AilmentType.SHOCK);
 
-            // Apply resistances to get the actual final values
+            // The breakdown was already reduced by resistances and armor in DamageReductionMixin
             float physical = breakdown.get(DamageElement.PHYSICAL);
-            float fire = (float) (breakdown.get(DamageElement.FIRE)
-                    * (1.0 - target.getAttributeValue(ModAttributes.FIRE_RESISTANCE)));
-            float cold = (float) (breakdown.get(DamageElement.COLD)
-                    * (1.0 - target.getAttributeValue(ModAttributes.COLD_RESISTANCE)));
-            float lightning = (float) (breakdown.get(DamageElement.LIGHTNING)
-                    * (1.0 - target.getAttributeValue(ModAttributes.LIGHTNING_RESISTANCE)));
-            float voidDamage = (float) (breakdown.get(DamageElement.VOID)
-                    * (1.0 - target.getAttributeValue(ModAttributes.VOID_RESISTANCE)));
+            float fire = breakdown.get(DamageElement.FIRE);
+            float cold = breakdown.get(DamageElement.COLD);
+            float lightning = breakdown.get(DamageElement.LIGHTNING);
+            float voidDamage = breakdown.get(DamageElement.VOID);
 
             // Trigger shock chain BEFORE damage is applied (works for killing hits)
             if (lightning > 0 && hasShockBeforeDamage && !AilmentManager.isShockChainInProgress()) {

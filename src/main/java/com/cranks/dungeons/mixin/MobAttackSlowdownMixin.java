@@ -34,11 +34,6 @@ public abstract class MobAttackSlowdownMixin {
             if (this.bonus$mob != null && this.cooldown > 0) {
                 if (this.bonus$mob.hasStatusEffect(ModEffects.FREEZE) || this.bonus$mob.hasStatusEffect(ModEffects.ELECTROCUTE)) {
                     this.cooldown++; // Full freeze = cooldown doesn't tick down
-                } else {
-                    float buildup = com.cranks.dungeons.ailment.AilmentManager.getFreezeBuildup(this.bonus$mob.getUuid());
-                    if (buildup > 0 && Math.random() < buildup * 0.35) {
-                        this.cooldown++; // Fractional slowdown
-                    }
                 }
             }
         }
@@ -59,11 +54,6 @@ public abstract class MobAttackSlowdownMixin {
             if (this.bonus$mob != null && this.cooldown > 0) {
                 if (this.bonus$mob.hasStatusEffect(ModEffects.FREEZE) || this.bonus$mob.hasStatusEffect(ModEffects.ELECTROCUTE)) {
                     this.cooldown++; // Full freeze = cooldown doesn't tick down
-                } else {
-                    float buildup = com.cranks.dungeons.ailment.AilmentManager.getFreezeBuildup(this.bonus$mob.getUuid());
-                    if (buildup > 0 && Math.random() < buildup * 0.35) {
-                        this.cooldown++;
-                    }
                 }
             }
         }
@@ -94,11 +84,6 @@ public abstract class MobAttackSlowdownMixin {
             if (this.bonus$mob != null && this.updateCountdownTicks > 0) {
                 if (this.bonus$mob.hasStatusEffect(ModEffects.FREEZE) || this.bonus$mob.hasStatusEffect(ModEffects.ELECTROCUTE)) {
                     this.updateCountdownTicks++;
-                } else {
-                    float buildup = com.cranks.dungeons.ailment.AilmentManager.getFreezeBuildup(this.bonus$mob.getUuid());
-                    if (buildup > 0 && Math.random() < buildup * 0.35) {
-                        this.updateCountdownTicks++;
-                    }
                 }
             }
         }

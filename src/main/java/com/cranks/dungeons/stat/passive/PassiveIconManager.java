@@ -74,6 +74,11 @@ public class PassiveIconManager {
         ATTRIBUTE_ICONS.put("cranks-dungeons:movement_speed", "passive/movement_speed");
         ATTRIBUTE_ICONS.put("cranks-dungeons:experience_bonus", "passive/experience");
         ATTRIBUTE_ICONS.put("minecraft:luck", "passive/luck");
+
+        // --- Core Stats ---
+        ATTRIBUTE_ICONS.put("cranks-dungeons:strength", "passive/strength");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:dexterity", "passive/dexterity");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:intelligence", "passive/intelligence");
     }
 
     /**

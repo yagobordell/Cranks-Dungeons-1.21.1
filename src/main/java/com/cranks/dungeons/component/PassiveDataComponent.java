@@ -15,6 +15,10 @@ public interface PassiveDataComponent extends Component, CopyableComponent<Passi
     Set<String> getUnlockedNodes();
     void unlockNode(String nodeId);
     boolean hasNode(String nodeId);
+
+    java.util.Map<String, String> getNodeChoices();
+    void setNodeChoice(String nodeId, String choice);
+    String getNodeChoice(String nodeId);
     
     // Called to retroactively grant points if the user was leveled before the update
     void checkRetroactivePoints(int currentLevel);

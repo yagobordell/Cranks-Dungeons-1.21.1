@@ -161,7 +161,7 @@ public class ModNetworking {
                     context.server().execute(() -> {
                         var player = context.player();
                         var data = com.cranks.dungeons.component.ModComponents.PASSIVE_DATA.get(player);
-                        java.util.List<String> remainingNodes = new java.util.ArrayList<>(payload.nodeIds());
+                        java.util.Map<String, String> remainingNodes = new java.util.HashMap<>(payload.nodeChoices());
                         
                         boolean totalChanged = false;
                         boolean progress = true;
@@ -169,10 +169,12 @@ public class ModNetworking {
                         // Keep trying to unlock nodes as long as we make progress in a pass
                         while (progress && !remainingNodes.isEmpty()) {
                             progress = false;
-                            java.util.Iterator<String> it = remainingNodes.iterator();
+                            java.util.Iterator<java.util.Map.Entry<String, String>> it = remainingNodes.entrySet().iterator();
                             while (it.hasNext()) {
-                                String rawId = it.next();
+                                java.util.Map.Entry<String, String> entry = it.next();
+                                String rawId = entry.getKey();
                                 String nodeId = rawId != null ? rawId.trim() : "";
+                                String choice = entry.getValue() != null ? entry.getValue().trim() : "";
                                 if (nodeId.isEmpty()) { it.remove(); continue; }
                                 var node = com.cranks.dungeons.stat.passive.PassiveNodeRegistry.getNode(nodeId);
                                 
@@ -180,6 +182,9 @@ public class ModNetworking {
                                     if (isNodeUnlockable(data, nodeId)) {
                                         data.setUnspentPoints(data.getUnspentPoints() - 1);
                                         data.unlockNode(nodeId);
+                                        if (!choice.isEmpty()) {
+                                            data.setNodeChoice(nodeId, choice);
+                                        }
                                         it.remove();
                                         progress = true;
                                         totalChanged = true;

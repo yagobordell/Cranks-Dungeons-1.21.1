@@ -26,9 +26,23 @@ public class PassiveStatHelper {
 
         for (String nodeId : data.getUnlockedNodes()) {
             PassiveNode node = PassiveNodeRegistry.getNode(nodeId);
-            if (node != null && node.modifiers() != null) {
-                for (Map.Entry<RegistryEntry<EntityAttribute>, Double> entry : node.modifiers().entrySet()) {
-                    summary.merge(entry.getKey(), entry.getValue(), Double::sum);
+            if (node != null) {
+                if (node.isAttributeSelection()) {
+                    String choice = data.getNodeChoice(nodeId);
+                    RegistryEntry<EntityAttribute> attr = null;
+                    if ("strength".equalsIgnoreCase(choice)) attr = com.cranks.dungeons.registry.ModAttributes.STRENGTH;
+                    else if ("dexterity".equalsIgnoreCase(choice)) attr = com.cranks.dungeons.registry.ModAttributes.DEXTERITY;
+                    else if ("intelligence".equalsIgnoreCase(choice)) attr = com.cranks.dungeons.registry.ModAttributes.INTELLIGENCE;
+                    
+                    if (attr != null) {
+                        summary.merge(attr, node.attributeSelectionAmount(), Double::sum);
+                    }
+                }
+                
+                if (node.modifiers() != null) {
+                    for (Map.Entry<RegistryEntry<EntityAttribute>, Double> entry : node.modifiers().entrySet()) {
+                        summary.merge(entry.getKey(), entry.getValue(), Double::sum);
+                    }
                 }
             }
         }
@@ -41,16 +55,32 @@ public class PassiveStatHelper {
      * display purposes.
      * Optionally includes a set of drafted node IDs to provide a "preview" summary.
      */
-    public static Map<String, Double> getDisplayableSummary(PlayerEntity player, java.util.Set<String> draftNodes) {
+    public static Map<String, Double> getDisplayableSummary(PlayerEntity player, java.util.Map<String, String> draftChoices) {
         Map<RegistryEntry<EntityAttribute>, Double> raw = getPassiveTreeSummary(player);
 
         // Add draft nodes to the summary calculation
-        if (draftNodes != null && !draftNodes.isEmpty()) {
-            for (String nodeId : draftNodes) {
+        if (draftChoices != null && !draftChoices.isEmpty()) {
+            for (Map.Entry<String, String> entryDraft : draftChoices.entrySet()) {
+                String nodeId = entryDraft.getKey();
+                String choice = entryDraft.getValue();
                 PassiveNode node = PassiveNodeRegistry.getNode(nodeId);
-                if (node != null && node.modifiers() != null) {
-                    for (Map.Entry<RegistryEntry<EntityAttribute>, Double> entry : node.modifiers().entrySet()) {
-                        raw.merge(entry.getKey(), entry.getValue(), Double::sum);
+                
+                if (node != null) {
+                    if (node.isAttributeSelection()) {
+                        RegistryEntry<EntityAttribute> attr = null;
+                        if ("strength".equalsIgnoreCase(choice)) attr = com.cranks.dungeons.registry.ModAttributes.STRENGTH;
+                        else if ("dexterity".equalsIgnoreCase(choice)) attr = com.cranks.dungeons.registry.ModAttributes.DEXTERITY;
+                        else if ("intelligence".equalsIgnoreCase(choice)) attr = com.cranks.dungeons.registry.ModAttributes.INTELLIGENCE;
+                        
+                        if (attr != null) {
+                            raw.merge(attr, node.attributeSelectionAmount(), Double::sum);
+                        }
+                    }
+                    
+                    if (node.modifiers() != null) {
+                        for (Map.Entry<RegistryEntry<EntityAttribute>, Double> entry : node.modifiers().entrySet()) {
+                            raw.merge(entry.getKey(), entry.getValue(), Double::sum);
+                        }
                     }
                 }
             }

@@ -507,8 +507,8 @@ public abstract class InventoryScreenStatsMixin {
                 lines.add(Text.literal(description).formatted(Formatting.GRAY));
 
                 // Use standard formatting for values
-                String baseStr = String.format("Crop XP".equals(statName) ? "%.2f" : "%.1f", hoveredBaseVal);
-                String equipVal = String.format("Crop XP".equals(statName) ? "%.2f" : "%.1f", hoveredEquipVal);
+                String baseStr = formatStatValue(statName, hoveredBaseVal);
+                String equipVal = formatStatValue(statName, hoveredEquipVal);
                 String sign = (hoveredEquipVal >= 0) ? "+" : "";
 
                 lines.add(Text.empty()); // Spacer
@@ -753,9 +753,21 @@ public abstract class InventoryScreenStatsMixin {
         }
 
         @Unique
+        private String formatStatValue(String statName, double value) {
+            if ("Crop XP".equals(statName)) {
+                return String.format(java.util.Locale.US, "%.2f", value);
+            }
+            if (value == Math.floor(value)) {
+                return String.valueOf((int) value);
+            }
+            return String.format(java.util.Locale.US, "%.1f", value);
+        }
+
+        @Unique
         private int drawStatWithTooltip(DrawContext context, TextRenderer tr, int x, int y, String name, double total,
                         double base, String suffix, int mouseX, int mouseY, int panelX, int panelWidth) {
-                String text = name + ": " + String.format("Crop XP".equals(name) ? "%.2f" : "%.1f", total) + suffix;
+                String totalStr = formatStatValue(name, total) + suffix;
+                String text = name + ": " + totalStr;
                 int statX = x + 8;
                 if (mouseX >= statX && mouseX <= statX + tr.getWidth(text) && mouseY >= y && mouseY <= y + 9) {
                         hoveredStat = name;

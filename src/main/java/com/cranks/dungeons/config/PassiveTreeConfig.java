@@ -126,7 +126,11 @@ public class PassiveTreeConfig {
                 icon = com.cranks.dungeons.stat.passive.PassiveIconManager.getIcon(id, modifiers);
             }
 
-            nodes.add(new PassiveNode(id, name, description, gridX, gridY, connections, modifiers, icon, shape));
+            // Attribute Selection Fields
+            boolean isAttributeSelection = obj.has("is_attribute_selection") && obj.get("is_attribute_selection").getAsBoolean();
+            double attributeSelectionAmount = obj.has("attribute_selection_amount") ? obj.get("attribute_selection_amount").getAsDouble() : 0.0;
+
+            nodes.add(new PassiveNode(id, name, description, gridX, gridY, connections, modifiers, icon, shape, isAttributeSelection, attributeSelectionAmount));
         }
 
         return nodes;
@@ -173,42 +177,42 @@ public class PassiveTreeConfig {
 
         // Warrior tree
         nodes.add(makeNode("warrior_start", "Path of the Warrior", "Start your journey as a Warrior.",
-                0, 0, List.of("warrior_physical_1", "warrior_health_1"), Map.of(), "diamond"));
+                0, 0, List.of("warrior_physical_1", "warrior_health_1"), Map.of(), "diamond", false, 0.0));
         nodes.add(makeNode("warrior_physical_1", "Physical Conditioning", "+5% Physical Extra Damage",
                 1, -1, List.of("warrior_start", "warrior_might"),
-                Map.of("cranks-dungeons:physical_extra_percent", 0.05), null));
+                Map.of("cranks-dungeons:physical_extra_percent", 0.05), null, false, 0.0));
         nodes.add(makeNode("warrior_health_1", "Vitality", "+10 Max Health",
                 1, 1, List.of("warrior_start", "warrior_might"),
-                Map.of("minecraft:max_health", 10.0), null));
+                Map.of("minecraft:max_health", 10.0), null, false, 0.0));
         nodes.add(makeNode("warrior_might", "Warrior's Might", "+2 Armor",
                 2, 0, List.of("warrior_physical_1", "warrior_health_1"),
-                Map.of("minecraft:armor", 2.0), "circle"));
+                Map.of("minecraft:armor", 2.0), "circle", false, 0.0));
 
         // Ranger tree
         nodes.add(makeNode("ranger_start", "Path of the Ranger", "Start your journey as a Ranger.",
-                10, 0, List.of("ranger_speed_1", "ranger_evasion_1"), Map.of(), "diamond"));
+                10, 0, List.of("ranger_speed_1", "ranger_evasion_1"), Map.of(), "diamond", false, 0.0));
         nodes.add(makeNode("ranger_speed_1", "Swiftness", "+5% Movement Speed",
                 9, -1, List.of("ranger_start", "ranger_precision"),
-                Map.of("minecraft:movement_speed", 0.05), null));
+                Map.of("minecraft:movement_speed", 0.05), null, false, 0.0));
         nodes.add(makeNode("ranger_evasion_1", "Agility", "+20 Evasion Rating",
                 9, 1, List.of("ranger_start", "ranger_precision"),
-                Map.of("cranks-dungeons:evasion_rating", 20.0), null));
+                Map.of("cranks-dungeons:evasion_rating", 20.0), null, false, 0.0));
         nodes.add(makeNode("ranger_precision", "Deadly Aim", "+5% Crit Chance",
                 8, 0, List.of("ranger_speed_1", "ranger_evasion_1"),
-                Map.of("cranks-dungeons:crit_chance", 0.05), "circle"));
+                Map.of("cranks-dungeons:crit_chance", 0.05), "circle", false, 0.0));
 
         // Mercenary tree
         nodes.add(makeNode("mercenary_start", "Path of the Mercenary", "Start your journey as a Mercenary.",
-                5, -10, List.of("merc_utility_1", "merc_combat_1"), Map.of(), "diamond"));
+                5, -10, List.of("merc_utility_1", "merc_combat_1"), Map.of(), "diamond", false, 0.0));
         nodes.add(makeNode("merc_utility_1", "Opportunist", "+5% Experience Bonus",
                 4, -9, List.of("mercenary_start", "merc_ruthless"),
-                Map.of("cranks-dungeons:experience_bonus", 0.05), null));
+                Map.of("cranks-dungeons:experience_bonus", 0.05), null, false, 0.0));
         nodes.add(makeNode("merc_combat_1", "Dirty Tactics", "+5% Bleed Chance",
                 6, -9, List.of("mercenary_start", "merc_ruthless"),
-                Map.of("cranks-dungeons:chance_to_bleed", 0.05), null));
+                Map.of("cranks-dungeons:chance_to_bleed", 0.05), null, false, 0.0));
         nodes.add(makeNode("merc_ruthless", "Ruthless", "+10% Crit Multiplier",
                 5, -8, List.of("merc_utility_1", "merc_combat_1"),
-                Map.of("cranks-dungeons:crit_multiplier", 0.10), "circle"));
+                Map.of("cranks-dungeons:crit_multiplier", 0.10), "circle", false, 0.0));
 
         root.add("nodes", nodes);
         Files.writeString(TREE_FILE, GSON.toJson(root));
@@ -244,7 +248,7 @@ public class PassiveTreeConfig {
     // ─── JSON Helpers ───────────────────────────────────────────────────────────
 
     private static JsonObject makeNode(String id, String name, String desc, double gx, double gy,
-                                       List<String> connections, Map<String, Double> modifiers, String shape) {
+                                       List<String> connections, Map<String, Double> modifiers, String shape, boolean isChoice, double choiceAmt) {
         JsonObject obj = new JsonObject();
         obj.addProperty("id", id);
         obj.addProperty("name", name);
@@ -252,6 +256,11 @@ public class PassiveTreeConfig {
         obj.addProperty("gridX", gx);
         obj.addProperty("gridY", gy);
         obj.addProperty("shape", shape);
+        
+        if (isChoice) {
+            obj.addProperty("is_attribute_selection", true);
+            obj.addProperty("attribute_selection_amount", choiceAmt);
+        }
 
         JsonArray conns = new JsonArray();
         connections.forEach(conns::add);
@@ -302,6 +311,11 @@ public class PassiveTreeConfig {
             
             if (node.shape() != null) {
                 obj.addProperty("shape", node.shape());
+            }
+
+            if (node.isAttributeSelection()) {
+                obj.addProperty("is_attribute_selection", true);
+                obj.addProperty("attribute_selection_amount", node.attributeSelectionAmount());
             }
 
             JsonArray conns = new JsonArray();

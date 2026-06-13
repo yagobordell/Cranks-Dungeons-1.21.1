@@ -18,6 +18,7 @@ public class PassiveDataComponentImpl implements PassiveDataComponent, AutoSynce
     private String playerClass = "";
     private int unspentPoints = 0;
     private final Set<String> unlockedNodes = new HashSet<>();
+    private final java.util.Map<String, String> nodeChoices = new java.util.HashMap<>();
     private boolean checkedRetroactive = false;
 
     public PassiveDataComponentImpl(PlayerEntity player) {
@@ -30,6 +31,8 @@ public class PassiveDataComponentImpl implements PassiveDataComponent, AutoSynce
         this.unspentPoints = other.getUnspentPoints();
         this.unlockedNodes.clear();
         this.unlockedNodes.addAll(other.getUnlockedNodes());
+        this.nodeChoices.clear();
+        this.nodeChoices.putAll(other.getNodeChoices());
         System.out.println("[CranksDungeons] Copied Passive Data for " + player.getName().getString() + " from old instance.");
     }
 
@@ -80,6 +83,25 @@ public class PassiveDataComponentImpl implements PassiveDataComponent, AutoSynce
     }
 
     @Override
+    public java.util.Map<String, String> getNodeChoices() {
+        return nodeChoices;
+    }
+
+    @Override
+    public void setNodeChoice(String nodeId, String choice) {
+        if (nodeId != null && choice != null) {
+            nodeChoices.put(nodeId.trim(), choice.trim());
+            ModComponents.PASSIVE_DATA.sync(this.player);
+        }
+    }
+
+    @Override
+    public String getNodeChoice(String nodeId) {
+        if (nodeId == null) return "";
+        return nodeChoices.getOrDefault(nodeId.trim(), "");
+    }
+
+    @Override
     public void checkRetroactivePoints(int currentLevel) {
         if (!checkedRetroactive) {
             checkedRetroactive = true;
@@ -125,6 +147,16 @@ public class PassiveDataComponentImpl implements PassiveDataComponent, AutoSynce
                 this.unlockedNodes.add(id);
             }
         }
+        
+        this.nodeChoices.clear();
+        if (tag.contains("nodeChoices")) {
+            NbtCompound choicesTag = tag.getCompound("nodeChoices").orElse(null);
+            if (choicesTag != null) {
+                for (String key : choicesTag.getKeys()) {
+                    this.nodeChoices.put(key, choicesTag.getString(key).orElse(""));
+                }
+            }
+        }
         System.out.println("[CranksDungeons] Loaded Passive Data for " + player.getName().getString() + " (Class: " + playerClass + ")");
     }
 
@@ -138,6 +170,13 @@ public class PassiveDataComponentImpl implements PassiveDataComponent, AutoSynce
             list.add(NbtString.of(node));
         }
         tag.put("unlockedNodes", list);
+
+        NbtCompound choicesTag = new NbtCompound();
+        for (java.util.Map.Entry<String, String> entry : this.nodeChoices.entrySet()) {
+            choicesTag.putString(entry.getKey(), entry.getValue());
+        }
+        tag.put("nodeChoices", choicesTag);
+
         System.out.println("[CranksDungeons] Saved Passive Data for " + player.getName().getString());
     }
 
@@ -146,6 +185,7 @@ public class PassiveDataComponentImpl implements PassiveDataComponent, AutoSynce
         buf.writeString(this.playerClass == null ? "" : this.playerClass);
         buf.writeVarInt(this.unspentPoints);
         buf.writeCollection(this.unlockedNodes, (b, s) -> b.writeString(s));
+        buf.writeMap(this.nodeChoices, (b, s) -> b.writeString(s), (b, s) -> b.writeString(s));
     }
 
     @Override
@@ -154,6 +194,8 @@ public class PassiveDataComponentImpl implements PassiveDataComponent, AutoSynce
         this.unspentPoints = buf.readVarInt();
         this.unlockedNodes.clear();
         buf.readCollection(HashSet::new, (b) -> b.readString().trim()).forEach(this.unlockedNodes::add);
+        this.nodeChoices.clear();
+        buf.readMap(java.util.HashMap::new, (b) -> b.readString().trim(), (b) -> b.readString().trim()).forEach(this.nodeChoices::put);
         System.out.println("[CranksDungeons] Synced Passive Data from Server");
     }
 

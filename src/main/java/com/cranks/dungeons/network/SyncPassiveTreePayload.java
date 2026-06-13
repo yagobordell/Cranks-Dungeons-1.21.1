@@ -43,6 +43,8 @@ public record SyncPassiveTreePayload(
             MODIFIERS_CODEC, PassiveNode::modifiers,
             PacketCodecs.optional(Identifier.PACKET_CODEC).xmap(opt -> opt.orElse(null), Optional::ofNullable), PassiveNode::icon,
             PacketCodecs.STRING, PassiveNode::shape,
+            PacketCodecs.BOOLEAN, PassiveNode::isAttributeSelection,
+            PacketCodecs.DOUBLE, PassiveNode::attributeSelectionAmount,
             PassiveNode::new
     );
 
