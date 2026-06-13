@@ -440,30 +440,7 @@ public abstract class InventoryScreenStatsMixin {
                                         EquipmentStatApplier.getItemStatValue(weapon, "crop_experience"), 0.0, " xp",
                                         mouseX, mouseY, panelX, panelWidth);
 
-                        // --- CATEGORY 10: CUSTOM RUNES ---
-                        List<com.cranks.dungeons.equipment.ItemStatManager.ItemStat> allRunes = new ArrayList<>();
-                        if (!weapon.isEmpty()) allRunes.addAll(ItemStatManager.getStats(weapon));
-                        if (!chestplate.isEmpty()) allRunes.addAll(ItemStatManager.getStats(chestplate));
-                        if (!helmet.isEmpty()) allRunes.addAll(ItemStatManager.getStats(helmet));
-                        if (!leggings.isEmpty()) allRunes.addAll(ItemStatManager.getStats(leggings));
-                        if (!boots.isEmpty()) allRunes.addAll(ItemStatManager.getStats(boots));
 
-                        allRunes.removeIf(itemStat -> itemStat.statId.equals("leggings_physical_thorns") || itemStat.statId.equals("armor_applies_to_elemental"));
-
-                        if (!allRunes.isEmpty()) {
-                                context.drawText(tr, Text.literal("Custom Runes"), panelX + 6, curY, 0xFF404040, false);
-                                curY += 11;
-                                for (var itemStat : allRunes) {
-                                        com.cranks.dungeons.stat.CustomStat stat = com.cranks.dungeons.stat.StatRegistry.getStat(itemStat.statId);
-                                        if (stat != null) {
-                                                String name = stat.getDisplayName();
-                                                String formattedVal = stat.formatValue(itemStat.value);
-                                                context.drawText(tr, Text.literal("• " + name + ": " + formattedVal), panelX + 8, curY, 0xFF404040, false);
-                                                curY += 10;
-                                        }
-                                }
-                                curY += 6;
-                        }
 
                         // Update total content height for the next frame
                         int totalContentHeight = curY - (panelY + 8 - scrollOffset);

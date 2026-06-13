@@ -266,14 +266,6 @@ public abstract class ItemStackTooltipMixin {
                                 .append(Text.literal(df.format(attributeTotals.get(armorKey)))
                                         .formatted(getValueColor(stack, EntityAttributes.ARMOR))));
                     }
-                    String dmgKey = EntityAttributes.ATTACK_DAMAGE.value().getTranslationKey();
-                    if (attributeTotals.containsKey(dmgKey)) {
-                        tooltip.add(Text.literal("Physical Damage: ").formatted(Formatting.GRAY)
-                                .append(Text
-                                        .literal(
-                                                "+" + df.format(attributeTotals.get(dmgKey)))
-                                        .formatted(getValueColor(stack, EntityAttributes.ATTACK_DAMAGE))));
-                    }
                     addedAny = true;
                 }
                 default -> {

@@ -666,24 +666,31 @@ public class PassiveSkillTreeScreen extends Screen {
             int cx = choicePopupX;
             int cy = choicePopupY;
             
+            double amount = 0.0;
+            PassiveNode activeNode = PassiveNodeRegistry.getNodes().get(activeChoiceNodeId);
+            if (activeNode != null) {
+                amount = activeNode.attributeSelectionAmount();
+            }
+            String amountStr = (amount == (long) amount) ? String.format("%d", (long) amount) : String.format("%s", amount);
+            
             // Draw background for buttons
-            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, MENU_BACKGROUND, cx - 4, cy - 4, 58, 72);
+            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, MENU_BACKGROUND, cx - 4, cy - 4, 118, 72);
             
             // Button STR
-            Identifier btnStr = (mouseX >= cx && mouseX <= cx + 50 && mouseY >= cy && mouseY <= cy + 20) ? Identifier.of("minecraft", "widget/button_highlighted") : Identifier.of("minecraft", "widget/button");
-            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, btnStr, cx, cy, 50, 20);
+            Identifier btnStr = (mouseX >= cx && mouseX <= cx + 110 && mouseY >= cy && mouseY <= cy + 20) ? Identifier.of("minecraft", "widget/button_highlighted") : Identifier.of("minecraft", "widget/button");
+            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, btnStr, cx, cy, 110, 20);
             
             // Button DEX
-            Identifier btnDex = (mouseX >= cx && mouseX <= cx + 50 && mouseY >= cy + 22 && mouseY <= cy + 42) ? Identifier.of("minecraft", "widget/button_highlighted") : Identifier.of("minecraft", "widget/button");
-            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, btnDex, cx, cy + 22, 50, 20);
+            Identifier btnDex = (mouseX >= cx && mouseX <= cx + 110 && mouseY >= cy + 22 && mouseY <= cy + 42) ? Identifier.of("minecraft", "widget/button_highlighted") : Identifier.of("minecraft", "widget/button");
+            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, btnDex, cx, cy + 22, 110, 20);
             
             // Button INT
-            Identifier btnInt = (mouseX >= cx && mouseX <= cx + 50 && mouseY >= cy + 44 && mouseY <= cy + 64) ? Identifier.of("minecraft", "widget/button_highlighted") : Identifier.of("minecraft", "widget/button");
-            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, btnInt, cx, cy + 44, 50, 20);
+            Identifier btnInt = (mouseX >= cx && mouseX <= cx + 110 && mouseY >= cy + 44 && mouseY <= cy + 64) ? Identifier.of("minecraft", "widget/button_highlighted") : Identifier.of("minecraft", "widget/button");
+            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, btnInt, cx, cy + 44, 110, 20);
             
-            context.drawText(this.textRenderer, net.minecraft.text.Text.literal("STR"), cx + 16, cy + 6, 0xFFFF5555, true);
-            context.drawText(this.textRenderer, net.minecraft.text.Text.literal("DEX"), cx + 16, cy + 28, 0xFF55FF55, true);
-            context.drawText(this.textRenderer, net.minecraft.text.Text.literal("INT"), cx + 18, cy + 50, 0xFF5555FF, true);
+            context.drawCenteredTextWithShadow(this.textRenderer, "+" + amountStr + " Strength", cx + 55, cy + 6, 0xFFFF5555);
+            context.drawCenteredTextWithShadow(this.textRenderer, "+" + amountStr + " Dexterity", cx + 55, cy + 28, 0xFF55FF55);
+            context.drawCenteredTextWithShadow(this.textRenderer, "+" + amountStr + " Intelligence", cx + 55, cy + 50, 0xFF5555FF);
         }
 
         super.render(context, mouseX, mouseY, delta);
@@ -1203,7 +1210,7 @@ public class PassiveSkillTreeScreen extends Screen {
         if (activeChoiceNodeId != null) {
             int cx = choicePopupX;
             int cy = choicePopupY;
-            if (mouseX >= cx && mouseX <= cx + 50 && mouseY >= cy && mouseY <= cy + 20) {
+            if (mouseX >= cx && mouseX <= cx + 110 && mouseY >= cy && mouseY <= cy + 20) {
                 draftUnlocked.put(activeChoiceNodeId, "strength");
                 draftPoints--;
                 MinecraftClient.getInstance().player.playSound(com.cranks.dungeons.registry.ModSounds.PASSIVE_NODE_SELECT, 0.6f, 1.2f);
@@ -1211,7 +1218,7 @@ public class PassiveSkillTreeScreen extends Screen {
                 this.cacheDirty = true;
                 return true;
             }
-            if (mouseX >= cx && mouseX <= cx + 50 && mouseY >= cy + 22 && mouseY <= cy + 42) {
+            if (mouseX >= cx && mouseX <= cx + 110 && mouseY >= cy + 22 && mouseY <= cy + 42) {
                 draftUnlocked.put(activeChoiceNodeId, "dexterity");
                 draftPoints--;
                 MinecraftClient.getInstance().player.playSound(com.cranks.dungeons.registry.ModSounds.PASSIVE_NODE_SELECT, 0.6f, 1.2f);
@@ -1219,7 +1226,7 @@ public class PassiveSkillTreeScreen extends Screen {
                 this.cacheDirty = true;
                 return true;
             }
-            if (mouseX >= cx && mouseX <= cx + 50 && mouseY >= cy + 44 && mouseY <= cy + 64) {
+            if (mouseX >= cx && mouseX <= cx + 110 && mouseY >= cy + 44 && mouseY <= cy + 64) {
                 draftUnlocked.put(activeChoiceNodeId, "intelligence");
                 draftPoints--;
                 MinecraftClient.getInstance().player.playSound(com.cranks.dungeons.registry.ModSounds.PASSIVE_NODE_SELECT, 0.6f, 1.2f);
