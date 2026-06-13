@@ -617,7 +617,7 @@ public class PassiveSkillTreeScreen extends Screen {
                         !iconPath.equals("passive/diamond") && !iconPath.equals("passive/hexagon") &&
                         !iconPath.equals("passive/generic")) {
 
-                    double iconSize = actualNodeSize * 0.95;
+                    double iconSize = actualNodeSize * 1.3;
                     drawPrecisionTexture(context, iconToDraw, nx, ny, iconSize, 0xFFFFFFFF);
                 }
             }

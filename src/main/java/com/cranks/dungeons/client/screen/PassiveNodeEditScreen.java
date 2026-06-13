@@ -299,16 +299,18 @@ public class PassiveNodeEditScreen extends Screen {
             } catch (NumberFormatException ignored) {}
         }
 
+        Identifier calculatedIcon = com.cranks.dungeons.stat.passive.PassiveIconManager.getIcon(id, mods);
+
         if (nodeToEdit != null) {
             nodeToEdit.setGridX(gridX);
             nodeToEdit.setGridY(gridY);
             PassiveNode newNode = new PassiveNode(id, name, desc, gridX, gridY, 
-                    nodeToEdit.connections(), mods, nodeToEdit.icon(), shape,
+                    nodeToEdit.connections(), mods, calculatedIcon, shape,
                     isAttrSelection, attrAmount);
             PassiveNodeRegistry.getNodes().put(id, newNode);
         } else {
             PassiveNode newNode = new PassiveNode(id, name, desc, gridX, gridY, 
-                    new ArrayList<>(), mods, null, shape, isAttrSelection, attrAmount);
+                    new ArrayList<>(), mods, calculatedIcon, shape, isAttrSelection, attrAmount);
             PassiveNodeRegistry.getNodes().put(id, newNode);
         }
         parent.refreshCachesProxy();
