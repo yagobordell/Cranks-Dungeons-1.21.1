@@ -132,8 +132,13 @@ public class PassiveIconManager {
     /**
      * Determine the icon for a node based on its modifiers or its ID.
      */
-    public static Identifier getIcon(String nodeId, Map<RegistryEntry<EntityAttribute>, Double> modifiers) {
-        // Priority 1: Check modifiers
+    public static Identifier getIcon(String nodeId, Map<RegistryEntry<EntityAttribute>, Double> modifiers, boolean isAttributeChoice) {
+        // Priority 1: Check attribute choice
+        if (isAttributeChoice) {
+            return Identifier.of("cranks-dungeons", "passive/no");
+        }
+
+        // Priority 2: Check modifiers
         if (modifiers != null && !modifiers.isEmpty()) {
             for (RegistryEntry<EntityAttribute> entry : modifiers.keySet()) {
                 Identifier attrId = Registries.ATTRIBUTE.getId(entry.value());
@@ -146,7 +151,7 @@ public class PassiveIconManager {
             }
         }
 
-        // Priority 2: Check node ID for class starts
+        // Priority 3: Check node ID for class starts
         if (nodeId.startsWith("marauder_")) {
             return Identifier.of("cranks-dungeons", "passive/marauder");
         } else if (nodeId.startsWith("shadow_")) {

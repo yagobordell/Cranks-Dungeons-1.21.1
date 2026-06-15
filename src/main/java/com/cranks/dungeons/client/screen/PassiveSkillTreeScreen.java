@@ -617,7 +617,7 @@ public class PassiveSkillTreeScreen extends Screen {
                         !iconPath.equals("passive/diamond") && !iconPath.equals("passive/hexagon") &&
                         !iconPath.equals("passive/generic")) {
 
-                    double iconSize = actualNodeSize * 1.3;
+                        double iconSize = actualNodeSize * 1.3;
                     drawPrecisionTexture(context, iconToDraw, nx, ny, iconSize, 0xFFFFFFFF);
                 }
             }
@@ -1053,7 +1053,27 @@ public class PassiveSkillTreeScreen extends Screen {
                 }
                 isSelectingBox = false;
             }
-            draggedNode = null;
+            if (draggedNode != null) {
+                boolean shiftHeld = net.minecraft.client.util.InputUtil.isKeyPressed(net.minecraft.client.MinecraftClient.getInstance().getWindow(), org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT_SHIFT) ||
+                                    net.minecraft.client.util.InputUtil.isKeyPressed(net.minecraft.client.MinecraftClient.getInstance().getWindow(), org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_SHIFT);
+                if (!shiftHeld) {
+                    double snap = 0.5;
+                    if (selectedNodeIds.contains(draggedNode.id())) {
+                        for (String id : selectedNodeIds) {
+                            PassiveNode node = PassiveNodeRegistry.getNode(id);
+                            if (node != null) {
+                                node.setGridX(Math.round(node.gridX() / snap) * snap);
+                                node.setGridY(Math.round(node.gridY() / snap) * snap);
+                            }
+                        }
+                    } else {
+                        draggedNode.setGridX(Math.round(draggedNode.gridX() / snap) * snap);
+                        draggedNode.setGridY(Math.round(draggedNode.gridY() / snap) * snap);
+                    }
+                    this.cacheDirty = true;
+                }
+                draggedNode = null;
+            }
         }
         return super.mouseReleased(click);
     }
@@ -1306,6 +1326,24 @@ public class PassiveSkillTreeScreen extends Screen {
         } else if (!choosingClass && button == 1) { // Right Click (Designer Mode)
             if (editMode) {
                 if (draggedNode != null) {
+                    boolean shiftHeld = net.minecraft.client.util.InputUtil.isKeyPressed(net.minecraft.client.MinecraftClient.getInstance().getWindow(), org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT_SHIFT) ||
+                                        net.minecraft.client.util.InputUtil.isKeyPressed(net.minecraft.client.MinecraftClient.getInstance().getWindow(), org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_SHIFT);
+                    if (!shiftHeld) {
+                        double snap = 0.5;
+                        if (selectedNodeIds.contains(draggedNode.id())) {
+                            for (String id : selectedNodeIds) {
+                                PassiveNode n = PassiveNodeRegistry.getNode(id);
+                                if (n != null) {
+                                    n.setGridX(Math.round(n.gridX() / snap) * snap);
+                                    n.setGridY(Math.round(n.gridY() / snap) * snap);
+                                }
+                            }
+                        } else {
+                            draggedNode.setGridX(Math.round(draggedNode.gridX() / snap) * snap);
+                            draggedNode.setGridY(Math.round(draggedNode.gridY() / snap) * snap);
+                        }
+                        this.cacheDirty = true;
+                    }
                     draggedNode = null; // Drop
                     if (this.client != null && this.client.player != null) {
                         this.client.player.playSound(SoundEvents.UI_BUTTON_CLICK.value(), 0.4f, 0.5f);

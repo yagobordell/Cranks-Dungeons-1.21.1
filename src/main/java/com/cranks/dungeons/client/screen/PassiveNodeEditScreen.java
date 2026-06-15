@@ -299,7 +299,7 @@ public class PassiveNodeEditScreen extends Screen {
             } catch (NumberFormatException ignored) {}
         }
 
-        Identifier calculatedIcon = com.cranks.dungeons.stat.passive.PassiveIconManager.getIcon(id, mods);
+        Identifier calculatedIcon = com.cranks.dungeons.stat.passive.PassiveIconManager.getIcon(id, mods, isAttrSelection);
 
         if (nodeToEdit != null) {
             nodeToEdit.setGridX(gridX);

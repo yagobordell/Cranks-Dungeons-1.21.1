@@ -118,17 +118,17 @@ public class PassiveTreeConfig {
                 }
             }
 
+            // Attribute Selection Fields
+            boolean isAttributeSelection = obj.has("is_attribute_selection") && obj.get("is_attribute_selection").getAsBoolean();
+            double attributeSelectionAmount = obj.has("attribute_selection_amount") ? obj.get("attribute_selection_amount").getAsDouble() : 0.0;
+
             // Determine Icon (Priority: JSON Override -> PassiveIconManager)
             Identifier icon;
             if (obj.has("icon") && !obj.get("icon").getAsString().isEmpty()) {
                 icon = Identifier.of(obj.get("icon").getAsString());
             } else {
-                icon = com.cranks.dungeons.stat.passive.PassiveIconManager.getIcon(id, modifiers);
+                icon = com.cranks.dungeons.stat.passive.PassiveIconManager.getIcon(id, modifiers, isAttributeSelection);
             }
-
-            // Attribute Selection Fields
-            boolean isAttributeSelection = obj.has("is_attribute_selection") && obj.get("is_attribute_selection").getAsBoolean();
-            double attributeSelectionAmount = obj.has("attribute_selection_amount") ? obj.get("attribute_selection_amount").getAsDouble() : 0.0;
 
             nodes.add(new PassiveNode(id, name, description, gridX, gridY, connections, modifiers, icon, shape, isAttributeSelection, attributeSelectionAmount));
         }
