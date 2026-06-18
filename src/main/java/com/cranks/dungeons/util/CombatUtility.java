@@ -31,7 +31,7 @@ public class CombatUtility {
      * Checks if the damage source is a thrown trident.
      */
     public static boolean isTridentThrow(DamageSource source) {
-        return source.getSource() instanceof TridentEntity;
+        return source != null && source.getSource() instanceof TridentEntity;
     }
 
     /**
@@ -41,15 +41,21 @@ public class CombatUtility {
     public static double getAttributeValue(LivingEntity attacker,
             net.minecraft.registry.entry.RegistryEntry<net.minecraft.entity.attribute.EntityAttribute> attribute,
             ItemStack weapon, String statId, DamageSource source) {
-        double currentTotal = attacker.getAttributeValue(attribute);
+        
+        double currentTotal = 0.0;
+        double armorAndBase = 0.0;
 
-        // 1. Get the "Armor + Base" part by subtracting whatever is currently in hand
-        ItemStack held = attacker.getMainHandStack();
-        double heldStat = com.cranks.dungeons.equipment.EquipmentStatApplier.getItemStatValue(held, statId);
-        if (attacker instanceof PlayerEntity p && !held.isEmpty() && !com.cranks.dungeons.equipment.ItemRequirementManager.meetsRequirements(p, held)) {
-            heldStat *= 0.5;
+        if (attacker.getAttributes().hasAttribute(attribute)) {
+            currentTotal = attacker.getAttributeValue(attribute);
+            
+            // 1. Get the "Armor + Base" part by subtracting whatever is currently in hand
+            ItemStack held = attacker.getMainHandStack();
+            double heldStat = com.cranks.dungeons.equipment.EquipmentStatApplier.getItemStatValue(held, statId);
+            if (attacker instanceof PlayerEntity p && !held.isEmpty() && !com.cranks.dungeons.equipment.ItemRequirementManager.meetsRequirements(p, held)) {
+                heldStat *= 0.5;
+            }
+            armorAndBase = currentTotal - heldStat;
         }
-        double armorAndBase = currentTotal - heldStat;
 
         // 2. Add the projectile weapon's stat
         double weaponStat = com.cranks.dungeons.equipment.EquipmentStatApplier.getItemStatValue(weapon, statId);
@@ -96,13 +102,13 @@ public class CombatUtility {
             return 0.0;
 
         return switch (type) {
-            case SWORD -> attacker.getAttributeValue(ModAttributes.SWORD_DAMAGE_PERCENT);
-            case AXE -> attacker.getAttributeValue(ModAttributes.AXE_DAMAGE_PERCENT);
-            case MACE -> attacker.getAttributeValue(ModAttributes.MACE_DAMAGE_PERCENT);
-            case SPEAR -> attacker.getAttributeValue(ModAttributes.SPEAR_DAMAGE_PERCENT);
-            case BOW -> attacker.getAttributeValue(ModAttributes.BOW_DAMAGE_PERCENT);
-            case CROSSBOW -> attacker.getAttributeValue(ModAttributes.CROSSBOW_DAMAGE_PERCENT);
-            case TRIDENT -> attacker.getAttributeValue(ModAttributes.TRIDENT_DAMAGE_PERCENT);
+            case SWORD -> attacker.getAttributes().hasAttribute(ModAttributes.SWORD_DAMAGE_PERCENT) ? attacker.getAttributeValue(ModAttributes.SWORD_DAMAGE_PERCENT) : 0.0;
+            case AXE -> attacker.getAttributes().hasAttribute(ModAttributes.AXE_DAMAGE_PERCENT) ? attacker.getAttributeValue(ModAttributes.AXE_DAMAGE_PERCENT) : 0.0;
+            case MACE -> attacker.getAttributes().hasAttribute(ModAttributes.MACE_DAMAGE_PERCENT) ? attacker.getAttributeValue(ModAttributes.MACE_DAMAGE_PERCENT) : 0.0;
+            case SPEAR -> attacker.getAttributes().hasAttribute(ModAttributes.SPEAR_DAMAGE_PERCENT) ? attacker.getAttributeValue(ModAttributes.SPEAR_DAMAGE_PERCENT) : 0.0;
+            case BOW -> attacker.getAttributes().hasAttribute(ModAttributes.BOW_DAMAGE_PERCENT) ? attacker.getAttributeValue(ModAttributes.BOW_DAMAGE_PERCENT) : 0.0;
+            case CROSSBOW -> attacker.getAttributes().hasAttribute(ModAttributes.CROSSBOW_DAMAGE_PERCENT) ? attacker.getAttributeValue(ModAttributes.CROSSBOW_DAMAGE_PERCENT) : 0.0;
+            case TRIDENT -> attacker.getAttributes().hasAttribute(ModAttributes.TRIDENT_DAMAGE_PERCENT) ? attacker.getAttributeValue(ModAttributes.TRIDENT_DAMAGE_PERCENT) : 0.0;
             default -> 0.0;
         };
     }

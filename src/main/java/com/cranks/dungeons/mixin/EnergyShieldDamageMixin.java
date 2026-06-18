@@ -260,9 +260,8 @@ public class EnergyShieldDamageMixin {
                     com.cranks.dungeons.equipment.ItemStatManager.getStats(stack);
                 for (var stat : stats) {
                     com.cranks.dungeons.stat.CustomStat customStat = com.cranks.dungeons.stat.StatRegistry.getStat(stat.statId);
-                    if (customStat != null && customStat.getAttribute().equals(ModAttributes.THORNS_DAMAGE)) {
-                        // Apply 50% penalty if requirements not met (matches the global penalty system)
-                        double value = meetsReqs ? stat.value : stat.value * 0.5;
+                    if (customStat != null && customStat.getAttributes().contains(ModAttributes.THORNS_DAMAGE)) {
+                        double value = meetsReqs ? stat.getValue(0) : stat.getValue(0) * 0.5;
                         totalThorns += value;
                     }
                 }

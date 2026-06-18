@@ -45,7 +45,10 @@ public abstract class CriticalStrikeMixin {
             ItemStack boots = attacker.getEquippedStack(EquipmentSlot.FEET);
 
             // Crit Chance with enchantments
-            double critChance = CombatUtility.getAttributeValue(attacker, ModAttributes.CRIT_CHANCE, weapon, "crit_chance", source);
+            double baseCrit = attacker.getAttributeValue(ModAttributes.CRIT_CHANCE);
+            double localCrit = CombatUtility.getAttributeValue(attacker, ModAttributes.LOCAL_CRIT_CHANCE_PERCENT, weapon, "local_crit_chance", source);
+            double globalCrit = attacker.getAttributeValue(ModAttributes.GLOBAL_CRIT_CHANCE_PERCENT);
+            double critChance = (baseCrit * (1.0 + localCrit)) * (1.0 + globalCrit);
 
             if (AilmentManager.isAfflicted(target)) {
                 critChance += attacker.getAttributeValue(ModAttributes.CRIT_CHANCE_AGAINST_AFFLICTED);

@@ -41,7 +41,10 @@ public class CheckStatsCommand {
                         double weaponBonusDmg = EquipmentStatApplier.getItemStatValue(weapon, "bonus_attack_damage");
 
                         double baseDamage = player.getAttributeValue(EntityAttributes.ATTACK_DAMAGE);
-                        double totalCrit = player.getAttributeValue(ModAttributes.CRIT_CHANCE) + weaponCrit;
+                        double baseCrit = player.getAttributeValue(ModAttributes.CRIT_CHANCE);
+                        double localCrit = com.cranks.dungeons.util.CombatUtility.getAttributeValue(player, ModAttributes.LOCAL_CRIT_CHANCE_PERCENT, weapon, "local_crit_chance", null);
+                        double globalCrit = player.getAttributeValue(ModAttributes.GLOBAL_CRIT_CHANCE_PERCENT);
+                        double totalCrit = (baseCrit * (1.0 + localCrit)) * (1.0 + globalCrit) + weaponCrit;
                         double totalFireDmg = player.getAttributeValue(ModAttributes.FIRE_DAMAGE) + weaponFireDmg;
                         double totalColdDmg = player.getAttributeValue(ModAttributes.COLD_DAMAGE) + weaponColdDmg;
                         double totalLightningDmg = player.getAttributeValue(ModAttributes.LIGHTNING_DAMAGE) + weaponLightningDmg;
@@ -61,7 +64,7 @@ public class CheckStatsCommand {
                         if (totalColdDmg > 0) sendStat(player, "Cold Damage", totalColdDmg, 0, "");
                         if (totalLightningDmg > 0) sendStat(player, "Lightning Damage", totalLightningDmg, 0, "");
                         if (totalVoidDmg > 0) sendStat(player, "Void Damage", totalVoidDmg, 0, "");
-                        if (totalLifeSteal > 0) sendStat(player, "Life Steal", totalLifeSteal * 100, 0, "%");
+                        if (totalLifeSteal > 0) sendStat(player, "Damage Leeched as Life", totalLifeSteal * 100, 0, "%");
                         if (totalBurn > 0) sendStat(player, "Burn Chance", totalBurn * 100, 0, "%");
                         if (totalRange > 0) sendStat(player, "Attack Range", totalRange, 0, " blocks");
                         if (totalKnockback > 0) sendStat(player, "Knockback", totalKnockback * 100, 0, "%");

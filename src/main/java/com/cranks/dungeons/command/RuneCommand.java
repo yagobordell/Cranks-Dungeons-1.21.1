@@ -93,7 +93,7 @@ public class RuneCommand {
                     CustomStat existingStat = StatRegistry.getStat(s.statId);
                     if (existingStat == null) return false;
                     if (s.statId.equals(statId)) return true;
-                    if (existingStat.getAttribute().equals(stat.getAttribute())) return true;
+                    if (existingStat.getGroupId().equals(stat.getGroupId())) return true;
                     return false;
                 });
 
@@ -115,10 +115,10 @@ public class RuneCommand {
             double value = ItemStatManager.getStats(heldItem).stream()
                     .filter(s -> s.statId.equals(statId))
                     .findFirst()
-                    .map(s -> s.value)
+                    .map(s -> s.getValue(0))
                     .orElse(0.0);
 
-            String formattedValue = stat.formatValue(value);
+            String formattedValue = stat.getComponents().get(0).formatValue(value);
 
             context.getSource().sendMessage(Text.literal("✓ Successfully applied ")
                     .formatted(Formatting.GREEN)

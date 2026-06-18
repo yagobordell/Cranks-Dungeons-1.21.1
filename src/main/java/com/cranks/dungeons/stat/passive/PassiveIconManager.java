@@ -15,6 +15,8 @@ public class PassiveIconManager {
     static {
         // --- Offensive ---
         ATTRIBUTE_ICONS.put("cranks-dungeons:crit_chance", "passive/crit_chance");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:local_crit_chance_percent", "passive/crit_chance");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:global_crit_chance_percent", "passive/crit_chance");
         ATTRIBUTE_ICONS.put("cranks-dungeons:crit_multiplier", "passive/crit_multiplier");
 
         ATTRIBUTE_ICONS.put("cranks-dungeons:attack_damage_percent", "passive/attack_damage_percent");

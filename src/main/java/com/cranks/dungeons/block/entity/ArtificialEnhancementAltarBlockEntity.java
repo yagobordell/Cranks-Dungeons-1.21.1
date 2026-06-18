@@ -208,17 +208,19 @@ public class ArtificialEnhancementAltarBlockEntity extends BlockEntity implement
 
         EquipmentType equipType = equipTypeOpt.get();
         CustomStat.AffixType requiredType = ItemStatManager.getCrypticAffixType(equipment);
+        com.cranks.dungeons.equipment.ArmorBaseType armorBase = com.cranks.dungeons.equipment.ArmorBaseType.getFromItem(equipment);
         
         List<CustomStat> availableStats = StatRegistry.getStatsByEquipmentType(equipType);
 
         List<ItemStatManager.ItemStat> existingStats = ItemStatManager.getStats(equipment);
         availableStats = availableStats.stream()
                 .filter(stat -> stat.getAffixType() == requiredType) // Only show the required type
+                .filter(stat -> armorBase.canRoll(stat.getArmorBaseType())) // Filter by item's armor base type
                 .filter(stat -> {
                     for (var existing : existingStats) {
                         if (existing.statId.equals(stat.getId())) return false;
                         CustomStat existingStat = StatRegistry.getStat(existing.statId);
-                        if (existingStat != null && existingStat.getAttribute().equals(stat.getAttribute())) {
+                        if (existingStat != null && existingStat.getGroupId().equals(stat.getGroupId())) {
                             return false;
                         }
                     }
@@ -226,16 +228,25 @@ public class ArtificialEnhancementAltarBlockEntity extends BlockEntity implement
                 })
                 .collect(Collectors.toList());
 
-        if (availableStats.size() < 3) {
-            clearOptions();
-            return;
-        }
-
         Collections.shuffle(availableStats, RandomUtil.getRandom());
 
-        for (int i = 0; i < 3; i++) {
-            statOptions[i] = availableStats.get(i).getId();
-            tierOptions[i] = RandomUtil.nextInt(3) + 1;
+        List<String> selectedGroups = new ArrayList<>();
+        int added = 0;
+        
+        for (CustomStat stat : availableStats) {
+            if (selectedGroups.contains(stat.getGroupId())) continue;
+            
+            statOptions[added] = stat.getId();
+            tierOptions[added] = RandomUtil.nextInt(3) + 1;
+            selectedGroups.add(stat.getGroupId());
+            added++;
+            
+            if (added >= 3) break;
+        }
+
+        if (added < 3) {
+            clearOptions();
+            return;
         }
 
         optionsGenerated = true;

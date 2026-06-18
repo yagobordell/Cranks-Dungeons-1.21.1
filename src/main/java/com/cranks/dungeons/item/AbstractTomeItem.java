@@ -63,8 +63,7 @@ public abstract class AbstractTomeItem extends Item {
             if (stat.statId.equals(statId)) return false;
 
             var existingStat = StatRegistry.getStat(stat.statId);
-            if (existingStat != null && newStat != null
-                    && existingStat.getAttribute().equals(newStat.getAttribute())) {
+            if (existingStat != null && existingStat.getGroupId().equals(newStat.getGroupId())) {
                 return false;
             }
         }
@@ -123,7 +122,7 @@ public abstract class AbstractTomeItem extends Item {
                         case GREATER -> 2;
                     };
                 }
-                String range = stat.getFormattedRange(tierValue, 1);
+                String range = stat.getComponents().get(0).getFormattedRange(tierValue, 1);
                 textConsumer.accept(Text.literal(label + ": ").formatted(Formatting.GRAY)
                         .append(Text.literal(range).formatted(Formatting.WHITE)));
             }

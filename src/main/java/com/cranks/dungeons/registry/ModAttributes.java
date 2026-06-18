@@ -7,9 +7,15 @@ import net.minecraft.registry.Registry;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.util.Identifier;
 
+import java.util.ArrayList;
+import java.util.List;
+import com.cranks.dungeons.CranksDungeons;
+
 public class ModAttributes {
 
-    public static final String MOD_ID = "cranks-dungeons";
+    public static final String MOD_ID = CranksDungeons.MOD_ID;
+    
+    public static final List<RegistryEntry<EntityAttribute>> ALL_ATTRIBUTES = new ArrayList<>();
 
     // Defensive stats
     public static final RegistryEntry<EntityAttribute> FIRE_RESISTANCE = register("fire_resistance", 0.0, -1.0, 0.75);
@@ -58,6 +64,8 @@ public class ModAttributes {
     public static final RegistryEntry<EntityAttribute> DAMAGE_AGAINST_AFFLICTED_PERCENT = register("damage_against_afflicted_percent", 0.0, 0.0, 10.0);
     public static final RegistryEntry<EntityAttribute> DAMAGE_WHILE_AFFLICTED_PERCENT = register("damage_while_afflicted_percent", 0.0, 0.0, 10.0);
     public static final RegistryEntry<EntityAttribute> CRIT_CHANCE_AGAINST_AFFLICTED = register("crit_chance_against_afflicted", 0.0, 0.0, 1.0);
+    public static final RegistryEntry<EntityAttribute> LOCAL_CRIT_CHANCE_PERCENT = register("local_crit_chance_percent", 0.0, 0.0, 10.0);
+    public static final RegistryEntry<EntityAttribute> GLOBAL_CRIT_CHANCE_PERCENT = register("global_crit_chance_percent", 0.0, 0.0, 10.0);
     public static final RegistryEntry<EntityAttribute> ELEMENTAL_DAMAGE_PERCENT = register("elemental_damage_percent",
             0.0, 0.0, 10.0);
     public static final RegistryEntry<EntityAttribute> MELEE_DAMAGE_PERCENT = register("melee_damage_percent", 0.0, 0.0,
@@ -206,7 +214,11 @@ public class ModAttributes {
 
         Registry.register(Registries.ATTRIBUTE, id, attribute);
 
-        return Registries.ATTRIBUTE.getEntry(id)
+        RegistryEntry.Reference<EntityAttribute> entry = Registries.ATTRIBUTE.getEntry(id)
                 .orElseThrow(() -> new IllegalStateException("Failed to register attribute: " + name));
+                
+        ALL_ATTRIBUTES.add(entry);
+        
+        return entry;
     }
 }

@@ -433,9 +433,11 @@ public abstract class ItemStackTooltipMixin {
             List<com.cranks.dungeons.equipment.ItemStatManager.ItemStat> runeStats = com.cranks.dungeons.equipment.ItemStatManager.getStats(stack);
             for (com.cranks.dungeons.equipment.ItemStatManager.ItemStat is : runeStats) {
                 com.cranks.dungeons.stat.CustomStat stat = com.cranks.dungeons.stat.StatRegistry.getStat(is.statId);
-                if (stat != null && stat.getAttribute() != null) {
-                    String key = stat.getAttribute().value().getTranslationKey();
-                    totals.merge(key, is.value, Double::sum);
+                if (stat != null) {
+                    for (int i = 0; i < stat.getComponents().size(); i++) {
+                        String key = stat.getComponents().get(i).getAttributes().get(0).value().getTranslationKey();
+                        totals.merge(key, is.getValue(i), Double::sum);
+                    }
                 }
             }
 
@@ -565,7 +567,9 @@ public abstract class ItemStackTooltipMixin {
             }
             for (ItemStatManager.ItemStat p : prefixes) {
                 CustomStat stat = StatRegistry.getStat(p.statId);
-                tooltip.add(createRunicStatLine(stat, p.value, p.tier, p.isArtificial, showDetails));
+                if (stat != null) {
+                    tooltip.addAll(createRunicStatLines(stat, p.values, p.tier, p.isArtificial, showDetails));
+                }
             }
         }
 
@@ -575,7 +579,9 @@ public abstract class ItemStackTooltipMixin {
             }
             for (ItemStatManager.ItemStat s : suffixes) {
                 CustomStat stat = StatRegistry.getStat(s.statId);
-                tooltip.add(createRunicStatLine(stat, s.value, s.tier, s.isArtificial, showDetails));
+                if (stat != null) {
+                    tooltip.addAll(createRunicStatLines(stat, s.values, s.tier, s.isArtificial, showDetails));
+                }
             }
         }
 
@@ -646,14 +652,19 @@ public abstract class ItemStackTooltipMixin {
     }
 
     @Unique
-    private Text createRunicStatLine(CustomStat stat, double value, int tier, boolean isArtificial,
-            boolean showDetails) {
-        String displayText = stat.formatValue(value);
-        MutableText line = Text.literal(displayText).formatted(isArtificial ? Formatting.DARK_GREEN : Formatting.BLUE);
-        if (showDetails) {
-            line.append(Text.literal(" [T" + tier + "]").formatted(getTierColor(tier)));
+    private List<Text> createRunicStatLines(CustomStat stat, double[] values, int tier, boolean isArtificial, boolean showDetails) {
+        List<Text> lines = new ArrayList<>();
+        for (int i = 0; i < stat.getComponents().size(); i++) {
+            CustomStat.StatComponent comp = stat.getComponents().get(i);
+            double value = (values != null && i < values.length) ? values[i] : 0;
+            String displayText = comp.formatValue(value);
+            MutableText line = Text.literal(displayText).formatted(isArtificial ? Formatting.DARK_GREEN : Formatting.BLUE);
+            if (showDetails && i == 0) {
+                line.append(Text.literal(" [T" + tier + "]").formatted(getTierColor(tier)));
+            }
+            lines.add(line);
         }
-        return line;
+        return lines;
     }
 
     @Unique

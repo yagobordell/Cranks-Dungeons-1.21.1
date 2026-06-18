@@ -49,8 +49,6 @@ public abstract class EvasionMixin {
         if (rating <= 0)
             return;
 
-        double armor = entity.getAttributeValue(EntityAttributes.ARMOR);
-
         double k = 400.0;
         double dodgeChance = rating / (rating + k);
 

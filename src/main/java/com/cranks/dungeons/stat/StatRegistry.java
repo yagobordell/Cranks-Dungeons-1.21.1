@@ -62,50 +62,71 @@ public class StatRegistry {
          * The stat ID is generated as "{equipType}_{baseName}" (e.g.,
          * "helmet_durability_bonus").
          */
-        private static void registerForTypes(String baseName, String displayName,
+        private static java.util.List<CustomStat> registerForTypes(String baseName, String displayName,
                         RegistryEntry<EntityAttribute> attribute,
                         double[] normalRanges, double[] uncommonRanges,
                         boolean isPercentage, boolean displayAsPercentage,
                         Formatting color, CustomStat.AffixType affixType,
                         int level, int weight,
                         EquipmentType... types) {
+                java.util.List<CustomStat> registered = new java.util.ArrayList<>();
                 for (EquipmentType type : types) {
                         String id = type.name().toLowerCase() + "_" + baseName;
-                        register(new CustomStat(id, displayName, type, attribute,
+                        CustomStat stat = new CustomStat(id, baseName, displayName, type, attribute,
                                         normalRanges, uncommonRanges, isPercentage, displayAsPercentage, color,
-                                        affixType, level, weight));
+                                        affixType, level, weight);
+                        register(stat);
+                        registered.add(stat);
                 }
+                return registered;
         }
 
-        private static void registerForTypes(String baseName, String displayName,
+        private static java.util.List<CustomStat> registerForTypes(String baseName, String displayName,
                         RegistryEntry<EntityAttribute> attribute,
                         double[] normalRanges, double[] uncommonRanges,
                         boolean isPercentage, boolean displayAsPercentage,
                         Formatting color, CustomStat.AffixType affixType,
                         EquipmentType... types) {
-                registerForTypes(baseName, displayName, attribute, normalRanges, uncommonRanges,
+                return registerForTypes(baseName, displayName, attribute, normalRanges, uncommonRanges,
                                 isPercentage, displayAsPercentage, color, affixType, 1, 1000, types);
         }
 
-        private static void registerForTypes(String baseName, String displayName,
+        private static java.util.List<CustomStat> registerForTypes(String baseName, String displayName,
                         RegistryEntry<EntityAttribute> attribute,
                         double[] normalRanges, double[] uncommonRanges,
                         boolean isPercentage,
                         Formatting color, CustomStat.AffixType affixType,
                         EquipmentType... types) {
-                registerForTypes(baseName, displayName, attribute, normalRanges, uncommonRanges,
+                return registerForTypes(baseName, displayName, attribute, normalRanges, uncommonRanges,
                                 isPercentage, false, color, affixType, 1, 1000, types);
         }
 
-        private static void registerForTypes(String baseName, String displayName,
+        private static java.util.List<CustomStat> registerForTypes(String baseName, String displayName,
                         RegistryEntry<EntityAttribute> attribute,
                         double[] normalRanges, double[] uncommonRanges,
                         boolean isPercentage,
                         Formatting color, CustomStat.AffixType affixType,
                         int level, int weight,
                         EquipmentType... types) {
-                registerForTypes(baseName, displayName, attribute, normalRanges, uncommonRanges,
+                return registerForTypes(baseName, displayName, attribute, normalRanges, uncommonRanges,
                                 isPercentage, false, color, affixType, level, weight, types);
+        }
+
+        private static java.util.List<CustomStat> registerHybridForTypes(
+                        String baseName, com.cranks.dungeons.equipment.ArmorBaseType armorBaseType,
+                        java.util.List<CustomStat.StatComponent> components,
+                        Formatting color, CustomStat.AffixType affixType,
+                        int level, int weight,
+                        EquipmentType... types) {
+                java.util.List<CustomStat> registered = new java.util.ArrayList<>();
+                for (EquipmentType type : types) {
+                        String id = type.name().toLowerCase() + "_" + baseName;
+                        CustomStat stat = new CustomStat(id, baseName, type, components, color, affixType, level, weight)
+                                .setArmorBaseType(armorBaseType);
+                        register(stat);
+                        registered.add(stat);
+                }
+                return registered;
         }
 
         public static int rollRandomTier() {
@@ -147,16 +168,16 @@ public class StatRegistry {
                                 r(10.0, 10.5, 11.9, 14.2, 17.5, 21.7, 26.9, 33.0, 40.0, 48.0),
                                 r(10.0, 10.6, 12.5, 15.6, 19.9, 25.4, 32.2, 40.2, 49.5, 60.0),
                                 false, Formatting.BLUE, CustomStat.AffixType.PREFIX,
-                                79, 11000,
-                                EquipmentType.CHESTPLATE, EquipmentType.BOOTS);
+                                EquipmentType.CHESTPLATE, EquipmentType.BOOTS)
+                        .forEach(s -> s.setArmorBaseType(com.cranks.dungeons.equipment.ArmorBaseType.INT));
 
                 registerForTypes("energy_shield", "Energy Shield",
                                 ModAttributes.ENERGY_SHIELD,
                                 r(18.0, 18.9, 21.6, 26.1, 32.4, 40.5, 50.4, 62.2, 75.7, 91.0),
                                 r(24.0, 24.9, 27.6, 32.0, 38.2, 46.2, 56.0, 67.6, 80.9, 96.0),
                                 false, Formatting.BLUE, CustomStat.AffixType.PREFIX,
-                                79, 11000,
-                                EquipmentType.HELMET, EquipmentType.LEGGINGS, EquipmentType.ELYTRA);
+                                EquipmentType.HELMET, EquipmentType.LEGGINGS, EquipmentType.ELYTRA)
+                        .forEach(s -> s.setArmorBaseType(com.cranks.dungeons.equipment.ArmorBaseType.INT));
 
                 // --- Max Health (Armor) ---
                 registerForTypes("max_health", "Maximum health",
@@ -182,16 +203,16 @@ public class StatRegistry {
                                 r(19.0, 21.6, 29.6, 42.8, 61.3, 85.0, 114.1, 148.5, 188.1, 233.0),
                                 r(39.0, 41.6, 49.5, 62.6, 80.9, 104.4, 133.2, 167.2, 206.5, 251.0),
                                 false, Formatting.GRAY, CustomStat.AffixType.PREFIX,
-                                79, 11000,
-                                EquipmentType.HELMET, EquipmentType.LEGGINGS);
+                                EquipmentType.HELMET, EquipmentType.LEGGINGS)
+                        .forEach(s -> s.setArmorBaseType(com.cranks.dungeons.equipment.ArmorBaseType.DEX));
 
                 registerForTypes("evasion_rating", "Evasion Rating",
                                 ModAttributes.EVASION_RATING,
                                 r(1.0, 2.3, 6.3, 12.9, 22.1, 34.0, 48.6, 65.7, 85.5, 108.0),
                                 r(1.0, 2.7, 8.0, 16.7, 28.9, 44.5, 63.7, 86.3, 112.4, 142.0),
                                 false, Formatting.GRAY, CustomStat.AffixType.PREFIX,
-                                79, 11000,
-                                EquipmentType.CHESTPLATE, EquipmentType.BOOTS);
+                                EquipmentType.CHESTPLATE, EquipmentType.BOOTS)
+                        .forEach(s -> s.setArmorBaseType(com.cranks.dungeons.equipment.ArmorBaseType.DEX));
 
                 // --- Armor (Armor + Shield) ---
                 registerForTypes("armor", "Armor",
@@ -199,16 +220,16 @@ public class StatRegistry {
                                 r(28.0, 30.8, 39.3, 53.4, 73.2, 98.7, 129.8, 166.5, 208.9, 257.0),
                                 r(50.0, 52.8, 61.2, 75.1, 94.6, 119.8, 150.4, 186.7, 228.6, 276.0),
                                 false, Formatting.WHITE, CustomStat.AffixType.PREFIX,
-                                79, 11000,
-                                EquipmentType.HELMET, EquipmentType.LEGGINGS, EquipmentType.SHIELD);
+                                EquipmentType.HELMET, EquipmentType.LEGGINGS, EquipmentType.SHIELD)
+                        .forEach(s -> s.setArmorBaseType(com.cranks.dungeons.equipment.ArmorBaseType.STR));
 
                 registerForTypes("armor", "Armor",
                                 EntityAttributes.ARMOR,
                                 r(10.0, 11.4, 15.6, 22.6, 32.3, 44.9, 60.2, 78.4, 99.3, 123.0),
                                 r(10.0, 11.9, 17.4, 26.7, 39.6, 56.3, 76.7, 100.7, 128.5, 160.0),
                                 false, Formatting.WHITE, CustomStat.AffixType.PREFIX,
-                                79, 11000,
-                                EquipmentType.CHESTPLATE, EquipmentType.BOOTS);
+                                EquipmentType.CHESTPLATE, EquipmentType.BOOTS)
+                        .forEach(s -> s.setArmorBaseType(com.cranks.dungeons.equipment.ArmorBaseType.STR));
 
                 // --- Increased Armor % (Armor + Shield) ---
                 registerForTypes("armor_percent", "Increased Armor",
@@ -216,16 +237,16 @@ public class StatRegistry {
                                 r(0.05, 0.06, 0.09, 0.15, 0.22, 0.32, 0.44, 0.58, 0.74, 0.92),
                                 r(0.09, 0.10, 0.13, 0.19, 0.27, 0.37, 0.49, 0.64, 0.81, 1.00),
                                 true, true, Formatting.WHITE, CustomStat.AffixType.PREFIX,
-                                75, 8000,
-                                EquipmentType.CHESTPLATE, EquipmentType.BOOTS);
+                                EquipmentType.CHESTPLATE, EquipmentType.BOOTS)
+                        .forEach(s -> s.setArmorBaseType(com.cranks.dungeons.equipment.ArmorBaseType.STR));
 
                 registerForTypes("armor_percent", "Increased Armor",
                                 ModAttributes.ARMOR_PERCENT,
                                 r(0.11, 0.12, 0.15, 0.21, 0.29, 0.39, 0.51, 0.65, 0.82, 1.01),
                                 r(0.20, 0.21, 0.24, 0.30, 0.38, 0.48, 0.60, 0.74, 0.91, 1.10),
                                 true, true, Formatting.WHITE, CustomStat.AffixType.PREFIX,
-                                75, 8000,
-                                EquipmentType.HELMET, EquipmentType.LEGGINGS, EquipmentType.SHIELD);
+                                EquipmentType.HELMET, EquipmentType.LEGGINGS, EquipmentType.SHIELD)
+                        .forEach(s -> s.setArmorBaseType(com.cranks.dungeons.equipment.ArmorBaseType.STR));
 
                 // --- Increased Evasion Rating % (Armor) ---
                 registerForTypes("evasion_rating_percent", "Increased Evasion Rating",
@@ -233,16 +254,16 @@ public class StatRegistry {
                                 r(0.05, 0.06, 0.09, 0.15, 0.22, 0.32, 0.44, 0.58, 0.74, 0.92),
                                 r(0.09, 0.10, 0.13, 0.19, 0.27, 0.37, 0.49, 0.64, 0.81, 1.00),
                                 true, true, Formatting.GRAY, CustomStat.AffixType.PREFIX,
-                                75, 8000,
-                                EquipmentType.CHESTPLATE, EquipmentType.BOOTS);
+                                EquipmentType.CHESTPLATE, EquipmentType.BOOTS)
+                        .forEach(s -> s.setArmorBaseType(com.cranks.dungeons.equipment.ArmorBaseType.DEX));
 
                 registerForTypes("evasion_rating_percent", "Increased Evasion Rating",
                                 ModAttributes.EVASION_RATING_PERCENT,
                                 r(0.11, 0.12, 0.15, 0.21, 0.29, 0.39, 0.51, 0.65, 0.82, 1.01),
                                 r(0.20, 0.21, 0.24, 0.30, 0.38, 0.48, 0.60, 0.74, 0.91, 1.10),
                                 true, true, Formatting.GRAY, CustomStat.AffixType.PREFIX,
-                                75, 8000,
-                                EquipmentType.HELMET, EquipmentType.LEGGINGS);
+                                EquipmentType.HELMET, EquipmentType.LEGGINGS)
+                        .forEach(s -> s.setArmorBaseType(com.cranks.dungeons.equipment.ArmorBaseType.DEX));
 
                 // --- Increased Energy Shield % (Armor + Elytra) ---
                 registerForTypes("energy_shield_percent", "Increased Energy Shield",
@@ -250,16 +271,16 @@ public class StatRegistry {
                                 r(0.05, 0.06, 0.09, 0.15, 0.22, 0.32, 0.44, 0.58, 0.74, 0.92),
                                 r(0.09, 0.10, 0.13, 0.19, 0.27, 0.37, 0.49, 0.64, 0.81, 1.00),
                                 true, true, Formatting.BLUE, CustomStat.AffixType.PREFIX,
-                                75, 8000,
-                                EquipmentType.CHESTPLATE, EquipmentType.BOOTS);
+                                EquipmentType.CHESTPLATE, EquipmentType.BOOTS)
+                        .forEach(s -> s.setArmorBaseType(com.cranks.dungeons.equipment.ArmorBaseType.INT));
 
                 registerForTypes("energy_shield_percent", "Increased Energy Shield",
                                 ModAttributes.ENERGY_SHIELD_PERCENT,
                                 r(0.11, 0.12, 0.15, 0.21, 0.29, 0.39, 0.51, 0.65, 0.82, 1.01),
                                 r(0.20, 0.21, 0.24, 0.30, 0.38, 0.48, 0.60, 0.74, 0.91, 1.10),
                                 true, true, Formatting.BLUE, CustomStat.AffixType.PREFIX,
-                                75, 8000,
-                                EquipmentType.HELMET, EquipmentType.LEGGINGS, EquipmentType.ELYTRA);
+                                EquipmentType.HELMET, EquipmentType.LEGGINGS, EquipmentType.ELYTRA)
+                        .forEach(s -> s.setArmorBaseType(com.cranks.dungeons.equipment.ArmorBaseType.INT));
 
                 // --- Knockback Resistance (Armor + Shield) ---
                 registerForTypes("knockback_resistance", "Knockback Resistance",
@@ -334,16 +355,16 @@ public class StatRegistry {
                 // --- Experience Bonus (Armor + Elytra) ---
                 registerForTypes("experience_bonus", "Experience Bonus",
                                 ModAttributes.EXPERIENCE_BONUS,
-                                r(0.05, 0.07, 0.14, 0.24, 0.40, 0.59, 0.83, 1.11, 1.43, 1.80),
-                                r(0.10, 0.12, 0.19, 0.31, 0.48, 0.69, 0.94, 1.25, 1.60, 2.00),
+                                r(0.01, 0.02, 0.03, 0.04, 0.06, 0.08, 0.10, 0.12, 0.13, 0.15),
+                                r(0.02, 0.03, 0.04, 0.06, 0.08, 0.10, 0.12, 0.14, 0.16, 0.18),
                                 true, true, Formatting.DARK_GREEN, CustomStat.AffixType.SUFFIX,
                                 30, 6000,
                                 ALL_ARMOR);
                 // Elytra has different ranges
                 register(new CustomStat("elytra_experience_bonus", "Experience Bonus",
                                 EquipmentType.ELYTRA, ModAttributes.EXPERIENCE_BONUS,
-                                r(0.05, 0.07, 0.14, 0.24, 0.40, 0.59, 0.83, 1.11, 1.43, 1.80),
-                                r(0.10, 0.12, 0.19, 0.31, 0.48, 0.69, 0.94, 1.25, 1.60, 2.00),
+                                r(0.01, 0.02, 0.03, 0.04, 0.06, 0.08, 0.10, 0.12, 0.13, 0.15),
+                                r(0.02, 0.03, 0.04, 0.06, 0.08, 0.10, 0.12, 0.14, 0.16, 0.18),
                                 true, true, Formatting.DARK_GREEN, CustomStat.AffixType.SUFFIX,
                                 30, 1500));
 
@@ -357,26 +378,26 @@ public class StatRegistry {
                                 EquipmentType.HELMET, EquipmentType.BOOTS);
 
                 // --- Critical Strike Chance (Armor: Helmet + Chestplate, plus Elytra) ---
-                registerForTypes("crit_chance", "Critical Strike Chance",
-                                ModAttributes.CRIT_CHANCE,
-                                r(0.01, 0.01, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.08, 0.10),
-                                r(0.01, 0.01, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.08, 0.10),
+                registerForTypes("global_crit_chance", "Critical Strike Chance",
+                                ModAttributes.GLOBAL_CRIT_CHANCE_PERCENT,
+                                r(0.10, 0.12, 0.15, 0.18, 0.22, 0.26, 0.30, 0.34, 0.37, 0.40),
+                                r(0.15, 0.18, 0.22, 0.26, 0.30, 0.34, 0.38, 0.42, 0.45, 0.48),
                                 true, true, Formatting.GOLD, CustomStat.AffixType.SUFFIX,
                                 73, 1200,
                                 EquipmentType.HELMET, EquipmentType.CHESTPLATE);
-                // Weapons share the same values
-                registerForTypes("crit_chance", "Critical Strike Chance",
-                                ModAttributes.CRIT_CHANCE,
-                                r(0.01, 0.01, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.08, 0.10),
-                                r(0.01, 0.01, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.08, 0.10),
+                // Weapons use LOCAL crit chance
+                registerForTypes("local_crit_chance", "Critical Strike Chance",
+                                ModAttributes.LOCAL_CRIT_CHANCE_PERCENT,
+                                r(0.20, 0.23, 0.27, 0.32, 0.37, 0.43, 0.49, 0.54, 0.57, 0.60),
+                                r(0.25, 0.29, 0.34, 0.39, 0.45, 0.51, 0.57, 0.62, 0.65, 0.68),
                                 true, true, Formatting.GOLD, CustomStat.AffixType.SUFFIX,
                                 73, 1200,
                                 ALL_WEAPONS);
-                // Elytra has different ranges
-                register(new CustomStat("elytra_crit_chance", "Critical Strike Chance",
-                                EquipmentType.ELYTRA, ModAttributes.CRIT_CHANCE,
-                                r(0.01, 0.01, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.08, 0.10),
-                                r(0.01, 0.01, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.08, 0.10),
+                // Elytra uses GLOBAL crit chance
+                register(new CustomStat("elytra_global_crit_chance", "Critical Strike Chance",
+                                EquipmentType.ELYTRA, ModAttributes.GLOBAL_CRIT_CHANCE_PERCENT,
+                                r(0.10, 0.12, 0.15, 0.18, 0.22, 0.26, 0.30, 0.34, 0.37, 0.40),
+                                r(0.15, 0.18, 0.22, 0.26, 0.30, 0.34, 0.38, 0.42, 0.45, 0.48),
                                 true, true, Formatting.GOLD, CustomStat.AffixType.SUFFIX,
                                 73, 1200));
 
@@ -489,16 +510,16 @@ public class StatRegistry {
                 // --- Ailment Chances (all weapons) ---
                 registerForTypes("chance_to_burn", "Burn Chance",
                                 ModAttributes.CHANCE_TO_BURN,
-                                r(0.01, 0.01, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.08, 0.10),
-                                r(0.01, 0.01, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.08, 0.10),
+                                r(0.10, 0.12, 0.14, 0.16, 0.18, 0.21, 0.24, 0.26, 0.28, 0.30),
+                                r(0.12, 0.14, 0.16, 0.18, 0.21, 0.24, 0.27, 0.29, 0.32, 0.35),
                                 true, true, Formatting.RED, CustomStat.AffixType.SUFFIX,
                                 30, 5000,
                                 ALL_WEAPONS);
 
                 registerForTypes("chance_to_poison", "Poison Chance",
                                 ModAttributes.CHANCE_TO_POISON,
-                                r(0.01, 0.01, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.08, 0.10),
-                                r(0.01, 0.01, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.08, 0.10),
+                                r(0.10, 0.12, 0.14, 0.16, 0.18, 0.21, 0.24, 0.26, 0.28, 0.30),
+                                r(0.12, 0.14, 0.16, 0.18, 0.21, 0.24, 0.27, 0.29, 0.32, 0.35),
                                 true, true, Formatting.GREEN, CustomStat.AffixType.SUFFIX,
                                 30, 5000,
                                 ALL_WEAPONS);
@@ -513,16 +534,16 @@ public class StatRegistry {
 
                 registerForTypes("chance_to_bleed", "Bleed Chance",
                                 ModAttributes.CHANCE_TO_BLEED,
-                                r(0.01, 0.01, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.08, 0.10),
-                                r(0.01, 0.01, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.08, 0.10),
+                                r(0.10, 0.12, 0.14, 0.16, 0.18, 0.21, 0.24, 0.26, 0.28, 0.30),
+                                r(0.12, 0.14, 0.16, 0.18, 0.21, 0.24, 0.27, 0.29, 0.32, 0.35),
                                 true, true, Formatting.DARK_RED, CustomStat.AffixType.SUFFIX,
                                 30, 5000,
                                 ALL_WEAPONS);
 
                 registerForTypes("chance_to_shock", "Shock Chance",
                                 ModAttributes.CHANCE_TO_SHOCK,
-                                r(0.01, 0.01, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.08, 0.10),
-                                r(0.01, 0.01, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.08, 0.10),
+                                r(0.10, 0.12, 0.14, 0.16, 0.18, 0.21, 0.24, 0.26, 0.28, 0.30),
+                                r(0.12, 0.14, 0.16, 0.18, 0.21, 0.24, 0.27, 0.29, 0.32, 0.35),
                                 true, true, Formatting.YELLOW, CustomStat.AffixType.SUFFIX,
                                 30, 5000,
                                 ALL_WEAPONS);
@@ -635,18 +656,18 @@ public class StatRegistry {
                                 85, 1000,
                                 ALL_WEAPONS);
 
-                // --- Life Steal (melee + trident: one range, bow/crossbow: different) ---
-                registerForTypes("life_steal", "Life Steal",
+                // --- Life Steal (Damage Leeched as Life) ---
+                registerForTypes("life_steal", "Damage Leeched as Life",
                                 ModAttributes.LIFE_STEAL,
-                                r(0.01, 0.01, 0.01, 0.02, 0.02, 0.03, 0.04, 0.05, 0.07, 0.08),
-                                r(0.01, 0.01, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.08, 0.10),
+                                r(0.002, 0.003, 0.004, 0.005, 0.006, 0.008, 0.010, 0.012, 0.013, 0.015),
+                                r(0.003, 0.004, 0.005, 0.006, 0.007, 0.009, 0.011, 0.013, 0.015, 0.018),
                                 true, true, Formatting.DARK_RED, CustomStat.AffixType.SUFFIX,
                                 63, 800,
                                 ALL_MELEE_AND_TRIDENT);
-                registerForTypes("life_steal", "Life Steal",
+                registerForTypes("life_steal", "Damage Leeched as Life",
                                 ModAttributes.LIFE_STEAL,
-                                r(0.01, 0.01, 0.01, 0.02, 0.02, 0.03, 0.04, 0.05, 0.07, 0.08),
-                                r(0.01, 0.01, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.08, 0.10),
+                                r(0.001, 0.001, 0.002, 0.003, 0.003, 0.004, 0.005, 0.006, 0.006, 0.007),
+                                r(0.001, 0.002, 0.003, 0.004, 0.004, 0.005, 0.006, 0.007, 0.007, 0.009),
                                 true, true, Formatting.DARK_RED, CustomStat.AffixType.SUFFIX,
                                 63, 800,
                                 ALL_RANGED_WEAPONS);
@@ -777,6 +798,128 @@ public class StatRegistry {
                                 60, 2000,
                                 EquipmentType.SHIELD);
 
+                // --- Hybrid Stats ---
+                registerHybridForTypes("hybrid_dex_eva_life", com.cranks.dungeons.equipment.ArmorBaseType.DEX,
+                        List.of(
+                                new CustomStat.StatComponent("Increased Evasion Rating", ModAttributes.EVASION_RATING_PERCENT, r(0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55), r(0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6), true, true),
+                                new CustomStat.StatComponent("Maximum Health", EntityAttributes.MAX_HEALTH, r(10, 15, 20, 25, 30, 35, 40, 45, 50, 55), r(15, 20, 25, 30, 35, 40, 45, 50, 55, 60), false, false)
+                        ),
+                        Formatting.GRAY, CustomStat.AffixType.PREFIX, 1, 1000, ALL_ARMOR);
+
+                registerHybridForTypes("hybrid_dex_int_eva_es_pct", com.cranks.dungeons.equipment.ArmorBaseType.DEX_INT,
+                        List.of(
+                                new CustomStat.StatComponent("Increased Evasion and Energy Shield", List.of(ModAttributes.EVASION_RATING_PERCENT, ModAttributes.ENERGY_SHIELD_PERCENT), r(0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55), r(0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6), true, true)
+                        ),
+                        Formatting.GRAY, CustomStat.AffixType.PREFIX, 1, 1000, ALL_ARMOR);
+
+                registerHybridForTypes("hybrid_dex_int_eva_es_pct_life", com.cranks.dungeons.equipment.ArmorBaseType.DEX_INT,
+                        List.of(
+                                new CustomStat.StatComponent("Increased Evasion and Energy Shield", List.of(ModAttributes.EVASION_RATING_PERCENT, ModAttributes.ENERGY_SHIELD_PERCENT), r(0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5), r(0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55), true, true),
+                                new CustomStat.StatComponent("Maximum Health", EntityAttributes.MAX_HEALTH, r(10, 15, 20, 25, 30, 35, 40, 45, 50, 55), r(15, 20, 25, 30, 35, 40, 45, 50, 55, 60), false, false)
+                        ),
+                        Formatting.GRAY, CustomStat.AffixType.PREFIX, 1, 1000, ALL_ARMOR);
+                        
+                registerHybridForTypes("hybrid_dex_int_eva_es_flat", com.cranks.dungeons.equipment.ArmorBaseType.DEX_INT,
+                        List.of(
+                                new CustomStat.StatComponent("Evasion and Energy Shield", List.of(ModAttributes.EVASION_RATING, ModAttributes.ENERGY_SHIELD), r(10, 15, 20, 25, 30, 35, 40, 45, 50, 55), r(15, 20, 25, 30, 35, 40, 45, 50, 55, 60), false, false)
+                        ),
+                        Formatting.GRAY, CustomStat.AffixType.PREFIX, 1, 1000, ALL_ARMOR);
+
+                registerHybridForTypes("hybrid_str_armor_life", com.cranks.dungeons.equipment.ArmorBaseType.STR,
+                        List.of(
+                                new CustomStat.StatComponent("Increased Armor", ModAttributes.ARMOR_PERCENT, r(0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55), r(0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6), true, true),
+                                new CustomStat.StatComponent("Maximum Health", EntityAttributes.MAX_HEALTH, r(10, 15, 20, 25, 30, 35, 40, 45, 50, 55), r(15, 20, 25, 30, 35, 40, 45, 50, 55, 60), false, false)
+                        ),
+                        Formatting.RED, CustomStat.AffixType.PREFIX, 1, 1000, ALL_ARMOR);
+
+                registerHybridForTypes("hybrid_str_int_armor_es_pct", com.cranks.dungeons.equipment.ArmorBaseType.STR_INT,
+                        List.of(
+                                new CustomStat.StatComponent("Increased Armor and Energy Shield", List.of(ModAttributes.ARMOR_PERCENT, ModAttributes.ENERGY_SHIELD_PERCENT), r(0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55), r(0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6), true, true)
+                        ),
+                        Formatting.GRAY, CustomStat.AffixType.PREFIX, 1, 1000, ALL_ARMOR);
+
+                registerHybridForTypes("hybrid_str_int_armor_es_pct_life", com.cranks.dungeons.equipment.ArmorBaseType.STR_INT,
+                        List.of(
+                                new CustomStat.StatComponent("Increased Armor and Energy Shield", List.of(ModAttributes.ARMOR_PERCENT, ModAttributes.ENERGY_SHIELD_PERCENT), r(0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5), r(0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55), true, true),
+                                new CustomStat.StatComponent("Maximum Health", EntityAttributes.MAX_HEALTH, r(10, 15, 20, 25, 30, 35, 40, 45, 50, 55), r(15, 20, 25, 30, 35, 40, 45, 50, 55, 60), false, false)
+                        ),
+                        Formatting.GRAY, CustomStat.AffixType.PREFIX, 1, 1000, ALL_ARMOR);
+
+                registerHybridForTypes("hybrid_str_int_armor_es_flat", com.cranks.dungeons.equipment.ArmorBaseType.STR_INT,
+                        List.of(
+                                new CustomStat.StatComponent("Armor and Energy Shield", List.of(EntityAttributes.ARMOR, ModAttributes.ENERGY_SHIELD), r(10, 15, 20, 25, 30, 35, 40, 45, 50, 55), r(15, 20, 25, 30, 35, 40, 45, 50, 55, 60), false, false)
+                        ),
+                        Formatting.GRAY, CustomStat.AffixType.PREFIX, 1, 1000, ALL_ARMOR);
+
+                registerHybridForTypes("hybrid_int_es_life", com.cranks.dungeons.equipment.ArmorBaseType.INT,
+                        List.of(
+                                new CustomStat.StatComponent("Increased Energy Shield", ModAttributes.ENERGY_SHIELD_PERCENT, r(0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55), r(0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6), true, true),
+                                new CustomStat.StatComponent("Maximum Health", EntityAttributes.MAX_HEALTH, r(10, 15, 20, 25, 30, 35, 40, 45, 50, 55), r(15, 20, 25, 30, 35, 40, 45, 50, 55, 60), false, false)
+                        ),
+                        Formatting.BLUE, CustomStat.AffixType.PREFIX, 1, 1000, ALL_ARMOR);
+
+                registerHybridForTypes("hybrid_str_dex_armor_eva_pct", com.cranks.dungeons.equipment.ArmorBaseType.STR_DEX,
+                        List.of(
+                                new CustomStat.StatComponent("Increased Armor and Evasion", List.of(ModAttributes.ARMOR_PERCENT, ModAttributes.EVASION_RATING_PERCENT), r(0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55), r(0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6), true, true)
+                        ),
+                        Formatting.GRAY, CustomStat.AffixType.PREFIX, 1, 1000, ALL_ARMOR);
+
+                registerHybridForTypes("hybrid_str_dex_armor_eva_pct_life", com.cranks.dungeons.equipment.ArmorBaseType.STR_DEX,
+                        List.of(
+                                new CustomStat.StatComponent("Increased Armor and Evasion", List.of(ModAttributes.ARMOR_PERCENT, ModAttributes.EVASION_RATING_PERCENT), r(0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5), r(0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55), true, true),
+                                new CustomStat.StatComponent("Maximum Health", EntityAttributes.MAX_HEALTH, r(10, 15, 20, 25, 30, 35, 40, 45, 50, 55), r(15, 20, 25, 30, 35, 40, 45, 50, 55, 60), false, false)
+                        ),
+                        Formatting.GRAY, CustomStat.AffixType.PREFIX, 1, 1000, ALL_ARMOR);
+
+                registerHybridForTypes("hybrid_str_dex_armor_eva_flat", com.cranks.dungeons.equipment.ArmorBaseType.STR_DEX,
+                        List.of(
+                                new CustomStat.StatComponent("Armor and Evasion Rating", List.of(EntityAttributes.ARMOR, ModAttributes.EVASION_RATING), r(10, 15, 20, 25, 30, 35, 40, 45, 50, 55), r(15, 20, 25, 30, 35, 40, 45, 50, 55, 60), false, false)
+                        ),
+                        Formatting.GRAY, CustomStat.AffixType.PREFIX, 1, 1000, ALL_ARMOR);
+
+                // --- Leggings Exclusives ---
+                registerHybridForTypes("leggings_hybrid_dex_int", com.cranks.dungeons.equipment.ArmorBaseType.DEX_INT,
+                        List.of(
+                                new CustomStat.StatComponent("Increased Evasion and Energy Shield", List.of(ModAttributes.EVASION_RATING_PERCENT, ModAttributes.ENERGY_SHIELD_PERCENT), r(0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5), r(0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55), true, true),
+                                new CustomStat.StatComponent("Evasion and Energy Shield", List.of(ModAttributes.EVASION_RATING, ModAttributes.ENERGY_SHIELD), r(10, 15, 20, 25, 30, 35, 40, 45, 50, 55), r(15, 20, 25, 30, 35, 40, 45, 50, 55, 60), false, false)
+                        ),
+                        Formatting.GRAY, CustomStat.AffixType.PREFIX, 1, 1000, EquipmentType.LEGGINGS);
+
+                registerHybridForTypes("leggings_hybrid_str_dex", com.cranks.dungeons.equipment.ArmorBaseType.STR_DEX,
+                        List.of(
+                                new CustomStat.StatComponent("Increased Armor and Evasion", List.of(ModAttributes.ARMOR_PERCENT, ModAttributes.EVASION_RATING_PERCENT), r(0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5), r(0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55), true, true),
+                                new CustomStat.StatComponent("Armor and Evasion Rating", List.of(EntityAttributes.ARMOR, ModAttributes.EVASION_RATING), r(10, 15, 20, 25, 30, 35, 40, 45, 50, 55), r(15, 20, 25, 30, 35, 40, 45, 50, 55, 60), false, false)
+                        ),
+                        Formatting.GRAY, CustomStat.AffixType.PREFIX, 1, 1000, EquipmentType.LEGGINGS);
+
+                registerHybridForTypes("leggings_hybrid_str_int", com.cranks.dungeons.equipment.ArmorBaseType.STR_INT,
+                        List.of(
+                                new CustomStat.StatComponent("Increased Armor and Energy Shield", List.of(ModAttributes.ARMOR_PERCENT, ModAttributes.ENERGY_SHIELD_PERCENT), r(0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5), r(0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55), true, true),
+                                new CustomStat.StatComponent("Armor and Energy Shield", List.of(EntityAttributes.ARMOR, ModAttributes.ENERGY_SHIELD), r(10, 15, 20, 25, 30, 35, 40, 45, 50, 55), r(15, 20, 25, 30, 35, 40, 45, 50, 55, 60), false, false)
+                        ),
+                        Formatting.GRAY, CustomStat.AffixType.PREFIX, 1, 1000, EquipmentType.LEGGINGS);
+
+                registerHybridForTypes("leggings_hybrid_str", com.cranks.dungeons.equipment.ArmorBaseType.STR,
+                        List.of(
+                                new CustomStat.StatComponent("Increased Armor", ModAttributes.ARMOR_PERCENT, r(0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5), r(0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55), true, true),
+                                new CustomStat.StatComponent("Armor", EntityAttributes.ARMOR, r(10, 15, 20, 25, 30, 35, 40, 45, 50, 55), r(15, 20, 25, 30, 35, 40, 45, 50, 55, 60), false, false)
+                        ),
+                        Formatting.RED, CustomStat.AffixType.PREFIX, 1, 1000, EquipmentType.LEGGINGS);
+
+                registerHybridForTypes("leggings_hybrid_dex", com.cranks.dungeons.equipment.ArmorBaseType.DEX,
+                        List.of(
+                                new CustomStat.StatComponent("Increased Evasion Rating", ModAttributes.EVASION_RATING_PERCENT, r(0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5), r(0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55), true, true),
+                                new CustomStat.StatComponent("Evasion Rating", ModAttributes.EVASION_RATING, r(10, 15, 20, 25, 30, 35, 40, 45, 50, 55), r(15, 20, 25, 30, 35, 40, 45, 50, 55, 60), false, false)
+                        ),
+                        Formatting.GRAY, CustomStat.AffixType.PREFIX, 1, 1000, EquipmentType.LEGGINGS);
+
+                registerHybridForTypes("leggings_hybrid_int", com.cranks.dungeons.equipment.ArmorBaseType.INT,
+                        List.of(
+                                new CustomStat.StatComponent("Increased Energy Shield", ModAttributes.ENERGY_SHIELD_PERCENT, r(0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5), r(0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55), true, true),
+                                new CustomStat.StatComponent("Maximum Energy Shield", ModAttributes.ENERGY_SHIELD, r(10, 15, 20, 25, 30, 35, 40, 45, 50, 55), r(15, 20, 25, 30, 35, 40, 45, 50, 55, 60), false, false)
+                        ),
+                        Formatting.BLUE, CustomStat.AffixType.PREFIX, 1, 1000, EquipmentType.LEGGINGS);
+
                 LOGGER.info("Registered {} custom stats", STATS.size());
         }
 
@@ -799,27 +942,29 @@ public class StatRegistry {
         }
 
         public static CustomStat getRandomStatForEquipmentType(EquipmentType equipmentType) {
-                return getRandomStatForEquipmentType(equipmentType, 1, 100);
+                return getRandomStatForEquipmentType(equipmentType, com.cranks.dungeons.equipment.ArmorBaseType.ANY, 1, 100);
         }
 
-        public static CustomStat getRandomStatForEquipmentType(EquipmentType equipmentType, int minLevel,
+        public static CustomStat getRandomStatForEquipmentType(EquipmentType equipmentType, com.cranks.dungeons.equipment.ArmorBaseType armorBase, int minLevel,
                         int maxLevel) {
                 List<CustomStat> stats = getStatsByEquipmentType(equipmentType).stream()
                                 .filter(stat -> stat.getLevel() >= minLevel && stat.getLevel() <= maxLevel)
+                                .filter(stat -> armorBase.canRoll(stat.getArmorBaseType()))
                                 .collect(Collectors.toList());
                 return getRandomWeightedStat(stats);
         }
 
         public static CustomStat getRandomStatForEquipmentType(EquipmentType equipmentType,
                         CustomStat.AffixType affixType) {
-                return getRandomStatForEquipmentType(equipmentType, affixType, 1, 100);
+                return getRandomStatForEquipmentType(equipmentType, com.cranks.dungeons.equipment.ArmorBaseType.ANY, affixType, 1, 100);
         }
 
-        public static CustomStat getRandomStatForEquipmentType(EquipmentType equipmentType,
+        public static CustomStat getRandomStatForEquipmentType(EquipmentType equipmentType, com.cranks.dungeons.equipment.ArmorBaseType armorBase,
                         CustomStat.AffixType affixType, int minLevel, int maxLevel) {
                 List<CustomStat> stats = getStatsByEquipmentType(equipmentType).stream()
                                 .filter(stat -> stat.getAffixType() == affixType)
                                 .filter(stat -> stat.getLevel() >= minLevel && stat.getLevel() <= maxLevel)
+                                .filter(stat -> armorBase.canRoll(stat.getArmorBaseType()))
                                 .collect(Collectors.toList());
                 return getRandomWeightedStat(stats);
         }

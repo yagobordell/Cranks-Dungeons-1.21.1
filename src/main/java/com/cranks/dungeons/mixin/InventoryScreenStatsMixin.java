@@ -220,7 +220,7 @@ public abstract class InventoryScreenStatsMixin {
                         double totalLifeSteal = player.getAttributeValue(ModAttributes.LIFE_STEAL)
                                         + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(player, weapon, "minecraft:life_steal", 0.06)
                                         + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(player, chestplate, "minecraft:life_steal", 0.06);
-                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Life Steal", totalLifeSteal * 100,
+                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Damage Leeched as Life", totalLifeSteal * 100,
                                         baseLifeSteal * 100, "%", mouseX,
                                         mouseY, panelX, panelWidth);
                         curY += 6;
@@ -283,15 +283,19 @@ public abstract class InventoryScreenStatsMixin {
                         curY += 11;
 
                         // 4. Critical Strike
-                        double critChance = player.getAttributeValue(ModAttributes.CRIT_CHANCE);
-                        double baseCrit = cranks$getPassiveBase(player, ModAttributes.CRIT_CHANCE);
+                        double baseCrit = player.getAttributeValue(ModAttributes.CRIT_CHANCE);
+                        double localCrit = com.cranks.dungeons.util.CombatUtility.getAttributeValue(player, ModAttributes.LOCAL_CRIT_CHANCE_PERCENT, weapon, "local_crit_chance", null);
+                        double globalCrit = player.getAttributeValue(ModAttributes.GLOBAL_CRIT_CHANCE_PERCENT);
+                        double critChance = (baseCrit * (1.0 + localCrit)) * (1.0 + globalCrit);
+                        
+                        double displayBaseCrit = cranks$getPassiveBase(player, ModAttributes.CRIT_CHANCE);
                         critChance += com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(player, weapon, "minecraft:crit_chance", 0.075);
                         critChance += com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(player, chestplate, "minecraft:crit_chance", 0.075);
                         critChance += com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(player, helmet, "minecraft:crit_chance", 0.075);
                         critChance += com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(player, leggings, "minecraft:crit_chance", 0.075);
                         critChance += com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(player, boots, "minecraft:crit_chance", 0.075);
                         curY = drawStatWithTooltip(context, tr, panelX, curY, "Crit Chance", critChance * 100,
-                                        baseCrit * 100, "%",
+                                        displayBaseCrit * 100, "%",
                                         mouseX, mouseY, panelX, panelWidth);
 
                         double critMult = player.getAttributeValue(ModAttributes.CRIT_MULTIPLIER);
@@ -605,7 +609,7 @@ public abstract class InventoryScreenStatsMixin {
                         case "Energy Shield" -> "Absorbs damage before health";
                         case "Max Health" -> "Maximum health points";
                         case "Health Regeneration" -> "Health restored per second";
-                        case "Life Steal" -> "% of damage converted to health";
+                        case "Damage Leeched as Life" -> "% of damage converted to health";
                         case "Evasion" -> calculateEvasionDescription();
                         case "Armor" -> calculateArmorDescription();
                         case "Fire Res" -> "Reduces fire damage taken";

@@ -50,22 +50,28 @@ public class EquipmentStatApplier {
             }
         }
 
-        Map<String, Double> totalArmorStats = new HashMap<>();
+        Map<String, double[]> totalArmorStats = new HashMap<>();
 
         for (ItemStack stack : armorItems) {
             List<ItemStatManager.ItemStat> stats = ItemStatManager.getStats(stack);
             for (ItemStatManager.ItemStat itemStat : stats) {
-                totalArmorStats.merge(itemStat.statId, itemStat.value, Double::sum);
+                totalArmorStats.compute(itemStat.statId, (key, oldVal) -> {
+                    if (oldVal == null) return itemStat.values.clone();
+                    for (int i = 0; i < oldVal.length && i < itemStat.values.length; i++) {
+                        oldVal[i] += itemStat.values[i];
+                    }
+                    return oldVal;
+                });
             }
         }
 
-        for (Map.Entry<String, Double> entry : totalArmorStats.entrySet()) {
+        for (Map.Entry<String, double[]> entry : totalArmorStats.entrySet()) {
             String statId = entry.getKey();
-            double totalValue = entry.getValue();
+            double[] totalValues = entry.getValue();
 
             CustomStat stat = StatRegistry.getStat(statId);
-            if (stat != null && totalValue != 0) {
-                applyStatModifier(player, stat, totalValue);
+            if (stat != null) {
+                applyStatModifier(player, stat, totalValues);
             }
         }
     }
@@ -108,14 +114,45 @@ public class EquipmentStatApplier {
         for (ItemStatManager.ItemStat itemStat : stats) {
             CustomStat stat = StatRegistry.getStat(itemStat.statId);
             if (stat != null) {
-                RegistryEntry<EntityAttribute> attr = stat.getAttribute();
-                if (attr.equals(ModAttributes.ATTACK_DAMAGE_PERCENT)) localAttackDamagePercent += itemStat.value;
-                else if (attr.equals(ModAttributes.ARMOR_PERCENT)) localArmorPercent += itemStat.value;
-                else if (attr.equals(ModAttributes.EVASION_RATING_PERCENT)) localEvasionPercent += itemStat.value;
-                else if (attr.equals(ModAttributes.ENERGY_SHIELD_PERCENT)) localEnergyShieldPercent += itemStat.value;
-                else {
-                    flatRuneValues.merge(attr, itemStat.value, Double::sum);
-                    attributeToStatMap.put(attr, stat);
+                for (int i = 0; i < stat.getComponents().size(); i++) {
+                    CustomStat.StatComponent comp = stat.getComponents().get(i);
+                    double val = itemStat.getValue(i);
+
+                    for (int attrIndex = 0; attrIndex < comp.getAttributes().size(); attrIndex++) {
+                        RegistryEntry<EntityAttribute> attribute = comp.getAttributes().get(attrIndex);
+
+                        // Skip stats that shouldn't be applied to standard vanilla attributes
+                        if (attribute.equals(ModAttributes.DURABILITY_BONUS)) continue;
+                        if (attribute.equals(ModAttributes.CHANCE_TO_BLOCK)) continue;
+                        if (attribute.equals(ModAttributes.BLOCK_VALUE)) continue;
+                        if (attribute.equals(ModAttributes.HEALTH_ON_BLOCK)) continue;
+                        if (attribute.equals(ModAttributes.EVASION_RATING)) continue;
+                        if (attribute.equals(ModAttributes.EVASION_RATING_PERCENT)) continue;
+                        if (attribute.equals(ModAttributes.ENERGY_SHIELD)) continue;
+                        if (attribute.equals(ModAttributes.ENERGY_SHIELD_PERCENT)) continue;
+
+                        Identifier id = Identifier.of(CranksDungeons.MOD_ID, "runic_" + stat.getId() + "_" + i + "_" + attrIndex);
+                        
+                        EntityAttributeModifier modifier = new EntityAttributeModifier(
+                                id,
+                                val,
+                                comp.isPercentage() ? EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE : EntityAttributeModifier.Operation.ADD_VALUE
+                        );
+
+                        builder.add(attribute, modifier, slot);
+                    }
+
+                    for (int attrIndex = 0; attrIndex < comp.getAttributes().size(); attrIndex++) {
+                        RegistryEntry<EntityAttribute> attribute = comp.getAttributes().get(attrIndex);
+                        if (attribute.equals(ModAttributes.ATTACK_DAMAGE_PERCENT)) localAttackDamagePercent += val;
+                        else if (attribute.equals(ModAttributes.ARMOR_PERCENT)) localArmorPercent += val;
+                        else if (attribute.equals(ModAttributes.EVASION_RATING_PERCENT)) localEvasionPercent += val;
+                        else if (attribute.equals(ModAttributes.ENERGY_SHIELD_PERCENT)) localEnergyShieldPercent += val;
+                        else {
+                            flatRuneValues.merge(attribute, val, Double::sum);
+                            attributeToStatMap.put(attribute, stat);
+                        }
+                    }
                 }
             }
         }
@@ -240,27 +277,43 @@ public class EquipmentStatApplier {
         List<ItemStatManager.ItemStat> stats = ItemStatManager.getStats(stack);
         for (ItemStatManager.ItemStat itemStat : stats) {
             if (itemStat.statId.equals(baseStatId) || itemStat.statId.endsWith("_" + baseStatId)) {
-                return itemStat.value;
+                return itemStat.getValue(0);
             }
         }
         return 0.0;
     }
 
-    private static void applyStatModifier(PlayerEntity player, CustomStat stat, double value) {
-        Identifier modifierId = Identifier.of(CranksDungeons.MOD_ID, "equipment_" + stat.getId());
-        boolean isAttackSpeed = stat.getAttribute().equals(EntityAttributes.ATTACK_SPEED);
-        
-        EntityAttributeModifier modifier = new EntityAttributeModifier(
-                modifierId,
-                value,
-                isAttackSpeed ? EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL : EntityAttributeModifier.Operation.ADD_VALUE
-        );
+    private static void applyStatModifier(PlayerEntity player, CustomStat stat, double[] values) {
+        for (int i = 0; i < stat.getComponents().size(); i++) {
+            CustomStat.StatComponent comp = stat.getComponents().get(i);
+            double val = values != null && i < values.length ? values[i] : 0;
+            if (val == 0) continue;
 
-        var attributeInstance = player.getAttributeInstance(stat.getAttribute());
-        if (attributeInstance != null) {
-            attributeInstance.removeModifier(modifierId);
-            attributeInstance.addTemporaryModifier(modifier);
-            appliedModifiers.computeIfAbsent(player.getUuid(), k -> new HashMap<>()).put(modifierId, stat.getAttribute());
+            for (int attrIndex = 0; attrIndex < comp.getAttributes().size(); attrIndex++) {
+                RegistryEntry<EntityAttribute> attribute = comp.getAttributes().get(attrIndex);
+
+                // For armor stats, we generally skip everything EXCEPT standard player attributes
+                if (attribute.equals(ModAttributes.DURABILITY_BONUS)) continue;
+                if (attribute.equals(ModAttributes.CHANCE_TO_BLOCK)) continue;
+                if (attribute.equals(ModAttributes.BLOCK_VALUE)) continue;
+                if (attribute.equals(ModAttributes.HEALTH_ON_BLOCK)) continue;
+
+                Identifier id = Identifier.of(CranksDungeons.MOD_ID, "runic_" + stat.getId() + "_" + i + "_" + attrIndex);
+                EntityAttributeModifier modifier = new EntityAttributeModifier(
+                        id,
+                        val,
+                        comp.isPercentage() ? EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE : EntityAttributeModifier.Operation.ADD_VALUE
+                );
+
+                try {
+                    player.getAttributes().getCustomInstance(attribute).addPersistentModifier(modifier);
+
+                    Map<Identifier, RegistryEntry<EntityAttribute>> applied = appliedModifiers.computeIfAbsent(player.getUuid(), k -> new HashMap<>());
+                    applied.put(id, attribute);
+                } catch (Exception e) {
+                    CranksDungeons.LOGGER.error("Failed to apply stat modifier {} to player {}", id, player.getName().getString(), e);
+                }
+            }
         }
     }
 

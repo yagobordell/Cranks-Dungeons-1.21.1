@@ -19,15 +19,19 @@ public class ItemStatManager {
 
     public static class ItemStat {
         public final String statId;
-        public final double value;
+        public final double[] values;
         public final int tier;
         public final boolean isArtificial;
 
-        public ItemStat(String statId, double value, int tier, boolean isArtificial) {
+        public ItemStat(String statId, double[] values, int tier, boolean isArtificial) {
             this.statId = statId;
-            this.value = value;
+            this.values = values;
             this.tier = tier;
             this.isArtificial = isArtificial;
+        }
+
+        public ItemStat(String statId, double value, int tier, boolean isArtificial) {
+            this(statId, new double[]{value}, tier, isArtificial);
         }
 
         public ItemStat(String statId, double value, int tier) {
@@ -37,16 +41,30 @@ public class ItemStatManager {
         public ItemStat(String statId, double value) {
             this(statId, value, 1, false);
         }
+
+        public double getValue(int index) {
+            if (values == null || index >= values.length) return 0;
+            return values[index];
+        }
+
+        public double getValue() {
+            return getValue(0);
+        }
     }
 
     public static double getAttributeValue(ItemStack stack, net.minecraft.registry.entry.RegistryEntry<net.minecraft.entity.attribute.EntityAttribute> attribute) {
-        return getStats(stack).stream()
-                .filter(s -> {
-                    CustomStat stat = StatRegistry.getStat(s.statId);
-                    return stat != null && stat.getAttribute().equals(attribute);
-                })
-                .mapToDouble(s -> s.value)
-                .sum();
+        double total = 0;
+        for (ItemStat s : getStats(stack)) {
+            CustomStat stat = StatRegistry.getStat(s.statId);
+            if (stat != null) {
+                for (int i = 0; i < stat.getComponents().size(); i++) {
+                    if (stat.getComponents().get(i).getAttributes().contains(attribute)) {
+                        total += s.getValue(i);
+                    }
+                }
+            }
+        }
+        return total;
     }
 
     public static List<ItemStat> getStats(ItemStack stack) {
@@ -63,13 +81,28 @@ public class ItemStatManager {
                     if (statNbtOpt.isPresent()) {
                         NbtCompound statNbt = statNbtOpt.get();
                         Optional<String> idOpt = statNbt.getString("id");
-                        Optional<Double> valueOpt = statNbt.getDouble("value");
+
+                        double[] valuesArray;
+                        if (statNbt.contains("values")) {
+                            Optional<NbtList> nbtListOpt = statNbt.getList("values");
+                            if (nbtListOpt.isPresent()) {
+                                NbtList nbtList = nbtListOpt.get();
+                                valuesArray = new double[nbtList.size()];
+                                for (int j = 0; j < nbtList.size(); j++) valuesArray[j] = nbtList.getDouble(j).orElse(0.0);
+                            } else {
+                                valuesArray = new double[0];
+                            }
+                        } else if (statNbt.contains("value")) {
+                            valuesArray = new double[]{statNbt.getDouble("value").orElse(0.0)};
+                        } else {
+                            continue;
+                        }
 
                         int tier = statNbt.getInt("tier").orElse(1);
                         boolean isArtificial = statNbt.getBoolean("artificial").orElse(false);
 
-                        if (idOpt.isPresent() && valueOpt.isPresent()) {
-                            stats.add(new ItemStat(idOpt.get(), valueOpt.get(), tier, isArtificial));
+                        if (idOpt.isPresent()) {
+                            stats.add(new ItemStat(idOpt.get(), valuesArray, tier, isArtificial));
                         }
                     }
                 }
@@ -168,7 +201,8 @@ public class ItemStatManager {
         Optional<EquipmentType> equipType = EquipmentType.getTypeForItem(stack);
         if (equipType.isEmpty()) return false;
 
-        CustomStat stat = StatRegistry.getRandomStatForEquipmentType(equipType.get(), type, minLevel, maxLevel);
+        com.cranks.dungeons.equipment.ArmorBaseType armorBase = com.cranks.dungeons.equipment.ArmorBaseType.getFromItem(stack);
+        CustomStat stat = StatRegistry.getRandomStatForEquipmentType(equipType.get(), armorBase, type, minLevel, maxLevel);
         if (stat == null) return false;
 
         // Check for duplicate attributes
@@ -177,7 +211,7 @@ public class ItemStatManager {
                 .anyMatch(s -> {
                     CustomStat existingStat = StatRegistry.getStat(s.statId);
                     if (existingStat == null) return false;
-                    return existingStat.getAttribute().equals(stat.getAttribute());
+                    return existingStat.getGroupId().equals(stat.getGroupId());
                 });
 
         if (alreadyHasStat) return false;
@@ -197,12 +231,12 @@ public class ItemStatManager {
                 .anyMatch(s -> {
                     CustomStat existingStat = StatRegistry.getStat(s.statId);
                     if (existingStat == null) return false;
-                    return existingStat.getAttribute().equals(stat.getAttribute());
+                    return existingStat.getGroupId().equals(stat.getGroupId());
                 });
 
         if (alreadyHasStat) return false;
 
-        double value = stat.rollValue(tier);
+        double[] values = stat.rollValues(tier);
 
         NbtCompound nbt = stack.getOrDefault(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,
                 net.minecraft.component.type.NbtComponent.DEFAULT).copyNbt();
@@ -217,7 +251,9 @@ public class ItemStatManager {
 
         NbtCompound newStat = new NbtCompound();
         newStat.putString("id", statId);
-        newStat.putDouble("value", value);
+        NbtList nbtValues = new NbtList();
+        for (double v : values) nbtValues.add(net.minecraft.nbt.NbtDouble.of(v));
+        newStat.put("values", nbtValues);
         newStat.putInt("tier", tier);
         statsList.add(newStat);
 
@@ -235,7 +271,7 @@ public class ItemStatManager {
         List<ItemStat> stats = getStats(stack);
         for (ItemStat itemStat : stats) {
             if (itemStat.statId.equals(baseStatId) || itemStat.statId.endsWith("_" + baseStatId)) {
-                total += itemStat.value;
+                total += itemStat.getValue(0);
             }
         }
         return total;
