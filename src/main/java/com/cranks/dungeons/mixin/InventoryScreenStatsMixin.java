@@ -213,7 +213,7 @@ public abstract class InventoryScreenStatsMixin {
                                         player.getAttributeValue(EntityAttributes.MAX_HEALTH),
                                         cranks$getPassiveBase(player, EntityAttributes.MAX_HEALTH), " HP", mouseX,
                                         mouseY, panelX, panelWidth);
-                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Health Regeneration",
+                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Health Regen.",
                                         player.getAttributeValue(ModAttributes.LIFE_REGENERATION),
                                         cranks$getPassiveBase(player, ModAttributes.LIFE_REGENERATION), " HP/s", mouseX,
                                         mouseY, panelX, panelWidth);
@@ -221,7 +221,7 @@ public abstract class InventoryScreenStatsMixin {
                         double totalLifeSteal = player.getAttributeValue(ModAttributes.PHYSICAL_DAMAGE_LEECHED_AS_LIFE)
                                         + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(player, weapon, "minecraft:physical_damage_leeched_as_life", 0.06)
                                         + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(player, chestplate, "minecraft:physical_damage_leeched_as_life", 0.06);
-                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Physical Damage Leeched as Life", totalLifeSteal * 100,
+                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Life Leech", totalLifeSteal * 100,
                                         baseLifeSteal * 100, "%", mouseX,
                                         mouseY, panelX, panelWidth);
                         curY += 6;
@@ -316,7 +316,7 @@ public abstract class InventoryScreenStatsMixin {
                         double totalBurn = player.getAttributeValue(ModAttributes.BURN_MAGNITUDE_PERCENT)
                                         + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(player, weapon, "minecraft:burn_magnitude_percent", 0.05)
                                         + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(player, chestplate, "minecraft:burn_magnitude_percent", 0.05);
-                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Burn Magnitude", totalBurn * 100,
+                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Burn Mag.", totalBurn * 100,
                                         baseBurn * 100, "%", mouseX, mouseY, panelX, panelWidth);
 
                         // POISON
@@ -324,7 +324,7 @@ public abstract class InventoryScreenStatsMixin {
                         double totalPoison = player.getAttributeValue(ModAttributes.POISON_MAGNITUDE_PERCENT)
                                         + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(player, weapon, "minecraft:poison_magnitude_percent", 0.05)
                                         + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(player, chestplate, "minecraft:poison_magnitude_percent", 0.05);
-                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Poison Magnitude", totalPoison * 100,
+                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Poison Mag.", totalPoison * 100,
                                         basePoison * 100, "%", mouseX, mouseY, panelX, panelWidth);
 
                         // BLEED
@@ -332,7 +332,7 @@ public abstract class InventoryScreenStatsMixin {
                         double totalBleed = player.getAttributeValue(ModAttributes.BLEED_MAGNITUDE_PERCENT)
                                         + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(player, weapon, "minecraft:bleed_magnitude_percent", 0.05)
                                         + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(player, chestplate, "minecraft:bleed_magnitude_percent", 0.05);
-                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Bleed Magnitude", totalBleed * 100,
+                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Bleed Mag.", totalBleed * 100,
                                         baseBleed * 100, "%", mouseX, mouseY, panelX, panelWidth);
 
                         // SHOCK
@@ -340,7 +340,7 @@ public abstract class InventoryScreenStatsMixin {
                         double totalShock = player.getAttributeValue(ModAttributes.SHOCK_MAGNITUDE_PERCENT)
                                         + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(player, weapon, "minecraft:shock_magnitude_percent", 0.05)
                                         + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(player, chestplate, "minecraft:shock_magnitude_percent", 0.05);
-                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Shock Magnitude", totalShock * 100,
+                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Shock Mag.", totalShock * 100,
                                         baseShock * 100, "%", mouseX, mouseY, panelX, panelWidth);
 
                         // FREEZE
@@ -348,7 +348,7 @@ public abstract class InventoryScreenStatsMixin {
                         double totalFreeze = player.getAttributeValue(ModAttributes.FREEZE_MAGNITUDE_PERCENT)
                                         + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(player, weapon, "minecraft:freeze_magnitude_percent", 0.05)
                                         + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(player, chestplate, "minecraft:freeze_magnitude_percent", 0.05);
-                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Freeze Magnitude", totalFreeze * 100,
+                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Freeze Mag.", totalFreeze * 100,
                                         baseFreeze * 100, "%", mouseX, mouseY, panelX, panelWidth);
 
                         // ELECTROCUTE
@@ -356,7 +356,7 @@ public abstract class InventoryScreenStatsMixin {
                         double totalElectrocute = player.getAttributeValue(ModAttributes.ELECTROCUTE_MAGNITUDE_PERCENT)
                                         + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(player, weapon, "minecraft:electrocute_magnitude_percent", 0.05)
                                         + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(player, chestplate, "minecraft:electrocute_magnitude_percent", 0.05);
-                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Electrocute Magnitude", totalElectrocute * 100,
+                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Electrocute Mag.", totalElectrocute * 100,
                                         baseElectrocute * 100, "%", mouseX, mouseY, panelX, panelWidth);
 
                         curY += 6;
@@ -558,33 +558,33 @@ public abstract class InventoryScreenStatsMixin {
                         case "Attack Range" -> "Maximum melee attack distance";
                         case "Knockback" -> "How far enemies are pushed back";
                         case "Reload Speed" -> "How much faster bows/crossbows charge";
-                        case "Burn Magnitude" -> {
+                        case "Burn Mag." -> {
                                 var p = MinecraftClient.getInstance().player;
                                 double dur = p != null ? AilmentType.BURN.getBaseDuration() * (1.0 + p.getAttributeValue(ModAttributes.BURN_DURATION)) : AilmentType.BURN.getBaseDuration();
                                 yield "Scales damage per tick of Burn.\nFire hits ignite enemies for " + String.format("%.1f", dur) + "s based on hit damage.";
                         }
-                        case "Poison Magnitude" -> {
+                        case "Poison Mag." -> {
                                 var p = MinecraftClient.getInstance().player;
                                 double dur = p != null ? AilmentType.POISON.getBaseDuration() * (1.0 + p.getAttributeValue(ModAttributes.POISON_DURATION)) : AilmentType.POISON.getBaseDuration();
                                 double max = p != null ? 20.0 + p.getAttributeValue(ModAttributes.POISON_MAX_STACKS) : 20.0;
                                 yield "Scales damage per tick of Poison.\nPhysical/Void hits poison enemies for " + String.format("%.1f", dur) + "s (Max " + (int)max + ").";
                         }
-                        case "Bleed Magnitude" -> {
+                        case "Bleed Mag." -> {
                                 var p = MinecraftClient.getInstance().player;
                                 double dur = p != null ? AilmentType.BLEED.getBaseDuration() * (1.0 + p.getAttributeValue(ModAttributes.BLEED_DURATION)) : AilmentType.BLEED.getBaseDuration();
                                 yield "Scales Bleed damage.\nPhysical hits cause bleeding over " + String.format("%.1f", dur) + "s based on hit damage.";
                         }
-                        case "Freeze Magnitude" -> {
+                        case "Freeze Mag." -> {
                                 var p = MinecraftClient.getInstance().player;
                                 double dur = p != null ? AilmentType.FREEZE.getBaseDuration() * (1.0 + p.getAttributeValue(ModAttributes.FREEZE_DURATION)) : AilmentType.FREEZE.getBaseDuration();
                                 yield "Increases Freeze buildup on enemies.\nCold hits build up freeze to stun for " + String.format("%.1f", dur) + "s.";
                         }
-                        case "Electrocute Magnitude" -> {
+                        case "Electrocute Mag." -> {
                                 var p = MinecraftClient.getInstance().player;
                                 double dur = p != null ? 0.75 * (1.0 + p.getAttributeValue(ModAttributes.ELECTROCUTE_DURATION)) : 0.75;
                                 yield "Increases Electrocute buildup on enemies.\nLightning hits build up electrocute to stun for " + String.format("%.2f", dur) + "s.";
                         }
-                        case "Shock Magnitude" -> {
+                        case "Shock Mag." -> {
                                 var p = MinecraftClient.getInstance().player;
                                 double dur = p != null ? p.getAttributeValue(ModAttributes.SHOCK_DURATION) : 10.0;
                                 yield "Increases Shock effect on enemies.\nLightning hits apply shock for " + String.format("%.1f", dur) + "s, increasing damage taken.";
@@ -603,8 +603,9 @@ public abstract class InventoryScreenStatsMixin {
                         case "Void Damage" -> "Bonus void damage per hit";
                         case "Energy Shield" -> "Absorbs damage before health";
                         case "Max Health" -> "Maximum health points";
-                        case "Health Regeneration" -> "Health restored per second";
+                        case "Health Regen." -> "Health restored per second";
                         case "Damage Leeched as Life" -> "% of damage converted to health";
+                        case "Life Leech" -> "% of physical damage converted to health";
                         case "Evasion" -> calculateEvasionDescription();
                         case "Armor" -> calculateArmorDescription();
                         case "Fire Res" -> "Reduces fire damage taken";
@@ -745,6 +746,7 @@ public abstract class InventoryScreenStatsMixin {
                 String totalStr = formatStatValue(name, total) + suffix;
                 String text = name + ": " + totalStr;
                 int statX = x + 8;
+                
                 if (mouseX >= statX && mouseX <= statX + tr.getWidth(text) && mouseY >= y && mouseY <= y + 9) {
                         hoveredStat = name;
                         tooltipX = mouseX;
@@ -753,7 +755,9 @@ public abstract class InventoryScreenStatsMixin {
                         hoveredEquipVal = total - base;
                         hoveredSuffix = suffix;
                 }
+                
                 context.drawText(tr, Text.literal(text), statX, y, 0xFF404040, false);
+                
                 return y + 10;
         }
 

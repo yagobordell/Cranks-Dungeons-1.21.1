@@ -33,7 +33,7 @@ public class PassiveSkillTreeScreen extends Screen {
     private final Screen parent;
     private double panX = 0;
     private double panY = 0;
-    private double zoom = 1.0;
+    private double zoom = 0.25;
     private static final int BASE_NODE_SIZE = 28;
     private static final int BASE_GRID_SCALE = 60; // Pixels per grid unit
 
