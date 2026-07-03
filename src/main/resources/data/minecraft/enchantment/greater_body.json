@@ -25,7 +25,7 @@
     "minecraft:attributes": [
       {
         "id": "minecraft:enchantment.greater_body.life_steal",
-        "attribute": "cranks-dungeons:life_steal",
+        "attribute": "cranks-dungeons:physical_damage_leeched_as_life",
         "amount": 0.06,
         "operation": "add_value"
       },

@@ -46,7 +46,7 @@ public abstract class CriticalStrikeMixin {
 
             // Crit Chance with enchantments
             double baseCrit = attacker.getAttributeValue(ModAttributes.CRIT_CHANCE);
-            double localCrit = CombatUtility.getAttributeValue(attacker, ModAttributes.LOCAL_CRIT_CHANCE_PERCENT, weapon, "local_crit_chance", source);
+            double localCrit = EquipmentStatApplier.getItemStatValue(weapon, "local_crit_chance");
             double globalCrit = attacker.getAttributeValue(ModAttributes.GLOBAL_CRIT_CHANCE_PERCENT);
             double critChance = (baseCrit * (1.0 + localCrit)) * (1.0 + globalCrit);
 
@@ -54,11 +54,25 @@ public abstract class CriticalStrikeMixin {
                 critChance += attacker.getAttributeValue(ModAttributes.CRIT_CHANCE_AGAINST_AFFLICTED);
             }
 
+            if (attacker.getAttributeValue(ModAttributes.KEYSTONE_RESOLUTE_TECHNIQUE) > 0) {
+                critChance = 0;
+            }
+
             float finalAmount = amount;
 
             if (critChance > 0 && attacker.getRandom().nextFloat() < critChance) {
                 double critMult = CombatUtility.getAttributeValue(attacker, ModAttributes.CRIT_MULTIPLIER, weapon, "crit_multiplier", source);
                 
+                // Elemental Overload check
+                if (attacker.getAttributeValue(ModAttributes.KEYSTONE_ELEMENTAL_OVERLOAD) > 0) {
+                    critMult = 1.0;
+                    attacker.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
+                            com.cranks.dungeons.effect.ModEffects.ELEMENTAL_OVERLOAD,
+                            160, // 8 seconds (20 ticks * 8)
+                            0, false, true, true
+                    ));
+                }
+
                 // --- Armor Crit Mitigation ---
                 float extraDamageMult = (float) (critMult - 1.0);
                 double mitigationMultiplier = target.getAttributeValue(ModAttributes.ARMOR_CRIT_MITIGATION);
@@ -73,12 +87,6 @@ public abstract class CriticalStrikeMixin {
                 spawnCriticalEffects(world, target, attacker);
             }
 
-            double lifeStealStat = CombatUtility.getAttributeValue(attacker, ModAttributes.LIFE_STEAL, weapon, "life_steal", source);
-
-            if (lifeStealStat > 0) {
-                float healAmount = (float) (finalAmount * lifeStealStat);
-                attacker.heal(healAmount);
-            }
 
             return finalAmount;
         }

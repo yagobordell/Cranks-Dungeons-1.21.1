@@ -48,9 +48,10 @@ public class CombatUtility {
         if (attacker.getAttributes().hasAttribute(attribute)) {
             currentTotal = attacker.getAttributeValue(attribute);
             
-            // 1. Get the "Armor + Base" part by subtracting whatever is currently in hand
+            // 1. Get the "Armor + Base" part by subtracting whatever is currently in hand, 
+            // EXCEPT for local stats which are not part of the global attribute pool
             ItemStack held = attacker.getMainHandStack();
-            double heldStat = com.cranks.dungeons.equipment.EquipmentStatApplier.getItemStatValue(held, statId);
+            double heldStat = statId.startsWith("local_") ? 0.0 : com.cranks.dungeons.equipment.EquipmentStatApplier.getItemStatValue(held, statId);
             if (attacker instanceof PlayerEntity p && !held.isEmpty() && !com.cranks.dungeons.equipment.ItemRequirementManager.meetsRequirements(p, held)) {
                 heldStat *= 0.5;
             }

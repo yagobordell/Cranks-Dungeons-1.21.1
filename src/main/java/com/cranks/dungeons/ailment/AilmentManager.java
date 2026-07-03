@@ -138,7 +138,21 @@ public class AilmentManager {
         applyAilment(target, type, baseDamage, duration, source, null, null, 0);
     }
 
+    public static float getShockMagnitude(LivingEntity entity) {
+        if (entity == null) return 0.0f;
+        for (Ailment a : getAilments(entity)) {
+            if (a.getType() == AilmentType.SHOCK && !a.isExpired()) {
+                return a.getMagnitude();
+            }
+        }
+        return 0.0f;
+    }
+
     public static void applyAilment(LivingEntity target, AilmentType type, float baseDamage, double duration, Entity source, Entity parent, UUID chainUuid, int generation) {
+        applyAilment(target, type, baseDamage, duration, source, parent, chainUuid, generation, 1.0f);
+    }
+
+    public static void applyAilment(LivingEntity target, AilmentType type, float baseDamage, double duration, Entity source, Entity parent, UUID chainUuid, int generation, float magnitude) {
         if (target == null) return;
 
         List<Ailment> ailments = getAilments(target);
@@ -188,7 +202,7 @@ public class AilmentManager {
             history.cranks$recordBurnChain(actualChainUuid);
         }
 
-        Ailment ailment = new Ailment(type, duration, baseDamage, sourceUuid, parentUuid, actualChainUuid, generation);
+        Ailment ailment = new Ailment(type, duration, baseDamage, sourceUuid, parentUuid, actualChainUuid, generation, magnitude);
         ailments.add(ailment);
         ENTITY_AILMENTS.put(target.getUuid(), ailments);
 
@@ -667,9 +681,9 @@ public class AilmentManager {
         
         double res = entity.getAttributeValue(ModAttributes.VOID_RESISTANCE);
         int stacks = poisonAilment.getStacks();
-        // Escalation: multiplicative scaling (+20% compound growth per stack)
-        // 1 stack = 1.0, 2 stacks = 1.2, 3 stacks = 1.44, 20 stacks = ~32
-        double damageMultiplier = Math.pow(1.2, stacks - 1);
+        // Escalation: Linear scaling
+        // 1 stack = 1.0, 2 stacks = 2.0, 20 stacks = 20.0
+        double damageMultiplier = stacks;
         // Damage = damagePerStack × multiplier × (1 - resistance)
         float finalPoisonDamage = (float) (poisonAilment.getDamagePerStack() * (1.0 - res) * damageMultiplier);
 

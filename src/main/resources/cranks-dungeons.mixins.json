@@ -90,6 +90,7 @@
 		"LivingEntityAccessor"
 	],
 	"client": [
+		"CrashReportMixin",
 		"HideArmorAttributeMixin",
 		"EnchantingTableTooltipMixin",
 		"InventoryScreenStatsMixin",
@@ -106,7 +107,8 @@
 		"client.InGameHudMixin",
 		"client.TooltipBackgroundMixin",
 		"FreezeVisualMixin",
-		"client.LivingEntityClientTickFreezeMixin"
+		"client.LivingEntityClientTickFreezeMixin",
+		"HeartbeatSoundMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

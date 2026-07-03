@@ -45,6 +45,9 @@ public abstract class DamageReductionMixin {
             }
 
             DamageConversionHelper.DamageBreakdown breakdown = DamageConversionHelper.getBreakdown(source, amount, entity);
+            if (entity.getAttributeValue(com.cranks.dungeons.registry.ModAttributes.KEYSTONE_VOID_INOCULATION) > 0) {
+                breakdown.set(DamageElement.VOID, 0f);
+            }
             breakdown.applyResistancesInPlace(entity, source.getAttacker());
             if (entity instanceof DamageBreakdownProvider provider) {
                 provider.cranks$setLastDamageBreakdown(breakdown);
@@ -64,7 +67,13 @@ public abstract class DamageReductionMixin {
                 }
             }
 
-            return breakdown.getTotal();
+            float totalDamage = breakdown.getTotal();
+            float shockMagnitude = AilmentManager.getShockMagnitude(entity);
+            if (shockMagnitude > 0) {
+                totalDamage *= (1.0f + shockMagnitude);
+            }
+
+            return totalDamage;
         } finally {
             cranks$processingResistance.set(false);
         }

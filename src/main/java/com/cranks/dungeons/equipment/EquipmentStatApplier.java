@@ -142,16 +142,23 @@ public class EquipmentStatApplier {
                         builder.add(attribute, modifier, slot);
                     }
 
+                    if (stat.getId().equals("local_attack_damage_percent")) localAttackDamagePercent += val;
+                    else if (stat.getId().equals("local_armor_percent")) localArmorPercent += val;
+                    else if (stat.getId().equals("local_evasion_percent")) localEvasionPercent += val;
+                    else if (stat.getId().equals("local_energy_shield_percent")) localEnergyShieldPercent += val;
+
                     for (int attrIndex = 0; attrIndex < comp.getAttributes().size(); attrIndex++) {
                         RegistryEntry<EntityAttribute> attribute = comp.getAttributes().get(attrIndex);
-                        if (attribute.equals(ModAttributes.ATTACK_DAMAGE_PERCENT)) localAttackDamagePercent += val;
-                        else if (attribute.equals(ModAttributes.ARMOR_PERCENT)) localArmorPercent += val;
-                        else if (attribute.equals(ModAttributes.EVASION_RATING_PERCENT)) localEvasionPercent += val;
-                        else if (attribute.equals(ModAttributes.ENERGY_SHIELD_PERCENT)) localEnergyShieldPercent += val;
-                        else {
-                            flatRuneValues.merge(attribute, val, Double::sum);
-                            attributeToStatMap.put(attribute, stat);
-                        }
+                        
+                        // Don't add skipped attributes to flatRuneValues to avoid double dipping, 
+                        // as they are handled elsewhere or shouldn't be added to the item modifier list twice
+                        if (attribute.equals(ModAttributes.DURABILITY_BONUS)) continue;
+                        if (attribute.equals(ModAttributes.CHANCE_TO_BLOCK)) continue;
+                        if (attribute.equals(ModAttributes.BLOCK_VALUE)) continue;
+                        if (attribute.equals(ModAttributes.HEALTH_ON_BLOCK)) continue;
+
+                        flatRuneValues.merge(attribute, val, Double::sum);
+                        attributeToStatMap.put(attribute, stat);
                     }
                 }
             }

@@ -58,6 +58,9 @@ public abstract class EnergyShieldRenderMixin {
             return;
         }
         double maxShield = client.player.getAttributeValue(ModAttributes.ENERGY_SHIELD);
+        if (client.player.getAttributeValue(ModAttributes.KEYSTONE_CRIMSON_PACT) > 0) {
+            maxShield = 0;
+        }
         if (maxShield <= 0) { shieldRowCount = 0; return; }
 
         int maxHealthHearts = (int) Math.ceil(maxHealth / 2.0f);

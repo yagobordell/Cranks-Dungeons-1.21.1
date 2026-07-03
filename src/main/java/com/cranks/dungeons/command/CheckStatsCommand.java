@@ -29,12 +29,12 @@ public class CheckStatsCommand {
                         // Get weapon stats
                         ItemStack weapon = player.getMainHandStack();
                         double weaponCrit = EquipmentStatApplier.getItemStatValue(weapon, "crit_chance");
-                        double weaponFireDmg = EquipmentStatApplier.getItemStatValue(weapon, "fire_damage");
-                        double weaponColdDmg = EquipmentStatApplier.getItemStatValue(weapon, "cold_damage");
-                        double weaponLightningDmg = EquipmentStatApplier.getItemStatValue(weapon, "lightning_damage");
-                        double weaponVoidDmg = EquipmentStatApplier.getItemStatValue(weapon, "void_damage");
-                        double weaponLifeSteal = EquipmentStatApplier.getItemStatValue(weapon, "life_steal");
-                        double weaponBurn = EquipmentStatApplier.getItemStatValue(weapon, "chance_to_burn");
+                        double weaponFireDmg = EquipmentStatApplier.getItemStatValue(weapon, "local_fire_damage");
+                        double weaponColdDmg = EquipmentStatApplier.getItemStatValue(weapon, "local_cold_damage");
+                        double weaponLightningDmg = EquipmentStatApplier.getItemStatValue(weapon, "local_lightning_damage");
+                        double weaponVoidDmg = EquipmentStatApplier.getItemStatValue(weapon, "local_void_damage");
+                        double weaponLifeSteal = EquipmentStatApplier.getItemStatValue(weapon, "physical_damage_leeched_as_life");
+                        double weaponBurn = EquipmentStatApplier.getItemStatValue(weapon, "burn_magnitude_percent");
                         double weaponRange = EquipmentStatApplier.getItemStatValue(weapon, "attack_range");
                         double weaponKnockback = EquipmentStatApplier.getItemStatValue(weapon, "knockback");
                         double weaponSpeed = EquipmentStatApplier.getItemStatValue(weapon, "attack_speed");
@@ -42,15 +42,15 @@ public class CheckStatsCommand {
 
                         double baseDamage = player.getAttributeValue(EntityAttributes.ATTACK_DAMAGE);
                         double baseCrit = player.getAttributeValue(ModAttributes.CRIT_CHANCE);
-                        double localCrit = com.cranks.dungeons.util.CombatUtility.getAttributeValue(player, ModAttributes.LOCAL_CRIT_CHANCE_PERCENT, weapon, "local_crit_chance", null);
+                        double localCrit = EquipmentStatApplier.getItemStatValue(weapon, "local_crit_chance");
                         double globalCrit = player.getAttributeValue(ModAttributes.GLOBAL_CRIT_CHANCE_PERCENT);
                         double totalCrit = (baseCrit * (1.0 + localCrit)) * (1.0 + globalCrit) + weaponCrit;
                         double totalFireDmg = player.getAttributeValue(ModAttributes.FIRE_DAMAGE) + weaponFireDmg;
                         double totalColdDmg = player.getAttributeValue(ModAttributes.COLD_DAMAGE) + weaponColdDmg;
                         double totalLightningDmg = player.getAttributeValue(ModAttributes.LIGHTNING_DAMAGE) + weaponLightningDmg;
                         double totalVoidDmg = player.getAttributeValue(ModAttributes.VOID_DAMAGE) + weaponVoidDmg;
-                        double totalLifeSteal = player.getAttributeValue(ModAttributes.LIFE_STEAL) + weaponLifeSteal;
-                        double totalBurn = player.getAttributeValue(ModAttributes.CHANCE_TO_BURN) + weaponBurn;
+                        double totalLifeSteal = player.getAttributeValue(ModAttributes.PHYSICAL_DAMAGE_LEECHED_AS_LIFE) + weaponLifeSteal;
+                        double totalBurn = player.getAttributeValue(ModAttributes.BURN_MAGNITUDE_PERCENT) + weaponBurn;
                         double totalRange = player.getAttributeValue(ModAttributes.ATTACK_RANGE) + weaponRange;
                         double totalKnockback = player.getAttributeValue(ModAttributes.KNOCKBACK) + weaponKnockback;
                         double totalSpeed = player.getAttributeValue(ModAttributes.ATTACK_SPEED) + weaponSpeed;

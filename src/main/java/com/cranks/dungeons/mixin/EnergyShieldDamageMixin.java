@@ -89,6 +89,10 @@ public class EnergyShieldDamageMixin {
         EnergyShieldProvider provider = (EnergyShieldProvider) self;
         float currentShield = provider.cranksdungeons$getCurrentEnergyShield();
         double maxShield = self.getAttributeValue(ModAttributes.ENERGY_SHIELD);
+        if (self.getAttributeValue(ModAttributes.KEYSTONE_CRIMSON_PACT) > 0) {
+            maxShield = 0;
+            currentShield = 0;
+        }
 
         // No shield at all
         if (currentShield <= 0 || maxShield <= 0) {

@@ -58,7 +58,6 @@ public class CranksDungeonsClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        com.cranks.dungeons.scratch.RenderLayerDumper.dump();
         // Register default HUD component (stamina/energy overlay);
 
         ClientConfigCommand.register();

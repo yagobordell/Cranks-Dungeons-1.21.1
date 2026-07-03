@@ -64,7 +64,6 @@ public class ModAttributes {
     public static final RegistryEntry<EntityAttribute> DAMAGE_AGAINST_AFFLICTED_PERCENT = register("damage_against_afflicted_percent", 0.0, 0.0, 10.0);
     public static final RegistryEntry<EntityAttribute> DAMAGE_WHILE_AFFLICTED_PERCENT = register("damage_while_afflicted_percent", 0.0, 0.0, 10.0);
     public static final RegistryEntry<EntityAttribute> CRIT_CHANCE_AGAINST_AFFLICTED = register("crit_chance_against_afflicted", 0.0, 0.0, 1.0);
-    public static final RegistryEntry<EntityAttribute> LOCAL_CRIT_CHANCE_PERCENT = register("local_crit_chance_percent", 0.0, 0.0, 10.0);
     public static final RegistryEntry<EntityAttribute> GLOBAL_CRIT_CHANCE_PERCENT = register("global_crit_chance_percent", 0.0, 0.0, 10.0);
     public static final RegistryEntry<EntityAttribute> ELEMENTAL_DAMAGE_PERCENT = register("elemental_damage_percent",
             0.0, 0.0, 10.0);
@@ -110,33 +109,28 @@ public class ModAttributes {
     public static final RegistryEntry<EntityAttribute> PHYSICAL_TO_VOID_CONVERSION_PERCENT = register(
             "physical_to_void_conversion_percent", 0.0, 0.0, 1.0);
 
-    public static final RegistryEntry<EntityAttribute> LIFE_STEAL = register("life_steal", 0.0, 0.0, 1.0);
-    public static final RegistryEntry<EntityAttribute> CHANCE_TO_BURN = register("chance_to_burn", 0.0, 0.0, 1.0);
-    public static final RegistryEntry<EntityAttribute> BURN_BASE_DAMAGE = register("burn_base_damage", 4.0, 0.0, 10000.0);
-    public static final RegistryEntry<EntityAttribute> BURN_DAMAGE_PERCENT = register("burn_damage_percent", 0.0, 0.0,
-            100.0);
+    public static final RegistryEntry<EntityAttribute> PHYSICAL_DAMAGE_LEECHED_AS_LIFE = register("physical_damage_leeched_as_life", 0.0, 0.0, 1.0);
+    public static final RegistryEntry<EntityAttribute> BURN_MAGNITUDE_PERCENT = register("burn_magnitude_percent", 0.0, 0.0, 10.0);
     public static final RegistryEntry<EntityAttribute> BURN_DURATION = register("burn_duration", 0.0, 0.0, 10.0);
 
-    public static final RegistryEntry<EntityAttribute> CHANCE_TO_POISON = register("chance_to_poison", 0.0, 0.0, 1.0);
-    public static final RegistryEntry<EntityAttribute> POISON_BASE_DAMAGE = register("poison_base_damage", 1.0, 0.0,
-            10000.0);
-    public static final RegistryEntry<EntityAttribute> POISON_DAMAGE_PERCENT = register("poison_damage_percent", 0.0,
-            0.0, 100.0);
+    public static final RegistryEntry<EntityAttribute> POISON_MAGNITUDE_PERCENT = register("poison_magnitude_percent", 0.0, 0.0, 10.0);
     public static final RegistryEntry<EntityAttribute> POISON_DURATION = register("poison_duration", 0.0, 0.0, 10.0);
-    public static final RegistryEntry<EntityAttribute> POISON_MAX_STACKS = register("poison_max_stacks", 0.0, 0.0,
-            100.0);
+    public static final RegistryEntry<EntityAttribute> POISON_MAX_STACKS = register("poison_max_stacks", 0.0, 0.0, 100.0);
 
-    public static final RegistryEntry<EntityAttribute> FREEZE_BUILDUP_PERCENT = register("freeze_buildup_percent", 0.0, 0.0, 10.0);
+    public static final RegistryEntry<EntityAttribute> FREEZE_MAGNITUDE_PERCENT = register("freeze_magnitude_percent", 0.0, 0.0, 10.0);
     public static final RegistryEntry<EntityAttribute> FREEZE_DURATION = register("freeze_duration", 0.0, 0.0, 10.0);
     
-    public static final RegistryEntry<EntityAttribute> CHANCE_TO_BLEED = register("chance_to_bleed", 0.0, 0.0, 1.0);
     public static final RegistryEntry<EntityAttribute> BLEED_DURATION = register("bleed_duration", 0.0, 0.0, 10.0);
-    public static final RegistryEntry<EntityAttribute> BLEED_BURST_DAMAGE_PERCENT = register("bleed_burst_damage_percent", 0.0, 0.0, 100.0);
+    public static final RegistryEntry<EntityAttribute> BLEED_MAGNITUDE_PERCENT = register("bleed_magnitude_percent", 0.0, 0.0, 100.0);
 
-    public static final RegistryEntry<EntityAttribute> CHANCE_TO_SHOCK = register("chance_to_shock", 0.0, 0.0, 1.0);
     public static final RegistryEntry<EntityAttribute> SHOCK_DURATION = register("shock_duration", 3.0, 0.0, 60.0);
+    public static final RegistryEntry<EntityAttribute> SHOCK_MAGNITUDE_PERCENT = register("shock_magnitude_percent", 0.0, 0.0, 10.0);
     
-    public static final RegistryEntry<EntityAttribute> ELECTROCUTE_BUILDUP_PERCENT = register("electrocute_buildup_percent", 0.0, 0.0, 10.0);
+    public static final RegistryEntry<EntityAttribute> SHOCK_THRESHOLD_REDUCTION = register("shock_threshold_reduction", 0.0, 0.0, 0.99);
+    public static final RegistryEntry<EntityAttribute> FREEZE_THRESHOLD_REDUCTION = register("freeze_threshold_reduction", 0.0, 0.0, 0.99);
+    public static final RegistryEntry<EntityAttribute> ELECTROCUTE_THRESHOLD_REDUCTION = register("electrocute_threshold_reduction", 0.0, 0.0, 0.99);
+    
+    public static final RegistryEntry<EntityAttribute> ELECTROCUTE_MAGNITUDE_PERCENT = register("electrocute_magnitude_percent", 0.0, 0.0, 10.0);
     public static final RegistryEntry<EntityAttribute> ELECTROCUTE_DURATION = register("electrocute_duration", 0.0, 0.0, 10.0);
     public static final RegistryEntry<EntityAttribute> MAX_HEALTH_PERCENT = register("max_health_percent", 0.0, 0.0, 10.0);
     public static final RegistryEntry<EntityAttribute> ARMOR_PERCENT = register("armor_percent", 0.0, 0.0, 10.0);
@@ -145,6 +139,14 @@ public class ModAttributes {
     public static final RegistryEntry<EntityAttribute> ARMOR_PENETRATION_PERCENT = register("armor_penetration_percent", 0.0, 0.0, 1.0);
     public static final RegistryEntry<EntityAttribute> ARMOR_SPEED_PENALTY_REDUCTION = register("armor_speed_penalty_reduction", 0.0, 0.0, 1.0);
     public static final RegistryEntry<EntityAttribute> LOW_ARMOR_SPEED_BONUS = register("low_armor_speed_bonus", 0.0, 0.0, 1.0);
+
+    // Keystones
+    public static final RegistryEntry<EntityAttribute> KEYSTONE_VOID_INOCULATION = register("keystone_void_inoculation", 0.0, 0.0, 1.0);
+    public static final RegistryEntry<EntityAttribute> KEYSTONE_AVATAR_OF_FIRE = register("keystone_avatar_of_fire", 0.0, 0.0, 1.0);
+    public static final RegistryEntry<EntityAttribute> KEYSTONE_RESOLUTE_TECHNIQUE = register("keystone_resolute_technique", 0.0, 0.0, 1.0);
+    public static final RegistryEntry<EntityAttribute> KEYSTONE_ELEMENTAL_OVERLOAD = register("keystone_elemental_overload", 0.0, 0.0, 1.0);
+    public static final RegistryEntry<EntityAttribute> KEYSTONE_CRIMSON_PACT = register("keystone_crimson_pact", 0.0, 0.0, 1.0);
+
     public static final RegistryEntry<EntityAttribute> FIRE_PENETRATION_PERCENT = register("fire_penetration_percent", 0.0, 0.0, 1.0);
     public static final RegistryEntry<EntityAttribute> COLD_PENETRATION_PERCENT = register("cold_penetration_percent", 0.0, 0.0, 1.0);
     public static final RegistryEntry<EntityAttribute> LIGHTNING_PENETRATION_PERCENT = register("lightning_penetration_percent", 0.0, 0.0, 1.0);

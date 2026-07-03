@@ -240,12 +240,12 @@ public class StatRegistry {
                                 EquipmentType.CHESTPLATE, EquipmentType.BOOTS)
                         .forEach(s -> s.setArmorBaseType(com.cranks.dungeons.equipment.ArmorBaseType.STR));
 
-                registerForTypes("armor_percent", "Increased Armor",
-                                ModAttributes.ARMOR_PERCENT,
+                registerForTypes("local_armor_percent", "Increased Armor",
+                                null,
                                 r(0.11, 0.12, 0.15, 0.21, 0.29, 0.39, 0.51, 0.65, 0.82, 1.01),
                                 r(0.20, 0.21, 0.24, 0.30, 0.38, 0.48, 0.60, 0.74, 0.91, 1.10),
-                                true, true, Formatting.WHITE, CustomStat.AffixType.PREFIX,
-                                EquipmentType.HELMET, EquipmentType.LEGGINGS, EquipmentType.SHIELD)
+                                true, true, Formatting.GRAY, CustomStat.AffixType.PREFIX,
+                                EquipmentType.HELMET, EquipmentType.CHESTPLATE, EquipmentType.LEGGINGS, EquipmentType.BOOTS, EquipmentType.SHIELD)
                         .forEach(s -> s.setArmorBaseType(com.cranks.dungeons.equipment.ArmorBaseType.STR));
 
                 // --- Increased Evasion Rating % (Armor) ---
@@ -257,12 +257,12 @@ public class StatRegistry {
                                 EquipmentType.CHESTPLATE, EquipmentType.BOOTS)
                         .forEach(s -> s.setArmorBaseType(com.cranks.dungeons.equipment.ArmorBaseType.DEX));
 
-                registerForTypes("evasion_rating_percent", "Increased Evasion Rating",
-                                ModAttributes.EVASION_RATING_PERCENT,
+                registerForTypes("local_evasion_percent", "Increased Evasion Rating",
+                                null,
                                 r(0.11, 0.12, 0.15, 0.21, 0.29, 0.39, 0.51, 0.65, 0.82, 1.01),
                                 r(0.20, 0.21, 0.24, 0.30, 0.38, 0.48, 0.60, 0.74, 0.91, 1.10),
-                                true, true, Formatting.GRAY, CustomStat.AffixType.PREFIX,
-                                EquipmentType.HELMET, EquipmentType.LEGGINGS)
+                                true, true, Formatting.GREEN, CustomStat.AffixType.PREFIX,
+                                EquipmentType.HELMET, EquipmentType.LEGGINGS, EquipmentType.BOOTS)
                         .forEach(s -> s.setArmorBaseType(com.cranks.dungeons.equipment.ArmorBaseType.DEX));
 
                 // --- Increased Energy Shield % (Armor + Elytra) ---
@@ -274,8 +274,8 @@ public class StatRegistry {
                                 EquipmentType.CHESTPLATE, EquipmentType.BOOTS)
                         .forEach(s -> s.setArmorBaseType(com.cranks.dungeons.equipment.ArmorBaseType.INT));
 
-                registerForTypes("energy_shield_percent", "Increased Energy Shield",
-                                ModAttributes.ENERGY_SHIELD_PERCENT,
+                registerForTypes("local_energy_shield_percent", "Increased Energy Shield",
+                                null,
                                 r(0.11, 0.12, 0.15, 0.21, 0.29, 0.39, 0.51, 0.65, 0.82, 1.01),
                                 r(0.20, 0.21, 0.24, 0.30, 0.38, 0.48, 0.60, 0.74, 0.91, 1.10),
                                 true, true, Formatting.BLUE, CustomStat.AffixType.PREFIX,
@@ -387,7 +387,7 @@ public class StatRegistry {
                                 EquipmentType.HELMET, EquipmentType.CHESTPLATE);
                 // Weapons use LOCAL crit chance
                 registerForTypes("local_crit_chance", "Critical Strike Chance",
-                                ModAttributes.LOCAL_CRIT_CHANCE_PERCENT,
+                                null,
                                 r(0.20, 0.23, 0.27, 0.32, 0.37, 0.43, 0.49, 0.54, 0.57, 0.60),
                                 r(0.25, 0.29, 0.34, 0.39, 0.45, 0.51, 0.57, 0.62, 0.65, 0.68),
                                 true, true, Formatting.GOLD, CustomStat.AffixType.SUFFIX,
@@ -507,99 +507,83 @@ public class StatRegistry {
                                 60, 2000,
                                 ALL_MELEE_AND_TRIDENT);
 
-                // --- Ailment Chances (all weapons) ---
-                registerForTypes("chance_to_burn", "Burn Chance",
-                                ModAttributes.CHANCE_TO_BURN,
+                // --- Ailment Magnitudes (all weapons) ---
+                registerForTypes("burn_magnitude_percent", "Burn Magnitude",
+                                ModAttributes.BURN_MAGNITUDE_PERCENT,
                                 r(0.10, 0.12, 0.14, 0.16, 0.18, 0.21, 0.24, 0.26, 0.28, 0.30),
                                 r(0.12, 0.14, 0.16, 0.18, 0.21, 0.24, 0.27, 0.29, 0.32, 0.35),
                                 true, true, Formatting.RED, CustomStat.AffixType.SUFFIX,
                                 30, 5000,
                                 ALL_WEAPONS);
 
-                registerForTypes("chance_to_poison", "Poison Chance",
-                                ModAttributes.CHANCE_TO_POISON,
+                registerForTypes("poison_magnitude_percent", "Poison Magnitude",
+                                ModAttributes.POISON_MAGNITUDE_PERCENT,
                                 r(0.10, 0.12, 0.14, 0.16, 0.18, 0.21, 0.24, 0.26, 0.28, 0.30),
                                 r(0.12, 0.14, 0.16, 0.18, 0.21, 0.24, 0.27, 0.29, 0.32, 0.35),
                                 true, true, Formatting.GREEN, CustomStat.AffixType.SUFFIX,
                                 30, 5000,
                                 ALL_WEAPONS);
 
-                registerForTypes("freeze_buildup_percent", "Increased Freeze Buildup",
-                                ModAttributes.FREEZE_BUILDUP_PERCENT,
+                registerForTypes("freeze_magnitude_percent", "Freeze Magnitude",
+                                ModAttributes.FREEZE_MAGNITUDE_PERCENT,
                                 r(0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50),
                                 r(0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50),
                                 true, true, Formatting.AQUA, CustomStat.AffixType.SUFFIX,
                                 30, 5000,
                                 ALL_WEAPONS);
 
-                registerForTypes("chance_to_bleed", "Bleed Chance",
-                                ModAttributes.CHANCE_TO_BLEED,
+                registerForTypes("bleed_magnitude_percent", "Bleed Magnitude",
+                                ModAttributes.BLEED_MAGNITUDE_PERCENT,
                                 r(0.10, 0.12, 0.14, 0.16, 0.18, 0.21, 0.24, 0.26, 0.28, 0.30),
                                 r(0.12, 0.14, 0.16, 0.18, 0.21, 0.24, 0.27, 0.29, 0.32, 0.35),
                                 true, true, Formatting.DARK_RED, CustomStat.AffixType.SUFFIX,
                                 30, 5000,
                                 ALL_WEAPONS);
 
-                registerForTypes("chance_to_shock", "Shock Chance",
-                                ModAttributes.CHANCE_TO_SHOCK,
+                registerForTypes("shock_magnitude_percent", "Shock Magnitude",
+                                ModAttributes.SHOCK_MAGNITUDE_PERCENT,
                                 r(0.10, 0.12, 0.14, 0.16, 0.18, 0.21, 0.24, 0.26, 0.28, 0.30),
                                 r(0.12, 0.14, 0.16, 0.18, 0.21, 0.24, 0.27, 0.29, 0.32, 0.35),
                                 true, true, Formatting.YELLOW, CustomStat.AffixType.SUFFIX,
                                 30, 5000,
                                 ALL_WEAPONS);
 
-                registerForTypes("electrocute_buildup_percent", "Increased Electrocute Buildup",
-                                ModAttributes.ELECTROCUTE_BUILDUP_PERCENT,
+                registerForTypes("electrocute_magnitude_percent", "Electrocute Magnitude",
+                                ModAttributes.ELECTROCUTE_MAGNITUDE_PERCENT,
                                 r(0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50),
                                 r(0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50),
                                 true, true, Formatting.YELLOW, CustomStat.AffixType.SUFFIX,
-                                30, 5000,
-                                ALL_WEAPONS);
-
-                registerForTypes("burn_damage_percent", "Increased Burn Damage",
-                                ModAttributes.BURN_DAMAGE_PERCENT,
-                                r(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0),
-                                r(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0),
-                                true, true, Formatting.RED, CustomStat.AffixType.SUFFIX,
-                                30, 5000,
-                                ALL_WEAPONS);
-
-                registerForTypes("bleed_burst_damage_percent", "Increased Bleed Burst Damage",
-                                ModAttributes.BLEED_BURST_DAMAGE_PERCENT,
-                                r(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0),
-                                r(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0),
-                                true, true, Formatting.DARK_RED, CustomStat.AffixType.SUFFIX,
                                 30, 5000,
                                 ALL_WEAPONS);
 
                 // --- Elemental Damages (all weapons) ---
 
-                registerForTypes("fire_damage", "Fire Damage",
-                                ModAttributes.FIRE_DAMAGE,
+                registerForTypes("local_fire_damage", "Fire Damage",
+                                null,
                                 r(2.0, 3.4, 7.4, 14.2, 23.7, 36.0, 50.9, 68.5, 88.9, 112.0),
                                 r(3.0, 4.5, 9.0, 16.4, 26.9, 40.3, 56.8, 76.2, 98.6, 124.0),
                                 false, Formatting.RED, CustomStat.AffixType.PREFIX,
-                                78, 9000,
+                                1, 3000,
                                 ALL_WEAPONS);
 
-                registerForTypes("cold_damage", "Cold Damage",
-                                ModAttributes.COLD_DAMAGE,
+                registerForTypes("local_cold_damage", "Cold Damage",
+                                null,
                                 r(2.0, 3.4, 7.4, 14.2, 23.7, 36.0, 50.9, 68.5, 88.9, 112.0),
                                 r(3.0, 4.5, 9.0, 16.4, 26.9, 40.3, 56.8, 76.2, 98.6, 124.0),
                                 false, Formatting.AQUA, CustomStat.AffixType.PREFIX,
-                                81, 5880,
+                                1, 3000,
                                 ALL_WEAPONS);
 
-                registerForTypes("lightning_damage", "Lightning Damage",
-                                ModAttributes.LIGHTNING_DAMAGE,
-                                r(2.0, 3.4, 7.4, 14.2, 23.7, 36.0, 50.9, 68.5, 88.9, 112.0),
-                                r(3.0, 4.5, 9.0, 16.4, 26.9, 40.3, 56.8, 76.2, 98.6, 124.0),
+                registerForTypes("local_lightning_damage", "Lightning Damage",
+                                null,
+                                r(0.4, 0.7, 1.5, 2.8, 4.7, 7.2, 10.2, 13.7, 17.8, 22.4),
+                                r(4.0, 6.0, 12.0, 21.9, 35.8, 53.7, 75.8, 101.6, 131.5, 165.3),
                                 false, Formatting.DARK_BLUE, CustomStat.AffixType.PREFIX,
-                                78, 9000,
+                                1, 3000,
                                 ALL_WEAPONS);
 
-                registerForTypes("void_damage", "Void Damage",
-                                ModAttributes.VOID_DAMAGE,
+                registerForTypes("local_void_damage", "Void Damage",
+                                null,
                                 r(2.0, 3.4, 7.4, 14.2, 23.7, 36.0, 50.9, 68.5, 88.9, 112.0),
                                 r(3.0, 4.5, 9.0, 16.4, 26.9, 40.3, 56.8, 76.2, 98.6, 124.0),
                                 false, Formatting.DARK_PURPLE, CustomStat.AffixType.PREFIX,
@@ -607,8 +591,8 @@ public class StatRegistry {
                                 ALL_WEAPONS);
 
                 // --- Percent Damages (all weapons) ---
-                registerForTypes("attack_damage_percent", "Increased Physical Damage",
-                                ModAttributes.ATTACK_DAMAGE_PERCENT,
+                registerForTypes("local_attack_damage_percent", "Increased Physical Damage",
+                                null,
                                 r(0.20, 0.22, 0.27, 0.37, 0.50, 0.66, 0.87, 1.11, 1.39, 1.70),
                                 r(0.30, 0.32, 0.37, 0.47, 0.59, 0.76, 0.96, 1.20, 1.48, 1.79),
                                 true, true, Formatting.WHITE, CustomStat.AffixType.PREFIX,
@@ -657,15 +641,15 @@ public class StatRegistry {
                                 ALL_WEAPONS);
 
                 // --- Life Steal (Damage Leeched as Life) ---
-                registerForTypes("life_steal", "Damage Leeched as Life",
-                                ModAttributes.LIFE_STEAL,
-                                r(0.002, 0.003, 0.004, 0.005, 0.006, 0.008, 0.010, 0.012, 0.013, 0.015),
-                                r(0.003, 0.004, 0.005, 0.006, 0.007, 0.009, 0.011, 0.013, 0.015, 0.018),
-                                true, true, Formatting.DARK_RED, CustomStat.AffixType.SUFFIX,
-                                63, 800,
-                                ALL_MELEE_AND_TRIDENT);
-                registerForTypes("life_steal", "Damage Leeched as Life",
-                                ModAttributes.LIFE_STEAL,
+                registerForTypes("physical_damage_leeched_as_life", "Physical Damage Leeched as Life",
+                                ModAttributes.PHYSICAL_DAMAGE_LEECHED_AS_LIFE,
+                                r(0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.10),
+                                r(0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.11),
+                                true, true, Formatting.DARK_RED, CustomStat.AffixType.PREFIX,
+                                40, 4000,
+                                ALL_WEAPONS);
+                registerForTypes("physical_damage_leeched_as_life", "Physical Damage Leeched as Life",
+                                ModAttributes.PHYSICAL_DAMAGE_LEECHED_AS_LIFE,
                                 r(0.001, 0.001, 0.002, 0.003, 0.003, 0.004, 0.005, 0.006, 0.006, 0.007),
                                 r(0.001, 0.002, 0.003, 0.004, 0.004, 0.005, 0.006, 0.007, 0.007, 0.009),
                                 true, true, Formatting.DARK_RED, CustomStat.AffixType.SUFFIX,
@@ -755,7 +739,8 @@ public class StatRegistry {
                                 r(10.0, 10.6, 12.2, 15.0, 18.9, 23.9, 30.0, 37.2, 45.6, 55.0),
                                 false, Formatting.RED, CustomStat.AffixType.SUFFIX,
                                 30, 8000,
-                                ALL_GEAR);
+                                ALL_GEAR)
+                        .forEach(s -> s.setArmorBaseType(com.cranks.dungeons.equipment.ArmorBaseType.STR));
 
                 registerForTypes("dexterity", "Dexterity",
                                 ModAttributes.DEXTERITY,
@@ -763,7 +748,8 @@ public class StatRegistry {
                                 r(10.0, 10.6, 12.2, 15.0, 18.9, 23.9, 30.0, 37.2, 45.6, 55.0),
                                 false, Formatting.GREEN, CustomStat.AffixType.SUFFIX,
                                 30, 8000,
-                                ALL_GEAR);
+                                ALL_GEAR)
+                        .forEach(s -> s.setArmorBaseType(com.cranks.dungeons.equipment.ArmorBaseType.DEX));
 
                 registerForTypes("intelligence", "Intelligence",
                                 ModAttributes.INTELLIGENCE,
@@ -771,7 +757,8 @@ public class StatRegistry {
                                 r(10.0, 10.6, 12.2, 15.0, 18.9, 23.9, 30.0, 37.2, 45.6, 55.0),
                                 false, Formatting.BLUE, CustomStat.AffixType.SUFFIX,
                                 30, 8000,
-                                ALL_GEAR);
+                                ALL_GEAR)
+                        .forEach(s -> s.setArmorBaseType(com.cranks.dungeons.equipment.ArmorBaseType.INT));
 
                 // --- Shield Blocking Mechanics (Shield only) ---
                 registerForTypes("chance_to_block", "Chance to Block",

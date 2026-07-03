@@ -190,6 +190,9 @@ public abstract class ElementalDamageMixin {
             }
 
             double elementalBonus = attacker.getAttributeValue(ModAttributes.ELEMENTAL_DAMAGE_PERCENT);
+            if (attacker.hasStatusEffect(com.cranks.dungeons.effect.ModEffects.ELEMENTAL_OVERLOAD)) {
+                elementalBonus += 0.40;
+            }
 
             double typeBonus = 0;
             if (CombatUtility.isMelee(weapon, source)) {
@@ -209,16 +212,16 @@ public abstract class ElementalDamageMixin {
 
             // === GATHER BASE DAMAGES ===
             double fireBaseDamage = CombatUtility.getAttributeValue(attacker, ModAttributes.FIRE_DAMAGE, weapon,
-                    "fire_damage", source) + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, weapon, "minecraft:fire_damage", 4.0);
+                    "local_fire_damage", source) + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, weapon, "minecraft:fire_damage", 4.0);
 
             double coldBaseDamage = CombatUtility.getAttributeValue(attacker, ModAttributes.COLD_DAMAGE, weapon,
-                    "cold_damage", source) + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, weapon, "minecraft:cold_damage", 4.0);
+                    "local_cold_damage", source) + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, weapon, "cranks-dungeons:cold_damage", 4.0);
 
             double lightningBaseDamage = CombatUtility.getAttributeValue(attacker, ModAttributes.LIGHTNING_DAMAGE,
-                    weapon, "lightning_damage", source) + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, weapon, "minecraft:lightning_damage", 4.0);
+                    weapon, "local_lightning_damage", source) + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, weapon, "cranks-dungeons:lightning_damage", 4.0);
 
             double voidBaseDamage = CombatUtility.getAttributeValue(attacker, ModAttributes.VOID_DAMAGE, weapon,
-                    "void_damage", source) + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, weapon, "minecraft:void_damage", 4.0);
+                    "local_void_damage", source) + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, weapon, "cranks-dungeons:void_damage", 4.0);
 
             // === PURE DAMAGE CONVERSIONS ===
             double originalUnreducedPhysical = unreducedPhysicalDamage;
@@ -314,6 +317,20 @@ public abstract class ElementalDamageMixin {
             lightningDamage *= pvpMultiplier;
             voidDamage *= pvpMultiplier;
             finalPhysicalExtraDamage *= pvpMultiplier;
+
+            if (attacker.getAttributeValue(ModAttributes.KEYSTONE_AVATAR_OF_FIRE) > 0) {
+                // Convert 50% of phys, cold, lightning to fire
+                fireDamage += (physicalDamage + finalPhysicalExtraDamage) * 0.5;
+                fireDamage += coldDamage * 0.5;
+                fireDamage += lightningDamage * 0.5;
+                
+                // Zero out all non-fire damage
+                physicalDamage = 0;
+                finalPhysicalExtraDamage = 0;
+                coldDamage = 0;
+                lightningDamage = 0;
+                voidDamage = 0;
+            }
 
             double totalElementalDamage = 0;
 
@@ -475,70 +492,70 @@ public abstract class ElementalDamageMixin {
                         1.0f);
             }
 
-            // Life Steal
-            double lifeSteal = CombatUtility.getAttributeValue(attacker, ModAttributes.LIFE_STEAL, weapon, "life_steal",
-                    source) +
-                    com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, weapon, "minecraft:life_steal", 0.06) +
-                    com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, chestplate, "minecraft:life_steal", 0.06);
+            // Physical Damage Leeched as Life
+            double physicalLeech = CombatUtility.getAttributeValue(attacker, ModAttributes.PHYSICAL_DAMAGE_LEECHED_AS_LIFE, weapon, "physical_damage_leeched_as_life", source) +
+                    com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, weapon, "minecraft:physical_damage_leeched_as_life", 0.06) +
+                    com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, chestplate, "minecraft:physical_damage_leeched_as_life", 0.06);
 
-            if (lifeSteal > 0) {
-                float totalDamage = physicalDamage + (float) totalElementalDamage;
-                float healing = totalDamage * (float) lifeSteal;
+            if (physicalLeech > 0 && physicalDamage > 0) {
+                float healing = physicalDamage * (float) physicalLeech;
 
                 // Halve life steal effectiveness in PvP
                 if (isPvP) {
                     healing *= 0.5f;
                 }
 
-                attacker.heal(healing);
+                com.cranks.dungeons.util.LeechManager.addLeech(attacker, healing);
             }
 
             // Burn (Scales from Fire Damage)
-            double chanceToBurn = CombatUtility.getAttributeValue(attacker, ModAttributes.CHANCE_TO_BURN, weapon,
-                    "chance_to_burn", source) +
-                    com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, weapon, "minecraft:chance_to_burn", 0.05) +
-                    com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, chestplate, "minecraft:chance_to_burn", 0.05);
-
-            if (finalFireDamage > 0 && Math.random() < chanceToBurn) {
-                float burnDamagePercent = (float) CombatUtility.getAttributeValue(attacker,
-                        ModAttributes.BURN_DAMAGE_PERCENT, weapon, "burn_damage_percent", source);
-                // Burn deals 50% of fire damage over its duration as base
-                float burnBaseDamage = (float) finalFireDamage * 0.5f;
-                double burnDuration = AilmentType.BURN.getBaseDuration()
-                        * (1.0 + attacker.getAttributeValue(ModAttributes.BURN_DURATION));
-                AilmentManager.applyAilment(target, AilmentType.BURN, burnBaseDamage * (1.0f + burnDamagePercent),
-                        burnDuration, attacker);
+            if (finalFireDamage > 0) {
+                float burnMagnitudePercent = (float) CombatUtility.getAttributeValue(attacker,
+                        ModAttributes.BURN_MAGNITUDE_PERCENT, weapon, "burn_magnitude_percent", source);
+                // Burn deals 50% of fire damage over its duration as base, ignoring crit multiplier
+                float burnBaseDamage = (float) (finalFireDamage / critMultiplier) * 0.5f;
+                if (isCrit) burnBaseDamage *= 1.5f;
+                float finalBurnDamage = burnBaseDamage * (1.0f + burnMagnitudePercent);
+                
+                if (finalBurnDamage >= 1.0f) {
+                    double burnDuration = AilmentType.BURN.getBaseDuration()
+                            * (1.0 + attacker.getAttributeValue(ModAttributes.BURN_DURATION));
+                    AilmentManager.applyAilment(target, AilmentType.BURN, finalBurnDamage, burnDuration, attacker, null, null, 0, finalBurnDamage);
+                }
             }
 
             // Poison (Scales from Physical and Void Damage)
-            double chanceToPoison = CombatUtility.getAttributeValue(attacker, ModAttributes.CHANCE_TO_POISON, weapon,
-                    "chance_to_poison", source) +
-                    com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, weapon, "minecraft:chance_to_poison", 0.05) +
-                    com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, chestplate, "minecraft:chance_to_poison", 0.05);
-
-            if ((physicalDamage > 0 || finalVoidDamage > 0) && Math.random() < chanceToPoison) {
-                float poisonDamagePercent = (float) CombatUtility.getAttributeValue(attacker,
-                        ModAttributes.POISON_DAMAGE_PERCENT, weapon, "poison_damage_percent", source);
-                // Poison deals 20% of physical+void damage per second
-                float poisonBaseDamage = (physicalDamage + (float)finalVoidDamage) * 0.2f;
-                double poisonDuration = AilmentType.POISON.getBaseDuration()
-                        * (1.0 + attacker.getAttributeValue(ModAttributes.POISON_DURATION));
-                AilmentManager.applyAilment(target, AilmentType.POISON, poisonBaseDamage * (1.0f + poisonDamagePercent),
-                        poisonDuration, attacker);
+            if (physicalDamage > 0 || finalVoidDamage > 0) {
+                float poisonMagnitudePercent = (float) CombatUtility.getAttributeValue(attacker,
+                        ModAttributes.POISON_MAGNITUDE_PERCENT, weapon, "poison_magnitude_percent", source);
+                // Poison deals 20% of physical+void damage per second, ignoring crit multiplier
+                float poisonBaseDamage = (float) ((physicalDamage + finalVoidDamage) / critMultiplier) * 0.2f;
+                if (isCrit) poisonBaseDamage *= 1.5f;
+                float finalPoisonDamage = poisonBaseDamage * (1.0f + poisonMagnitudePercent);
+                
+                if (finalPoisonDamage >= 0.5f) {
+                    double poisonDuration = AilmentType.POISON.getBaseDuration()
+                            * (1.0 + attacker.getAttributeValue(ModAttributes.POISON_DURATION));
+                    AilmentManager.applyAilment(target, AilmentType.POISON, finalPoisonDamage, poisonDuration, attacker, null, null, 0, finalPoisonDamage);
+                }
             }
 
             // Freeze Buildup (Scales from Cold Damage vs Max Health, slower than electrocute)
             if (finalColdDamage > 0) {
-                float freezeBuildupMultiplier = 1.0f + (float) CombatUtility.getAttributeValue(attacker, ModAttributes.FREEZE_BUILDUP_PERCENT, weapon,
-                        "freeze_buildup_percent", source) +
-                        (float) com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, weapon, "minecraft:freeze_buildup_percent", 0.05) +
-                        (float) com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, chestplate, "minecraft:freeze_buildup_percent", 0.05);
+                float freezeMagnitudePercent = 1.0f + (float) CombatUtility.getAttributeValue(attacker, ModAttributes.FREEZE_MAGNITUDE_PERCENT, weapon,
+                        "freeze_magnitude_percent", source) +
+                        (float) com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, weapon, "minecraft:freeze_magnitude_percent", 0.05) +
+                        (float) com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, chestplate, "minecraft:freeze_magnitude_percent", 0.05);
                 
-                float ailmentThreshold = Math.max(1.0f, target.getMaxHealth());
-                // Freeze is harder to charge (x2 multiplier) because it lasts longer
-                float buildupAmount = ((float)finalColdDamage * 2.0f / ailmentThreshold) * freezeBuildupMultiplier;
+                float thresholdReduction = (float) CombatUtility.getAttributeValue(attacker, ModAttributes.FREEZE_THRESHOLD_REDUCTION, weapon, "freeze_threshold_reduction", source);
+                float ailmentThreshold = target.getMaxHealth() * (1.0f - thresholdReduction);
+                ailmentThreshold = Math.max(1.0f, ailmentThreshold);
                 
-                if (buildupAmount > 0) {
+                // Freeze is harder to charge (x2 multiplier) because it lasts longer. Ignores crit multiplier for buildup.
+                float buildupAmount = ((float) (finalColdDamage / critMultiplier) * 2.0f / ailmentThreshold) * freezeMagnitudePercent;
+                if (isCrit) buildupAmount *= 1.5f;
+                
+                if (buildupAmount > 0.05f) {
                     double freezeDuration = AilmentType.FREEZE.getBaseDuration()
                             * (1.0 + attacker.getAttributeValue(ModAttributes.FREEZE_DURATION));
                     AilmentManager.addFreezeBuildup(target, buildupAmount, freezeDuration, attacker);
@@ -546,45 +563,53 @@ public abstract class ElementalDamageMixin {
             }
 
             // Bleed (Scales from Physical Damage)
-            double chanceToBleed = CombatUtility.getAttributeValue(attacker, ModAttributes.CHANCE_TO_BLEED, weapon,
-                    "chance_to_bleed", source) +
-                    com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, weapon, "minecraft:chance_to_bleed", 0.05) +
-                    com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, chestplate, "minecraft:chance_to_bleed", 0.05);
-
-            if (physicalDamage > 0 && Math.random() < chanceToBleed) {
-                float bleedBurstPercent = (float) CombatUtility.getAttributeValue(attacker, ModAttributes.BLEED_BURST_DAMAGE_PERCENT, weapon,
-                        "bleed_burst_damage_percent", source) +
-                        (float) com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, weapon, "minecraft:bleed_burst_damage_percent", 0.10);
+            if (physicalDamage > 0) {
+                float bleedMagnitudePercent = (float) CombatUtility.getAttributeValue(attacker, ModAttributes.BLEED_MAGNITUDE_PERCENT, weapon,
+                        "bleed_magnitude_percent", source) +
+                        (float) com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, weapon, "minecraft:bleed_magnitude_percent", 0.10);
                 
-                // Bleed deals 100% of physical damage as burst
-                float bleedBurstDamage = physicalDamage * (1.0f + bleedBurstPercent);
-                double bleedDuration = AilmentType.BLEED.getBaseDuration()
-                        * (1.0 + attacker.getAttributeValue(ModAttributes.BLEED_DURATION));
-                AilmentManager.applyAilment(target, AilmentType.BLEED, bleedBurstDamage, bleedDuration, attacker);
+                // Bleed deals 100% of physical damage as burst, ignoring crit multiplier
+                float bleedBaseDamage = (float) (physicalDamage / critMultiplier);
+                if (isCrit) bleedBaseDamage *= 1.5f;
+                float finalBleedDamage = bleedBaseDamage * (1.0f + bleedMagnitudePercent);
+                
+                if (finalBleedDamage >= 1.0f) {
+                    double bleedDuration = AilmentType.BLEED.getBaseDuration()
+                            * (1.0 + attacker.getAttributeValue(ModAttributes.BLEED_DURATION));
+                    AilmentManager.applyAilment(target, AilmentType.BLEED, finalBleedDamage, bleedDuration, attacker, null, null, 0, finalBleedDamage);
+                }
             }
 
-            // Shock (Enables Chain Lightning)
-            double chanceToShock = CombatUtility.getAttributeValue(attacker, ModAttributes.CHANCE_TO_SHOCK, weapon,
-                    "chance_to_shock", source) +
-                    com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, weapon, "minecraft:chance_to_shock", 0.05) +
-                    com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, chestplate, "minecraft:chance_to_shock", 0.05);
-
-            if (finalLightningDamage > 0 && Math.random() < chanceToShock) {
-                double shockDuration = CombatUtility.getAttributeValue(attacker, ModAttributes.SHOCK_DURATION, weapon,
-                        "shock_duration", source);
-                AilmentManager.applyAilment(target, AilmentType.SHOCK, 0.0f, shockDuration, attacker);
+            // Shock (Enables Chain Lightning & Increases Damage Taken based on Magnitude)
+            if (finalLightningDamage > 0) {
+                float thresholdReduction = (float) CombatUtility.getAttributeValue(attacker, ModAttributes.SHOCK_THRESHOLD_REDUCTION, weapon, "shock_threshold_reduction", source);
+                float ailmentThreshold = target.getMaxHealth() * (1.0f - thresholdReduction);
+                ailmentThreshold = Math.max(1.0f, ailmentThreshold);
+                
+                float baseMagnitude = ((float) (finalLightningDamage / critMultiplier) / ailmentThreshold) * 5.0f;
+                if (isCrit) baseMagnitude *= 1.5f;
+                float shockMagnitude = (float) CombatUtility.getAttributeValue(attacker, ModAttributes.SHOCK_MAGNITUDE_PERCENT, weapon, "shock_magnitude_percent", source);
+                float finalMagnitude = baseMagnitude * (1.0f + shockMagnitude);
+                
+                finalMagnitude = Math.min(finalMagnitude, 0.50f); // Cap at 50%
+                
+                if (finalMagnitude >= 0.05f) { // Min 5% to apply
+                    double shockDuration = CombatUtility.getAttributeValue(attacker, ModAttributes.SHOCK_DURATION, weapon, "shock_duration", source);
+                    AilmentManager.applyAilment(target, AilmentType.SHOCK, 0.0f, shockDuration, attacker, null, null, 0, finalMagnitude);
+                }
             }
 
             // Electrocute Buildup (Scales from Lightning Damage vs Max Health, faster than freeze)
             if (finalLightningDamage > 0) {
-                float electrocuteBuildupMultiplier = 1.0f + (float) CombatUtility.getAttributeValue(attacker, ModAttributes.ELECTROCUTE_BUILDUP_PERCENT, weapon,
-                        "electrocute_buildup_percent", source) +
-                        (float) com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, weapon, "minecraft:electrocute_buildup_percent", 0.05) +
-                        (float) com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, chestplate, "minecraft:electrocute_buildup_percent", 0.05);
+                float electrocuteBuildupMultiplier = 1.0f + (float) CombatUtility.getAttributeValue(attacker, ModAttributes.ELECTROCUTE_MAGNITUDE_PERCENT, weapon,
+                        "electrocute_magnitude_percent", source) +
+                        (float) com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, weapon, "minecraft:electrocute_magnitude_percent", 0.05) +
+                        (float) com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, chestplate, "minecraft:electrocute_magnitude_percent", 0.05);
                 
                 float ailmentThreshold = Math.max(1.0f, target.getMaxHealth());
                 // Electrocute is easier to charge (x8 multiplier to buildup) because it is a shorter stun
-                float buildupAmount = ((float)finalLightningDamage * 8.0f / ailmentThreshold) * electrocuteBuildupMultiplier;
+                float buildupAmount = ((float) (finalLightningDamage / critMultiplier) * 8.0f / ailmentThreshold) * electrocuteBuildupMultiplier;
+                if (isCrit) buildupAmount *= 1.5f;
                 
                 if (buildupAmount > 0) {
                     double electrocuteDuration = AilmentType.ELECTROCUTE.getBaseDuration()

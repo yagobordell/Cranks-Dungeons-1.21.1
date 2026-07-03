@@ -45,6 +45,13 @@ public abstract class EvasionMixin {
             return;
         }
 
+        // Resolute Technique prevents evasion
+        if (source.getAttacker() instanceof LivingEntity attacker) {
+            if (attacker.getAttributeValue(ModAttributes.KEYSTONE_RESOLUTE_TECHNIQUE) > 0) {
+                return;
+            }
+        }
+
         double rating = entity.getAttributeValue(ModAttributes.EVASION_RATING);
         if (rating <= 0)
             return;

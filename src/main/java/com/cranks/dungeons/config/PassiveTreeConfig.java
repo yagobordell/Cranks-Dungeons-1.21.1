@@ -109,11 +109,22 @@ public class PassiveTreeConfig {
                 for (Map.Entry<String, JsonElement> entry : modsObj.entrySet()) {
                     String attrId = entry.getKey();
                     double value = entry.getValue().getAsDouble();
+                    
+                    String cleanedAttrId = attrId;
+                    if (cleanedAttrId.startsWith("cranks-dungeons:")) {
+                        cleanedAttrId = cleanedAttrId.substring(16);
+                    }
+                    
+                    if (!com.cranks.dungeons.stat.passive.PassiveStatHelper.WHITELISTED_PASSIVE_ATTRIBUTES.contains(cleanedAttrId)) {
+                        com.cranks.dungeons.CranksDungeons.LOGGER.warn("[PassiveTree] Rejected blacklisted/non-whitelisted attribute '{}' in node '{}'", attrId, cleanedAttrId);
+                        continue;
+                    }
+
                     RegistryEntry<EntityAttribute> attr = resolveAttribute(attrId);
                     if (attr != null) {
                         modifiers.put(attr, value);
                     } else {
-                        com.cranks.dungeons.CranksDungeons.LOGGER.warn("[PassiveTree] Unknown attribute '{}' in node '{}'", attrId, id);
+                        com.cranks.dungeons.CranksDungeons.LOGGER.warn("[PassiveTree] Unknown attribute '{}' in node '{}'", attrId, cleanedAttrId);
                     }
                 }
             }

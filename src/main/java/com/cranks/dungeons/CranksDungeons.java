@@ -184,24 +184,21 @@ public class CranksDungeons implements ModInitializer {
 						.add(ModAttributes.ELEMENTAL_PENETRATION_PERCENT, 0.0)
 						.add(ModAttributes.CRIT_CHANCE, 0.05)
 						.add(ModAttributes.CRIT_MULTIPLIER, 1.5)
-						.add(ModAttributes.LIFE_STEAL, 0.0)
+						.add(ModAttributes.PHYSICAL_DAMAGE_LEECHED_AS_LIFE, 0.0)
 						.add(ModAttributes.ATTACK_RANGE, 0.0)
 						.add(ModAttributes.ATTACK_SPEED, 0.0)
 						// Ailments
-						.add(ModAttributes.CHANCE_TO_BURN, 0.0)
-						.add(ModAttributes.BURN_BASE_DAMAGE, 3.0)
-						.add(ModAttributes.BURN_DAMAGE_PERCENT, 0.0)
-						.add(ModAttributes.CHANCE_TO_POISON, 0.0)
-						.add(ModAttributes.POISON_BASE_DAMAGE, 1.0)
-						.add(ModAttributes.POISON_DAMAGE_PERCENT, 0.0)
-						.add(ModAttributes.FREEZE_BUILDUP_PERCENT, 0.0)
-						.add(ModAttributes.CHANCE_TO_BLEED, 0.0)
-						.add(ModAttributes.BLEED_BURST_DAMAGE_PERCENT, 0.0)
-						.add(ModAttributes.CHANCE_TO_SHOCK, 0.0)
+						.add(ModAttributes.BURN_MAGNITUDE_PERCENT, 0.0)
+						.add(ModAttributes.POISON_MAGNITUDE_PERCENT, 0.0)
+						.add(ModAttributes.FREEZE_MAGNITUDE_PERCENT, 0.0)
+						.add(ModAttributes.BLEED_MAGNITUDE_PERCENT, 0.0)
+						.add(ModAttributes.SHOCK_MAGNITUDE_PERCENT, 0.0)
 						.add(ModAttributes.SHOCK_DURATION, 3.0)
-						.add(ModAttributes.ELECTROCUTE_BUILDUP_PERCENT, 0.0)
+						.add(ModAttributes.ELECTROCUTE_MAGNITUDE_PERCENT, 0.0)
 						.add(ModAttributes.ELECTROCUTE_DURATION, 0.0)
-						.add(ModAttributes.BURN_DAMAGE_PERCENT, 0.0)
+						.add(ModAttributes.SHOCK_THRESHOLD_REDUCTION, 0.0)
+						.add(ModAttributes.FREEZE_THRESHOLD_REDUCTION, 0.0)
+						.add(ModAttributes.ELECTROCUTE_THRESHOLD_REDUCTION, 0.0)
 						.add(ModAttributes.BURN_DURATION, 0.0)
 						.add(ModAttributes.POISON_DURATION, 0.0)
 						.add(ModAttributes.POISON_MAX_STACKS, 0.0)
@@ -258,15 +255,6 @@ public class CranksDungeons implements ModInitializer {
 				});
 
 		LOGGER.info("Cranks Dungeons initialized!");
-		com.cranks.dungeons.scratch.FindSeeThrough.print();
-        com.cranks.dungeons.scratch.PrintEntityMethods.print();
-        com.cranks.dungeons.scratch.PrintRenderLayers.print();
-        for (java.lang.reflect.Method m : net.minecraft.entity.AnimationState.class.getDeclaredMethods()) {
-            LOGGER.info("ANIM_METHOD: " + m.getName() + " " + m.getReturnType().getName() + " params: " + m.getParameterCount());
-        }
-        for (var field : net.minecraft.entity.AnimationState.class.getDeclaredFields()) {
-            LOGGER.info("AnimationState field: " + field.getName());
-        }
 	}
 
 	private void registerCreativeTabItems() {

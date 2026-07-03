@@ -38,10 +38,10 @@ public class EnergyShieldRegenMixin {
     private static final int SYNC_INTERVAL_TICKS = 5;
 
     @Unique
-    private static final int REGEN_DELAY_TICKS = 48; // 4 seconds at 20 TPS
+    private static final int REGEN_DELAY_TICKS = 80; // 4 seconds at 20 TPS
 
     @Unique
-    private static final float REGEN_PERCENT_PER_TICK = 0.0125f; // 1.25% per tick = 25% per second
+    private static final float REGEN_PERCENT_PER_TICK = 0.00625f; // 12.5% per second
     
     @Unique
     private static final int MOB_SYNC_INTERVAL_TICKS = 2; // Sync mobs faster to keep interpolation smooth
@@ -87,6 +87,9 @@ public class EnergyShieldRegenMixin {
         EnergyShieldProvider provider = (EnergyShieldProvider) self;
 
         double maxShield = self.getAttributeValue(ModAttributes.ENERGY_SHIELD);
+        if (self.getAttributeValue(ModAttributes.KEYSTONE_CRIMSON_PACT) > 0) {
+            maxShield = 0;
+        }
         if (maxShield <= 0) {
             provider.cranksdungeons$setCurrentEnergyShield(0);
             wasRegenerating = false;

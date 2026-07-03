@@ -241,6 +241,7 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
             return;
 
         AilmentManager.tickAilments(entity);
+        com.cranks.dungeons.util.LeechManager.tick(entity);
         updateArmorSpeed(entity);
         updateIntrinsicAttributes(entity);
         updateRequirementPenalties(entity);

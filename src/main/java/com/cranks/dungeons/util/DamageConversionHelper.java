@@ -27,6 +27,10 @@ public class DamageConversionHelper {
             damages.put(element, damages.getOrDefault(element, 0f) + amount);
         }
 
+        public void set(DamageElement element, float amount) {
+            damages.put(element, amount);
+        }
+
         public float get(DamageElement element) {
             return damages.getOrDefault(element, 0f);
         }
@@ -233,9 +237,9 @@ public class DamageConversionHelper {
         }
 
         if (ar > 0 && amount > 0) {
-            // Pure PoE 2 style formula: PDR = Armor / (Armor + (40 * Damage))
+            // Pure PoE 2 style formula: PDR = Armor / (Armor + (10 * Damage))
             // This makes armor significantly more dynamic against different hit sizes.
-            double x = 40.0 * amount;
+            double x = 10.0 * amount;
             double pdr = ar / (ar + x);
             
             // Cap PDR at 90%

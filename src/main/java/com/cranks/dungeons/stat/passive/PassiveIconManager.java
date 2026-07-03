@@ -28,7 +28,7 @@ public class PassiveIconManager {
         ATTRIBUTE_ICONS.put("cranks-dungeons:attack_speed", "passive/attack_speed");
 
         ATTRIBUTE_ICONS.put("cranks-dungeons:knockback", "passive/knockback");
-        ATTRIBUTE_ICONS.put("cranks-dungeons:life_steal", "passive/life_steal");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:physical_damage_leeched_as_life", "passive/life_steal");
         ATTRIBUTE_ICONS.put("cranks-dungeons:reload_speed", "passive/reload_speed");
 
         // --- Weapon Specialization ---
@@ -74,17 +74,20 @@ public class PassiveIconManager {
         ATTRIBUTE_ICONS.put("cranks-dungeons:damage_against_afflicted_percent", "passive/damage_against_afflicted_percent");
         ATTRIBUTE_ICONS.put("cranks-dungeons:damage_while_afflicted_percent", "passive/damage_while_afflicted_percent");
         ATTRIBUTE_ICONS.put("cranks-dungeons:crit_chance_against_afflicted", "passive/crit_chance_against_afflicted");
-        ATTRIBUTE_ICONS.put("cranks-dungeons:chance_to_burn", "passive/chance_to_burn");
-        ATTRIBUTE_ICONS.put("cranks-dungeons:burn_damage_percent", "passive/burn_damage_percent");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:burn_magnitude_percent", "passive/burn_damage_percent");
         ATTRIBUTE_ICONS.put("cranks-dungeons:burn_duration", "passive/burn_duration");
-        ATTRIBUTE_ICONS.put("cranks-dungeons:chance_to_poison", "passive/chance_to_poison");
-        ATTRIBUTE_ICONS.put("cranks-dungeons:poison_damage_percent", "passive/poison_damage_percent");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:poison_magnitude_percent", "passive/poison_damage_percent");
         ATTRIBUTE_ICONS.put("cranks-dungeons:poison_duration", "passive/poison_duration");
         ATTRIBUTE_ICONS.put("cranks-dungeons:poison_max_stacks", "passive/poison_max_stacks");
-        ATTRIBUTE_ICONS.put("cranks-dungeons:chance_to_bleed", "passive/chance_to_bleed");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:bleed_magnitude_percent", "passive/chance_to_bleed");
         ATTRIBUTE_ICONS.put("cranks-dungeons:bleed_duration", "passive/bleed_duration");
-        ATTRIBUTE_ICONS.put("cranks-dungeons:chance_to_shock", "passive/chance_to_shock");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:shock_magnitude_percent", "passive/chance_to_shock");
         ATTRIBUTE_ICONS.put("cranks-dungeons:shock_duration", "passive/shock_duration");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:freeze_magnitude_percent", "passive/freeze_buildup_percent");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:electrocute_magnitude_percent", "passive/electrocute_buildup_percent");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:shock_threshold_reduction", "passive/ailment_threshold_reduction");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:freeze_threshold_reduction", "passive/ailment_threshold_reduction");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:electrocute_threshold_reduction", "passive/ailment_threshold_reduction");
 
         // --- Defensive ---
         ATTRIBUTE_ICONS.put("cranks-dungeons:max_health_bonus", "passive/max_health_bonus");

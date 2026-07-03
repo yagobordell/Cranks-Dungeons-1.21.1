@@ -27,11 +27,32 @@ public abstract class MaxHealthMixin {
 
         if (!(player instanceof ServerPlayerEntity)) return;
 
-        double healthFlatBonus = player.getAttributeValue(ModAttributes.MAX_HEALTH_BONUS);
-        double healthPercent = player.getAttributeValue(ModAttributes.MAX_HEALTH_PERCENT);
-
         var maxHealthAttr = player.getAttributeInstance(EntityAttributes.MAX_HEALTH);
         if (maxHealthAttr == null) return;
+        
+        Identifier voidInoculationId = Identifier.of(CranksDungeons.MOD_ID, "void_inoculation");
+        if (player.getAttributeValue(ModAttributes.KEYSTONE_VOID_INOCULATION) > 0) {
+            // Remove existing void inoculation modifier to recalculate
+            maxHealthAttr.removeModifier(voidInoculationId);
+            double currentMax = maxHealthAttr.getValue();
+            if (currentMax > 1.0) {
+                maxHealthAttr.addTemporaryModifier(new EntityAttributeModifier(
+                        voidInoculationId,
+                        -(currentMax - 1.0),
+                        EntityAttributeModifier.Operation.ADD_VALUE
+                ));
+            }
+            // Clamp current health if it exceeds max
+            if (player.getHealth() > player.getMaxHealth()) {
+                player.setHealth(player.getMaxHealth());
+            }
+            return; // Void inoculation overrides all other max health calculations
+        } else {
+            maxHealthAttr.removeModifier(voidInoculationId);
+        }
+
+        double healthFlatBonus = player.getAttributeValue(ModAttributes.MAX_HEALTH_BONUS);
+        double healthPercent = player.getAttributeValue(ModAttributes.MAX_HEALTH_PERCENT);
 
         Identifier flatModifierId = Identifier.of(CranksDungeons.MOD_ID, "max_health_bonus");
         Identifier percentModifierId = Identifier.of(CranksDungeons.MOD_ID, "max_health_passive_percent");
@@ -49,6 +70,25 @@ public abstract class MaxHealthMixin {
             cranks$lastHealthBonus = healthFlatBonus;
         }
 
+        // Crimson Pact Max Health
+        Identifier crimsonPactId = Identifier.of(CranksDungeons.MOD_ID, "crimson_pact_health");
+        double crimsonPactHealth = 0;
+        if (player.getAttributeValue(ModAttributes.KEYSTONE_CRIMSON_PACT) > 0) {
+            crimsonPactHealth = player.getAttributeValue(ModAttributes.ENERGY_SHIELD) * 2.0;
+        }
+        
+        var cpMod = maxHealthAttr.getModifier(crimsonPactId);
+        double currentCP = cpMod != null ? cpMod.value() : 0;
+        
+        if (Math.abs(crimsonPactHealth - currentCP) > 0.01) {
+            maxHealthAttr.removeModifier(crimsonPactId);
+            if (crimsonPactHealth > 0) {
+                maxHealthAttr.addTemporaryModifier(new EntityAttributeModifier(
+                        crimsonPactId, crimsonPactHealth, EntityAttributeModifier.Operation.ADD_VALUE
+                ));
+            }
+        }
+        
         // Apply Percentage Bonus (calculated as flat value of current total minus previous bonus)
         double currentTotal = maxHealthAttr.getValue();
         double currentPercentModifier = 0;

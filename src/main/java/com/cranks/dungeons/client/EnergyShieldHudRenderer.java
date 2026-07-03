@@ -43,6 +43,9 @@ public class EnergyShieldHudRenderer implements HudRenderCallback {
         
         float currentShield = shieldProvider.cranksdungeons$getCurrentEnergyShield();
         double maxShield = player.getAttributeValue(ModAttributes.ENERGY_SHIELD);
+        if (player.getAttributeValue(ModAttributes.KEYSTONE_CRIMSON_PACT) > 0) {
+            maxShield = 0;
+        }
         if (maxShield <= 0) return;
         
         if (currentShield < 1.0f) currentShield = 0.0f;

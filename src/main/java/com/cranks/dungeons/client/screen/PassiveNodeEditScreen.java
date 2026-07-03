@@ -94,7 +94,7 @@ public class PassiveNodeEditScreen extends Screen {
         allAttributeIds = Registries.ATTRIBUTE.getIds().stream()
                 .filter(id -> id.getNamespace().equals("cranks-dungeons"))
                 .map(Identifier::getPath)
-                .filter(id -> !com.cranks.dungeons.stat.passive.PassiveStatHelper.BLACKLISTED_PASSIVE_ATTRIBUTES.contains(id))
+                .filter(id -> com.cranks.dungeons.stat.passive.PassiveStatHelper.WHITELISTED_PASSIVE_ATTRIBUTES.contains(id))
                 .sorted()
                 .toList();
         

@@ -180,7 +180,7 @@ public abstract class ItemStackTooltipMixin {
                     }
                     String luckKey = ModAttributes.ITEM_RARITY_PERCENT.value().getTranslationKey();
                     if (attributeTotals.getOrDefault(luckKey, 0.0) > 0) {
-                        tooltip.add(Text.literal("Item Rarity: ").formatted(Formatting.GRAY)
+                        tooltip.add(Text.literal("Rarity of Items Found: ").formatted(Formatting.GRAY)
                                 .append(Text.literal(df.format(attributeTotals.get(luckKey) * 100) + "%")
                                         .formatted(getValueColor(stack, ModAttributes.ITEM_RARITY_PERCENT))));
                     }
@@ -435,8 +435,10 @@ public abstract class ItemStackTooltipMixin {
                 com.cranks.dungeons.stat.CustomStat stat = com.cranks.dungeons.stat.StatRegistry.getStat(is.statId);
                 if (stat != null) {
                     for (int i = 0; i < stat.getComponents().size(); i++) {
-                        String key = stat.getComponents().get(i).getAttributes().get(0).value().getTranslationKey();
-                        totals.merge(key, is.getValue(i), Double::sum);
+                        if (!stat.getComponents().get(i).getAttributes().isEmpty()) {
+                            String key = stat.getComponents().get(i).getAttributes().get(0).value().getTranslationKey();
+                            totals.merge(key, is.getValue(i), Double::sum);
+                        }
                     }
                 }
             }

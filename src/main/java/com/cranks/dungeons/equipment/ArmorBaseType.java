@@ -38,6 +38,21 @@ public enum ArmorBaseType {
         if (hasEvasion) return DEX;
         if (hasES) return INT;
 
+        // If it lacks armor/evasion/ES modifiers, it might be a weapon or tool.
+        // Let's check EquipmentType to assign proper stat pools for weapons.
+        var equipTypeOpt = EquipmentType.getTypeForItem(stack);
+        if (equipTypeOpt.isPresent()) {
+            EquipmentType type = equipTypeOpt.get();
+            return switch (type) {
+                case MACE, AXE, SHIELD, PICKAXE, SHOVEL, HOE -> STR;
+                case BOW -> DEX;
+                case SWORD, SPEAR, CROSSBOW -> STR_DEX;
+                case TRIDENT -> STR_INT;
+                // If you add wands or staves in the future, you could add INT or DEX_INT here.
+                default -> ANY;
+            };
+        }
+
         return ANY;
     }
 

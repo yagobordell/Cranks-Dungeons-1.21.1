@@ -13,13 +13,57 @@ import java.util.Set;
 
 public class PassiveStatHelper {
 
-    public static final Set<String> BLACKLISTED_PASSIVE_ATTRIBUTES = Set.of(
-            "enchantment_effectiveness", "feather_falling", "attack_range",
-            "fire_damage", "cold_damage", "lightning_damage", "void_damage",
-            "freeze_duration", "electrocute_duration",
-            "mining_efficiency", "fortune", "durability_bonus", "experience_bonus",
-            "precision_mining", "breaking_range", "repair_chance", "flying_speed",
-            "item_rarity_percent", "crop_fortune", "log_fortune", "dig_fortune", "crop_experience"
+    public static final Set<String> WHITELISTED_PASSIVE_ATTRIBUTES = Set.of(
+            // Core Base Stats
+            "strength", "dexterity", "intelligence",
+
+            // Percentage Damage Scaling
+            "attack_damage_percent", "elemental_damage_percent",
+            "fire_damage_percent", "cold_damage_percent", "lightning_damage_percent", "void_damage_percent",
+            "melee_damage_percent", "ranged_damage_percent",
+            "one_handed_damage_percent", "dual_wielding_damage_percent", "two_handing_damage_percent",
+            "sword_damage_percent", "axe_damage_percent", "mace_damage_percent", "spear_damage_percent",
+            "bow_damage_percent", "crossbow_damage_percent", "trident_damage_percent",
+            "damage_against_afflicted_percent", "damage_while_afflicted_percent",
+
+            // Percentage Defense Scaling
+            "max_health_percent", "armor_percent", "evasion_rating_percent",
+            "energy_shield_percent", "leggings_armor_percent", "armor_crit_mitigation",
+
+            // Resistances & Penetration
+            "fire_resistance", "cold_resistance", "lightning_resistance", "void_resistance",
+            "fire_penetration_percent", "cold_penetration_percent", "lightning_penetration_percent", "void_penetration_percent",
+            "elemental_penetration_percent", "armor_penetration_percent",
+
+            // Critical Strikes
+            "global_crit_chance_percent", "crit_multiplier", "crit_chance_against_afflicted",
+
+            // Ailment Magnitudes & Durations
+            "shock_magnitude_percent", "shock_duration",
+            "burn_magnitude_percent", "burn_duration",
+            "poison_magnitude_percent", "poison_duration", "poison_max_stacks",
+            "bleed_magnitude_percent", "bleed_duration",
+            "freeze_magnitude_percent", "freeze_duration",
+            "electrocute_magnitude_percent", "electrocute_duration",
+            "shock_threshold_reduction", "freeze_threshold_reduction", "electrocute_threshold_reduction",
+
+            // Conversions & Extra Damage
+            "physical_extra_percent",
+            "physical_to_fire_conversion_percent", "physical_to_cold_conversion_percent",
+            "physical_to_lightning_conversion_percent", "physical_to_void_conversion_percent",
+            "physical_as_extra_fire_percent", "physical_as_extra_cold_percent",
+            "physical_as_extra_lightning_percent", "physical_as_extra_void_percent",
+            "fire_extra_percent", "cold_extra_percent", "lightning_extra_percent", "void_extra_percent",
+
+            // Combat Utility
+            "movement_speed", "attack_speed", "projectile_speed", "reload_speed",
+            "attack_range", "physical_damage_leeched_as_life", "life_regeneration",
+            "chance_to_block", "health_on_block", "knockback", "knockback_resistance",
+            "armor_speed_penalty_reduction", "low_armor_speed_bonus",
+            
+            // Keystones
+            "keystone_void_inoculation", "keystone_avatar_of_fire", "keystone_resolute_technique",
+            "keystone_elemental_overload", "keystone_crimson_pact"
     );
 
     /**
@@ -55,7 +99,7 @@ public class PassiveStatHelper {
                         if (!idStr.startsWith("cranks-dungeons:")) continue;
                         
                         String id = idStr.substring(16);
-                        if (BLACKLISTED_PASSIVE_ATTRIBUTES.contains(id)) continue;
+                        if (!WHITELISTED_PASSIVE_ATTRIBUTES.contains(id)) continue;
                         
                         summary.merge(entry.getKey(), entry.getValue(), Double::sum);
                     }
@@ -99,7 +143,7 @@ public class PassiveStatHelper {
                             if (!idStr.startsWith("cranks-dungeons:")) continue;
                             
                             String id = idStr.substring(16);
-                            if (BLACKLISTED_PASSIVE_ATTRIBUTES.contains(id)) continue;
+                            if (!WHITELISTED_PASSIVE_ATTRIBUTES.contains(id)) continue;
                             
                             raw.merge(entry.getKey(), entry.getValue(), Double::sum);
                         }

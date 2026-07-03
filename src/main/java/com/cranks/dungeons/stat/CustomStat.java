@@ -37,7 +37,7 @@ public class CustomStat {
         public StatComponent(String displayName, RegistryEntry<EntityAttribute> attribute,
                              double[] normalRanges, double[] uncommonRanges,
                              boolean isPercentage, boolean displayAsPercentage) {
-            this(displayName, List.of(attribute), normalRanges, uncommonRanges, isPercentage, displayAsPercentage);
+            this(displayName, attribute == null ? List.of() : List.of(attribute), normalRanges, uncommonRanges, isPercentage, displayAsPercentage);
         }
 
         public List<RegistryEntry<EntityAttribute>> getAttributes() { return attributes; }

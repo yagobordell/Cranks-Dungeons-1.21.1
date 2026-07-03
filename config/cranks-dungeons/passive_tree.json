@@ -1,2294 +1,2313 @@
 {
   "nodes": [
     {
-      "id": "marauder_start",
-      "name": "Path of the Marauder",
-      "description": "Start your journey as a Marauder.",
-      "gridX": 0.472,
-      "gridY": -3.026,
-      "shape": "diamond",
-      "connections": [
-        "n0001",
-        "n0002"
-      ],
-      "modifiers": {},
-      "icon": "cranks-dungeons:passive/marauder"
-    },
-    {
-      "id": "n0001",
-      "name": "Iron Plating",
-      "description": "+30 Bonus Armor",
-      "gridX": 1.684,
-      "gridY": -4.062,
-      "shape": "square",
-      "connections": [
-        "marauder_start",
-        "n0004",
-        "n0006"
-      ],
-      "modifiers": {
-        "cranks-dungeons:bonus_armor": 30.0
-      },
-      "icon": "cranks-dungeons:passive/bonus_armor"
-    },
-    {
-      "id": "n0002",
-      "name": "Fortitude",
-      "description": "+2 Max Health Bonus",
-      "gridX": -0.673,
-      "gridY": -4.028,
-      "shape": "square",
-      "connections": [
-        "marauder_start",
-        "n0003",
-        "n0005"
-      ],
-      "modifiers": {
-        "cranks-dungeons:max_health_bonus": 2.0
-      },
-      "icon": "cranks-dungeons:passive/max_health_bonus"
-    },
-    {
-      "id": "n0003",
-      "name": "Revenge",
-      "description": "+2% Life Steal",
-      "gridX": -0.665,
-      "gridY": -5.138,
-      "shape": "square",
-      "connections": [
-        "n0002",
-        "n0009",
-        "n0010"
-      ],
-      "modifiers": {
-        "cranks-dungeons:life_steal": 0.02
-      },
-      "icon": "cranks-dungeons:passive/life_steal"
-    },
-    {
-      "id": "n0004",
-      "name": "Cinders",
-      "description": "+5% Chance To Burn",
-      "gridX": 1.682,
-      "gridY": -5.162,
-      "shape": "square",
-      "connections": [
-        "n0001",
-        "n0011",
-        "n0012"
-      ],
-      "modifiers": {
-        "cranks-dungeons:chance_to_burn": 0.05
-      },
-      "icon": "cranks-dungeons:passive/burn"
-    },
-    {
-      "id": "n0005",
-      "name": "Health Flow",
-      "description": "+0.15 Health Regeneration",
-      "gridX": -1.74,
-      "gridY": -5.138,
-      "shape": "square",
-      "connections": [
-        "n0002",
-        "n0007"
-      ],
-      "modifiers": {
-        "cranks-dungeons:life_regeneration": 0.15
-      },
-      "icon": "cranks-dungeons:passive/life_regeneration"
-    },
-    {
-      "id": "n0006",
-      "name": "Juggernaut",
-      "description": "+16 Armor Toughness",
-      "gridX": 2.917,
-      "gridY": -5.174,
-      "shape": "square",
-      "connections": [
-        "n0001",
-        "n0008"
-      ],
-      "modifiers": {
-        "cranks-dungeons:bonus_armor_toughness": 16.0
-      },
-      "icon": "cranks-dungeons:passive/armor_toughness"
-    },
-    {
-      "id": "n0007",
-      "name": "Health Flow",
-      "description": "+0.15 Health Regeneration",
-      "gridX": -3.588,
-      "gridY": -7.122,
-      "shape": "square",
-      "connections": [
-        "n0005",
-        "n0019"
-      ],
-      "modifiers": {
-        "cranks-dungeons:life_regeneration": 0.15
-      },
-      "icon": "cranks-dungeons:passive/life_regeneration"
-    },
-    {
-      "id": "n0008",
-      "name": "Juggernaut",
-      "description": "+16 Armor Toughness",
-      "gridX": 5.007,
-      "gridY": -7.141,
-      "shape": "square",
-      "connections": [
-        "n0006",
-        "n0020"
-      ],
-      "modifiers": {
-        "cranks-dungeons:bonus_armor_toughness": 16.0
-      },
-      "icon": "cranks-dungeons:passive/armor_toughness"
-    },
-    {
-      "id": "n0009",
-      "name": "Brutality",
-      "description": "+1 Physical Damage",
-      "gridX": -1.398,
-      "gridY": -6.078,
-      "shape": "square",
-      "connections": [
-        "n0003",
-        "n0013"
-      ],
-      "modifiers": {
-        "cranks-dungeons:bonus_attack_damage": 1.0
-      },
-      "icon": "cranks-dungeons:passive/physical_damage"
-    },
-    {
-      "id": "n0010",
-      "name": "Rend",
-      "description": "+5% Chance To Bleed",
-      "gridX": 0.008,
-      "gridY": -6.078,
-      "shape": "square",
-      "connections": [
-        "n0003",
-        "n0014"
-      ],
-      "modifiers": {
-        "cranks-dungeons:chance_to_bleed": 0.05
-      },
-      "icon": "cranks-dungeons:passive/bleed"
-    },
-    {
-      "id": "n0011",
-      "name": "Ember Strike",
-      "description": "+1 Fire Damage",
-      "gridX": 0.965,
-      "gridY": -6.094,
-      "shape": "square",
-      "connections": [
-        "n0004",
-        "n0015"
-      ],
-      "modifiers": {
-        "cranks-dungeons:fire_damage": 1.0
-      },
-      "icon": "cranks-dungeons:passive/fire"
-    },
-    {
-      "id": "n0012",
-      "name": "Smoldering",
-      "description": "+8% Burn Duration",
-      "gridX": 2.306,
-      "gridY": -6.054,
-      "shape": "square",
-      "connections": [
-        "n0004",
-        "n0016"
-      ],
-      "modifiers": {
-        "cranks-dungeons:burn_duration": 0.08
-      },
-      "icon": "cranks-dungeons:passive/burn"
-    },
-    {
-      "id": "n0013",
-      "name": "Brutality",
-      "description": "+1 Physical Damage",
-      "gridX": -1.41,
-      "gridY": -7.141,
-      "shape": "square",
-      "connections": [
-        "n0009",
-        "n0017"
-      ],
-      "modifiers": {
-        "cranks-dungeons:bonus_attack_damage": 1.0
-      },
-      "icon": "cranks-dungeons:passive/physical_damage"
-    },
-    {
-      "id": "n0014",
-      "name": "Rend",
-      "description": "+5% Chance To Bleed",
-      "gridX": 0.008,
-      "gridY": -7.165,
-      "shape": "square",
-      "connections": [
-        "n0010",
-        "n0017"
-      ],
-      "modifiers": {
-        "cranks-dungeons:chance_to_bleed": 0.05
-      },
-      "icon": "cranks-dungeons:passive/bleed"
-    },
-    {
-      "id": "n0015",
-      "name": "Ember Strike",
-      "description": "+1 Fire Damage",
-      "gridX": 0.954,
-      "gridY": -7.169,
-      "shape": "square",
-      "connections": [
-        "n0011",
-        "n0018"
-      ],
-      "modifiers": {
-        "cranks-dungeons:fire_damage": 1.0
-      },
-      "icon": "cranks-dungeons:passive/fire"
-    },
-    {
-      "id": "n0016",
-      "name": "Smoldering",
-      "description": "+8% Burn Duration",
-      "gridX": 2.306,
-      "gridY": -7.153,
-      "shape": "square",
-      "connections": [
-        "n0012",
-        "n0018"
-      ],
-      "modifiers": {
-        "cranks-dungeons:burn_duration": 0.08
-      },
-      "icon": "cranks-dungeons:passive/burn"
-    },
-    {
-      "id": "n0017",
-      "name": "Revenge",
-      "description": "+2% Life Steal",
-      "gridX": -0.738,
-      "gridY": -8.008,
-      "shape": "square",
-      "connections": [
-        "n0013",
-        "n0014",
-        "n0021"
-      ],
-      "modifiers": {
-        "cranks-dungeons:life_steal": 0.02
-      },
-      "icon": "cranks-dungeons:passive/life_steal"
-    },
-    {
-      "id": "n0018",
-      "name": "Cinders",
-      "description": "+5% Chance To Burn",
-      "gridX": 1.572,
-      "gridY": -8.02,
-      "shape": "square",
-      "connections": [
-        "n0015",
-        "n0016",
-        "n0024"
-      ],
-      "modifiers": {
-        "cranks-dungeons:chance_to_burn": 0.05
-      },
-      "icon": "cranks-dungeons:passive/burn"
-    },
-    {
-      "id": "n0019",
-      "name": "Health Flow",
-      "description": "+0.15 Health Regeneration",
-      "gridX": -6.009,
-      "gridY": -10.016,
-      "shape": "square",
-      "connections": [
-        "n0007",
-        "n0021",
-        "n0094"
-      ],
-      "modifiers": {
-        "cranks-dungeons:life_regeneration": 0.15
-      },
-      "icon": "cranks-dungeons:passive/life_regeneration"
-    },
-    {
-      "id": "n0020",
-      "name": "Juggernaut",
-      "description": "+16 Armor Toughness",
-      "gridX": 7.487,
-      "gridY": -10.161,
-      "shape": "square",
-      "connections": [
-        "n0008",
-        "n0024",
-        "n0105"
-      ],
-      "modifiers": {
-        "cranks-dungeons:bonus_armor_toughness": 16.0
-      },
-      "icon": "cranks-dungeons:passive/armor_toughness"
-    },
-    {
-      "id": "n0021",
-      "name": "Colossus",
-      "description": "+4 Max Health Bonus",
-      "gridX": -2.662,
-      "gridY": -9.987,
-      "shape": "circle",
-      "connections": [
-        "n0019",
-        "n0022",
-        "n0025",
-        "n0017",
-        "n0083"
-      ],
-      "modifiers": {
-        "cranks-dungeons:max_health_bonus": 4.0
-      },
-      "icon": "cranks-dungeons:passive/max_health_bonus"
-    },
-    {
-      "id": "n0022",
-      "name": "Fortitude",
-      "description": "+2 Max Health Bonus",
-      "gridX": -0.816,
-      "gridY": -9.569,
-      "shape": "square",
-      "connections": [
-        "n0021",
-        "n0027"
-      ],
-      "modifiers": {
-        "cranks-dungeons:max_health_bonus": 2.0
-      },
-      "icon": "cranks-dungeons:passive/max_health_bonus"
-    },
-    {
-      "id": "n0023",
-      "name": "Iron Plating",
-      "description": "+30 Bonus Armor",
-      "gridX": 1.588,
-      "gridY": -9.572,
-      "shape": "square",
-      "connections": [
-        "n0024",
-        "n0027"
-      ],
-      "modifiers": {
-        "cranks-dungeons:bonus_armor": 30.0
-      },
-      "icon": "cranks-dungeons:passive/bonus_armor"
-    },
-    {
-      "id": "n0024",
-      "name": "Iron Body",
-      "description": "+50 Bonus Armor",
-      "gridX": 3.276,
-      "gridY": -10.144,
-      "shape": "circle",
-      "connections": [
-        "n0020",
-        "n0023",
-        "n0028",
-        "n0018",
-        "n0098",
-        "n0097"
-      ],
-      "modifiers": {
-        "cranks-dungeons:bonus_armor": 50.0
-      },
-      "icon": "cranks-dungeons:passive/bonus_armor"
-    },
-    {
-      "id": "n0025",
-      "name": "Fortitude",
-      "description": "+2 Max Health Bonus",
-      "gridX": -0.821,
-      "gridY": -10.51,
-      "shape": "square",
-      "connections": [
-        "n0026",
-        "n0021"
-      ],
-      "modifiers": {
-        "cranks-dungeons:max_health_bonus": 2.0
-      },
-      "icon": "cranks-dungeons:passive/max_health_bonus"
-    },
-    {
-      "id": "n0026",
-      "name": "Colossus",
-      "description": "+4 Max Health Bonus",
-      "gridX": 0.413,
-      "gridY": -11.297,
-      "shape": "circle",
-      "connections": [
-        "n0028",
-        "n0025",
-        "n0110"
-      ],
-      "modifiers": {
-        "cranks-dungeons:max_health_bonus": 4.0
-      },
-      "icon": "cranks-dungeons:passive/max_health_bonus"
-    },
-    {
-      "id": "n0027",
-      "name": "Iron Body",
-      "description": "+50 Bonus Armor",
-      "gridX": 0.414,
-      "gridY": -8.716,
-      "shape": "circle",
-      "connections": [
-        "n0022",
-        "n0023"
-      ],
-      "modifiers": {
-        "cranks-dungeons:bonus_armor": 50.0
-      },
-      "icon": "cranks-dungeons:passive/bonus_armor"
-    },
-    {
-      "id": "n0028",
-      "name": "Iron Plating",
-      "description": "+30 Bonus Armor",
-      "gridX": 1.603,
-      "gridY": -10.581,
-      "shape": "square",
-      "connections": [
-        "n0026",
-        "n0024"
-      ],
-      "modifiers": {
-        "cranks-dungeons:bonus_armor": 30.0
-      },
-      "icon": "cranks-dungeons:passive/bonus_armor"
-    },
-    {
-      "id": "n0030",
-      "name": "Dodge",
-      "description": "+20 Evasion Rating",
-      "gridX": -5.743,
-      "gridY": 3.131,
-      "shape": "square",
-      "connections": [
-        "scoundrel_start",
-        "n0032",
-        "n0038"
-      ],
-      "modifiers": {
-        "cranks-dungeons:evasion_rating": 20.0
-      },
-      "icon": "cranks-dungeons:passive/evasion"
-    },
-    {
-      "id": "n0031",
-      "name": "Fleet",
-      "description": "+2.0% Movement Speed",
-      "gridX": -3.889,
-      "gridY": 4.682,
-      "shape": "square",
-      "connections": [
-        "scoundrel_start",
-        "n0033",
-        "n0039"
-      ],
-      "modifiers": {
-        "cranks-dungeons:movement_speed": 0.02
-      },
-      "icon": "cranks-dungeons:passive/movement_speed"
-    },
-    {
-      "id": "n0032",
-      "name": "Dodge",
-      "description": "+20 Evasion Rating",
-      "gridX": -8.081,
-      "gridY": 2.074,
-      "shape": "square",
-      "connections": [
-        "n0030",
-        "n0034"
-      ],
-      "modifiers": {
-        "cranks-dungeons:evasion_rating": 20.0
-      },
-      "icon": "cranks-dungeons:passive/evasion"
-    },
-    {
-      "id": "n0033",
-      "name": "Fleet",
-      "description": "+2.0% Movement Speed",
-      "gridX": -3.971,
-      "gridY": 7.049,
-      "shape": "square",
-      "connections": [
-        "n0035",
-        "n0031"
-      ],
-      "modifiers": {
-        "cranks-dungeons:movement_speed": 0.02
-      },
-      "icon": "cranks-dungeons:passive/movement_speed"
-    },
-    {
-      "id": "n0034",
-      "name": "Fleet",
-      "description": "+2.0% Movement Speed",
-      "gridX": -9.784,
-      "gridY": 2.054,
-      "shape": "square",
-      "connections": [
-        "n0032",
-        "n0037"
-      ],
-      "modifiers": {
-        "cranks-dungeons:movement_speed": 0.02
-      },
-      "icon": "cranks-dungeons:passive/movement_speed"
-    },
-    {
-      "id": "n0035",
-      "name": "Dodge",
-      "description": "+20 Evasion Rating",
-      "gridX": -4.27,
-      "gridY": 8.309,
-      "shape": "square",
-      "connections": [
-        "n0036",
-        "n0033"
-      ],
-      "modifiers": {
-        "cranks-dungeons:evasion_rating": 20.0
-      },
-      "icon": "cranks-dungeons:passive/evasion"
-    },
-    {
-      "id": "n0036",
-      "name": "Dodge",
-      "description": "+20 Evasion Rating",
-      "gridX": -7.068,
-      "gridY": 10.207,
-      "shape": "square",
-      "connections": [
-        "n0035",
-        "n0050",
-        "n0127"
-      ],
-      "modifiers": {
-        "cranks-dungeons:evasion_rating": 20.0
-      },
-      "icon": "cranks-dungeons:passive/evasion"
-    },
-    {
-      "id": "n0037",
-      "name": "Fleet",
-      "description": "+2.0% Movement Speed",
-      "gridX": -12.691,
-      "gridY": 2.722,
-      "shape": "square",
-      "connections": [
-        "n0034",
-        "n0047",
-        "n0126"
-      ],
-      "modifiers": {
-        "cranks-dungeons:movement_speed": 0.02
-      },
-      "icon": "cranks-dungeons:passive/movement_speed"
-    },
-    {
-      "id": "n0038",
-      "name": "Quick Hands",
-      "description": "+5% Reload Speed",
-      "gridX": -7.271,
-      "gridY": 4.228,
-      "shape": "square",
-      "connections": [
-        "n0030",
-        "n0041",
-        "n0040"
-      ],
-      "modifiers": {
-        "cranks-dungeons:reload_speed": 0.05
-      },
-      "icon": "cranks-dungeons:passive/reload_speed"
-    },
-    {
-      "id": "n0039",
-      "name": "Quick Hands",
-      "description": "+5% Reload Speed",
-      "gridX": -5.59,
-      "gridY": 5.786,
-      "shape": "square",
-      "connections": [
-        "n0031",
-        "n0042",
-        "n0043"
-      ],
-      "modifiers": {
-        "cranks-dungeons:reload_speed": 0.05
-      },
-      "icon": "cranks-dungeons:passive/reload_speed"
-    },
-    {
-      "id": "n0040",
-      "name": "Venom Tip",
-      "description": "+5% Chance To Poison",
-      "gridX": -8.105,
-      "gridY": 3.698,
-      "shape": "square",
-      "connections": [
-        "n0038",
-        "n0044"
-      ],
-      "modifiers": {
-        "cranks-dungeons:chance_to_poison": 0.05
-      },
-      "icon": "cranks-dungeons:passive/poison"
-    },
-    {
-      "id": "n0041",
-      "name": "Lingering",
-      "description": "+8% Poison Duration",
-      "gridX": -8.118,
-      "gridY": 5.334,
-      "shape": "square",
-      "connections": [
-        "n0038",
-        "n0046"
-      ],
-      "modifiers": {
-        "cranks-dungeons:poison_duration": 0.08
-      },
-      "icon": "cranks-dungeons:passive/poison"
-    },
-    {
-      "id": "n0042",
-      "name": "Prolonged Chill",
-      "description": "+8% Freeze Duration",
-      "gridX": -7.099,
-      "gridY": 5.926,
-      "shape": "square",
-      "connections": [
-        "n0039",
-        "n0048"
-      ],
-      "modifiers": {
-        "cranks-dungeons:freeze_duration": 0.08
-      },
-      "icon": "cranks-dungeons:passive/freeze"
-    },
-    {
-      "id": "n0043",
-      "name": "Frost Edge",
-      "description": "+1 Cold Damage",
-      "gridX": -5.862,
-      "gridY": 7.077,
-      "shape": "square",
-      "connections": [
-        "n0039",
-        "n0049"
-      ],
-      "modifiers": {
-        "cranks-dungeons:cold_damage": 1.0
-      },
-      "icon": "cranks-dungeons:passive/cold"
-    },
-    {
-      "id": "n0044",
-      "name": "Venom Tip",
-      "description": "+5% Chance To Poison",
-      "gridX": -8.934,
-      "gridY": 3.566,
-      "shape": "square",
-      "connections": [
-        "n0040",
-        "n0045"
-      ],
-      "modifiers": {
-        "cranks-dungeons:chance_to_poison": 0.05
-      },
-      "icon": "cranks-dungeons:passive/poison"
-    },
-    {
-      "id": "n0045",
-      "name": "Venom Tip",
-      "description": "+5% Chance To Poison",
-      "gridX": -9.727,
-      "gridY": 3.772,
-      "shape": "square",
-      "connections": [
-        "n0044",
-        "n0047"
-      ],
-      "modifiers": {
-        "cranks-dungeons:chance_to_poison": 0.05
-      },
-      "icon": "cranks-dungeons:passive/poison"
-    },
-    {
-      "id": "n0046",
-      "name": "Lingering",
-      "description": "+8% Poison Duration",
-      "gridX": -9.714,
-      "gridY": 5.359,
-      "shape": "square",
-      "connections": [
-        "n0041",
-        "n0047"
-      ],
-      "modifiers": {
-        "cranks-dungeons:poison_duration": 0.08
-      },
-      "icon": "cranks-dungeons:passive/poison"
-    },
-    {
-      "id": "n0047",
-      "name": "Proliferate",
-      "description": "+2 Max Poison Stacks",
-      "gridX": -11.725,
-      "gridY": 4.643,
-      "shape": "circle",
-      "connections": [
-        "n0045",
-        "n0046",
-        "n0037",
-        "n0051",
-        "n0112",
-        "n0113"
-      ],
-      "modifiers": {
-        "cranks-dungeons:poison_max_stacks": 2.0
-      },
-      "icon": "cranks-dungeons:passive/poison"
-    },
-    {
-      "id": "n0048",
-      "name": "Prolonged Chill",
-      "description": "+8% Freeze Duration",
-      "gridX": -7.844,
-      "gridY": 6.836,
-      "shape": "square",
-      "connections": [
-        "n0042",
-        "n0050"
-      ],
-      "modifiers": {
-        "cranks-dungeons:freeze_duration": 0.08
-      },
-      "icon": "cranks-dungeons:passive/freeze"
-    },
-    {
-      "id": "n0049",
-      "name": "Frost Edge",
-      "description": "+1 Cold Damage",
-      "gridX": -6.65,
-      "gridY": 7.887,
-      "shape": "square",
-      "connections": [
-        "n0043",
-        "n0050"
-      ],
-      "modifiers": {
-        "cranks-dungeons:cold_damage": 1.0
-      },
-      "icon": "cranks-dungeons:passive/cold"
-    },
-    {
-      "id": "n0050",
-      "name": "Deep Freeze",
-      "description": "+10% Chance To Freeze",
-      "gridX": -8.335,
-      "gridY": 8.794,
-      "shape": "circle",
-      "connections": [
-        "n0048",
-        "n0049",
-        "n0036",
-        "n0053",
-        "n0120",
-        "n0119"
-      ],
-      "modifiers": {
-        "cranks-dungeons:freeze_buildup_percent": 0.1
-      },
-      "icon": "cranks-dungeons:passive/freeze"
-    },
-    {
-      "id": "n0051",
-      "name": "Sharp Eye",
-      "description": "+3% Crit Chance",
-      "gridX": -11.248,
-      "gridY": 6.544,
-      "shape": "square",
-      "connections": [
-        "n0047",
-        "n0052"
-      ],
-      "modifiers": {
-        "cranks-dungeons:crit_chance": 0.03
-      },
-      "icon": "cranks-dungeons:passive/crit_chance"
-    },
-    {
-      "id": "n0052",
-      "name": "Practiced",
-      "description": "+15% Reload Speed",
-      "gridX": -11.405,
-      "gridY": 7.897,
-      "shape": "circle",
-      "connections": [
-        "n0051",
-        "n0053"
-      ],
-      "modifiers": {
-        "cranks-dungeons:reload_speed": 0.15
-      },
-      "icon": "cranks-dungeons:passive/reload_speed"
-    },
-    {
-      "id": "n0053",
-      "name": "Sharp Eye",
-      "description": "+3% Crit Chance",
-      "gridX": -9.862,
-      "gridY": 8.04,
-      "shape": "square",
-      "connections": [
-        "n0050",
-        "n0052"
-      ],
-      "modifiers": {
-        "cranks-dungeons:crit_chance": 0.03
-      },
-      "icon": "cranks-dungeons:passive/crit_chance"
-    },
-    {
-      "id": "n0059",
-      "name": "Dodge",
-      "description": "+20 Evasion Rating",
-      "gridX": 4.85,
-      "gridY": 4.788,
-      "shape": "square",
-      "connections": [
-        "n0064",
-        "shadow_start",
-        "n0074"
-      ],
-      "modifiers": {
-        "cranks-dungeons:evasion_rating": 20.0
-      },
-      "icon": "cranks-dungeons:passive/evasion"
-    },
-    {
-      "id": "n0060",
-      "name": "Fortitude",
-      "description": "+2 Max Health Bonus",
-      "gridX": 6.527,
-      "gridY": 2.932,
-      "shape": "square",
-      "connections": [
-        "shadow_start",
-        "n0061",
-        "n0067"
-      ],
-      "modifiers": {
-        "cranks-dungeons:max_health_bonus": 2.0
-      },
-      "icon": "cranks-dungeons:passive/max_health_bonus"
-    },
-    {
-      "id": "n0061",
-      "name": "Fortitude",
-      "description": "+2 Max Health Bonus",
-      "gridX": 9.024,
-      "gridY": 2.522,
-      "shape": "square",
-      "connections": [
-        "n0062",
-        "n0060"
-      ],
-      "modifiers": {
-        "cranks-dungeons:max_health_bonus": 2.0
-      },
-      "icon": "cranks-dungeons:passive/max_health_bonus"
-    },
-    {
-      "id": "n0062",
-      "name": "Fortitude",
-      "description": "+2 Max Health Bonus",
-      "gridX": 11.258,
-      "gridY": 2.165,
-      "shape": "square",
-      "connections": [
-        "n0061",
-        "n0063"
-      ],
-      "modifiers": {
-        "cranks-dungeons:max_health_bonus": 2.0
-      },
-      "icon": "cranks-dungeons:passive/max_health_bonus"
-    },
-    {
-      "id": "n0063",
-      "name": "Fortitude",
-      "description": "+2 Max Health Bonus",
-      "gridX": 14.193,
-      "gridY": 1.812,
-      "shape": "square",
-      "connections": [
-        "n0062",
-        "n0073",
-        "n0148"
-      ],
-      "modifiers": {
-        "cranks-dungeons:max_health_bonus": 2.0
-      },
-      "icon": "cranks-dungeons:passive/max_health_bonus"
-    },
-    {
-      "id": "n0064",
-      "name": "Dodge",
-      "description": "+20 Evasion Rating",
-      "gridX": 5.052,
-      "gridY": 6.28,
-      "shape": "square",
-      "connections": [
-        "n0065",
-        "n0059"
-      ],
-      "modifiers": {
-        "cranks-dungeons:evasion_rating": 20.0
-      },
-      "icon": "cranks-dungeons:passive/evasion"
-    },
-    {
-      "id": "n0065",
-      "name": "Dodge",
-      "description": "+20 Evasion Rating",
-      "gridX": 5.56,
-      "gridY": 9.145,
-      "shape": "square",
-      "connections": [
-        "n0064",
-        "n0066"
-      ],
-      "modifiers": {
-        "cranks-dungeons:evasion_rating": 20.0
-      },
-      "icon": "cranks-dungeons:passive/evasion"
-    },
-    {
-      "id": "n0066",
-      "name": "Dodge",
-      "description": "+20 Evasion Rating",
-      "gridX": 6.549,
-      "gridY": 11.299,
-      "shape": "square",
-      "connections": [
-        "n0065",
-        "n0079",
-        "n0139"
-      ],
-      "modifiers": {
-        "cranks-dungeons:evasion_rating": 20.0
-      },
-      "icon": "cranks-dungeons:passive/evasion"
-    },
-    {
-      "id": "n0067",
-      "name": "Quick Draw",
-      "description": "+5% Attack Speed",
-      "gridX": 8.011,
-      "gridY": 4.075,
-      "shape": "square",
-      "connections": [
-        "n0069",
-        "n0068",
-        "n0060"
-      ],
-      "modifiers": {
-        "cranks-dungeons:attack_speed": 0.05
-      },
-      "icon": "cranks-dungeons:passive/attack_speed"
-    },
-    {
-      "id": "n0068",
-      "name": "Overcharge",
-      "description": "+5% Chance To Shock",
-      "gridX": 8.391,
-      "gridY": 5.076,
-      "shape": "square",
-      "connections": [
-        "n0067",
-        "n0071"
-      ],
-      "modifiers": {
-        "cranks-dungeons:chance_to_shock": 0.05
-      },
-      "icon": "cranks-dungeons:passive/shock"
-    },
-    {
-      "id": "n0069",
-      "name": "Static Strike",
-      "description": "+1 Lightning Damage",
-      "gridX": 9.071,
-      "gridY": 3.753,
-      "shape": "square",
-      "connections": [
-        "n0067",
-        "n0070"
-      ],
-      "modifiers": {
-        "cranks-dungeons:lightning_damage": 1.0
-      },
-      "icon": "cranks-dungeons:passive/lightning"
-    },
-    {
-      "id": "n0070",
-      "name": "Static Strike",
-      "description": "+1 Lightning Damage",
-      "gridX": 10.095,
-      "gridY": 3.971,
-      "shape": "square",
-      "connections": [
-        "n0069",
-        "n0073"
-      ],
-      "modifiers": {
-        "cranks-dungeons:lightning_damage": 1.0
-      },
-      "icon": "cranks-dungeons:passive/lightning"
-    },
-    {
-      "id": "n0071",
-      "name": "Overcharge",
-      "description": "+5% Chance To Shock",
-      "gridX": 9.635,
-      "gridY": 5.375,
-      "shape": "square",
-      "connections": [
-        "n0068",
-        "n0073"
-      ],
-      "modifiers": {
-        "cranks-dungeons:chance_to_shock": 0.05
-      },
-      "icon": "cranks-dungeons:passive/shock"
-    },
-    {
-      "id": "n0073",
-      "name": "Supercharge",
-      "description": "+16% Shock Duration",
-      "gridX": 11.2,
-      "gridY": 5.064,
-      "shape": "circle",
-      "connections": [
-        "n0070",
-        "n0071",
-        "n0081",
-        "n0063",
-        "n0141",
-        "n0142"
-      ],
-      "modifiers": {
-        "cranks-dungeons:shock_duration": 0.16
-      },
-      "icon": "cranks-dungeons:passive/shock"
-    },
-    {
-      "id": "n0074",
-      "name": "Quick Draw",
-      "description": "+5% Attack Speed",
-      "gridX": 6.008,
-      "gridY": 5.8,
-      "shape": "square",
-      "connections": [
-        "n0075",
-        "n0076",
-        "n0059"
-      ],
-      "modifiers": {
-        "cranks-dungeons:attack_speed": 0.05
-      },
-      "icon": "cranks-dungeons:passive/attack_speed"
-    },
-    {
-      "id": "n0075",
-      "name": "Fleet",
-      "description": "+2.0% Movement Speed",
-      "gridX": 5.951,
-      "gridY": 6.835,
-      "shape": "square",
-      "connections": [
-        "n0077",
-        "n0074"
-      ],
-      "modifiers": {
-        "cranks-dungeons:movement_speed": 0.02
-      },
-      "icon": "cranks-dungeons:passive/movement_speed"
-    },
-    {
-      "id": "n0076",
-      "name": "Abyssal Blade",
-      "description": "+1 Void Damage",
-      "gridX": 7.021,
-      "gridY": 5.869,
-      "shape": "square",
-      "connections": [
-        "n0074",
-        "n0078"
-      ],
-      "modifiers": {
-        "cranks-dungeons:void_damage": 1.0
-      },
-      "icon": "cranks-dungeons:passive/void"
-    },
-    {
-      "id": "n0077",
-      "name": "Fleet",
-      "description": "+2.0% Movement Speed",
-      "gridX": 6.929,
-      "gridY": 7.526,
-      "shape": "square",
-      "connections": [
-        "n0075",
-        "n0079"
-      ],
-      "modifiers": {
-        "cranks-dungeons:movement_speed": 0.02
-      },
-      "icon": "cranks-dungeons:passive/movement_speed"
-    },
-    {
-      "id": "n0078",
-      "name": "Abyssal Blade",
-      "description": "+1 Void Damage",
-      "gridX": 8.034,
-      "gridY": 6.398,
-      "shape": "square",
-      "connections": [
-        "n0076",
-        "n0079"
-      ],
-      "modifiers": {
-        "cranks-dungeons:void_damage": 1.0
-      },
-      "icon": "cranks-dungeons:passive/void"
-    },
-    {
-      "id": "n0079",
-      "name": "Void Core",
-      "description": "+3 Void Damage",
-      "gridX": 8.311,
-      "gridY": 7.848,
-      "shape": "circle",
-      "connections": [
-        "n0078",
-        "n0077",
-        "n0080",
-        "n0066",
-        "n0131",
-        "n0132"
-      ],
-      "modifiers": {
-        "cranks-dungeons:void_damage": 3.0
-      },
-      "icon": "cranks-dungeons:passive/void"
-    },
-    {
-      "id": "n0080",
-      "name": "Sharp Eye",
-      "description": "+3% Crit Chance",
-      "gridX": 9.98,
-      "gridY": 7.733,
-      "shape": "square",
-      "connections": [
-        "n0082",
-        "n0079"
-      ],
-      "modifiers": {
-        "cranks-dungeons:crit_chance": 0.03
-      },
-      "icon": "cranks-dungeons:passive/crit_chance"
-    },
-    {
-      "id": "n0081",
-      "name": "Sharp Eye",
-      "description": "+3% Crit Chance",
-      "gridX": 11.58,
-      "gridY": 6.191,
-      "shape": "square",
-      "connections": [
-        "n0082",
-        "n0073"
-      ],
-      "modifiers": {
-        "cranks-dungeons:crit_chance": 0.03
-      },
-      "icon": "cranks-dungeons:passive/crit_chance"
-    },
-    {
-      "id": "n0082",
-      "name": "Vicious",
-      "description": "+10% Crit Damage",
-      "gridX": 12.075,
-      "gridY": 7.572,
-      "shape": "circle",
-      "connections": [
-        "n0081",
-        "n0080"
-      ],
-      "modifiers": {
-        "cranks-dungeons:crit_multiplier": 0.1
-      },
-      "icon": "cranks-dungeons:passive/crit_chance"
-    },
-    {
-      "id": "n0083",
-      "name": "Fortitude",
-      "description": "+2 Max Health Bonus",
-      "gridX": -2.651,
-      "gridY": -11.59,
-      "shape": "square",
-      "connections": [
-        "n0021",
-        "n0084",
-        "n0086",
-        "n0085"
-      ],
-      "modifiers": {
-        "cranks-dungeons:max_health_bonus": 2.0
-      },
-      "icon": "cranks-dungeons:passive/max_health_bonus"
-    },
-    {
-      "id": "n0084",
-      "name": "Rend",
-      "description": "+5% Chance To Bleed",
-      "gridX": -2.672,
-      "gridY": -13.009,
-      "shape": "square",
-      "connections": [
-        "n0083",
-        "n0087"
-      ],
-      "modifiers": {
-        "cranks-dungeons:chance_to_bleed": 0.05
-      },
-      "icon": "cranks-dungeons:passive/bleed"
-    },
-    {
-      "id": "n0085",
-      "name": "Brutality",
-      "description": "+1 Physical Damage",
-      "gridX": -4.677,
-      "gridY": -13.163,
-      "shape": "square",
-      "connections": [
-        "n0083",
-        "n0088"
-      ],
-      "modifiers": {
-        "cranks-dungeons:bonus_attack_damage": 1.0
-      },
-      "icon": "cranks-dungeons:passive/physical_damage"
-    },
-    {
-      "id": "n0086",
-      "name": "Revenge",
-      "description": "+2% Life Steal",
-      "gridX": -0.613,
-      "gridY": -13.163,
-      "shape": "square",
-      "connections": [
-        "n0083",
-        "n0089"
-      ],
-      "modifiers": {
-        "cranks-dungeons:life_steal": 0.02
-      },
-      "icon": "cranks-dungeons:passive/life_steal"
-    },
-    {
-      "id": "n0087",
-      "name": "Bloodbath",
-      "description": "12% Bleed Duration",
-      "gridX": -2.664,
-      "gridY": -14.406,
-      "shape": "circle",
-      "connections": [
-        "n0084",
-        "n0090"
-      ],
-      "modifiers": {
-        "cranks-dungeons:bleed_duration": 0.12
-      },
-      "icon": "cranks-dungeons:passive/bleed"
-    },
-    {
-      "id": "n0088",
-      "name": "Heavy Blow",
-      "description": "+3 Physical Damage",
-      "gridX": -3.993,
-      "gridY": -14.926,
-      "shape": "circle",
-      "connections": [
-        "n0085",
-        "n0091"
-      ],
-      "modifiers": {
-        "cranks-dungeons:bonus_attack_damage": 3.0
-      },
-      "icon": "cranks-dungeons:passive/physical_damage"
-    },
-    {
-      "id": "n0089",
-      "name": "Bloodthirst",
-      "description": "+5% Life Steal",
-      "gridX": -1.329,
-      "gridY": -14.955,
-      "shape": "circle",
-      "connections": [
-        "n0092",
-        "n0086"
-      ],
-      "modifiers": {
-        "cranks-dungeons:life_steal": 0.05
-      },
-      "icon": "cranks-dungeons:passive/life_steal"
-    },
-    {
-      "id": "n0090",
-      "name": "Rend",
-      "description": "+5% Chance To Bleed",
-      "gridX": -2.658,
-      "gridY": -15.825,
-      "shape": "square",
-      "connections": [
-        "n0087",
-        "n0093"
-      ],
-      "modifiers": {
-        "cranks-dungeons:chance_to_bleed": 0.05
-      },
-      "icon": "cranks-dungeons:passive/bleed"
-    },
-    {
-      "id": "n0091",
-      "name": "Brutality",
-      "description": "+1 Physical Damage",
-      "gridX": -3.825,
-      "gridY": -16.776,
-      "shape": "square",
-      "connections": [
-        "n0088",
-        "n0093"
-      ],
-      "modifiers": {
-        "cranks-dungeons:bonus_attack_damage": 1.0
-      },
-      "icon": "cranks-dungeons:passive/physical_damage"
-    },
-    {
-      "id": "n0092",
-      "name": "Revenge",
-      "description": "+2% Life Steal",
-      "gridX": -1.484,
-      "gridY": -16.83,
-      "shape": "square",
-      "connections": [
-        "n0093",
-        "n0089"
-      ],
-      "modifiers": {
-        "cranks-dungeons:life_steal": 0.02
-      },
-      "icon": "cranks-dungeons:passive/life_steal"
-    },
-    {
-      "id": "n0093",
-      "name": "Fortitude",
-      "description": "+2 Max Health Bonus",
-      "gridX": -2.641,
-      "gridY": -17.638,
-      "shape": "square",
-      "connections": [
-        "n0090",
-        "n0092",
-        "n0091",
-        "n0095"
-      ],
-      "modifiers": {
-        "cranks-dungeons:max_health_bonus": 2.0
-      },
-      "icon": "cranks-dungeons:passive/max_health_bonus"
-    },
-    {
-      "id": "n0094",
-      "name": "Fortitude",
-      "description": "+2 Max Health Bonus",
-      "gridX": -7.71,
-      "gridY": -12.034,
-      "shape": "square",
-      "connections": [
-        "n0095",
-        "n0019"
-      ],
-      "modifiers": {
-        "cranks-dungeons:max_health_bonus": 2.0
-      },
-      "icon": "cranks-dungeons:passive/max_health_bonus"
-    },
-    {
-      "id": "n0095",
-      "name": "Fortitude",
-      "description": "+2 Max Health Bonus",
-      "gridX": -2.647,
-      "gridY": -19.578,
-      "shape": "square",
-      "connections": [
-        "n0093",
-        "n0094",
-        "n0106"
-      ],
-      "modifiers": {
-        "cranks-dungeons:max_health_bonus": 2.0
-      },
-      "icon": "cranks-dungeons:passive/max_health_bonus"
-    },
-    {
-      "id": "n0097",
-      "name": "Ember Strike",
-      "description": "+1 Fire Damage",
-      "gridX": 1.91,
-      "gridY": -13.138,
-      "shape": "square",
-      "connections": [
-        "n0099",
-        "n0024"
-      ],
-      "modifiers": {
-        "cranks-dungeons:fire_damage": 1.0
-      },
-      "icon": "cranks-dungeons:passive/fire"
-    },
-    {
-      "id": "n0098",
-      "name": "Juggernaut",
-      "description": "+16 Armor Toughness",
-      "gridX": 4.553,
-      "gridY": -13.134,
-      "shape": "square",
-      "connections": [
-        "n0100",
-        "n0024"
-      ],
-      "modifiers": {
-        "cranks-dungeons:bonus_armor_toughness": 16.0
-      },
-      "icon": "cranks-dungeons:passive/armor_toughness"
-    },
-    {
-      "id": "n0099",
-      "name": "Molten Core",
-      "description": "+3 Fire Damage",
-      "gridX": 2.266,
-      "gridY": -14.619,
-      "shape": "circle",
-      "connections": [
-        "n0101",
-        "n0097",
-        "n0102"
-      ],
-      "modifiers": {
-        "cranks-dungeons:fire_damage": 3.0
-      },
-      "icon": "cranks-dungeons:passive/fire"
-    },
-    {
-      "id": "n0100",
-      "name": "Tempered",
-      "description": "+30 Armor Toughness",
-      "gridX": 4.204,
-      "gridY": -14.594,
-      "shape": "circle",
-      "connections": [
-        "n0098",
-        "n0101",
-        "n0103"
-      ],
-      "modifiers": {
-        "cranks-dungeons:bonus_armor_toughness": 30.0
-      },
-      "icon": "cranks-dungeons:passive/armor_toughness"
-    },
-    {
-      "id": "n0101",
-      "name": "Pyroclasm",
-      "description": "+10% Burn Damage",
-      "gridX": 3.26,
-      "gridY": -13.775,
-      "shape": "circle",
-      "connections": [
-        "n0100",
-        "n0099",
-        "n0103",
-        "n0102"
-      ],
-      "modifiers": {
-        "cranks-dungeons:burn_damage_percent": 0.1
-      },
-      "icon": "cranks-dungeons:passive/burn"
-    },
-    {
-      "id": "n0102",
-      "name": "Ember Strike",
-      "description": "+1 Fire Damage",
-      "gridX": 2.498,
-      "gridY": -16.513,
-      "shape": "square",
-      "connections": [
-        "n0099",
-        "n0101",
-        "n0104"
-      ],
-      "modifiers": {
-        "cranks-dungeons:fire_damage": 1.0
-      },
-      "icon": "cranks-dungeons:passive/fire"
-    },
-    {
-      "id": "n0103",
-      "name": "Juggernaut",
-      "description": "+16 Armor Toughness",
-      "gridX": 3.93,
-      "gridY": -16.505,
-      "shape": "square",
-      "connections": [
-        "n0100",
-        "n0101",
-        "n0104"
-      ],
-      "modifiers": {
-        "cranks-dungeons:bonus_armor_toughness": 16.0
-      },
-      "icon": "cranks-dungeons:passive/armor_toughness"
-    },
-    {
-      "id": "n0104",
-      "name": "Iron Plating",
-      "description": "+30 Bonus Armor",
-      "gridX": 3.185,
-      "gridY": -19.599,
-      "shape": "square",
-      "connections": [
-        "n0102",
-        "n0103",
-        "n0105",
-        "n0106"
-      ],
-      "modifiers": {
-        "cranks-dungeons:bonus_armor": 30.0
-      },
-      "icon": "cranks-dungeons:passive/bonus_armor"
-    },
-    {
-      "id": "n0105",
-      "name": "Iron Plating",
-      "description": "+30 Bonus Armor",
-      "gridX": 8.85,
-      "gridY": -12.184,
-      "shape": "square",
-      "connections": [
-        "n0020",
-        "n0104"
-      ],
-      "modifiers": {
-        "cranks-dungeons:bonus_armor": 30.0
-      },
-      "icon": "cranks-dungeons:passive/bonus_armor"
-    },
-    {
-      "id": "n0106",
-      "name": "New Node Name",
-      "description": "Node description...",
-      "gridX": 0.3,
-      "gridY": -23.388,
-      "shape": "diamond",
-      "connections": [
-        "n0104",
-        "n0095",
-        "n0107"
+      "id": "armor_energy_shield",
+      "name": "Path of the Death Knight",
+      "description": "Start your journey as a Death Knight.",
+      "gridX": -8.5,
+      "gridY": -3.0,
+      "shape": "hexagon",
+      "connections": [
+        "node_101",
+        "node_102"
       ],
       "modifiers": {},
       "icon": "cranks-dungeons:passive/generic"
     },
     {
-      "id": "n0107",
-      "name": "Iron Plating",
-      "description": "+30 Bonus Armor",
-      "gridX": 0.332,
-      "gridY": -20.044,
-      "shape": "square",
-      "connections": [
-        "n0106",
-        "n0109",
-        "n0108"
-      ],
-      "modifiers": {
-        "cranks-dungeons:bonus_armor": 30.0
-      },
-      "icon": "cranks-dungeons:passive/bonus_armor"
+      "id": "armor_evasion_rating",
+      "name": "Path of the Mercenary",
+      "description": "Start your journey as a Mercenary.",
+      "gridX": 0.5,
+      "gridY": 16.0,
+      "shape": "hexagon",
+      "connections": [],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
     },
     {
-      "id": "n0108",
-      "name": "Fortitude",
-      "description": "+2 Max Health Bonus",
-      "gridX": -0.865,
-      "gridY": -17.667,
-      "shape": "square",
+      "id": "energy_shield_evasion_rating",
+      "name": "Path of the Monk",
+      "description": "Start your journey as a Monk.",
+      "gridX": 8.0,
+      "gridY": -3.0,
+      "shape": "hexagon",
       "connections": [
-        "n0111",
-        "n0107",
-        "n0110"
-      ],
-      "modifiers": {
-        "cranks-dungeons:max_health_bonus": 2.0
-      },
-      "icon": "cranks-dungeons:passive/max_health_bonus"
-    },
-    {
-      "id": "n0109",
-      "name": "Iron Plating",
-      "description": "+30 Bonus Armor",
-      "gridX": 1.529,
-      "gridY": -17.683,
-      "shape": "square",
-      "connections": [
-        "n0107",
-        "n0111",
-        "n0110"
-      ],
-      "modifiers": {
-        "cranks-dungeons:bonus_armor": 30.0
-      },
-      "icon": "cranks-dungeons:passive/bonus_armor"
-    },
-    {
-      "id": "n0110",
-      "name": "Fortitude",
-      "description": "+2 Max Health Bonus",
-      "gridX": 0.409,
-      "gridY": -15.919,
-      "shape": "square",
-      "connections": [
-        "n0108",
-        "n0109",
-        "n0026"
-      ],
-      "modifiers": {
-        "cranks-dungeons:max_health_bonus": 2.0
-      },
-      "icon": "cranks-dungeons:passive/max_health_bonus"
-    },
-    {
-      "id": "n0111",
-      "name": "Maximum Dosage",
-      "description": "+0.25 Health Regeneration",
-      "gridX": 0.363,
-      "gridY": -17.667,
-      "shape": "circle",
-      "connections": [
-        "n0109",
-        "n0108"
-      ],
-      "modifiers": {
-        "cranks-dungeons:life_regeneration": 0.25
-      },
-      "icon": "cranks-dungeons:passive/life_regeneration"
-    },
-    {
-      "id": "n0112",
-      "name": "New Node Name",
-      "description": "Node description...",
-      "gridX": -14.98,
-      "gridY": 4.42,
-      "shape": "square",
-      "connections": [
-        "n0047",
-        "n0114"
+        "node_55",
+        "node_56"
       ],
       "modifiers": {},
       "icon": "cranks-dungeons:passive/generic"
     },
     {
-      "id": "n0113",
-      "name": "New Node Name",
-      "description": "Node description...",
-      "gridX": -14.493,
-      "gridY": 6.115,
-      "shape": "square",
-      "connections": [
-        "n0047",
-        "n0115"
-      ],
-      "modifiers": {},
-      "icon": "cranks-dungeons:passive/generic"
-    },
-    {
-      "id": "n0114",
-      "name": "New Node Name",
-      "description": "Node description...",
-      "gridX": -16.464,
-      "gridY": 4.179,
-      "shape": "circle",
-      "connections": [
-        "n0117",
-        "n0112"
-      ],
-      "modifiers": {},
-      "icon": "cranks-dungeons:passive/generic"
-    },
-    {
-      "id": "n0115",
-      "name": "New Node Name",
-      "description": "Node description...",
-      "gridX": -15.799,
-      "gridY": 6.939,
-      "shape": "circle",
-      "connections": [
-        "n0113",
-        "n0116"
-      ],
-      "modifiers": {},
-      "icon": "cranks-dungeons:passive/generic"
-    },
-    {
-      "id": "n0116",
-      "name": "New Node Name",
-      "description": "Node description...",
-      "gridX": -17.419,
-      "gridY": 6.996,
-      "shape": "square",
-      "connections": [
-        "n0115",
-        "n0118"
-      ],
-      "modifiers": {},
-      "icon": "cranks-dungeons:passive/generic"
-    },
-    {
-      "id": "n0117",
-      "name": "New Node Name",
-      "description": "Node description...",
-      "gridX": -17.578,
-      "gridY": 4.63,
-      "shape": "square",
-      "connections": [
-        "n0118",
-        "n0114"
-      ],
-      "modifiers": {},
-      "icon": "cranks-dungeons:passive/generic"
-    },
-    {
-      "id": "n0118",
-      "name": "New Node Name",
-      "description": "Node description...",
-      "gridX": -18.655,
-      "gridY": 5.922,
-      "shape": "square",
-      "connections": [
-        "n0116",
-        "n0117",
-        "n0128"
-      ],
-      "modifiers": {},
-      "icon": "cranks-dungeons:passive/generic"
-    },
-    {
-      "id": "n0119",
-      "name": "New Node Name",
-      "description": "Node description...",
-      "gridX": -10.52,
-      "gridY": 10.068,
-      "shape": "square",
-      "connections": [
-        "n0121",
-        "n0050"
-      ],
-      "modifiers": {},
-      "icon": "cranks-dungeons:passive/generic"
-    },
-    {
-      "id": "n0120",
-      "name": "New Node Name",
-      "description": "Node description...",
-      "gridX": -9.322,
-      "gridY": 10.799,
-      "shape": "square",
-      "connections": [
-        "n0050",
-        "n0122"
-      ],
-      "modifiers": {},
-      "icon": "cranks-dungeons:passive/generic"
-    },
-    {
-      "id": "n0121",
-      "name": "New Node Name",
-      "description": "Node description...",
-      "gridX": -11.943,
-      "gridY": 10.7,
-      "shape": "circle",
-      "connections": [
-        "n0123",
-        "n0119"
-      ],
-      "modifiers": {},
-      "icon": "cranks-dungeons:passive/generic"
-    },
-    {
-      "id": "n0122",
-      "name": "New Node Name",
-      "description": "Node description...",
-      "gridX": -9.478,
-      "gridY": 12.299,
-      "shape": "circle",
-      "connections": [
-        "n0120",
-        "n0124"
-      ],
-      "modifiers": {},
-      "icon": "cranks-dungeons:passive/generic"
-    },
-    {
-      "id": "n0123",
-      "name": "New Node Name",
-      "description": "Node description...",
-      "gridX": -12.85,
-      "gridY": 12.09,
-      "shape": "square",
-      "connections": [
-        "n0125",
-        "n0121"
-      ],
-      "modifiers": {},
-      "icon": "cranks-dungeons:passive/generic"
-    },
-    {
-      "id": "n0124",
-      "name": "New Node Name",
-      "description": "Node description...",
-      "gridX": -10.749,
-      "gridY": 13.34,
-      "shape": "square",
-      "connections": [
-        "n0122",
-        "n0125"
-      ],
-      "modifiers": {},
-      "icon": "cranks-dungeons:passive/generic"
-    },
-    {
-      "id": "n0125",
-      "name": "New Node Name",
-      "description": "Node description...",
-      "gridX": -12.663,
-      "gridY": 13.602,
-      "shape": "square",
-      "connections": [
-        "n0124",
-        "n0123",
-        "n0129"
-      ],
-      "modifiers": {},
-      "icon": "cranks-dungeons:passive/generic"
-    },
-    {
-      "id": "n0126",
-      "name": "New Node Name",
-      "description": "Node description...",
-      "gridX": -17.187,
-      "gridY": 2.579,
-      "shape": "square",
-      "connections": [
-        "n0037",
-        "n0128"
-      ],
-      "modifiers": {},
-      "icon": "cranks-dungeons:passive/generic"
-    },
-    {
-      "id": "n0127",
-      "name": "New Node Name",
-      "description": "Node description...",
-      "gridX": -8.742,
-      "gridY": 15.85,
-      "shape": "square",
-      "connections": [
-        "n0036",
-        "n0129"
-      ],
-      "modifiers": {},
-      "icon": "cranks-dungeons:passive/generic"
-    },
-    {
-      "id": "n0128",
-      "name": "New Node Name",
-      "description": "Node description...",
-      "gridX": -20.269,
-      "gridY": 6.398,
-      "shape": "square",
-      "connections": [
-        "n0118",
-        "n0126",
-        "n0130"
-      ],
-      "modifiers": {},
-      "icon": "cranks-dungeons:passive/generic"
-    },
-    {
-      "id": "n0129",
-      "name": "New Node Name",
-      "description": "Node description...",
-      "gridX": -13.907,
-      "gridY": 15.474,
-      "shape": "square",
-      "connections": [
-        "n0127",
-        "n0125",
-        "n0130"
-      ],
-      "modifiers": {},
-      "icon": "cranks-dungeons:passive/generic"
-    },
-    {
-      "id": "n0130",
-      "name": "New Node Name",
-      "description": "Node description...",
-      "gridX": -19.016,
-      "gridY": 11.945,
-      "shape": "diamond",
-      "connections": [
-        "n0128",
-        "n0129"
-      ],
-      "modifiers": {},
-      "icon": "cranks-dungeons:passive/generic"
-    },
-    {
-      "id": "n0131",
-      "name": "New Node Name",
-      "description": "Node description...",
-      "gridX": 9.756,
-      "gridY": 8.295,
-      "shape": "square",
-      "connections": [
-        "n0079",
-        "n0134"
-      ],
-      "modifiers": {},
-      "icon": "cranks-dungeons:passive/generic"
-    },
-    {
-      "id": "n0132",
-      "name": "New Node Name",
-      "description": "Node description...",
-      "gridX": 8.821,
-      "gridY": 8.991,
-      "shape": "square",
-      "connections": [
-        "n0079",
-        "n0133"
-      ],
-      "modifiers": {},
-      "icon": "cranks-dungeons:passive/generic"
-    },
-    {
-      "id": "n0133",
-      "name": "New Node Name",
-      "description": "Node description...",
-      "gridX": 9.312,
-      "gridY": 9.715,
-      "shape": "circle",
-      "connections": [
-        "n0132",
-        "n0135"
-      ],
-      "modifiers": {},
-      "icon": "cranks-dungeons:passive/generic"
-    },
-    {
-      "id": "n0134",
-      "name": "New Node Name",
-      "description": "Node description...",
-      "gridX": 10.676,
-      "gridY": 8.736,
-      "shape": "circle",
-      "connections": [
-        "n0131",
-        "n0136"
-      ],
-      "modifiers": {},
-      "icon": "cranks-dungeons:passive/generic"
-    },
-    {
-      "id": "n0135",
-      "name": "New Node Name",
-      "description": "Node description...",
-      "gridX": 9.977,
-      "gridY": 10.276,
-      "shape": "square",
-      "connections": [
-        "n0133",
-        "n0137"
-      ],
-      "modifiers": {},
-      "icon": "cranks-dungeons:passive/generic"
-    },
-    {
-      "id": "n0136",
-      "name": "New Node Name",
-      "description": "Node description...",
-      "gridX": 11.552,
-      "gridY": 9.617,
-      "shape": "square",
-      "connections": [
-        "n0134",
-        "n0138"
-      ],
-      "modifiers": {},
-      "icon": "cranks-dungeons:passive/generic"
-    },
-    {
-      "id": "n0137",
-      "name": "New Node Name",
-      "description": "Node description...",
-      "gridX": 10.846,
-      "gridY": 10.663,
-      "shape": "square",
-      "connections": [
-        "n0135",
-        "n0138"
-      ],
-      "modifiers": {},
-      "icon": "cranks-dungeons:passive/generic"
-    },
-    {
-      "id": "n0138",
-      "name": "New Node Name",
-      "description": "Node description...",
-      "gridX": 12.483,
-      "gridY": 11.256,
-      "shape": "square",
-      "connections": [
-        "n0136",
-        "n0137",
-        "n0139",
-        "n0140"
-      ],
-      "modifiers": {},
-      "icon": "cranks-dungeons:passive/generic"
-    },
-    {
-      "id": "n0139",
-      "name": "New Node Name",
-      "description": "Node description...",
-      "gridX": 8.442,
-      "gridY": 11.274,
-      "shape": "square",
-      "connections": [
-        "n0066",
-        "n0138"
-      ],
-      "modifiers": {},
-      "icon": "cranks-dungeons:passive/generic"
-    },
-    {
-      "id": "n0140",
-      "name": "New Node Name",
+      "id": "node_1",
+      "name": "",
       "description": "",
-      "gridX": 22.081,
-      "gridY": 11.224,
-      "shape": "diamond",
-      "connections": [
-        "n0138",
-        "n0149"
-      ],
-      "modifiers": {},
-      "icon": "cranks-dungeons:passive/generic"
-    },
-    {
-      "id": "n0141",
-      "name": "New Node Name",
-      "description": "Node description...",
-      "gridX": 12.871,
-      "gridY": 6.321,
+      "gridX": -2.0,
+      "gridY": -9.5,
       "shape": "square",
       "connections": [
-        "n0073",
-        "n0143"
+        "witch_start",
+        "node_3",
+        "node_4"
       ],
       "modifiers": {},
       "icon": "cranks-dungeons:passive/generic"
     },
     {
-      "id": "n0142",
-      "name": "New Node Name",
-      "description": "Node description...",
-      "gridX": 12.855,
-      "gridY": 4.873,
+      "id": "node_10",
+      "name": "",
+      "description": "",
+      "gridX": 2.5,
+      "gridY": -12.0,
       "shape": "square",
       "connections": [
-        "n0073",
-        "n0144"
+        "node_5",
+        "node_15"
       ],
       "modifiers": {},
       "icon": "cranks-dungeons:passive/generic"
     },
     {
-      "id": "n0143",
-      "name": "New Node Name",
-      "description": "Node description...",
-      "gridX": 14.284,
-      "gridY": 7.126,
+      "id": "node_100",
+      "name": "",
+      "description": "",
+      "gridX": 19.5,
+      "gridY": -14.0,
+      "shape": "square",
+      "connections": [
+        "node_94",
+        "node_86"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_101",
+      "name": "",
+      "description": "",
+      "gridX": -9.0,
+      "gridY": -5.0,
+      "shape": "square",
+      "connections": [
+        "death_knight_start",
+        "node_103",
+        "node_104",
+        "node_120"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_102",
+      "name": "",
+      "description": "",
+      "gridX": -10.5,
+      "gridY": -3.5,
+      "shape": "square",
+      "connections": [
+        "death_knight_start",
+        "node_107",
+        "node_106",
+        "node_128"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_103",
+      "name": "",
+      "description": "",
+      "gridX": -11.0,
+      "gridY": -6.0,
+      "shape": "square",
+      "connections": [
+        "node_101",
+        "node_108"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_104",
+      "name": "",
+      "description": "",
+      "gridX": -10.0,
+      "gridY": -7.0,
+      "shape": "square",
+      "connections": [
+        "node_101",
+        "node_105"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_105",
+      "name": "",
+      "description": "",
+      "gridX": -10.5,
+      "gridY": -8.0,
+      "shape": "square",
+      "connections": [
+        "node_104",
+        "node_110"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_106",
+      "name": "",
+      "description": "",
+      "gridX": -12.0,
+      "gridY": -5.0,
+      "shape": "square",
+      "connections": [
+        "node_102",
+        "node_112"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_107",
+      "name": "",
+      "description": "",
+      "gridX": -13.0,
+      "gridY": -4.0,
+      "shape": "square",
+      "connections": [
+        "node_102",
+        "node_114"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_108",
+      "name": "",
+      "description": "",
+      "gridX": -12.0,
+      "gridY": -6.5,
+      "shape": "square",
+      "connections": [
+        "node_103",
+        "node_109"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_109",
+      "name": "",
+      "description": "",
+      "gridX": -12.5,
+      "gridY": -7.5,
+      "shape": "square",
+      "connections": [
+        "node_108",
+        "node_111"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_11",
+      "name": "",
+      "description": "",
+      "gridX": -2.5,
+      "gridY": -13.0,
+      "shape": "square",
+      "connections": [
+        "node_7",
+        "node_13"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_110",
+      "name": "",
+      "description": "",
+      "gridX": -11.5,
+      "gridY": -8.5,
+      "shape": "square",
+      "connections": [
+        "node_105",
+        "node_111"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_111",
+      "name": "",
+      "description": "",
+      "gridX": -13.0,
+      "gridY": -9.0,
       "shape": "circle",
       "connections": [
-        "n0141",
-        "n0147"
+        "node_109",
+        "node_110",
+        "node_118",
+        "node_122",
+        "node_132",
+        "node_135"
       ],
       "modifiers": {},
       "icon": "cranks-dungeons:passive/generic"
     },
     {
-      "id": "n0144",
-      "name": "New Node Name",
-      "description": "Node description...",
-      "gridX": 14.296,
-      "gridY": 4.777,
+      "id": "node_112",
+      "name": "",
+      "description": "",
+      "gridX": -13.0,
+      "gridY": -6.0,
+      "shape": "square",
+      "connections": [
+        "node_106",
+        "node_113"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_113",
+      "name": "",
+      "description": "",
+      "gridX": -14.0,
+      "gridY": -6.5,
+      "shape": "square",
+      "connections": [
+        "node_112",
+        "node_116"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_114",
+      "name": "",
+      "description": "",
+      "gridX": -14.0,
+      "gridY": -4.5,
+      "shape": "square",
+      "connections": [
+        "node_107",
+        "node_115"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_115",
+      "name": "",
+      "description": "",
+      "gridX": -15.0,
+      "gridY": -5.5,
+      "shape": "square",
+      "connections": [
+        "node_114",
+        "node_116"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_116",
+      "name": "",
+      "description": "",
+      "gridX": -15.5,
+      "gridY": -7.0,
       "shape": "circle",
       "connections": [
-        "n0142",
-        "n0145"
+        "node_113",
+        "node_115",
+        "node_117",
+        "node_130",
+        "node_131",
+        "node_139"
       ],
       "modifiers": {},
       "icon": "cranks-dungeons:passive/generic"
     },
     {
-      "id": "n0145",
-      "name": "New Node Name",
-      "description": "Node description...",
-      "gridX": 15.485,
-      "gridY": 5.108,
+      "id": "node_117",
+      "name": "",
+      "description": "",
+      "gridX": -15.0,
+      "gridY": -8.0,
       "shape": "square",
       "connections": [
-        "n0144",
-        "n0146"
+        "node_116",
+        "node_119"
       ],
       "modifiers": {},
       "icon": "cranks-dungeons:passive/generic"
     },
     {
-      "id": "n0146",
-      "name": "New Node Name",
-      "description": "Node description...",
-      "gridX": 16.546,
-      "gridY": 5.688,
+      "id": "node_118",
+      "name": "",
+      "description": "",
+      "gridX": -14.0,
+      "gridY": -9.0,
       "shape": "square",
       "connections": [
-        "n0145",
-        "n0149"
+        "node_111",
+        "node_119"
       ],
       "modifiers": {},
       "icon": "cranks-dungeons:passive/generic"
     },
     {
-      "id": "n0147",
-      "name": "New Node Name",
-      "description": "Node description...",
-      "gridX": 15.877,
-      "gridY": 7.472,
+      "id": "node_119",
+      "name": "",
+      "description": "",
+      "gridX": -13.5,
+      "gridY": -7.5,
+      "shape": "circle",
+      "connections": [
+        "node_118",
+        "node_117"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_12",
+      "name": "",
+      "description": "",
+      "gridX": -1.5,
+      "gridY": -13.0,
       "shape": "square",
       "connections": [
-        "n0143",
-        "n0149"
+        "node_8",
+        "node_13"
       ],
       "modifiers": {},
       "icon": "cranks-dungeons:passive/generic"
     },
     {
-      "id": "n0148",
-      "name": "New Node Name",
-      "description": "Node description...",
-      "gridX": 15.463,
-      "gridY": 3.235,
+      "id": "node_120",
+      "name": "",
+      "description": "",
+      "gridX": -9.0,
+      "gridY": -8.0,
       "shape": "square",
       "connections": [
-        "n0063",
-        "n0149"
+        "node_101",
+        "node_121"
       ],
       "modifiers": {},
       "icon": "cranks-dungeons:passive/generic"
     },
     {
-      "id": "n0149",
-      "name": "New Node Name",
-      "description": "Node description...",
-      "gridX": 18.699,
-      "gridY": 7.118,
+      "id": "node_121",
+      "name": "",
+      "description": "",
+      "gridX": -10.0,
+      "gridY": -10.0,
       "shape": "square",
       "connections": [
-        "n0148",
-        "n0146",
-        "n0147",
-        "n0140"
+        "node_120",
+        "node_122"
       ],
       "modifiers": {},
       "icon": "cranks-dungeons:passive/generic"
     },
     {
-      "id": "scoundrel_start",
-      "name": "Path of the Scoundrel",
-      "description": "Start your journey as a Scoundrel.",
-      "gridX": -3.887,
-      "gridY": 3.133,
-      "shape": "diamond",
+      "id": "node_122",
+      "name": "",
+      "description": "",
+      "gridX": -11.0,
+      "gridY": -11.5,
+      "shape": "square",
       "connections": [
-        "n0030",
-        "n0031"
+        "node_111",
+        "node_121",
+        "node_127",
+        "node_154"
       ],
       "modifiers": {},
-      "icon": "cranks-dungeons:passive/scoundrel"
+      "icon": "cranks-dungeons:passive/generic"
     },
     {
-      "id": "shadow_start",
-      "name": "Path of the Shadow",
-      "description": "Start your journey as a Shadow.",
-      "gridX": 4.856,
-      "gridY": 3.221,
-      "shape": "diamond",
+      "id": "node_125",
+      "name": "",
+      "description": "",
+      "gridX": -8.5,
+      "gridY": -13.5,
+      "shape": "square",
       "connections": [
-        "n0059",
-        "n0060"
+        "node_20",
+        "node_126"
       ],
       "modifiers": {},
-      "icon": "cranks-dungeons:passive/shadow"
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_126",
+      "name": "",
+      "description": "",
+      "gridX": -10.0,
+      "gridY": -14.0,
+      "shape": "square",
+      "connections": [
+        "node_125",
+        "node_127"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_127",
+      "name": "",
+      "description": "",
+      "gridX": -10.0,
+      "gridY": -12.5,
+      "shape": "square",
+      "connections": [
+        "node_126",
+        "node_122"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_128",
+      "name": "",
+      "description": "",
+      "gridX": -14.5,
+      "gridY": -2.5,
+      "shape": "square",
+      "connections": [
+        "node_102",
+        "node_129"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_129",
+      "name": "",
+      "description": "",
+      "gridX": -16.5,
+      "gridY": -3.5,
+      "shape": "square",
+      "connections": [
+        "node_128",
+        "node_130"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_13",
+      "name": "",
+      "description": "",
+      "gridX": -2.0,
+      "gridY": -14.5,
+      "shape": "circle",
+      "connections": [
+        "node_12",
+        "node_11",
+        "node_20",
+        "node_22",
+        "node_21",
+        "node_27"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_130",
+      "name": "",
+      "description": "",
+      "gridX": -18.0,
+      "gridY": -4.5,
+      "shape": "square",
+      "connections": [
+        "node_116",
+        "node_129",
+        "node_149"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_131",
+      "name": "",
+      "description": "",
+      "gridX": -16.5,
+      "gridY": -9.0,
+      "shape": "square",
+      "connections": [
+        "node_116",
+        "node_133",
+        "node_134"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_132",
+      "name": "",
+      "description": "",
+      "gridX": -15.0,
+      "gridY": -10.5,
+      "shape": "square",
+      "connections": [
+        "node_111",
+        "node_133",
+        "node_134"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_133",
+      "name": "",
+      "description": "",
+      "gridX": -16.0,
+      "gridY": -10.0,
+      "shape": "circle",
+      "connections": [
+        "node_132",
+        "node_131"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_134",
+      "name": "",
+      "description": "",
+      "gridX": -17.0,
+      "gridY": -11.0,
+      "shape": "square",
+      "connections": [
+        "node_132",
+        "node_131",
+        "node_151"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_135",
+      "name": "",
+      "description": "",
+      "gridX": -13.0,
+      "gridY": -10.5,
+      "shape": "square",
+      "connections": [
+        "node_111",
+        "node_136",
+        "node_137"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_136",
+      "name": "",
+      "description": "",
+      "gridX": -15.5,
+      "gridY": -11.5,
+      "shape": "square",
+      "connections": [
+        "node_135",
+        "node_137",
+        "node_146"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_137",
+      "name": "",
+      "description": "",
+      "gridX": -13.5,
+      "gridY": -12.5,
+      "shape": "square",
+      "connections": [
+        "node_135",
+        "node_136",
+        "node_138"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_138",
+      "name": "",
+      "description": "",
+      "gridX": -14.0,
+      "gridY": -11.5,
+      "shape": "circle",
+      "connections": [
+        "node_137"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_139",
+      "name": "",
+      "description": "",
+      "gridX": -17.0,
+      "gridY": -7.5,
+      "shape": "square",
+      "connections": [
+        "node_116",
+        "node_140",
+        "node_141"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_14",
+      "name": "",
+      "description": "",
+      "gridX": 1.5,
+      "gridY": -13.0,
+      "shape": "square",
+      "connections": [
+        "node_9",
+        "node_16"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_140",
+      "name": "",
+      "description": "",
+      "gridX": -18.0,
+      "gridY": -10.0,
+      "shape": "square",
+      "connections": [
+        "node_139",
+        "node_141",
+        "node_143"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_141",
+      "name": "",
+      "description": "",
+      "gridX": -19.0,
+      "gridY": -8.0,
+      "shape": "square",
+      "connections": [
+        "node_140",
+        "node_139",
+        "node_142"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_142",
+      "name": "",
+      "description": "",
+      "gridX": -18.0,
+      "gridY": -8.5,
+      "shape": "circle",
+      "connections": [
+        "node_141"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_143",
+      "name": "",
+      "description": "",
+      "gridX": -19.0,
+      "gridY": -10.5,
+      "shape": "square",
+      "connections": [
+        "node_144",
+        "node_140"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_144",
+      "name": "",
+      "description": "",
+      "gridX": -20.0,
+      "gridY": -11.0,
+      "shape": "circle",
+      "connections": [
+        "node_145",
+        "node_143"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_145",
+      "name": "",
+      "description": "",
+      "gridX": -21.0,
+      "gridY": -12.0,
+      "shape": "square",
+      "connections": [
+        "node_144",
+        "node_153",
+        "node_150"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_146",
+      "name": "",
+      "description": "",
+      "gridX": -16.0,
+      "gridY": -12.5,
+      "shape": "square",
+      "connections": [
+        "node_147",
+        "node_136"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_147",
+      "name": "",
+      "description": "",
+      "gridX": -16.5,
+      "gridY": -13.5,
+      "shape": "circle",
+      "connections": [
+        "node_148",
+        "node_146"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_148",
+      "name": "",
+      "description": "",
+      "gridX": -17.5,
+      "gridY": -14.5,
+      "shape": "square",
+      "connections": [
+        "node_147",
+        "node_153",
+        "node_155"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_149",
+      "name": "",
+      "description": "",
+      "gridX": -21.0,
+      "gridY": -8.0,
+      "shape": "square",
+      "connections": [
+        "node_130",
+        "node_150"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_15",
+      "name": "",
+      "description": "",
+      "gridX": 2.5,
+      "gridY": -13.0,
+      "shape": "square",
+      "connections": [
+        "node_10",
+        "node_16"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_150",
+      "name": "",
+      "description": "",
+      "gridX": -23.0,
+      "gridY": -11.0,
+      "shape": "square",
+      "connections": [
+        "node_149",
+        "node_145",
+        "node_156"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_151",
+      "name": "",
+      "description": "",
+      "gridX": -18.0,
+      "gridY": -12.0,
+      "shape": "circle",
+      "connections": [
+        "node_134",
+        "node_152"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_152",
+      "name": "",
+      "description": "",
+      "gridX": -19.0,
+      "gridY": -13.0,
+      "shape": "square",
+      "connections": [
+        "node_151",
+        "node_153"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_153",
+      "name": "",
+      "description": "",
+      "gridX": -20.0,
+      "gridY": -14.0,
+      "shape": "square",
+      "connections": [
+        "node_152",
+        "node_148",
+        "node_145",
+        "node_156"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_154",
+      "name": "",
+      "description": "",
+      "gridX": -14.0,
+      "gridY": -14.5,
+      "shape": "square",
+      "connections": [
+        "node_122",
+        "node_155"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_155",
+      "name": "",
+      "description": "",
+      "gridX": -16.0,
+      "gridY": -16.0,
+      "shape": "square",
+      "connections": [
+        "node_154",
+        "node_148",
+        "node_156"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_156",
+      "name": "",
+      "description": "",
+      "gridX": -22.0,
+      "gridY": -16.0,
+      "shape": "square",
+      "connections": [
+        "node_153",
+        "node_155",
+        "node_150"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_16",
+      "name": "",
+      "description": "",
+      "gridX": 2.0,
+      "gridY": -14.5,
+      "shape": "circle",
+      "connections": [
+        "node_15",
+        "node_14",
+        "node_19",
+        "node_24",
+        "node_23",
+        "node_28",
+        "node_29"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_17",
+      "name": "",
+      "description": "",
+      "gridX": 5.5,
+      "gridY": -13.0,
+      "shape": "square",
+      "connections": [
+        "node_6",
+        "node_19"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_18",
+      "name": "",
+      "description": "",
+      "gridX": -5.0,
+      "gridY": -12.5,
+      "shape": "square",
+      "connections": [
+        "node_4",
+        "node_20"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_19",
+      "name": "",
+      "description": "",
+      "gridX": 7.0,
+      "gridY": -14.5,
+      "shape": "square",
+      "connections": [
+        "node_17",
+        "node_16",
+        "node_47",
+        "node_74"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_2",
+      "name": "",
+      "description": "",
+      "gridX": 2.0,
+      "gridY": -9.5,
+      "shape": "square",
+      "connections": [
+        "witch_start",
+        "node_5",
+        "node_6"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_20",
+      "name": "",
+      "description": "",
+      "gridX": -7.0,
+      "gridY": -14.5,
+      "shape": "square",
+      "connections": [
+        "node_18",
+        "node_13",
+        "node_48",
+        "node_125"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_21",
+      "name": "",
+      "description": "",
+      "gridX": -1.0,
+      "gridY": -15.0,
+      "shape": "square",
+      "connections": [
+        "node_13",
+        "node_26"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_22",
+      "name": "",
+      "description": "",
+      "gridX": -1.0,
+      "gridY": -14.0,
+      "shape": "square",
+      "connections": [
+        "node_13",
+        "node_25"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_23",
+      "name": "",
+      "description": "",
+      "gridX": 1.0,
+      "gridY": -15.0,
+      "shape": "square",
+      "connections": [
+        "node_16",
+        "node_26"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_24",
+      "name": "",
+      "description": "",
+      "gridX": 1.0,
+      "gridY": -14.0,
+      "shape": "square",
+      "connections": [
+        "node_16",
+        "node_25"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_25",
+      "name": "",
+      "description": "",
+      "gridX": 0.0,
+      "gridY": -13.0,
+      "shape": "circle",
+      "connections": [
+        "node_24",
+        "node_22"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_26",
+      "name": "",
+      "description": "",
+      "gridX": 0.0,
+      "gridY": -16.0,
+      "shape": "circle",
+      "connections": [
+        "node_21",
+        "node_23",
+        "node_53"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_27",
+      "name": "",
+      "description": "",
+      "gridX": -2.0,
+      "gridY": -16.0,
+      "shape": "square",
+      "connections": [
+        "node_13",
+        "node_30",
+        "node_32",
+        "node_33"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_28",
+      "name": "",
+      "description": "",
+      "gridX": 0.5,
+      "gridY": -17.0,
+      "shape": "square",
+      "connections": [
+        "node_16",
+        "node_40"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_29",
+      "name": "",
+      "description": "",
+      "gridX": 3.5,
+      "gridY": -17.0,
+      "shape": "square",
+      "connections": [
+        "node_16",
+        "node_42"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_3",
+      "name": "",
+      "description": "",
+      "gridX": -2.0,
+      "gridY": -11.0,
+      "shape": "square",
+      "connections": [
+        "node_1",
+        "node_8",
+        "node_7"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_30",
+      "name": "",
+      "description": "",
+      "gridX": -2.0,
+      "gridY": -17.0,
+      "shape": "square",
+      "connections": [
+        "node_27",
+        "node_31"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_31",
+      "name": "",
+      "description": "",
+      "gridX": -2.0,
+      "gridY": -18.0,
+      "shape": "circle",
+      "connections": [
+        "node_30",
+        "node_36"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_32",
+      "name": "",
+      "description": "",
+      "gridX": -0.5,
+      "gridY": -17.0,
+      "shape": "square",
+      "connections": [
+        "node_27",
+        "node_34"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_33",
+      "name": "",
+      "description": "",
+      "gridX": -3.5,
+      "gridY": -17.0,
+      "shape": "square",
+      "connections": [
+        "node_27",
+        "node_35"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_34",
+      "name": "",
+      "description": "",
+      "gridX": -1.0,
+      "gridY": -18.5,
+      "shape": "circle",
+      "connections": [
+        "node_32",
+        "node_38"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_35",
+      "name": "",
+      "description": "",
+      "gridX": -3.0,
+      "gridY": -18.5,
+      "shape": "circle",
+      "connections": [
+        "node_33",
+        "node_37"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_36",
+      "name": "",
+      "description": "",
+      "gridX": -2.0,
+      "gridY": -19.0,
+      "shape": "square",
+      "connections": [
+        "node_31",
+        "node_39"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_37",
+      "name": "",
+      "description": "",
+      "gridX": -2.5,
+      "gridY": -20.0,
+      "shape": "square",
+      "connections": [
+        "node_35",
+        "node_39"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_38",
+      "name": "",
+      "description": "",
+      "gridX": -1.5,
+      "gridY": -20.0,
+      "shape": "square",
+      "connections": [
+        "node_34",
+        "node_39"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_39",
+      "name": "",
+      "description": "",
+      "gridX": -2.0,
+      "gridY": -21.0,
+      "shape": "square",
+      "connections": [
+        "node_36",
+        "node_38",
+        "node_37",
+        "node_45"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_4",
+      "name": "",
+      "description": "",
+      "gridX": -3.5,
+      "gridY": -11.0,
+      "shape": "square",
+      "connections": [
+        "node_1",
+        "node_18"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_40",
+      "name": "",
+      "description": "",
+      "gridX": 1.0,
+      "gridY": -18.5,
+      "shape": "circle",
+      "connections": [
+        "node_28",
+        "node_41"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_41",
+      "name": "",
+      "description": "",
+      "gridX": 1.5,
+      "gridY": -20.0,
+      "shape": "square",
+      "connections": [
+        "node_40",
+        "node_44",
+        "node_46"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_42",
+      "name": "",
+      "description": "",
+      "gridX": 3.0,
+      "gridY": -18.5,
+      "shape": "circle",
+      "connections": [
+        "node_29",
+        "node_43"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_43",
+      "name": "",
+      "description": "",
+      "gridX": 2.5,
+      "gridY": -20.0,
+      "shape": "square",
+      "connections": [
+        "node_42",
+        "node_44",
+        "node_46"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_44",
+      "name": "",
+      "description": "",
+      "gridX": 2.0,
+      "gridY": -17.5,
+      "shape": "circle",
+      "connections": [
+        "node_41",
+        "node_43"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_45",
+      "name": "",
+      "description": "",
+      "gridX": -2.0,
+      "gridY": -22.5,
+      "shape": "square",
+      "connections": [
+        "node_39",
+        "node_48",
+        "node_49"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_46",
+      "name": "",
+      "description": "",
+      "gridX": 2.0,
+      "gridY": -22.5,
+      "shape": "square",
+      "connections": [
+        "node_41",
+        "node_43",
+        "node_47",
+        "node_49"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_47",
+      "name": "",
+      "description": "",
+      "gridX": 5.0,
+      "gridY": -18.0,
+      "shape": "square",
+      "connections": [
+        "node_19",
+        "node_46"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_48",
+      "name": "",
+      "description": "",
+      "gridX": -5.0,
+      "gridY": -18.0,
+      "shape": "square",
+      "connections": [
+        "node_20",
+        "node_45"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_49",
+      "name": "",
+      "description": "",
+      "gridX": 0.0,
+      "gridY": -25.5,
+      "shape": "square",
+      "connections": [
+        "node_46",
+        "node_45",
+        "node_50"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_5",
+      "name": "",
+      "description": "",
+      "gridX": 2.0,
+      "gridY": -11.0,
+      "shape": "square",
+      "connections": [
+        "node_2",
+        "node_9",
+        "node_10"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_50",
+      "name": "",
+      "description": "",
+      "gridX": 0.0,
+      "gridY": -23.5,
+      "shape": "square",
+      "connections": [
+        "node_49",
+        "node_51",
+        "node_52"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_51",
+      "name": "",
+      "description": "",
+      "gridX": 1.0,
+      "gridY": -21.5,
+      "shape": "square",
+      "connections": [
+        "node_50",
+        "node_53",
+        "node_54"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_52",
+      "name": "",
+      "description": "",
+      "gridX": -1.0,
+      "gridY": -21.5,
+      "shape": "square",
+      "connections": [
+        "node_50",
+        "node_53",
+        "node_54"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_53",
+      "name": "",
+      "description": "",
+      "gridX": 0.0,
+      "gridY": -19.5,
+      "shape": "square",
+      "connections": [
+        "node_52",
+        "node_51",
+        "node_26"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_54",
+      "name": "",
+      "description": "",
+      "gridX": 0.0,
+      "gridY": -21.5,
+      "shape": "circle",
+      "connections": [
+        "node_51",
+        "node_52"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_55",
+      "name": "",
+      "description": "",
+      "gridX": 8.5,
+      "gridY": -5.0,
+      "shape": "square",
+      "connections": [
+        "monk_start",
+        "node_57",
+        "node_64"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_56",
+      "name": "",
+      "description": "",
+      "gridX": 10.0,
+      "gridY": -3.5,
+      "shape": "square",
+      "connections": [
+        "monk_start",
+        "node_58",
+        "node_70"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_57",
+      "name": "",
+      "description": "",
+      "gridX": 9.5,
+      "gridY": -6.0,
+      "shape": "square",
+      "connections": [
+        "node_55",
+        "node_59",
+        "node_62"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_58",
+      "name": "",
+      "description": "",
+      "gridX": 11.0,
+      "gridY": -4.5,
+      "shape": "square",
+      "connections": [
+        "node_56",
+        "node_65",
+        "node_69"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_59",
+      "name": "",
+      "description": "",
+      "gridX": 10.5,
+      "gridY": -7.0,
+      "shape": "square",
+      "connections": [
+        "node_57",
+        "node_60"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_6",
+      "name": "",
+      "description": "",
+      "gridX": 3.5,
+      "gridY": -11.0,
+      "shape": "square",
+      "connections": [
+        "node_2",
+        "node_17"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_60",
+      "name": "",
+      "description": "",
+      "gridX": 11.5,
+      "gridY": -8.0,
+      "shape": "square",
+      "connections": [
+        "node_59",
+        "node_63"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_61",
+      "name": "",
+      "description": "",
+      "gridX": 10.5,
+      "gridY": -9.0,
+      "shape": "square",
+      "connections": [
+        "node_63",
+        "node_62"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_62",
+      "name": "",
+      "description": "",
+      "gridX": 9.5,
+      "gridY": -8.0,
+      "shape": "square",
+      "connections": [
+        "node_61",
+        "node_57"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_63",
+      "name": "",
+      "description": "",
+      "gridX": 12.5,
+      "gridY": -9.0,
+      "shape": "circle",
+      "connections": [
+        "node_60",
+        "node_61",
+        "node_77",
+        "node_78",
+        "node_79",
+        "node_88"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_64",
+      "name": "",
+      "description": "",
+      "gridX": 8.5,
+      "gridY": -9.0,
+      "shape": "square",
+      "connections": [
+        "node_55",
+        "node_71"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_65",
+      "name": "",
+      "description": "",
+      "gridX": 12.0,
+      "gridY": -5.5,
+      "shape": "square",
+      "connections": [
+        "node_58",
+        "node_66"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_66",
+      "name": "",
+      "description": "",
+      "gridX": 13.0,
+      "gridY": -6.5,
+      "shape": "square",
+      "connections": [
+        "node_65",
+        "node_67"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_67",
+      "name": "",
+      "description": "",
+      "gridX": 14.0,
+      "gridY": -7.5,
+      "shape": "circle",
+      "connections": [
+        "node_66",
+        "node_68",
+        "node_89",
+        "node_91",
+        "node_95"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_68",
+      "name": "",
+      "description": "",
+      "gridX": 14.0,
+      "gridY": -5.5,
+      "shape": "square",
+      "connections": [
+        "node_67",
+        "node_69"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_69",
+      "name": "",
+      "description": "",
+      "gridX": 13.0,
+      "gridY": -4.5,
+      "shape": "square",
+      "connections": [
+        "node_68",
+        "node_58"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_7",
+      "name": "",
+      "description": "",
+      "gridX": -2.5,
+      "gridY": -12.0,
+      "shape": "square",
+      "connections": [
+        "node_3",
+        "node_11"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_70",
+      "name": "",
+      "description": "",
+      "gridX": 14.0,
+      "gridY": -3.5,
+      "shape": "square",
+      "connections": [
+        "node_56",
+        "node_72"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_71",
+      "name": "",
+      "description": "",
+      "gridX": 11.0,
+      "gridY": -11.0,
+      "shape": "square",
+      "connections": [
+        "node_64",
+        "node_73"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_72",
+      "name": "",
+      "description": "",
+      "gridX": 16.5,
+      "gridY": -5.5,
+      "shape": "square",
+      "connections": [
+        "node_70",
+        "node_96"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_73",
+      "name": "",
+      "description": "",
+      "gridX": 11.0,
+      "gridY": -12.5,
+      "shape": "square",
+      "connections": [
+        "node_71",
+        "node_76",
+        "node_87"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_74",
+      "name": "",
+      "description": "",
+      "gridX": 8.5,
+      "gridY": -14.0,
+      "shape": "square",
+      "connections": [
+        "node_75",
+        "node_19"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_75",
+      "name": "",
+      "description": "",
+      "gridX": 9.5,
+      "gridY": -14.5,
+      "shape": "square",
+      "connections": [
+        "node_74",
+        "node_76"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_76",
+      "name": "",
+      "description": "",
+      "gridX": 9.5,
+      "gridY": -13.5,
+      "shape": "square",
+      "connections": [
+        "node_73",
+        "node_75"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_77",
+      "name": "",
+      "description": "",
+      "gridX": 12.5,
+      "gridY": -12.0,
+      "shape": "square",
+      "connections": [
+        "node_63",
+        "node_80"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_78",
+      "name": "",
+      "description": "",
+      "gridX": 13.0,
+      "gridY": -11.0,
+      "shape": "square",
+      "connections": [
+        "node_63",
+        "node_81"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_79",
+      "name": "",
+      "description": "",
+      "gridX": 13.5,
+      "gridY": -10.0,
+      "shape": "square",
+      "connections": [
+        "node_63",
+        "node_82"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_8",
+      "name": "",
+      "description": "",
+      "gridX": -1.5,
+      "gridY": -12.0,
+      "shape": "square",
+      "connections": [
+        "node_3",
+        "node_12"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_80",
+      "name": "",
+      "description": "",
+      "gridX": 13.5,
+      "gridY": -13.0,
+      "shape": "circle",
+      "connections": [
+        "node_77",
+        "node_83"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_81",
+      "name": "",
+      "description": "",
+      "gridX": 14.0,
+      "gridY": -12.0,
+      "shape": "circle",
+      "connections": [
+        "node_78",
+        "node_84"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_82",
+      "name": "",
+      "description": "",
+      "gridX": 14.5,
+      "gridY": -11.0,
+      "shape": "circle",
+      "connections": [
+        "node_79",
+        "node_85"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_83",
+      "name": "",
+      "description": "",
+      "gridX": 15.0,
+      "gridY": -13.5,
+      "shape": "square",
+      "connections": [
+        "node_80",
+        "node_86"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_84",
+      "name": "",
+      "description": "",
+      "gridX": 15.5,
+      "gridY": -12.5,
+      "shape": "square",
+      "connections": [
+        "node_81",
+        "node_86"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_85",
+      "name": "",
+      "description": "",
+      "gridX": 16.0,
+      "gridY": -11.5,
+      "shape": "square",
+      "connections": [
+        "node_82",
+        "node_86"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_86",
+      "name": "",
+      "description": "",
+      "gridX": 17.5,
+      "gridY": -13.5,
+      "shape": "square",
+      "connections": [
+        "node_83",
+        "node_84",
+        "node_85",
+        "node_87",
+        "node_100"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_87",
+      "name": "",
+      "description": "",
+      "gridX": 15.0,
+      "gridY": -15.0,
+      "shape": "square",
+      "connections": [
+        "node_86",
+        "node_73"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_88",
+      "name": "",
+      "description": "",
+      "gridX": 14.5,
+      "gridY": -10.0,
+      "shape": "square",
+      "connections": [
+        "node_63",
+        "node_90"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_89",
+      "name": "",
+      "description": "",
+      "gridX": 15.5,
+      "gridY": -9.0,
+      "shape": "square",
+      "connections": [
+        "node_67",
+        "node_90"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_9",
+      "name": "",
+      "description": "",
+      "gridX": 1.5,
+      "gridY": -12.0,
+      "shape": "square",
+      "connections": [
+        "node_5",
+        "node_14"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_90",
+      "name": "",
+      "description": "",
+      "gridX": 16.0,
+      "gridY": -10.5,
+      "shape": "circle",
+      "connections": [
+        "node_89",
+        "node_88"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_91",
+      "name": "",
+      "description": "",
+      "gridX": 15.5,
+      "gridY": -8.0,
+      "shape": "square",
+      "connections": [
+        "node_67",
+        "node_92"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_92",
+      "name": "",
+      "description": "",
+      "gridX": 16.5,
+      "gridY": -9.0,
+      "shape": "circle",
+      "connections": [
+        "node_91",
+        "node_93"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_93",
+      "name": "",
+      "description": "",
+      "gridX": 17.0,
+      "gridY": -10.0,
+      "shape": "square",
+      "connections": [
+        "node_92",
+        "node_94"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_94",
+      "name": "",
+      "description": "",
+      "gridX": 19.0,
+      "gridY": -12.0,
+      "shape": "square",
+      "connections": [
+        "node_93",
+        "node_97",
+        "node_99",
+        "node_100"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_95",
+      "name": "",
+      "description": "",
+      "gridX": 16.5,
+      "gridY": -7.0,
+      "shape": "square",
+      "connections": [
+        "node_67",
+        "node_98"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_96",
+      "name": "",
+      "description": "",
+      "gridX": 18.0,
+      "gridY": -5.5,
+      "shape": "square",
+      "connections": [
+        "node_72",
+        "node_97"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_97",
+      "name": "",
+      "description": "",
+      "gridX": 21.0,
+      "gridY": -9.5,
+      "shape": "square",
+      "connections": [
+        "node_96",
+        "node_94"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_98",
+      "name": "",
+      "description": "",
+      "gridX": 18.0,
+      "gridY": -8.0,
+      "shape": "circle",
+      "connections": [
+        "node_95",
+        "node_99"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "node_99",
+      "name": "",
+      "description": "",
+      "gridX": 19.0,
+      "gridY": -10.0,
+      "shape": "square",
+      "connections": [
+        "node_98",
+        "node_94"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "evasion_rating",
+      "name": "Path of the Ranger",
+      "description": "Start your journey as a Ranger.",
+      "gridX": 10.0,
+      "gridY": 9.0,
+      "shape": "hexagon",
+      "connections": [],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "armor",
+      "name": "Path of the Warrior",
+      "description": "Start your journey as a Warrior.",
+      "gridX": -11.0,
+      "gridY": 10.0,
+      "shape": "hexagon",
+      "connections": [],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
+    },
+    {
+      "id": "energy_shield",
+      "name": "Path of the Witch",
+      "description": "Start your journey as a Witch.",
+      "gridX": 0.0,
+      "gridY": -8.0,
+      "shape": "hexagon",
+      "connections": [
+        "node_1",
+        "node_2"
+      ],
+      "modifiers": {},
+      "icon": "cranks-dungeons:passive/generic"
     }
   ]
 }

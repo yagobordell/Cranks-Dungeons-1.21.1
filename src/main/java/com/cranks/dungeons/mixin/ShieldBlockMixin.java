@@ -27,6 +27,13 @@ public abstract class ShieldBlockMixin {
         LivingEntity entity = (LivingEntity) (Object) this;
         cranks$forceSkipVanillaBlock = false;
 
+        // Resolute Technique prevents blocking
+        if (source.getAttacker() instanceof LivingEntity attacker) {
+            if (attacker.getAttributeValue(ModAttributes.KEYSTONE_RESOLUTE_TECHNIQUE) > 0) {
+                return amount;
+            }
+        }
+
         if (!entity.isBlocking()) return amount;
 
         boolean isVanillaBlocking = false;
