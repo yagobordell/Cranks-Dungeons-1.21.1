@@ -41,6 +41,7 @@ public class ModSounds {
 
     // PASSIVE TREE SOUNDS
     public static final SoundEvent PASSIVE_LEVEL_UP = register("passive_level_up");
+    public static final SoundEvent WORLD_LEVEL_UP = register("world_level_up");
     public static final SoundEvent PASSIVE_POINT_APPLY = register("passive_point_apply");
     public static final SoundEvent PASSIVE_NODE_SELECT = register("passive_node_select");
 

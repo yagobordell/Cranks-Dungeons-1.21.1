@@ -776,7 +776,8 @@ public class PassiveSkillTreeScreen extends Screen {
                     valStr += PassiveStatHelper.getStatSuffix(key);
                 }
 
-                context.drawTextWithShadow(this.textRenderer, key + ":", panelX + 8, ty, 0xFFAAAAAA);
+                int keyColor = isDrafted ? 0xFF55FF55 : 0xFFAAAAAA;
+                context.drawTextWithShadow(this.textRenderer, key + ":", panelX + 8, ty, keyColor);
                 context.drawTextWithShadow(this.textRenderer, valStr,
                         panelX + panelWidth - 8 - this.textRenderer.getWidth(valStr), ty, valColor);
                 ty += 12;

@@ -63,6 +63,11 @@ public class CranksDungeonsClient implements ClientModInitializer {
 
         ClientConfigCommand.register();
 
+        net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry.register(
+            com.cranks.dungeons.registry.ModEntities.LEVEL_UP_VFX, 
+            com.cranks.dungeons.client.render.entity.LevelUpVfxEntityRenderer::new
+        );
+
         HandledScreens.register(ModScreenHandlers.RUNIC_ENHANCEMENT_ALTAR, RunicEnhancementAltarScreen::new);
         HandledScreens.register(ModScreenHandlers.ARTIFICIAL_ENHANCEMENT_ALTAR, ArtificialEnhancementAltarScreen::new);
         ModKeybinds.register();

@@ -617,7 +617,7 @@ public class WorldSkillTreeScreen extends Screen {
         }
         
         // Draw text over bar
-        String xpText = currentXp + " / " + nextXp;
+        String xpText = nextXp == 0 ? "MAX" : (currentXp + " / " + nextXp);
         context.drawCenteredTextWithShadow(this.textRenderer, xpText, panelX + panelWidth / 2, ty, 0xFFFFFFFF);
         ty += 15;
         var stats = PassiveStatHelper.getDisplayableSummary(MinecraftClient.getInstance().player, draftUnlocked);
@@ -661,7 +661,8 @@ public class WorldSkillTreeScreen extends Screen {
                     valStr += PassiveStatHelper.getStatSuffix(key);
                 }
 
-                context.drawTextWithShadow(this.textRenderer, key + ":", panelX + 8, ty, 0xFFAAAAAA);
+                int keyColor = isDrafted ? 0xFF55FF55 : 0xFFAAAAAA;
+                context.drawTextWithShadow(this.textRenderer, key + ":", panelX + 8, ty, keyColor);
                 context.drawTextWithShadow(this.textRenderer, valStr,
                         panelX + panelWidth - 8 - this.textRenderer.getWidth(valStr), ty, valColor);
                 ty += 12;
@@ -885,8 +886,8 @@ public class WorldSkillTreeScreen extends Screen {
     @Override
     public boolean mouseDragged(Click click, double deltaX, double deltaY) {
         if (super.mouseDragged(click, deltaX, deltaY)) return true;
-        if (click.button() == 0) { // Left click dragging
-            if (editMode) {
+        if (click.button() == 0 || click.button() == 2) { // Left or Middle click dragging
+            if (editMode && click.button() == 0) {
                 if (isSelectingBox) {
                     selectionCurrentX = click.x();
                     selectionCurrentY = click.y();

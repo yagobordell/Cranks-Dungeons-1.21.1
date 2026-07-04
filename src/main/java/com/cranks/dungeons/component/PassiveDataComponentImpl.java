@@ -64,7 +64,7 @@ public class PassiveDataComponentImpl implements PassiveDataComponent, AutoSynce
             this.unspentPoints += points;
             if (!this.player.getEntityWorld().isClient()) {
                 this.player.playSound(net.minecraft.sound.SoundEvents.ENTITY_PLAYER_LEVELUP, 1.0F, 1.0F);
-                this.player.sendMessage(net.minecraft.text.Text.literal("You have " + this.unspentPoints + " unallocated passive tree points!").formatted(net.minecraft.util.Formatting.GOLD), false);
+                // this.player.sendMessage(net.minecraft.text.Text.literal("You have " + this.unspentPoints + " unallocated passive tree points!").formatted(net.minecraft.util.Formatting.GOLD), false);
             }
             ModComponents.PASSIVE_DATA.sync(this.player);
         }

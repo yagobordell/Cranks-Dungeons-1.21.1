@@ -98,30 +98,47 @@ public class WorldTreeDataComponentImpl implements WorldTreeDataComponent, AutoS
 
     @Override
     public int getNextLevelXp() {
-        return (int) (100 * Math.pow(this.gatheringLevel, 1.5));
+        int maxLevel = Math.max(1, com.cranks.dungeons.stat.passive.WorldNodeRegistry.getNodes().size());
+        if (this.gatheringLevel >= maxLevel) return 0;
+        return (int) (15.0 * this.gatheringLevel + 0.5 * Math.pow(this.gatheringLevel, 2));
     }
 
     @Override
     public void addGatheringXp(int xp) {
         if (xp <= 0) return;
+        int maxLevel = Math.max(1, com.cranks.dungeons.stat.passive.WorldNodeRegistry.getNodes().size());
+        if (this.gatheringLevel >= maxLevel) {
+            this.gatheringXp = 0;
+            return;
+        }
+
         this.gatheringXp += xp;
         
-        // Example Leveling Curve: 100 * level^1.5
         boolean leveledUp = false;
-        int nextLevelXp = (int) (100 * Math.pow(this.gatheringLevel, 1.5));
+        int nextLevelXp = (int) (15.0 * this.gatheringLevel + 0.5 * Math.pow(this.gatheringLevel, 2));
         
-        while (this.gatheringXp >= nextLevelXp) {
+        while (this.gatheringXp >= nextLevelXp && this.gatheringLevel < maxLevel) {
             this.gatheringXp -= nextLevelXp;
             this.gatheringLevel++;
             leveledUp = true;
-            nextLevelXp = (int) (100 * Math.pow(this.gatheringLevel, 1.5));
             this.unspentPoints++; // Grant a point
+            
+            if (this.gatheringLevel >= maxLevel) {
+                this.gatheringXp = 0;
+                break;
+            }
+            nextLevelXp = (int) (15.0 * this.gatheringLevel + 0.5 * Math.pow(this.gatheringLevel, 2));
         }
         
         if (leveledUp) {
             if (!this.player.getEntityWorld().isClient()) {
-                this.player.playSound(net.minecraft.sound.SoundEvents.ENTITY_PLAYER_LEVELUP, 1.0F, 1.0F);
-                // this.player.sendMessage(net.minecraft.text.Text.literal("Gathering Level Up! You reached level " + this.gatheringLevel + ". You have " + this.unspentPoints + " unallocated world tree points!").formatted(net.minecraft.util.Formatting.GREEN), false);
+                this.player.getEntityWorld().playSound(null, this.player.getX(), this.player.getY(), this.player.getZ(), 
+                    com.cranks.dungeons.registry.ModSounds.WORLD_LEVEL_UP, net.minecraft.sound.SoundCategory.PLAYERS, 1.0f, 1.0f);
+                
+                com.cranks.dungeons.entity.LevelUpVfxEntity vfx = new com.cranks.dungeons.entity.LevelUpVfxEntity(com.cranks.dungeons.registry.ModEntities.LEVEL_UP_VFX, this.player.getEntityWorld());
+                vfx.setPosition(this.player.getX(), this.player.getY(), this.player.getZ());
+                vfx.setWorldTree(true);
+                this.player.getEntityWorld().spawnEntity(vfx);
             }
         }
         ModComponents.WORLD_TREE_DATA.sync(this.player);

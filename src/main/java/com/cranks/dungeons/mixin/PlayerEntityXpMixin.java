@@ -37,6 +37,11 @@ public abstract class PlayerEntityXpMixin extends LivingEntity {
                 // Play custom level up sound with correct category for server-side broadcast
                 player.getEntityWorld().playSound(null, player.getX(), player.getY(), player.getZ(), 
                     ModSounds.PASSIVE_LEVEL_UP, net.minecraft.sound.SoundCategory.PLAYERS, 1.0f, 1.0f);
+                    
+                com.cranks.dungeons.entity.LevelUpVfxEntity vfx = new com.cranks.dungeons.entity.LevelUpVfxEntity(com.cranks.dungeons.registry.ModEntities.LEVEL_UP_VFX, player.getEntityWorld());
+                vfx.setPosition(player.getX(), player.getY(), player.getZ());
+                vfx.setWorldTree(false); // False means Gold for Passive Tree
+                player.getEntityWorld().spawnEntity(vfx);
             }
         }
     }

@@ -14,7 +14,7 @@ public class ItemRequirementManager {
         EquipmentType type = EquipmentType.getTypeForItem(stack).orElse(null);
         if (type == null) return new int[]{0, 0, 0};
 
-        if (type == EquipmentType.AXE) {
+        if (type == EquipmentType.AXE || type == EquipmentType.PICKAXE || type == EquipmentType.SHOVEL || type == EquipmentType.HOE) {
             return new int[]{0, 0, 0};
         }
 
@@ -41,12 +41,7 @@ public class ItemRequirementManager {
             baseScale = 10;
         }
 
-        CustomRarity rarity = CustomRarity.getRarity(stack);
-        int rarityBonus = rarity == CustomRarity.UNIQUE ? 25 :
-                          rarity == CustomRarity.RARE ? 15 :
-                          rarity == CustomRarity.MAGIC ? 5 : 0;
-
-        int scale = baseScale + rarityBonus;
+        int scale = baseScale;
 
         if (scale == 0) return new int[]{0, 0, 0};
 

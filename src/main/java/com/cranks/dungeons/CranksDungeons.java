@@ -71,6 +71,7 @@ public class CranksDungeons implements ModInitializer {
 		ModItems.registerModItems();
 		ModScreenHandlers.register();
 		ModAttributes.registerAttributes();
+		com.cranks.dungeons.registry.ModEntities.register();
 		ModSounds.registerSounds();
 		ModEffects.registerEffects();
 		ModParticles.register();
@@ -109,7 +110,7 @@ public class CranksDungeons implements ModInitializer {
             player.setHealth(player.getMaxHealth());
 			com.cranks.dungeons.component.PassiveTreePersistentState worldState = com.cranks.dungeons.component.PassiveTreePersistentState
 					.get(server);
-			if (data.getPlayerClass() == null || data.getPlayerClass().isEmpty()) {
+			if ((data.getPlayerClass() == null || data.getPlayerClass().isEmpty()) && data.getUnspentPoints() == 0 && data.getUnlockedNodes().isEmpty()) {
 				worldState.loadIntoComponent(handler.player.getUuid(), data);
 			} else {
 				// CCA loaded fine this time, make sure PersistentState is up to date
@@ -120,7 +121,7 @@ public class CranksDungeons implements ModInitializer {
 			com.cranks.dungeons.component.WorldTreePersistentState wtState = com.cranks.dungeons.component.WorldTreePersistentState.get(server);
 			
 			// We check if gathering level is 1 and 0 xp to indicate an empty component that CCA failed to persist
-			if (worldTreeData.getGatheringLevel() <= 1 && worldTreeData.getGatheringXp() == 0 && worldTreeData.getUnlockedNodes().isEmpty()) {
+			if (worldTreeData.getGatheringLevel() <= 1 && worldTreeData.getGatheringXp() == 0 && worldTreeData.getUnlockedNodes().isEmpty() && worldTreeData.getUnspentPoints() == 0) {
 				wtState.loadIntoComponent(handler.player.getUuid(), worldTreeData);
 			} else {
 				wtState.savePlayerData(handler.player.getUuid(), worldTreeData);
