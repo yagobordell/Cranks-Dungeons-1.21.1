@@ -736,6 +736,7 @@ public class PassiveSkillTreeScreen extends Screen {
         ty += 15;
 
         var stats = PassiveStatHelper.getDisplayableSummary(MinecraftClient.getInstance().player, draftUnlocked);
+        var baseStats = PassiveStatHelper.getDisplayableSummary(MinecraftClient.getInstance().player, null);
 
         if (stats.isEmpty()) {
             context.drawCenteredTextWithShadow(this.textRenderer, "No stats unlocked", panelX + panelWidth / 2, ty + 20,
@@ -746,6 +747,10 @@ public class PassiveSkillTreeScreen extends Screen {
                 double total = entry.getValue();
                 if (total == 0)
                     continue;
+
+                double baseTotal = baseStats.getOrDefault(key, 0.0);
+                boolean isDrafted = (total != baseTotal);
+                int valColor = isDrafted ? 0xFF55FF55 : 0xFF55FFFF;
 
                 double displayVal = total;
                 boolean isPercent = key.toLowerCase().contains("percent") ||
@@ -773,7 +778,7 @@ public class PassiveSkillTreeScreen extends Screen {
 
                 context.drawTextWithShadow(this.textRenderer, key + ":", panelX + 8, ty, 0xFFAAAAAA);
                 context.drawTextWithShadow(this.textRenderer, valStr,
-                        panelX + panelWidth - 8 - this.textRenderer.getWidth(valStr), ty, 0xFF55FFFF);
+                        panelX + panelWidth - 8 - this.textRenderer.getWidth(valStr), ty, valColor);
                 ty += 12;
 
                 if (ty > panelY + panelHeight - 15)
@@ -1078,8 +1083,20 @@ public class PassiveSkillTreeScreen extends Screen {
         return super.mouseReleased(click);
     }
 
-    public boolean keyPressed(KeyInput input) {
-        if (input.key() == 258) { // TAB key
+    @Override
+    public boolean keyPressed(net.minecraft.client.input.KeyInput input) {
+        if (com.cranks.dungeons.client.ModKeybinds.OPEN_PASSIVE_TREE.matchesKey(input)) {
+            this.close();
+            return true;
+        }
+        
+        if (com.cranks.dungeons.client.ModKeybinds.OPEN_WORLD_TREE.matchesKey(input)) {
+            this.client.setScreen(new com.cranks.dungeons.client.screen.WorldSkillTreeScreen(null));
+            return true;
+        }
+
+        int keyCode = input.key();
+        if (keyCode == 258) { // TAB key
             editMode = !editMode;
             if (!editMode) {
                 draggedNode = null;
@@ -1092,8 +1109,25 @@ public class PassiveSkillTreeScreen extends Screen {
         }
         
         if (editMode && !selectedNodeIds.isEmpty()) {
-            if (input.key() == GLFW.GLFW_KEY_LEFT_BRACKET || input.key() == GLFW.GLFW_KEY_RIGHT_BRACKET) {
-                double angle = Math.toRadians(input.key() == GLFW.GLFW_KEY_RIGHT_BRACKET ? 15 : -15);
+            double snap = 0.5;
+            if (keyCode == GLFW.GLFW_KEY_UP) {
+                for (String id : selectedNodeIds) { PassiveNode n = PassiveNodeRegistry.getNode(id); if (n != null) n.setGridY(n.gridY() - snap); }
+                this.cacheDirty = true; return true;
+            }
+            if (keyCode == GLFW.GLFW_KEY_DOWN) {
+                for (String id : selectedNodeIds) { PassiveNode n = PassiveNodeRegistry.getNode(id); if (n != null) n.setGridY(n.gridY() + snap); }
+                this.cacheDirty = true; return true;
+            }
+            if (keyCode == GLFW.GLFW_KEY_LEFT) {
+                for (String id : selectedNodeIds) { PassiveNode n = PassiveNodeRegistry.getNode(id); if (n != null) n.setGridX(n.gridX() - snap); }
+                this.cacheDirty = true; return true;
+            }
+            if (keyCode == GLFW.GLFW_KEY_RIGHT) {
+                for (String id : selectedNodeIds) { PassiveNode n = PassiveNodeRegistry.getNode(id); if (n != null) n.setGridX(n.gridX() + snap); }
+                this.cacheDirty = true; return true;
+            }
+            if (keyCode == GLFW.GLFW_KEY_LEFT_BRACKET || keyCode == GLFW.GLFW_KEY_RIGHT_BRACKET) {
+                double angle = Math.toRadians(keyCode == GLFW.GLFW_KEY_RIGHT_BRACKET ? 15 : -15);
                 
                 // Calculate center
                 double avgX = 0, avgY = 0;

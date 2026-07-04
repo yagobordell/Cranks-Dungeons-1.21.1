@@ -1,0 +1,4 @@
+tasks.register('runTest', JavaExec) {
+    mainClass = 'com.cranks.dungeons.client.TestCategory'
+    classpath = sourceSets.main.runtimeClasspath
+}

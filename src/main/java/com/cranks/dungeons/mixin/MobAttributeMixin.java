@@ -19,7 +19,7 @@ public class MobAttributeMixin {
         @Inject(method = "createBlazeAttributes", at = @At("RETURN"), cancellable = true)
         private static void cranks$addAttributes(CallbackInfoReturnable<DefaultAttributeContainer.Builder> cir) {
             cir.setReturnValue(cir.getReturnValue()
-                .add(ModAttributes.FIRE_RESISTANCE, 1.0)
+                .add(ModAttributes.FIRE_RESISTANCE, 0.75)
                 .add(ModAttributes.COLD_RESISTANCE, -0.5));
         }
     }
@@ -29,7 +29,7 @@ public class MobAttributeMixin {
         @Inject(method = "createMagmaCubeAttributes", at = @At("RETURN"), cancellable = true)
         private static void cranks$addAttributes(CallbackInfoReturnable<DefaultAttributeContainer.Builder> cir) {
             cir.setReturnValue(cir.getReturnValue()
-                .add(ModAttributes.FIRE_RESISTANCE, 1.0)
+                .add(ModAttributes.FIRE_RESISTANCE, 0.75)
                 .add(ModAttributes.COLD_RESISTANCE, -0.5));
         }
     }
@@ -49,7 +49,7 @@ public class MobAttributeMixin {
         @Inject(method = "createSnowGolemAttributes", at = @At("RETURN"), cancellable = true)
         private static void cranks$addAttributes(CallbackInfoReturnable<DefaultAttributeContainer.Builder> cir) {
             cir.setReturnValue(cir.getReturnValue()
-                .add(ModAttributes.COLD_RESISTANCE, 1.0)
+                .add(ModAttributes.COLD_RESISTANCE, 0.75)
                 .add(ModAttributes.FIRE_RESISTANCE, -0.5));
         }
     }
@@ -69,7 +69,7 @@ public class MobAttributeMixin {
         @Inject(method = "createGuardianAttributes", at = @At("RETURN"), cancellable = true)
         private static void cranks$addAttributes(CallbackInfoReturnable<DefaultAttributeContainer.Builder> cir) {
             cir.setReturnValue(cir.getReturnValue()
-                .add(ModAttributes.LIGHTNING_RESISTANCE, 1.0)
+                .add(ModAttributes.LIGHTNING_RESISTANCE, 0.75)
                 .add(ModAttributes.VOID_RESISTANCE, -0.5));
         }
     }
@@ -79,7 +79,7 @@ public class MobAttributeMixin {
         @Inject(method = "createElderGuardianAttributes", at = @At("RETURN"), cancellable = true)
         private static void cranks$addAttributes(CallbackInfoReturnable<DefaultAttributeContainer.Builder> cir) {
             cir.setReturnValue(cir.getReturnValue()
-                .add(ModAttributes.LIGHTNING_RESISTANCE, 1.0)
+                .add(ModAttributes.LIGHTNING_RESISTANCE, 0.75)
                 .add(ModAttributes.VOID_RESISTANCE, -0.5));
         }
     }
@@ -89,7 +89,7 @@ public class MobAttributeMixin {
         @Inject(method = "createBreezeAttributes", at = @At("RETURN"), cancellable = true)
         private static void cranks$addAttributes(CallbackInfoReturnable<DefaultAttributeContainer.Builder> cir) {
             cir.setReturnValue(cir.getReturnValue()
-                .add(ModAttributes.LIGHTNING_RESISTANCE, 1.0)
+                .add(ModAttributes.LIGHTNING_RESISTANCE, 0.75)
                 .add(ModAttributes.VOID_RESISTANCE, -0.5));
         }
     }
@@ -99,7 +99,7 @@ public class MobAttributeMixin {
         @Inject(method = "createEndermanAttributes", at = @At("RETURN"), cancellable = true)
         private static void cranks$addAttributes(CallbackInfoReturnable<DefaultAttributeContainer.Builder> cir) {
             cir.setReturnValue(cir.getReturnValue()
-                .add(ModAttributes.VOID_RESISTANCE, 1.0)
+                .add(ModAttributes.VOID_RESISTANCE, 0.75)
                 .add(ModAttributes.LIGHTNING_RESISTANCE, -0.5));
         }
     }
@@ -109,7 +109,7 @@ public class MobAttributeMixin {
         @Inject(method = "createEndermiteAttributes", at = @At("RETURN"), cancellable = true)
         private static void cranks$addAttributes(CallbackInfoReturnable<DefaultAttributeContainer.Builder> cir) {
             cir.setReturnValue(cir.getReturnValue()
-                .add(ModAttributes.VOID_RESISTANCE, 1.0)
+                .add(ModAttributes.VOID_RESISTANCE, 0.75)
                 .add(ModAttributes.LIGHTNING_RESISTANCE, -0.5));
         }
     }
@@ -146,7 +146,7 @@ public class MobAttributeMixin {
             if (fireRes != null) fireRes.setBaseValue(-0.5);
             
             var coldRes = stray.getAttributeInstance(ModAttributes.COLD_RESISTANCE);
-            if (coldRes != null) coldRes.setBaseValue(1.0);
+            if (coldRes != null) coldRes.setBaseValue(0.75);
         }
     }
 }

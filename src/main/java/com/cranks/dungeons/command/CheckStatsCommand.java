@@ -34,7 +34,7 @@ public class CheckStatsCommand {
                         double weaponLightningDmg = EquipmentStatApplier.getItemStatValue(weapon, "local_lightning_damage");
                         double weaponVoidDmg = EquipmentStatApplier.getItemStatValue(weapon, "local_void_damage");
                         double weaponLifeSteal = EquipmentStatApplier.getItemStatValue(weapon, "physical_damage_leeched_as_life");
-                        double weaponBurn = EquipmentStatApplier.getItemStatValue(weapon, "burn_magnitude_percent");
+                        double weaponBurn = EquipmentStatApplier.getItemStatValue(weapon, "burn_damage_percent");
                         double weaponRange = EquipmentStatApplier.getItemStatValue(weapon, "attack_range");
                         double weaponKnockback = EquipmentStatApplier.getItemStatValue(weapon, "knockback");
                         double weaponSpeed = EquipmentStatApplier.getItemStatValue(weapon, "attack_speed");
@@ -50,7 +50,7 @@ public class CheckStatsCommand {
                         double totalLightningDmg = player.getAttributeValue(ModAttributes.LIGHTNING_DAMAGE) + weaponLightningDmg;
                         double totalVoidDmg = player.getAttributeValue(ModAttributes.VOID_DAMAGE) + weaponVoidDmg;
                         double totalLifeSteal = player.getAttributeValue(ModAttributes.PHYSICAL_DAMAGE_LEECHED_AS_LIFE) + weaponLifeSteal;
-                        double totalBurn = player.getAttributeValue(ModAttributes.BURN_MAGNITUDE_PERCENT) + weaponBurn;
+                        double totalBurn = player.getAttributeValue(ModAttributes.BURN_DAMAGE_PERCENT) + weaponBurn;
                         double totalRange = player.getAttributeValue(ModAttributes.ATTACK_RANGE) + weaponRange;
                         double totalKnockback = player.getAttributeValue(ModAttributes.KNOCKBACK) + weaponKnockback;
                         double totalSpeed = player.getAttributeValue(ModAttributes.ATTACK_SPEED) + weaponSpeed;

@@ -39,11 +39,11 @@ public class PassiveStatHelper {
             "global_crit_chance_percent", "crit_multiplier", "crit_chance_against_afflicted",
 
             // Ailment Magnitudes & Durations
-            "shock_magnitude_percent", "shock_duration",
-            "burn_magnitude_percent", "burn_duration",
-            "poison_magnitude_percent", "poison_duration", "poison_max_stacks",
-            "bleed_magnitude_percent", "bleed_duration",
-            "freeze_magnitude_percent", "freeze_duration",
+            "chance_to_shock", "shock_magnitude_percent", "shock_duration",
+            "chance_to_burn", "burn_damage_percent", "burn_duration",
+            "chance_to_poison", "poison_damage_percent", "poison_duration", "poison_max_stacks",
+            "chance_to_bleed", "bleed_damage_percent", "bleed_duration",
+            "chance_to_freeze", "freeze_magnitude_percent", "freeze_duration",
             "electrocute_magnitude_percent", "electrocute_duration",
             "shock_threshold_reduction", "freeze_threshold_reduction", "electrocute_threshold_reduction",
 
@@ -68,6 +68,30 @@ public class PassiveStatHelper {
             "keystone_vaal_pact", "keystone_point_blank"
     );
 
+    public static final Set<String> WHITELISTED_WORLD_ATTRIBUTES = Set.of(
+            // Woodcutting
+            "log_yield", "sapling_yield", "woodcutting_speed_percent",
+            
+            // Mining
+            "ore_yield", "gem_yield", "mining_speed_percent", "flint_yield",
+            
+            // Farming
+            "crop_yield", "seed_yield", "farming_speed_percent",
+            
+            // Mob Drops
+            "monster_drop_yield", "animal_drop_yield", "meat_yield", "rare_mob_drop_chance",
+            
+            // Experience
+            "mining_experience", "combat_experience", "breeding_experience", "fishing_experience",
+            
+            // Dimensions & Biomes
+            "ore_yield_in_nether", "rare_mob_drop_chance_in_nether", "ore_yield_in_overworld",
+            "item_rarity_in_overworld", "item_rarity_in_nether", "item_rarity_in_end",
+            
+            // Existing ones from ModAttributes that apply to the world
+            "item_rarity_percent", "crop_fortune", "log_fortune", "dig_fortune", "crop_experience"
+    );
+
     /**
      * Aggregates all modifiers from unlocked nodes in the passive tree for a given
      * player.
@@ -77,39 +101,53 @@ public class PassiveStatHelper {
         Map<RegistryEntry<EntityAttribute>, Double> summary = new HashMap<>();
 
         PassiveDataComponent data = ModComponents.PASSIVE_DATA.get(player);
-        if (data == null)
-            return summary;
+        com.cranks.dungeons.component.WorldTreeDataComponent worldData = ModComponents.WORLD_TREE_DATA.get(player);
 
-        for (String nodeId : data.getUnlockedNodes()) {
-            PassiveNode node = PassiveNodeRegistry.getNode(nodeId);
+        if (data != null) {
+            mergeTreeStats(summary, data.getUnlockedNodes(), data::getNodeChoice, false);
+        }
+        if (worldData != null) {
+            mergeTreeStats(summary, worldData.getUnlockedNodes(), worldData::getNodeChoice, true);
+        }
+        return summary;
+    }
+
+    private static void mergeTreeStats(Map<RegistryEntry<EntityAttribute>, Double> summary, Set<String> unlockedNodes, java.util.function.Function<String, String> choiceProvider, boolean isWorldTree) {
+        for (String nodeId : unlockedNodes) {
+            PassiveNode node = isWorldTree ? com.cranks.dungeons.stat.passive.WorldNodeRegistry.getNode(nodeId) : PassiveNodeRegistry.getNode(nodeId);
             if (node != null) {
                 if (node.isAttributeSelection()) {
-                    String choice = data.getNodeChoice(nodeId);
-                    RegistryEntry<EntityAttribute> attr = null;
-                    if ("strength".equalsIgnoreCase(choice)) attr = com.cranks.dungeons.registry.ModAttributes.STRENGTH;
-                    else if ("dexterity".equalsIgnoreCase(choice)) attr = com.cranks.dungeons.registry.ModAttributes.DEXTERITY;
-                    else if ("intelligence".equalsIgnoreCase(choice)) attr = com.cranks.dungeons.registry.ModAttributes.INTELLIGENCE;
-                    
-                    if (attr != null) {
-                        summary.merge(attr, node.attributeSelectionAmount(), Double::sum);
+                    String choice = choiceProvider.apply(nodeId);
+                    if (choice != null && !choice.isEmpty()) {
+                        Set<String> whitelist = isWorldTree ? WHITELISTED_WORLD_ATTRIBUTES : WHITELISTED_PASSIVE_ATTRIBUTES;
+                        if (whitelist.contains(choice)) {
+                            net.minecraft.util.Identifier choiceId = net.minecraft.util.Identifier.tryParse("cranks-dungeons:" + choice);
+                            if (choiceId != null) {
+                                RegistryEntry<EntityAttribute> attr = net.minecraft.registry.Registries.ATTRIBUTE.getEntry(choiceId).orElse(null);
+                                if (attr != null) {
+                                    double amount = node.attributeSelectionAmount();
+                                    if (node.modifiers() != null && node.modifiers().containsKey(attr)) {
+                                        amount = node.modifiers().get(attr);
+                                    }
+                                    summary.merge(attr, amount, Double::sum);
+                                }
+                            }
+                        }
                     }
-                }
-                
-                if (node.modifiers() != null) {
+                } else if (node.modifiers() != null) {
                     for (Map.Entry<RegistryEntry<EntityAttribute>, Double> entry : node.modifiers().entrySet()) {
                         String idStr = entry.getKey().getIdAsString();
                         if (!idStr.startsWith("cranks-dungeons:")) continue;
                         
                         String id = idStr.substring(16);
-                        if (!WHITELISTED_PASSIVE_ATTRIBUTES.contains(id)) continue;
+                        Set<String> whitelist = isWorldTree ? WHITELISTED_WORLD_ATTRIBUTES : WHITELISTED_PASSIVE_ATTRIBUTES;
+                        if (!whitelist.contains(id)) continue;
                         
                         summary.merge(entry.getKey(), entry.getValue(), Double::sum);
                     }
                 }
             }
         }
-
-        return summary;
     }
 
     /**
@@ -126,26 +164,34 @@ public class PassiveStatHelper {
                 String nodeId = entryDraft.getKey();
                 String choice = entryDraft.getValue();
                 PassiveNode node = PassiveNodeRegistry.getNode(nodeId);
+                if (node == null) {
+                    node = com.cranks.dungeons.stat.passive.WorldNodeRegistry.getNode(nodeId);
+                }
                 
                 if (node != null) {
                     if (node.isAttributeSelection()) {
-                        RegistryEntry<EntityAttribute> attr = null;
-                        if ("strength".equalsIgnoreCase(choice)) attr = com.cranks.dungeons.registry.ModAttributes.STRENGTH;
-                        else if ("dexterity".equalsIgnoreCase(choice)) attr = com.cranks.dungeons.registry.ModAttributes.DEXTERITY;
-                        else if ("intelligence".equalsIgnoreCase(choice)) attr = com.cranks.dungeons.registry.ModAttributes.INTELLIGENCE;
-                        
-                        if (attr != null) {
-                            raw.merge(attr, node.attributeSelectionAmount(), Double::sum);
+                        if (choice != null && !choice.isEmpty()) {
+                            if (WHITELISTED_PASSIVE_ATTRIBUTES.contains(choice) || WHITELISTED_WORLD_ATTRIBUTES.contains(choice)) {
+                                net.minecraft.util.Identifier choiceId = net.minecraft.util.Identifier.tryParse("cranks-dungeons:" + choice);
+                                if (choiceId != null) {
+                                    RegistryEntry<EntityAttribute> attr = net.minecraft.registry.Registries.ATTRIBUTE.getEntry(choiceId).orElse(null);
+                                    if (attr != null) {
+                                        double amount = node.attributeSelectionAmount();
+                                        if (node.modifiers() != null && node.modifiers().containsKey(attr)) {
+                                            amount = node.modifiers().get(attr);
+                                        }
+                                        raw.merge(attr, amount, Double::sum);
+                                    }
+                                }
+                            }
                         }
-                    }
-                    
-                    if (node.modifiers() != null) {
+                    } else if (node.modifiers() != null) {
                         for (Map.Entry<RegistryEntry<EntityAttribute>, Double> entry : node.modifiers().entrySet()) {
                             String idStr = entry.getKey().getIdAsString();
                             if (!idStr.startsWith("cranks-dungeons:")) continue;
                             
                             String id = idStr.substring(16);
-                            if (!WHITELISTED_PASSIVE_ATTRIBUTES.contains(id)) continue;
+                            if (!WHITELISTED_PASSIVE_ATTRIBUTES.contains(id) && !WHITELISTED_WORLD_ATTRIBUTES.contains(id)) continue;
                             
                             raw.merge(entry.getKey(), entry.getValue(), Double::sum);
                         }

@@ -91,14 +91,22 @@ public class CranksDungeons implements ModInitializer {
 		LogFortuneHandler.register();
 		DigFortuneHandler.register();
 		CropXpEventHandler.register();
+		GatheringXpHandler.register();
 		RunicTomeLootHandler.register();
 		PassiveTreeConfig.load();
 		PassiveNodeRegistry.loadFromConfig();
+		com.cranks.dungeons.config.WorldTreeConfig.load();
+		com.cranks.dungeons.stat.passive.WorldNodeRegistry.loadFromConfig();
 
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
-			PassiveDataComponent data = ModComponents.PASSIVE_DATA.get(handler.player);
+            net.minecraft.server.network.ServerPlayerEntity player = handler.player;
+            PassiveDataComponent data = ModComponents.PASSIVE_DATA.get(player);
 
-			// Restore from PersistentState backup (guarantees persistence across restarts)
+            com.cranks.dungeons.network.ModNetworking.syncPassiveTreeToPlayer(player);
+            com.cranks.dungeons.network.ModNetworking.syncWorldTreeToPlayer(player);
+            
+            // Re-apply max health and attributes
+            player.setHealth(player.getMaxHealth());
 			com.cranks.dungeons.component.PassiveTreePersistentState worldState = com.cranks.dungeons.component.PassiveTreePersistentState
 					.get(server);
 			if (data.getPlayerClass() == null || data.getPlayerClass().isEmpty()) {
@@ -106,6 +114,20 @@ public class CranksDungeons implements ModInitializer {
 			} else {
 				// CCA loaded fine this time, make sure PersistentState is up to date
 				worldState.savePlayerData(handler.player.getUuid(), data);
+			}
+
+			com.cranks.dungeons.component.WorldTreeDataComponent worldTreeData = ModComponents.WORLD_TREE_DATA.get(player);
+			com.cranks.dungeons.component.WorldTreePersistentState wtState = com.cranks.dungeons.component.WorldTreePersistentState.get(server);
+			
+			// We check if gathering level is 1 and 0 xp to indicate an empty component that CCA failed to persist
+			if (worldTreeData.getGatheringLevel() <= 1 && worldTreeData.getGatheringXp() == 0 && worldTreeData.getUnlockedNodes().isEmpty()) {
+				wtState.loadIntoComponent(handler.player.getUuid(), worldTreeData);
+			} else {
+				wtState.savePlayerData(handler.player.getUuid(), worldTreeData);
+			}
+
+			if (!worldTreeData.hasNode("world_start")) {
+				worldTreeData.unlockNode("world_start");
 			}
 
 			data.checkRetroactivePoints(handler.player.experienceLevel);
@@ -116,6 +138,7 @@ public class CranksDungeons implements ModInitializer {
 
 			// If retroactive checking changed anything, save it
 			worldState.savePlayerData(handler.player.getUuid(), data);
+			wtState.savePlayerData(handler.player.getUuid(), worldTreeData);
 
 			ModNetworking.syncPassiveTreeToPlayer(handler.player);
 			PassiveSkillApplier.updatePlayerPassives(handler.player);
@@ -188,10 +211,15 @@ public class CranksDungeons implements ModInitializer {
 						.add(ModAttributes.ATTACK_RANGE, 0.0)
 						.add(ModAttributes.ATTACK_SPEED, 0.0)
 						// Ailments
-						.add(ModAttributes.BURN_MAGNITUDE_PERCENT, 0.0)
-						.add(ModAttributes.POISON_MAGNITUDE_PERCENT, 0.0)
+						.add(ModAttributes.CHANCE_TO_BURN, 0.0)
+						.add(ModAttributes.CHANCE_TO_POISON, 0.0)
+						.add(ModAttributes.CHANCE_TO_FREEZE, 0.0)
+						.add(ModAttributes.CHANCE_TO_BLEED, 0.0)
+						.add(ModAttributes.CHANCE_TO_SHOCK, 0.0)
+						.add(ModAttributes.BURN_DAMAGE_PERCENT, 0.0)
+						.add(ModAttributes.POISON_DAMAGE_PERCENT, 0.0)
 						.add(ModAttributes.FREEZE_MAGNITUDE_PERCENT, 0.0)
-						.add(ModAttributes.BLEED_MAGNITUDE_PERCENT, 0.0)
+						.add(ModAttributes.BLEED_DAMAGE_PERCENT, 0.0)
 						.add(ModAttributes.SHOCK_MAGNITUDE_PERCENT, 0.0)
 						.add(ModAttributes.SHOCK_DURATION, 3.0)
 						.add(ModAttributes.ELECTROCUTE_MAGNITUDE_PERCENT, 0.0)
@@ -244,6 +272,8 @@ public class CranksDungeons implements ModInitializer {
 							.executes(context -> {
 								com.cranks.dungeons.config.PassiveTreeConfig.load();
 								com.cranks.dungeons.stat.passive.PassiveNodeRegistry.loadFromConfig();
+								com.cranks.dungeons.config.WorldTreeConfig.load();
+								com.cranks.dungeons.stat.passive.WorldNodeRegistry.loadFromConfig();
 								com.cranks.dungeons.network.ModNetworking
 										.syncPassiveTreeToAll(context.getSource().getServer());
 								context.getSource().sendFeedback(

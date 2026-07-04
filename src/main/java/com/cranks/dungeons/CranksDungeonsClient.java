@@ -10,6 +10,7 @@ import com.cranks.dungeons.client.ModParticleProviders;
 import com.cranks.dungeons.client.ShieldNumberSprites;
 import com.cranks.dungeons.client.party.PartyClientData;
 import com.cranks.dungeons.client.party.PartyHudRenderer;
+import com.cranks.dungeons.client.NotificationHudOverlay;
 import com.cranks.dungeons.damage.DamageElement;
 import com.cranks.dungeons.network.PartyHealthPacket;
 import com.cranks.dungeons.network.PartyInvitePacket;
@@ -66,6 +67,7 @@ public class CranksDungeonsClient implements ClientModInitializer {
         HandledScreens.register(ModScreenHandlers.ARTIFICIAL_ENHANCEMENT_ALTAR, ArtificialEnhancementAltarScreen::new);
         ModKeybinds.register();
         EnchantmentToggleHandler.register();
+        com.cranks.dungeons.client.PassiveTreeKeybindHandler.register();
         
         ClientPlayNetworking.registerGlobalReceiver(StatOptionsSyncPacket.ID, (payload, context) -> {
             context.client().execute(() -> {
@@ -93,6 +95,20 @@ public class CranksDungeonsClient implements ClientModInitializer {
         
         // Register energy shield HUD renderer (works independently of health bar mods)
         EnergyShieldHudRenderer.register();
+        
+        // Register custom notifications HUD
+        NotificationHudOverlay.register();
+        ClientTickEvents.END_CLIENT_TICK.register(c -> NotificationHudOverlay.tick());
+        
+        ClientPlayNetworking.registerGlobalReceiver(com.cranks.dungeons.network.ShowNotificationPayload.ID, (payload, context) -> {
+            context.client().execute(() -> {
+                if (payload.message() != null && !payload.message().getString().isEmpty()) {
+                    NotificationHudOverlay.addNotification(payload.message(), payload.durationTicks());
+                } else {
+                    NotificationHudOverlay.clearNotifications();
+                }
+            });
+        });
         
         // Register the payload receiver
         ClientPlayNetworking.registerGlobalReceiver(DamageNumberPayload.ID, (payload, context) -> {
@@ -269,6 +285,13 @@ public class CranksDungeonsClient implements ClientModInitializer {
         ClientPlayNetworking.registerGlobalReceiver(ShockArcPayload.ID, (payload, context) -> {
             context.client().execute(() -> {
                 com.cranks.dungeons.client.render.LightningArcManager.addArc(payload.start(), payload.end(), payload.color());
+            });
+        });
+
+        ClientPlayNetworking.registerGlobalReceiver(com.cranks.dungeons.network.SyncWorldTreePayload.ID, (payload, context) -> {
+            context.client().execute(() -> {
+                com.cranks.dungeons.config.WorldTreeConfig.setNodes(payload.nodes());
+                com.cranks.dungeons.CranksDungeons.LOGGER.info("[WorldTreeClient] Synced {} nodes from server.", payload.nodes().size());
             });
         });
 

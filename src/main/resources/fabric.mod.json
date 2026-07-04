@@ -37,7 +37,8 @@
 	],
 	"custom": {
 		"cardinal-components": [
-			"cranks-dungeons:passive_data"
+			"cranks-dungeons:passive_data",
+			"cranks-dungeons:world_tree_data"
 		]
 	},
 	"depends": {

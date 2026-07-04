@@ -28,4 +28,23 @@ public abstract class PlayerEntityMixin extends LivingEntity {
 
         cir.setReturnValue(builder);
     }
+
+    @Inject(method = "getBlockBreakingSpeed", at = @At("RETURN"), cancellable = true)
+    private void modifyBlockBreakingSpeed(net.minecraft.block.BlockState block, CallbackInfoReturnable<Float> cir) {
+        float originalSpeed = cir.getReturnValue();
+        PlayerEntity player = (PlayerEntity) (Object) this;
+        
+        if (block.isIn(net.minecraft.registry.tag.BlockTags.LOGS)) {
+            var attr = player.getAttributeInstance(com.cranks.dungeons.registry.ModAttributes.WOODCUTTING_SPEED_PERCENT);
+            if (attr != null) originalSpeed *= (1.0f + attr.getValue() / 100.0f); // Assuming it's a percentage stat 
+        } else if (block.isIn(net.minecraft.registry.tag.BlockTags.PICKAXE_MINEABLE)) {
+            var attr = player.getAttributeInstance(com.cranks.dungeons.registry.ModAttributes.MINING_SPEED_PERCENT);
+            if (attr != null) originalSpeed *= (1.0f + attr.getValue() / 100.0f);
+        } else if (block.isIn(net.minecraft.registry.tag.BlockTags.CROPS) || block.isOf(net.minecraft.block.Blocks.DIRT)) {
+            var attr = player.getAttributeInstance(com.cranks.dungeons.registry.ModAttributes.FARMING_SPEED_PERCENT);
+            if (attr != null) originalSpeed *= (1.0f + attr.getValue() / 100.0f);
+        }
+
+        cir.setReturnValue(originalSpeed);
+    }
 }

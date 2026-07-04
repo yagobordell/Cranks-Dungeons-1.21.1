@@ -505,16 +505,16 @@ public class StatRegistry {
                                 ALL_MELEE_AND_TRIDENT);
 
                 // --- Ailment Magnitudes (all weapons) ---
-                registerForTypes("burn_magnitude_percent", "Burn Magnitude",
-                                ModAttributes.BURN_MAGNITUDE_PERCENT,
+                registerForTypes("burn_damage_percent", "Burn Magnitude",
+                                ModAttributes.BURN_DAMAGE_PERCENT,
                                 r(0.10, 0.12, 0.14, 0.16, 0.18, 0.21, 0.24, 0.26, 0.28, 0.30),
                                 r(0.12, 0.14, 0.16, 0.18, 0.21, 0.24, 0.27, 0.29, 0.32, 0.35),
                                 true, true, Formatting.RED, CustomStat.AffixType.SUFFIX,
                                 30, 5000,
                                 ALL_WEAPONS);
 
-                registerForTypes("poison_magnitude_percent", "Poison Magnitude",
-                                ModAttributes.POISON_MAGNITUDE_PERCENT,
+                registerForTypes("poison_damage_percent", "Poison Magnitude",
+                                ModAttributes.POISON_DAMAGE_PERCENT,
                                 r(0.10, 0.12, 0.14, 0.16, 0.18, 0.21, 0.24, 0.26, 0.28, 0.30),
                                 r(0.12, 0.14, 0.16, 0.18, 0.21, 0.24, 0.27, 0.29, 0.32, 0.35),
                                 true, true, Formatting.GREEN, CustomStat.AffixType.SUFFIX,
@@ -529,8 +529,8 @@ public class StatRegistry {
                                 30, 5000,
                                 ALL_WEAPONS);
 
-                registerForTypes("bleed_magnitude_percent", "Bleed Magnitude",
-                                ModAttributes.BLEED_MAGNITUDE_PERCENT,
+                registerForTypes("bleed_damage_percent", "Bleed Magnitude",
+                                ModAttributes.BLEED_DAMAGE_PERCENT,
                                 r(0.10, 0.12, 0.14, 0.16, 0.18, 0.21, 0.24, 0.26, 0.28, 0.30),
                                 r(0.12, 0.14, 0.16, 0.18, 0.21, 0.24, 0.27, 0.29, 0.32, 0.35),
                                 true, true, Formatting.DARK_RED, CustomStat.AffixType.SUFFIX,

@@ -301,4 +301,19 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
         }
     }
 
+    @Inject(method = "dropExperience", at = @At("HEAD"))
+    private void modifyCombatXp(ServerWorld world, net.minecraft.entity.Entity attacker, CallbackInfo ci) {
+        if (attacker instanceof net.minecraft.entity.player.PlayerEntity player) {
+            double combatXpBonus = player.getAttributeValue(ModAttributes.COMBAT_EXPERIENCE);
+            if (combatXpBonus > 0) {
+                LivingEntity entity = (LivingEntity) (Object) this;
+                if (entity instanceof net.minecraft.entity.mob.MobEntity mob) {
+                    int currentXp = ((MobEntityAccessor) mob).getExperiencePoints();
+                    if (currentXp > 0) {
+                        ((MobEntityAccessor) mob).setExperiencePoints(currentXp + (int)(currentXp * combatXpBonus));
+                    }
+                }
+            }
+        }
+    }
 }

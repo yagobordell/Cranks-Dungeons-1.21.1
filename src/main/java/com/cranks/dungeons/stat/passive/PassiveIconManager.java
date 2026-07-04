@@ -74,15 +74,20 @@ public class PassiveIconManager {
         ATTRIBUTE_ICONS.put("cranks-dungeons:damage_against_afflicted_percent", "passive/damage_against_afflicted_percent");
         ATTRIBUTE_ICONS.put("cranks-dungeons:damage_while_afflicted_percent", "passive/damage_while_afflicted_percent");
         ATTRIBUTE_ICONS.put("cranks-dungeons:crit_chance_against_afflicted", "passive/crit_chance_against_afflicted");
-        ATTRIBUTE_ICONS.put("cranks-dungeons:burn_magnitude_percent", "passive/burn_damage_percent");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:chance_to_burn", "passive/chance_to_burn");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:burn_damage_percent", "passive/burn_damage_percent");
         ATTRIBUTE_ICONS.put("cranks-dungeons:burn_duration", "passive/burn_duration");
-        ATTRIBUTE_ICONS.put("cranks-dungeons:poison_magnitude_percent", "passive/poison_damage_percent");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:chance_to_poison", "passive/chance_to_poison");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:poison_damage_percent", "passive/poison_damage_percent");
         ATTRIBUTE_ICONS.put("cranks-dungeons:poison_duration", "passive/poison_duration");
         ATTRIBUTE_ICONS.put("cranks-dungeons:poison_max_stacks", "passive/poison_max_stacks");
-        ATTRIBUTE_ICONS.put("cranks-dungeons:bleed_magnitude_percent", "passive/chance_to_bleed");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:chance_to_bleed", "passive/chance_to_bleed");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:bleed_damage_percent", "passive/bleed_damage_percent");
         ATTRIBUTE_ICONS.put("cranks-dungeons:bleed_duration", "passive/bleed_duration");
-        ATTRIBUTE_ICONS.put("cranks-dungeons:shock_magnitude_percent", "passive/chance_to_shock");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:chance_to_shock", "passive/chance_to_shock");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:shock_magnitude_percent", "passive/shock_magnitude_percent");
         ATTRIBUTE_ICONS.put("cranks-dungeons:shock_duration", "passive/shock_duration");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:chance_to_freeze", "passive/freeze_buildup_percent");
         ATTRIBUTE_ICONS.put("cranks-dungeons:freeze_magnitude_percent", "passive/freeze_buildup_percent");
         ATTRIBUTE_ICONS.put("cranks-dungeons:electrocute_magnitude_percent", "passive/electrocute_buildup_percent");
         ATTRIBUTE_ICONS.put("cranks-dungeons:shock_threshold_reduction", "passive/ailment_threshold_reduction");
@@ -128,6 +133,38 @@ public class PassiveIconManager {
         ATTRIBUTE_ICONS.put("cranks-dungeons:strength", "passive/strength");
         ATTRIBUTE_ICONS.put("cranks-dungeons:dexterity", "passive/dexterity");
         ATTRIBUTE_ICONS.put("cranks-dungeons:intelligence", "passive/intelligence");
+
+        // === WORLD TREE GATHERING & EXPERIENCE ===
+        ATTRIBUTE_ICONS.put("cranks-dungeons:log_yield", "world/log_yield");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:sapling_yield", "world/sapling_yield");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:woodcutting_speed_percent", "world/woodcutting_speed_percent");
+        
+        ATTRIBUTE_ICONS.put("cranks-dungeons:ore_yield", "world/ore_yield");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:gem_yield", "world/gem_yield");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:mining_speed_percent", "world/mining_speed_percent");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:flint_yield", "world/flint_yield");
+        
+        ATTRIBUTE_ICONS.put("cranks-dungeons:crop_yield", "world/crop_yield");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:seed_yield", "world/seed_yield");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:farming_speed_percent", "world/farming_speed_percent");
+        
+        ATTRIBUTE_ICONS.put("cranks-dungeons:monster_drop_yield", "world/monster_drop_yield");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:animal_drop_yield", "world/animal_drop_yield");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:meat_yield", "world/meat_yield");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:rare_mob_drop_chance", "world/rare_mob_drop_chance");
+        
+        ATTRIBUTE_ICONS.put("cranks-dungeons:mining_experience", "world/mining_experience");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:combat_experience", "world/combat_experience");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:breeding_experience", "world/breeding_experience");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:fishing_experience", "world/fishing_experience");
+        
+        ATTRIBUTE_ICONS.put("cranks-dungeons:ore_yield_in_overworld", "world/ore_yield_in_overworld");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:ore_yield_in_nether", "world/ore_yield_in_nether");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:rare_mob_drop_chance_in_nether", "world/rare_mob_drop_chance_in_nether");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:item_rarity_in_overworld", "world/item_rarity_in_overworld");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:item_rarity_in_nether", "world/item_rarity_in_nether");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:item_rarity_in_end", "world/item_rarity_in_end");
+
         ATTRIBUTE_ICONS.put("cranks-dungeons:chance_to_block", "passive/chance_to_block");
         ATTRIBUTE_ICONS.put("cranks-dungeons:block_value", "passive/block_value");
         ATTRIBUTE_ICONS.put("cranks-dungeons:health_on_block", "passive/health_on_block");
@@ -180,5 +217,17 @@ public class PassiveIconManager {
 
         // Final fallback
         return Identifier.of("cranks-dungeons", DEFAULT_ICON);
+    }
+
+    public static Identifier getIconForModifier(String modifierId) {
+        String fullId = modifierId;
+        if (!fullId.contains(":")) {
+            fullId = "cranks-dungeons:" + fullId;
+        }
+        String iconPath = ATTRIBUTE_ICONS.get(fullId);
+        if (iconPath != null) {
+            return Identifier.of("cranks-dungeons", iconPath);
+        }
+        return null;
     }
 }

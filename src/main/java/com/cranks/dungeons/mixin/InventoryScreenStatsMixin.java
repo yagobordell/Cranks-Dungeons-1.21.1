@@ -56,6 +56,14 @@ public abstract class InventoryScreenStatsMixin {
         private static final Identifier SKILLS_BUTTON_HOVER = Identifier.of("cranks-dungeons",
                         "textures/gui/skills_button_hover.png");
 
+        // WORLD TREE BUTTON
+        @Unique
+        private static final Identifier WORLD_BUTTON_NORMAL = Identifier.of("cranks-dungeons",
+                        "textures/gui/world_button.png");
+        @Unique
+        private static final Identifier WORLD_BUTTON_HOVER = Identifier.of("cranks-dungeons",
+                        "textures/gui/world_button_hover.png");
+
         @Unique
         private static final Identifier SCROLLBAR_TRACK_TEXTURE = Identifier.of("cranks-dungeons",
                         "textures/gui/stats_scrollbar_background.png");
@@ -74,6 +82,8 @@ public abstract class InventoryScreenStatsMixin {
         private boolean lastClickState = false;
         @Unique
         private boolean lastSkillClickState = false;
+        @Unique
+        private boolean lastWorldClickState = false;
         @Unique
         private String hoveredStat = null;
         @Unique
@@ -157,6 +167,28 @@ public abstract class InventoryScreenStatsMixin {
                         Identifier skillButtonTexture = isHoveringSkill ? SKILLS_BUTTON_HOVER : SKILLS_BUTTON_NORMAL;
                         context.drawTexturedQuad(skillButtonTexture, skillButtonX, skillButtonY,
                                         skillButtonX + skillButtonWidth, skillButtonY + skillButtonHeight,
+                                        0.0F, 1.0F, 0.0F, 1.0F);
+
+                        // --- WORLD TREE BUTTON ---
+                        int worldButtonX = skillButtonX + 22; // Next to passive tree button
+                        int worldButtonY = skillButtonY;
+                        int worldButtonWidth = 20;
+                        int worldButtonHeight = 18;
+
+                        boolean isHoveringWorld = mouseX >= worldButtonX && mouseX <= worldButtonX + worldButtonWidth &&
+                                        mouseY >= worldButtonY && mouseY <= worldButtonY + worldButtonHeight;
+
+                        if (isHoveringWorld && leftClick && !lastWorldClickState && !draggingScrollbar) {
+                                MinecraftClient.getInstance().getSoundManager().play(
+                                                PositionedSoundInstance.ui(SoundEvents.UI_BUTTON_CLICK.value(), 1.0F));
+                                MinecraftClient.getInstance().setScreen(
+                                                new com.cranks.dungeons.client.screen.WorldSkillTreeScreen(screen));
+                        }
+                        lastWorldClickState = leftClick;
+
+                        Identifier worldButtonTexture = isHoveringWorld ? WORLD_BUTTON_HOVER : WORLD_BUTTON_NORMAL;
+                        context.drawTexturedQuad(worldButtonTexture, worldButtonX, worldButtonY,
+                                        worldButtonX + worldButtonWidth, worldButtonY + worldButtonHeight,
                                         0.0F, 1.0F, 0.0F, 1.0F);
 
                         if (!statsVisible)
@@ -327,26 +359,26 @@ public abstract class InventoryScreenStatsMixin {
                         curY += 11;
 
                         // BURN
-                        double baseBurn = cranks$getPassiveBase(player, ModAttributes.BURN_MAGNITUDE_PERCENT);
-                        double totalBurn = player.getAttributeValue(ModAttributes.BURN_MAGNITUDE_PERCENT)
-                                        + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(player, weapon, "minecraft:burn_magnitude_percent", 0.05)
-                                        + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(player, chestplate, "minecraft:burn_magnitude_percent", 0.05);
+                        double baseBurn = cranks$getPassiveBase(player, ModAttributes.BURN_DAMAGE_PERCENT);
+                        double totalBurn = player.getAttributeValue(ModAttributes.BURN_DAMAGE_PERCENT)
+                                        + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(player, weapon, "minecraft:BURN_DAMAGE_PERCENT", 0.05)
+                                        + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(player, chestplate, "minecraft:BURN_DAMAGE_PERCENT", 0.05);
                         curY = drawStatWithTooltip(context, tr, panelX, curY, "Burn Mag.", totalBurn * 100,
                                         baseBurn * 100, "%", mouseX, mouseY, panelX, panelWidth);
 
                         // POISON
-                        double basePoison = cranks$getPassiveBase(player, ModAttributes.POISON_MAGNITUDE_PERCENT);
-                        double totalPoison = player.getAttributeValue(ModAttributes.POISON_MAGNITUDE_PERCENT)
-                                        + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(player, weapon, "minecraft:poison_magnitude_percent", 0.05)
-                                        + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(player, chestplate, "minecraft:poison_magnitude_percent", 0.05);
+                        double basePoison = cranks$getPassiveBase(player, ModAttributes.POISON_DAMAGE_PERCENT);
+                        double totalPoison = player.getAttributeValue(ModAttributes.POISON_DAMAGE_PERCENT)
+                                        + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(player, weapon, "minecraft:POISON_DAMAGE_PERCENT", 0.05)
+                                        + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(player, chestplate, "minecraft:POISON_DAMAGE_PERCENT", 0.05);
                         curY = drawStatWithTooltip(context, tr, panelX, curY, "Poison Mag.", totalPoison * 100,
                                         basePoison * 100, "%", mouseX, mouseY, panelX, panelWidth);
 
                         // BLEED
-                        double baseBleed = cranks$getPassiveBase(player, ModAttributes.BLEED_MAGNITUDE_PERCENT);
-                        double totalBleed = player.getAttributeValue(ModAttributes.BLEED_MAGNITUDE_PERCENT)
-                                        + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(player, weapon, "minecraft:bleed_magnitude_percent", 0.05)
-                                        + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(player, chestplate, "minecraft:bleed_magnitude_percent", 0.05);
+                        double baseBleed = cranks$getPassiveBase(player, ModAttributes.BLEED_DAMAGE_PERCENT);
+                        double totalBleed = player.getAttributeValue(ModAttributes.BLEED_DAMAGE_PERCENT)
+                                        + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(player, weapon, "minecraft:BLEED_DAMAGE_PERCENT", 0.05)
+                                        + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(player, chestplate, "minecraft:BLEED_DAMAGE_PERCENT", 0.05);
                         curY = drawStatWithTooltip(context, tr, panelX, curY, "Bleed Mag.", totalBleed * 100,
                                         baseBleed * 100, "%", mouseX, mouseY, panelX, panelWidth);
 

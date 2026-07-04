@@ -3,6 +3,7 @@ package com.cranks.dungeons.event;
 import com.cranks.dungeons.enchantment.EnchantmentDisableManager;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.item.ItemStack;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
@@ -52,26 +53,29 @@ public class EnchantmentDisableTickHandler {
                 String label = EnchantmentDisableManager.getDisabledLabel(entry.getKey(), currentEnchantments);
 
                 if (label != null) {
-                    player.sendMessage(
-                            Text.literal("⚠ " + label + " Disabled ⚠")
-                                    .formatted(Formatting.RED),
-                            true
-                    );
+                    if (server.getTicks() % 20 == 0 || !state.showingDisabled) { // Only send packet every 20 ticks or on state change
+                        ServerPlayNetworking.send(player, new com.cranks.dungeons.network.ShowNotificationPayload(
+                                Text.literal("⚠ " + label + " Disabled ⚠").formatted(Formatting.RED),
+                                40
+                        ));
+                    }
                     state.showingDisabled = true;
                     state.showingEnabled = false;
                     state.enabledMessageTimer = 0;
                 } else {
                     if (state.enabledMessageTimer > 0) {
-                        player.sendMessage(
-                                Text.literal("✔ All Enchantments Enabled")
-                                        .formatted(Formatting.GREEN),
-                                true
-                        );
+                        if (state.enabledMessageTimer % 20 == 0 || !state.showingEnabled) {
+                            ServerPlayNetworking.send(player, new com.cranks.dungeons.network.ShowNotificationPayload(
+                                    Text.literal("✔ All Enchantments Enabled").formatted(Formatting.GREEN),
+                                    40
+                            ));
+                        }
                         state.enabledMessageTimer--;
                         state.showingEnabled = true;
                         state.showingDisabled = false;
                     } else if (state.showingDisabled || state.showingEnabled) {
-                        player.sendMessage(Text.empty(), true);
+                        // Clear message by sending empty
+                        ServerPlayNetworking.send(player, new com.cranks.dungeons.network.ShowNotificationPayload(Text.empty(), 0));
                         state.showingDisabled = false;
                         state.showingEnabled = false;
                     }

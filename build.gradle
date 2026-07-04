@@ -102,72 +102,84 @@ tasks.register('patchJarForCCA') {
 		// Extract, patch, repackage
 		ant.unzip(src: jarFile, dest: tmpDir)
 
-		def classFile = new File(tmpDir, "com/cranks/dungeons/component/PassiveDataComponentImpl.class")
-		if (!classFile.exists()) {
-			throw new GradleException("PassiveDataComponentImpl.class not found in remapped JAR!")
+		def classesToPatch = [
+			"com/cranks/dungeons/component/PassiveDataComponentImpl",
+			"com/cranks/dungeons/component/WorldTreeDataComponentImpl"
+		]
+
+		boolean patchedAny = false
+
+		for (String classPath : classesToPatch) {
+			def classFile = new File(tmpDir, classPath + ".class")
+			if (!classFile.exists()) {
+				println "WARNING: ${classFile.name} not found in remapped JAR!"
+				continue
+			}
+
+			def cr = new org.objectweb.asm.ClassReader(classFile.bytes)
+			def classNode = new org.objectweb.asm.tree.ClassNode()
+			cr.accept(classNode, 0)
+
+			boolean hasWriteData = classNode.methods.any { it.name == "writeData" && it.desc == "(Lnet/minecraft/class_11372;)V" }
+			boolean hasReadData = classNode.methods.any { it.name == "readData" && it.desc == "(Lnet/minecraft/class_11368;)V" }
+
+			if (!hasWriteData || !hasReadData) {
+				def cw = new org.objectweb.asm.ClassWriter(0)
+				classNode.accept(cw)
+
+				if (!hasWriteData) {
+					def mv1 = cw.visitMethod(
+						org.objectweb.asm.Opcodes.ACC_PUBLIC,
+						"writeData",
+						"(Lnet/minecraft/class_11372;)V",
+						null, null
+					)
+					mv1.visitCode()
+					mv1.visitVarInsn(org.objectweb.asm.Opcodes.ALOAD, 0) // this
+					mv1.visitVarInsn(org.objectweb.asm.Opcodes.ALOAD, 1) // buffer
+					mv1.visitMethodInsn(
+						org.objectweb.asm.Opcodes.INVOKEVIRTUAL,
+						classPath,
+						"cca_bridge_writeData",
+						"(Ljava/lang/Object;)V",
+						false
+					)
+					mv1.visitInsn(org.objectweb.asm.Opcodes.RETURN)
+					mv1.visitMaxs(2, 2)
+					mv1.visitEnd()
+				}
+
+				if (!hasReadData) {
+					def mv2 = cw.visitMethod(
+						org.objectweb.asm.Opcodes.ACC_PUBLIC,
+						"readData",
+						"(Lnet/minecraft/class_11368;)V",
+						null, null
+					)
+					mv2.visitCode()
+					mv2.visitVarInsn(org.objectweb.asm.Opcodes.ALOAD, 0) // this
+					mv2.visitVarInsn(org.objectweb.asm.Opcodes.ALOAD, 1) // buffer
+					mv2.visitMethodInsn(
+						org.objectweb.asm.Opcodes.INVOKEVIRTUAL,
+						classPath,
+						"cca_bridge_readData",
+						"(Ljava/lang/Object;)V",
+						false
+					)
+					mv2.visitInsn(org.objectweb.asm.Opcodes.RETURN)
+					mv2.visitMaxs(2, 2)
+					mv2.visitEnd()
+				}
+
+				classFile.bytes = cw.toByteArray()
+				patchedAny = true
+			}
 		}
 
-		def cr = new org.objectweb.asm.ClassReader(classFile.bytes)
-		def classNode = new org.objectweb.asm.tree.ClassNode()
-		cr.accept(classNode, 0)
-
-		boolean hasWriteData = classNode.methods.any { it.name == "writeData" && it.desc == "(Lnet/minecraft/class_11372;)V" }
-		boolean hasReadData = classNode.methods.any { it.name == "readData" && it.desc == "(Lnet/minecraft/class_11368;)V" }
-
-		if (!hasWriteData || !hasReadData) {
-			def cw = new org.objectweb.asm.ClassWriter(0)
-			classNode.accept(cw)
-
-			if (!hasWriteData) {
-				def mv1 = cw.visitMethod(
-					org.objectweb.asm.Opcodes.ACC_PUBLIC,
-					"writeData",
-					"(Lnet/minecraft/class_11372;)V",
-					null, null
-				)
-				mv1.visitCode()
-				mv1.visitVarInsn(org.objectweb.asm.Opcodes.ALOAD, 0) // this
-				mv1.visitVarInsn(org.objectweb.asm.Opcodes.ALOAD, 1) // buffer
-				mv1.visitMethodInsn(
-					org.objectweb.asm.Opcodes.INVOKEVIRTUAL,
-					"com/cranks/dungeons/component/PassiveDataComponentImpl",
-					"cca_bridge_writeData",
-					"(Ljava/lang/Object;)V",
-					false
-				)
-				mv1.visitInsn(org.objectweb.asm.Opcodes.RETURN)
-				mv1.visitMaxs(2, 2)
-				mv1.visitEnd()
-			}
-
-			if (!hasReadData) {
-				def mv2 = cw.visitMethod(
-					org.objectweb.asm.Opcodes.ACC_PUBLIC,
-					"readData",
-					"(Lnet/minecraft/class_11368;)V",
-					null, null
-				)
-				mv2.visitCode()
-				mv2.visitVarInsn(org.objectweb.asm.Opcodes.ALOAD, 0) // this
-				mv2.visitVarInsn(org.objectweb.asm.Opcodes.ALOAD, 1) // buffer
-				mv2.visitMethodInsn(
-					org.objectweb.asm.Opcodes.INVOKEVIRTUAL,
-					"com/cranks/dungeons/component/PassiveDataComponentImpl",
-					"cca_bridge_readData",
-					"(Ljava/lang/Object;)V",
-					false
-				)
-				mv2.visitInsn(org.objectweb.asm.Opcodes.RETURN)
-				mv2.visitMaxs(2, 2)
-				mv2.visitEnd()
-			}
-
-			classFile.bytes = cw.toByteArray()
-
-			// Repackage
+		if (patchedAny) {
 			jarFile.delete()
 			ant.zip(destfile: jarFile, basedir: tmpDir)
-			println "Patched ${jarFile.name} with CCA 7.3.1 compatible writeData/readData methods"
+			println "Patched ${jarFile.name} with CCA 7.3.1 compatible methods"
 		} else {
 			println "${jarFile.name} is already patched with CCA 7.3.1 compatible methods"
 		}

@@ -25,6 +25,10 @@ public class ModNetworking {
                 ToggleEnchantmentDisablePayload.ID,
                 ToggleEnchantmentDisablePayload.CODEC
         );
+        PayloadTypeRegistry.playS2C().register(
+                ShowNotificationPayload.ID,
+                ShowNotificationPayload.CODEC
+        );
         PayloadTypeRegistry.playC2S().register(UnlockNodePayload.ID, UnlockNodePayload.CODEC);
         PayloadTypeRegistry.playC2S().register(SelectClassPayload.ID, SelectClassPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(BulkUnlockNodesPayload.ID, BulkUnlockNodesPayload.CODEC);
@@ -39,6 +43,10 @@ public class ModNetworking {
         PayloadTypeRegistry.playS2C().register(SyncPassiveTreePayload.ID, SyncPassiveTreePayload.CODEC);
         PayloadTypeRegistry.playS2C().register(PlayerInfoSyncPacket.ID, PlayerInfoSyncPacket.CODEC);
         PayloadTypeRegistry.playS2C().register(EntityShieldSyncPacket.ID, EntityShieldSyncPacket.CODEC);
+        
+        PayloadTypeRegistry.playS2C().register(SyncWorldTreePayload.ID, SyncWorldTreePayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(UnlockWorldNodePayload.ID, UnlockWorldNodePayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(BulkUnlockWorldNodesPayload.ID, BulkUnlockWorldNodesPayload.CODEC);
     }
 
     private static boolean isNodeUnlockable(com.cranks.dungeons.component.PassiveDataComponent data, String nodeId) {
@@ -83,10 +91,12 @@ public class ModNetworking {
                         List<Identifier> relevant = EnchantmentDisableManager.getRelevantEnchantments(tool);
 
                         if (relevant.isEmpty()) {
-                            player.sendMessage(
-                                    Text.literal("No toggleable enchantments on this tool")
-                                            .formatted(Formatting.GRAY),
-                                    true
+                            ServerPlayNetworking.send(
+                                    player,
+                                    new ShowNotificationPayload(
+                                            Text.literal("No toggleable enchantments on this tool").formatted(Formatting.GRAY),
+                                            60
+                                    )
                             );
                             return;
                         }
@@ -94,10 +104,10 @@ public class ModNetworking {
                         EnchantmentDisableManager.toggleNext(player.getUuid(), relevant);
 
                         String label = EnchantmentDisableManager.getDisabledLabel(player.getUuid(), relevant);
-                        if (label == null) {
-                            // Toggled to "all enabled"
-                            EnchantmentDisableTickHandler.triggerEnabledMessage(player.getUuid());
-                        }
+                        Text message = label.isEmpty() ? Text.literal("All Enchantments Active").formatted(Formatting.GREEN)
+                                : Text.literal("Disabled: " + label).formatted(Formatting.RED);
+
+                        ServerPlayNetworking.send(player, new ShowNotificationPayload(message, 60));
                         // If something is disabled, the tick handler will show it continuously
                     });
                 }
@@ -205,6 +215,47 @@ public class ModNetworking {
                     });
                 }
         );
+
+        // Unlock Single World Node
+        ServerPlayNetworking.registerGlobalReceiver(UnlockWorldNodePayload.ID, (payload, context) -> {
+            var player = context.player();
+            com.cranks.dungeons.component.WorldTreeDataComponent data = com.cranks.dungeons.component.ModComponents.WORLD_TREE_DATA.get(player);
+            if (data != null && data.getUnspentPoints() > 0) {
+                if (!data.hasNode(payload.nodeId())) {
+                    data.setUnspentPoints(data.getUnspentPoints() - 1);
+                    data.unlockNode(payload.nodeId());
+                    if (payload.choice() != null && !payload.choice().isEmpty()) {
+                        data.setNodeChoice(payload.nodeId(), payload.choice());
+                    }
+                    player.playSound(net.minecraft.sound.SoundEvents.UI_BUTTON_CLICK.value(), 1.0F, 1.0F);
+                    com.cranks.dungeons.component.WorldTreePersistentState.get(context.server()).savePlayerData(player.getUuid(), data);
+                }
+            }
+        });
+
+        // Bulk Unlock World Nodes (Used when user creates nodes in designer mode)
+        ServerPlayNetworking.registerGlobalReceiver(BulkUnlockWorldNodesPayload.ID, (payload, context) -> {
+            var player = context.player();
+            com.cranks.dungeons.component.WorldTreeDataComponent data = com.cranks.dungeons.component.ModComponents.WORLD_TREE_DATA.get(player);
+            if (data != null) {
+                int requiredPoints = 0;
+                for (String id : payload.nodeChoices().keySet()) {
+                    if (!data.hasNode(id)) requiredPoints++;
+                }
+
+                if (data.getUnspentPoints() >= requiredPoints) {
+                    data.setUnspentPoints(data.getUnspentPoints() - requiredPoints);
+                    for (var entry : payload.nodeChoices().entrySet()) {
+                        data.unlockNode(entry.getKey());
+                        if (entry.getValue() != null && !entry.getValue().isEmpty()) {
+                            data.setNodeChoice(entry.getKey(), entry.getValue());
+                        }
+                    }
+                    player.playSound(net.minecraft.sound.SoundEvents.UI_BUTTON_CLICK.value(), 1.0F, 1.0F);
+                    com.cranks.dungeons.component.WorldTreePersistentState.get(context.server()).savePlayerData(player.getUuid(), data);
+                }
+            }
+        });
     }
     
     public static void syncPartyToPlayer(net.minecraft.server.MinecraftServer server, net.minecraft.server.network.ServerPlayerEntity player, Party party, boolean joined) {
@@ -286,6 +337,21 @@ public class ModNetworking {
         SyncPassiveTreePayload payload = new SyncPassiveTreePayload(
                 com.cranks.dungeons.config.PassiveTreeConfig.getNodes(),
                 com.cranks.dungeons.config.PassiveTreeConfig.getClasses()
+        );
+        for (net.minecraft.server.network.ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+            ServerPlayNetworking.send(player, payload);
+        }
+    }
+
+    public static void syncWorldTreeToPlayer(net.minecraft.server.network.ServerPlayerEntity player) {
+        ServerPlayNetworking.send(player, new SyncWorldTreePayload(
+                com.cranks.dungeons.config.WorldTreeConfig.getNodes()
+        ));
+    }
+
+    public static void syncWorldTreeToAll(net.minecraft.server.MinecraftServer server) {
+        SyncWorldTreePayload payload = new SyncWorldTreePayload(
+                com.cranks.dungeons.config.WorldTreeConfig.getNodes()
         );
         for (net.minecraft.server.network.ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
             ServerPlayNetworking.send(player, payload);
