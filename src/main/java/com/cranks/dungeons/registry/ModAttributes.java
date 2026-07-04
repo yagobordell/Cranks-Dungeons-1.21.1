@@ -133,8 +133,9 @@ public class ModAttributes {
     public static final RegistryEntry<EntityAttribute> ELECTROCUTE_MAGNITUDE_PERCENT = register("electrocute_magnitude_percent", 0.0, 0.0, 10.0);
     public static final RegistryEntry<EntityAttribute> ELECTROCUTE_DURATION = register("electrocute_duration", 0.0, 0.0, 10.0);
     public static final RegistryEntry<EntityAttribute> MAX_HEALTH_PERCENT = register("max_health_percent", 0.0, 0.0, 10.0);
-    public static final RegistryEntry<EntityAttribute> ARMOR_PERCENT = register("armor_percent", 0.0, 0.0, 10.0);
     public static final RegistryEntry<EntityAttribute> ENERGY_SHIELD_PERCENT = register("energy_shield_percent", 0.0, 0.0, 10.0);
+    public static final RegistryEntry<EntityAttribute> ENERGY_SHIELD_RECHARGE_RATE_PERCENT = register("energy_shield_recharge_rate_percent", 0.0, -1.0, 10.0);
+    public static final RegistryEntry<EntityAttribute> ARMOR_PERCENT = register("armor_percent", 0.0, 0.0, 10.0);
     public static final RegistryEntry<EntityAttribute> EVASION_RATING_PERCENT = register("evasion_rating_percent", 0.0, 0.0, 10.0);
     public static final RegistryEntry<EntityAttribute> ARMOR_PENETRATION_PERCENT = register("armor_penetration_percent", 0.0, 0.0, 1.0);
     public static final RegistryEntry<EntityAttribute> ARMOR_SPEED_PENALTY_REDUCTION = register("armor_speed_penalty_reduction", 0.0, 0.0, 1.0);
@@ -146,6 +147,11 @@ public class ModAttributes {
     public static final RegistryEntry<EntityAttribute> KEYSTONE_RESOLUTE_TECHNIQUE = register("keystone_resolute_technique", 0.0, 0.0, 1.0);
     public static final RegistryEntry<EntityAttribute> KEYSTONE_ELEMENTAL_OVERLOAD = register("keystone_elemental_overload", 0.0, 0.0, 1.0);
     public static final RegistryEntry<EntityAttribute> KEYSTONE_CRIMSON_PACT = register("keystone_crimson_pact", 0.0, 0.0, 1.0);
+    public static final RegistryEntry<EntityAttribute> KEYSTONE_IRON_REFLEXES = register("keystone_iron_reflexes", 0.0, 0.0, 1.0);
+    public static final RegistryEntry<EntityAttribute> KEYSTONE_ZEALOTS_OATH = register("keystone_zealots_oath", 0.0, 0.0, 1.0);
+    public static final RegistryEntry<EntityAttribute> KEYSTONE_GHOST_REAVER = register("keystone_ghost_reaver", 0.0, 0.0, 1.0);
+    public static final RegistryEntry<EntityAttribute> KEYSTONE_VAAL_PACT = register("keystone_vaal_pact", 0.0, 0.0, 1.0);
+    public static final RegistryEntry<EntityAttribute> KEYSTONE_POINT_BLANK = register("keystone_point_blank", 0.0, 0.0, 1.0);
 
     public static final RegistryEntry<EntityAttribute> FIRE_PENETRATION_PERCENT = register("fire_penetration_percent", 0.0, 0.0, 1.0);
     public static final RegistryEntry<EntityAttribute> COLD_PENETRATION_PERCENT = register("cold_penetration_percent", 0.0, 0.0, 1.0);

@@ -233,13 +233,28 @@ public abstract class InventoryScreenStatsMixin {
                                         player.getAttributeValue(ModAttributes.KEYSTONE_CRIMSON_PACT) > 0 ? 0 : player.getAttributeValue(ModAttributes.ENERGY_SHIELD),
                                         player.getAttributeValue(ModAttributes.KEYSTONE_CRIMSON_PACT) > 0 ? 0 : cranks$getPassiveBase(player, ModAttributes.ENERGY_SHIELD), "", mouseX, mouseY,
                                         panelX, panelWidth);
+                        
+                        double rechargeRate = player.getAttributeValue(ModAttributes.ENERGY_SHIELD_RECHARGE_RATE_PERCENT) * 100;
+                        if (rechargeRate != 0) {
+                                curY = drawStatWithTooltip(context, tr, panelX, curY, "ES Recharge",
+                                                rechargeRate,
+                                                cranks$getPassiveBase(player, ModAttributes.ENERGY_SHIELD_RECHARGE_RATE_PERCENT) * 100, "%", mouseX, mouseY,
+                                                panelX, panelWidth);
+                        }
                         curY += 6;
 
                         // --- CATEGORY 3: ARMOUR ---
                         context.drawText(tr, Text.literal("Armour"), panelX + 6, curY, 0xFF404040, false);
                         curY += 11;
+                        double displayArmor = player.getAttributeValue(EntityAttributes.ARMOR);
+                        double displayEvasion = player.getAttributeValue(ModAttributes.EVASION_RATING);
+                        if (player.getAttributeValue(ModAttributes.KEYSTONE_IRON_REFLEXES) > 0) {
+                                displayArmor += displayEvasion;
+                                displayEvasion = 0;
+                        }
+
                         curY = drawStatWithTooltip(context, tr, panelX, curY, "Armor",
-                                        player.getAttributeValue(EntityAttributes.ARMOR),
+                                        displayArmor,
                                         cranks$getPassiveBase(player, EntityAttributes.ARMOR), "", mouseX, mouseY,
                                         panelX, panelWidth);
                         curY += 6;
@@ -247,8 +262,8 @@ public abstract class InventoryScreenStatsMixin {
                         // --- CATEGORY 4: EVASION ---
                         context.drawText(tr, Text.literal("Evasion"), panelX + 6, curY, 0xFF404040, false);
                         curY += 11;
-                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Evasion",
-                                        player.getAttributeValue(ModAttributes.EVASION_RATING),
+                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Evasion Rating",
+                                        displayEvasion,
                                         cranks$getPassiveBase(player, ModAttributes.EVASION_RATING), "", mouseX, mouseY,
                                         panelX, panelWidth);
                         curY += 6;
@@ -601,13 +616,14 @@ public abstract class InventoryScreenStatsMixin {
                         case "Cold Damage" -> "Bonus cold damage per hit";
                         case "Lightning Damage" -> "Bonus lightning damage per hit";
                         case "Void Damage" -> "Bonus void damage per hit";
+                        case "Life Leech" -> "Instantly heals you for a percentage of physical damage dealt";
                         case "Energy Shield" -> "Absorbs damage before health";
+                        case "ES Recharge" -> "Increases the speed at which Energy Shield recharges out of combat";
+                        case "Armor" -> "Reduces physical damage taken based on hit size";
                         case "Max Health" -> "Maximum health points";
                         case "Health Regen." -> "Health restored per second";
                         case "Damage Leeched as Life" -> "% of damage converted to health";
-                        case "Life Leech" -> "% of physical damage converted to health";
                         case "Evasion" -> calculateEvasionDescription();
-                        case "Armor" -> calculateArmorDescription();
                         case "Fire Res" -> "Reduces fire damage taken";
                         case "Cold Res" -> "Reduces cold damage taken";
                         case "Lightning Res" -> "Reduces lightning damage taken";
@@ -636,6 +652,8 @@ public abstract class InventoryScreenStatsMixin {
                 var player = MinecraftClient.getInstance().player;
                 if (player == null)
                         return "Chance to dodge attacks";
+                if (player.getAttributeValue(ModAttributes.KEYSTONE_IRON_REFLEXES) > 0)
+                        return "Evasion converted to Armor by Iron Reflexes";
                 double rating = player.getAttributeValue(ModAttributes.EVASION_RATING);
                 double armor = player.getAttributeValue(EntityAttributes.ARMOR);
                 // Adjusted armor penalty (4.0x) to match new balancing
@@ -648,6 +666,9 @@ public abstract class InventoryScreenStatsMixin {
                 if (player == null)
                         return "Reduces incoming physical damage";
                 double armor = player.getAttributeValue(EntityAttributes.ARMOR);
+                if (player.getAttributeValue(ModAttributes.KEYSTONE_IRON_REFLEXES) > 0) {
+                        armor += player.getAttributeValue(ModAttributes.EVASION_RATING);
+                }
 
                 // Show reduction against a standard 30 damage hit (modded baseline)
                 double x = 40.0 * 30.0;

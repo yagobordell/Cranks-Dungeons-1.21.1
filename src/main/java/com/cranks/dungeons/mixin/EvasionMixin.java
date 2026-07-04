@@ -52,6 +52,11 @@ public abstract class EvasionMixin {
             }
         }
 
+        // Iron Reflexes converts evasion to armor, so we can't evade
+        if (entity.getAttributeValue(ModAttributes.KEYSTONE_IRON_REFLEXES) > 0) {
+            return;
+        }
+
         double rating = entity.getAttributeValue(ModAttributes.EVASION_RATING);
         if (rating <= 0)
             return;

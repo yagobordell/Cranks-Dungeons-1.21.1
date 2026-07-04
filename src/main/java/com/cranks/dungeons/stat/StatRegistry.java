@@ -129,19 +129,7 @@ public class StatRegistry {
                 return registered;
         }
 
-        public static int rollRandomTier() {
-                int roll = RandomUtil.nextInt(100);
-                if (roll < 20) return 10;
-                if (roll < 38) return 9;
-                if (roll < 53) return 8;
-                if (roll < 65) return 7;
-                if (roll < 75) return 6;
-                if (roll < 83) return 5;
-                if (roll < 89) return 4;
-                if (roll < 94) return 3;
-                if (roll < 98) return 2;
-                return 1;
-        }
+
 
         // ========== Registration ==========
 
@@ -280,6 +268,15 @@ public class StatRegistry {
                                 r(0.20, 0.21, 0.24, 0.30, 0.38, 0.48, 0.60, 0.74, 0.91, 1.10),
                                 true, true, Formatting.BLUE, CustomStat.AffixType.PREFIX,
                                 EquipmentType.HELMET, EquipmentType.LEGGINGS, EquipmentType.ELYTRA)
+                        .forEach(s -> s.setArmorBaseType(com.cranks.dungeons.equipment.ArmorBaseType.INT));
+
+                // --- Energy Shield Recharge Rate % (Armor + Elytra) ---
+                registerForTypes("energy_shield_recharge_rate_percent", "Increased Energy Shield Recharge Rate",
+                                ModAttributes.ENERGY_SHIELD_RECHARGE_RATE_PERCENT,
+                                r(0.02, 0.04, 0.06, 0.09, 0.12, 0.15, 0.18, 0.21, 0.24, 0.27),
+                                r(0.04, 0.06, 0.08, 0.11, 0.14, 0.17, 0.20, 0.23, 0.26, 0.30),
+                                true, true, Formatting.BLUE, CustomStat.AffixType.SUFFIX,
+                                EquipmentType.HELMET, EquipmentType.CHESTPLATE, EquipmentType.LEGGINGS, EquipmentType.BOOTS, EquipmentType.ELYTRA)
                         .forEach(s -> s.setArmorBaseType(com.cranks.dungeons.equipment.ArmorBaseType.INT));
 
                 // --- Knockback Resistance (Armor + Shield) ---
@@ -928,51 +925,71 @@ public class StatRegistry {
                                 .collect(Collectors.toList());
         }
 
-        public static CustomStat getRandomStatForEquipmentType(EquipmentType equipmentType) {
+        public static class StatAndTier {
+                public final CustomStat stat;
+                public final int tier;
+                public StatAndTier(CustomStat stat, int tier) {
+                        this.stat = stat;
+                        this.tier = tier;
+                }
+        }
+
+        public static StatAndTier getRandomStatForEquipmentType(EquipmentType equipmentType) {
                 return getRandomStatForEquipmentType(equipmentType, com.cranks.dungeons.equipment.ArmorBaseType.ANY, 1, 100);
         }
 
-        public static CustomStat getRandomStatForEquipmentType(EquipmentType equipmentType, com.cranks.dungeons.equipment.ArmorBaseType armorBase, int minLevel,
+        public static StatAndTier getRandomStatForEquipmentType(EquipmentType equipmentType, com.cranks.dungeons.equipment.ArmorBaseType armorBase, int minLevel,
                         int maxLevel) {
                 List<CustomStat> stats = getStatsByEquipmentType(equipmentType).stream()
                                 .filter(stat -> stat.getLevel() >= minLevel && stat.getLevel() <= maxLevel)
                                 .filter(stat -> armorBase.canRoll(stat.getArmorBaseType()))
                                 .collect(Collectors.toList());
-                return getRandomWeightedStat(stats);
+                return getRandomWeightedStatAndTier(stats);
         }
 
-        public static CustomStat getRandomStatForEquipmentType(EquipmentType equipmentType,
+        public static StatAndTier getRandomStatForEquipmentType(EquipmentType equipmentType,
                         CustomStat.AffixType affixType) {
                 return getRandomStatForEquipmentType(equipmentType, com.cranks.dungeons.equipment.ArmorBaseType.ANY, affixType, 1, 100);
         }
 
-        public static CustomStat getRandomStatForEquipmentType(EquipmentType equipmentType, com.cranks.dungeons.equipment.ArmorBaseType armorBase,
+        public static StatAndTier getRandomStatForEquipmentType(EquipmentType equipmentType, com.cranks.dungeons.equipment.ArmorBaseType armorBase,
                         CustomStat.AffixType affixType, int minLevel, int maxLevel) {
                 List<CustomStat> stats = getStatsByEquipmentType(equipmentType).stream()
                                 .filter(stat -> stat.getAffixType() == affixType)
                                 .filter(stat -> stat.getLevel() >= minLevel && stat.getLevel() <= maxLevel)
                                 .filter(stat -> armorBase.canRoll(stat.getArmorBaseType()))
                                 .collect(Collectors.toList());
-                return getRandomWeightedStat(stats);
+                return getRandomWeightedStatAndTier(stats);
         }
 
-        private static CustomStat getRandomWeightedStat(List<CustomStat> stats) {
+        private static StatAndTier getRandomWeightedStatAndTier(List<CustomStat> stats) {
                 if (stats.isEmpty())
                         return null;
 
-                int totalWeight = stats.stream().mapToInt(CustomStat::getWeight).sum();
-                if (totalWeight <= 0)
-                        return stats.get(RandomUtil.nextInt(stats.size()));
+                int totalWeight = 0;
+                for (CustomStat stat : stats) {
+                        for (int t = 1; t <= 10; t++) {
+                                totalWeight += stat.getTierWeight(t);
+                        }
+                }
+
+                if (totalWeight <= 0) {
+                        CustomStat randomStat = stats.get(RandomUtil.nextInt(stats.size()));
+                        int randomTier = RandomUtil.nextInt(10) + 1;
+                        return new StatAndTier(randomStat, randomTier);
+                }
 
                 int roll = RandomUtil.nextInt(totalWeight);
                 int currentWeight = 0;
                 for (CustomStat stat : stats) {
-                        currentWeight += stat.getWeight();
-                        if (roll < currentWeight) {
-                                return stat;
+                        for (int t = 1; t <= 10; t++) {
+                                currentWeight += stat.getTierWeight(t);
+                                if (roll < currentWeight) {
+                                        return new StatAndTier(stat, t);
+                                }
                         }
                 }
-                return stats.get(0);
+                return new StatAndTier(stats.get(0), 10);
         }
 
         public static Collection<String> getAllStatIds() {

@@ -108,9 +108,12 @@ public class EnergyShieldRegenMixin {
 
         long currentTime = world.getTime();
         long timeSinceLastDamage = currentTime - provider.cranksdungeons$getLastDamageTime();
+        
+        // Ghost Reaver prevents Energy Shield Recharge
+        boolean ghostReaver = self.getAttributeValue(ModAttributes.KEYSTONE_GHOST_REAVER) > 0;
 
         // Check if we should be regenerating
-        if (timeSinceLastDamage >= REGEN_DELAY_TICKS && currentShield < maxShield) {
+        if (!ghostReaver && timeSinceLastDamage >= REGEN_DELAY_TICKS && currentShield < maxShield) {
             // Play sound when regeneration STARTS
             if (!wasRegenerating) {
                 world.playSoundFromEntity(
@@ -124,7 +127,8 @@ public class EnergyShieldRegenMixin {
             }
 
             // Regenerate shield
-            float regenPerTick = (float) (maxShield * REGEN_PERCENT_PER_TICK);
+            double rechargeMultiplier = 1.0 + self.getAttributeValue(ModAttributes.ENERGY_SHIELD_RECHARGE_RATE_PERCENT);
+            float regenPerTick = (float) (maxShield * REGEN_PERCENT_PER_TICK * rechargeMultiplier);
             float newShield = Math.min(currentShield + regenPerTick, (float) maxShield);
 
             provider.cranksdungeons$setCurrentEnergyShield(newShield);

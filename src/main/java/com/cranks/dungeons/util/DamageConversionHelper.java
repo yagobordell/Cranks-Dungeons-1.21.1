@@ -94,6 +94,20 @@ public class DamageConversionHelper {
         Entity attacker = source.getAttacker();
         Entity directSource = source.getSource();
 
+        // Point Blank Keystone
+        if (attacker instanceof LivingEntity livingAttacker && livingAttacker.getAttributeValue(ModAttributes.KEYSTONE_POINT_BLANK) > 0) {
+            if (source.isIn(net.minecraft.registry.tag.DamageTypeTags.IS_PROJECTILE) || directSource instanceof net.minecraft.entity.projectile.ProjectileEntity) {
+                double distance = Math.sqrt(attacker.squaredDistanceTo(target));
+                if (distance <= 5.0) {
+                    amount *= 1.3f;
+                } else if (distance >= 30.0) {
+                    amount *= 0.5f;
+                } else {
+                    amount *= (float) (1.3 - ((distance - 5.0) / 25.0 * 0.8));
+                }
+            }
+        }
+
         // Specific handling for quiet 'generic' damage from AilmentManager
         if (source.isOf(DamageTypes.GENERIC) && com.cranks.dungeons.ailment.AilmentManager.hasAilment(target, com.cranks.dungeons.ailment.AilmentType.BURN)) {
             breakdown.add(DamageElement.FIRE, amount);
@@ -230,7 +244,11 @@ public class DamageConversionHelper {
     }
 
     public static float calculateArmorReduction(LivingEntity target, float amount, double penetration, double armorMultiplier) {
-        double ar = target.getAttributeValue(net.minecraft.entity.attribute.EntityAttributes.ARMOR) * armorMultiplier;
+        double ar = target.getAttributeValue(net.minecraft.entity.attribute.EntityAttributes.ARMOR);
+        if (target.getAttributeValue(ModAttributes.KEYSTONE_IRON_REFLEXES) > 0) {
+            ar += target.getAttributeValue(ModAttributes.EVASION_RATING);
+        }
+        ar *= armorMultiplier;
 
         if (penetration > 0) {
             ar *= (1.0 - penetration);

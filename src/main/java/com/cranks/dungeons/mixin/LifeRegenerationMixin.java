@@ -14,15 +14,38 @@ public class LifeRegenerationMixin {
     private void applyLifeRegeneration(CallbackInfo ci) {
         LivingEntity entity = (LivingEntity) (Object) this;
 
-        if (!entity.isAlive() || entity.getHealth() >= entity.getMaxHealth()) {
+        if (!entity.isAlive()) {
+            return;
+        }
+
+        // Vaal Pact prevents Life Regeneration
+        if (entity.getAttributeValue(ModAttributes.KEYSTONE_VAAL_PACT) > 0) {
             return;
         }
 
         double lifeRegen = entity.getAttributeValue(ModAttributes.LIFE_REGENERATION);
-
         if (lifeRegen > 0) {
             float healAmount = (float) (lifeRegen / 20.0);
-            entity.heal(healAmount);
+
+            // Zealot's Oath applies Life Regeneration to Energy Shield instead
+            if (entity.getAttributeValue(ModAttributes.KEYSTONE_ZEALOTS_OATH) > 0) {
+                if (entity instanceof com.cranks.dungeons.EnergyShieldProvider provider) {
+                    float currentES = provider.cranksdungeons$getCurrentEnergyShield();
+                    float maxES = (float) entity.getAttributeValue(ModAttributes.ENERGY_SHIELD);
+                    if (currentES < maxES) {
+                        float newES = Math.min(maxES, currentES + healAmount);
+                        provider.cranksdungeons$setCurrentEnergyShield(newES);
+                        if (entity instanceof net.minecraft.server.network.ServerPlayerEntity player && player.networkHandler != null) {
+                            net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(player,
+                                    new com.cranks.dungeons.network.EnergyShieldSyncPacket(newES, maxES));
+                        }
+                    }
+                }
+            } else {
+                if (entity.getHealth() < entity.getMaxHealth()) {
+                    entity.heal(healAmount);
+                }
+            }
         }
     }
 }

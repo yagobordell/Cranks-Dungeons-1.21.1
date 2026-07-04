@@ -101,6 +101,7 @@ public class PassiveIconManager {
         ATTRIBUTE_ICONS.put("cranks-dungeons:max_health_percent", "passive/max_health_percent");
         ATTRIBUTE_ICONS.put("cranks-dungeons:armor_percent", "passive/armor_percent");
         ATTRIBUTE_ICONS.put("cranks-dungeons:energy_shield_percent", "passive/energy_shield_percent");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:energy_shield_recharge_rate_percent", "passive/energy_shield_percent");
         ATTRIBUTE_ICONS.put("cranks-dungeons:evasion_rating_percent", "passive/evasion_rating_percent");
 
         // --- Utility ---
@@ -130,6 +131,18 @@ public class PassiveIconManager {
         ATTRIBUTE_ICONS.put("cranks-dungeons:chance_to_block", "passive/chance_to_block");
         ATTRIBUTE_ICONS.put("cranks-dungeons:block_value", "passive/block_value");
         ATTRIBUTE_ICONS.put("cranks-dungeons:health_on_block", "passive/health_on_block");
+
+        // Keystones
+        ATTRIBUTE_ICONS.put("cranks-dungeons:keystone_void_inoculation", "passive/keystone_void_inoculation");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:keystone_avatar_of_fire", "passive/keystone_avatar_of_fire");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:keystone_resolute_technique", "passive/keystone_resolute_technique");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:keystone_elemental_overload", "passive/keystone_elemental_overload");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:keystone_crimson_pact", "passive/keystone_crimson_pact");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:keystone_iron_reflexes", "passive/keystone_iron_reflexes");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:keystone_zealots_oath", "passive/keystone_zealots_oath");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:keystone_ghost_reaver", "passive/keystone_ghost_reaver");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:keystone_vaal_pact", "passive/keystone_vaal_pact");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:keystone_point_blank", "passive/keystone_point_blank");
 
     }
 

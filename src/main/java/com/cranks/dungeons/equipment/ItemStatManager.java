@@ -191,21 +191,49 @@ public class ItemStatManager {
         return false;
     }
 
-    public static boolean addRandomStat(ItemStack stack, int tier, CustomStat.AffixType type) {
-        return addRandomStat(stack, tier, type, 1, 100);
+    public static boolean addRandomStat(ItemStack stack, CustomStat.AffixType type) {
+        return addRandomStat(stack, type, 1, 100);
     }
 
-    public static boolean addRandomStat(ItemStack stack, int tier, CustomStat.AffixType type, int minLevel, int maxLevel) {
+    public static boolean addRandomStat(ItemStack stack, CustomStat.AffixType type, int minLevel, int maxLevel) {
         if (!canAddStat(stack, type)) return false;
 
         Optional<EquipmentType> equipType = EquipmentType.getTypeForItem(stack);
         if (equipType.isEmpty()) return false;
 
         com.cranks.dungeons.equipment.ArmorBaseType armorBase = com.cranks.dungeons.equipment.ArmorBaseType.getFromItem(stack);
-        CustomStat stat = StatRegistry.getRandomStatForEquipmentType(equipType.get(), armorBase, type, minLevel, maxLevel);
-        if (stat == null) return false;
+        StatRegistry.StatAndTier statAndTier = StatRegistry.getRandomStatForEquipmentType(equipType.get(), armorBase, type, minLevel, maxLevel);
+        if (statAndTier == null || statAndTier.stat == null) return false;
+        
+        CustomStat stat = statAndTier.stat;
+        int tier = statAndTier.tier;
 
         // Check for duplicate attributes
+        List<ItemStat> existingStats = getStats(stack);
+        boolean alreadyHasStat = existingStats.stream()
+                .anyMatch(s -> {
+                    CustomStat existingStat = StatRegistry.getStat(s.statId);
+                    if (existingStat == null) return false;
+                    return existingStat.getGroupId().equals(stat.getGroupId());
+                });
+
+        if (alreadyHasStat) return false;
+
+        return addSpecificStat(stack, stat.getId(), tier);
+    }
+
+    public static boolean addRandomStatWithFixedTier(ItemStack stack, int tier, CustomStat.AffixType type) {
+        if (!canAddStat(stack, type)) return false;
+
+        Optional<EquipmentType> equipType = EquipmentType.getTypeForItem(stack);
+        if (equipType.isEmpty()) return false;
+
+        com.cranks.dungeons.equipment.ArmorBaseType armorBase = com.cranks.dungeons.equipment.ArmorBaseType.getFromItem(stack);
+        StatRegistry.StatAndTier statAndTier = StatRegistry.getRandomStatForEquipmentType(equipType.get(), armorBase, type, 1, 100);
+        if (statAndTier == null || statAndTier.stat == null) return false;
+
+        CustomStat stat = statAndTier.stat;
+
         List<ItemStat> existingStats = getStats(stack);
         boolean alreadyHasStat = existingStats.stream()
                 .anyMatch(s -> {

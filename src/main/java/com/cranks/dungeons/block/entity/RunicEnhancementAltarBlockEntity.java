@@ -288,19 +288,19 @@ public class RunicEnhancementAltarBlockEntity extends BlockEntity implements Nam
 
     private boolean addRandomAffix(ItemStack stack, int minLevel) {
         CustomStat.AffixType type = RandomUtil.nextBoolean() ? CustomStat.AffixType.PREFIX : CustomStat.AffixType.SUFFIX;
-        boolean success = ItemStatManager.addRandomStat(stack, StatRegistry.rollRandomTier(), type, minLevel, 100);
+        boolean success = ItemStatManager.addRandomStat(stack, type, minLevel, 100);
         
         // If first choice failed (maybe slot full), try the other type
         if (!success) {
             type = (type == CustomStat.AffixType.PREFIX) ? CustomStat.AffixType.SUFFIX : CustomStat.AffixType.PREFIX;
-            success = ItemStatManager.addRandomStat(stack, StatRegistry.rollRandomTier(), type, minLevel, 100);
+            success = ItemStatManager.addRandomStat(stack, type, minLevel, 100);
         }
         return success;
     }
 
     private boolean addAffixOfType(ItemStack stack, CustomStat.AffixType type, int minLevel) {
         for (int i = 0; i < 5; i++) { // Try a few times to find a unique stat
-            if (ItemStatManager.addRandomStat(stack, StatRegistry.rollRandomTier(), type, minLevel, 100)) return true;
+            if (ItemStatManager.addRandomStat(stack, type, minLevel, 100)) return true;
         }
         return false;
     }

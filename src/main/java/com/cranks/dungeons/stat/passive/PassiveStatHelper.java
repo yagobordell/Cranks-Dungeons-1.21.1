@@ -63,7 +63,9 @@ public class PassiveStatHelper {
             
             // Keystones
             "keystone_void_inoculation", "keystone_avatar_of_fire", "keystone_resolute_technique",
-            "keystone_elemental_overload", "keystone_crimson_pact"
+            "keystone_elemental_overload", "keystone_crimson_pact",
+            "keystone_iron_reflexes", "keystone_zealots_oath", "keystone_ghost_reaver",
+            "keystone_vaal_pact", "keystone_point_blank"
     );
 
     /**
@@ -247,6 +249,7 @@ public class PassiveStatHelper {
                 .replace("max health percent", "increased maximum health")
                 .replace("armor percent", "increased armor")
                 .replace("armor toughness percent", "increased armor toughness")
+                .replace("energy shield recharge rate percent", "increased energy shield recharge rate")
                 .replace("energy shield percent", "increased energy shield")
                 .replace("evasion rating percent", "increased evasion rating")
                 .replace("_", " ");

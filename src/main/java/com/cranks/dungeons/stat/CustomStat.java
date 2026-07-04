@@ -98,6 +98,7 @@ public class CustomStat {
     private final AffixType affixType;
     private final int level;
     private final int weight;
+    private final int[] tierWeights;
     private com.cranks.dungeons.equipment.ArmorBaseType armorBaseType = com.cranks.dungeons.equipment.ArmorBaseType.ANY;
 
     // Legacy constructor wrapper for single attribute stats
@@ -114,6 +115,7 @@ public class CustomStat {
         this.affixType = affixType;
         this.level = level;
         this.weight = weight;
+        this.tierWeights = generateTierWeights(weight);
     }
 
     public CustomStat(String id, String groupId, String displayName, EquipmentType equipmentType,
@@ -129,6 +131,7 @@ public class CustomStat {
         this.affixType = affixType;
         this.level = level;
         this.weight = weight;
+        this.tierWeights = generateTierWeights(weight);
     }
 
     public CustomStat(String id, String displayName, EquipmentType equipmentType,
@@ -151,6 +154,16 @@ public class CustomStat {
         this.affixType = affixType;
         this.level = level;
         this.weight = weight;
+        this.tierWeights = generateTierWeights(weight);
+    }
+
+    private int[] generateTierWeights(int baseWeight) {
+        int[] weights = new int[10];
+        double[] curve = { 1.00, 0.80, 0.60, 0.45, 0.30, 0.20, 0.10, 0.05, 0.02, 0.01 }; // T10 to T1
+        for(int i=0; i<10; i++) {
+            weights[i] = Math.max(1, (int)(baseWeight * curve[i]));
+        }
+        return weights;
     }
 
     public String getId() { return id; }
@@ -162,6 +175,10 @@ public class CustomStat {
     public Formatting getColor() { return color; }
     public int getLevel() { return level; }
     public int getWeight() { return weight; }
+    public int getTierWeight(int tier) {
+        if (tier < 1 || tier > 10) return 0;
+        return tierWeights[10 - tier];
+    }
     
     public List<StatComponent> getComponents() { return components; }
 
