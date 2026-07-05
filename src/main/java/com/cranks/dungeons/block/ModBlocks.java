@@ -15,6 +15,7 @@ import net.minecraft.util.Identifier;
 public class ModBlocks {
     public static Block RUNIC_ENHANCEMENT_ALTAR;
     public static Block ARTIFICIAL_ENHANCEMENT_ALTAR;
+    public static Block QUALITY_STATION;
 
     public static void register() {
         // Runic Enhancement Altar
@@ -38,7 +39,13 @@ public class ModBlocks {
         Registry.register(
                 Registries.ITEM,
                 runicId,
-                new BlockItem(RUNIC_ENHANCEMENT_ALTAR, new Item.Settings().registryKey(runicItemKey))
+                new BlockItem(RUNIC_ENHANCEMENT_ALTAR, new Item.Settings().registryKey(runicItemKey)) {
+                    @Override
+                    public void appendTooltip(net.minecraft.item.ItemStack stack, net.minecraft.item.Item.TooltipContext context, net.minecraft.component.type.TooltipDisplayComponent displayComponent, java.util.function.Consumer<net.minecraft.text.Text> textConsumer, net.minecraft.item.tooltip.TooltipType type) {
+                        textConsumer.accept(net.minecraft.text.Text.translatable(this.getTranslationKey() + ".desc").formatted(net.minecraft.util.Formatting.GRAY));
+                        super.appendTooltip(stack, context, displayComponent, textConsumer, type);
+                    }
+                }
         );
 
         // Artificial Enhancement Altar
@@ -62,7 +69,43 @@ public class ModBlocks {
         Registry.register(
                 Registries.ITEM,
                 artificialId,
-                new BlockItem(ARTIFICIAL_ENHANCEMENT_ALTAR, new Item.Settings().registryKey(artificialItemKey))
+                new BlockItem(ARTIFICIAL_ENHANCEMENT_ALTAR, new Item.Settings().registryKey(artificialItemKey)) {
+                    @Override
+                    public void appendTooltip(net.minecraft.item.ItemStack stack, net.minecraft.item.Item.TooltipContext context, net.minecraft.component.type.TooltipDisplayComponent displayComponent, java.util.function.Consumer<net.minecraft.text.Text> textConsumer, net.minecraft.item.tooltip.TooltipType type) {
+                        textConsumer.accept(net.minecraft.text.Text.translatable(this.getTranslationKey() + ".desc").formatted(net.minecraft.util.Formatting.GRAY));
+                        super.appendTooltip(stack, context, displayComponent, textConsumer, type);
+                    }
+                }
+        );
+
+        // Quality Station
+        Identifier qualityId = Identifier.of(CranksDungeons.MOD_ID, "quality_station");
+        RegistryKey<Block> qualityBlockKey = RegistryKey.of(RegistryKeys.BLOCK, qualityId);
+
+        AbstractBlock.Settings qualityBlockSettings = AbstractBlock.Settings.create()
+                .strength(3.5f)
+                .requiresTool()
+                .sounds(BlockSoundGroup.STONE)
+                .nonOpaque()
+                .registryKey(qualityBlockKey);
+
+        QUALITY_STATION = Registry.register(
+                Registries.BLOCK,
+                qualityId,
+                new QualityStationBlock(qualityBlockSettings)
+        );
+
+        RegistryKey<Item> qualityItemKey = RegistryKey.of(RegistryKeys.ITEM, qualityId);
+        Registry.register(
+                Registries.ITEM,
+                qualityId,
+                new BlockItem(QUALITY_STATION, new Item.Settings().registryKey(qualityItemKey)) {
+                    @Override
+                    public void appendTooltip(net.minecraft.item.ItemStack stack, net.minecraft.item.Item.TooltipContext context, net.minecraft.component.type.TooltipDisplayComponent displayComponent, java.util.function.Consumer<net.minecraft.text.Text> textConsumer, net.minecraft.item.tooltip.TooltipType type) {
+                        textConsumer.accept(net.minecraft.text.Text.translatable(this.getTranslationKey() + ".desc").formatted(net.minecraft.util.Formatting.GRAY));
+                        super.appendTooltip(stack, context, displayComponent, textConsumer, type);
+                    }
+                }
         );
     }
 }

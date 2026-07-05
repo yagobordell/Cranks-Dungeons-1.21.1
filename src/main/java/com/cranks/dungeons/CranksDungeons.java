@@ -292,6 +292,7 @@ public class CranksDungeons implements ModInitializer {
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.FUNCTIONAL).register(content -> {
 			content.add(ModBlocks.RUNIC_ENHANCEMENT_ALTAR);
 			content.add(ModBlocks.ARTIFICIAL_ENHANCEMENT_ALTAR);
+			content.add(ModBlocks.QUALITY_STATION);
 		});
 
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.INGREDIENTS).register(content -> {
@@ -301,6 +302,8 @@ public class CranksDungeons implements ModInitializer {
 			content.add(ModItems.TOME_OF_AUGMENTATION);
 			content.add(ModItems.GREATER_TOME_OF_AUGMENTATION);
 			content.add(ModItems.PERFECT_TOME_OF_AUGMENTATION);
+			content.add(ModItems.ARMOURERS_SCRAP);
+			content.add(ModItems.BLACKSMITHS_WHETSTONE);
 			content.add(ModItems.REGAL_TOME);
 			content.add(ModItems.GREATER_REGAL_TOME);
 			content.add(ModItems.PERFECT_REGAL_TOME);
@@ -326,8 +329,7 @@ public class CranksDungeons implements ModInitializer {
 
 			// Utility Tomes
 			content.add(ModItems.TOME_OF_SWIFTNESS);
-			content.add(ModItems.TOME_OF_ENERGY);
-			content.add(ModItems.TOME_OF_EVASION);
+
 			content.add(ModItems.TOME_OF_HEALTH_BONUS);
 			content.add(ModItems.ARTIFICIAL_TOME);
 		});

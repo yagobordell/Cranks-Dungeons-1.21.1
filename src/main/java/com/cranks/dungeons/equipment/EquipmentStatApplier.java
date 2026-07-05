@@ -94,7 +94,9 @@ public class EquipmentStatApplier {
                 AttributeModifiersComponent.DEFAULT
         );
 
-        if (stats.isEmpty()) {
+        int quality = com.cranks.dungeons.block.entity.QualityStationBlockEntity.getQuality(stack);
+
+        if (stats.isEmpty() && quality == 0) {
             stack.remove(DataComponentTypes.ATTRIBUTE_MODIFIERS);
             return;
         }
@@ -107,6 +109,17 @@ public class EquipmentStatApplier {
         double localArmorPercent = 0;
         double localEvasionPercent = 0;
         double localEnergyShieldPercent = 0;
+
+        if (quality > 0) {
+            double qBonus = quality / 100.0;
+            if (!isArmorType(type) && type != EquipmentType.SHIELD) {
+                localAttackDamagePercent += qBonus;
+            } else {
+                localArmorPercent += qBonus;
+                localEvasionPercent += qBonus;
+                localEnergyShieldPercent += qBonus;
+            }
+        }
 
         Map<RegistryEntry<EntityAttribute>, Double> flatRuneValues = new HashMap<>();
         Map<RegistryEntry<EntityAttribute>, CustomStat> attributeToStatMap = new HashMap<>();

@@ -31,7 +31,8 @@ public class ElementalTomeItem extends AbstractTomeItem {
 
     public enum Tier {
         NORMAL(1, CustomRarity.RARE, ""),
-        GREATER(40, CustomRarity.UNIQUE, "greater_");
+        GREATER(40, CustomRarity.UNIQUE, "greater_"),
+        PERFECT(80, CustomRarity.UNIQUE, "perfect_");
 
         private final int minLevel;
         private final CustomRarity rarity;
@@ -85,11 +86,13 @@ public class ElementalTomeItem extends AbstractTomeItem {
                 if (element == Element.PHYSICAL) {
                     return typeStr + "_attack_extra_damage";
                 }
+                if (element == Element.VOID) {
+                    return null;
+                }
                 return typeStr + "_" + elementStr + "_extra_damage";
             } else if (isArmor(equipType)) {
-                // ONLY Physicality tomes give armor % at higher tiers
-                if (element == Element.PHYSICAL) {
-                    return typeStr + "_armor_percent";
+                if (element == Element.VOID) {
+                    return typeStr + "_physical_taken_as_void";
                 }
                 return null;
             }
@@ -98,16 +101,29 @@ public class ElementalTomeItem extends AbstractTomeItem {
             // Normal tomes give flat damage on weapons or flat resistance/armor on armor
             if (isWeapon(equipType)) {
                 if (element == Element.PHYSICAL) {
-                    return typeStr + "_physical_damage";
+                    return typeStr + "_attack_damage";
                 }
-                return typeStr + "_" + elementStr + "_damage";
+                if (element == Element.VOID) {
+                    return null;
+                }
+                return typeStr + "_local_" + elementStr + "_damage";
             } else if (isArmor(equipType)) {
                 if (element == Element.PHYSICAL) {
-                    return typeStr + "_armor";
+                    return null;
                 }
                 return typeStr + "_" + elementStr + "_resistance";
             }
             return null;
+        }
+    }
+
+    @Override
+    protected void addTomeDescription(Consumer<net.minecraft.text.Text> textConsumer) {
+        if (element == Element.VOID && tier == Tier.GREATER) {
+            textConsumer.accept(net.minecraft.text.Text.literal("Upgrades a magic item to a rare item,").formatted(net.minecraft.util.Formatting.GRAY));
+            textConsumer.accept(net.minecraft.text.Text.literal("adding a guaranteed Void modifier to armor").formatted(net.minecraft.util.Formatting.GRAY));
+        } else {
+            super.addTomeDescription(textConsumer);
         }
     }
 
@@ -119,15 +135,19 @@ public class ElementalTomeItem extends AbstractTomeItem {
         addTomeDescription(textConsumer);
 
         if (tier != Tier.NORMAL) {
-            // Greater tomes always show weapon stats
-            addStatRange(textConsumer, EquipmentType.SWORD, "Weapons");
-            // Only Physicality Greater/Perfect tomes show armor stats
-            if (element == Element.PHYSICAL) {
+            // Greater/Perfect tomes show weapon stats (if applicable)
+            addStatRange(textConsumer, EquipmentType.SWORD, "1H Weapons");
+            addStatRange(textConsumer, EquipmentType.SPEAR, "2H Weapons");
+            // Only Void Greater/Perfect tomes show armor stats
+            if (element == Element.VOID) {
                 addStatRange(textConsumer, EquipmentType.CHESTPLATE, "Armor");
             }
         } else {
-            addStatRange(textConsumer, EquipmentType.SWORD, "Weapons");
-            addStatRange(textConsumer, EquipmentType.CHESTPLATE, "Armor");
+            addStatRange(textConsumer, EquipmentType.SWORD, "1H Weapons");
+            addStatRange(textConsumer, EquipmentType.SPEAR, "2H Weapons");
+            if (element != Element.PHYSICAL) {
+                addStatRange(textConsumer, EquipmentType.CHESTPLATE, "Armor");
+            }
         }
 
         super.appendTooltip(stack, context, displayComponent, textConsumer, type);

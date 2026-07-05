@@ -28,7 +28,9 @@ public class HealthBonusTomeItem extends AbstractTomeItem {
 
         addTomeDescription(textConsumer);
 
-        addStatRange(textConsumer, EquipmentType.CHESTPLATE, "Armor");
+        addStatRange(textConsumer, EquipmentType.LEGGINGS, "Leggings");
+        addStatRange(textConsumer, EquipmentType.HELMET, "Helmet");
+        addStatRange(textConsumer, EquipmentType.CHESTPLATE, "Chest/Boots");
 
         super.appendTooltip(stack, context, displayComponent, textConsumer, type);
     }

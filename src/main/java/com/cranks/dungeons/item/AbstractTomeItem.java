@@ -94,14 +94,6 @@ public abstract class AbstractTomeItem extends Item {
         };
     }
 
-    @Override
-    public Text getName(ItemStack stack) {
-        return Text.empty()
-                .append(super.getName(stack))
-                .append(Text.literal(" "))
-                .append(Text.literal("[ " + customRarity.getName() + " ]").formatted(customRarity.getColor()));
-    }
-
     /**
      * Helper to add a standardized description to specialized tomes.
      */
@@ -116,13 +108,21 @@ public abstract class AbstractTomeItem extends Item {
             CustomStat stat = StatRegistry.getStat(statId);
             if (stat != null) {
                 int tierValue = 3;
+                int maxTier = 1;
                 if (this instanceof ElementalTomeItem et) {
-                    tierValue = switch (et.getTier()) {
-                        case NORMAL -> 3;
-                        case GREATER -> 2;
-                    };
+                    switch (et.getTier()) {
+                        case NORMAL -> {
+                            tierValue = 4;
+                            maxTier = 4;
+                        }
+                        case GREATER -> tierValue = 3;
+                        case PERFECT -> tierValue = 1;
+                    }
+                } else if (this instanceof HealthBonusTomeItem || this instanceof SwiftnessTomeItem) {
+                    tierValue = 4;
+                    maxTier = 4;
                 }
-                String range = stat.getComponents().get(0).getFormattedRange(tierValue, 1);
+                String range = stat.getComponents().get(0).getFormattedRange(tierValue, maxTier, stat.getEquipmentType());
                 textConsumer.accept(Text.literal(label + ": ").formatted(Formatting.GRAY)
                         .append(Text.literal(range).formatted(Formatting.WHITE)));
             }

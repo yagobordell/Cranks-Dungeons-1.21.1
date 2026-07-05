@@ -43,11 +43,11 @@ public class ModItems {
     public static final Item GREATER_TOME_OF_VOID = registerElementalTome("greater_void_tome", Element.VOID, ElementalTomeItem.Tier.GREATER);
     public static final Item GREATER_TOME_OF_PHYSICALITY = registerElementalTome("greater_physicality_tome", Element.PHYSICAL, ElementalTomeItem.Tier.GREATER);
 
+    // Perfect Elemental Tomes (Removed)
+
 
     // Utility Tomes
     public static final Item TOME_OF_SWIFTNESS = registerSwiftnessTome("swiftness_tome", CustomRarity.RARE);
-    public static final Item TOME_OF_ENERGY = registerEnergyTome("energy_tome", CustomRarity.RARE);
-    public static final Item TOME_OF_EVASION = registerEvasionTome("evasion_tome", CustomRarity.RARE);
     public static final Item TOME_OF_HEALTH_BONUS = registerHealthBonusTome("health_bonus_tome", CustomRarity.RARE);
 
     // Artificial Tome
@@ -69,19 +69,6 @@ public class ModItems {
                 new SwiftnessTomeItem(rarity, new Item.Settings().registryKey(key)));
     }
 
-    private static Item registerEnergyTome(String name, CustomRarity rarity) {
-        Identifier id = Identifier.of(CranksDungeons.MOD_ID, name);
-        RegistryKey<Item> key = RegistryKey.of(RegistryKeys.ITEM, id);
-        return Registry.register(Registries.ITEM, key,
-                new EnergyTomeItem(rarity, new Item.Settings().registryKey(key)));
-    }
-
-    private static Item registerEvasionTome(String name, CustomRarity rarity) {
-        Identifier id = Identifier.of(CranksDungeons.MOD_ID, name);
-        RegistryKey<Item> key = RegistryKey.of(RegistryKeys.ITEM, id);
-        return Registry.register(Registries.ITEM, key,
-                new EvasionTomeItem(rarity, new Item.Settings().registryKey(key)));
-    }
 
     private static Item registerElementalTome(String name, Element element, ElementalTomeItem.Tier tier) {
         Identifier id = Identifier.of(CranksDungeons.MOD_ID, name);
@@ -107,6 +94,16 @@ public class ModItems {
     }
 
 
+
+    public static final Item ARMOURERS_SCRAP = registerQualityMaterial("armourers_scrap", QualityMaterialItem.Type.ARMOR);
+    public static final Item BLACKSMITHS_WHETSTONE = registerQualityMaterial("blacksmiths_whetstone", QualityMaterialItem.Type.WEAPON);
+
+    private static Item registerQualityMaterial(String name, QualityMaterialItem.Type type) {
+        Identifier id = Identifier.of(CranksDungeons.MOD_ID, name);
+        RegistryKey<Item> key = RegistryKey.of(RegistryKeys.ITEM, id);
+        return Registry.register(Registries.ITEM, key,
+                new QualityMaterialItem(type, new Item.Settings().registryKey(key)));
+    }
 
     public static void registerModItems() {
         CranksDungeons.LOGGER.info("Registering Mod Items for Cranks Dungeons: " + TOME_OF_TRANSMUTATION.getName().getString());

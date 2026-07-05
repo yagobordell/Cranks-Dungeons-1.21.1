@@ -81,6 +81,12 @@ public abstract class ItemStackTooltipMixin {
                 handedness = com.cranks.dungeons.util.CombatUtility.isTwoHandedWeapon(stack) ? " - Two Handed" : " - One Handed";
             }
             newTooltip.add(Text.literal(equipType.get().getName() + handedness).formatted(Formatting.DARK_GRAY, Formatting.ITALIC));
+            
+            int quality = com.cranks.dungeons.block.entity.QualityStationBlockEntity.getQuality(stack);
+            if (quality > 0) {
+                newTooltip.add(Text.literal("Quality: ").formatted(Formatting.GRAY).append(Text.literal("+" + quality + "%").formatted(Formatting.BLUE)));
+            }
+
             addRequirementsSection(player, stack, newTooltip);
             addDivider(newTooltip);
         } else if (ItemStatManager.getStats(stack).size() > 0) {
@@ -659,7 +665,7 @@ public abstract class ItemStackTooltipMixin {
         for (int i = 0; i < stat.getComponents().size(); i++) {
             CustomStat.StatComponent comp = stat.getComponents().get(i);
             double value = (values != null && i < values.length) ? values[i] : 0;
-            String displayText = comp.formatValue(value);
+            String displayText = comp.formatValue(value, stat.getEquipmentType());
             MutableText line = Text.literal(displayText).formatted(isArtificial ? Formatting.DARK_GREEN : Formatting.BLUE);
             if (showDetails && i == 0) {
                 line.append(Text.literal(" [T" + tier + "]").formatted(getTierColor(tier)));

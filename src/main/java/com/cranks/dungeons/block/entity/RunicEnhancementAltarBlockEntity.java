@@ -5,7 +5,10 @@ import com.cranks.dungeons.equipment.ItemStatManager;
 import com.cranks.dungeons.item.AbstractTomeItem;
 import com.cranks.dungeons.item.ArtificialTomeItem;
 import com.cranks.dungeons.item.CustomRarity;
+import com.cranks.dungeons.item.ElementalTomeItem;
+import com.cranks.dungeons.item.HealthBonusTomeItem;
 import com.cranks.dungeons.item.RunicTomeItem;
+import com.cranks.dungeons.item.SwiftnessTomeItem;
 import com.cranks.dungeons.registry.ModSounds;
 import com.cranks.dungeons.screen.RunicEnhancementAltarScreenHandler;
 import com.cranks.dungeons.stat.CustomStat;
@@ -182,6 +185,11 @@ public class RunicEnhancementAltarBlockEntity extends BlockEntity implements Nam
 
         // Add guaranteed stat (decent tier T1-T3)
         int tier = RandomUtil.nextInt(3) + 1;
+        if (abstractTome instanceof ElementalTomeItem et && et.getTier() == ElementalTomeItem.Tier.NORMAL) {
+            tier = 4;
+        } else if (abstractTome instanceof HealthBonusTomeItem || abstractTome instanceof SwiftnessTomeItem) {
+            tier = 4;
+        }
         boolean success = ItemStatManager.addSpecificStat(result, statId, tier);
 
         if (success) {

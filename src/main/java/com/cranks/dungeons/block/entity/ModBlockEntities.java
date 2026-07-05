@@ -10,6 +10,7 @@ import net.minecraft.util.Identifier;
 public class ModBlockEntities {
     public static BlockEntityType<RunicEnhancementAltarBlockEntity> RUNIC_ALTAR_BE;
     public static BlockEntityType<ArtificialEnhancementAltarBlockEntity> ARTIFICIAL_ALTAR_BE;
+    public static BlockEntityType<QualityStationBlockEntity> QUALITY_STATION_BE;
 
     public static void register() {
         RUNIC_ALTAR_BE = Registry.register(
@@ -27,6 +28,15 @@ public class ModBlockEntities {
                 FabricBlockEntityTypeBuilder.create(
                         ArtificialEnhancementAltarBlockEntity::new,
                         Registries.BLOCK.get(Identifier.of(CranksDungeons.MOD_ID, "artificial_enhancement_altar"))
+                ).build()
+        );
+
+        QUALITY_STATION_BE = Registry.register(
+                Registries.BLOCK_ENTITY_TYPE,
+                Identifier.of(CranksDungeons.MOD_ID, "quality_station_be"),
+                FabricBlockEntityTypeBuilder.create(
+                        QualityStationBlockEntity::new,
+                        Registries.BLOCK.get(Identifier.of(CranksDungeons.MOD_ID, "quality_station"))
                 ).build()
         );
     }

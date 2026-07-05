@@ -82,10 +82,7 @@ public class RunicTomeItem extends Item {
         return tomeType;
     }
 
-    @Override
-    public Text getName(ItemStack stack) {
-        return Text.literal(tomeType.getDisplayName()).formatted(tomeType.getColor());
-    }
+
 
     @Override
     public void appendTooltip(ItemStack stack, TooltipContext context,

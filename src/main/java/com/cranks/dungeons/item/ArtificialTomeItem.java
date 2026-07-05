@@ -20,13 +20,7 @@ public class ArtificialTomeItem extends Item {
         return customRarity;
     }
 
-    @Override
-    public Text getName(ItemStack stack) {
-        return Text.empty()
-                .append(super.getName(stack))
-                .append(Text.literal(" "))
-                .append(Text.literal("[ " + customRarity.getName() + " ]").formatted(customRarity.getColor()));
-    }
+
 
     @Override
     public void appendTooltip(ItemStack stack, TooltipContext context,

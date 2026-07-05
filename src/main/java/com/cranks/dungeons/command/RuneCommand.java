@@ -118,7 +118,7 @@ public class RuneCommand {
                     .map(s -> s.getValue(0))
                     .orElse(0.0);
 
-            String formattedValue = stat.getComponents().get(0).formatValue(value);
+            String formattedValue = stat.getComponents().get(0).formatValue(value, stat.getEquipmentType());
 
             context.getSource().sendMessage(Text.literal("✓ Successfully applied ")
                     .formatted(Formatting.GREEN)

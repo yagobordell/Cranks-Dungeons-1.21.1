@@ -201,4 +201,3 @@ publishing {
 	}
 }
 
-apply from: 'print_methods.gradle'

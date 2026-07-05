@@ -47,6 +47,8 @@ public class ModNetworking {
         PayloadTypeRegistry.playS2C().register(SyncWorldTreePayload.ID, SyncWorldTreePayload.CODEC);
         PayloadTypeRegistry.playC2S().register(UnlockWorldNodePayload.ID, UnlockWorldNodePayload.CODEC);
         PayloadTypeRegistry.playC2S().register(BulkUnlockWorldNodesPayload.ID, BulkUnlockWorldNodesPayload.CODEC);
+        
+        PayloadTypeRegistry.playC2S().register(StartQualityUpgradePayload.ID, StartQualityUpgradePayload.CODEC);
     }
 
     private static boolean isNodeUnlockable(com.cranks.dungeons.component.PassiveDataComponent data, String nodeId) {
@@ -255,6 +257,19 @@ public class ModNetworking {
                     com.cranks.dungeons.component.WorldTreePersistentState.get(context.server()).savePlayerData(player.getUuid(), data);
                 }
             }
+        });
+
+        ServerPlayNetworking.registerGlobalReceiver(StartQualityUpgradePayload.ID, (payload, context) -> {
+            context.server().execute(() -> {
+                var world = context.player().getEntityWorld();
+                if (world.getBlockEntity(payload.pos()) instanceof com.cranks.dungeons.block.entity.QualityStationBlockEntity be) {
+                    if (payload.start()) {
+                        be.setProcessing(true);
+                    } else {
+                        be.setProcessing(false);
+                    }
+                }
+            });
         });
     }
     

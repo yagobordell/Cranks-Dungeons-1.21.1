@@ -29,6 +29,12 @@ public class SwiftnessTomeItem extends AbstractTomeItem {
     }
 
     @Override
+    protected void addTomeDescription(Consumer<Text> textConsumer) {
+        textConsumer.accept(Text.literal("Upgrades a magic item to a rare item,").formatted(Formatting.GRAY));
+        textConsumer.accept(Text.literal("adding a guaranteed Haste modifier").formatted(Formatting.GRAY));
+    }
+
+    @Override
     public void appendTooltip(ItemStack stack, TooltipContext context,
                               net.minecraft.component.type.TooltipDisplayComponent displayComponent,
                               Consumer<Text> textConsumer, net.minecraft.item.tooltip.TooltipType type) {

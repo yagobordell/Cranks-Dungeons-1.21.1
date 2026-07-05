@@ -55,7 +55,18 @@ public class CustomStat {
             return Math.round(value);
         }
 
-        public String getFormattedRange(int minTier, int maxTier) {
+        private boolean isWeapon(EquipmentType type) {
+            if (type == null) return false;
+            switch (type) {
+                case SWORD: case SPEAR: case MACE: case AXE: case PICKAXE: case SHOVEL: case HOE:
+                case BOW: case CROSSBOW: case TRIDENT:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        public String getFormattedRange(int minTier, int maxTier, EquipmentType eqType) {
             DecimalFormat df = new DecimalFormat("#.##");
             int minIndex = 10 - minTier;
             int maxIndex = 10 - maxTier;
@@ -63,19 +74,26 @@ public class CustomStat {
             double maxVal = uncommonRanges[maxIndex];
 
             if (displayAsPercentage || isPercentage) {
-                String range = "(" + df.format(minVal * 100) + " - " + df.format(maxVal * 100) + ")%";
+                String minStr = df.format(minVal * 100);
+                String maxStr = df.format(maxVal * 100);
+                String range = minStr.equals(maxStr) ? "(" + minStr + ")%" : "(" + minStr + " - " + maxStr + ")%";
                 if (displayName.contains("Extra")) return "Gain " + range + " of " + displayName;
                 return range + " " + displayName;
             } else {
-                String range = "(" + Math.round(minVal) + " - " + Math.round(maxVal) + ")";
+                long minRounded = Math.round(minVal);
+                long maxRounded = Math.round(maxVal);
+                String range = minRounded == maxRounded ? "(" + minRounded + ")" : "(" + minRounded + " - " + maxRounded + ")";
                 if (displayName.endsWith("Damage") && !displayName.contains("Thorns")) {
+                    if (isWeapon(eqType)) {
+                        return "Adds " + range + " to " + displayName;
+                    }
                     return "Adds " + range + " " + displayName + " to Attacks";
                 }
                 return "+" + range + " to " + displayName;
             }
         }
 
-        public String formatValue(double value) {
+        public String formatValue(double value, EquipmentType eqType) {
             DecimalFormat df = new DecimalFormat("#.##");
             if (displayAsPercentage || isPercentage) {
                 String formattedValue = df.format(value * 100) + "%";
@@ -83,6 +101,9 @@ public class CustomStat {
                 return formattedValue + " " + displayName;
             } else {
                 if (displayName.endsWith("Damage") && !displayName.contains("Thorns")) {
+                    if (isWeapon(eqType)) {
+                        return "Adds " + Math.round(value) + " to " + displayName;
+                    }
                     return "Adds " + Math.round(value) + " " + displayName + " to Attacks";
                 }
                 return "+" + Math.round(value) + " to " + displayName;

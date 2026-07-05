@@ -70,6 +70,7 @@ public class CranksDungeonsClient implements ClientModInitializer {
 
         HandledScreens.register(ModScreenHandlers.RUNIC_ENHANCEMENT_ALTAR, RunicEnhancementAltarScreen::new);
         HandledScreens.register(ModScreenHandlers.ARTIFICIAL_ENHANCEMENT_ALTAR, ArtificialEnhancementAltarScreen::new);
+        HandledScreens.register(ModScreenHandlers.QUALITY_STATION_SCREEN_HANDLER, com.cranks.dungeons.client.screen.QualityStationScreen::new);
         ModKeybinds.register();
         EnchantmentToggleHandler.register();
         com.cranks.dungeons.client.PassiveTreeKeybindHandler.register();

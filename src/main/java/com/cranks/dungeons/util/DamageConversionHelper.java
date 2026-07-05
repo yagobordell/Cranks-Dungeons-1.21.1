@@ -200,6 +200,17 @@ public class DamageConversionHelper {
 
         // Default: 100% Physical
         breakdown.add(DamageElement.PHYSICAL, amount);
+
+        float currentPhysical = breakdown.get(DamageElement.PHYSICAL);
+        if (currentPhysical > 0) {
+            double takenAsVoid = target.getAttributeValue(com.cranks.dungeons.registry.ModAttributes.PHYSICAL_TAKEN_AS_VOID);
+            if (takenAsVoid > 0) {
+                float convertAmount = (float) (currentPhysical * takenAsVoid);
+                breakdown.add(DamageElement.PHYSICAL, -convertAmount);
+                breakdown.add(DamageElement.VOID, convertAmount);
+            }
+        }
+
         return breakdown;
     }
 
