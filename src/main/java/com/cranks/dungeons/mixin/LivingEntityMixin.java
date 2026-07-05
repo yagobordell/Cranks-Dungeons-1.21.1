@@ -141,6 +141,15 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
         }
     }
 
+    /**
+     * Applies attribute bonuses derived from the player's core stats (Strength, Dexterity, Intelligence).
+     * <ul>
+     *   <li>Strength: +5 Max Health per 10 points</li>
+     *   <li>Dexterity: +20 Evasion Rating per 10 points</li>
+     *   <li>Intelligence: Reserved for future Mana system</li>
+     * </ul>
+     * <p>Only recalculates when the stat value actually changes to avoid unnecessary work.</p>
+     */
     @Unique
     private void updateIntrinsicAttributes(LivingEntity entity) {
         if (entity.getEntityWorld().isClient()) return;
@@ -170,6 +179,16 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
     @Unique
     private final Map<String, Double> cranks$activeRequirementPenalties = new HashMap<>();
 
+    /**
+     * Applies a 50% penalty to all attribute modifiers from equipped items that don't meet
+     * their stat requirements (Strength/Dexterity/Intelligence).
+     * <p>The penalty is applied as a negative modifier with the SAME operation type as the
+     * original modifier. This ensures that flat stats (like +10 fire resistance) become +5,
+     * and multiplicative stats (like attack speed) are also correctly halved.</p>
+     * <p>Attack speed is special-cased: since weapons use negative ADD_VALUE modifiers to
+     * reduce the player's base 4.0 speed, the penalty halves the final speed (4.0 + modifier)
+     * rather than halving the raw modifier value.</p>
+     */
     @Unique
     private void updateRequirementPenalties(LivingEntity entity) {
         if (!(entity instanceof net.minecraft.entity.player.PlayerEntity player)) return;
@@ -181,7 +200,7 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
             net.minecraft.item.ItemStack stack = player.getEquippedStack(slot);
             if (!stack.isEmpty() && !com.cranks.dungeons.equipment.ItemRequirementManager.meetsRequirements(player, stack)) {
                 stack.applyAttributeModifiers(slot, (attr, modifier) -> {
-                    String penaltyKey = attr.getIdAsString() + "|" + modifier.operation().getId();
+                    String penaltyKey = attr.getIdAsString() + "|" + modifier.operation().name();
                     double penaltyAmount = modifier.value() * 0.5;
 
                     // Special handling for weapon base attack speed
@@ -207,10 +226,8 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
             net.minecraft.registry.entry.RegistryEntry<net.minecraft.entity.attribute.EntityAttribute> attr = net.minecraft.registry.Registries.ATTRIBUTE.getEntry(net.minecraft.util.Identifier.of(parts[0])).orElse(null);
             if (attr == null) continue;
             
-            // Extract operation from the second part (we need to map ID back to Operation)
-            net.minecraft.entity.attribute.EntityAttributeModifier.Operation op = net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_VALUE;
-            if (parts[1].equals("add_multiplied_base")) op = net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE;
-            else if (parts[1].equals("add_multiplied_total")) op = net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL;
+            // Extract operation from the second part
+            net.minecraft.entity.attribute.EntityAttributeModifier.Operation op = net.minecraft.entity.attribute.EntityAttributeModifier.Operation.valueOf(parts[1]);
 
             updateModifier(entity, attr, net.minecraft.util.Identifier.of("cranks-dungeons", "req_penalty_" + parts[0].replace(':', '_') + "_" + parts[1]), -entry.getValue(), op);
         }
@@ -222,9 +239,7 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
                 net.minecraft.registry.entry.RegistryEntry<net.minecraft.entity.attribute.EntityAttribute> attr = net.minecraft.registry.Registries.ATTRIBUTE.getEntry(net.minecraft.util.Identifier.of(parts[0])).orElse(null);
                 if (attr == null) continue;
                 
-                net.minecraft.entity.attribute.EntityAttributeModifier.Operation op = net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_VALUE;
-                if (parts[1].equals("add_multiplied_base")) op = net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE;
-                else if (parts[1].equals("add_multiplied_total")) op = net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL;
+                net.minecraft.entity.attribute.EntityAttributeModifier.Operation op = net.minecraft.entity.attribute.EntityAttributeModifier.Operation.valueOf(parts[1]);
 
                 updateModifier(entity, attr, net.minecraft.util.Identifier.of("cranks-dungeons", "req_penalty_" + parts[0].replace(':', '_') + "_" + parts[1]), 0.0, op);
             }

@@ -180,7 +180,8 @@ public class CustomStat {
 
     private int[] generateTierWeights(int baseWeight) {
         int[] weights = new int[10];
-        double[] curve = { 1.00, 0.80, 0.60, 0.45, 0.30, 0.20, 0.10, 0.05, 0.02, 0.01 }; // T10 to T1
+        // Bell curve centered around T7: T10 to T1
+        double[] curve = { 0.40, 0.65, 0.85, 1.00, 0.85, 0.65, 0.45, 0.25, 0.10, 0.02 }; 
         for(int i=0; i<10; i++) {
             weights[i] = Math.max(1, (int)(baseWeight * curve[i]));
         }

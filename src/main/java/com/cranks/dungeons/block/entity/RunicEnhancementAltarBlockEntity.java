@@ -270,9 +270,7 @@ public class RunicEnhancementAltarBlockEntity extends BlockEntity implements Nam
                 break;
             case ALCHEMY:
                 if (rarity == CustomRarity.NORMAL || rarity == CustomRarity.MAGIC) {
-                    if (rarity == CustomRarity.MAGIC) {
-                        ItemStatManager.clearStats(result);
-                    }
+                    ItemStatManager.clearStats(result);
                     ItemStatManager.setRarity(result, CustomRarity.RARE);
                     // Add 4 mods: 2 prefix, 2 suffix
                     boolean s1 = addAffixOfType(result, CustomStat.AffixType.PREFIX, minLevel);
@@ -313,7 +311,7 @@ public class RunicEnhancementAltarBlockEntity extends BlockEntity implements Nam
     }
 
     private boolean addAffixOfType(ItemStack stack, CustomStat.AffixType type, int minLevel) {
-        for (int i = 0; i < 5; i++) { // Try a few times to find a unique stat
+        for (int i = 0; i < 50; i++) { // Try up to 50 times to find a unique stat
             if (ItemStatManager.addRandomStat(stack, type, minLevel, 100)) return true;
         }
         return false;

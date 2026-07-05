@@ -179,7 +179,7 @@ public class StatRegistry {
                                 r(3.0, 10.0, 30.0, 50.0, 70.0, 90.0, 110.0, 130.0, 150.0, 175.0),
                                 r(9.0, 29.0, 49.0, 69.0, 89.0, 109.0, 129.0, 149.0, 169.0, 189.0),
                                 false, Formatting.RED, CustomStat.AffixType.PREFIX,
-                                80, 13000,
+                                80, 3000,
                                 EquipmentType.LEGGINGS);
 
                 registerForTypes("max_health", "Maximum health",
@@ -187,7 +187,7 @@ public class StatRegistry {
                                 r(3.0, 10.0, 25.0, 40.0, 55.0, 70.0, 85.0, 100.0, 115.0, 130.0),
                                 r(9.0, 24.0, 39.0, 54.0, 69.0, 84.0, 99.0, 114.0, 129.0, 144.0),
                                 false, Formatting.RED, CustomStat.AffixType.PREFIX,
-                                80, 13000,
+                                80, 3000,
                                 EquipmentType.HELMET);
 
                 registerForTypes("max_health", "Maximum health",
@@ -195,7 +195,7 @@ public class StatRegistry {
                                 r(3.0, 10.0, 23.0, 36.0, 49.0, 62.0, 75.0, 88.0, 101.0, 115.0),
                                 r(9.0, 22.0, 35.0, 48.0, 61.0, 74.0, 87.0, 100.0, 114.0, 129.0),
                                 false, Formatting.RED, CustomStat.AffixType.PREFIX,
-                                80, 13000,
+                                80, 3000,
                                 EquipmentType.CHESTPLATE);
 
                 registerForTypes("max_health", "Maximum health",
@@ -203,7 +203,7 @@ public class StatRegistry {
                                 r(3.0, 10.0, 23.0, 36.0, 49.0, 62.0, 75.0, 88.0, 101.0, 115.0),
                                 r(9.0, 22.0, 35.0, 48.0, 61.0, 74.0, 87.0, 100.0, 114.0, 129.0),
                                 false, Formatting.RED, CustomStat.AffixType.PREFIX,
-                                80, 13000,
+                                80, 3000,
                                 EquipmentType.BOOTS);
 
                 // --- Health Regeneration (Armor) ---
@@ -383,7 +383,8 @@ public class StatRegistry {
                                 r(0.16, 0.19, 0.22, 0.26, 0.30, 0.34, 0.38, 0.42, 0.46, 0.50),
                                 true, true, Formatting.DARK_AQUA, CustomStat.AffixType.SUFFIX,
                                 35, 2000,
-                                ALL_ARMOR);
+                                ALL_ARMOR)
+                        .forEach(s -> s.setArmorBaseType(com.cranks.dungeons.equipment.ArmorBaseType.STR));
 
                 // --- Experience Bonus (Armor + Elytra) ---
                 registerForTypes("experience_bonus", "Experience Bonus",
@@ -1014,6 +1015,7 @@ public class StatRegistry {
                 List<CustomStat> stats = getStatsByEquipmentType(equipmentType).stream()
                                 .filter(stat -> stat.getLevel() >= minLevel && stat.getLevel() <= maxLevel)
                                 .filter(stat -> armorBase.canRoll(stat.getArmorBaseType()))
+                                .filter(stat -> !stat.getId().contains("experience_bonus") && !stat.getId().contains("physical_taken_as_void"))
                                 .collect(Collectors.toList());
                 return getRandomWeightedStatAndTier(stats);
         }
@@ -1029,6 +1031,7 @@ public class StatRegistry {
                                 .filter(stat -> stat.getAffixType() == affixType)
                                 .filter(stat -> stat.getLevel() >= minLevel && stat.getLevel() <= maxLevel)
                                 .filter(stat -> armorBase.canRoll(stat.getArmorBaseType()))
+                                .filter(stat -> !stat.getId().contains("experience_bonus") && !stat.getId().contains("physical_taken_as_void"))
                                 .collect(Collectors.toList());
                 return getRandomWeightedStatAndTier(stats);
         }

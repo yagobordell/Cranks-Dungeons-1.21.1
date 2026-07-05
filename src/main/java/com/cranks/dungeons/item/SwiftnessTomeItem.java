@@ -31,7 +31,7 @@ public class SwiftnessTomeItem extends AbstractTomeItem {
     @Override
     protected void addTomeDescription(Consumer<Text> textConsumer) {
         textConsumer.accept(Text.literal("Upgrades a magic item to a rare item,").formatted(Formatting.GRAY));
-        textConsumer.accept(Text.literal("adding a guaranteed Haste modifier").formatted(Formatting.GRAY));
+        textConsumer.accept(Text.literal("adding a guaranteed Haste rune").formatted(Formatting.GRAY));
     }
 
     @Override

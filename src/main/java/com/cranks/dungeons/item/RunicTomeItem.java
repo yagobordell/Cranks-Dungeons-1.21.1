@@ -25,7 +25,7 @@ public class RunicTomeItem extends Item {
         PERFECT_REGAL("Perfect Regal Tome", Formatting.LIGHT_PURPLE,
                 "Upgrades a Magic item", "to a Rare item, adding 1 rune", 60),
 
-        ALCHEMY("Tome of Alchemy", Formatting.YELLOW, "Upgrades a Normal item", "to a Rare item with 4 runes", 1),
+        ALCHEMY("Tome of Alchemy", Formatting.YELLOW, "Upgrades a Normal or Magic item", "to a Rare item with 4 runes", 1),
 
         EXALTED("Exalted Tome", Formatting.YELLOW, "Augments a Rare item", "with a new random rune", 1),
         GREATER_EXALTED("Greater Exalted Tome", Formatting.GOLD, "Augments a Rare item", "with a new random rune", 30),

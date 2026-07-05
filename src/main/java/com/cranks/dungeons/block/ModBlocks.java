@@ -85,7 +85,7 @@ public class ModBlocks {
         AbstractBlock.Settings qualityBlockSettings = AbstractBlock.Settings.create()
                 .strength(3.5f)
                 .requiresTool()
-                .sounds(BlockSoundGroup.STONE)
+                .sounds(BlockSoundGroup.WOOD)
                 .nonOpaque()
                 .registryKey(qualityBlockKey);
 

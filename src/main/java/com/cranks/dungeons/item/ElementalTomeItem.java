@@ -121,7 +121,7 @@ public class ElementalTomeItem extends AbstractTomeItem {
     protected void addTomeDescription(Consumer<net.minecraft.text.Text> textConsumer) {
         if (element == Element.VOID && tier == Tier.GREATER) {
             textConsumer.accept(net.minecraft.text.Text.literal("Upgrades a magic item to a rare item,").formatted(net.minecraft.util.Formatting.GRAY));
-            textConsumer.accept(net.minecraft.text.Text.literal("adding a guaranteed Void modifier to armor").formatted(net.minecraft.util.Formatting.GRAY));
+            textConsumer.accept(net.minecraft.text.Text.literal("adding a guaranteed Void rune to armor").formatted(net.minecraft.util.Formatting.GRAY));
         } else {
             super.addTomeDescription(textConsumer);
         }

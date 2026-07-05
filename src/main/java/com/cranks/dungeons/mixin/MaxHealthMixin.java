@@ -20,6 +20,10 @@ public abstract class MaxHealthMixin {
     private double cranks$lastHealthBonus = Double.NaN;
     @Unique
     private double cranks$lastHealthPercentBonus = Double.NaN;
+    @Unique
+    private float cranks$lastHealth = -1;
+    @Unique
+    private double cranks$lastMaxHealth = -1;
 
     @Inject(method = "tick", at = @At("HEAD"))
     private void applyMaxHealthBonus(CallbackInfo ci) {
@@ -109,5 +113,17 @@ public abstract class MaxHealthMixin {
             }
             cranks$lastHealthPercentBonus = newPercentBonus;
         }
+
+        double newMaxHealth = player.getMaxHealth();
+        float currentHealth = player.getHealth();
+        
+        if (cranks$lastMaxHealth != -1 && newMaxHealth < cranks$lastMaxHealth) {
+            if (currentHealth < cranks$lastHealth) {
+                player.setHealth(Math.min(cranks$lastHealth, (float)newMaxHealth));
+            }
+        }
+        
+        cranks$lastHealth = player.getHealth();
+        cranks$lastMaxHealth = player.getMaxHealth();
     }
 }

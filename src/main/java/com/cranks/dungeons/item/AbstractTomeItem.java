@@ -99,7 +99,7 @@ public abstract class AbstractTomeItem extends Item {
      */
     protected void addTomeDescription(Consumer<Text> textConsumer) {
         textConsumer.accept(Text.literal("Upgrades a magic item to a rare item,").formatted(Formatting.GRAY));
-        textConsumer.accept(Text.literal("adding a guaranteed modifier").formatted(Formatting.GRAY));
+        textConsumer.accept(Text.literal("adding a guaranteed rune").formatted(Formatting.GRAY));
     }
 
     protected void addStatRange(Consumer<Text> textConsumer, EquipmentType type, String label) {

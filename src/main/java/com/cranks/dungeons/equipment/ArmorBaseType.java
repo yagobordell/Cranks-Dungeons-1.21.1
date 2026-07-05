@@ -20,7 +20,8 @@ public enum ArmorBaseType {
         boolean hasEvasion = false;
         boolean hasES = false;
 
-        var modifiers = stack.get(DataComponentTypes.ATTRIBUTE_MODIFIERS);
+        ItemStack defaultStack = new ItemStack(stack.getItem());
+        var modifiers = stack.getOrDefault(DataComponentTypes.ATTRIBUTE_MODIFIERS, defaultStack.getOrDefault(DataComponentTypes.ATTRIBUTE_MODIFIERS, net.minecraft.component.type.AttributeModifiersComponent.DEFAULT));
         if (modifiers != null) {
             for (var entry : modifiers.modifiers()) {
                 var attr = entry.attribute();
@@ -68,10 +69,10 @@ public enum ArmorBaseType {
         boolean statDex = statBase == DEX || statBase == STR_DEX || statBase == DEX_INT;
         boolean statInt = statBase == INT || statBase == STR_INT || statBase == DEX_INT;
 
-        if (itemStr && statStr) return true;
-        if (itemDex && statDex) return true;
-        if (itemInt && statInt) return true;
+        if (statStr && !itemStr) return false;
+        if (statDex && !itemDex) return false;
+        if (statInt && !itemInt) return false;
 
-        return false;
+        return true;
     }
 }

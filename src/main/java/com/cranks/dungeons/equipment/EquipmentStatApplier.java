@@ -13,12 +13,50 @@ import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.registry.Registries;
+
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.util.Identifier;
 
 import java.util.*;
 
+/**
+ * Central hub for applying rune/stat modifiers to equipment items.
+ *
+ * <h2>Stat Application Pipeline (updateItemAttributes)</h2>
+ * <p>This is the core method that bakes rune stats into an item's AttributeModifiersComponent.
+ * It runs whenever stats are added/removed/rerolled on an item.</p>
+ *
+ * <h3>Pipeline Steps:</h3>
+ * <ol>
+ *   <li><b>Classify rune stats</b> — Each rune stat is classified by its attribute type:
+ *     <ul>
+ *       <li><b>Local Percent</b> (ARMOR_PERCENT, EVASION_RATING_PERCENT, ENERGY_SHIELD_PERCENT,
+ *           ATTACK_DAMAGE_PERCENT): Accumulated into local percent buffers. These scale the item's
+ *           base stat value. They are NOT added as direct modifiers.
+ *           <br><em>IMPORTANT: Detection is done by attribute type, NOT stat ID strings.</em></li>
+ *       <li><b>Flat rune stats</b> (e.g., +Armor, +Evasion): Merged into flatRuneValues map.</li>
+ *       <li><b>Other percentage stats</b> (e.g., resistances, crit): Added directly to the builder
+ *           as ADD_VALUE modifiers (or ADD_MULTIPLIED_BASE for attack speed/reload speed).</li>
+ *     </ul>
+ *   </li>
+ *   <li><b>Gather base item defaults</b> — Reads the vanilla item's original AttributeModifiersComponent,
+ *       applies quality scaling, and separates core stats (armor/evasion/ES/damage) from others.</li>
+ *   <li><b>Merge flat runes</b> — Flat rune values are added to the base values.</li>
+ *   <li><b>Apply local percentages</b> — The accumulated percent buffers scale the combined
+ *       (base + flat rune) values: finalValue = (base + flatRune) * (1 + localPercent).</li>
+ *   <li><b>Build final component</b> — All values are written into a new AttributeModifiersComponent.</li>
+ * </ol>
+ *
+ * <h3>Attribute Comparison</h3>
+ * <p>Always use {@link #isAttribute} to compare RegistryEntry references. Fabric's registry
+ * can return different object references for the same attribute, causing .equals() to fail.
+ * The isAttribute method falls back to comparing translation keys.</p>
+ *
+ * <h3>Tooltip Interaction</h3>
+ * <p>Because this class bakes flat rune values and local percentages into the item's
+ * AttributeModifiersComponent, the tooltip (ItemStackTooltipMixin.calculateItemAttributeTotals)
+ * must NOT re-add those same values from ItemStatManager. Doing so would double-count them.</p>
+ */
 public class EquipmentStatApplier {
 
     private static final Map<UUID, Map<Identifier, RegistryEntry<EntityAttribute>>> appliedModifiers = new HashMap<>();
@@ -77,7 +115,9 @@ public class EquipmentStatApplier {
     }
 
     /**
-     * Updates an item's attribute modifiers based on its custom stats.
+     * Rebuilds an item's AttributeModifiersComponent to include rune stats and quality bonuses.
+     * <p>This is the core stat pipeline — see class javadoc for the full flow.</p>
+     * <p>Called by ItemStatManager whenever stats are added, removed, or rerolled on an item.</p>
      */
     public static void updateItemAttributes(ItemStack stack) {
         Optional<EquipmentType> equipType = EquipmentType.getTypeForItem(stack);
@@ -109,12 +149,6 @@ public class EquipmentStatApplier {
         double localArmorPercent = 0;
         double localEvasionPercent = 0;
         double localEnergyShieldPercent = 0;
-
-        if (quality > 0) {
-            // Quality is no longer added to local percent here.
-            // It scales the base item attributes uniformly below.
-        }
-
         Map<RegistryEntry<EntityAttribute>, Double> flatRuneValues = new HashMap<>();
         Map<RegistryEntry<EntityAttribute>, CustomStat> attributeToStatMap = new HashMap<>();
 
@@ -128,44 +162,51 @@ public class EquipmentStatApplier {
                     for (int attrIndex = 0; attrIndex < comp.getAttributes().size(); attrIndex++) {
                         RegistryEntry<EntityAttribute> attribute = comp.getAttributes().get(attrIndex);
 
-                        // Skip stats that shouldn't be applied to standard vanilla attributes
-                        if (attribute.equals(ModAttributes.DURABILITY_BONUS)) continue;
-                        if (attribute.equals(ModAttributes.CHANCE_TO_BLOCK)) continue;
-                        if (attribute.equals(ModAttributes.BLOCK_VALUE)) continue;
-                        if (attribute.equals(ModAttributes.HEALTH_ON_BLOCK)) continue;
-                        if (attribute.equals(ModAttributes.EVASION_RATING)) continue;
-                        if (attribute.equals(ModAttributes.EVASION_RATING_PERCENT)) continue;
-                        if (attribute.equals(ModAttributes.ENERGY_SHIELD)) continue;
-                        if (attribute.equals(ModAttributes.ENERGY_SHIELD_PERCENT)) continue;
+                        // Detect local percentage stats by their attribute type.
+                        // These scale the item's base stat and should NOT be added as direct modifiers.
+                        boolean isLocalPercent = false;
+                        if (isAttribute(attribute, ModAttributes.ATTACK_DAMAGE_PERCENT)) {
+                            localAttackDamagePercent += val;
+                            isLocalPercent = true;
+                        } else if (isAttribute(attribute, ModAttributes.ARMOR_PERCENT)) {
+                            localArmorPercent += val;
+                            isLocalPercent = true;
+                        } else if (isAttribute(attribute, ModAttributes.EVASION_RATING_PERCENT)) {
+                            localEvasionPercent += val;
+                            isLocalPercent = true;
+                        } else if (isAttribute(attribute, ModAttributes.ENERGY_SHIELD_PERCENT)) {
+                            localEnergyShieldPercent += val;
+                            isLocalPercent = true;
+                        }
 
-                        Identifier id = Identifier.of(CranksDungeons.MOD_ID, "runic_" + stat.getId() + "_" + i + "_" + attrIndex);
-                        
-                        EntityAttributeModifier modifier = new EntityAttributeModifier(
-                                id,
-                                val,
-                                comp.isPercentage() ? EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE : EntityAttributeModifier.Operation.ADD_VALUE
-                        );
+                        // Skip local percent stats - they're applied later to scale base values
+                        if (isLocalPercent) {
+                            continue;
+                        }
 
-                        builder.add(attribute, modifier, slot);
-                    }
+                        if (isAttribute(attribute, ModAttributes.DURABILITY_BONUS) ||
+                            isAttribute(attribute, ModAttributes.CHANCE_TO_BLOCK) ||
+                            isAttribute(attribute, ModAttributes.BLOCK_VALUE) ||
+                            isAttribute(attribute, ModAttributes.HEALTH_ON_BLOCK)) {
+                            continue;
+                        }
 
-                    if (stat.getId().equals("local_attack_damage_percent")) localAttackDamagePercent += val;
-                    else if (stat.getId().equals("local_armor_percent")) localArmorPercent += val;
-                    else if (stat.getId().equals("local_evasion_percent")) localEvasionPercent += val;
-                    else if (stat.getId().equals("local_energy_shield_percent")) localEnergyShieldPercent += val;
-
-                    for (int attrIndex = 0; attrIndex < comp.getAttributes().size(); attrIndex++) {
-                        RegistryEntry<EntityAttribute> attribute = comp.getAttributes().get(attrIndex);
-                        
-                        // Don't add skipped attributes to flatRuneValues to avoid double dipping, 
-                        // as they are handled elsewhere or shouldn't be added to the item modifier list twice
-                        if (attribute.equals(ModAttributes.DURABILITY_BONUS)) continue;
-                        if (attribute.equals(ModAttributes.CHANCE_TO_BLOCK)) continue;
-                        if (attribute.equals(ModAttributes.BLOCK_VALUE)) continue;
-                        if (attribute.equals(ModAttributes.HEALTH_ON_BLOCK)) continue;
-
-                        flatRuneValues.merge(attribute, val, Double::sum);
-                        attributeToStatMap.put(attribute, stat);
+                        if (comp.isPercentage()) {
+                            Identifier id = Identifier.of(CranksDungeons.MOD_ID, "runic_" + stat.getId() + "_" + i + "_" + attrIndex);
+                            boolean isMultiplicative = isAttribute(attribute, EntityAttributes.ATTACK_SPEED) || 
+                                                       isAttribute(attribute, ModAttributes.RELOAD_SPEED) ||
+                                                       isAttribute(attribute, ModAttributes.MINING_EFFICIENCY);
+                            EntityAttributeModifier.Operation op = isMultiplicative ? 
+                                    EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE : 
+                                    EntityAttributeModifier.Operation.ADD_VALUE;
+                            EntityAttributeModifier modifier = new EntityAttributeModifier(
+                                    id, val, op
+                            );
+                            builder.add(attribute, modifier, slot);
+                        } else {
+                            flatRuneValues.merge(attribute, val, Double::sum);
+                            attributeToStatMap.put(attribute, stat);
+                        }
                     }
                 }
             }
@@ -203,7 +244,7 @@ public class EquipmentStatApplier {
                 
                 // Apply Quality Scaling uniformly to the base value
                 if (qBonus > 0) {
-                    if (attr.equals(EntityAttributes.ATTACK_SPEED)) {
+                    if (isAttribute(attr, EntityAttributes.ATTACK_SPEED)) {
                         baseVal = (4.0 + baseVal) * (1.0 + qBonus) - 4.0;
                     } else {
                         baseVal = baseVal * (1.0 + qBonus);
@@ -234,21 +275,25 @@ public class EquipmentStatApplier {
             finalFlatValues.merge(entry.getKey(), entry.getValue(), Double::sum);
         }
 
+        RegistryEntry<EntityAttribute> actualAttackAttr = attackDamageAttr != null ? attackDamageAttr : EntityAttributes.ATTACK_DAMAGE;
+        RegistryEntry<EntityAttribute> actualArmorAttr = armorAttr != null ? armorAttr : EntityAttributes.ARMOR;
+        RegistryEntry<EntityAttribute> actualEvasionAttr = evasionAttr != null ? evasionAttr : ModAttributes.EVASION_RATING;
+        RegistryEntry<EntityAttribute> actualESAttr = energyShieldAttr != null ? energyShieldAttr : ModAttributes.ENERGY_SHIELD;
+
         // 3. Apply Local Percentages
-        if (localAttackDamagePercent > 0 && attackDamageAttr != null && finalFlatValues.containsKey(attackDamageAttr)) {
-            double oldVal = finalFlatValues.get(attackDamageAttr);
+        if (localAttackDamagePercent > 0 && finalFlatValues.containsKey(actualAttackAttr)) {
+            double oldVal = finalFlatValues.get(actualAttackAttr);
             double newVal = oldVal * (1.0 + localAttackDamagePercent);
-            System.out.println("Updating attack damage from " + oldVal + " to " + newVal);
-            finalFlatValues.put(attackDamageAttr, newVal);
+            finalFlatValues.put(actualAttackAttr, newVal);
         }
-        if (localArmorPercent > 0 && armorAttr != null && finalFlatValues.containsKey(armorAttr)) {
-            finalFlatValues.put(armorAttr, finalFlatValues.get(armorAttr) * (1.0 + localArmorPercent));
+        if (localArmorPercent > 0 && finalFlatValues.containsKey(actualArmorAttr)) {
+            finalFlatValues.put(actualArmorAttr, finalFlatValues.get(actualArmorAttr) * (1.0 + localArmorPercent));
         }
-        if (localEvasionPercent > 0 && evasionAttr != null && finalFlatValues.containsKey(evasionAttr)) {
-            finalFlatValues.put(evasionAttr, finalFlatValues.get(evasionAttr) * (1.0 + localEvasionPercent));
+        if (localEvasionPercent > 0 && finalFlatValues.containsKey(actualEvasionAttr)) {
+            finalFlatValues.put(actualEvasionAttr, finalFlatValues.get(actualEvasionAttr) * (1.0 + localEvasionPercent));
         }
-        if (localEnergyShieldPercent > 0 && energyShieldAttr != null && finalFlatValues.containsKey(energyShieldAttr)) {
-            finalFlatValues.put(energyShieldAttr, finalFlatValues.get(energyShieldAttr) * (1.0 + localEnergyShieldPercent));
+        if (localEnergyShieldPercent > 0 && finalFlatValues.containsKey(actualESAttr)) {
+            finalFlatValues.put(actualESAttr, finalFlatValues.get(actualESAttr) * (1.0 + localEnergyShieldPercent));
         }
 
         // 4. Build Modifiers
@@ -269,9 +314,9 @@ public class EquipmentStatApplier {
             Identifier baseModifierId = originalIds.get(attr);
             Identifier finalModifierId = baseModifierId != null ? baseModifierId : modifierId;
 
-            boolean isMultiplicative = attr.equals(EntityAttributes.ATTACK_SPEED) || 
-                                       attr.equals(ModAttributes.RELOAD_SPEED) ||
-                                       attr.equals(ModAttributes.MINING_EFFICIENCY);
+            boolean isMultiplicative = isAttribute(attr, EntityAttributes.ATTACK_SPEED) || 
+                                       isAttribute(attr, ModAttributes.RELOAD_SPEED) ||
+                                       isAttribute(attr, ModAttributes.MINING_EFFICIENCY);
 
             if (isMultiplicative) {
                 double defaultValue = scaledDefaults.getOrDefault(attr, 0.0);
@@ -326,6 +371,13 @@ public class EquipmentStatApplier {
                 type == EquipmentType.BOOTS;
     }
 
+    /**
+     * Safely compares two attribute registry entries.
+     * <p>Fabric's registry can produce different RegistryEntry objects for the same attribute
+     * (depending on when/how they were loaded), causing standard .equals() to return false.
+     * This method falls back to comparing translation keys as a reliable secondary check.</p>
+     * <p><b>ALWAYS use this instead of .equals() when comparing attributes in this class.</b></p>
+     */
     private static boolean isAttribute(RegistryEntry<EntityAttribute> attr1, RegistryEntry<EntityAttribute> attr2) {
         if (attr1.equals(attr2)) return true;
         return attr1.value().getTranslationKey().equals(attr2.value().getTranslationKey());
@@ -354,10 +406,10 @@ public class EquipmentStatApplier {
                 RegistryEntry<EntityAttribute> attribute = comp.getAttributes().get(attrIndex);
 
                 // For armor stats, we generally skip everything EXCEPT standard player attributes
-                if (attribute.equals(ModAttributes.DURABILITY_BONUS)) continue;
-                if (attribute.equals(ModAttributes.CHANCE_TO_BLOCK)) continue;
-                if (attribute.equals(ModAttributes.BLOCK_VALUE)) continue;
-                if (attribute.equals(ModAttributes.HEALTH_ON_BLOCK)) continue;
+                if (isAttribute(attribute, ModAttributes.DURABILITY_BONUS)) continue;
+                if (isAttribute(attribute, ModAttributes.CHANCE_TO_BLOCK)) continue;
+                if (isAttribute(attribute, ModAttributes.BLOCK_VALUE)) continue;
+                if (isAttribute(attribute, ModAttributes.HEALTH_ON_BLOCK)) continue;
 
                 Identifier id = Identifier.of(CranksDungeons.MOD_ID, "runic_" + stat.getId() + "_" + i + "_" + attrIndex);
                 EntityAttributeModifier modifier = new EntityAttributeModifier(
