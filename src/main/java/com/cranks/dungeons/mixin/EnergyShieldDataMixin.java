@@ -52,12 +52,33 @@ public abstract class EnergyShieldDataMixin implements EnergyShieldProvider {
     @Unique
     private int lifeTicks = 0;
 
+    @Unique
+    private double cranks$lastGlobalESPercentBonus = Double.NaN;
+
     // Sync shield to client every tick if it changed
     // Sync shield to tracking clients periodically if it changed
     @Inject(method = "tick", at = @At("HEAD"))
     private void syncShieldToClient(CallbackInfo ci) {
         if (!((Object)this instanceof net.minecraft.entity.LivingEntity living)) return;
         if (living.getEntityWorld().isClient()) return;
+
+        // Apply Global Energy Shield Percent
+        var esAttr = living.getAttributeInstance(com.cranks.dungeons.registry.ModAttributes.ENERGY_SHIELD);
+        if (esAttr != null) {
+            double globalESPercent = living.getAttributeValue(com.cranks.dungeons.registry.ModAttributes.ENERGY_SHIELD_PERCENT);
+            net.minecraft.util.Identifier percentModifierId = net.minecraft.util.Identifier.of(com.cranks.dungeons.CranksDungeons.MOD_ID, "global_energy_shield_percent");
+            if (Double.isNaN(cranks$lastGlobalESPercentBonus) || globalESPercent != cranks$lastGlobalESPercentBonus) {
+                esAttr.removeModifier(percentModifierId);
+                if (globalESPercent > 0) {
+                    esAttr.addTemporaryModifier(new net.minecraft.entity.attribute.EntityAttributeModifier(
+                            percentModifierId,
+                            globalESPercent,
+                            net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE
+                    ));
+                }
+                cranks$lastGlobalESPercentBonus = globalESPercent;
+            }
+        }
 
         syncTimer++;
         // Check periodically (10 ticks for players, 20 for mobs to save bandwidth)

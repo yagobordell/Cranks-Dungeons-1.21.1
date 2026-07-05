@@ -47,5 +47,53 @@ public abstract class BonusArmorMixin {
             }
             cranks$lastBonusArmor = bonusArmor;
         }
+
+        // Apply Global Armor Percent
+        double globalArmorPercent = player.getAttributeValue(ModAttributes.ARMOR_PERCENT);
+        Identifier percentModifierId = Identifier.of(CranksDungeons.MOD_ID, "global_armor_percent");
+        if (Double.isNaN(cranks$lastGlobalArmorPercentBonus) || globalArmorPercent != cranks$lastGlobalArmorPercentBonus) {
+            armorAttr.removeModifier(percentModifierId);
+            if (globalArmorPercent > 0) {
+                armorAttr.addTemporaryModifier(new EntityAttributeModifier(
+                        percentModifierId,
+                        globalArmorPercent,
+                        EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE
+                ));
+            }
+            cranks$lastGlobalArmorPercentBonus = globalArmorPercent;
+        }
+
+        // Apply Leggings Armor Percent
+        double leggingsPercent = player.getAttributeValue(ModAttributes.LEGGINGS_ARMOR_PERCENT);
+        Identifier leggingsModifierId = Identifier.of(CranksDungeons.MOD_ID, "leggings_armor_percent");
+        if (Double.isNaN(cranks$lastLeggingsBonus) || leggingsPercent != cranks$lastLeggingsBonus) {
+            armorAttr.removeModifier(leggingsModifierId);
+            if (leggingsPercent > 0) {
+                // Leggings percent only applies to the armor provided by leggings
+                double leggingsBaseArmor = 0;
+                ItemStack leggings = player.getEquippedStack(net.minecraft.entity.EquipmentSlot.LEGS);
+                if (!leggings.isEmpty()) {
+                    var comp = leggings.get(net.minecraft.component.DataComponentTypes.ATTRIBUTE_MODIFIERS);
+                    if (comp != null) {
+                        for (var modEntry : comp.modifiers()) {
+                            if (modEntry.attribute().equals(EntityAttributes.ARMOR)) {
+                                leggingsBaseArmor += modEntry.modifier().value();
+                            }
+                        }
+                    }
+                }
+                
+                double bonusFromLeggings = leggingsBaseArmor * leggingsPercent;
+                
+                if (bonusFromLeggings > 0) {
+                    armorAttr.addTemporaryModifier(new EntityAttributeModifier(
+                            leggingsModifierId,
+                            bonusFromLeggings,
+                            EntityAttributeModifier.Operation.ADD_VALUE
+                    ));
+                }
+            }
+            cranks$lastLeggingsBonus = leggingsPercent;
+        }
     }
 }

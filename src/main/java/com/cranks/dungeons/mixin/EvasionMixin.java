@@ -19,6 +19,8 @@ public abstract class EvasionMixin {
 
     @Unique
     private float evasionEntropy = 0.5f; // Initial entropy state
+    @Unique
+    private double cranks$lastGlobalEvasionPercentBonus = Double.NaN;
 
     @Inject(method = "tick", at = @At("HEAD"))
     private void resetEvasionEntropy(org.spongepowered.asm.mixin.injection.callback.CallbackInfo ci) {
@@ -31,6 +33,24 @@ public abstract class EvasionMixin {
             // This ensures a fresh fight starts with a clean roll
             if (timeSinceLastHit > 120L && evasionEntropy != 0.5f) {
                 evasionEntropy = 0.5f;
+            }
+        }
+
+        // Apply Global Evasion Percent
+        var evasionAttr = entity.getAttributeInstance(ModAttributes.EVASION_RATING);
+        if (evasionAttr != null) {
+            double globalEvasionPercent = entity.getAttributeValue(ModAttributes.EVASION_RATING_PERCENT);
+            net.minecraft.util.Identifier percentModifierId = net.minecraft.util.Identifier.of(com.cranks.dungeons.CranksDungeons.MOD_ID, "global_evasion_percent");
+            if (Double.isNaN(cranks$lastGlobalEvasionPercentBonus) || globalEvasionPercent != cranks$lastGlobalEvasionPercentBonus) {
+                evasionAttr.removeModifier(percentModifierId);
+                if (globalEvasionPercent > 0) {
+                    evasionAttr.addTemporaryModifier(new net.minecraft.entity.attribute.EntityAttributeModifier(
+                            percentModifierId,
+                            globalEvasionPercent,
+                            net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE
+                    ));
+                }
+                cranks$lastGlobalEvasionPercentBonus = globalEvasionPercent;
             }
         }
     }
