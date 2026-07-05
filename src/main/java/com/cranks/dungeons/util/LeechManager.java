@@ -56,7 +56,7 @@ public class LeechManager {
         if (maxResource <= 0) maxResource = 1; // Prevent div by 0
 
         UUID uuid = entity.getUuid();
-        LEECH_INSTANCES.computeIfAbsent(uuid, k -> new ArrayList<>()).add(new LeechInstance(amount, maxResource));
+        LEECH_INSTANCES.computeIfAbsent(uuid, k -> new java.util.concurrent.CopyOnWriteArrayList<>()).add(new LeechInstance(amount, maxResource));
     }
 
     public static void tick(LivingEntity entity) {
@@ -81,18 +81,14 @@ public class LeechManager {
 
         float totalHealingThisTick = 0f;
 
-        Iterator<LeechInstance> iterator = instances.iterator();
-        while (iterator.hasNext()) {
-            LeechInstance instance = iterator.next();
+        for (LeechInstance instance : instances) {
             float healAmount = Math.min(instance.remainingHealing, instance.healingPerTick);
             
             totalHealingThisTick += healAmount;
             instance.remainingHealing -= healAmount;
-
-            if (instance.remainingHealing <= 0) {
-                iterator.remove();
-            }
         }
+        
+        instances.removeIf(instance -> instance.remainingHealing <= 0);
 
         if (totalHealingThisTick > maxHealingPerTick) {
             totalHealingThisTick = maxHealingPerTick;

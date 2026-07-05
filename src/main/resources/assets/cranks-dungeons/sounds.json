@@ -1,4 +1,14 @@
 {
+  "quality_station_2": {
+    "sounds": [
+      { "name": "cranks-dungeons:quality_station_2", "volume": 1.0, "pitch": 1.0 }
+    ]
+  },
+  "quality_station_3": {
+    "sounds": [
+      { "name": "cranks-dungeons:quality_station_3", "volume": 1.0, "pitch": 1.0 }
+    ]
+  },
   "artificial_altar_click": {
     "sounds": [
       { "name": "cranks-dungeons:artificial_altar_click", "volume": 1.0, "pitch": 1.0 }

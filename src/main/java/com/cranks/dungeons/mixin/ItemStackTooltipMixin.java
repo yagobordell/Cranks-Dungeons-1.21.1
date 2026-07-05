@@ -427,10 +427,23 @@ public abstract class ItemStackTooltipMixin {
                 DataComponentTypes.ATTRIBUTE_MODIFIERS,
                 AttributeModifiersComponent.DEFAULT);
 
+        int quality = com.cranks.dungeons.block.entity.QualityStationBlockEntity.getQuality(stack);
+        double qBonus = quality > 0 ? quality / 100.0 : 0.0;
+
         for (var entry : baseAttributes.modifiers()) {
             if (entry.modifier().operation() == net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_VALUE) {
                 String key = entry.attribute().value().getTranslationKey();
-                totals.merge(key, entry.modifier().value(), Double::sum);
+                double baseVal = entry.modifier().value();
+                
+                if (qBonus > 0) {
+                    if (entry.attribute().equals(EntityAttributes.ATTACK_SPEED)) {
+                        baseVal = (4.0 + baseVal) * (1.0 + qBonus) - 4.0;
+                    } else {
+                        baseVal = baseVal * (1.0 + qBonus);
+                    }
+                }
+                
+                totals.merge(key, baseVal, Double::sum);
             }
         }
 
@@ -534,6 +547,7 @@ public abstract class ItemStackTooltipMixin {
         String damagePctKey = ModAttributes.ATTACK_DAMAGE_PERCENT.value().getTranslationKey();
         double damagePct = totals.getOrDefault(damagePctKey, 0.0);
         if (damagePct != 0) localPercentages.merge(damageKey, damagePct, Double::sum);
+
 
         // 5. Apply percentages
         for (var entry : localPercentages.entrySet()) {

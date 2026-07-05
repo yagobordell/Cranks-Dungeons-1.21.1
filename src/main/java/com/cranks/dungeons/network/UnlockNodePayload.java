@@ -12,7 +12,7 @@ public record UnlockNodePayload(String nodeId) implements CustomPayload {
     public static final CustomPayload.Id<UnlockNodePayload> ID = new CustomPayload.Id<>(ID_IDENT);
     
     public static final PacketCodec<RegistryByteBuf, UnlockNodePayload> CODEC = PacketCodec.tuple(
-            PacketCodecs.STRING, UnlockNodePayload::nodeId,
+            PacketCodecs.string(128), UnlockNodePayload::nodeId,
             UnlockNodePayload::new
     );
 

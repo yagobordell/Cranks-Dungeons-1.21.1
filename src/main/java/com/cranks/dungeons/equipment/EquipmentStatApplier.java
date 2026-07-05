@@ -111,14 +111,8 @@ public class EquipmentStatApplier {
         double localEnergyShieldPercent = 0;
 
         if (quality > 0) {
-            double qBonus = quality / 100.0;
-            if (!isArmorType(type) && type != EquipmentType.SHIELD) {
-                localAttackDamagePercent += qBonus;
-            } else {
-                localArmorPercent += qBonus;
-                localEvasionPercent += qBonus;
-                localEnergyShieldPercent += qBonus;
-            }
+            // Quality is no longer added to local percent here.
+            // It scales the base item attributes uniformly below.
         }
 
         Map<RegistryEntry<EntityAttribute>, Double> flatRuneValues = new HashMap<>();
@@ -180,18 +174,55 @@ public class EquipmentStatApplier {
         // 2. Gather default values from the original item
         Map<RegistryEntry<EntityAttribute>, Double> finalFlatValues = new HashMap<>();
         Map<RegistryEntry<EntityAttribute>, AttributeModifierSlot> defaultSlots = new HashMap<>();
+        Map<RegistryEntry<EntityAttribute>, Identifier> originalIds = new HashMap<>();
         Map<RegistryEntry<EntityAttribute>, EntityAttributeModifier> unhandledDefaults = new HashMap<>();
+
+        RegistryEntry<EntityAttribute> attackDamageAttr = null;
+        RegistryEntry<EntityAttribute> armorAttr = null;
+        RegistryEntry<EntityAttribute> evasionAttr = null;
+        RegistryEntry<EntityAttribute> energyShieldAttr = null;
+
+        double qBonus = quality > 0 ? quality / 100.0 : 0.0;
+        Map<RegistryEntry<EntityAttribute>, Double> scaledDefaults = new HashMap<>();
 
         for (var entry : originalDefaults.modifiers()) {
             RegistryEntry<EntityAttribute> attr = entry.attribute();
-            if (attr.equals(EntityAttributes.ATTACK_DAMAGE) ||
-                attr.equals(EntityAttributes.ARMOR) ||
-                attr.equals(ModAttributes.EVASION_RATING) ||
-                attr.equals(ModAttributes.ENERGY_SHIELD) ||
-                flatRuneValues.containsKey(attr)) {
+            
+            boolean isAttack = isAttribute(attr, EntityAttributes.ATTACK_DAMAGE);
+            boolean isArmor = isAttribute(attr, EntityAttributes.ARMOR);
+            boolean isEvasion = isAttribute(attr, ModAttributes.EVASION_RATING);
+            boolean isES = isAttribute(attr, ModAttributes.ENERGY_SHIELD);
+
+            if (isAttack) attackDamageAttr = attr;
+            if (isArmor) armorAttr = attr;
+            if (isEvasion) evasionAttr = attr;
+            if (isES) energyShieldAttr = attr;
+
+            if (entry.modifier().operation() == EntityAttributeModifier.Operation.ADD_VALUE) {
+                double baseVal = entry.modifier().value();
                 
-                finalFlatValues.put(attr, entry.modifier().value());
-                defaultSlots.put(attr, entry.slot());
+                // Apply Quality Scaling uniformly to the base value
+                if (qBonus > 0) {
+                    if (attr.equals(EntityAttributes.ATTACK_SPEED)) {
+                        baseVal = (4.0 + baseVal) * (1.0 + qBonus) - 4.0;
+                    } else {
+                        baseVal = baseVal * (1.0 + qBonus);
+                    }
+                }
+                scaledDefaults.put(attr, baseVal);
+
+                if (isAttack || isArmor || isEvasion || isES || flatRuneValues.containsKey(attr)) {
+                    finalFlatValues.put(attr, baseVal);
+                    defaultSlots.put(attr, entry.slot());
+                    originalIds.put(attr, entry.modifier().id());
+                } else {
+                    unhandledDefaults.put(attr, new EntityAttributeModifier(
+                            entry.modifier().id(),
+                            baseVal,
+                            entry.modifier().operation()
+                    ));
+                    defaultSlots.put(attr, entry.slot());
+                }
             } else {
                 unhandledDefaults.put(attr, entry.modifier());
                 defaultSlots.put(attr, entry.slot());
@@ -204,17 +235,20 @@ public class EquipmentStatApplier {
         }
 
         // 3. Apply Local Percentages
-        if (localAttackDamagePercent > 0 && finalFlatValues.containsKey(EntityAttributes.ATTACK_DAMAGE)) {
-            finalFlatValues.put(EntityAttributes.ATTACK_DAMAGE, finalFlatValues.get(EntityAttributes.ATTACK_DAMAGE) * (1.0 + localAttackDamagePercent));
+        if (localAttackDamagePercent > 0 && attackDamageAttr != null && finalFlatValues.containsKey(attackDamageAttr)) {
+            double oldVal = finalFlatValues.get(attackDamageAttr);
+            double newVal = oldVal * (1.0 + localAttackDamagePercent);
+            System.out.println("Updating attack damage from " + oldVal + " to " + newVal);
+            finalFlatValues.put(attackDamageAttr, newVal);
         }
-        if (localArmorPercent > 0 && finalFlatValues.containsKey(EntityAttributes.ARMOR)) {
-            finalFlatValues.put(EntityAttributes.ARMOR, finalFlatValues.get(EntityAttributes.ARMOR) * (1.0 + localArmorPercent));
+        if (localArmorPercent > 0 && armorAttr != null && finalFlatValues.containsKey(armorAttr)) {
+            finalFlatValues.put(armorAttr, finalFlatValues.get(armorAttr) * (1.0 + localArmorPercent));
         }
-        if (localEvasionPercent > 0 && finalFlatValues.containsKey(ModAttributes.EVASION_RATING)) {
-            finalFlatValues.put(ModAttributes.EVASION_RATING, finalFlatValues.get(ModAttributes.EVASION_RATING) * (1.0 + localEvasionPercent));
+        if (localEvasionPercent > 0 && evasionAttr != null && finalFlatValues.containsKey(evasionAttr)) {
+            finalFlatValues.put(evasionAttr, finalFlatValues.get(evasionAttr) * (1.0 + localEvasionPercent));
         }
-        if (localEnergyShieldPercent > 0 && finalFlatValues.containsKey(ModAttributes.ENERGY_SHIELD)) {
-            finalFlatValues.put(ModAttributes.ENERGY_SHIELD, finalFlatValues.get(ModAttributes.ENERGY_SHIELD) * (1.0 + localEnergyShieldPercent));
+        if (localEnergyShieldPercent > 0 && energyShieldAttr != null && finalFlatValues.containsKey(energyShieldAttr)) {
+            finalFlatValues.put(energyShieldAttr, finalFlatValues.get(energyShieldAttr) * (1.0 + localEnergyShieldPercent));
         }
 
         // 4. Build Modifiers
@@ -232,18 +266,20 @@ public class EquipmentStatApplier {
             String statId = stat != null ? stat.getId() : attr.value().getTranslationKey().replace("attribute.name.", "");
             
             Identifier modifierId = Identifier.of(CranksDungeons.MOD_ID, "item_" + statId.replace(".", "_"));
+            Identifier baseModifierId = originalIds.get(attr);
+            Identifier finalModifierId = baseModifierId != null ? baseModifierId : modifierId;
 
             boolean isMultiplicative = attr.equals(EntityAttributes.ATTACK_SPEED) || 
                                        attr.equals(ModAttributes.RELOAD_SPEED) ||
                                        attr.equals(ModAttributes.MINING_EFFICIENCY);
 
             if (isMultiplicative) {
-                double defaultValue = unhandledDefaults.containsKey(attr) ? 0 : originalDefaults.modifiers().stream().filter(m -> m.attribute().equals(attr)).mapToDouble(m -> m.modifier().value()).findFirst().orElse(0.0);
+                double defaultValue = scaledDefaults.getOrDefault(attr, 0.0);
                 double runeValue = flatRuneValues.getOrDefault(attr, 0.0);
                 
                 if (defaultValue != 0) {
                     builder.add(attr, new EntityAttributeModifier(
-                            modifierId.withPath(modifierId.getPath() + "_base"),
+                            finalModifierId,
                             defaultValue,
                             EntityAttributeModifier.Operation.ADD_VALUE
                     ), modifierSlot);
@@ -259,7 +295,7 @@ public class EquipmentStatApplier {
             } else {
                 if (combinedValue != 0) {
                     EntityAttributeModifier modifier = new EntityAttributeModifier(
-                            modifierId,
+                            finalModifierId,
                             combinedValue,
                             EntityAttributeModifier.Operation.ADD_VALUE
                     );
@@ -282,12 +318,17 @@ public class EquipmentStatApplier {
         };
     }
 
-    private static boolean isArmorType(EquipmentType type) {
+    public static boolean isArmorType(EquipmentType type) {
         return type == EquipmentType.HELMET ||
                 type == EquipmentType.CHESTPLATE ||
                 type == EquipmentType.ELYTRA ||
                 type == EquipmentType.LEGGINGS ||
                 type == EquipmentType.BOOTS;
+    }
+
+    private static boolean isAttribute(RegistryEntry<EntityAttribute> attr1, RegistryEntry<EntityAttribute> attr2) {
+        if (attr1.equals(attr2)) return true;
+        return attr1.value().getTranslationKey().equals(attr2.value().getTranslationKey());
     }
 
     public static double getItemStatValue(ItemStack stack, String baseStatId) {

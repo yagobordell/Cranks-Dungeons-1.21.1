@@ -11,6 +11,9 @@ public class ModSounds {
     public static final SoundEvent ARTIFICIAL_ALTAR_CLICK = register("artificial_altar_click");
     public static final SoundEvent RUNIC_ALTAR_CLICK = register("runic_altar_click");
 
+    public static final SoundEvent QUALITY_STATION_2 = register("quality_station_2");
+    public static final SoundEvent QUALITY_STATION_3 = register("quality_station_3");
+
     public static final SoundEvent ENERGY_SHIELD_HIT = register("energy_shield_hit");
     public static final SoundEvent ENERGY_SHIELD_BREAK = register("energy_shield_break");
     public static final SoundEvent ENERGY_SHIELD_REGEN = register("energy_shield_regen");

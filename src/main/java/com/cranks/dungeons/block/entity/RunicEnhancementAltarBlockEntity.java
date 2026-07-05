@@ -148,6 +148,9 @@ public class RunicEnhancementAltarBlockEntity extends BlockEntity implements Nam
         if (equipment.isEmpty() || tome.isEmpty())
             return false;
 
+        if (!getStack(RESULT_SLOT).isEmpty())
+            return false;
+
         // Handle Artificial Tomes
         if (tome.getItem() instanceof ArtificialTomeItem) {
             return tryArtificialEnhance(equipment, tome);
@@ -167,7 +170,10 @@ public class RunicEnhancementAltarBlockEntity extends BlockEntity implements Nam
     }
 
     private boolean trySpecificTomeEnhance(ItemStack equipment, ItemStack tome, AbstractTomeItem abstractTome) {
-        EquipmentType equipType = EquipmentType.getTypeForItem(equipment).get();
+        EquipmentType equipType = EquipmentType.getTypeForItem(equipment).orElse(null);
+        if (equipType == null)
+            return false;
+            
         String statId = abstractTome.getStatIdForEquipment(equipType);
         if (statId == null)
             return false;

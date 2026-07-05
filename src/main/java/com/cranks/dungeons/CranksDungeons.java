@@ -156,6 +156,11 @@ public class CranksDungeons implements ModInitializer {
 		ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
 			PassiveSkillApplier.updatePlayerPassives(newPlayer);
 		});
+		
+		net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
+			com.cranks.dungeons.equipment.EquipmentStatApplier.onPlayerDisconnect(handler.player);
+			com.cranks.dungeons.stat.passive.PassiveSkillApplier.onPlayerDisconnect(handler.player);
+		});
 		FabricDefaultAttributeRegistry.register(
 				EntityType.PLAYER,
 				PlayerEntity.createPlayerAttributes()
@@ -269,7 +274,7 @@ public class CranksDungeons implements ModInitializer {
 		net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback.EVENT
 				.register((dispatcher, registryAccess, environment) -> {
 					dispatcher.register(net.minecraft.server.command.CommandManager.literal("reloadpassivetree")
-							.requires(source -> true) // Temporary while fixing permission check method
+							.requires(source -> true)
 							.executes(context -> {
 								com.cranks.dungeons.config.PassiveTreeConfig.load();
 								com.cranks.dungeons.stat.passive.PassiveNodeRegistry.loadFromConfig();

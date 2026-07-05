@@ -72,7 +72,7 @@ public class PassiveDataComponentImpl implements PassiveDataComponent, AutoSynce
 
     @Override
     public Set<String> getUnlockedNodes() {
-        return unlockedNodes;
+        return java.util.Collections.unmodifiableSet(unlockedNodes);
     }
 
     @Override

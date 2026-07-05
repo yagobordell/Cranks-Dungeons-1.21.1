@@ -147,6 +147,11 @@ public class QualityStationBlockEntity extends BlockEntity implements NamedScree
 
     @Override
     public boolean canInsert(int slot, ItemStack stack, @Nullable Direction dir) {
+        return isValid(slot, stack);
+    }
+
+    @Override
+    public boolean isValid(int slot, ItemStack stack) {
         if (slot == EQUIPMENT_SLOT) {
             return EquipmentType.getTypeForItem(stack).isPresent();
         }
@@ -165,6 +170,20 @@ public class QualityStationBlockEntity extends BlockEntity implements NamedScree
         this.isProcessing = processing;
         if (!processing) {
             this.processTick = 0;
+            if (world instanceof net.minecraft.server.world.ServerWorld serverWorld) {
+                for (net.minecraft.server.network.ServerPlayerEntity p : serverWorld.getPlayers()) {
+                    if (p.squaredDistanceTo(pos.toCenterPos()) < 1024.0) {
+                        p.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.StopSoundS2CPacket(
+                            net.minecraft.util.Identifier.of(com.cranks.dungeons.CranksDungeons.MOD_ID, "quality_station_2"),
+                            net.minecraft.sound.SoundCategory.BLOCKS
+                        ));
+                        p.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.StopSoundS2CPacket(
+                            net.minecraft.util.Identifier.of(com.cranks.dungeons.CranksDungeons.MOD_ID, "quality_station_3"),
+                            net.minecraft.sound.SoundCategory.BLOCKS
+                        ));
+                    }
+                }
+            }
         }
         markDirty();
     }
@@ -188,6 +207,13 @@ public class QualityStationBlockEntity extends BlockEntity implements NamedScree
             }
 
             processTick++;
+            
+            // Play looping sounds every 40 ticks (2 seconds) while processing
+            if (processTick % 40 == 1) {
+                world.playSound(null, pos, com.cranks.dungeons.registry.ModSounds.QUALITY_STATION_2, net.minecraft.sound.SoundCategory.BLOCKS, 0.05f, 1.0f);
+                world.playSound(null, pos, com.cranks.dungeons.registry.ModSounds.QUALITY_STATION_3, net.minecraft.sound.SoundCategory.BLOCKS, 0.05f, 1.0f);
+            }
+
             if (processTick >= PROCESS_TIME) {
                 processTick = 0;
                 material.decrement(1);

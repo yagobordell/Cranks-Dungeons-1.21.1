@@ -122,11 +122,7 @@ public class RunicEnhancementAltarScreenHandler extends ScreenHandler {
                     if (!tryInsertAndTrack(clickedStack, RunicEnhancementAltarBlockEntity.EQUIPMENT_SLOT, slot)) {
                         return ItemStack.EMPTY;
                     }
-                } else if (slot < 30) {
-                    if (!this.insertItem(clickedStack, 30, PLAYER_INV_END, false)) {
-                        return ItemStack.EMPTY;
-                    }
-                } else if (!this.insertItem(clickedStack, PLAYER_INV_START, 30, false)) {
+                } else {
                     return ItemStack.EMPTY;
                 }
             }
@@ -177,28 +173,6 @@ public class RunicEnhancementAltarScreenHandler extends ScreenHandler {
     @Override
     public void onClosed(PlayerEntity player) {
         super.onClosed(player);
-
-        // Return equipment slot item
-        ItemStack equipment = inventory.getStack(RunicEnhancementAltarBlockEntity.EQUIPMENT_SLOT);
-        if (!equipment.isEmpty()) {
-            inventory.setStack(RunicEnhancementAltarBlockEntity.EQUIPMENT_SLOT, ItemStack.EMPTY);
-            returnToPlayerInventory(player, equipment, RunicEnhancementAltarBlockEntity.EQUIPMENT_SLOT);
-        }
-
-        // Return tome slot item
-        ItemStack tome = inventory.getStack(RunicEnhancementAltarBlockEntity.TOME_SLOT);
-        if (!tome.isEmpty()) {
-            inventory.setStack(RunicEnhancementAltarBlockEntity.TOME_SLOT, ItemStack.EMPTY);
-            returnToPlayerInventory(player, tome, RunicEnhancementAltarBlockEntity.TOME_SLOT);
-        }
-
-        // Return result slot item
-        ItemStack result = inventory.getStack(RunicEnhancementAltarBlockEntity.RESULT_SLOT);
-        if (!result.isEmpty()) {
-            inventory.setStack(RunicEnhancementAltarBlockEntity.RESULT_SLOT, ItemStack.EMPTY);
-            returnToPlayerInventory(player, result, RunicEnhancementAltarBlockEntity.EQUIPMENT_SLOT);
-        }
-
         this.inventory.onClose(player);
         sourceSlots.clear();
     }

@@ -1,16 +1,9 @@
-import net.minecraft.entity.LivingEntity;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-
 public class MethodDump {
     public static void main(String[] args) {
-        try {
-            Class<?> clazz = Class.forName("net.minecraft.entity.LivingEntity");
-            for (Method m : clazz.getDeclaredMethods()) {
-                System.out.println(Modifier.toString(m.getModifiers()) + " " + m.getReturnType().getSimpleName() + " " + m.getName() + "(...)");
+        for (java.lang.reflect.Method m : net.minecraft.server.command.ServerCommandSource.class.getMethods()) {
+            if (m.getName().toLowerCase().contains("permission") || m.getName().toLowerCase().contains("level") || m.getName().toLowerCase().contains("has")) {
+                System.out.println(m.getName() + " " + java.util.Arrays.toString(m.getParameterTypes()));
             }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 }

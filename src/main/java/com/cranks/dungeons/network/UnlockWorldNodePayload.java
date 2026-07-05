@@ -12,8 +12,8 @@ public record UnlockWorldNodePayload(String nodeId, String choice) implements Cu
     public static final CustomPayload.Id<UnlockWorldNodePayload> ID = new CustomPayload.Id<>(ID_IDENT);
 
     public static final PacketCodec<RegistryByteBuf, UnlockWorldNodePayload> CODEC = PacketCodec.tuple(
-            PacketCodecs.STRING, UnlockWorldNodePayload::nodeId,
-            PacketCodecs.STRING, UnlockWorldNodePayload::choice,
+            PacketCodecs.string(128), UnlockWorldNodePayload::nodeId,
+            PacketCodecs.string(128), UnlockWorldNodePayload::choice,
             UnlockWorldNodePayload::new
     );
 

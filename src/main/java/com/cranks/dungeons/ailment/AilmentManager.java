@@ -98,16 +98,12 @@ public class AilmentManager {
 
     public static void addFreezeBuildup(LivingEntity target, float amount, double duration, Entity source) {
         if (hasAilment(target, AilmentType.FREEZE)) {
-            com.cranks.dungeons.CranksDungeons.LOGGER.info("[FREEZE_DEBUG] addFreezeBuildup BLOCKED - entity already has FREEZE ailment");
             return;
         }
         float current = getFreezeBuildup(target.getUuid());
         float newBuildup = current + amount;
-        com.cranks.dungeons.CranksDungeons.LOGGER.info("[FREEZE_DEBUG] addFreezeBuildup: current={} + amount={} = newBuildup={} ({}%)", 
-            String.format("%.4f", current), String.format("%.4f", amount), String.format("%.4f", newBuildup), (int)(newBuildup * 100));
         
         if (newBuildup >= 1.0f) {
-            com.cranks.dungeons.CranksDungeons.LOGGER.info("[FREEZE_DEBUG] THRESHOLD REACHED! Removing buildup and applying FREEZE ailment");
             FREEZE_BUILDUP.remove(target.getUuid());
             FREEZE_BUILDUP_LAST_HIT.remove(target.getUuid());
             applyAilment(target, AilmentType.FREEZE, 0.0f, duration, source);
@@ -300,8 +296,6 @@ public class AilmentManager {
         float freezeBuildup = getFreezeBuildup(entity.getUuid());
         if (freezeBuildup > 0 && !entity.hasStatusEffect(ModEffects.FREEZE)) {
             int displayPercent = (int)(freezeBuildup * 100);
-            com.cranks.dungeons.CranksDungeons.LOGGER.info("[FREEZE_DEBUG] SYNC: freezeBuildup={} -> displayPercent={}%", 
-                String.format("%.4f", freezeBuildup), displayPercent);
             entries.add(new AilmentSyncPayload.AilmentEntry(Identifier.of(com.cranks.dungeons.CranksDungeons.MOD_ID, "textures/mob_effect/freeze_buildup.png"), displayPercent));
         }
 
@@ -356,7 +350,7 @@ public class AilmentManager {
     }
 
     public static List<Ailment> getAilments(LivingEntity target) {
-        return ENTITY_AILMENTS.getOrDefault(target.getUuid(), new ArrayList<>());
+        return ENTITY_AILMENTS.getOrDefault(target.getUuid(), new java.util.concurrent.CopyOnWriteArrayList<>());
     }
 
     public static void refreshAilmentDuration(LivingEntity target, AilmentType type) {
@@ -387,8 +381,6 @@ public class AilmentManager {
             if (currentTime - lastHit > 40) { // 2 seconds grace period
                 float current = FREEZE_BUILDUP.get(entity.getUuid());
                 float newBuildup = current - 0.0025f; // Decay 5% per second (0.0025 per tick)
-                com.cranks.dungeons.CranksDungeons.LOGGER.info("[FREEZE_DEBUG] DECAY: current={} -> newBuildup={} ({}%)", 
-                    String.format("%.4f", current), String.format("%.4f", newBuildup), (int)(newBuildup * 100));
                 if (newBuildup <= 0) {
                     FREEZE_BUILDUP.remove(entity.getUuid());
                     FREEZE_BUILDUP_LAST_HIT.remove(entity.getUuid());
@@ -858,22 +850,18 @@ public class AilmentManager {
     }
 
     public static boolean isShockChainInProgress() {
-        // Check if lock has timed out
         if (GLOBAL_SHOCK_CHAIN_LOCK && System.currentTimeMillis() - LOCK_ACQUIRE_TIME > LOCK_TIMEOUT) {
-            System.err.println("[CranksDungeons] Shock chain lock timed out, forcing release");
+            System.err.println("[CranksDungeons] Previous shock chain lock timed out, resetting");
             releaseShockChainLock();
-            return false;
         }
         return GLOBAL_SHOCK_CHAIN_LOCK;
     }
     
     public static boolean acquireShockChainLock() {
-        // Check if previous lock timed out
         if (GLOBAL_SHOCK_CHAIN_LOCK && System.currentTimeMillis() - LOCK_ACQUIRE_TIME > LOCK_TIMEOUT) {
             System.err.println("[CranksDungeons] Previous shock chain lock timed out, resetting");
             releaseShockChainLock();
         }
-        
         if (GLOBAL_SHOCK_CHAIN_LOCK) {
             return false;
         }

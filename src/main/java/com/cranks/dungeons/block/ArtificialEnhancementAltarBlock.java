@@ -46,13 +46,28 @@ public class ArtificialEnhancementAltarBlock extends BlockWithEntity {
 
     @Override
     protected ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
-        if (!world.isClient()) {
-            NamedScreenHandlerFactory screenHandlerFactory = ((ArtificialEnhancementAltarBlockEntity) world.getBlockEntity(pos));
-            if (screenHandlerFactory != null) {
-                player.openHandledScreen(screenHandlerFactory);
+        if (world.isClient()) {
+            return ActionResult.SUCCESS;
+        }
+
+        NamedScreenHandlerFactory screenHandlerFactory = state.createScreenHandlerFactory(world, pos);
+        if (screenHandlerFactory != null) {
+            player.openHandledScreen(screenHandlerFactory);
+        }
+
+        return ActionResult.CONSUME;
+    }
+
+    @Override
+    protected void onStateReplaced(BlockState state, net.minecraft.server.world.ServerWorld world, BlockPos pos, boolean moved) {
+        if (!moved) {
+            BlockEntity blockEntity = world.getBlockEntity(pos);
+            if (blockEntity instanceof ArtificialEnhancementAltarBlockEntity altar) {
+                net.minecraft.util.ItemScatterer.spawn(world, pos, altar);
+                world.updateComparators(pos, this);
             }
         }
-        return ActionResult.SUCCESS;
+        super.onStateReplaced(state, world, pos, moved);
     }
 
     @Nullable

@@ -101,11 +101,7 @@ public class ArtificialEnhancementAltarScreenHandler extends ScreenHandler {
                     if (!tryInsertAndTrack(clickedStack, ArtificialEnhancementAltarBlockEntity.EQUIPMENT_SLOT, slot)) {
                         return ItemStack.EMPTY;
                     }
-                } else if (slot < 28) {
-                    if (!this.insertItem(clickedStack, 28, PLAYER_INV_END, false)) {
-                        return ItemStack.EMPTY;
-                    }
-                } else if (!this.insertItem(clickedStack, PLAYER_INV_START, 28, false)) {
+                } else {
                     return ItemStack.EMPTY;
                 }
             }
@@ -156,13 +152,6 @@ public class ArtificialEnhancementAltarScreenHandler extends ScreenHandler {
     @Override
     public void onClosed(PlayerEntity player) {
         super.onClosed(player);
-
-        ItemStack equipment = inventory.getStack(ArtificialEnhancementAltarBlockEntity.EQUIPMENT_SLOT);
-        if (!equipment.isEmpty()) {
-            inventory.setStack(ArtificialEnhancementAltarBlockEntity.EQUIPMENT_SLOT, ItemStack.EMPTY);
-            returnToPlayerInventory(player, equipment, ArtificialEnhancementAltarBlockEntity.EQUIPMENT_SLOT);
-        }
-
         this.inventory.onClose(player);
         sourceSlots.clear();
     }

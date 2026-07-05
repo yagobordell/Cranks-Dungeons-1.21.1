@@ -27,13 +27,15 @@ public class PassiveTreePersistentState extends PersistentState {
         public int unspentPoints = 0;
         public boolean checkedRetroactive = false;
         public Set<String> unlockedNodes = new HashSet<>();
+        public Map<String, String> nodeChoices = new HashMap<>();
 
         public static final Codec<PlayerPassiveData> CODEC = RecordCodecBuilder.create(instance -> instance.group(
                 Codec.STRING.fieldOf("playerClass").forGetter(d -> d.playerClass),
                 Codec.INT.fieldOf("unspentPoints").forGetter(d -> d.unspentPoints),
                 Codec.BOOL.fieldOf("checkedRetroactive").forGetter(d -> d.checkedRetroactive),
-                Codec.STRING.listOf().fieldOf("unlockedNodes").forGetter(d -> new ArrayList<>(d.unlockedNodes))
-        ).apply(instance, (pc, up, cr, un) -> {
+                Codec.STRING.listOf().fieldOf("unlockedNodes").forGetter(d -> new ArrayList<>(d.unlockedNodes)),
+                Codec.unboundedMap(Codec.STRING, Codec.STRING).optionalFieldOf("nodeChoices", new HashMap<>()).forGetter(d -> d.nodeChoices)
+        ).apply(instance, (pc, up, cr, un, nc) -> {
             PlayerPassiveData d = new PlayerPassiveData();
             d.playerClass = pc != null ? pc.trim() : "";
             d.unspentPoints = up;
@@ -45,6 +47,10 @@ public class PassiveTreePersistentState extends PersistentState {
                         d.unlockedNodes.add(s.trim());
                     }
                 }
+            }
+            d.nodeChoices = new HashMap<>();
+            if (nc != null) {
+                d.nodeChoices.putAll(nc);
             }
             return d;
         }));
@@ -61,6 +67,7 @@ public class PassiveTreePersistentState extends PersistentState {
         data.playerClass = component.getPlayerClass() == null ? "" : component.getPlayerClass();
         data.unspentPoints = component.getUnspentPoints();
         data.unlockedNodes = new HashSet<>(component.getUnlockedNodes());
+        data.nodeChoices = new HashMap<>(component.getNodeChoices());
         this.markDirty();
     }
 
@@ -72,8 +79,11 @@ public class PassiveTreePersistentState extends PersistentState {
             for (String node : data.unlockedNodes) {
                 component.unlockNode(node);
             }
-            CranksDungeons.LOGGER.info("[PassiveTree] Restored data for {} (Class: {}, Nodes: {})",
-                    playerUuid, data.playerClass, data.unlockedNodes.size());
+            if (data.nodeChoices != null) {
+                data.nodeChoices.forEach(component::setNodeChoice);
+            }
+            CranksDungeons.LOGGER.info("[PassiveTree] Restored data for {} (Class: {}, Nodes: {}, Choices: {})",
+                    playerUuid, data.playerClass, data.unlockedNodes.size(), data.nodeChoices != null ? data.nodeChoices.size() : 0);
         }
     }
 

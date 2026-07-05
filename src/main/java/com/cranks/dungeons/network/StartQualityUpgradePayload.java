@@ -7,11 +7,10 @@ import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 
-public record StartQualityUpgradePayload(BlockPos pos, boolean start) implements CustomPayload {
+public record StartQualityUpgradePayload(boolean start) implements CustomPayload {
     public static final Id<StartQualityUpgradePayload> ID = new Id<>(Identifier.of("cranks-dungeons", "start_quality_upgrade"));
 
     public static final PacketCodec<RegistryByteBuf, StartQualityUpgradePayload> CODEC = PacketCodec.tuple(
-            BlockPos.PACKET_CODEC, StartQualityUpgradePayload::pos,
             PacketCodecs.BOOLEAN, StartQualityUpgradePayload::start,
             StartQualityUpgradePayload::new
     );

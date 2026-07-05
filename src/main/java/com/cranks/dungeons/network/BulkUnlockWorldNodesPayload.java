@@ -14,7 +14,7 @@ public record BulkUnlockWorldNodesPayload(Map<String, String> nodeChoices) imple
     public static final CustomPayload.Id<BulkUnlockWorldNodesPayload> ID = new CustomPayload.Id<>(ID_IDENT);
 
     public static final PacketCodec<RegistryByteBuf, BulkUnlockWorldNodesPayload> CODEC = PacketCodec.tuple(
-            PacketCodecs.map(java.util.HashMap::new, PacketCodecs.STRING, PacketCodecs.STRING), BulkUnlockWorldNodesPayload::nodeChoices,
+            PacketCodecs.map(java.util.HashMap::new, PacketCodecs.string(128), PacketCodecs.string(128)), BulkUnlockWorldNodesPayload::nodeChoices,
             BulkUnlockWorldNodesPayload::new
     );
 

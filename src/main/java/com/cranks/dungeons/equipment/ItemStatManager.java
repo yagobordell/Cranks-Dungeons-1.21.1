@@ -136,9 +136,10 @@ public class ItemStatManager {
     }
 
     private static boolean isTool(ItemStack stack) {
-        String itemName = stack.getItem().toString().toLowerCase();
-        return itemName.endsWith("pickaxe") || itemName.endsWith("axe") || 
-               itemName.endsWith("shovel") || itemName.endsWith("hoe");
+        return stack.isIn(net.minecraft.registry.tag.ItemTags.PICKAXES) ||
+               stack.isIn(net.minecraft.registry.tag.ItemTags.AXES) ||
+               stack.isIn(net.minecraft.registry.tag.ItemTags.SHOVELS) ||
+               stack.isIn(net.minecraft.registry.tag.ItemTags.HOES);
     }
 
     public static void setRarity(ItemStack stack, CustomRarity rarity) {

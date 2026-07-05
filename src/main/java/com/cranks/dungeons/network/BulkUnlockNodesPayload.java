@@ -13,7 +13,7 @@ public record BulkUnlockNodesPayload(Map<String, String> nodeChoices) implements
     public static final Id<BulkUnlockNodesPayload> ID = new Id<>(Identifier.of(CranksDungeons.MOD_ID, "bulk_unlock_nodes"));
 
     public static final PacketCodec<RegistryByteBuf, BulkUnlockNodesPayload> CODEC = PacketCodec.tuple(
-            PacketCodecs.map(java.util.HashMap::new, PacketCodecs.STRING, PacketCodecs.STRING), BulkUnlockNodesPayload::nodeChoices,
+            PacketCodecs.map(java.util.HashMap::new, PacketCodecs.string(128), PacketCodecs.string(128)), BulkUnlockNodesPayload::nodeChoices,
             BulkUnlockNodesPayload::new
     );
 

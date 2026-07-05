@@ -29,7 +29,7 @@ public class QualityStationScreen extends HandledScreen<QualityStationScreenHand
         int buttonX = x + 62;
         int buttonY = y + 55;
         upgradeButton = ButtonWidget.builder(Text.literal("Upgrade"), button -> {
-            ClientPlayNetworking.send(new StartQualityUpgradePayload(handler.blockEntity.getPos(), !handler.isProcessing()));
+            ClientPlayNetworking.send(new StartQualityUpgradePayload(!handler.isProcessing()));
         })
         .dimensions(buttonX, buttonY, 52, 20)
         .build();

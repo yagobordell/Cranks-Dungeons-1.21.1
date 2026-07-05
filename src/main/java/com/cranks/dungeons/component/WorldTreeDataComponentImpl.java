@@ -63,7 +63,7 @@ public class WorldTreeDataComponentImpl implements WorldTreeDataComponent, AutoS
 
     @Override
     public Set<String> getUnlockedNodes() {
-        return unlockedNodes;
+        return java.util.Collections.unmodifiableSet(unlockedNodes);
     }
 
     @Override
