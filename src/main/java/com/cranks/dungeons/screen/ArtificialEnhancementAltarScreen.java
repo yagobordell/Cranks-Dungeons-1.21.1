@@ -31,7 +31,7 @@ public class ArtificialEnhancementAltarScreen extends HandledScreen<ArtificialEn
     protected void init() {
         super.init();
         this.titleX = (backgroundWidth - textRenderer.getWidth(title)) / 2;
-        this.titleY = -10;
+        this.titleY = 6;
         this.playerInventoryTitleY = 87;
 
         createButtons();
@@ -115,13 +115,14 @@ public class ArtificialEnhancementAltarScreen extends HandledScreen<ArtificialEn
     @Override
     protected void drawForeground(DrawContext context, int mouseX, int mouseY) {
         context.drawText(this.textRenderer, this.title, this.titleX, this.titleY, 0xFF404040, false);
+        context.drawText(this.textRenderer, this.playerInventoryTitle, this.playerInventoryTitleX, this.playerInventoryTitleY, 0xFF404040, false);
     }
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        context.fill(0, 0, this.width, this.height, 0x90000000);
+        renderBackground(context, mouseX, mouseY, delta);
         super.render(context, mouseX, mouseY, delta);
-        drawMouseoverTooltip(context, mouseX, mouseY);
+        this.drawMouseoverTooltip(context, mouseX, mouseY);
     }
 
     private static int getTierColorRgb(int tier) {

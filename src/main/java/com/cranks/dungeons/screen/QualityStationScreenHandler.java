@@ -39,13 +39,13 @@ public class QualityStationScreenHandler extends ScreenHandler {
         inventory.onOpen(playerInventory.player);
 
         // Quality Station Inventory
-        this.addSlot(new Slot(inventory, QualityStationBlockEntity.EQUIPMENT_SLOT, 56, 35) {
+        this.addSlot(new Slot(inventory, QualityStationBlockEntity.EQUIPMENT_SLOT, 56, 26) {
             @Override
             public boolean canInsert(ItemStack stack) {
                 return com.cranks.dungeons.equipment.EquipmentType.getTypeForItem(stack).isPresent();
             }
         });
-        this.addSlot(new Slot(inventory, QualityStationBlockEntity.MATERIAL_SLOT, 104, 35) {
+        this.addSlot(new Slot(inventory, QualityStationBlockEntity.MATERIAL_SLOT, 104, 26) {
             @Override
             public boolean canInsert(ItemStack stack) {
                 return stack.getItem() instanceof com.cranks.dungeons.item.QualityMaterialItem;

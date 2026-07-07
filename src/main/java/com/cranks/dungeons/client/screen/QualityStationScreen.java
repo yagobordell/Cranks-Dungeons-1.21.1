@@ -27,11 +27,11 @@ public class QualityStationScreen extends HandledScreen<QualityStationScreenHand
         titleX = (backgroundWidth - textRenderer.getWidth(title)) / 2;
         
         int buttonX = x + 62;
-        int buttonY = y + 55;
+        int buttonY = y + 48;
         upgradeButton = ButtonWidget.builder(Text.literal("Upgrade"), button -> {
             ClientPlayNetworking.send(new StartQualityUpgradePayload(!handler.isProcessing()));
         })
-        .dimensions(buttonX, buttonY, 52, 20)
+        .dimensions(buttonX, buttonY, 48, 14)
         .build();
         
         addDrawableChild(upgradeButton);
@@ -58,7 +58,7 @@ public class QualityStationScreen extends HandledScreen<QualityStationScreenHand
             context.drawTexture(
                     net.minecraft.client.gl.RenderPipelines.GUI_TEXTURED,
                     TEXTURE,
-                    x + 76, y + 35,
+                    x + 76, y + 26,
                     176.0f, 14.0f,
                     progress + 1,
                     16,
