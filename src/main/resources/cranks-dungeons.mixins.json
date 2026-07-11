@@ -91,7 +91,8 @@
 		"ItemStackAttributeMixin",
 		"ProjectileEntityMixin",
 		"LivingEntityTickFreezeMixin",
-		"LivingEntityAccessor"
+		"LivingEntityAccessor",
+		"CrossbowItemMixin"
 	],
 	"client": [
 		"CrashReportMixin",
@@ -112,7 +113,8 @@
 		"client.TooltipBackgroundMixin",
 		"FreezeVisualMixin",
 		"client.LivingEntityClientTickFreezeMixin",
-		"HeartbeatSoundMixin"
+		"HeartbeatSoundMixin",
+		"client.HandledScreenTextMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

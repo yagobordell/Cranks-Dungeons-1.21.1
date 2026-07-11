@@ -35,8 +35,8 @@ public class WorldSkillTreeScreen extends Screen {
     private final Screen parent;
     private double panX = 0;
     private double panY = 0;
-    private double zoom = 0.25;
-    private static final int BASE_NODE_SIZE = 28;
+    private double zoom = 0.75;
+    private static final int BASE_NODE_SIZE = 10;
     private static final int BASE_GRID_SCALE = 60; // Pixels per grid unit
 
     private static final Identifier LINE_NORMAL = Identifier.of(com.cranks.dungeons.CranksDungeons.MOD_ID,
@@ -95,11 +95,11 @@ public class WorldSkillTreeScreen extends Screen {
     private static final Identifier MENU_BACKGROUND = Identifier.of("cranks-dungeons", "world/menu_background");
     private static final Identifier STATS_BACKGROUND = Identifier.of("cranks-dungeons", "world/stats_background");
 
-    
+
     private final Map<String, String> draftUnlocked = new HashMap<>();
     private int draftPoints;
     private boolean showStatsPanel = false;
-    
+
     private String activeChoiceNodeId = null;
     private int choicePopupX = 0;
     private int choicePopupY = 0;
@@ -121,13 +121,14 @@ public class WorldSkillTreeScreen extends Screen {
     private String classPendingConfirmation = null;
     private ButtonWidget confirmBtn;
     private ButtonWidget cancelBtn;
-    
+
     // designer MODE fields
     private boolean editMode = false;
     private PassiveNode draggedNode = null;
     private PassiveNode connectionSource = null;
     private boolean isConnecting = false;
-    
+    private boolean snapToGrid = false;
+
     // Multi-Selection fields
     private final Set<String> selectedNodeIds = new HashSet<>();
     private double selectionStartX, selectionStartY;
@@ -164,57 +165,71 @@ public class WorldSkillTreeScreen extends Screen {
         if (data.getUnlockedNodes().isEmpty()) { data.unlockNode("world_start"); }
 
         // Apply Button
-            this.addDrawableChild(ButtonWidget.builder(Text.literal("Apply Changes"), b -> applyChanges())
-                    .dimensions(this.width / 2 - 105, this.height - 30, 100, 20).build());
+        this.addDrawableChild(ButtonWidget.builder(Text.literal("Apply Changes"), b -> applyChanges())
+                .dimensions(this.width / 2 - 105, this.height - 30, 100, 20).build());
 
-            // Reset Button
-            this.addDrawableChild(ButtonWidget.builder(Text.literal("Reset Draft"), b -> resetDraft())
-                    .dimensions(this.width / 2 + 5, this.height - 30, 100, 20).build());
+        // Reset Button
+        this.addDrawableChild(ButtonWidget.builder(Text.literal("Reset Draft"), b -> resetDraft())
+                .dimensions(this.width / 2 + 5, this.height - 30, 100, 20).build());
 
-            // Stats Toggle Button
-            this.addDrawableChild(
-                    ButtonWidget.builder(Text.literal(showStatsPanel ? "Hide Stats" : "Show Stats"), b -> {
-                        showStatsPanel = !showStatsPanel;
-                        this.init(); // Refresh button text
-                    })
-                            .dimensions(this.width - 110, 10, 100, 20).build());
+        // Stats Toggle Button
+        this.addDrawableChild(
+                ButtonWidget.builder(Text.literal(showStatsPanel ? "Hide Stats" : "Show Stats"), b -> {
+                            showStatsPanel = !showStatsPanel;
+                            this.init(); // Refresh button text
+                        })
+                        .dimensions(this.width - 110, 10, 100, 20).build());
 
-            // Close Button for Passive Tree
-            this.addDrawableChild(ButtonWidget.builder(Text.literal("✕"), b -> this.close())
-                    .dimensions(this.width - 135, 10, 20, 20).build());
+        // Close Button for Passive Tree
+        this.addDrawableChild(ButtonWidget.builder(Text.literal("✕"), b -> this.close())
+                .dimensions(this.width - 135, 10, 20, 20).build());
 
-            // Center the view on the starting node for their class (only if not already
-            // panned)
-            if (panX == 0 && panY == 0) {
-                String startId = "world_start";
-                PassiveNode start = WorldNodeRegistry.getNode(startId);
-                if (start != null) {
-                    panX = (this.width / 2.0) - (start.gridX() * BASE_GRID_SCALE * zoom);
-                    panY = (this.height / 2.0) - (start.gridY() * BASE_GRID_SCALE * zoom);
-                } else {
-                    panY = this.height / 2.0;
+        // Center the view on the starting node for their class (only if not already
+        // panned)
+        if (panX == 0 && panY == 0) {
+            String startId = "world_start";
+            PassiveNode start = WorldNodeRegistry.getNode(startId);
+            if (start != null) {
+                panX = (this.width / 2.0) - (start.gridX() * BASE_GRID_SCALE * zoom);
+                panY = (this.height / 2.0) - (start.gridY() * BASE_GRID_SCALE * zoom);
+            } else {
+                panY = this.height / 2.0;
+            }
+        }
+
+        // --- designer MODE BUTTONS ---
+        this.addDrawableChild(ButtonWidget.builder(Text.literal(editMode ? "Designer: ON" : "Designer: OFF"), b -> {
+            editMode = !editMode;
+            if (!editMode) draggedNode = null;
+            this.init();
+        }).dimensions(10, this.height - 30, 90, 20).build());
+
+        if (editMode) {
+            this.addDrawableChild(ButtonWidget.builder(Text.literal("Save to Config"), b -> {
+                com.cranks.dungeons.config.WorldTreeConfig.saveNodesToFile(WorldNodeRegistry.getNodes().values());
+                if (this.client != null && this.client.player != null) {
+                    this.client.player.sendMessage(Text.literal("Changes saved to world_tree.json!").formatted(Formatting.GREEN), false);
                 }
-            }
+            }).dimensions(105, this.height - 30, 100, 20).build());
 
-            // --- designer MODE BUTTONS ---
-            this.addDrawableChild(ButtonWidget.builder(Text.literal(editMode ? "Designer: ON" : "Designer: OFF"), b -> {
-                editMode = !editMode;
-                if (!editMode) draggedNode = null;
-                this.init();
-            }).dimensions(10, this.height - 30, 90, 20).build());
-
-            if (editMode) {
-                this.addDrawableChild(ButtonWidget.builder(Text.literal("Save to Config"), b -> {
-                    com.cranks.dungeons.config.WorldTreeConfig.saveNodesToFile(WorldNodeRegistry.getNodes().values());
-                    if (this.client != null && this.client.player != null) {
-                        this.client.player.sendMessage(Text.literal("Changes saved to world_tree.json!").formatted(Formatting.GREEN), false);
-                    }
-                }).dimensions(105, this.height - 30, 100, 20).build());
-            }
+            this.addDrawableChild(ButtonWidget.builder(
+                            Text.literal(snapToGrid ? "Grid Snap: ON" : "Grid Snap: OFF"),
+                            b -> toggleSnapToGrid())
+                    .dimensions(210, this.height - 30, 100, 20).build());
+        }
     }
 
     public void refreshCachesProxy() {
         this.cacheDirty = true;
+    }
+
+    private void toggleSnapToGrid() {
+        snapToGrid = !snapToGrid;
+        var player = MinecraftClient.getInstance().player;
+        if (player != null) {
+            player.playSound(SoundEvents.UI_BUTTON_CLICK.value(), 0.4f, snapToGrid ? 1.4f : 1.0f);
+        }
+        this.init();
     }
 
     private void applyChanges() {
@@ -252,7 +267,7 @@ public class WorldSkillTreeScreen extends Screen {
         // crash in large modpacks
         context.fill(0, 0, this.width, this.height, 0x90000000);
 
-        
+
 
         var player = MinecraftClient.getInstance().player;
         if (player == null)
@@ -261,23 +276,26 @@ public class WorldSkillTreeScreen extends Screen {
         WorldTreeDataComponent data = ModComponents.WORLD_TREE_DATA.get(player);
         Set<String> unlocked = data.getUnlockedNodes();
 
-        
+
 
         if (editMode) {
             context.drawTextWithShadow(this.textRenderer, "§b[DESIGNER MODE ACTIVE]", 10, 22, 0x55FFFF);
+            context.drawTextWithShadow(this.textRenderer,
+                    "Grid Snap: " + (snapToGrid ? "§aON" : "§cOFF") + " §7(Shift to toggle)",
+                    10, 34, 0xFFFFFF);
             if (draggedNode != null) {
                 String coordText = String.format("Dragging: %s (X: %.2f, Y: %.2f)", draggedNode.name(), draggedNode.gridX(), draggedNode.gridY());
-                context.drawTextWithShadow(this.textRenderer, coordText, 10, 34, 0xAAFFAA);
+                context.drawTextWithShadow(this.textRenderer, coordText, 10, 46, 0xAAFFAA);
             } else if (isConnecting && connectionSource != null) {
-                context.drawTextWithShadow(this.textRenderer, "Connecting: " + connectionSource.id() + " -> Click another node", 10, 34, 0xFFFFAA);
-                
+                context.drawTextWithShadow(this.textRenderer, "Connecting: " + connectionSource.id() + " -> Click another node", 10, 46, 0xFFFFAA);
+
                 // Draw Ghost Line
                 double currentGridScale = BASE_GRID_SCALE * zoom;
                 double sx = panX + connectionSource.gridX() * currentGridScale;
                 double sy = panY + connectionSource.gridY() * currentGridScale;
                 drawOptimizedLine(context, (float)sx, (float)sy, (float)mouseX, (float)mouseY, LINE_NORMAL, 0x80FFFFFF, 2.0f, 0.5f);
             } else {
-                context.drawTextWithShadow(this.textRenderer, "L-Click: Drag | R-Click: Create/Edit | Shift+R-Click: Delete", 10, 34, 0xAAAAAA);
+                context.drawTextWithShadow(this.textRenderer, "L-Click: Drag | R-Click: Create/Edit | Shift+R-Click: Delete", 10, 46, 0xAAAAAA);
             }
         }
 
@@ -422,7 +440,7 @@ public class WorldSkillTreeScreen extends Screen {
                 }
 
                 drawNodeShape(context, nx, ny, node.shape(), state, actualNodeSize);
-                
+
                 // Draw selection highlight (Cyan)
                 if (selectedNodeIds.contains(node.id())) {
                     Identifier selectionSprite = switch (node.shape().toLowerCase()) {
@@ -458,7 +476,7 @@ public class WorldSkillTreeScreen extends Screen {
                 } else if (draftUnlocked.containsKey(node.id())) {
                     choice = draftUnlocked.get(node.id());
                 }
-                
+
                 if (choice != null) {
                     Identifier customIcon = com.cranks.dungeons.stat.passive.PassiveIconManager.getIconForModifier(choice);
                     if (customIcon != null) {
@@ -473,7 +491,7 @@ public class WorldSkillTreeScreen extends Screen {
                         !iconPath.equals("passive/diamond") && !iconPath.equals("passive/hexagon") &&
                         !iconPath.equals("passive/generic")) {
 
-                        double iconSize = actualNodeSize * 1.3;
+                    double iconSize = actualNodeSize * 1.3;
                     drawPrecisionTexture(context, iconToDraw, nx, ny, iconSize, 0xFFFFFFFF);
                 }
             }
@@ -525,32 +543,32 @@ public class WorldSkillTreeScreen extends Screen {
         if (activeChoiceNodeId != null) {
             int cx = choicePopupX;
             int cy = choicePopupY;
-            
+
             PassiveNode activeNode = WorldNodeRegistry.getNodes().get(activeChoiceNodeId);
             if (activeNode != null && activeNode.modifiers() != null) {
                 int count = activeNode.modifiers().size();
                 int bgHeight = 8 + (count * 22);
                 context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, MENU_BACKGROUND, cx - 4, cy - 4, 158, bgHeight);
-                
+
                 int i = 0;
                 for (Map.Entry<RegistryEntry<EntityAttribute>, Double> entry : activeNode.modifiers().entrySet()) {
                     int btnY = cy + (i * 22);
-                    Identifier btnTex = (mouseX >= cx && mouseX <= cx + 150 && mouseY >= btnY && mouseY <= btnY + 20) 
-                            ? Identifier.of("minecraft", "widget/button_highlighted") 
+                    Identifier btnTex = (mouseX >= cx && mouseX <= cx + 150 && mouseY >= btnY && mouseY <= btnY + 20)
+                            ? Identifier.of("minecraft", "widget/button_highlighted")
                             : Identifier.of("minecraft", "widget/button");
                     context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, btnTex, cx, btnY, 150, 20);
-                    
+
                     String modId = entry.getKey().getKey().map(k -> k.getValue().getPath()).orElse("unknown");
                     double amount = entry.getValue();
                     String amountStr = (amount == (long) amount) ? String.format("%d", (long) amount) : String.format("%s", amount);
-                    
+
                     String displayName = modId;
                     if (displayName.endsWith("_yield")) displayName = displayName.replace("_yield", " Yield");
                     if (displayName.endsWith("_speed")) displayName = displayName.replace("_speed", " Speed");
                     if (displayName.endsWith("_chance")) displayName = displayName.replace("_chance", " Chance");
                     if (displayName.endsWith("_experience")) displayName = displayName.replace("_experience", " Exp");
                     displayName = java.util.Arrays.stream(displayName.split("_")).map(s -> s.substring(0, 1).toUpperCase() + s.substring(1)).collect(java.util.stream.Collectors.joining(" "));
-                    
+
                     context.drawCenteredTextWithShadow(this.textRenderer, "+" + amountStr + " " + displayName, cx + 75, btnY + 6, 0xFFFFFFFF);
                     i++;
                 }
@@ -594,28 +612,28 @@ public class WorldSkillTreeScreen extends Screen {
         context.drawCenteredTextWithShadow(this.textRenderer, "=== Tree Summary ===", panelX + panelWidth / 2, ty,
                 0xFFFFAA00);
         ty += 15;
-        
+
         com.cranks.dungeons.component.WorldTreeDataComponent wtData = ModComponents.WORLD_TREE_DATA.get(MinecraftClient.getInstance().player);
         int level = wtData.getGatheringLevel();
         int currentXp = wtData.getGatheringXp();
         int nextXp = wtData.getNextLevelXp();
-        
+
         context.drawCenteredTextWithShadow(this.textRenderer, "World Lvl: " + level, panelX + panelWidth / 2, ty, 0xFF55FFFF);
         ty += 12;
-        
+
         Identifier expBg = Identifier.of("minecraft", "hud/experience_bar_background");
         Identifier expFg = Identifier.of("minecraft", "hud/experience_bar_progress");
-        
+
         int barWidth = 182;
         int barX = panelX + (panelWidth - barWidth) / 2;
-        
+
         context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, expBg, barX, ty + 2, 182, 5);
-        
+
         int progressWidth = nextXp > 0 ? (int) (182.0 * currentXp / nextXp) : 0;
         if (progressWidth > 0) {
             context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, expFg, 182, 5, 0, 0, barX, ty + 2, progressWidth, 5);
         }
-        
+
         // Draw text over bar
         String xpText = nextXp == 0 ? "MAX" : (currentXp + " / " + nextXp);
         context.drawCenteredTextWithShadow(this.textRenderer, xpText, panelX + panelWidth / 2, ty, 0xFFFFFFFF);
@@ -772,7 +790,7 @@ public class WorldSkillTreeScreen extends Screen {
     }
 
     private void drawOptimizedLine(DrawContext context, float x1, float y1, float x2, float y2, Identifier sprite,
-            int color, float width, float alpha) {
+                                   int color, float width, float alpha) {
         float dx = x2 - x1;
         float dy = y2 - y1;
         float len = (float) Math.sqrt(dx * dx + dy * dy);
@@ -789,10 +807,10 @@ public class WorldSkillTreeScreen extends Screen {
         // Scale a fixed integer base to achieve sub-pixel float width/length
         float baseLen = 1000.0f;
         float baseWidth = 100.0f;
-        
+
         float scaleX = len / baseLen;
         float scaleY = width / baseWidth;
-        
+
         matrices.scale(scaleX, scaleY);
 
         int finalColor = (color & 0x00FFFFFF) | ((int) (alpha * 255) << 24);
@@ -806,7 +824,7 @@ public class WorldSkillTreeScreen extends Screen {
     }
 
     private void drawNodeShape(DrawContext context, double cx, double cy, String shape, String state,
-            double actualSize) {
+                               double actualSize) {
         Identifier sprite = switch (shape.toLowerCase()) {
             case "circle" -> switch (state) {
                 case "unlocked" -> NODE_CIRCLE_UNLOCKED;
@@ -869,7 +887,7 @@ public class WorldSkillTreeScreen extends Screen {
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
         if (super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount)) return true;
-        
+
         double zoomFactor = verticalAmount > 0 ? 1.1 : 0.9;
         double nextZoom = Math.max(0.1, Math.min(2.0, zoom * zoomFactor));
 
@@ -944,9 +962,7 @@ public class WorldSkillTreeScreen extends Screen {
                 isSelectingBox = false;
             }
             if (draggedNode != null) {
-                boolean shiftHeld = net.minecraft.client.util.InputUtil.isKeyPressed(net.minecraft.client.MinecraftClient.getInstance().getWindow(), org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT_SHIFT) ||
-                                    net.minecraft.client.util.InputUtil.isKeyPressed(net.minecraft.client.MinecraftClient.getInstance().getWindow(), org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_SHIFT);
-                if (!shiftHeld) {
+                if (snapToGrid) {
                     double snap = 0.5;
                     if (selectedNodeIds.contains(draggedNode.id())) {
                         for (String id : selectedNodeIds) {
@@ -981,6 +997,12 @@ public class WorldSkillTreeScreen extends Screen {
         }
 
         int keyCode = input.key();
+
+        if (editMode && (keyCode == GLFW.GLFW_KEY_LEFT_SHIFT || keyCode == GLFW.GLFW_KEY_RIGHT_SHIFT)) {
+            toggleSnapToGrid();
+            return true;
+        }
+
         if (keyCode == 258) { // TAB key
             editMode = !editMode;
             if (!editMode) {
@@ -992,7 +1014,7 @@ public class WorldSkillTreeScreen extends Screen {
             this.init();
             return true;
         }
-        
+
         if (editMode && !selectedNodeIds.isEmpty()) {
             double snap = 0.5;
             if (keyCode == GLFW.GLFW_KEY_UP) {
@@ -1013,7 +1035,7 @@ public class WorldSkillTreeScreen extends Screen {
             }
             if (keyCode == GLFW.GLFW_KEY_LEFT_BRACKET || keyCode == GLFW.GLFW_KEY_RIGHT_BRACKET) {
                 double angle = Math.toRadians(keyCode == GLFW.GLFW_KEY_RIGHT_BRACKET ? 15 : -15);
-                
+
                 // Calculate center
                 double avgX = 0, avgY = 0;
                 int count = 0;
@@ -1025,23 +1047,23 @@ public class WorldSkillTreeScreen extends Screen {
                         count++;
                     }
                 }
-                
+
                 if (count > 0) {
                     avgX /= count;
                     avgY /= count;
-                    
+
                     for (String id : selectedNodeIds) {
                         PassiveNode node = WorldNodeRegistry.getNode(id);
                         if (node != null) {
                             double relX = node.gridX() - avgX;
                             double relY = node.gridY() - avgY;
-                            
+
                             double cos = Math.cos(angle);
                             double sin = Math.sin(angle);
-                            
+
                             double newX = avgX + (relX * cos - relY * sin);
                             double newY = avgY + (relX * sin + relY * cos);
-                            
+
                             node.setGridX(newX);
                             node.setGridY(newY);
                         }
@@ -1051,7 +1073,7 @@ public class WorldSkillTreeScreen extends Screen {
                 }
             }
         }
-        
+
         return super.keyPressed(input);
     }
 
@@ -1105,7 +1127,7 @@ public class WorldSkillTreeScreen extends Screen {
                         player.playSound(SoundEvents.BLOCK_ANVIL_PLACE, 0.4f, 1.2f);
                     } else {
                         boolean shiftHeld = InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow(), GLFW.GLFW_KEY_LEFT_SHIFT) ||
-                                            InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow(), GLFW.GLFW_KEY_RIGHT_SHIFT);
+                                InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow(), GLFW.GLFW_KEY_RIGHT_SHIFT);
                         if (shiftHeld) {
                             // Toggle selection
                             if (selectedNodeIds.contains(hitNode.id())) {
@@ -1126,7 +1148,7 @@ public class WorldSkillTreeScreen extends Screen {
                 } else {
                     // Clicking empty space
                     if (!(InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow(), GLFW.GLFW_KEY_LEFT_SHIFT) ||
-                          InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow(), GLFW.GLFW_KEY_RIGHT_SHIFT))) {
+                            InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow(), GLFW.GLFW_KEY_RIGHT_SHIFT))) {
                         selectedNodeIds.clear();
                     }
                     isSelectingBox = true;
@@ -1154,7 +1176,7 @@ public class WorldSkillTreeScreen extends Screen {
         if (activeChoiceNodeId != null) {
             int cx = choicePopupX;
             int cy = choicePopupY;
-            
+
             PassiveNode activeNode = WorldNodeRegistry.getNodes().get(activeChoiceNodeId);
             if (activeNode != null && activeNode.modifiers() != null) {
                 if (mouseX >= cx && mouseX <= cx + 150) {
@@ -1243,9 +1265,7 @@ public class WorldSkillTreeScreen extends Screen {
         } else if (button == 1) { // Right Click (Designer Mode)
             if (editMode) {
                 if (draggedNode != null) {
-                    boolean shiftHeld = net.minecraft.client.util.InputUtil.isKeyPressed(net.minecraft.client.MinecraftClient.getInstance().getWindow(), org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT_SHIFT) ||
-                                        net.minecraft.client.util.InputUtil.isKeyPressed(net.minecraft.client.MinecraftClient.getInstance().getWindow(), org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_SHIFT);
-                    if (!shiftHeld) {
+                    if (snapToGrid) {
                         double snap = 0.5;
                         if (selectedNodeIds.contains(draggedNode.id())) {
                             for (String id : selectedNodeIds) {

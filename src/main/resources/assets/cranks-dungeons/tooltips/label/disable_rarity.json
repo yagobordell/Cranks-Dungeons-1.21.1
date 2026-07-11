@@ -1,0 +1,9 @@
+{
+  "priority": 100,
+  "provider": {
+    "type": "obscure_tooltips:blank"
+  },
+  "filter": {
+    "type": "obscure_tooltips:always"
+  }
+}

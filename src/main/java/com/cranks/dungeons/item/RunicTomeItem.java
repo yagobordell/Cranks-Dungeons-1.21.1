@@ -8,11 +8,11 @@ import net.minecraft.util.Formatting;
 public class RunicTomeItem extends Item {
 
     public enum TomeType {
-        TRANSMUTATION("Tome of Transmutation", Formatting.AQUA, "Upgrades a Normal item", "to a Magic with 1 rune", 1),
+        TRANSMUTATION("Tome of Transmutation", Formatting.AQUA, "Upgrades a Normal item", "to a Magic item with 1 rune", 1),
         GREATER_TRANSMUTATION("Greater Tome of Transmutation", Formatting.YELLOW,
-                "Upgrades a Normal item", "to a Magic with 1 rune", 30),
+                "Upgrades a Normal item", "to a Magic item with 1 rune", 30),
         PERFECT_TRANSMUTATION("Perfect Tome of Transmutation", Formatting.GOLD,
-                "Upgrades a Normal item", "to a Magic with 1 rune", 60),
+                "Upgrades a Normal item", "to a Magic item with 1 rune", 60),
 
         AUGMENTATION("Tome of Augmentation", Formatting.AQUA, "Augments a Magic item", "with a new random rune", 1),
         GREATER_AUGMENTATION("Greater Tome of Augmentation", Formatting.YELLOW,

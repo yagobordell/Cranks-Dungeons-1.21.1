@@ -1,0 +1,14 @@
+{
+  "required": false,
+  "package": "com.cranks.dungeons.compat.punchy",
+  "compatibilityLevel": "JAVA_21",
+  "plugin": "com.cranks.dungeons.compat.punchy.PunchyCompatMixinPlugin",
+  "client": [
+    "PunchyAnimationManagerMixin",
+    "PunchyCrossbowStateMachineMixin",
+    "PunchyAttackStateMachineMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

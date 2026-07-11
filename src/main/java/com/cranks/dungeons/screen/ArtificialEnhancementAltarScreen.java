@@ -30,7 +30,7 @@ public class ArtificialEnhancementAltarScreen extends HandledScreen<ArtificialEn
     @Override
     protected void init() {
         super.init();
-        this.titleX = (backgroundWidth - textRenderer.getWidth(title)) / 2;
+        this.titleX = 8;
         this.titleY = 6;
         this.playerInventoryTitleY = 87;
 
@@ -112,10 +112,11 @@ public class ArtificialEnhancementAltarScreen extends HandledScreen<ArtificialEn
         );
     }
 
+
+
     @Override
     protected void drawForeground(DrawContext context, int mouseX, int mouseY) {
-        context.drawText(this.textRenderer, this.title, this.titleX, this.titleY, 0xFF404040, false);
-        context.drawText(this.textRenderer, this.playerInventoryTitle, this.playerInventoryTitleX, this.playerInventoryTitleY, 0xFF404040, false);
+        // Empty to prevent default title rendering
     }
 
     @Override

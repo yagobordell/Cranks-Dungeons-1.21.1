@@ -16,12 +16,15 @@ import net.minecraft.util.BlockRotation;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
+import net.minecraft.util.shape.VoxelShape;
+import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
 public class ArtificialEnhancementAltarBlock extends BlockWithEntity {
     public static final EnumProperty<Direction> FACING = Properties.HORIZONTAL_FACING;
     public static final MapCodec<ArtificialEnhancementAltarBlock> CODEC = createCodec(ArtificialEnhancementAltarBlock::new);
+    private static final VoxelShape SHAPE = Block.createCuboidShape(0.0, 0.0, 0.0, 16.0, 13.0, 16.0);
 
     public ArtificialEnhancementAltarBlock(Settings settings) {
         super(settings);
@@ -42,6 +45,11 @@ public class ArtificialEnhancementAltarBlock extends BlockWithEntity {
     @Override
     protected BlockRenderType getRenderType(BlockState state) {
         return BlockRenderType.MODEL;
+    }
+
+    @Override
+    protected VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
+        return SHAPE;
     }
 
     @Override

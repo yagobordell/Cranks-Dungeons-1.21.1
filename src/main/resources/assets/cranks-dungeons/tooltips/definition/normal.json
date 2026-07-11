@@ -1,0 +1,7 @@
+{
+  "priority": 5,
+  "style": "cranks-dungeons:normal",
+  "filter": {
+    "type": "obscure_tooltips:always"
+  }
+}

@@ -1,0 +1,30 @@
+package com.cranks.dungeons.mixin;
+
+import com.cranks.dungeons.registry.ModAttributes;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.attribute.EntityAttributeInstance;
+import net.minecraft.item.CrossbowItem;
+import net.minecraft.item.ItemStack;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+@Mixin(CrossbowItem.class)
+public class CrossbowItemMixin {
+
+    @Inject(method = "getPullTime", at = @At("RETURN"), cancellable = true)
+    private static void cranks$applyReloadSpeedToCrossbow(ItemStack stack, LivingEntity user, CallbackInfoReturnable<Integer> cir) {
+        if (user != null) {
+            EntityAttributeInstance inst = user.getAttributeInstance(ModAttributes.RELOAD_SPEED);
+            if (inst != null) {
+                double speed = inst.getValue();
+                if (speed > 0 && speed != 1.0) {
+                    int originalTime = cir.getReturnValue();
+                    // If speed is 0.5, it takes twice as long (originalTime / 0.5)
+                    cir.setReturnValue((int) (originalTime / speed));
+                }
+            }
+        }
+    }
+}

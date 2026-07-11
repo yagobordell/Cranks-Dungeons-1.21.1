@@ -134,6 +134,10 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
     private void updateModifier(LivingEntity entity, net.minecraft.registry.entry.RegistryEntry<net.minecraft.entity.attribute.EntityAttribute> attribute, net.minecraft.util.Identifier id, double value, net.minecraft.entity.attribute.EntityAttributeModifier.Operation operation) {
         net.minecraft.entity.attribute.EntityAttributeInstance instance = entity.getAttributeInstance(attribute);
         if (instance != null) {
+            net.minecraft.entity.attribute.EntityAttributeModifier existing = instance.getModifier(id);
+            if (existing != null && existing.value() == value && existing.operation() == operation) {
+                return; // Already has the exact modifier, skip to prevent spamming client syncs
+            }
             instance.removeModifier(id);
             if (value != 0) {
                 instance.addTemporaryModifier(new net.minecraft.entity.attribute.EntityAttributeModifier(id, value, operation));
@@ -152,7 +156,6 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
      */
     @Unique
     private void updateIntrinsicAttributes(LivingEntity entity) {
-        if (entity.getEntityWorld().isClient()) return;
 
         double str = entity.getAttributeValue(ModAttributes.STRENGTH);
         double dex = entity.getAttributeValue(ModAttributes.DEXTERITY);
@@ -199,24 +202,38 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
         for (net.minecraft.entity.EquipmentSlot slot : net.minecraft.entity.EquipmentSlot.values()) {
             net.minecraft.item.ItemStack stack = player.getEquippedStack(slot);
             if (!stack.isEmpty() && !com.cranks.dungeons.equipment.ItemRequirementManager.meetsRequirements(player, stack)) {
+                boolean[] hasAttackSpeedPenalty = {false};
+                double[] reloadSlowdown = {0.5}; // fallback if no reload speed attribute exists
+
                 stack.applyAttributeModifiers(slot, (attr, modifier) -> {
                     String penaltyKey = attr.getIdAsString() + "|" + modifier.operation().name();
-                    double penaltyAmount = modifier.value() * 0.5;
+                    double penaltyAmount = 0;
 
-                    // Special handling for weapon base attack speed
-                    // Weapons use negative modifiers to reduce the player's base 4.0 attack speed.
-                    // If we just halve the modifier, it becomes less negative (faster).
-                    // Instead, we halve the weapon's final attack speed (4.0 + modifier).
                     String attrId = attr.getIdAsString();
                     if ((attrId.equals("minecraft:attack_speed") || attrId.equals("minecraft:generic.attack_speed"))
                             && modifier.operation() == net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_VALUE
                             && modifier.value() < 0
                             && (slot == net.minecraft.entity.EquipmentSlot.MAINHAND || slot == net.minecraft.entity.EquipmentSlot.OFFHAND)) {
                         penaltyAmount = (4.0 + modifier.value()) * 0.5;
+                        hasAttackSpeedPenalty[0] = true;
+                    } else if (attrId.equals("cranks-dungeons:reload_speed")
+                            && modifier.operation() == net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_VALUE
+                            && modifier.value() < 0
+                            && (slot == net.minecraft.entity.EquipmentSlot.MAINHAND || slot == net.minecraft.entity.EquipmentSlot.OFFHAND)) {
+                        penaltyAmount = (1.0 + modifier.value()) * 0.5;
+                        double finalSpeed = 1.0 + modifier.value() - penaltyAmount;
+                        reloadSlowdown[0] = 1.0 - finalSpeed;
+                    } else {
+                        penaltyAmount = Math.abs(modifier.value()) * 0.5;
                     }
 
                     newPenalties.merge(penaltyKey, penaltyAmount, Double::sum);
                 });
+
+                if (!hasAttackSpeedPenalty[0] && (slot == net.minecraft.entity.EquipmentSlot.MAINHAND || slot == net.minecraft.entity.EquipmentSlot.OFFHAND)) {
+                    // Force third-party animation mods to play at the EXACT speed of the reload penalty
+                    newPenalties.merge("minecraft:attack_speed|ADD_MULTIPLIED_TOTAL", reloadSlowdown[0], Double::sum);
+                }
             }
         }
 
@@ -249,6 +266,14 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
         cranks$activeRequirementPenalties.putAll(newPenalties);
     }
 
+    @Inject(method = "tick", at = @At("HEAD"))
+    private void tickLivingEntityClientSafe(CallbackInfo ci) {
+        LivingEntity entity = (LivingEntity) (Object) this;
+        updateArmorSpeed(entity);
+        updateIntrinsicAttributes(entity);
+        updateRequirementPenalties(entity);
+    }
+
     @Inject(method = "tick", at = @At("TAIL"))
     private void tickLivingEntity(CallbackInfo ci) {
         LivingEntity entity = (LivingEntity) (Object) this;
@@ -257,9 +282,6 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
 
         AilmentManager.tickAilments(entity);
         com.cranks.dungeons.util.LeechManager.tick(entity);
-        updateArmorSpeed(entity);
-        updateIntrinsicAttributes(entity);
-        updateRequirementPenalties(entity);
 
         // Show accumulated healing
         if (cranks$accumulatedHeal > 0) {
@@ -280,8 +302,6 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
 
     @Unique
     private void updateArmorSpeed(LivingEntity entity) {
-        if (entity.getEntityWorld().isClient())
-            return;
 
         double armor = entity.getArmor();
         double penaltyReduction = entity.getAttributeValue(ModAttributes.ARMOR_SPEED_PENALTY_REDUCTION);

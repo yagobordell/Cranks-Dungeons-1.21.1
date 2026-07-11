@@ -57,6 +57,8 @@ dependencies {
 	modImplementation annotationProcessor("io.wispforest:owo-lib:${project.owo_version}")
 	modImplementation("org.ladysnake.cardinal-components-api:cardinal-components-base:${project.cardinal_components_version}")
 	modImplementation("org.ladysnake.cardinal-components-api:cardinal-components-entity:${project.cardinal_components_version}")
+	
+	modCompileOnly files("libs/punchy.jar")
 }
 
 processResources {

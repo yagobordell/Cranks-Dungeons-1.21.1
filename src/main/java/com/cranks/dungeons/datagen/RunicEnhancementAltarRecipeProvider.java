@@ -35,6 +35,17 @@ public class RunicEnhancementAltarRecipeProvider extends FabricRecipeProvider {
                         .input('S', Blocks.STONE)
                         .criterion(hasItem(Items.DIAMOND), conditionsFromItem(Items.DIAMOND))
                         .offerTo(exporter);
+
+                ShapedRecipeJsonBuilder.create(itemLookup, RecipeCategory.DECORATIONS, ModBlocks.ARTIFICIAL_ENHANCEMENT_ALTAR, 1)
+                        .pattern("AEA")
+                        .pattern("NNN")
+                        .pattern("OOO")
+                        .input('A', Items.AMETHYST_SHARD)
+                        .input('E', Items.ENDER_EYE)
+                        .input('N', Blocks.END_STONE)
+                        .input('O', Blocks.OBSIDIAN)
+                        .criterion(hasItem(Items.ENDER_EYE), conditionsFromItem(Items.ENDER_EYE))
+                        .offerTo(exporter);
             }
         };
     }

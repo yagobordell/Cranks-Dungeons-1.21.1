@@ -75,6 +75,11 @@ public class QualityStationScreen extends HandledScreen<QualityStationScreenHand
     }
 
     @Override
+    protected void drawForeground(DrawContext context, int mouseX, int mouseY) {
+        // Empty to prevent default title rendering
+    }
+
+    @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         renderBackground(context, mouseX, mouseY, delta);
         super.render(context, mouseX, mouseY, delta);

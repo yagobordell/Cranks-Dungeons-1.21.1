@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "id": "punchy",
+  "version": "2.6.2",
+  "name": "Punchy",
+  "description": "First-person animations. Special thanks to Godku for the support.",
+  "authors": [
+    "Punchy"
+  ],
+  "contact": {
+    "homepage": "https://modrinth.com/mod/punchy-fpa",
+    "sources": "https://github.com/punchy-mod/punchy-wiki/wiki"
+  },
+  "license": "ARR",
+  "icon": "assets/punchy/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "punchy.fabric.PunchyFabricClient"
+    ],
+    "modmenu": [
+      "punchy.client.config.PunchyModMenu"
+    ]
+  },
+  "mixins": [
+    "punchy.mixins.json",
+    "punchy.compat.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.18.0 ",
+    "minecraft": "~1.21.1",
+    "java": ">=21",
+    "fabric-api": "*"
+  }
+}
+
+
+

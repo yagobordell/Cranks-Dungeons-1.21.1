@@ -4,16 +4,19 @@ import com.cranks.dungeons.registry.ModAttributes;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.attribute.EntityAttributeInstance;
 import net.minecraft.item.BowItem;
-import net.minecraft.item.CrossbowItem;
 import net.minecraft.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.Unique;
 
 @Mixin(LivingEntity.class)
 public abstract class ReloadSpeedMixin {
+
+    @Unique
+    private double cranks$reloadFractionalAccumulator = 0.0;
 
     @Shadow
     private int itemUseTimeLeft;
@@ -32,8 +35,7 @@ public abstract class ReloadSpeedMixin {
         ItemStack activeStack = self.getActiveItem();
 
         if (activeStack.isEmpty()) return;
-        if (!(activeStack.getItem() instanceof BowItem)
-                && !(activeStack.getItem() instanceof CrossbowItem)) return;
+        if (!(activeStack.getItem() instanceof BowItem)) return;
 
         EntityAttributeInstance inst = self.getAttributeInstance(ModAttributes.RELOAD_SPEED);
         double speed = 0.0;
@@ -50,11 +52,15 @@ public abstract class ReloadSpeedMixin {
         int extraTicks = (int) extraTicksDouble;
         double fractional = extraTicksDouble - extraTicks;
 
-        // Handle fractional part for both positive and negative values
+        // Handle fractional part deterministically to prevent client/server drift
         if (fractional != 0.0) {
-            double absFractional = Math.abs(fractional);
-            if (self.getRandom().nextDouble() < absFractional) {
-                extraTicks += (fractional > 0) ? 1 : -1;
+            this.cranks$reloadFractionalAccumulator += fractional;
+            if (this.cranks$reloadFractionalAccumulator >= 1.0) {
+                extraTicks += 1;
+                this.cranks$reloadFractionalAccumulator -= 1.0;
+            } else if (this.cranks$reloadFractionalAccumulator <= -1.0) {
+                extraTicks -= 1;
+                this.cranks$reloadFractionalAccumulator += 1.0;
             }
         }
 

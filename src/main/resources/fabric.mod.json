@@ -33,7 +33,9 @@
 	},
 	"accessWidener": "cranks-dungeons.accesswidener",
 	"mixins": [
-		"cranks-dungeons.mixins.json"
+		"cranks-dungeons.mixins.json",
+		"cranks-dungeons-punchy.mixins.json",
+		"cranks-dungeons-bettercombat.mixins.json"
 	],
 	"custom": {
 		"cardinal-components": [

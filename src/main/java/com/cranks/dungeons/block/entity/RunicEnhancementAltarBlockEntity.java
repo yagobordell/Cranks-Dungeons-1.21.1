@@ -47,7 +47,7 @@ public class RunicEnhancementAltarBlockEntity extends BlockEntity implements Nam
 
     @Override
     public Text getDisplayName() {
-        return Text.literal("Runic Enhancement Altar");
+        return Text.literal("Runic Altar");
     }
 
     @Nullable

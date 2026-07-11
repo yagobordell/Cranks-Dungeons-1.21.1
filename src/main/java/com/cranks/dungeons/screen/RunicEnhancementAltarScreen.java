@@ -44,6 +44,8 @@ public class RunicEnhancementAltarScreen extends HandledScreen<RunicEnhancementA
     @Override
     protected void init() {
         super.init();
+        this.titleX = 8;
+        this.titleY = 6;
         createButton();
     }
 
@@ -106,15 +108,16 @@ public class RunicEnhancementAltarScreen extends HandledScreen<RunicEnhancementA
     }
 
     @Override
+    protected void drawForeground(DrawContext context, int mouseX, int mouseY) {
+        // Empty to prevent default title rendering
+    }
+
+    @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         renderBackground(context, mouseX, mouseY, delta);
         super.render(context, mouseX, mouseY, delta);
         this.drawMouseoverTooltip(context, mouseX, mouseY);
     }
 
-    @Override
-    protected void drawForeground(DrawContext context, int mouseX, int mouseY) {
-        context.drawText(this.textRenderer, this.title, this.titleX, this.titleY, 4210752, false);
-        context.drawText(this.textRenderer, this.playerInventoryTitle, this.playerInventoryTitleX, this.playerInventoryTitleY, 4210752, false);
-    }
+
 }

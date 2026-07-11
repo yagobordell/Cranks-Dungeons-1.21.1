@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": "minecraft:amethyst_shard",
+    "E": "minecraft:ender_eye",
+    "N": "minecraft:end_stone",
+    "O": "minecraft:obsidian"
+  },
+  "pattern": [
+    "AEA",
+    "NNN",
+    "OOO"
+  ],
+  "result": {
+    "count": 1,
+    "id": "cranks-dungeons:artificial_enhancement_altar"
+  }
+}

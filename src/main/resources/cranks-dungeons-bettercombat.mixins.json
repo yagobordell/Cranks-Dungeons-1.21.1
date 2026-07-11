@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "package": "com.cranks.dungeons.compat.bettercombat",
+  "compatibilityLevel": "JAVA_21",
+  "plugin": "com.cranks.dungeons.compat.bettercombat.BetterCombatPlugin",
+  "client": [
+    "BetterCombatAttackHandMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

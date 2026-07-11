@@ -67,7 +67,7 @@ public class QualityStationBlockEntity extends BlockEntity implements NamedScree
 
     @Override
     public Text getDisplayName() {
-        return Text.literal("Enhancement Station");
+        return Text.literal("Quality Station");
     }
 
     @Nullable
