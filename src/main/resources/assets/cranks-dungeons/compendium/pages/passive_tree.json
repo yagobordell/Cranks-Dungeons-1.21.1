@@ -1,0 +1,19 @@
+{
+  "title": "The Passive Tree",
+  "content": [
+    { "type": "text", "value": "The Passive Skill Tree is the primary progression system in Cranks Dungeons. It's a sprawling network of interconnected nodes that grant permanent stat bonuses to your character." },
+    { "type": "spacer" },
+    { "type": "heading", "value": "Earning Points" },
+    { "type": "text", "value": "You earn passive skill points by gaining standard Minecraft experience levels. Each level-up awards one unspent point that you can allocate on the tree." },
+    { "type": "spacer" },
+    { "type": "heading", "value": "Allocating Nodes" },
+    { "type": "text", "value": "To allocate a node, it must be connected to a node you've already unlocked. Click on an available node to draft it (preview), then click 'Apply Changes' to commit your selections. You can draft multiple nodes at once before applying." },
+    { "type": "note", "value": "Drafted nodes are shown in a different color. You can click a drafted node again to un-draft it (remove it from your preview). Only applied nodes are permanent.", "style": "tip" },
+    { "type": "spacer" },
+    { "type": "heading", "value": "Node Types" },
+    { "type": "text", "value": "• Small Nodes (Square) — Minor stat bonuses like +5 Strength or +2% Fire Resistance.\n• Notable Nodes (Circle) — Larger bonuses that define your build, like +15% Attack Speed or +30 Max Health.\n• Keystone Nodes (Diamond) — Powerful build-defining effects with significant trade-offs.\n• Choice Nodes (Hexagon) — Let you choose which attribute to scale (STR, DEX, or INT)." },
+    { "type": "spacer" },
+    { "type": "heading", "value": "Keybinds" },
+    { "type": "text", "value": "• Press P to open the Passive Tree directly.\n• Press O to switch to the World Tree.\n• Press C to open the Compendium.\n• Use the mouse wheel to zoom in/out.\n• Click and drag to pan around the tree." }
+  ]
+}

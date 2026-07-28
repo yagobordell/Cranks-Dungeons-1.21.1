@@ -1,0 +1,16 @@
+{
+  "title": "Rune System",
+  "content": [
+    { "type": "text", "value": "Runes are the random stat modifiers that appear on equipment. Each piece of gear can roll multiple rune stats that provide various bonuses, from flat attributes to percentage-based multipliers." },
+    { "type": "spacer" },
+    { "type": "heading", "value": "How Runes Work" },
+    { "type": "text", "value": "When a piece of equipment drops, it rolls a random set of rune stats from a pool determined by its equipment type. For example, a chestplate might roll Armor, Evasion Rating, or Energy Shield runes, while a weapon might roll Attack Damage or Attack Speed." },
+    { "type": "spacer" },
+    { "type": "heading", "value": "Rune Types" },
+    { "type": "text", "value": "• Flat Runes — Add a fixed value to a stat (e.g., +15 Armor).\n• Local Percent Runes — Multiply the item's base stat (e.g., +20% Armor applies ONLY to that item's base armor).\n• Global Percent Runes — Add a percentage bonus to your total stat (e.g., +5% Fire Resistance).\n• Hybrid Runes — Provide two different bonuses at once (e.g., +5 Dexterity and +10 Evasion Rating)." },
+    { "type": "spacer" },
+    { "type": "heading", "value": "Enhancing Equipment" },
+    { "type": "text", "value": "You can modify rune stats using special stations found in the world:\n• Runic Enhancement Altar — Reroll all rune stats on an item.\n• Quality Station — Increase an item's quality, which scales its base stats.\n• Artificial Enhancement Altar — Choose specific stat options to apply." },
+    { "type": "note", "value": "Local percent runes are very powerful because they multiply the item's entire base value plus any flat runes. Always look for items with high base stats AND local percent runes!", "style": "tip" }
+  ]
+}

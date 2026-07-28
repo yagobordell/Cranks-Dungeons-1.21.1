@@ -1,0 +1,13 @@
+{
+  "title": "Gathering XP",
+  "content": [
+    { "type": "text", "value": "Gathering XP is the experience system that drives World Tree progression. Instead of killing monsters, you earn World Tree points by performing gathering activities throughout the world." },
+    { "type": "spacer" },
+    { "type": "heading", "value": "XP Sources" },
+    { "type": "text", "value": "• Mining — Breaking stone, ore, and mineral blocks. Rarer ores give significantly more XP.\n• Woodcutting — Chopping trees. Larger trees and rarer wood types yield more XP.\n• Fishing — Catching fish and treasure items. Treasure catches give bonus XP.\n• Farming — Harvesting crops. Fully grown crops give full XP; breaking early gives reduced XP.\n• Exploration — Visiting new chunks and discovering structures grants discovery XP." },
+    { "type": "spacer" },
+    { "type": "heading", "value": "XP Multipliers" },
+    { "type": "text", "value": "Several World Tree nodes boost your XP gain rates for specific activities. Stack these nodes to accelerate your World Tree progression in your preferred gathering style." },
+    { "type": "note", "value": "Gathering XP is tracked per-player and persists across sessions. Your progress is never lost, even if you die.", "style": "info" }
+  ]
+}

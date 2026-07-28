@@ -1,0 +1,16 @@
+{
+  "title": "Ailments",
+  "content": [
+    { "type": "text", "value": "Ailments are status effects that can be inflicted through elemental and physical damage. Each damage type has associated ailments that trigger based on the damage dealt." },
+    { "type": "spacer" },
+    { "type": "heading", "value": "Physical Ailments" },
+    { "type": "text", "value": "• Bleed — Deals physical damage over time. Stacks in intensity based on the hit that caused it. Moving while bleeding increases damage taken.\n• Poison — Deals chaos damage over time. Can stack multiple times from separate hits." },
+    { "type": "spacer" },
+    { "type": "heading", "value": "Elemental Ailments" },
+    { "type": "text", "value": "• Burn (Fire) — Deals fire damage over time. Caused by fire damage. Duration and damage scale with the initial hit.\n• Freeze (Cold) — Slows movement and attack speed. Caused by cold damage. Stronger hits cause longer freezes.\n• Shock (Lightning) — Increases damage taken from all sources. Caused by lightning damage.\n• Electrocute (Lightning) — Deals lightning damage over time. A secondary lightning ailment." },
+    { "type": "spacer" },
+    { "type": "heading", "value": "Ailment Mechanics" },
+    { "type": "text", "value": "Ailments are applied based on the elemental damage dealt relative to the target's maximum health. Higher damage relative to HP means a stronger ailment effect. Resistances reduce both the direct damage and the ailment's severity." },
+    { "type": "note", "value": "Elemental resistances are your best defense against ailments. Even if you can't avoid the hit, high resistance significantly reduces the ailment's impact.", "style": "tip" }
+  ]
+}

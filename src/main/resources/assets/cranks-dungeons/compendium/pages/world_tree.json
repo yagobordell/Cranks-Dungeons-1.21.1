@@ -1,0 +1,16 @@
+{
+  "title": "The World Tree",
+  "content": [
+    { "type": "text", "value": "The World Tree is a secondary skill tree focused on gathering, exploration, and out-of-combat utility. Unlike the Passive Tree which uses combat experience, the World Tree uses its own XP system tied to in-world activities." },
+    { "type": "spacer" },
+    { "type": "heading", "value": "Earning World Points" },
+    { "type": "text", "value": "World Tree points are earned through various gathering activities: mining ores, chopping wood, fishing, farming, and exploring new areas. Each activity has its own XP multiplier and contribution rate." },
+    { "type": "spacer" },
+    { "type": "heading", "value": "Node Bonuses" },
+    { "type": "text", "value": "World Tree nodes provide bonuses like:\n• Increased mining speed for specific ore types\n• Better crop yields and growth rates\n• Enhanced fishing loot tables\n• Movement speed in specific biomes\n• Reduced fall damage\n• Improved experience gain from gathering" },
+    { "type": "spacer" },
+    { "type": "heading", "value": "Navigation" },
+    { "type": "text", "value": "Press O to open the World Tree directly, or navigate to it through the Compendium sidebar. The tree uses the same zoom and pan controls as the Passive Tree — scroll to zoom, click and drag to pan." },
+    { "type": "note", "value": "The World Tree is completely separate from the Passive Tree. You can invest in both simultaneously, and neither affects the other's progression.", "style": "info" }
+  ]
+}

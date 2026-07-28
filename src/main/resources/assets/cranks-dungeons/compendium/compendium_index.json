@@ -1,0 +1,30 @@
+{
+  "sections": [
+    {
+      "title": "Getting Started",
+      "collapsed": false,
+      "pages": [
+        { "id": "introduction", "title": "Introduction" },
+        { "id": "classes", "title": "Choosing a Class" },
+        { "id": "passive_tree", "title": "The Passive Tree" }
+      ]
+    },
+    {
+      "title": "Combat",
+      "collapsed": false,
+      "pages": [
+        { "id": "stats", "title": "Stats & Attributes" },
+        { "id": "runes", "title": "Rune System" },
+        { "id": "ailments", "title": "Ailments" }
+      ]
+    },
+    {
+      "title": "Gathering",
+      "collapsed": false,
+      "pages": [
+        { "id": "world_tree", "title": "The World Tree" },
+        { "id": "gathering", "title": "Gathering XP" }
+      ]
+    }
+  ]
+}

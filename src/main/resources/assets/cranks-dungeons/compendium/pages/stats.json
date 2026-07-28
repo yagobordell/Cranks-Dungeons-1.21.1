@@ -1,0 +1,21 @@
+{
+  "title": "Stats & Attributes",
+  "content": [
+    { "type": "text", "value": "Cranks Dungeons introduces a comprehensive stat system that governs all aspects of combat. Understanding these stats is essential for building an effective character." },
+    { "type": "spacer" },
+    { "type": "heading", "value": "Primary Attributes" },
+    { "type": "text", "value": "There are three primary attributes that define your character's archetype:" },
+    { "type": "text", "value": "• Strength — Every 10 Strength grants +5 Max Health. Required for heavy armor and melee weapons.\n• Dexterity — Every 10 Dexterity grants +20 Evasion Rating. Required for light armor and ranged weapons.\n• Intelligence — Every 10 Intelligence grants +5 Maximum Mana. Required for energy shield gear." },
+    { "type": "spacer" },
+    { "type": "heading", "value": "Defensive Stats" },
+    { "type": "text", "value": "• Armor — Reduces physical damage taken. Higher armor means less damage from each hit.\n• Evasion Rating — Chance to completely avoid an attack. Does not reduce damage, but prevents it entirely.\n• Energy Shield — An additional health pool that absorbs damage before your actual health. Recharges after not taking damage.\n• Resistances — Fire, Cold, Lightning, and Void resistances reduce elemental damage taken (capped at 75%)." },
+    { "type": "note", "value": "Equipment requirements are based on primary attributes. If you don't meet the STR/DEX/INT requirements, the item's stats are reduced by 50%!", "style": "warning" },
+    { "type": "spacer" },
+    { "type": "heading", "value": "Offensive Stats" },
+    { "type": "text", "value": "• Attack Damage — Base physical damage per hit.\n• Attack Speed — Number of attacks per second.\n• Critical Strike Chance — Chance to deal critical damage on each hit.\n• Critical Strike Multiplier — Damage multiplier applied on critical hits (default 150%).\n• Elemental Damage — Bonus Fire, Cold, Lightning, or Void damage added to attacks." },
+    { "type": "spacer" },
+    { "type": "heading", "value": "How Stats Are Applied" },
+    { "type": "text", "value": "Stats come from multiple sources and stack additively unless stated otherwise. Equipment rune stats are baked directly into items, while passive tree bonuses are applied as persistent modifiers to your character. Local percentage modifiers on equipment (like +% Armor) only scale the base stat of that specific item." },
+    { "type": "note", "value": "Open the Stats Panel in your inventory (click the chart icon in the top-right corner) to see a full breakdown of all your current stats.", "style": "tip" }
+  ]
+}

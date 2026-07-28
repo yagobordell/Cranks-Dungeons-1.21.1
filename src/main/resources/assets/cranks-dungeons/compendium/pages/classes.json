@@ -1,0 +1,23 @@
+{
+  "title": "Choosing a Class",
+  "content": [
+    { "type": "text", "value": "When you first open the Passive Skill Tree, you'll be presented with a class selection screen. Each class provides a unique starting position on the tree and different early-game attribute bonuses." },
+    { "type": "spacer" },
+    { "type": "heading", "value": "Available Classes" },
+    { "type": "text", "value": "There are currently three starting classes, each suited to a different playstyle:" },
+    { "type": "spacer" },
+    { "type": "heading", "value": "Warrior" },
+    { "type": "text", "value": "A frontline fighter who excels in raw physical power and durability. Warriors start near Strength nodes and have easy access to Armor, Max Health, and Physical Damage bonuses. They are the most forgiving class for new players." },
+    { "type": "note", "value": "Recommended stats: Strength, Armor, Max Health, Physical Damage.", "style": "tip" },
+    { "type": "spacer" },
+    { "type": "heading", "value": "Ranger" },
+    { "type": "text", "value": "An agile combatant who relies on evasion and precision strikes. Rangers start near Dexterity nodes and have access to Evasion Rating, Critical Strike, and Attack Speed. They deal massive damage but are less durable." },
+    { "type": "note", "value": "Recommended stats: Dexterity, Evasion Rating, Crit Chance, Attack Speed.", "style": "tip" },
+    { "type": "spacer" },
+    { "type": "heading", "value": "Mercenary" },
+    { "type": "text", "value": "A versatile hybrid class that balances offense with magical defenses. Mercenaries start near Intelligence nodes and have access to Energy Shield, Elemental Damage, and Ailment bonuses. They have the most complex builds." },
+    { "type": "note", "value": "Recommended stats: Intelligence, Energy Shield, Elemental Damage.", "style": "tip" },
+    { "type": "spacer" },
+    { "type": "note", "value": "Your class choice is permanent and cannot be changed! Take your time to read each description and think about your preferred playstyle.", "style": "important" }
+  ]
+}

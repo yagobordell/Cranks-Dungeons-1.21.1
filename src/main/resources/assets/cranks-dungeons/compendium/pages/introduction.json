@@ -1,0 +1,18 @@
+{
+  "title": "Introduction",
+  "content": [
+    { "type": "text", "value": "Welcome to Cranks Dungeons, an Action-RPG overhaul mod for Minecraft that transforms the game into a deep, stat-driven combat experience inspired by games like Path of Exile and Diablo." },
+    { "type": "spacer" },
+    { "type": "heading", "value": "What This Mod Changes" },
+    { "type": "text", "value": "Cranks Dungeons completely reworks Minecraft's combat and progression systems. Every piece of equipment now has randomized stats (runes), items have quality ratings, and your character builds matter through the Passive Skill Tree." },
+    { "type": "spacer" },
+    { "type": "heading", "value": "Core Features" },
+    { "type": "text", "value": "• Passive Skill Tree — Choose a class and allocate points into a sprawling skill tree to define your build.\n• World Tree — A secondary progression system for gathering, mining, and out-of-combat utilities.\n• Rune Stats — Equipment rolls random stat modifiers that can be enhanced at special altars.\n• Elemental Damage — Fire, Cold, Lightning, and Void damage types with their own resistances.\n• Ailments — Burn, Poison, Bleed, Freeze, Shock, and Electrocute effects that stack and interact.\n• Energy Shield — An additional defensive layer that absorbs damage before health." },
+    { "type": "spacer" },
+    { "type": "note", "value": "This mod is designed for survival gameplay. Most features require exploration and progression to fully access.", "style": "info" },
+    { "type": "spacer" },
+    { "type": "heading", "value": "Getting Started" },
+    { "type": "text", "value": "When you first join a world with Cranks Dungeons installed, open your inventory and look for the Compendium button. From there, navigate to the Passive Tree tab to choose your starting class. This is the first and most important decision you'll make — it determines your starting position on the skill tree and your initial attribute bonuses." },
+    { "type": "note", "value": "Choosing a class is permanent! Read the class descriptions carefully before committing.", "style": "warning" }
+  ]
+}
