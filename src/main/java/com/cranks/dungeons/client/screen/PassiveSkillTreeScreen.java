@@ -1276,12 +1276,12 @@ public class PassiveSkillTreeScreen extends Screen {
                 }
             } else if (button == 1) { // Right Click: Open Editor
                 if (hitNode != null) {
-                    this.client.setScreen(new PassiveNodeEditScreen(this, hitNode));
+                    this.client.setScreen(new PassiveNodeEditScreen(this, hitNode, this::refreshCachesProxy, this::startConnecting));
                 } else {
                     // CREATE NEW NODE
                     double gx = (mouseX - panX) / currentGridScale;
                     double gy = (mouseY - panY) / currentGridScale;
-                    this.client.setScreen(new PassiveNodeEditScreen(this, gx, gy));
+                    this.client.setScreen(new PassiveNodeEditScreen(this, gx, gy, this::refreshCachesProxy, this::startConnecting));
                 }
                 return true;
             }

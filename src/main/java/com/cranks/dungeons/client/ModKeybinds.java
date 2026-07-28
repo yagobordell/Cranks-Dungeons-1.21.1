@@ -9,6 +9,7 @@ public class ModKeybinds {
     public static KeyBinding TOGGLE_ENCHANTMENT_DISABLE;
     public static KeyBinding OPEN_PASSIVE_TREE;
     public static KeyBinding OPEN_WORLD_TREE;
+    public static KeyBinding OPEN_COMPENDIUM;
 
 
 
@@ -30,6 +31,12 @@ public class ModKeybinds {
         OPEN_WORLD_TREE = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "key.cranks-dungeons.open_world_tree",
                 GLFW.GLFW_KEY_O,
+                CATEGORY
+        ));
+
+        OPEN_COMPENDIUM = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+                "key.cranks-dungeons.open_compendium",
+                GLFW.GLFW_KEY_C,
                 CATEGORY
         ));
     }

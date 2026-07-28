@@ -1160,13 +1160,13 @@ public class WorldSkillTreeScreen extends Screen {
                 }
             } else if (button == 1) { // Right Click: Open Editor
                 if (hitNode != null) {
-                    this.client.setScreen(new WorldNodeEditScreen(this, hitNode));
+                    this.client.setScreen(new WorldNodeEditScreen(this, hitNode, this::refreshCachesProxy, this::startConnecting));
                 } else {
                     // CREATE NEW NODE
                     double scale = BASE_GRID_SCALE * zoom;
                     double gx = (click.x() - panX) / scale;
                     double gy = (click.y() - panY) / scale;
-                    this.client.setScreen(new WorldNodeEditScreen(this, gx, gy));
+                    this.client.setScreen(new WorldNodeEditScreen(this, gx, gy, this::refreshCachesProxy, this::startConnecting));
                 }
                 return true;
             }

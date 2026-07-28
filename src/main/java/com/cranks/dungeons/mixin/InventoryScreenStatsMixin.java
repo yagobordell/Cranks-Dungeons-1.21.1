@@ -48,21 +48,13 @@ public abstract class InventoryScreenStatsMixin {
         private static final Identifier STATS_BUTTON_PRESSED_HOVER = Identifier.of("cranks-dungeons",
                         "textures/gui/stats_button_pressed_hover.png");
 
-        // SKILL TREE BUTTON
+        // COMPENDIUM BUTTON (replaces separate Passive Tree and World Tree buttons)
         @Unique
-        private static final Identifier SKILLS_BUTTON_NORMAL = Identifier.of("cranks-dungeons",
-                        "textures/gui/skills_button.png"); // We'll assume a similar texture naming convention
+        private static final Identifier COMPENDIUM_BUTTON_NORMAL = Identifier.of("cranks-dungeons",
+                        "textures/gui/compendium_button.png");
         @Unique
-        private static final Identifier SKILLS_BUTTON_HOVER = Identifier.of("cranks-dungeons",
-                        "textures/gui/skills_button_hover.png");
-
-        // WORLD TREE BUTTON
-        @Unique
-        private static final Identifier WORLD_BUTTON_NORMAL = Identifier.of("cranks-dungeons",
-                        "textures/gui/world_button.png");
-        @Unique
-        private static final Identifier WORLD_BUTTON_HOVER = Identifier.of("cranks-dungeons",
-                        "textures/gui/world_button_hover.png");
+        private static final Identifier COMPENDIUM_BUTTON_HOVER = Identifier.of("cranks-dungeons",
+                        "textures/gui/compendium_button_hover.png");
 
         @Unique
         private static final Identifier SCROLLBAR_TRACK_TEXTURE = Identifier.of("cranks-dungeons",
@@ -81,9 +73,7 @@ public abstract class InventoryScreenStatsMixin {
         @Unique
         private boolean lastClickState = false;
         @Unique
-        private boolean lastSkillClickState = false;
-        @Unique
-        private boolean lastWorldClickState = false;
+        private boolean lastCompendiumClickState = false;
         @Unique
         private String hoveredStat = null;
         @Unique
@@ -147,48 +137,26 @@ public abstract class InventoryScreenStatsMixin {
                                         buttonY + buttonHeight,
                                         0.0F, 1.0F, 0.0F, 1.0F);
 
-                        // --- SKILL TREE BUTTON (Relocated next to Recipe Book) ---
-                        int skillButtonX = x + 126;
-                        int skillButtonY = y + 61;
-                        int skillButtonWidth = 20;
-                        int skillButtonHeight = 18;
+                        // --- COMPENDIUM BUTTON (Replaces separate Passive Tree and World Tree buttons) ---
+                        int compButtonX = x + 126;
+                        int compButtonY = y + 61;
+                        int compButtonWidth = 20;
+                        int compButtonHeight = 18;
 
-                        boolean isHoveringSkill = mouseX >= skillButtonX && mouseX <= skillButtonX + skillButtonWidth &&
-                                        mouseY >= skillButtonY && mouseY <= skillButtonY + skillButtonHeight;
+                        boolean isHoveringComp = mouseX >= compButtonX && mouseX <= compButtonX + compButtonWidth &&
+                                        mouseY >= compButtonY && mouseY <= compButtonY + compButtonHeight;
 
-                        if (isHoveringSkill && leftClick && !lastSkillClickState && !draggingScrollbar) {
+                        if (isHoveringComp && leftClick && !lastCompendiumClickState && !draggingScrollbar) {
                                 MinecraftClient.getInstance().getSoundManager().play(
                                                 PositionedSoundInstance.ui(SoundEvents.UI_BUTTON_CLICK.value(), 1.0F));
                                 MinecraftClient.getInstance().setScreen(
-                                                new com.cranks.dungeons.client.screen.PassiveSkillTreeScreen(screen));
+                                                new com.cranks.dungeons.client.compendium.CompendiumScreen(null));
                         }
-                        lastSkillClickState = leftClick;
+                        lastCompendiumClickState = leftClick;
 
-                        Identifier skillButtonTexture = isHoveringSkill ? SKILLS_BUTTON_HOVER : SKILLS_BUTTON_NORMAL;
-                        context.drawTexturedQuad(skillButtonTexture, skillButtonX, skillButtonY,
-                                        skillButtonX + skillButtonWidth, skillButtonY + skillButtonHeight,
-                                        0.0F, 1.0F, 0.0F, 1.0F);
-
-                        // --- WORLD TREE BUTTON ---
-                        int worldButtonX = skillButtonX + 22; // Next to passive tree button
-                        int worldButtonY = skillButtonY;
-                        int worldButtonWidth = 20;
-                        int worldButtonHeight = 18;
-
-                        boolean isHoveringWorld = mouseX >= worldButtonX && mouseX <= worldButtonX + worldButtonWidth &&
-                                        mouseY >= worldButtonY && mouseY <= worldButtonY + worldButtonHeight;
-
-                        if (isHoveringWorld && leftClick && !lastWorldClickState && !draggingScrollbar) {
-                                MinecraftClient.getInstance().getSoundManager().play(
-                                                PositionedSoundInstance.ui(SoundEvents.UI_BUTTON_CLICK.value(), 1.0F));
-                                MinecraftClient.getInstance().setScreen(
-                                                new com.cranks.dungeons.client.screen.WorldSkillTreeScreen(screen));
-                        }
-                        lastWorldClickState = leftClick;
-
-                        Identifier worldButtonTexture = isHoveringWorld ? WORLD_BUTTON_HOVER : WORLD_BUTTON_NORMAL;
-                        context.drawTexturedQuad(worldButtonTexture, worldButtonX, worldButtonY,
-                                        worldButtonX + worldButtonWidth, worldButtonY + worldButtonHeight,
+                        Identifier compButtonTexture = isHoveringComp ? COMPENDIUM_BUTTON_HOVER : COMPENDIUM_BUTTON_NORMAL;
+                        context.drawTexturedQuad(compButtonTexture, compButtonX, compButtonY,
+                                        compButtonX + compButtonWidth, compButtonY + compButtonHeight,
                                         0.0F, 1.0F, 0.0F, 1.0F);
 
                         if (!statsVisible)

@@ -74,6 +74,9 @@ public class CranksDungeonsClient implements ClientModInitializer {
         ModKeybinds.register();
         EnchantmentToggleHandler.register();
         com.cranks.dungeons.client.PassiveTreeKeybindHandler.register();
+
+        // Register built-in Compendium tabs
+        registerCompendiumTabs();
         
         ClientPlayNetworking.registerGlobalReceiver(StatOptionsSyncPacket.ID, (payload, context) -> {
             context.client().execute(() -> {
@@ -325,5 +328,35 @@ public class CranksDungeonsClient implements ClientModInitializer {
                 com.cranks.dungeons.stat.passive.PassiveNodeRegistry.loadFromConfig();
             });
         });
+    }
+
+    /**
+     * Registers the built-in Compendium tabs (Guide, Passive Tree, World Tree).
+     * Called during client initialization before entrypoint discovery.
+     */
+    private void registerCompendiumTabs() {
+        com.cranks.dungeons.client.compendium.CompendiumTabRegistry.registerTab(
+                com.cranks.dungeons.client.compendium.CompendiumTabRegistry.GUIDE_TAB_ID,
+                net.minecraft.text.Text.literal("Compendium"),
+                net.minecraft.util.Identifier.of("cranks-dungeons", "compendium/compendium_icon"),
+                com.cranks.dungeons.client.compendium.CompendiumGuideTabRenderer::new,
+                com.cranks.dungeons.client.compendium.CompendiumTab.PRIORITY_GUIDE
+        );
+
+        com.cranks.dungeons.client.compendium.CompendiumTabRegistry.registerTab(
+                com.cranks.dungeons.client.compendium.CompendiumTabRegistry.PASSIVE_TREE_TAB_ID,
+                net.minecraft.text.Text.literal("Passive Tree"),
+                net.minecraft.util.Identifier.of("cranks-dungeons", "compendium/passive_tree_icon"),
+                com.cranks.dungeons.client.compendium.PassiveTreeTabRenderer::new,
+                com.cranks.dungeons.client.compendium.CompendiumTab.PRIORITY_PASSIVE_TREE
+        );
+
+        com.cranks.dungeons.client.compendium.CompendiumTabRegistry.registerTab(
+                com.cranks.dungeons.client.compendium.CompendiumTabRegistry.WORLD_TREE_TAB_ID,
+                net.minecraft.text.Text.literal("World Tree"),
+                net.minecraft.util.Identifier.of("cranks-dungeons", "compendium/world_tree_icon"),
+                com.cranks.dungeons.client.compendium.WorldTreeTabRenderer::new,
+                com.cranks.dungeons.client.compendium.CompendiumTab.PRIORITY_WORLD_TREE
+        );
     }
 }

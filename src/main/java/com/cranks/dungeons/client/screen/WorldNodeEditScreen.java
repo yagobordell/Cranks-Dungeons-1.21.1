@@ -22,7 +22,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class WorldNodeEditScreen extends Screen {
-    private final WorldSkillTreeScreen parent;
+
     private final PassiveNode nodeToEdit; // null if creating
     private final double gridX;
     private final double gridY;
@@ -72,20 +72,33 @@ public class WorldNodeEditScreen extends Screen {
         }
     }
 
-    public WorldNodeEditScreen(WorldSkillTreeScreen parent, PassiveNode node) {
+    private final net.minecraft.client.gui.screen.Screen parentScreen;
+    private final Runnable refreshCallback;
+    private final java.util.function.Consumer<PassiveNode> startConnectingCallback;
+
+    public WorldNodeEditScreen(net.minecraft.client.gui.screen.Screen parentScreen, PassiveNode node, Runnable refreshCallback, java.util.function.Consumer<PassiveNode> startConnectingCallback) {
         super(Text.literal("Edit Node: " + (node != null ? node.id() : "New Node")));
-        this.parent = parent;
+        this.parentScreen = parentScreen;
+        this.refreshCallback = refreshCallback;
+        this.startConnectingCallback = startConnectingCallback;
         this.nodeToEdit = node;
         this.gridX = node != null ? node.gridX() : 0;
         this.gridY = node != null ? node.gridY() : 0;
     }
 
-    public WorldNodeEditScreen(WorldSkillTreeScreen parent, double gx, double gy) {
+    public WorldNodeEditScreen(net.minecraft.client.gui.screen.Screen parentScreen, double gx, double gy, Runnable refreshCallback, java.util.function.Consumer<PassiveNode> startConnectingCallback) {
         super(Text.literal("Create New Node"));
-        this.parent = parent;
+        this.parentScreen = parentScreen;
+        this.refreshCallback = refreshCallback;
+        this.startConnectingCallback = startConnectingCallback;
         this.nodeToEdit = null;
         this.gridX = gx;
         this.gridY = gy;
+    }
+
+    @Override
+    public void close() {
+        MinecraftClient.getInstance().setScreen(parentScreen);
     }
 
     @Override
@@ -174,26 +187,29 @@ public class WorldNodeEditScreen extends Screen {
         if (nodeToEdit != null) {
             saveBtn = ButtonWidget.builder(Text.literal("Save Settings"), b -> {
                 saveNode();
-                MinecraftClient.getInstance().setScreen(parent);
+                MinecraftClient.getInstance().setScreen(parentScreen);
             }).dimensions(centerX - 210, btnY, 100, 20).build();
             
             cancelBtn = ButtonWidget.builder(Text.literal("Cancel"), b -> {
-                MinecraftClient.getInstance().setScreen(parent);
+                MinecraftClient.getInstance().setScreen(parentScreen);
             }).dimensions(centerX - 100, btnY, 100, 20).build();
 
             deleteBtn = ButtonWidget.builder(Text.literal("Delete Node").formatted(Formatting.RED), b -> {
-                WorldNodeRegistry.getNodes().remove(nodeToEdit.id());
+                WorldNodeRegistry.getNodes().remove(idField.getText());
+                // Clean up connections to this node
                 for (PassiveNode other : WorldNodeRegistry.getNodes().values()) {
                     other.connections().remove(nodeToEdit.id());
                 }
-                parent.refreshCachesProxy();
-                MinecraftClient.getInstance().setScreen(parent);
+                if (refreshCallback != null) refreshCallback.run();
+                MinecraftClient.getInstance().setScreen(parentScreen);
             }).dimensions(centerX + 10, btnY, 100, 20).build();
 
             connectBtn = ButtonWidget.builder(Text.literal("Connect/Link"), b -> {
                 saveNode();
-                parent.startConnecting(WorldNodeRegistry.getNodes().get(idField.getText()));
-                MinecraftClient.getInstance().setScreen(parent);
+                if (startConnectingCallback != null) {
+                    startConnectingCallback.accept(WorldNodeRegistry.getNodes().get(idField.getText()));
+                }
+                MinecraftClient.getInstance().setScreen(parentScreen);
             }).dimensions(centerX + 120, btnY, 100, 20).build();
             
             this.addDrawableChild(deleteBtn);
@@ -201,11 +217,11 @@ public class WorldNodeEditScreen extends Screen {
         } else {
             saveBtn = ButtonWidget.builder(Text.literal("Create Node"), b -> {
                 saveNode();
-                MinecraftClient.getInstance().setScreen(parent);
+                MinecraftClient.getInstance().setScreen(parentScreen);
             }).dimensions(centerX - 105, btnY, 100, 20).build();
             
             cancelBtn = ButtonWidget.builder(Text.literal("Cancel"), b -> {
-                MinecraftClient.getInstance().setScreen(parent);
+                MinecraftClient.getInstance().setScreen(parentScreen);
             }).dimensions(centerX + 5, btnY, 100, 20).build();
         }
 
@@ -296,7 +312,7 @@ public class WorldNodeEditScreen extends Screen {
                     new ArrayList<>(), mods, calculatedIcon, shape, isAttrSelection, attrAmount);
             WorldNodeRegistry.getNodes().put(id, newNode);
         }
-        parent.refreshCachesProxy();
+        if (refreshCallback != null) refreshCallback.run();
     }
 
     @Override
