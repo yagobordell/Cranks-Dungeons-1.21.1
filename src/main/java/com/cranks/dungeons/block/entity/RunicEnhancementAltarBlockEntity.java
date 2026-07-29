@@ -24,8 +24,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.sound.SoundCategory;
-import net.minecraft.storage.ReadView;
-import net.minecraft.storage.WriteView;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.text.Text;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
@@ -105,15 +105,15 @@ public class RunicEnhancementAltarBlockEntity extends BlockEntity implements Nam
     }
 
     @Override
-    protected void writeData(WriteView view) {
-        super.writeData(view);
-        Inventories.writeData(view, inventory);
+    public void writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
+        super.writeNbt(nbt, registryLookup);
+        Inventories.writeNbt(nbt, inventory, registryLookup);
     }
 
     @Override
-    protected void readData(ReadView view) {
-        super.readData(view);
-        Inventories.readData(view, inventory);
+    public void readNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
+        super.readNbt(nbt, registryLookup);
+        Inventories.readNbt(nbt, inventory, registryLookup);
     }
 
     @Override

@@ -77,7 +77,7 @@ public class AilmentParticleManager {
             double vy = entity.getRandom().nextDouble() * 0.3;
             double vz = (entity.getRandom().nextDouble() - 0.5) * 0.45;
 
-            client.world.addParticleClient((net.minecraft.particle.ParticleEffect) particleType, x, y, z, vx, vy, vz);
+            client.world.addParticle((net.minecraft.particle.ParticleEffect) particleType, x, y, z, vx, vy, vz);
         }
     }
 
@@ -91,7 +91,7 @@ public class AilmentParticleManager {
             // Burst effect: several particles from one point
             int burstCount = 2 + entity.getRandom().nextInt(3);
             for (int i = 0; i < burstCount; i++) {
-                client.world.addParticleClient((net.minecraft.particle.ParticleEffect) ParticleTypes.FLAME, x, y, z, 
+                client.world.addParticle((net.minecraft.particle.ParticleEffect) ParticleTypes.FLAME, x, y, z, 
                     (entity.getRandom().nextDouble() - 0.5) * 0.1, 
                     entity.getRandom().nextDouble() * 0.1, 
                     (entity.getRandom().nextDouble() - 0.5) * 0.1);
@@ -100,7 +100,7 @@ public class AilmentParticleManager {
         
         // Occasional smoke
         if (entity.getRandom().nextFloat() < 0.1f) {
-            client.world.addParticleClient((net.minecraft.particle.ParticleEffect) ParticleTypes.LARGE_SMOKE, 
+            client.world.addParticle((net.minecraft.particle.ParticleEffect) ParticleTypes.LARGE_SMOKE, 
                 entity.getX() + (entity.getRandom().nextDouble() - 0.5) * entity.getWidth(),
                 entity.getY() + entity.getHeight(),
                 entity.getZ() + (entity.getRandom().nextDouble() - 0.5) * entity.getWidth(),
@@ -114,7 +114,7 @@ public class AilmentParticleManager {
             double x = entity.getX() + (entity.getRandom().nextDouble() - 0.5) * entity.getWidth();
             double y = entity.getY() + entity.getRandom().nextDouble() * entity.getHeight();
             double z = entity.getZ() + (entity.getRandom().nextDouble() - 0.5) * entity.getWidth();
-            client.world.addParticleClient((net.minecraft.particle.ParticleEffect) ModParticles.POISON_BUBBLE, x, y, z, 0d, 0.02d, 0d);
+            client.world.addParticle((net.minecraft.particle.ParticleEffect) ModParticles.POISON_BUBBLE, x, y, z, 0d, 0.02d, 0d);
         }
 
         // Falling droplets
@@ -122,7 +122,7 @@ public class AilmentParticleManager {
             double x = entity.getX() + (entity.getRandom().nextDouble() - 0.5) * entity.getWidth() * 0.8;
             double y = entity.getY() + entity.getHeight() * 0.8;
             double z = entity.getZ() + (entity.getRandom().nextDouble() - 0.5) * entity.getWidth() * 0.8;
-            client.world.addParticleClient((net.minecraft.particle.ParticleEffect) ModParticles.POISON_DROPLET, x, y, z, 0d, -0.05d, 0d);
+            client.world.addParticle((net.minecraft.particle.ParticleEffect) ModParticles.POISON_DROPLET, x, y, z, 0d, -0.05d, 0d);
         }
     }
 
@@ -134,11 +134,11 @@ public class AilmentParticleManager {
             double z = entity.getZ() + (entity.getRandom().nextDouble() - 0.5) * entity.getWidth() * 1.1;
             
             // Snowflakes falling very slowly
-            client.world.addParticleClient((net.minecraft.particle.ParticleEffect) ParticleTypes.SNOWFLAKE, x, y, z, 0d, -0.01d, 0d);
+            client.world.addParticle((net.minecraft.particle.ParticleEffect) ParticleTypes.SNOWFLAKE, x, y, z, 0d, -0.01d, 0d);
             
             // "Frost" vapor
             if (entity.getRandom().nextFloat() < 0.2f) {
-                client.world.addParticleClient((net.minecraft.particle.ParticleEffect) ParticleTypes.CLOUD, x, y, z, 0d, 0d, 0d);
+                client.world.addParticle((net.minecraft.particle.ParticleEffect) ParticleTypes.CLOUD, x, y, z, 0d, 0d, 0d);
             }
         }
     }
@@ -154,7 +154,7 @@ public class AilmentParticleManager {
             double y = entity.getY() + entity.getHeight() * 0.4 + entity.getRandom().nextDouble() * 0.4;
             double z = entity.getZ() + (entity.getRandom().nextDouble() - 0.5) * entity.getWidth() * 0.6;
             
-            client.world.addParticleClient((net.minecraft.particle.ParticleEffect) ParticleTypes.RAID_OMEN, x, y, z, 0d, -0.1d, 0d);
+            client.world.addParticle((net.minecraft.particle.ParticleEffect) ParticleTypes.RAID_OMEN, x, y, z, 0d, -0.1d, 0d);
         }
     }
 
@@ -163,7 +163,7 @@ public class AilmentParticleManager {
         // Pulse every 30 ticks (1.5s) for a snappier feel
         if (entity.age % 30 == 0) {
             // Play ambient shock sound
-            client.world.playSoundClient(entity.getX(), entity.getY(), entity.getZ(), 
+            client.world.playSound(entity.getX(), entity.getY(), entity.getZ(), 
                 ModSounds.SHOCK_AMBIENT, SoundCategory.HOSTILE, 0.6f, 1.0f, false);
 
             int sparkCount = 4 + entity.getRandom().nextInt(5);
@@ -180,7 +180,7 @@ public class AilmentParticleManager {
                 };
                 
                 // Higher velocity makes them "pop out" and disperse
-                client.world.addParticleClient((net.minecraft.particle.ParticleEffect) particle, x, y, z, 
+                client.world.addParticle((net.minecraft.particle.ParticleEffect) particle, x, y, z, 
                     (entity.getRandom().nextDouble() - 0.5) * 0.25d, 
                     (entity.getRandom().nextDouble() - 0.5) * 0.25d, 
                     (entity.getRandom().nextDouble() - 0.5) * 0.25d);

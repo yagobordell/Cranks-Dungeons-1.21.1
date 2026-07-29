@@ -31,7 +31,7 @@
       },
       {
         "id": "minecraft:enchantment.body_armor.max_health",
-        "attribute": "minecraft:max_health",
+        "attribute": "minecraft:generic.max_health",
         "amount": 30,
         "operation": "add_value"
       }

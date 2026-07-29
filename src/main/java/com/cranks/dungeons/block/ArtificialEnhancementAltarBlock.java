@@ -67,7 +67,7 @@ public class ArtificialEnhancementAltarBlock extends BlockWithEntity {
     }
 
     @Override
-    protected void onStateReplaced(BlockState state, net.minecraft.server.world.ServerWorld world, BlockPos pos, boolean moved) {
+    protected void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
         if (!moved) {
             BlockEntity blockEntity = world.getBlockEntity(pos);
             if (blockEntity instanceof ArtificialEnhancementAltarBlockEntity altar) {
@@ -75,7 +75,7 @@ public class ArtificialEnhancementAltarBlock extends BlockWithEntity {
                 world.updateComparators(pos, this);
             }
         }
-        super.onStateReplaced(state, world, pos, moved);
+        super.onStateReplaced(state, world, pos, newState, moved);
     }
 
     @Nullable

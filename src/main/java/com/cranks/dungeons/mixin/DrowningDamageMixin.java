@@ -96,12 +96,12 @@ public class DrowningDamageMixin {
      * Handle drowning damage - players get percentage damage, mobs get vanilla.
      */
     @ModifyVariable(
-        method = "damage(Lnet/minecraft/server/world/ServerWorld;Lnet/minecraft/entity/damage/DamageSource;F)Z",
+        method = "damage(Lnet/minecraft/entity/damage/DamageSource;F)Z",
         at = @At("HEAD"),
         argsOnly = true,
         ordinal = 0
     )
-    private float handleDrowningDamage(float amount, ServerWorld world, DamageSource source) {
+    private float handleDrowningDamage(float amount, DamageSource source) {
         // Skip if we're applying our own custom drowning damage (prevent recursion)
         if (cranks_dungeons$applyingCustomDrown) {
             return amount;
@@ -116,7 +116,9 @@ public class DrowningDamageMixin {
         
         // Show cyan-blue damage numbers to all nearby players
         if (cranks_dungeons$shouldShowDrownNumbers) {
-            broadcastDrownNumbersToNearbyPlayers(world, entity, cranks_dungeons$pendingDrownDamage);
+            if (!entity.getWorld().isClient() && entity.getWorld() instanceof net.minecraft.server.world.ServerWorld serverWorld) {
+                broadcastDrownNumbersToNearbyPlayers(serverWorld, entity, cranks_dungeons$pendingDrownDamage);
+            }
             cranks_dungeons$shouldShowDrownNumbers = false;
         }
         
@@ -134,10 +136,10 @@ public class DrowningDamageMixin {
      * Apply custom drowning damage to players after vanilla method runs.
      */
     @Inject(
-        method = "damage(Lnet/minecraft/server/world/ServerWorld;Lnet/minecraft/entity/damage/DamageSource;F)Z",
+        method = "damage(Lnet/minecraft/entity/damage/DamageSource;F)Z",
         at = @At("TAIL")
     )
-    private void applyPlayerDrowningDamage(ServerWorld world, DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
+    private void applyPlayerDrowningDamage(DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
         if (!cranks_dungeons$isDrowningDamage) {
             return;
         }
@@ -156,7 +158,7 @@ public class DrowningDamageMixin {
         
         // Apply damage using proper damage system so death handling works
         cranks_dungeons$applyingCustomDrown = true;
-        entity.damage(world, source, damage);
+        entity.damage(source, damage);
         cranks_dungeons$applyingCustomDrown = false;
     }
 

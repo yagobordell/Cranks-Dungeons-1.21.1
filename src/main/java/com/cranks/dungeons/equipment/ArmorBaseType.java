@@ -25,7 +25,7 @@ public enum ArmorBaseType {
         if (modifiers != null) {
             for (var entry : modifiers.modifiers()) {
                 var attr = entry.attribute();
-                if (attr.equals(EntityAttributes.ARMOR) || attr.equals(ModAttributes.BONUS_ARMOR)) hasArmor = true;
+                if (attr.equals(EntityAttributes.GENERIC_ARMOR) || attr.equals(ModAttributes.BONUS_ARMOR)) hasArmor = true;
                 if (attr.equals(ModAttributes.EVASION_RATING)) hasEvasion = true;
                 if (attr.equals(ModAttributes.ENERGY_SHIELD)) hasES = true;
             }

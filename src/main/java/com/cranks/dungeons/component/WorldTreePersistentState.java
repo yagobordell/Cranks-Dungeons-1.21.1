@@ -3,10 +3,10 @@ package com.cranks.dungeons.component;
 import com.cranks.dungeons.CranksDungeons;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.PersistentState;
-import net.minecraft.world.PersistentStateType;
 
 import java.util.*;
 
@@ -98,15 +98,32 @@ public class WorldTreePersistentState extends PersistentState {
             s -> s.playerData
     );
 
+    public static WorldTreePersistentState fromNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
+        return CODEC.parse(registryLookup.getOps(net.minecraft.nbt.NbtOps.INSTANCE), nbt)
+                .resultOrPartial(err -> CranksDungeons.LOGGER.error("Failed to parse WorldTreePersistentState: {}", err))
+                .orElseGet(WorldTreePersistentState::new);
+    }
+
+    @Override
+    public NbtCompound writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
+        CODEC.encodeStart(registryLookup.getOps(net.minecraft.nbt.NbtOps.INSTANCE), this)
+                .resultOrPartial(err -> CranksDungeons.LOGGER.error("Failed to encode WorldTreePersistentState: {}", err))
+                .ifPresent(encoded -> {
+                    if (encoded instanceof NbtCompound compound) {
+                        nbt.copyFrom(compound);
+                    }
+                });
+        return nbt;
+    }
+
     // --- Static Helper ---
 
     public static WorldTreePersistentState get(MinecraftServer server) {
-        PersistentStateType<WorldTreePersistentState> type = new PersistentStateType<>(
-                STATE_KEY,
+        PersistentState.Type<WorldTreePersistentState> type = new PersistentState.Type<>(
                 WorldTreePersistentState::new,
-                CODEC,
+                WorldTreePersistentState::fromNbt,
                 null
         );
-        return server.getOverworld().getPersistentStateManager().getOrCreate(type);
+        return server.getOverworld().getPersistentStateManager().getOrCreate(type, STATE_KEY);
     }
 }

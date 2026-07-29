@@ -2,7 +2,6 @@ package com.cranks.dungeons.client.compendium;
 
 import com.cranks.dungeons.client.ModKeybinds;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ClickableWidget;
@@ -114,7 +113,7 @@ public class CompendiumScreen extends Screen {
 
         activeTabId = tabId;
         MinecraftClient.getInstance().getSoundManager().play(
-                PositionedSoundInstance.ui(SoundEvents.UI_BUTTON_CLICK.value(), 1.0F));
+                PositionedSoundInstance.master(SoundEvents.UI_BUTTON_CLICK.value(), 1.0F));
 
         // Re-init the screen to add/remove widgets for the new tab
         this.init();
@@ -133,6 +132,10 @@ public class CompendiumScreen extends Screen {
         this.init();
     }
 
+    @Override
+    public void renderBackground(DrawContext context, int mouseX, int mouseY, float delta) {
+        // Prevent default 1.21 screen blur
+    }
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         // Dim the world instead of solid background
@@ -188,7 +191,7 @@ public class CompendiumScreen extends Screen {
             }
 
             // Draw icon
-            context.drawGuiTexture(net.minecraft.client.gl.RenderPipelines.GUI_TEXTURED, tab.iconTexture(), iconX, iconY, ICON_SIZE, ICON_SIZE);
+            context.drawGuiTexture(tab.iconTexture(), iconX, iconY, ICON_SIZE, ICON_SIZE);
         }
     }
 
@@ -205,11 +208,7 @@ public class CompendiumScreen extends Screen {
     }
 
     @Override
-    public boolean mouseClicked(net.minecraft.client.gui.Click click, boolean bl) {
-        double mouseX = click.x();
-        double mouseY = click.y();
-        int button = click.button();
-
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
         // Check sidebar clicks first
         if (mouseX >= 0 && mouseX < SIDEBAR_WIDTH && tabList != null) {
             int startY = getSidebarStartY();
@@ -225,7 +224,7 @@ public class CompendiumScreen extends Screen {
         }
 
         // Let widgets handle clicks
-        if (super.mouseClicked(click, bl)) {
+        if (super.mouseClicked(mouseX, mouseY, button)) {
             return true;
         }
 
@@ -238,12 +237,12 @@ public class CompendiumScreen extends Screen {
     }
 
     @Override
-    public boolean mouseDragged(net.minecraft.client.gui.Click click, double deltaX, double deltaY) {
-        if (super.mouseDragged(click, deltaX, deltaY)) {
+    public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
+        if (super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY)) {
             return true;
         }
         if (activeRenderer != null) {
-            return activeRenderer.mouseDragged(click.x(), click.y(), click.button(), deltaX, deltaY);
+            return activeRenderer.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
         }
         return false;
     }
@@ -260,20 +259,20 @@ public class CompendiumScreen extends Screen {
     }
 
     @Override
-    public boolean mouseReleased(net.minecraft.client.gui.Click click) {
-        if (super.mouseReleased(click)) {
+    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        if (super.mouseReleased(mouseX, mouseY, button)) {
             return true;
         }
         if (activeRenderer != null) {
-            return activeRenderer.mouseReleased(click.x(), click.y(), click.button());
+            return activeRenderer.mouseReleased(mouseX, mouseY, button);
         }
         return false;
     }
 
     @Override
-    public boolean keyPressed(net.minecraft.client.input.KeyInput input) {
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         // Handle tab-switching keybinds
-        if (ModKeybinds.OPEN_PASSIVE_TREE.matchesKey(input)) {
+        if (ModKeybinds.OPEN_PASSIVE_TREE.matchesKey(keyCode, scanCode)) {
             if (CompendiumTabRegistry.PASSIVE_TREE_TAB_ID.equals(activeTabId)) {
                 this.close(); // Already on passive tree → close
             } else {
@@ -282,7 +281,7 @@ public class CompendiumScreen extends Screen {
             return true;
         }
 
-        if (ModKeybinds.OPEN_WORLD_TREE.matchesKey(input)) {
+        if (ModKeybinds.OPEN_WORLD_TREE.matchesKey(keyCode, scanCode)) {
             if (CompendiumTabRegistry.WORLD_TREE_TAB_ID.equals(activeTabId)) {
                 this.close(); // Already on world tree → close
             } else {
@@ -291,16 +290,16 @@ public class CompendiumScreen extends Screen {
             return true;
         }
 
-        if (ModKeybinds.OPEN_COMPENDIUM.matchesKey(input)) {
+        if (ModKeybinds.OPEN_COMPENDIUM.matchesKey(keyCode, scanCode)) {
             this.close();
             return true;
         }
 
-        if (MinecraftClient.getInstance().options.inventoryKey.matchesKey(input)) {
+        if (MinecraftClient.getInstance().options.inventoryKey.matchesKey(keyCode, scanCode)) {
             this.close();
             MinecraftClient client = MinecraftClient.getInstance();
             if (client.player != null) {
-                if (client.interactionManager != null && !client.interactionManager.hasStatusBars()) {
+                if (client.interactionManager != null && client.interactionManager.getCurrentGameMode() == net.minecraft.world.GameMode.CREATIVE) {
                     client.setScreen(new net.minecraft.client.gui.screen.ingame.CreativeInventoryScreen(client.player, client.player.networkHandler.getEnabledFeatures(), client.options.getOperatorItemsTab().getValue()));
                 } else {
                     client.setScreen(new net.minecraft.client.gui.screen.ingame.InventoryScreen(client.player));
@@ -310,11 +309,11 @@ public class CompendiumScreen extends Screen {
         }
 
         // Delegate to active tab renderer
-        if (activeRenderer != null && activeRenderer.keyPressed(input.key(), input.scancode(), input.modifiers())) {
+        if (activeRenderer != null && activeRenderer.keyPressed(keyCode, scanCode, modifiers)) {
             return true;
         }
 
-        return super.keyPressed(input);
+        return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
     @Override

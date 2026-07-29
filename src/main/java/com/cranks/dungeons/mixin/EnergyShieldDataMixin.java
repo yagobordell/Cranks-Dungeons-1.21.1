@@ -6,8 +6,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.packet.s2c.play.EntityTrackerUpdateS2CPacket;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.storage.ReadView;
-import net.minecraft.storage.WriteView;
+import net.minecraft.nbt.NbtCompound;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -105,19 +104,19 @@ public abstract class EnergyShieldDataMixin implements EnergyShieldProvider {
         }
     }
 
-    @Inject(method = "writeData", at = @At("TAIL"))
-    protected void writeShieldData(WriteView view, CallbackInfo ci) {
+    @Inject(method = "writeNbt", at = @At("RETURN"))
+    protected void writeShieldData(NbtCompound nbt, org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable<NbtCompound> cir) {
         if ((Object)this instanceof PlayerEntity) {
-            view.putFloat("EnergyShield", currentEnergyShield);
-            view.putLong("EnergyShieldLastDamage", lastDamageTime);
+            nbt.putFloat("EnergyShield", currentEnergyShield);
+            nbt.putLong("EnergyShieldLastDamage", lastDamageTime);
         }
     }
 
-    @Inject(method = "readData", at = @At("TAIL"))
-    protected void readShieldData(ReadView view, CallbackInfo ci) {
+    @Inject(method = "readNbt", at = @At("TAIL"))
+    protected void readShieldData(NbtCompound nbt, CallbackInfo ci) {
         if ((Object)this instanceof PlayerEntity) {
-            this.currentEnergyShield = view.getFloat("EnergyShield", 0.0f);
-            this.lastDamageTime = view.getLong("EnergyShieldLastDamage", 0L);
+            this.currentEnergyShield = nbt.getFloat("EnergyShield");
+            this.lastDamageTime = nbt.getLong("EnergyShieldLastDamage");
         }
     }
 }

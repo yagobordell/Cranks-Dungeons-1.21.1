@@ -58,7 +58,7 @@ public class ModItems {
         RegistryKey<Item> key = RegistryKey.of(RegistryKeys.ITEM, id);
 
         return Registry.register(Registries.ITEM, key,
-                new RunicTomeItem(type, new Item.Settings().registryKey(key)));
+                new RunicTomeItem(type, new Item.Settings()));
     }
 
     private static Item registerSwiftnessTome(String name, CustomRarity rarity) {
@@ -66,7 +66,7 @@ public class ModItems {
         RegistryKey<Item> key = RegistryKey.of(RegistryKeys.ITEM, id);
 
         return Registry.register(Registries.ITEM, key,
-                new SwiftnessTomeItem(rarity, new Item.Settings().registryKey(key)));
+                new SwiftnessTomeItem(rarity, new Item.Settings()));
     }
 
 
@@ -75,7 +75,7 @@ public class ModItems {
         RegistryKey<Item> key = RegistryKey.of(RegistryKeys.ITEM, id);
 
         return Registry.register(Registries.ITEM, key,
-                new ElementalTomeItem(element, tier, new Item.Settings().registryKey(key)));
+                new ElementalTomeItem(element, tier, new Item.Settings()));
     }
 
     private static Item registerArtificialTome(String name, CustomRarity rarity) {
@@ -83,14 +83,14 @@ public class ModItems {
         RegistryKey<Item> key = RegistryKey.of(RegistryKeys.ITEM, id);
 
         return Registry.register(Registries.ITEM, key,
-                new ArtificialTomeItem(rarity, new Item.Settings().registryKey(key)));
+                new ArtificialTomeItem(rarity, new Item.Settings()));
     }
 
     private static Item registerHealthBonusTome(String name, CustomRarity rarity) {
         Identifier id = Identifier.of(CranksDungeons.MOD_ID, name);
         RegistryKey<Item> key = RegistryKey.of(RegistryKeys.ITEM, id);
         return Registry.register(Registries.ITEM, key,
-                new HealthBonusTomeItem(rarity, new Item.Settings().registryKey(key)));
+                new HealthBonusTomeItem(rarity, new Item.Settings()));
     }
 
 
@@ -102,7 +102,7 @@ public class ModItems {
         Identifier id = Identifier.of(CranksDungeons.MOD_ID, name);
         RegistryKey<Item> key = RegistryKey.of(RegistryKeys.ITEM, id);
         return Registry.register(Registries.ITEM, key,
-                new QualityMaterialItem(type, new Item.Settings().registryKey(key)));
+                new QualityMaterialItem(type, new Item.Settings()));
     }
 
     public static void registerModItems() {

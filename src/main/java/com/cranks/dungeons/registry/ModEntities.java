@@ -17,7 +17,7 @@ public class ModEntities {
                     .dimensions(EntityDimensions.fixed(1.0f, 1.0f))
                     .trackRangeBlocks(64)
                     .trackedUpdateRate(20)
-                    .build(net.minecraft.registry.RegistryKey.of(net.minecraft.registry.RegistryKeys.ENTITY_TYPE, Identifier.tryParse("cranks-dungeons:level_up_vfx")))
+                    .build()
     );
 
     public static void register() {

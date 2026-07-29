@@ -1,10 +1,11 @@
 package com.cranks.dungeons.util;
 
 import com.mojang.serialization.Codec;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.PersistentState;
-import net.minecraft.world.PersistentStateType;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -68,14 +69,31 @@ public final class PlacedBlockTracker {
                 s -> new ArrayList<>(s.placed)
         );
 
+        public static State fromNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
+            return CODEC.parse(registryLookup.getOps(net.minecraft.nbt.NbtOps.INSTANCE), nbt)
+                    .resultOrPartial(err -> com.cranks.dungeons.CranksDungeons.LOGGER.error("Failed to parse PlacedBlockTracker State: {}", err))
+                    .orElseGet(State::new);
+        }
+
+        @Override
+        public NbtCompound writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
+            CODEC.encodeStart(registryLookup.getOps(net.minecraft.nbt.NbtOps.INSTANCE), this)
+                    .resultOrPartial(err -> com.cranks.dungeons.CranksDungeons.LOGGER.error("Failed to encode PlacedBlockTracker State: {}", err))
+                    .ifPresent(encoded -> {
+                        if (encoded instanceof NbtCompound compound) {
+                            nbt.copyFrom(compound);
+                        }
+                    });
+            return nbt;
+        }
+
         public static State get(ServerWorld world, String trackerId) {
-            PersistentStateType<State> type = new PersistentStateType<>(
-                    trackerId,
+            PersistentState.Type<State> type = new PersistentState.Type<>(
                     State::new,
-                    State.CODEC,
+                    State::fromNbt,
                     null
             );
-            return world.getPersistentStateManager().getOrCreate(type);
+            return world.getPersistentStateManager().getOrCreate(type, trackerId);
         }
     }
 }

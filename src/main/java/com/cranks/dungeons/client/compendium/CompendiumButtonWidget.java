@@ -45,11 +45,8 @@ public class CompendiumButtonWidget extends ClickableWidget {
     }
 
     @Override
-    public boolean mouseClicked(net.minecraft.client.gui.Click click, boolean bl) {
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (this.active && this.visible) {
-            double mouseX = click.x();
-            double mouseY = click.y();
-            int button = click.button();
             if (mouseX >= this.getX() && mouseX < this.getX() + this.getWidth() && mouseY >= this.getY() && mouseY < this.getY() + this.getHeight()) {
                 if (button == 0) {
                     this.playDownSound(MinecraftClient.getInstance().getSoundManager());

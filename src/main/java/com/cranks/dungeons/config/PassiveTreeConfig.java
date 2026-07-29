@@ -175,8 +175,8 @@ public class PassiveTreeConfig {
     private static RegistryEntry<EntityAttribute> resolveAttribute(String attrId) {
         Identifier id = Identifier.tryParse(attrId);
         if (id == null) return null;
-        return Registries.ATTRIBUTE.getOptionalValue(id)
-                .map(attr -> Registries.ATTRIBUTE.getEntry(id).orElse(null))
+        return java.util.Optional.ofNullable(Registries.ATTRIBUTE.get(id))
+                .map(Registries.ATTRIBUTE::getEntry)
                 .orElse(null);
     }
 

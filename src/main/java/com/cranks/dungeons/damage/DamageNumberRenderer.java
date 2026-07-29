@@ -163,9 +163,9 @@ public class DamageNumberRenderer {
             int alpha = alphaValue << 24;
             int colorWithAlpha = (number.color & 0x00FFFFFF) | alpha;
 
-            context.getMatrices().pushMatrix();
-            context.getMatrices().translate((float) sX_final, (float) sY_final);
-            context.getMatrices().scale(scale, scale);
+            context.getMatrices().push();
+            context.getMatrices().translate((float) sX_final, (float) sY_final, 0);
+            context.getMatrices().scale(scale, scale, 1.0f);
 
             // 4. Main Text render
             context.drawText(
@@ -176,7 +176,7 @@ public class DamageNumberRenderer {
                     colorWithAlpha,
                     true // Keep vanilla shadow for clarity
             );
-            context.getMatrices().popMatrix();
+            context.getMatrices().pop();
         }
     }
 
@@ -190,7 +190,13 @@ public class DamageNumberRenderer {
         if (number.victimUuid == null)
             return;
 
-        Entity entity = client.world.getEntity(number.victimUuid);
+        Entity entity = null;
+        for (Entity e : client.world.getEntities()) {
+            if (e.getUuid().equals(number.victimUuid)) {
+                entity = e;
+                break;
+            }
+        }
 
         if (entity != null && entity.isAlive()) {
             // Entity exists - calculate target position with rotation

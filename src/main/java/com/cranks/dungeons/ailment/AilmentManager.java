@@ -563,7 +563,7 @@ public class AilmentManager {
                 } else {
                     source = serverWorld.getDamageSources().magic();
                 }
-                entity.damage(serverWorld, source, damageToApply);
+                entity.damage(source, damageToApply);
             } else {
                 // Apply non-lethal damage directly for cleaner numbers
                 entity.setHealth(newHealth);
@@ -599,7 +599,7 @@ public class AilmentManager {
             if (currentHealth - storedDamage <= 0) {
                 // Entity will die - use proper damage source to ensure loot drops
                 net.minecraft.entity.damage.DamageSource damageSource = world.getDamageSources().magic();
-                entity.damage(world, damageSource, storedDamage);
+                entity.damage(damageSource, storedDamage);
             } else {
                 // Entity won't die - apply damage directly
                 entity.setHealth(currentHealth - storedDamage);
@@ -692,7 +692,7 @@ public class AilmentManager {
                 setPoisonDamageInProgress(entity.getUuid(), true);
                 try {
                     net.minecraft.entity.damage.DamageSource damageSource = world.getDamageSources().magic();
-                    entity.damage(world, damageSource, finalPoisonDamage);
+                    entity.damage(damageSource, finalPoisonDamage);
                 } finally {
                     setPoisonDamageInProgress(entity.getUuid(), false);
                 }
@@ -821,7 +821,7 @@ public class AilmentManager {
                 // The global lock is already set, which prevents both recursive chains 
                 // AND double elemental processing (mixin checks isShockChainInProgress)
                 net.minecraft.entity.damage.DamageSource damageSource = world.getDamageSources().magic();
-                target.damage(world, damageSource, (float) finalDamage);
+                target.damage(damageSource, (float) finalDamage);
                 
                 // Play custom shock chain sound
                 world.playSound(null, target.getX(), target.getY(), target.getZ(),

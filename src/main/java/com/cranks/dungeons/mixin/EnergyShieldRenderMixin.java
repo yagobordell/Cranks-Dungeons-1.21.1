@@ -7,7 +7,6 @@ import com.cranks.dungeons.ailment.AilmentType;
 import com.cranks.dungeons.registry.ModAttributes;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.InGameHud;
 import net.minecraft.entity.player.PlayerEntity;

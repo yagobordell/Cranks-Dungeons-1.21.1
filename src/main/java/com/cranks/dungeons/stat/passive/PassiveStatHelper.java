@@ -216,7 +216,7 @@ public class PassiveStatHelper {
                     var comp = leggings.get(net.minecraft.component.DataComponentTypes.ATTRIBUTE_MODIFIERS);
                     if (comp != null) {
                         for (var modEntry : comp.modifiers()) {
-                            if (modEntry.attribute().equals(net.minecraft.entity.attribute.EntityAttributes.ARMOR)) {
+                            if (modEntry.attribute().equals(net.minecraft.entity.attribute.EntityAttributes.GENERIC_ARMOR)) {
                                 leggingsBaseArmor += modEntry.modifier().value();
                             }
                         }

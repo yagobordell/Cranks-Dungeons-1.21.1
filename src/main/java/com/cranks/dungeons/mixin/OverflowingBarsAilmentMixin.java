@@ -5,7 +5,6 @@ import com.cranks.dungeons.ailment.AilmentManager;
 import com.cranks.dungeons.ailment.AilmentType;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.InGameHud;
 import net.minecraft.entity.player.PlayerEntity;
@@ -123,7 +122,7 @@ public class OverflowingBarsAilmentMixin {
             // Get the appropriate texture
             Identifier texture = getAilmentTexture(ailment, hardcore, blinking, isHalfHeart);
             if (texture != null) {
-                context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, texture, heartX, heartY, 9, 9);
+                context.drawGuiTexture(texture, heartX, heartY, 9, 9);
             }
         }
     }

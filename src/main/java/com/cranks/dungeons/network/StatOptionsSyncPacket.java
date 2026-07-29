@@ -15,15 +15,27 @@ public record StatOptionsSyncPacket(
 
     public static final Id<StatOptionsSyncPacket> ID = new Id<>(Identifier.of(CranksDungeons.MOD_ID, "stat_options_sync"));
 
-    public static final PacketCodec<RegistryByteBuf, StatOptionsSyncPacket> CODEC = PacketCodec.tuple(
-            PacketCodecs.INTEGER, StatOptionsSyncPacket::syncId,
-            PacketCodecs.STRING, StatOptionsSyncPacket::stat0,
-            PacketCodecs.STRING, StatOptionsSyncPacket::stat1,
-            PacketCodecs.STRING, StatOptionsSyncPacket::stat2,
-            PacketCodecs.INTEGER, StatOptionsSyncPacket::tier0,
-            PacketCodecs.INTEGER, StatOptionsSyncPacket::tier1,
-            PacketCodecs.INTEGER, StatOptionsSyncPacket::tier2,
-            StatOptionsSyncPacket::new
+    public static final PacketCodec<RegistryByteBuf, StatOptionsSyncPacket> CODEC = PacketCodec.of(
+        (value, buf) -> {
+            buf.writeInt(value.syncId());
+            PacketCodecs.STRING.encode(buf, value.stat0());
+            PacketCodecs.STRING.encode(buf, value.stat1());
+            PacketCodecs.STRING.encode(buf, value.stat2());
+            buf.writeInt(value.tier0());
+            buf.writeInt(value.tier1());
+            buf.writeInt(value.tier2());
+        },
+        buf -> {
+            return new StatOptionsSyncPacket(
+                buf.readInt(),
+                PacketCodecs.STRING.decode(buf),
+                PacketCodecs.STRING.decode(buf),
+                PacketCodecs.STRING.decode(buf),
+                buf.readInt(),
+                buf.readInt(),
+                buf.readInt()
+            );
+        }
     );
 
     @Override

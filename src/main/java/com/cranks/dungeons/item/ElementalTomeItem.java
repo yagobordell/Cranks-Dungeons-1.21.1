@@ -4,9 +4,11 @@ import com.cranks.dungeons.equipment.EquipmentType;
 import com.cranks.dungeons.stat.CustomStat;
 import com.cranks.dungeons.stat.StatRegistry;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
+import java.util.List;
 import java.util.function.Consumer;
 
 public class ElementalTomeItem extends AbstractTomeItem {
@@ -128,28 +130,26 @@ public class ElementalTomeItem extends AbstractTomeItem {
     }
 
     @Override
-    public void appendTooltip(ItemStack stack, TooltipContext context,
-            net.minecraft.component.type.TooltipDisplayComponent displayComponent,
-            Consumer<Text> textConsumer, net.minecraft.item.tooltip.TooltipType type) {
+    public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
 
-        addTomeDescription(textConsumer);
+        addTomeDescription(tooltip::add);
 
         if (tier != Tier.NORMAL) {
             // Greater/Perfect tomes show weapon stats (if applicable)
-            addStatRange(textConsumer, EquipmentType.SWORD, "1H Weapons");
-            addStatRange(textConsumer, EquipmentType.SPEAR, "2H Weapons");
+            addStatRange(tooltip::add, EquipmentType.SWORD, "1H Weapons");
+            addStatRange(tooltip::add, EquipmentType.SPEAR, "2H Weapons");
             // Only Void Greater/Perfect tomes show armor stats
             if (element == Element.VOID) {
-                addStatRange(textConsumer, EquipmentType.CHESTPLATE, "Armor");
+                addStatRange(tooltip::add, EquipmentType.CHESTPLATE, "Armor");
             }
         } else {
-            addStatRange(textConsumer, EquipmentType.SWORD, "1H Weapons");
-            addStatRange(textConsumer, EquipmentType.SPEAR, "2H Weapons");
+            addStatRange(tooltip::add, EquipmentType.SWORD, "1H Weapons");
+            addStatRange(tooltip::add, EquipmentType.SPEAR, "2H Weapons");
             if (element != Element.PHYSICAL) {
-                addStatRange(textConsumer, EquipmentType.CHESTPLATE, "Armor");
+                addStatRange(tooltip::add, EquipmentType.CHESTPLATE, "Armor");
             }
         }
 
-        super.appendTooltip(stack, context, displayComponent, textConsumer, type);
+        super.appendTooltip(stack, context, tooltip, type);
     }
 }

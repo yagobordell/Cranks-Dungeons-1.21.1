@@ -50,7 +50,7 @@ public class ArtificialEnhancementAltarScreen extends HandledScreen<ArtificialEn
             optionButtons[i] = ButtonWidget.builder(Text.empty(), button -> {
                         if (this.client != null && this.client.interactionManager != null) {
                             this.client.getSoundManager().play(
-                                    PositionedSoundInstance.ui(ModSounds.ARTIFICIAL_ALTAR_CLICK, 1.0F)
+                                    PositionedSoundInstance.master(ModSounds.ARTIFICIAL_ALTAR_CLICK, 1.0F)
                             );
                             this.client.interactionManager.clickButton(handler.syncId, index);
                             handler.clearClientOptions();
@@ -102,7 +102,6 @@ public class ArtificialEnhancementAltarScreen extends HandledScreen<ArtificialEn
         int guiY = (this.height - this.backgroundHeight) / 2;
 
         context.drawTexture(
-                net.minecraft.client.gl.RenderPipelines.GUI_TEXTURED,
                 TEXTURE,
                 guiX, guiY,
                 0.0f, 0.0f,

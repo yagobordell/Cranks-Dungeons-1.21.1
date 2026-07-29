@@ -30,7 +30,7 @@ public class FilterTradesMixin {
         TradeOffers.PROFESSION_TO_LEVELED_TRADE.forEach((profession, trades) -> {
             if (trades == null) return;
             
-            boolean isLibrarian = profession.getValue().getPath().equals("librarian");
+            boolean isLibrarian = profession.id().equals("librarian");
             
             trades.forEach((level, tradeArray) -> {
                 if (tradeArray == null) return;
@@ -73,8 +73,8 @@ public class FilterTradesMixin {
     /**
      * Check if a trade is likely for enchanted equipment.
      */
-    private static boolean isEnchantedEquipmentTrade(String tradeClassName, net.minecraft.registry.RegistryKey<VillagerProfession> profession) {
-        String professionPath = profession.getValue().getPath();
+    private static boolean isEnchantedEquipmentTrade(String tradeClassName, VillagerProfession profession) {
+        String professionPath = profession.id();
         
         // If it's an anonymous class, simplify name will be empty.
         // In that case, we should be more aggressive if it's a combat/tool profession.

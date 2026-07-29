@@ -47,11 +47,11 @@ public class FreezeSlowdownMixin {
         boolean shouldApplyAttack = attackSlow != 0;
         
         // Apply or remove movement speed modifier
-        applyModifier(entity, net.minecraft.entity.attribute.EntityAttributes.MOVEMENT_SPEED, 
+        applyModifier(entity, net.minecraft.entity.attribute.EntityAttributes.GENERIC_MOVEMENT_SPEED, 
                 FREEZE_MOVEMENT_MODIFIER_ID, moveSlow, shouldApplyMove);
         
         // Apply or remove attack speed modifier  
-        applyModifier(entity, net.minecraft.entity.attribute.EntityAttributes.ATTACK_SPEED,
+        applyModifier(entity, net.minecraft.entity.attribute.EntityAttributes.GENERIC_ATTACK_SPEED,
                 FREEZE_ATTACK_MODIFIER_ID, attackSlow, shouldApplyAttack);
                 
         // Apply or remove reload speed modifier

@@ -20,7 +20,7 @@ import com.cranks.dungeons.util.CombatUtility;
 public class BonusAttackDamageMixin {
 
     @ModifyVariable(method = "damage", at = @At("HEAD"), ordinal = 0, argsOnly = true)
-    private float applyBonusAttackDamage(float amount, ServerWorld world, DamageSource source) {
+    private float applyBonusAttackDamage(float amount, DamageSource source) {
         if (source.getAttacker() instanceof LivingEntity attacker) {
             ItemStack weapon = CombatUtility.getCombatWeapon(source, attacker);
             ItemStack chestplate = attacker.getEquippedStack(EquipmentSlot.CHEST);

@@ -53,7 +53,7 @@ public enum CustomRarity {
         NbtCompound nbt = stack.getOrDefault(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,
                 net.minecraft.component.type.NbtComponent.DEFAULT).copyNbt();
         if (nbt.contains("Rarity")) {
-            String rarityStr = nbt.getString("Rarity").orElse("NORMAL");
+            String rarityStr = nbt.contains("Rarity") ? nbt.getString("Rarity") : "NORMAL";
             try {
                 return CustomRarity.valueOf(rarityStr.toUpperCase());
             } catch (IllegalArgumentException e) {

@@ -17,8 +17,8 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.PropertyDelegate;
-import net.minecraft.storage.ReadView;
-import net.minecraft.storage.WriteView;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.text.Text;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
@@ -125,19 +125,19 @@ public class QualityStationBlockEntity extends BlockEntity implements NamedScree
     }
 
     @Override
-    protected void writeData(net.minecraft.storage.WriteView view) {
-        super.writeData(view);
-        Inventories.writeData(view, inventory);
-        view.putInt("processTick", processTick);
-        view.putBoolean("isProcessing", isProcessing);
+    public void writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
+        super.writeNbt(nbt, registryLookup);
+        Inventories.writeNbt(nbt, inventory, registryLookup);
+        nbt.putInt("processTick", processTick);
+        nbt.putBoolean("isProcessing", isProcessing);
     }
 
     @Override
-    protected void readData(net.minecraft.storage.ReadView view) {
-        super.readData(view);
-        Inventories.readData(view, inventory);
-        processTick = view.getInt("processTick", 0);
-        isProcessing = view.getBoolean("isProcessing", false);
+    public void readNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
+        super.readNbt(nbt, registryLookup);
+        Inventories.readNbt(nbt, inventory, registryLookup);
+        processTick = nbt.getInt("processTick");
+        isProcessing = nbt.getBoolean("isProcessing");
     }
 
     @Override
@@ -258,7 +258,7 @@ public class QualityStationBlockEntity extends BlockEntity implements NamedScree
     public static int getQuality(ItemStack stack) {
         NbtCompound nbt = stack.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT).copyNbt();
         if (nbt.contains("Quality")) {
-            return nbt.getInt("Quality").orElse(0);
+            return nbt.getInt("Quality");
         }
         return 0;
     }

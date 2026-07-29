@@ -8,12 +8,9 @@ import com.cranks.dungeons.stat.passive.PassiveNode;
 import com.cranks.dungeons.stat.passive.PassiveNodeRegistry;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.input.KeyInput;
 import net.minecraft.text.Text;
 import net.minecraft.sound.SoundEvents;
 import com.cranks.dungeons.registry.ModSounds;
@@ -91,7 +88,7 @@ public class PassiveSkillTreeScreen extends Screen {
 
     // UI BACKGROUNDS
     private static final Identifier MENU_BACKGROUND = Identifier.of("cranks-dungeons", "passive/menu_background");
-    private static final Identifier STATS_BACKGROUND = Identifier.of("cranks-dungeons", "passive/stats_background");
+    private static final Identifier STATS_PANEL_TEXTURE = Identifier.of("cranks-dungeons", "textures/gui/stats_panel.png");
 
     private boolean choosingClass = false;
     private final Map<String, String> draftUnlocked = new HashMap<>();
@@ -228,11 +225,11 @@ public class PassiveSkillTreeScreen extends Screen {
                                 showStatsPanel = !showStatsPanel;
                                 this.init(); // Refresh button text
                             })
-                            .dimensions(this.width - 110, 10, 100, 20).build());
+                            .dimensions(this.width - 130, 5, 100, 20).build());
 
             // Close Button for Passive Tree
             this.addDrawableChild(ButtonWidget.builder(Text.literal("✕"), b -> this.close())
-                    .dimensions(this.width - 135, 10, 20, 20).build());
+                    .dimensions(this.width - 25, 5, 20, 20).build());
 
             // Center the view on the starting node for their class (only if not already
             // panned)
@@ -349,7 +346,7 @@ public class PassiveSkillTreeScreen extends Screen {
             int sidebarW = 100;
 
             // Draw Panel Background
-            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, MENU_BACKGROUND, px, py, panelW, panelH);
+            context.drawGuiTexture(MENU_BACKGROUND, px, py, panelW, panelH);
 
             // Content Area Rendering
             var classes = com.cranks.dungeons.config.PassiveTreeConfig.getClasses();
@@ -394,7 +391,7 @@ public class PassiveSkillTreeScreen extends Screen {
                 int popupH = 120;
                 int ppx = (this.width - popupW) / 2;
                 int ppy = (this.height - popupH) / 2;
-                context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, MENU_BACKGROUND, ppx, ppy, popupW, popupH);
+                context.drawGuiTexture(MENU_BACKGROUND, ppx, ppy, popupW, popupH);
 
                 int centerX = this.width / 2;
                 String classTitle = (classPendingConfirmation != null ? classPendingConfirmation.substring(0, 1).toUpperCase() + classPendingConfirmation.substring(1) : "Path");
@@ -696,19 +693,19 @@ public class PassiveSkillTreeScreen extends Screen {
             String amountStr = (amount == (long) amount) ? String.format("%d", (long) amount) : String.format("%s", amount);
 
             // Draw background for buttons
-            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, MENU_BACKGROUND, cx - 4, cy - 4, 118, 72);
+            context.drawGuiTexture(MENU_BACKGROUND, cx - 4, cy - 4, 118, 72);
 
             // Button STR
             Identifier btnStr = (mouseX >= cx && mouseX <= cx + 110 && mouseY >= cy && mouseY <= cy + 20) ? Identifier.of("minecraft", "widget/button_highlighted") : Identifier.of("minecraft", "widget/button");
-            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, btnStr, cx, cy, 110, 20);
+            context.drawGuiTexture(btnStr, cx, cy, 110, 20);
 
             // Button DEX
             Identifier btnDex = (mouseX >= cx && mouseX <= cx + 110 && mouseY >= cy + 22 && mouseY <= cy + 42) ? Identifier.of("minecraft", "widget/button_highlighted") : Identifier.of("minecraft", "widget/button");
-            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, btnDex, cx, cy + 22, 110, 20);
+            context.drawGuiTexture(btnDex, cx, cy + 22, 110, 20);
 
             // Button INT
             Identifier btnInt = (mouseX >= cx && mouseX <= cx + 110 && mouseY >= cy + 44 && mouseY <= cy + 64) ? Identifier.of("minecraft", "widget/button_highlighted") : Identifier.of("minecraft", "widget/button");
-            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, btnInt, cx, cy + 44, 110, 20);
+            context.drawGuiTexture(btnInt, cx, cy + 44, 110, 20);
 
             context.drawCenteredTextWithShadow(this.textRenderer, "+" + amountStr + " Strength", cx + 55, cy + 6, 0xFFFF5555);
             context.drawCenteredTextWithShadow(this.textRenderer, "+" + amountStr + " Dexterity", cx + 55, cy + 28, 0xFF55FF55);
@@ -746,7 +743,7 @@ public class PassiveSkillTreeScreen extends Screen {
         int panelY = (this.height - panelHeight) / 2;
 
         // Draw Panel Background
-        context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, STATS_BACKGROUND, panelX, panelY, panelWidth, panelHeight);
+        context.drawTexture(STATS_PANEL_TEXTURE, panelX, panelY, 0.0F, 0.0F, panelWidth, panelHeight, panelWidth, panelHeight);
 
         int ty = panelY + 10;
         context.drawCenteredTextWithShadow(this.textRenderer, "=== Tree Summary ===", panelX + panelWidth / 2, ty,
@@ -915,9 +912,9 @@ public class PassiveSkillTreeScreen extends Screen {
         float angle = (float) Math.atan2(dy, dx);
 
         var matrices = context.getMatrices();
-        matrices.pushMatrix();
-        matrices.translate(x1, y1);
-        matrices.rotate(angle);
+        matrices.push();
+        matrices.translate(x1, y1, 0);
+        matrices.multiply(net.minecraft.util.math.RotationAxis.POSITIVE_Z.rotation(angle));
 
         // Scale a fixed integer base to achieve sub-pixel float width/length
         float baseLen = 1000.0f;
@@ -926,16 +923,15 @@ public class PassiveSkillTreeScreen extends Screen {
         float scaleX = len / baseLen;
         float scaleY = width / baseWidth;
 
-        matrices.scale(scaleX, scaleY);
+        matrices.scale(scaleX, scaleY, 1.0f);
 
         int finalColor = (color & 0x00FFFFFF) | ((int) (alpha * 255) << 24);
         context.drawGuiTexture(
-                net.minecraft.client.gl.RenderPipelines.GUI_TEXTURED,
                 sprite,
                 0, (int) (-baseWidth / 2.0f), (int) baseLen, (int) baseWidth,
                 finalColor);
 
-        matrices.popMatrix();
+        matrices.pop();
     }
 
     private void drawNodeShape(DrawContext context, double cx, double cy, String shape, String state,
@@ -976,14 +972,14 @@ public class PassiveSkillTreeScreen extends Screen {
      */
     private void drawPrecisionTexture(DrawContext context, Identifier texture, double cx, double cy, double size, int color) {
         var matrices = context.getMatrices();
-        matrices.pushMatrix();
+        matrices.push();
         // Translate with full float precision
-        matrices.translate((float) cx, (float) cy);
+        matrices.translate((float) cx, (float) cy, 0);
 
         // Scale a fixed integer base to achieve sub-pixel float size
         float baseSize = 256.0f;
         float scale = (float) (size / baseSize);
-        matrices.scale(scale, scale);
+        matrices.scale(scale, scale, 1.0f);
 
         int drawW = (int) baseSize;
         int drawH = (int) baseSize;
@@ -991,12 +987,11 @@ public class PassiveSkillTreeScreen extends Screen {
         int drawY = -drawH / 2;
 
         context.drawGuiTexture(
-                net.minecraft.client.gl.RenderPipelines.GUI_TEXTURED,
                 texture,
                 drawX, drawY, drawW, drawH,
                 color);
 
-        matrices.popMatrix();
+        matrices.pop();
     }
 
     @Override
@@ -1018,13 +1013,13 @@ public class PassiveSkillTreeScreen extends Screen {
     }
 
     @Override
-    public boolean mouseDragged(Click click, double deltaX, double deltaY) {
-        if (super.mouseDragged(click, deltaX, deltaY)) return true;
+    public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
+        if (super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY)) return true;
         if (!choosingClass) {
             if (editMode) {
                 if (isSelectingBox) {
-                    selectionCurrentX = click.x();
-                    selectionCurrentY = click.y();
+                    selectionCurrentX = mouseX;
+                    selectionCurrentY = mouseY;
                     return true;
                 }
                 if (draggedNode != null) {
@@ -1052,13 +1047,13 @@ public class PassiveSkillTreeScreen extends Screen {
             panY += deltaY;
             return true;
         }
-        return super.mouseDragged(click, deltaX, deltaY);
+        return super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
     }
 
     @Override
-    public boolean mouseReleased(Click click) {
-        if (super.mouseReleased(click)) return true;
-        if (click.button() == 0) {
+    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        if (super.mouseReleased(mouseX, mouseY, button)) return true;
+        if (button == 0) {
             if (isSelectingBox) {
                 double minX = Math.min(selectionStartX, selectionCurrentX);
                 double maxX = Math.max(selectionStartX, selectionCurrentX);
@@ -1097,22 +1092,20 @@ public class PassiveSkillTreeScreen extends Screen {
                 draggedNode = null;
             }
         }
-        return super.mouseReleased(click);
+        return super.mouseReleased(mouseX, mouseY, button);
     }
 
     @Override
-    public boolean keyPressed(net.minecraft.client.input.KeyInput input) {
-        if (com.cranks.dungeons.client.ModKeybinds.OPEN_PASSIVE_TREE.matchesKey(input)) {
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (com.cranks.dungeons.client.ModKeybinds.OPEN_PASSIVE_TREE.matchesKey(keyCode, scanCode)) {
             this.close();
             return true;
         }
 
-        if (com.cranks.dungeons.client.ModKeybinds.OPEN_WORLD_TREE.matchesKey(input)) {
+        if (com.cranks.dungeons.client.ModKeybinds.OPEN_WORLD_TREE.matchesKey(keyCode, scanCode)) {
             this.client.setScreen(new com.cranks.dungeons.client.screen.WorldSkillTreeScreen(null));
             return true;
         }
-
-        int keyCode = input.key();
 
         if (editMode && (keyCode == GLFW.GLFW_KEY_LEFT_SHIFT || keyCode == GLFW.GLFW_KEY_RIGHT_SHIFT)) {
             toggleSnapToGrid();
@@ -1190,7 +1183,7 @@ public class PassiveSkillTreeScreen extends Screen {
             }
         }
 
-        return super.keyPressed(input);
+        return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
     public void startConnecting(PassiveNode source) {
@@ -1200,12 +1193,8 @@ public class PassiveSkillTreeScreen extends Screen {
     }
 
     @Override
-    public boolean mouseClicked(Click click, boolean bl) {
-        if (super.mouseClicked(click, bl)) return true;
-
-        double mouseX = click.x();
-        double mouseY = click.y();
-        int button = click.button();
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (super.mouseClicked(mouseX, mouseY, button)) return true;
         var player = MinecraftClient.getInstance().player;
         if (player == null) return false;
 
@@ -1242,8 +1231,8 @@ public class PassiveSkillTreeScreen extends Screen {
                         this.cacheDirty = true;
                         player.playSound(SoundEvents.BLOCK_ANVIL_PLACE, 0.4f, 1.2f);
                     } else {
-                        boolean shiftHeld = InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow(), GLFW.GLFW_KEY_LEFT_SHIFT) ||
-                                InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow(), GLFW.GLFW_KEY_RIGHT_SHIFT);
+                        boolean shiftHeld = InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow().getHandle(), GLFW.GLFW_KEY_LEFT_SHIFT) ||
+                                InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow().getHandle(), GLFW.GLFW_KEY_RIGHT_SHIFT);
                         if (shiftHeld) {
                             // Toggle selection
                             if (selectedNodeIds.contains(hitNode.id())) {
@@ -1263,8 +1252,8 @@ public class PassiveSkillTreeScreen extends Screen {
                     }
                 } else {
                     // Clicking empty space
-                    if (!(InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow(), GLFW.GLFW_KEY_LEFT_SHIFT) ||
-                            InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow(), GLFW.GLFW_KEY_RIGHT_SHIFT))) {
+                    if (!(InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow().getHandle(), GLFW.GLFW_KEY_LEFT_SHIFT) ||
+                            InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow().getHandle(), GLFW.GLFW_KEY_RIGHT_SHIFT))) {
                         selectedNodeIds.clear();
                     }
                     isSelectingBox = true;
@@ -1275,6 +1264,11 @@ public class PassiveSkillTreeScreen extends Screen {
                     return true;
                 }
             } else if (button == 1) { // Right Click: Open Editor
+                if (isConnecting) {
+                    isConnecting = false;
+                    connectionSource = null;
+                    return true;
+                }
                 if (hitNode != null) {
                     this.client.setScreen(new PassiveNodeEditScreen(this, hitNode, this::refreshCachesProxy, this::startConnecting));
                 } else {
@@ -1425,7 +1419,7 @@ public class PassiveSkillTreeScreen extends Screen {
                 return true;
             }
         }
-        return super.mouseClicked(click, bl);
+        return super.mouseClicked(mouseX, mouseY, button);
     }
 
     /**

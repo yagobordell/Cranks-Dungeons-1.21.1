@@ -75,6 +75,7 @@ public class CranksDungeons implements ModInitializer {
 		ModSounds.registerSounds();
 		ModEffects.registerEffects();
 		ModParticles.register();
+		com.cranks.dungeons.item.ItemComponentModifier.register();
 		PayloadTypeRegistry.playS2C().register(StatOptionsSyncPacket.ID, StatOptionsSyncPacket.CODEC);
 		PayloadTypeRegistry.playS2C().register(EnergyShieldSyncPacket.ID, EnergyShieldSyncPacket.CODEC);
 		StatRegistry.registerStats();

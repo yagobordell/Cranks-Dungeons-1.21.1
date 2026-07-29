@@ -96,7 +96,6 @@ public class RunicEnhancementAltarScreen extends HandledScreen<RunicEnhancementA
 
         // IMPORTANT: texture width/height match drawn width/height (no scaling)
         context.drawTexture(
-                net.minecraft.client.gl.RenderPipelines.GUI_TEXTURED,
                 textureToUse,
                 x, y,
                 0.0f, 0.0f,

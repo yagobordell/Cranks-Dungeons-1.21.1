@@ -255,7 +255,7 @@ public class DamageConversionHelper {
     }
 
     public static float calculateArmorReduction(LivingEntity target, float amount, double penetration, double armorMultiplier) {
-        double ar = target.getAttributeValue(net.minecraft.entity.attribute.EntityAttributes.ARMOR);
+        double ar = target.getAttributeValue(net.minecraft.entity.attribute.EntityAttributes.GENERIC_ARMOR);
         if (target.getAttributeValue(ModAttributes.KEYSTONE_IRON_REFLEXES) > 0) {
             ar += target.getAttributeValue(ModAttributes.EVASION_RATING);
         }

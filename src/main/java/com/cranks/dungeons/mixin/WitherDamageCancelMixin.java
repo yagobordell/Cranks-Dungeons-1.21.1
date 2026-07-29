@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class WitherDamageCancelMixin {
 
     @Inject(method = "damage", at = @At("HEAD"), cancellable = true)
-    private void cancelWitherDamage(ServerWorld world, DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
+    private void cancelWitherDamage(DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
         // Cancel wither damage - we'll handle it through resistance reduction instead
         if (source.isOf(DamageTypes.WITHER)) {
             cir.setReturnValue(false);

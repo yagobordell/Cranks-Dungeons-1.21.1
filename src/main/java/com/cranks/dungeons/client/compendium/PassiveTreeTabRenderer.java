@@ -8,10 +8,9 @@ import com.cranks.dungeons.stat.passive.PassiveNode;
 import com.cranks.dungeons.stat.passive.PassiveNodeRegistry;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.RenderPipelines;
+
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.input.KeyInput;
 import net.minecraft.text.Text;
 import net.minecraft.sound.SoundEvents;
 import com.cranks.dungeons.registry.ModSounds;
@@ -90,7 +89,7 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
 
     // UI BACKGROUNDS
     private static final Identifier MENU_BACKGROUND = Identifier.of("cranks-dungeons", "passive/menu_background");
-    private static final Identifier STATS_BACKGROUND = Identifier.of("cranks-dungeons", "passive/stats_background");
+    private static final Identifier STATS_PANEL_TEXTURE = Identifier.of("cranks-dungeons", "textures/gui/stats_panel.png");
 
     private boolean choosingClass = false;
     private final Map<String, String> draftUnlocked = new HashMap<>();
@@ -159,7 +158,7 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
             
             CompendiumButtonWidget overviewBtn = CompendiumButtonWidget.builder(Text.literal("Overview"), b -> {
                 selectedClassTab = 0;
-                int previewCenterX = contentX + 320 + (contentW - 320) / 2;
+                int previewCenterX = contentX + contentW / 2;
                 int previewCenterY = contentY + contentH / 2;
                 panX = previewCenterX;
                 panY = previewCenterY;
@@ -447,6 +446,7 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
 
         // Scissor for tree rendering so it doesn't bleed into sidebar (and left menu if choosing class)
         int scissorX = choosingClass ? (contentX + 320) : contentX;
+        context.draw();
         context.enableScissor(scissorX, contentY, contentX + contentW, contentY + contentH);
 
         // --- DRAW CONNECTIONS ---
@@ -604,6 +604,7 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
 
         }
 
+        context.draw();
         context.disableScissor();
 
         if (hovered != null) {
@@ -781,13 +782,7 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
         int panelY = contentY + (contentH - panelHeight) / 2;
 
         // Draw Panel Background
-        // Solid semi-transparent dark background
-        context.fill(panelX, panelY, panelX + panelWidth, panelY + panelHeight, 0xE60D0D1A);
-        // Borders matching the compendium style
-        context.fill(panelX, panelY, panelX + panelWidth, panelY + 1, 0xFF4A4A7A);
-        context.fill(panelX, panelY + panelHeight - 1, panelX + panelWidth, panelY + panelHeight, 0xFF4A4A7A);
-        context.fill(panelX, panelY, panelX + 1, panelY + panelHeight, 0xFF4A4A7A);
-        context.fill(panelX + panelWidth - 1, panelY, panelX + panelWidth, panelY + panelHeight, 0xFF4A4A7A);
+        context.drawTexture(STATS_PANEL_TEXTURE, panelX, panelY, 0.0F, 0.0F, panelWidth, panelHeight, panelWidth, panelHeight);
 
         int ty = panelY + 10;
         context.drawCenteredTextWithShadow(textRenderer, "Tree Summary", panelX + panelWidth / 2, ty, 0xFFEEEEFF);
@@ -955,9 +950,9 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
         float angle = (float) Math.atan2(dy, dx);
 
         var matrices = context.getMatrices();
-        matrices.pushMatrix();
-        matrices.translate(x1, y1);
-        matrices.rotate(angle);
+        matrices.push();
+        matrices.translate(x1, y1, 0.0f);
+        matrices.multiply(net.minecraft.util.math.RotationAxis.POSITIVE_Z.rotation(angle));
 
         // Scale a fixed integer base to achieve sub-pixel float width/length
         float baseLen = 1000.0f;
@@ -966,16 +961,22 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
         float scaleX = len / baseLen;
         float scaleY = width / baseWidth;
 
-        matrices.scale(scaleX, scaleY);
+        matrices.scale(scaleX, scaleY, 1.0f);
 
         int finalColor = (color & 0x00FFFFFF) | ((int) (alpha * 255) << 24);
-        context.drawGuiTexture(
-                net.minecraft.client.gl.RenderPipelines.GUI_TEXTURED,
-                sprite,
-                0, (int) (-baseWidth / 2.0f), (int) baseLen, (int) baseWidth,
-                finalColor);
+        
+        float r = ((finalColor >> 16) & 0xFF) / 255.0F;
+        float g = ((finalColor >> 8) & 0xFF) / 255.0F;
+        float b = (finalColor & 0xFF) / 255.0F;
+        float a = ((finalColor >> 24) & 0xFF) / 255.0F;
 
-        matrices.popMatrix();
+        com.mojang.blaze3d.systems.RenderSystem.setShaderColor(r, g, b, a);
+        context.drawGuiTexture(
+                sprite,
+                0, (int) (-baseWidth / 2.0f), (int) baseLen, (int) baseWidth);
+        com.mojang.blaze3d.systems.RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+
+        matrices.pop();
     }
 
     private void drawNodeShape(DrawContext context, double cx, double cy, String shape, String state,
@@ -1012,27 +1013,32 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
 
     private void drawPrecisionTexture(DrawContext context, Identifier texture, double cx, double cy, double size, int color) {
         var matrices = context.getMatrices();
-        matrices.pushMatrix();
+        matrices.push();
         // Translate with full float precision
-        matrices.translate((float) cx, (float) cy);
+        matrices.translate((float) cx, (float) cy, 0.0f);
 
         // Scale a fixed integer base to achieve sub-pixel float size
         float baseSize = 256.0f;
         float scale = (float) (size / baseSize);
-        matrices.scale(scale, scale);
+        matrices.scale(scale, scale, 1.0f);
 
         int drawW = (int) baseSize;
         int drawH = (int) baseSize;
         int drawX = -drawW / 2;
         int drawY = -drawH / 2;
 
-        context.drawGuiTexture(
-                net.minecraft.client.gl.RenderPipelines.GUI_TEXTURED,
-                texture,
-                drawX, drawY, drawW, drawH,
-                color);
+        float r = ((color >> 16) & 0xFF) / 255.0F;
+        float g = ((color >> 8) & 0xFF) / 255.0F;
+        float b = (color & 0xFF) / 255.0F;
+        float a = ((color >> 24) & 0xFF) / 255.0F;
 
-        matrices.popMatrix();
+        com.mojang.blaze3d.systems.RenderSystem.setShaderColor(r, g, b, a);
+        context.drawGuiTexture(
+                texture,
+                drawX, drawY, drawW, drawH);
+        com.mojang.blaze3d.systems.RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+
+        matrices.pop();
     }
 
     @Override
@@ -1137,7 +1143,6 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         var client = MinecraftClient.getInstance();
-        var input = new KeyInput(keyCode, scanCode, modifiers);
 
         if (editMode && (keyCode == GLFW.GLFW_KEY_LEFT_SHIFT || keyCode == GLFW.GLFW_KEY_RIGHT_SHIFT)) {
             toggleSnapToGrid();
@@ -1270,8 +1275,8 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
                         this.cacheDirty = true;
                         player.playSound(SoundEvents.BLOCK_ANVIL_PLACE, 0.4f, 1.2f);
                     } else {
-                        boolean shiftHeld = InputUtil.isKeyPressed(client.getWindow(), GLFW.GLFW_KEY_LEFT_SHIFT) ||
-                                InputUtil.isKeyPressed(client.getWindow(), GLFW.GLFW_KEY_RIGHT_SHIFT);
+                        boolean shiftHeld = InputUtil.isKeyPressed(client.getWindow().getHandle(), GLFW.GLFW_KEY_LEFT_SHIFT) ||
+                                InputUtil.isKeyPressed(client.getWindow().getHandle(), GLFW.GLFW_KEY_RIGHT_SHIFT);
                         if (shiftHeld) {
                             // Toggle selection
                             if (selectedNodeIds.contains(hitNode.id())) {
@@ -1291,8 +1296,8 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
                     }
                 } else {
                     // Clicking empty space
-                    if (!(InputUtil.isKeyPressed(client.getWindow(), GLFW.GLFW_KEY_LEFT_SHIFT) ||
-                            InputUtil.isKeyPressed(client.getWindow(), GLFW.GLFW_KEY_RIGHT_SHIFT))) {
+                    if (!(InputUtil.isKeyPressed(client.getWindow().getHandle(), GLFW.GLFW_KEY_LEFT_SHIFT) ||
+                            InputUtil.isKeyPressed(client.getWindow().getHandle(), GLFW.GLFW_KEY_RIGHT_SHIFT))) {
                         selectedNodeIds.clear();
                     }
                     isSelectingBox = true;
@@ -1303,6 +1308,11 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
                     return true;
                 }
             } else if (button == 1) { // Right Click: Open Editor
+                if (isConnecting) {
+                    isConnecting = false;
+                    connectionSource = null;
+                    return true;
+                }
                 if (hitNode != null) {
                     client.setScreen(new PassiveNodeEditScreen(parent, hitNode, this::refreshCachesProxy, node -> startConnecting(node)));
                 } else {

@@ -10,7 +10,10 @@ import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.sound.BlockSoundGroup;
+import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+
+import java.util.List;
 
 public class ModBlocks {
     public static Block RUNIC_ENHANCEMENT_ALTAR;
@@ -26,8 +29,7 @@ public class ModBlocks {
                 .strength(3.5f)
                 .requiresTool()
                 .sounds(BlockSoundGroup.STONE)
-                .nonOpaque()
-                .registryKey(runicBlockKey);
+                .nonOpaque();
 
         RUNIC_ENHANCEMENT_ALTAR = Registry.register(
                 Registries.BLOCK,
@@ -36,28 +38,24 @@ public class ModBlocks {
         );
 
         RegistryKey<Item> runicItemKey = RegistryKey.of(RegistryKeys.ITEM, runicId);
-        Registry.register(
-                Registries.ITEM,
-                runicId,
-                new BlockItem(RUNIC_ENHANCEMENT_ALTAR, new Item.Settings().registryKey(runicItemKey)) {
+        Registry.register(Registries.ITEM, runicItemKey,
+                new BlockItem(RUNIC_ENHANCEMENT_ALTAR, new Item.Settings()) {
                     @Override
-                    public void appendTooltip(net.minecraft.item.ItemStack stack, net.minecraft.item.Item.TooltipContext context, net.minecraft.component.type.TooltipDisplayComponent displayComponent, java.util.function.Consumer<net.minecraft.text.Text> textConsumer, net.minecraft.item.tooltip.TooltipType type) {
-                        textConsumer.accept(net.minecraft.text.Text.translatable(this.getTranslationKey() + ".desc").formatted(net.minecraft.util.Formatting.GRAY));
-                        super.appendTooltip(stack, context, displayComponent, textConsumer, type);
+                    public void appendTooltip(net.minecraft.item.ItemStack stack, net.minecraft.item.Item.TooltipContext context, List<Text> tooltip, net.minecraft.item.tooltip.TooltipType type) {
+                        tooltip.add(net.minecraft.text.Text.translatable(this.getTranslationKey() + ".desc").formatted(net.minecraft.util.Formatting.GRAY));
+                        super.appendTooltip(stack, context, tooltip, type);
                     }
                 }
         );
 
         // Artificial Enhancement Altar
         Identifier artificialId = Identifier.of(CranksDungeons.MOD_ID, "artificial_enhancement_altar");
-        RegistryKey<Block> artificialBlockKey = RegistryKey.of(RegistryKeys.BLOCK, artificialId);
 
         AbstractBlock.Settings artificialBlockSettings = AbstractBlock.Settings.create()
                 .strength(3.5f)
                 .requiresTool()
                 .sounds(BlockSoundGroup.STONE)
-                .nonOpaque()
-                .registryKey(artificialBlockKey);
+                .nonOpaque();
 
         ARTIFICIAL_ENHANCEMENT_ALTAR = Registry.register(
                 Registries.BLOCK,
@@ -65,29 +63,24 @@ public class ModBlocks {
                 new ArtificialEnhancementAltarBlock(artificialBlockSettings)
         );
 
-        RegistryKey<Item> artificialItemKey = RegistryKey.of(RegistryKeys.ITEM, artificialId);
-        Registry.register(
-                Registries.ITEM,
-                artificialId,
-                new BlockItem(ARTIFICIAL_ENHANCEMENT_ALTAR, new Item.Settings().registryKey(artificialItemKey)) {
+        Registry.register(Registries.ITEM, artificialId,
+                new BlockItem(ARTIFICIAL_ENHANCEMENT_ALTAR, new Item.Settings()) {
                     @Override
-                    public void appendTooltip(net.minecraft.item.ItemStack stack, net.minecraft.item.Item.TooltipContext context, net.minecraft.component.type.TooltipDisplayComponent displayComponent, java.util.function.Consumer<net.minecraft.text.Text> textConsumer, net.minecraft.item.tooltip.TooltipType type) {
-                        textConsumer.accept(net.minecraft.text.Text.translatable(this.getTranslationKey() + ".desc").formatted(net.minecraft.util.Formatting.GRAY));
-                        super.appendTooltip(stack, context, displayComponent, textConsumer, type);
+                    public void appendTooltip(net.minecraft.item.ItemStack stack, net.minecraft.item.Item.TooltipContext context, List<Text> tooltip, net.minecraft.item.tooltip.TooltipType type) {
+                        tooltip.add(net.minecraft.text.Text.translatable(this.getTranslationKey() + ".desc").formatted(net.minecraft.util.Formatting.GRAY));
+                        super.appendTooltip(stack, context, tooltip, type);
                     }
                 }
         );
 
         // Quality Station
         Identifier qualityId = Identifier.of(CranksDungeons.MOD_ID, "quality_station");
-        RegistryKey<Block> qualityBlockKey = RegistryKey.of(RegistryKeys.BLOCK, qualityId);
 
         AbstractBlock.Settings qualityBlockSettings = AbstractBlock.Settings.create()
                 .strength(3.5f)
                 .requiresTool()
                 .sounds(BlockSoundGroup.WOOD)
-                .nonOpaque()
-                .registryKey(qualityBlockKey);
+                .nonOpaque();
 
         QUALITY_STATION = Registry.register(
                 Registries.BLOCK,
@@ -95,15 +88,12 @@ public class ModBlocks {
                 new QualityStationBlock(qualityBlockSettings)
         );
 
-        RegistryKey<Item> qualityItemKey = RegistryKey.of(RegistryKeys.ITEM, qualityId);
-        Registry.register(
-                Registries.ITEM,
-                qualityId,
-                new BlockItem(QUALITY_STATION, new Item.Settings().registryKey(qualityItemKey)) {
+        Registry.register(Registries.ITEM, qualityId,
+                new BlockItem(QUALITY_STATION, new Item.Settings()) {
                     @Override
-                    public void appendTooltip(net.minecraft.item.ItemStack stack, net.minecraft.item.Item.TooltipContext context, net.minecraft.component.type.TooltipDisplayComponent displayComponent, java.util.function.Consumer<net.minecraft.text.Text> textConsumer, net.minecraft.item.tooltip.TooltipType type) {
-                        textConsumer.accept(net.minecraft.text.Text.translatable(this.getTranslationKey() + ".desc").formatted(net.minecraft.util.Formatting.GRAY));
-                        super.appendTooltip(stack, context, displayComponent, textConsumer, type);
+                    public void appendTooltip(net.minecraft.item.ItemStack stack, net.minecraft.item.Item.TooltipContext context, List<Text> tooltip, net.minecraft.item.tooltip.TooltipType type) {
+                        tooltip.add(net.minecraft.text.Text.translatable(this.getTranslationKey() + ".desc").formatted(net.minecraft.util.Formatting.GRAY));
+                        super.appendTooltip(stack, context, tooltip, type);
                     }
                 }
         );

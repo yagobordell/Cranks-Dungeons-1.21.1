@@ -40,7 +40,7 @@ public class CheckStatsCommand {
                         double weaponSpeed = EquipmentStatApplier.getItemStatValue(weapon, "attack_speed");
                         double weaponBonusDmg = EquipmentStatApplier.getItemStatValue(weapon, "bonus_attack_damage");
 
-                        double baseDamage = player.getAttributeValue(EntityAttributes.ATTACK_DAMAGE);
+                        double baseDamage = player.getAttributeValue(EntityAttributes.GENERIC_ATTACK_DAMAGE);
                         double baseCrit = player.getAttributeValue(ModAttributes.CRIT_CHANCE);
                         double localCrit = EquipmentStatApplier.getItemStatValue(weapon, "local_crit_chance");
                         double globalCrit = player.getAttributeValue(ModAttributes.GLOBAL_CRIT_CHANCE_PERCENT);
@@ -73,9 +73,9 @@ public class CheckStatsCommand {
                         player.sendMessage(Text.empty(), false);
                         player.sendMessage(Text.literal("🛡 Defensive").formatted(Formatting.BLUE, Formatting.BOLD), false);
 
-                        double maxHealth = player.getAttributeValue(EntityAttributes.MAX_HEALTH);
-                        double armor = player.getAttributeValue(EntityAttributes.ARMOR);
-                        double toughness = player.getAttributeValue(EntityAttributes.ARMOR_TOUGHNESS);
+                        double maxHealth = player.getAttributeValue(EntityAttributes.GENERIC_MAX_HEALTH);
+                        double armor = player.getAttributeValue(EntityAttributes.GENERIC_ARMOR);
+                        double toughness = player.getAttributeValue(EntityAttributes.GENERIC_ARMOR_TOUGHNESS);
                         double lifeRegen = player.getAttributeValue(ModAttributes.LIFE_REGENERATION);
                         double fireRes = player.getAttributeValue(ModAttributes.FIRE_RESISTANCE);
                         double coldRes = player.getAttributeValue(ModAttributes.COLD_RESISTANCE);

@@ -91,8 +91,8 @@ public abstract class InventoryScreenStatsMixin {
         @Unique
         private static long lastLogTime = 0;
 
-        @Inject(method = "render", at = @At("TAIL"))
-        private void renderStatsPanel(DrawContext context, int mouseX, int mouseY, float delta, CallbackInfo ci) {
+        @Inject(method = "drawBackground", at = @At("TAIL"))
+        private void renderStatsPanel(DrawContext context, float delta, int mouseX, int mouseY, CallbackInfo ci) {
                 InventoryScreen screen = (InventoryScreen) (Object) this;
 
                 try {
@@ -117,7 +117,7 @@ public abstract class InventoryScreenStatsMixin {
                                 statsVisible = !statsVisible;
                                 StatsPanelScrollHandler.setStatsVisible(statsVisible);
                                 MinecraftClient.getInstance().getSoundManager().play(
-                                                PositionedSoundInstance.ui(SoundEvents.UI_BUTTON_CLICK.value(), 1.0F));
+                                                PositionedSoundInstance.master(SoundEvents.UI_BUTTON_CLICK.value(), 1.0F));
                                 System.out.println("[StatsPanel] Toggled statsVisible=" + statsVisible);
                         }
                         lastClickState = leftClick;
@@ -133,9 +133,7 @@ public abstract class InventoryScreenStatsMixin {
                                 buttonTexture = STATS_BUTTON_NORMAL;
                         }
 
-                        context.drawTexturedQuad(buttonTexture, buttonX, buttonY, buttonX + buttonWidth,
-                                        buttonY + buttonHeight,
-                                        0.0F, 1.0F, 0.0F, 1.0F);
+                        context.drawTexture(buttonTexture, buttonX, buttonY, 0.0F, 0.0F, buttonWidth, buttonHeight, buttonWidth, buttonHeight);
 
                         // --- COMPENDIUM BUTTON (Replaces separate Passive Tree and World Tree buttons) ---
                         int compButtonX = x + 126;
@@ -148,16 +146,14 @@ public abstract class InventoryScreenStatsMixin {
 
                         if (isHoveringComp && leftClick && !lastCompendiumClickState && !draggingScrollbar) {
                                 MinecraftClient.getInstance().getSoundManager().play(
-                                                PositionedSoundInstance.ui(SoundEvents.UI_BUTTON_CLICK.value(), 1.0F));
+                                                PositionedSoundInstance.master(SoundEvents.UI_BUTTON_CLICK.value(), 1.0F));
                                 MinecraftClient.getInstance().setScreen(
                                                 new com.cranks.dungeons.client.compendium.CompendiumScreen(null));
                         }
                         lastCompendiumClickState = leftClick;
 
                         Identifier compButtonTexture = isHoveringComp ? COMPENDIUM_BUTTON_HOVER : COMPENDIUM_BUTTON_NORMAL;
-                        context.drawTexturedQuad(compButtonTexture, compButtonX, compButtonY,
-                                        compButtonX + compButtonWidth, compButtonY + compButtonHeight,
-                                        0.0F, 1.0F, 0.0F, 1.0F);
+                        context.drawTexture(compButtonTexture, compButtonX, compButtonY, 0.0F, 0.0F, compButtonWidth, compButtonHeight, compButtonWidth, compButtonHeight);
 
                         if (!statsVisible)
                                 return;
@@ -167,9 +163,7 @@ public abstract class InventoryScreenStatsMixin {
                         int panelWidth = 147;
                         int panelHeight = 166;
 
-                        context.drawTexturedQuad(STATS_PANEL_TEXTURE, panelX, panelY, panelX + panelWidth,
-                                        panelY + panelHeight,
-                                        0.0F, 1.0F, 0.0F, 1.0F);
+                        context.drawTexture(STATS_PANEL_TEXTURE, panelX, panelY, 0.0F, 0.0F, panelWidth, panelHeight, panelWidth, panelHeight);
 
                         var player = MinecraftClient.getInstance().player;
                         if (player == null)
@@ -210,8 +204,8 @@ public abstract class InventoryScreenStatsMixin {
                         curY += 11;
 
                         curY = drawStatWithTooltip(context, tr, panelX, curY, "Max Health",
-                                        player.getAttributeValue(EntityAttributes.MAX_HEALTH),
-                                        cranks$getPassiveBase(player, EntityAttributes.MAX_HEALTH), " HP", mouseX,
+                                        player.getAttributeValue(EntityAttributes.GENERIC_MAX_HEALTH),
+                                        cranks$getPassiveBase(player, EntityAttributes.GENERIC_MAX_HEALTH), " HP", mouseX,
                                         mouseY, panelX, panelWidth);
                         curY = drawStatWithTooltip(context, tr, panelX, curY, "Health Regen.",
                                         player.getAttributeValue(ModAttributes.LIFE_REGENERATION),
@@ -246,7 +240,7 @@ public abstract class InventoryScreenStatsMixin {
                         // --- CATEGORY 3: ARMOUR ---
                         context.drawText(tr, Text.literal("Armour"), panelX + 6, curY, 0xFF404040, false);
                         curY += 11;
-                        double displayArmor = player.getAttributeValue(EntityAttributes.ARMOR);
+                        double displayArmor = player.getAttributeValue(EntityAttributes.GENERIC_ARMOR);
                         double displayEvasion = player.getAttributeValue(ModAttributes.EVASION_RATING);
                         if (player.getAttributeValue(ModAttributes.KEYSTONE_IRON_REFLEXES) > 0) {
                                 displayArmor += displayEvasion;
@@ -255,7 +249,7 @@ public abstract class InventoryScreenStatsMixin {
 
                         curY = drawStatWithTooltip(context, tr, panelX, curY, "Armor",
                                         displayArmor,
-                                        cranks$getPassiveBase(player, EntityAttributes.ARMOR), "", mouseX, mouseY,
+                                        cranks$getPassiveBase(player, EntityAttributes.GENERIC_ARMOR), "", mouseX, mouseY,
                                         panelX, panelWidth);
                         curY += 6;
 
@@ -382,7 +376,7 @@ public abstract class InventoryScreenStatsMixin {
 
                         double passiveMovePercent = cranks$getPassivePercentBonus(player, ModAttributes.MOVEMENT_SPEED);
                         curY = drawStatWithTooltip(context, tr, panelX, curY, "Move Speed",
-                                        player.getAttributeValue(EntityAttributes.MOVEMENT_SPEED) / 0.1 * 100,
+                                        player.getAttributeValue(EntityAttributes.GENERIC_MOVEMENT_SPEED) / 0.1 * 100,
                                         100.0 * (1.0 + passiveMovePercent),
                                         "%", mouseX, mouseY, panelX, panelWidth);
 
@@ -435,10 +429,10 @@ public abstract class InventoryScreenStatsMixin {
                                         basePrecision * 100.0, "%", mouseX, mouseY, panelX, panelWidth);
 
                         curY = drawStatWithTooltip(context, tr, panelX, curY, "Range",
-                                        player.getAttributeValue(EntityAttributes.ENTITY_INTERACTION_RANGE)
+                                        player.getAttributeValue(EntityAttributes.PLAYER_ENTITY_INTERACTION_RANGE)
                                                         + EquipmentStatApplier.getItemStatValue(weapon,
                                                                         "breaking_range"),
-                                        cranks$getPassiveBase(player, EntityAttributes.ENTITY_INTERACTION_RANGE),
+                                        cranks$getPassiveBase(player, EntityAttributes.PLAYER_ENTITY_INTERACTION_RANGE),
                                         " blocks", mouseX, mouseY, panelX, panelWidth);
 
                         curY = drawStatWithTooltip(context, tr, panelX, curY, "Ore Fortune",
@@ -655,7 +649,7 @@ public abstract class InventoryScreenStatsMixin {
                 if (player.getAttributeValue(ModAttributes.KEYSTONE_IRON_REFLEXES) > 0)
                         return "Evasion converted to Armor by Iron Reflexes";
                 double rating = player.getAttributeValue(ModAttributes.EVASION_RATING);
-                double armor = player.getAttributeValue(EntityAttributes.ARMOR);
+                double armor = player.getAttributeValue(EntityAttributes.GENERIC_ARMOR);
                 // Adjusted armor penalty (4.0x) to match new balancing
                 return (int) (rating / (rating + 400.0 + armor * 4.0) * 100) + "% chance to dodge";
         }
@@ -665,7 +659,7 @@ public abstract class InventoryScreenStatsMixin {
                 var player = MinecraftClient.getInstance().player;
                 if (player == null)
                         return "Reduces incoming physical damage";
-                double armor = player.getAttributeValue(EntityAttributes.ARMOR);
+                double armor = player.getAttributeValue(EntityAttributes.GENERIC_ARMOR);
                 if (player.getAttributeValue(ModAttributes.KEYSTONE_IRON_REFLEXES) > 0) {
                         armor += player.getAttributeValue(ModAttributes.EVASION_RATING);
                 }
@@ -686,7 +680,7 @@ public abstract class InventoryScreenStatsMixin {
                 if (player == null)
                         return "Reduces extra damage from critical hits";
                 double mitigationMultiplier = player.getAttributeValue(ModAttributes.ARMOR_CRIT_MITIGATION);
-                double armor = player.getAttributeValue(EntityAttributes.ARMOR);
+                double armor = player.getAttributeValue(EntityAttributes.GENERIC_ARMOR);
                 double mitigation = Math.min(1.0, armor * mitigationMultiplier);
 
                 return String.format("Reduces Critical Extra Damage by %.1f%% (%.2f%% per Armor)",
@@ -805,17 +799,13 @@ public abstract class InventoryScreenStatsMixin {
                 int scrollOffset = StatsPanelScrollHandler.getScrollOffset();
                 int maxScrollOffset = StatsPanelScrollHandler.getMaxScrollOffset();
 
-                context.drawTexturedQuad(SCROLLBAR_TRACK_TEXTURE, sbX, sbY, sbX + sbWidth, sbY + sbHeight, 0.0F, 1.0F,
-                                0.0F,
-                                1.0F);
+                context.drawTexture(SCROLLBAR_TRACK_TEXTURE, sbX, sbY, 0.0F, 0.0F, sbWidth, sbHeight, sbWidth, sbHeight);
 
                 float scrollPercent = maxScrollOffset > 0 ? (float) scrollOffset / maxScrollOffset : 0;
                 int thumbHeight = Math.max(20, sbHeight / 4);
                 int thumbY = sbY + (int) (scrollPercent * (sbHeight - thumbHeight));
 
-                context.drawTexturedQuad(SCROLLBAR_THUMB_TEXTURE, sbX, thumbY, sbX + sbWidth, thumbY + thumbHeight,
-                                0.0F, 1.0F,
-                                0.0F, 1.0F);
+                context.drawTexture(SCROLLBAR_THUMB_TEXTURE, sbX, thumbY, 0.0F, 0.0F, sbWidth, thumbHeight, sbWidth, thumbHeight);
 
                 if (leftClick) {
                         if (!draggingScrollbar && mouseX >= sbX && mouseX <= sbX + sbWidth && mouseY >= sbY

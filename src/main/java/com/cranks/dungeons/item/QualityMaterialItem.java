@@ -1,6 +1,9 @@
 package com.cranks.dungeons.item;
 
 import net.minecraft.item.Item;
+import net.minecraft.text.Text;
+
+import java.util.List;
 
 public class QualityMaterialItem extends Item {
     public enum Type {
@@ -21,9 +24,8 @@ public class QualityMaterialItem extends Item {
 
     @Override
     public void appendTooltip(net.minecraft.item.ItemStack stack, net.minecraft.item.Item.TooltipContext context,
-                              net.minecraft.component.type.TooltipDisplayComponent displayComponent,
-                              java.util.function.Consumer<net.minecraft.text.Text> textConsumer, net.minecraft.item.tooltip.TooltipType type) {
-        textConsumer.accept(net.minecraft.text.Text.translatable(this.getTranslationKey() + ".desc").formatted(net.minecraft.util.Formatting.GRAY));
-        super.appendTooltip(stack, context, displayComponent, textConsumer, type);
+                              List<Text> tooltip, net.minecraft.item.tooltip.TooltipType type) {
+        tooltip.add(net.minecraft.text.Text.translatable(this.getTranslationKey() + ".desc").formatted(net.minecraft.util.Formatting.GRAY));
+        super.appendTooltip(stack, context, tooltip, type);
     }
 }

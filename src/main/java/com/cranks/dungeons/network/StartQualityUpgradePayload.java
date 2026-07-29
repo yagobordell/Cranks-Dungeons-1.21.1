@@ -11,7 +11,7 @@ public record StartQualityUpgradePayload(boolean start) implements CustomPayload
     public static final Id<StartQualityUpgradePayload> ID = new Id<>(Identifier.of("cranks-dungeons", "start_quality_upgrade"));
 
     public static final PacketCodec<RegistryByteBuf, StartQualityUpgradePayload> CODEC = PacketCodec.tuple(
-            PacketCodecs.BOOLEAN, StartQualityUpgradePayload::start,
+            PacketCodecs.BOOL, StartQualityUpgradePayload::start,
             StartQualityUpgradePayload::new
     );
 

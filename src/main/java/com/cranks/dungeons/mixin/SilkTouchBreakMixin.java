@@ -43,8 +43,8 @@ public class SilkTouchBreakMixin {
                 DataComponentTypes.ENCHANTMENTS, ItemEnchantmentsComponent.DEFAULT);
 
         RegistryEntry<Enchantment> silkTouchEntry = player.getRegistryManager()
-                .getOrThrow(RegistryKeys.ENCHANTMENT)
-                .getOrThrow(Enchantments.SILK_TOUCH);
+                .get(RegistryKeys.ENCHANTMENT)
+                .getEntry(Enchantments.SILK_TOUCH).get();
 
         if (EnchantmentHelper.getLevel(silkTouchEntry, tool) <= 0) return;
 

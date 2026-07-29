@@ -34,7 +34,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class ElementalDamageMixin {
 
     @Shadow
-    public abstract boolean damage(ServerWorld world, DamageSource source, float amount);
+    public abstract boolean damage(DamageSource source, float amount);
 
     @Shadow
     public abstract void heal(float amount);
@@ -59,7 +59,7 @@ public abstract class ElementalDamageMixin {
     // processing
 
     @ModifyVariable(method = "damage", at = @At("HEAD"), argsOnly = true)
-    private float cranks$overrideDamage(float amount, ServerWorld world, DamageSource source) {
+    private float cranks$overrideDamage(float amount, DamageSource source) {
         LivingEntity target = (LivingEntity) (Object) this;
         Entity attackerEntity = source.getAttacker();
 
@@ -68,7 +68,7 @@ public abstract class ElementalDamageMixin {
 
             // Check for Ranged Damage Override
             if (CombatUtility.isRanged(weapon, source)) {
-                double baseDamage = attacker.getAttributeValue(net.minecraft.entity.attribute.EntityAttributes.ATTACK_DAMAGE);
+                double baseDamage = attacker.getAttributeValue(net.minecraft.entity.attribute.EntityAttributes.GENERIC_ATTACK_DAMAGE);
                 baseDamage += com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, weapon, "minecraft:power", 3.0);
 
                 double totalPercent = 1.0 + attacker.getAttributeValue(ModAttributes.ATTACK_DAMAGE_PERCENT)
@@ -114,7 +114,7 @@ public abstract class ElementalDamageMixin {
     }
 
     @Inject(method = "damage", at = @At("RETURN"))
-    private void applyElementalDamageOnHit(ServerWorld world, DamageSource source, float argAmount,
+    private void applyElementalDamageOnHit(DamageSource source, float argAmount,
             CallbackInfoReturnable<Boolean> cir) {
         // Skip if damage didn't succeed or already processing
         if (!cir.getReturnValue()) {
@@ -139,9 +139,13 @@ public abstract class ElementalDamageMixin {
         AilmentManager.accumulateBleedDamage(target, actualAmount);
 
         if (source.getAttacker() instanceof LivingEntity attacker) {
-            handleLivingAttacker(world, source, actualAmount, attacker, target);
+            if (!target.getWorld().isClient() && target.getWorld() instanceof net.minecraft.server.world.ServerWorld serverWorld) {
+                handleLivingAttacker(serverWorld, source, actualAmount, attacker, target);
+            }
         } else {
-            handleNonPlayerDamage(world, source, actualAmount, target);
+            if (!target.getWorld().isClient() && target.getWorld() instanceof net.minecraft.server.world.ServerWorld serverWorld) {
+                handleNonPlayerDamage(serverWorld, source, actualAmount, target);
+            }
         }
     }
 

@@ -53,24 +53,14 @@ public class RunicEnhancementAltarBlock extends BlockWithEntity {
     }
 
     @Override
-    protected void onStateReplaced(BlockState state, ServerWorld world, BlockPos pos, boolean moved) {
+    protected void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
         if (!moved) {
             BlockEntity blockEntity = world.getBlockEntity(pos);
             if (blockEntity instanceof RunicEnhancementAltarBlockEntity altar) {
                 ItemScatterer.spawn(world, pos, altar);
             }
         }
-        super.onStateReplaced(state, world, pos, moved);
-    }
-
-    @Override
-    public boolean isTransparent(BlockState state) {
-        return true;
-    }
-
-    @Override
-    public int getOpacity(BlockState state) {
-        return 0; // Allows light to pass through the empty spaces
+        super.onStateReplaced(state, world, pos, newState, moved);
     }
 
     // This is the most important one for fixing the "X-ray" look

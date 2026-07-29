@@ -26,7 +26,7 @@ public abstract class DamageReductionMixin {
             ordinal = 0,
             argsOnly = true
     )
-    private float cranks$applyElementalResistances(float amount, ServerWorld world, DamageSource source) {
+    private float cranks$applyElementalResistances(float amount, DamageSource source) {
         if (cranks$processingResistance.get()) {
             return amount;
         }
@@ -34,6 +34,7 @@ public abstract class DamageReductionMixin {
         try {
             cranks$processingResistance.set(true);
             LivingEntity entity = (LivingEntity) (Object) this;
+            net.minecraft.world.World world = entity.getWorld();
 
             // If the entity already has our custom BURN ailment, we disable the vanilla "On Fire" DOT
             // to avoid double-ticking damage. 

@@ -26,13 +26,13 @@ public abstract class CriticalStrikeMixin {
             method = "damage",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/entity/LivingEntity;applyDamage(Lnet/minecraft/server/world/ServerWorld;Lnet/minecraft/entity/damage/DamageSource;F)V",
+                    target = "Lnet/minecraft/entity/LivingEntity;applyDamage(Lnet/minecraft/entity/damage/DamageSource;F)V",
                     shift = At.Shift.BEFORE
             ),
             ordinal = 0,
             argsOnly = true
     )
-    private float applyTotalCalculatedDamage(float amount, ServerWorld world, DamageSource source) {
+    private float applyTotalCalculatedDamage(float amount, DamageSource source) {
         // Reset crit state
         CriticalHitState.reset();
 
@@ -77,14 +77,16 @@ public abstract class CriticalStrikeMixin {
                 float extraDamageMult = (float) (critMult - 1.0);
                 double mitigationMultiplier = target.getAttributeValue(ModAttributes.ARMOR_CRIT_MITIGATION);
                 if (mitigationMultiplier > 0) {
-                    double armor = target.getAttributeValue(net.minecraft.entity.attribute.EntityAttributes.ARMOR);
+                    double armor = target.getAttributeValue(net.minecraft.entity.attribute.EntityAttributes.GENERIC_ARMOR);
                     double mitigation = Math.min(1.0, armor * mitigationMultiplier);
                     extraDamageMult *= (float) (1.0 - mitigation);
                 }
                 
                 finalAmount = amount * (1.0f + extraDamageMult);
                 CriticalHitState.setCriticalHit(true);
-                spawnCriticalEffects(world, target, attacker);
+                if (!target.getWorld().isClient() && target.getWorld() instanceof net.minecraft.server.world.ServerWorld serverWorld) {
+                    spawnCriticalEffects(serverWorld, target, attacker);
+                }
             }
 
 

@@ -43,9 +43,11 @@ public class EnergyShieldDamageMixin {
      * method cancels the entire damage call after ES fully absorbs the hit.
      */
     @ModifyVariable(method = "damage", at = @At("HEAD"), argsOnly = true)
-    private float applyEnergyShieldMitigation(float amount, ServerWorld world, DamageSource source) {
+    private float applyEnergyShieldMitigation(float amount, DamageSource source) {
         LivingEntity self = (LivingEntity) (Object) this;
-        if (world.isClient()) return amount;
+        net.minecraft.world.World worldRaw = self.getEntityWorld();
+        if (worldRaw.isClient()) return amount;
+        if (!(worldRaw instanceof net.minecraft.server.world.ServerWorld world)) return amount;
         if (amount <= 0) return 0.0f;
 
         // === THORNS DAMAGE (melee only) ===
@@ -61,7 +63,7 @@ public class EnergyShieldDamageMixin {
                         cranks$processingThorns.set(true);
                         int oldTimeUntilRegen = livingAttacker.timeUntilRegen;
                         livingAttacker.timeUntilRegen = 0;
-                        livingAttacker.damage(world, self.getDamageSources().thorns(self), (float) thorns);
+                        livingAttacker.damage(self.getDamageSources().thorns(self), (float) thorns);
                         livingAttacker.timeUntilRegen = oldTimeUntilRegen;
                     } finally {
                         cranks$processingThorns.set(false);
@@ -71,7 +73,7 @@ public class EnergyShieldDamageMixin {
         }
 
         // Bypass shield if entity is invulnerable
-        if (self.isInvulnerableTo(world, source)) return 0.0f;
+        if (self.isInvulnerableTo(source)) return 0.0f;
 
         // Party friendly fire check (only if target is player)
         if (self instanceof PlayerEntity player && source.getAttacker() instanceof PlayerEntity attacker) {
@@ -162,7 +164,7 @@ public class EnergyShieldDamageMixin {
                 if (self instanceof ServerPlayerEntity serverPlayer) {
                     serverPlayer.networkHandler.sendPacket(velocityPacket);
                 }
-                world.getChunkManager().sendToNearbyPlayers(self, velocityPacket);
+                net.fabricmc.fabric.api.networking.v1.PlayerLookup.tracking(self).forEach(p -> p.networkHandler.sendPacket(velocityPacket));
             }
             
             return 0.0f; 
@@ -190,7 +192,8 @@ public class EnergyShieldDamageMixin {
                 if (self instanceof ServerPlayerEntity serverPlayer) {
                     serverPlayer.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.EntityVelocityUpdateS2CPacket(self));
                 } else {
-                    world.getChunkManager().sendToNearbyPlayers(self, new net.minecraft.network.packet.s2c.play.EntityVelocityUpdateS2CPacket(self));
+                    net.minecraft.network.packet.s2c.play.EntityVelocityUpdateS2CPacket velocityPacket = new net.minecraft.network.packet.s2c.play.EntityVelocityUpdateS2CPacket(self);
+                    net.fabricmc.fabric.api.networking.v1.PlayerLookup.tracking(self).forEach(p -> p.networkHandler.sendPacket(velocityPacket));
                 }
             }
 
@@ -202,7 +205,7 @@ public class EnergyShieldDamageMixin {
      * Because ModifyVariable changed amount to 0 when absorbed, we cancel the damage method here.
      */
     @Inject(method = "damage", at = @At("HEAD"), cancellable = true)
-    private void cancelShieldedDamage(ServerWorld world, DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
+    private void cancelShieldedDamage(DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
         if (amount <= 0.0f) {
             cir.setReturnValue(false);
         }

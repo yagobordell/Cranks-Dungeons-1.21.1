@@ -109,7 +109,7 @@ public class WorldTreeConfig {
     private static RegistryEntry<EntityAttribute> resolveAttribute(String attrId) {
         Identifier id = Identifier.tryParse(attrId);
         if (id == null) return null;
-        return Registries.ATTRIBUTE.getOptionalValue(id)
+        return java.util.Optional.ofNullable(Registries.ATTRIBUTE.get(id))
                 .map(attr -> Registries.ATTRIBUTE.getEntry(id).orElse(null))
                 .orElse(null);
     }

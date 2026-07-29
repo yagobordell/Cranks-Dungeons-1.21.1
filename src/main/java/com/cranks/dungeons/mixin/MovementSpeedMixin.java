@@ -36,7 +36,7 @@ public class MovementSpeedMixin {
 
         lastSpeedBonus = speedBonus;
 
-        var speedAttr = player.getAttributeInstance(EntityAttributes.MOVEMENT_SPEED);
+        var speedAttr = player.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED);
         if (speedAttr != null) {
             speedAttr.removeModifier(MODIFIER_ID);
 

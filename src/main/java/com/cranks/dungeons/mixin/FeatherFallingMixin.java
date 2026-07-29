@@ -17,7 +17,7 @@ public class FeatherFallingMixin {
             ordinal = 0,
             argsOnly = true
     )
-    private float applyFeatherFalling(float amount, ServerWorld world, DamageSource source) {
+    private float applyFeatherFalling(float amount, DamageSource source) {
         if (source.isOf(net.minecraft.entity.damage.DamageTypes.FALL)) {
             LivingEntity entity = (LivingEntity) (Object) this;
             double featherFalling = entity.getAttributeValue(ModAttributes.FEATHER_FALLING);

@@ -28,7 +28,7 @@ public abstract class ServerPlayerDeathDropMixin {
 	@Mixin(PlayerEntity.class)
 	public interface PlayerEntityDropInvoker {
 		@Invoker("dropInventory")
-		void invokeDropInventory(ServerWorld world);
+		void invokeDropInventory();
 	}
 
 	/**
@@ -53,7 +53,7 @@ public abstract class ServerPlayerDeathDropMixin {
 			// Use the invoker to call the protected dropInventory method
 			// This will only drop items if they haven't been dropped yet
 			// (items are removed from inventory when dropped)
-			((PlayerEntityDropInvoker) player).invokeDropInventory(serverWorld);
+			((PlayerEntityDropInvoker) player).invokeDropInventory();
 			
 			System.out.println("[CranksDungeons] Ensured inventory drop for player: " + player.getName().getString());
 		} catch (Exception e) {

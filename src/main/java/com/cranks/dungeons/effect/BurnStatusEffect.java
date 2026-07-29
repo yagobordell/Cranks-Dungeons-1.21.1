@@ -13,11 +13,11 @@ public class BurnStatusEffect extends StatusEffect {
     }
 
     @Override
-    public boolean applyUpdateEffect(ServerWorld world, LivingEntity entity, int amplifier) {
+    public boolean applyUpdateEffect(LivingEntity entity, int amplifier) {
         // Play looping burn sound every 15 ticks (approx 0.75 seconds)
         // A slightly faster loop than shock for a more intense "burning" feel
         if (entity.age % 15 == 0) {
-            world.playSound(
+            entity.getWorld().playSound(
                 null,
                 entity.getX(),
                 entity.getY(),
@@ -25,7 +25,7 @@ public class BurnStatusEffect extends StatusEffect {
                 ModSounds.BURN_LOOP,
                 SoundCategory.NEUTRAL,
                 0.8f, // Standardized volume to match other ailments
-                0.9f + (world.random.nextFloat() * 0.2f) // Pitch variation
+                0.9f + (entity.getRandom().nextFloat() * 0.2f) // Pitch variation
             );
         }
         return true;

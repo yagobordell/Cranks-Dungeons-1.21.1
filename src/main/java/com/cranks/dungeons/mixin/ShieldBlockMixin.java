@@ -21,10 +21,11 @@ public abstract class ShieldBlockMixin {
     private boolean cranks$forceSkipVanillaBlock = false;
 
     @ModifyVariable(method = "damage", at = @At("HEAD"), ordinal = 0, argsOnly = true)
-    private float applyShieldBlock(float amount, ServerWorld world, DamageSource source) {
+    private float applyShieldBlock(float amount, DamageSource source) {
         if (amount <= 0 || source.isIn(DamageTypeTags.BYPASSES_SHIELD)) return amount;
 
         LivingEntity entity = (LivingEntity) (Object) this;
+        net.minecraft.world.World world = entity.getEntityWorld();
         cranks$forceSkipVanillaBlock = false;
 
         // Resolute Technique prevents blocking
@@ -76,7 +77,7 @@ public abstract class ShieldBlockMixin {
                         activeStack.damage(shieldDamage, entity, net.minecraft.entity.EquipmentSlot.OFFHAND);
                         if (activeStack.isEmpty()) {
                             entity.clearActiveItem();
-                            net.minecraft.sound.SoundEvent sound = net.minecraft.sound.SoundEvents.ITEM_SHIELD_BREAK.value();
+                            net.minecraft.sound.SoundEvent sound = net.minecraft.sound.SoundEvents.ITEM_SHIELD_BREAK;
                             entity.playSound(sound, 0.8F, 0.8F + entity.getRandom().nextFloat() * 0.4F);
                         }
                     }

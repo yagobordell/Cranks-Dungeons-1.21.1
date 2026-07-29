@@ -4,12 +4,10 @@ import com.cranks.dungeons.block.ModBlocks;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricRecipeProvider;
 import net.minecraft.block.Blocks;
-import net.minecraft.data.recipe.RecipeExporter;
-import net.minecraft.data.recipe.RecipeGenerator;
-import net.minecraft.data.recipe.ShapedRecipeJsonBuilder;
+import net.minecraft.data.server.recipe.RecipeExporter;
+import net.minecraft.data.server.recipe.ShapedRecipeJsonBuilder;
 import net.minecraft.item.Items;
 import net.minecraft.recipe.book.RecipeCategory;
-import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.RegistryWrapper;
 
 import java.util.concurrent.CompletableFuture;
@@ -21,33 +19,26 @@ public class RunicEnhancementAltarRecipeProvider extends FabricRecipeProvider {
     }
 
     @Override
-    protected RecipeGenerator getRecipeGenerator(RegistryWrapper.WrapperLookup wrapperLookup, RecipeExporter recipeExporter) {
-        return new RecipeGenerator(wrapperLookup, recipeExporter) {
-            @Override
-            public void generate() {
-                var itemLookup = wrapperLookup.getOrThrow(RegistryKeys.ITEM);
+    public void generate(RecipeExporter exporter) {
+        ShapedRecipeJsonBuilder.create(RecipeCategory.DECORATIONS, ModBlocks.RUNIC_ENHANCEMENT_ALTAR, 1)
+                .pattern(" D ")
+                .pattern("SSS")
+                .pattern("SSS")
+                .input('D', Items.DIAMOND)
+                .input('S', Blocks.STONE)
+                .criterion(hasItem(Items.DIAMOND), conditionsFromItem(Items.DIAMOND))
+                .offerTo(exporter);
 
-                ShapedRecipeJsonBuilder.create(itemLookup, RecipeCategory.DECORATIONS, ModBlocks.RUNIC_ENHANCEMENT_ALTAR, 1)
-                        .pattern(" D ")
-                        .pattern("SSS")
-                        .pattern("SSS")
-                        .input('D', Items.DIAMOND)
-                        .input('S', Blocks.STONE)
-                        .criterion(hasItem(Items.DIAMOND), conditionsFromItem(Items.DIAMOND))
-                        .offerTo(exporter);
-
-                ShapedRecipeJsonBuilder.create(itemLookup, RecipeCategory.DECORATIONS, ModBlocks.ARTIFICIAL_ENHANCEMENT_ALTAR, 1)
-                        .pattern("AEA")
-                        .pattern("NNN")
-                        .pattern("OOO")
-                        .input('A', Items.AMETHYST_SHARD)
-                        .input('E', Items.ENDER_EYE)
-                        .input('N', Blocks.END_STONE)
-                        .input('O', Blocks.OBSIDIAN)
-                        .criterion(hasItem(Items.ENDER_EYE), conditionsFromItem(Items.ENDER_EYE))
-                        .offerTo(exporter);
-            }
-        };
+        ShapedRecipeJsonBuilder.create(RecipeCategory.DECORATIONS, ModBlocks.ARTIFICIAL_ENHANCEMENT_ALTAR, 1)
+                .pattern("AEA")
+                .pattern("NNN")
+                .pattern("OOO")
+                .input('A', Items.AMETHYST_SHARD)
+                .input('E', Items.ENDER_EYE)
+                .input('N', Blocks.END_STONE)
+                .input('O', Blocks.OBSIDIAN)
+                .criterion(hasItem(Items.ENDER_EYE), conditionsFromItem(Items.ENDER_EYE))
+                .offerTo(exporter);
     }
 
     @Override

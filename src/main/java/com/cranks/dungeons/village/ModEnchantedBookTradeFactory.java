@@ -73,7 +73,7 @@ public class ModEnchantedBookTradeFactory implements TradeOffers.Factory {
     }
     
     @Override
-    public TradeOffer create(ServerWorld world, Entity entity, Random random) {
+    public TradeOffer create(Entity entity, Random random) {
         initializeEnchantmentKeys();
         
         if (MOD_ENCHANTMENT_KEYS.isEmpty()) {
@@ -81,16 +81,14 @@ public class ModEnchantedBookTradeFactory implements TradeOffers.Factory {
         }
         
         // Get the enchantment registry from the world
-        var enchantmentRegistry = world.getRegistryManager().getOrThrow(RegistryKeys.ENCHANTMENT);
+        var enchantmentRegistry = entity.getWorld().getRegistryManager().get(RegistryKeys.ENCHANTMENT);
         
         // Try to find a valid enchantment (some might not be loaded)
         List<RegistryEntry<Enchantment>> availableEnchantments = new ArrayList<>();
         for (RegistryKey<Enchantment> key : MOD_ENCHANTMENT_KEYS) {
-            try {
-                RegistryEntry<Enchantment> entry = enchantmentRegistry.getOrThrow(key);
+            RegistryEntry<Enchantment> entry = enchantmentRegistry.getEntry(key).orElse(null);
+            if (entry != null) {
                 availableEnchantments.add(entry);
-            } catch (Exception e) {
-                // Enchantment not loaded, skip it
             }
         }
         

@@ -1,4 +1,10 @@
 {
+  "block.cranks-dungeons.artificial_enhancement_altar": "Artificial Enhancement Altar",
+  "block.cranks-dungeons.artificial_enhancement_altar.desc": "Enhance your items artificially.",
+  "block.cranks-dungeons.runic_enhancement_altar": "Runic Enhancement Altar",
+  "block.cranks-dungeons.runic_enhancement_altar.desc": "Enhance your items with runes.",
+  "block.cranks-dungeons.quality_station": "Quality Station",
+  "block.cranks-dungeons.quality_station.desc": "Improve the quality of your items.",
   "item.cranks-dungeons.transmutation_tome": "Tome of Transmutation",
   "item.cranks-dungeons.greater_transmutation_tome": "Greater Tome of Transmutation",
   "item.cranks-dungeons.perfect_transmutation_tome": "Perfect Tome of Transmutation",

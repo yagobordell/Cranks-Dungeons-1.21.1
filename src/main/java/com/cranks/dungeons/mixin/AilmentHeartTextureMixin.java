@@ -4,7 +4,6 @@ import com.cranks.dungeons.CranksDungeons;
 import com.cranks.dungeons.ailment.AilmentManager;
 import com.cranks.dungeons.ailment.AilmentType;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.InGameHud;
 import net.minecraft.entity.player.PlayerEntity;
@@ -81,7 +80,7 @@ public class AilmentHeartTextureMixin {
         // Cancel vanilla and draw with ailment texture
         ci.cancel();
         Identifier texture = getTexture(ailment, hardcore, blinking, half);
-        context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, texture, x, y, 9, 9);
+        context.drawGuiTexture(texture, x, y, 9, 9);
     }
 
     @Unique

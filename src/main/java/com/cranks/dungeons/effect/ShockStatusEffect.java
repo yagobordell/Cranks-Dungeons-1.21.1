@@ -28,14 +28,14 @@ public class ShockStatusEffect extends StatusEffect {
     }
     
     @Override
-    public boolean applyUpdateEffect(ServerWorld world, LivingEntity entity, int amplifier) {
+    public boolean applyUpdateEffect(LivingEntity entity, int amplifier) {
         // Play looping shock sound every second (20 ticks), alternating between two sounds
         if (entity.age % 20 == 0) {
             // Alternate between SHOCK_LOOP and SHOCK_LOOP_2 every second
             boolean useSecondSound = (entity.age / 20) % 2 == 1;
             var sound = useSecondSound ? ModSounds.SHOCK_LOOP_2 : ModSounds.SHOCK_LOOP;
             
-            world.playSound(
+            entity.getWorld().playSound(
                 null, // player - null means all players can hear it
                 entity.getX(),
                 entity.getY(),
@@ -43,7 +43,7 @@ public class ShockStatusEffect extends StatusEffect {
                 sound,
                 SoundCategory.NEUTRAL,
                 0.3f, // volume
-                1.0f + (world.random.nextFloat() * 0.2f - 0.1f) // pitch with slight variation
+                1.0f + (entity.getRandom().nextFloat() * 0.2f - 0.1f) // pitch with slight variation
             );
         }
         return true; // Return true to indicate the effect should continue

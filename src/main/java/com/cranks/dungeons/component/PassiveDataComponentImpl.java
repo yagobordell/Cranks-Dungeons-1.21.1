@@ -129,26 +129,15 @@ public class PassiveDataComponentImpl implements PassiveDataComponent, AutoSynce
         internal_write(tag);
     }
 
-    // LEGACY NBT METHODS (V2 Compatibility/Fallback)
-    // Some versions of CCA or older API definitions use these. 
-    // Providing both ensure persistence works in many environments.
-    public void readFromNbt(NbtCompound tag) {
-        internal_read(tag);
-    }
-
-    public void writeToNbt(NbtCompound tag) {
-        internal_write(tag);
-    }
-
     private void internal_read(NbtCompound tag) {
-        this.playerClass = tag.getString("playerClass").orElse("");
-        this.unspentPoints = tag.getInt("unspentPoints").orElse(0);
-        this.checkedRetroactive = tag.getBoolean("checkedRetroactive").orElse(false);
+        this.playerClass = tag.getString("playerClass");
+        this.unspentPoints = tag.getInt("unspentPoints");
+        this.checkedRetroactive = tag.getBoolean("checkedRetroactive");
         
         this.unlockedNodes.clear();
-        NbtList list = tag.getList("unlockedNodes").orElse(new NbtList());
+        NbtList list = tag.getList("unlockedNodes", 8);
         for (int i = 0; i < list.size(); i++) {
-            String id = list.getString(i).orElse("").trim();
+            String id = list.getString(i).trim();
             if (!id.isEmpty()) {
                 this.unlockedNodes.add(id);
             }
@@ -156,10 +145,10 @@ public class PassiveDataComponentImpl implements PassiveDataComponent, AutoSynce
         
         this.nodeChoices.clear();
         if (tag.contains("nodeChoices")) {
-            NbtCompound choicesTag = tag.getCompound("nodeChoices").orElse(null);
+            NbtCompound choicesTag = tag.getCompound("nodeChoices");
             if (choicesTag != null) {
                 for (String key : choicesTag.getKeys()) {
-                    this.nodeChoices.put(key, choicesTag.getString(key).orElse(""));
+                    this.nodeChoices.put(key, choicesTag.getString(key));
                 }
             }
         }
@@ -203,37 +192,5 @@ public class PassiveDataComponentImpl implements PassiveDataComponent, AutoSynce
         this.nodeChoices.clear();
         buf.readMap(java.util.HashMap::new, (b) -> b.readString().trim(), (b) -> b.readString().trim()).forEach(this.nodeChoices::put);
         System.out.println("[CranksDungeons] Synced Passive Data from Server");
-    }
-
-    // BRIDGE METHODS FOR CCA 7.3.1 (Injected via ASM in build.gradle)
-    // These handle the bit-stream serialization required by newer versions of the API.
-    public void cca_bridge_writeData(Object buf) {
-        try {
-            // We use reflection to handle any RegistryWrapper/Buf variant passed by production
-            java.lang.reflect.Method writeNbt = buf.getClass().getMethod("writeNbt", NbtCompound.class);
-            NbtCompound tag = new NbtCompound();
-            this.internal_write(tag);
-            writeNbt.invoke(buf, tag);
-        } catch (Exception e) {
-            // Fallback to simpler cast if reflection fails
-            if (buf instanceof RegistryByteBuf rbb) {
-                NbtCompound tag = new NbtCompound();
-                this.internal_write(tag);
-                rbb.writeNbt(tag);
-            }
-        }
-    }
-
-    public void cca_bridge_readData(Object buf) {
-        try {
-            java.lang.reflect.Method readNbt = buf.getClass().getMethod("readNbt");
-            NbtCompound tag = (NbtCompound) readNbt.invoke(buf);
-            if (tag != null) this.internal_read(tag);
-        } catch (Exception e) {
-            if (buf instanceof RegistryByteBuf rbb) {
-                NbtCompound tag = rbb.readNbt();
-                if (tag != null) this.internal_read(tag);
-            }
-        }
     }
 }

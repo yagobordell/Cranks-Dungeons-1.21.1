@@ -2,7 +2,7 @@ package com.cranks.dungeons.client.render;
 
 import com.cranks.dungeons.CranksDungeons;
 import com.cranks.dungeons.effect.ModEffects;
-import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext;
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.minecraft.client.MinecraftClient;
 import com.cranks.dungeons.network.AilmentSyncPayload;
 import net.minecraft.client.font.TextRenderer;
@@ -41,13 +41,13 @@ public class AilmentIconRenderer {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.world == null || client.player == null) return;
 
-        MatrixStack matrices = context.matrices();
-        float tickDelta = client.getRenderTickCounter().getTickProgress(true);
+        MatrixStack matrices = context.matrixStack();
+        float tickDelta = context.tickCounter().getTickDelta(true);
         net.minecraft.client.render.Camera camera = client.gameRenderer.getCamera();
         
-        double cameraX = camera.getCameraPos().x;
-        double cameraY = camera.getCameraPos().y;
-        double cameraZ = camera.getCameraPos().z;
+        double cameraX = camera.getPos().x;
+        double cameraY = camera.getPos().y;
+        double cameraZ = camera.getPos().z;
 
         // Cleanup cache for entities no longer in the world
         if (client.world.getTime() % 100 == 0) {
@@ -150,7 +150,7 @@ public class AilmentIconRenderer {
     }
 
     private static void renderIcon(MatrixStack matrices, Identifier texture, float size, VertexConsumerProvider consumers) {
-        VertexConsumer buffer = consumers.getBuffer(RenderLayers.textSeeThrough(texture));
+        VertexConsumer buffer = consumers.getBuffer(RenderLayer.getEntityCutout(texture));
         MatrixStack.Entry entry = matrices.peek();
         
         float half = size / 2f;

@@ -2,8 +2,11 @@ package com.cranks.dungeons.item;
 
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+
+import java.util.List;
 
 public class RunicTomeItem extends Item {
 
@@ -85,11 +88,9 @@ public class RunicTomeItem extends Item {
 
 
     @Override
-    public void appendTooltip(ItemStack stack, TooltipContext context,
-            net.minecraft.component.type.TooltipDisplayComponent displayComponent,
-            java.util.function.Consumer<Text> textConsumer, net.minecraft.item.tooltip.TooltipType type) {
-        textConsumer.accept(Text.literal(tomeType.getDesc1()).formatted(Formatting.GRAY));
-        textConsumer.accept(Text.literal(tomeType.getDesc2()).formatted(Formatting.GRAY));
-        super.appendTooltip(stack, context, displayComponent, textConsumer, type);
+    public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
+        tooltip.add(Text.literal(tomeType.getDesc1()).formatted(Formatting.GRAY));
+        tooltip.add(Text.literal(tomeType.getDesc2()).formatted(Formatting.GRAY));
+        super.appendTooltip(stack, context, tooltip, type);
     }
 }

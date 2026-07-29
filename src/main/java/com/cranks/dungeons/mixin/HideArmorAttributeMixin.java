@@ -14,7 +14,7 @@ public class HideArmorAttributeMixin {
     private void hideArmorValue(CallbackInfoReturnable<Double> cir) {
         EntityAttributeInstance instance = (EntityAttributeInstance) (Object) this;
 
-        if (instance.getAttribute() == EntityAttributes.ARMOR) {
+        if (instance.getAttribute() == EntityAttributes.GENERIC_ARMOR) {
             for (StackTraceElement element : Thread.currentThread().getStackTrace()) {
                 if (element.getClassName().contains("InGameHud")) {
                     cir.setReturnValue(0.0);

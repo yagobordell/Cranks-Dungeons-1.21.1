@@ -4,8 +4,8 @@ import com.cranks.dungeons.component.ModComponents;
 import com.cranks.dungeons.component.WorldTreeDataComponent;
 import com.cranks.dungeons.stat.passive.PassiveNode;
 import com.cranks.dungeons.stat.passive.WorldNodeRegistry;
+
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.text.Text;
@@ -70,7 +70,7 @@ public class WorldTreeTabRenderer implements CompendiumTabRenderer {
 
     // UI BACKGROUNDS
     private static final Identifier MENU_BACKGROUND = Identifier.of("cranks-dungeons", "world/menu_background");
-    private static final Identifier STATS_BACKGROUND = Identifier.of("cranks-dungeons", "world/stats_background");
+    private static final Identifier STATS_PANEL_TEXTURE = Identifier.of("cranks-dungeons", "textures/gui/stats_panel.png");
 
     private final Map<String, String> draftUnlocked = new HashMap<>();
     private int draftPoints;
@@ -476,7 +476,7 @@ public class WorldTreeTabRenderer implements CompendiumTabRenderer {
             if (activeNode != null && activeNode.modifiers() != null) {
                 int count = activeNode.modifiers().size();
                 int bgHeight = 8 + (count * 22);
-                context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, MENU_BACKGROUND, cx - 4, cy - 4, 158, bgHeight);
+                context.drawGuiTexture(MENU_BACKGROUND, cx - 4, cy - 4, 158, bgHeight);
 
                 int i = 0;
                 for (Map.Entry<RegistryEntry<EntityAttribute>, Double> entry : activeNode.modifiers().entrySet()) {
@@ -484,7 +484,7 @@ public class WorldTreeTabRenderer implements CompendiumTabRenderer {
                     Identifier btnTex = (mouseX >= cx && mouseX <= cx + 150 && mouseY >= btnY && mouseY <= btnY + 20)
                             ? Identifier.of("minecraft", "widget/button_highlighted")
                             : Identifier.of("minecraft", "widget/button");
-                    context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, btnTex, cx, btnY, 150, 20);
+                    context.drawGuiTexture(btnTex, cx, btnY, 150, 20);
 
                     String modId = entry.getKey().getKey().map(k -> k.getValue().getPath()).orElse("unknown");
                     double amount = entry.getValue();
@@ -511,13 +511,8 @@ public class WorldTreeTabRenderer implements CompendiumTabRenderer {
         int panelX = contentX + contentW - panelWidth - 10;
         int panelY = contentY + (contentH - panelHeight) / 2;
 
-        // Solid semi-transparent dark background
-        context.fill(panelX, panelY, panelX + panelWidth, panelY + panelHeight, 0xE60D0D1A);
-        // Borders matching the compendium style
-        context.fill(panelX, panelY, panelX + panelWidth, panelY + 1, 0xFF4A4A7A);
-        context.fill(panelX, panelY + panelHeight - 1, panelX + panelWidth, panelY + panelHeight, 0xFF4A4A7A);
-        context.fill(panelX, panelY, panelX + 1, panelY + panelHeight, 0xFF4A4A7A);
-        context.fill(panelX + panelWidth - 1, panelY, panelX + panelWidth, panelY + panelHeight, 0xFF4A4A7A);
+        // Draw Panel Background
+        context.drawTexture(STATS_PANEL_TEXTURE, panelX, panelY, 0.0F, 0.0F, panelWidth, panelHeight, panelWidth, panelHeight);
 
         int ty = panelY + 10;
         context.drawCenteredTextWithShadow(textRenderer, "Tree Summary", panelX + panelWidth / 2, ty, 0xFFEEEEFF);
@@ -539,11 +534,11 @@ public class WorldTreeTabRenderer implements CompendiumTabRenderer {
         int barWidth = 182;
         int barX = panelX + (panelWidth - barWidth) / 2;
 
-        context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, expBg, barX, ty + 2, 182, 5);
+        context.drawGuiTexture(expBg, barX, ty + 2, 182, 5);
 
         int progressWidth = nextXp > 0 ? (int) (182.0 * currentXp / nextXp) : 0;
         if (progressWidth > 0) {
-            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, expFg, 182, 5, 0, 0, barX, ty + 2, progressWidth, 5);
+            context.drawGuiTexture(expFg, 182, 5, 0, 0, barX, ty + 2, progressWidth, 5);
         }
 
         String xpText = nextXp == 0 ? "MAX" : (currentXp + " / " + nextXp);
@@ -697,9 +692,9 @@ public class WorldTreeTabRenderer implements CompendiumTabRenderer {
         float angle = (float) Math.atan2(dy, dx);
 
         var matrices = context.getMatrices();
-        matrices.pushMatrix();
-        matrices.translate(x1, y1);
-        matrices.rotate(angle);
+        matrices.push();
+        matrices.translate(x1, y1, 0.0f);
+        matrices.multiply(net.minecraft.util.math.RotationAxis.POSITIVE_Z.rotation(angle));
 
         float baseLen = 1000.0f;
         float baseWidth = 100.0f;
@@ -707,16 +702,22 @@ public class WorldTreeTabRenderer implements CompendiumTabRenderer {
         float scaleX = len / baseLen;
         float scaleY = width / baseWidth;
 
-        matrices.scale(scaleX, scaleY);
+        matrices.scale(scaleX, scaleY, 1.0f);
 
         int finalColor = (color & 0x00FFFFFF) | ((int) (alpha * 255) << 24);
-        context.drawGuiTexture(
-                net.minecraft.client.gl.RenderPipelines.GUI_TEXTURED,
-                sprite,
-                0, (int) (-baseWidth / 2.0f), (int) baseLen, (int) baseWidth,
-                finalColor);
+        
+        float r = ((finalColor >> 16) & 0xFF) / 255.0F;
+        float g = ((finalColor >> 8) & 0xFF) / 255.0F;
+        float b = (finalColor & 0xFF) / 255.0F;
+        float a = ((finalColor >> 24) & 0xFF) / 255.0F;
 
-        matrices.popMatrix();
+        com.mojang.blaze3d.systems.RenderSystem.setShaderColor(r, g, b, a);
+        context.drawGuiTexture(
+                sprite,
+                0, (int) (-baseWidth / 2.0f), (int) baseLen, (int) baseWidth);
+        com.mojang.blaze3d.systems.RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+
+        matrices.pop();
     }
 
     private void drawNodeShape(DrawContext context, double cx, double cy, String shape, String state, double actualSize) {
@@ -752,25 +753,30 @@ public class WorldTreeTabRenderer implements CompendiumTabRenderer {
 
     private void drawPrecisionTexture(DrawContext context, Identifier texture, double cx, double cy, double size, int color) {
         var matrices = context.getMatrices();
-        matrices.pushMatrix();
-        matrices.translate((float) cx, (float) cy);
+        matrices.push();
+        matrices.translate((float) cx, (float) cy, 0.0f);
 
         float baseSize = 256.0f;
         float scale = (float) (size / baseSize);
-        matrices.scale(scale, scale);
+        matrices.scale(scale, scale, 1.0f);
 
         int drawW = (int) baseSize;
         int drawH = (int) baseSize;
         int drawX = -drawW / 2;
         int drawY = -drawH / 2;
 
-        context.drawGuiTexture(
-                net.minecraft.client.gl.RenderPipelines.GUI_TEXTURED,
-                texture,
-                drawX, drawY, drawW, drawH,
-                color);
+        float r = ((color >> 16) & 0xFF) / 255.0F;
+        float g = ((color >> 8) & 0xFF) / 255.0F;
+        float b = (color & 0xFF) / 255.0F;
+        float a = ((color >> 24) & 0xFF) / 255.0F;
 
-        matrices.popMatrix();
+        com.mojang.blaze3d.systems.RenderSystem.setShaderColor(r, g, b, a);
+        context.drawGuiTexture(
+                texture,
+                drawX, drawY, drawW, drawH);
+        com.mojang.blaze3d.systems.RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+
+        matrices.pop();
     }
 
     @Override
@@ -826,14 +832,12 @@ public class WorldTreeTabRenderer implements CompendiumTabRenderer {
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        var input = new net.minecraft.client.input.KeyInput(keyCode, scanCode, modifiers);
-
-        if (com.cranks.dungeons.client.ModKeybinds.OPEN_WORLD_TREE.matchesKey(input)) {
+        if (com.cranks.dungeons.client.ModKeybinds.OPEN_WORLD_TREE.matchesKey(keyCode, scanCode)) {
             parent.close();
             return true;
         }
 
-        if (com.cranks.dungeons.client.ModKeybinds.OPEN_PASSIVE_TREE.matchesKey(input)) {
+        if (com.cranks.dungeons.client.ModKeybinds.OPEN_PASSIVE_TREE.matchesKey(keyCode, scanCode)) {
             parent.switchToTab(CompendiumTabRegistry.PASSIVE_TREE_TAB_ID);
             return true;
         }
@@ -957,8 +961,8 @@ public class WorldTreeTabRenderer implements CompendiumTabRenderer {
                         this.cacheDirty = true;
                         player.playSound(SoundEvents.BLOCK_ANVIL_PLACE, 0.4f, 1.2f);
                     } else {
-                        boolean shiftHeld = InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow(), GLFW.GLFW_KEY_LEFT_SHIFT) ||
-                                InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow(), GLFW.GLFW_KEY_RIGHT_SHIFT);
+                        boolean shiftHeld = InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow().getHandle(), GLFW.GLFW_KEY_LEFT_SHIFT) ||
+                                InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow().getHandle(), GLFW.GLFW_KEY_RIGHT_SHIFT);
                         if (shiftHeld) {
                             if (selectedNodeIds.contains(hitNode.id())) {
                                 selectedNodeIds.remove(hitNode.id());
@@ -975,8 +979,8 @@ public class WorldTreeTabRenderer implements CompendiumTabRenderer {
                         return true;
                     }
                 } else {
-                    if (!(InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow(), GLFW.GLFW_KEY_LEFT_SHIFT) ||
-                            InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow(), GLFW.GLFW_KEY_RIGHT_SHIFT))) {
+                    if (!(InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow().getHandle(), GLFW.GLFW_KEY_LEFT_SHIFT) ||
+                            InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow().getHandle(), GLFW.GLFW_KEY_RIGHT_SHIFT))) {
                         selectedNodeIds.clear();
                     }
                     isSelectingBox = true;
@@ -987,6 +991,11 @@ public class WorldTreeTabRenderer implements CompendiumTabRenderer {
                     return true;
                 }
             } else if (button == 1) { 
+                if (isConnecting) {
+                    isConnecting = false;
+                    connectionSource = null;
+                    return true;
+                }
                 if (hitNode != null) {
                     MinecraftClient.getInstance().setScreen(new WorldNodeEditScreen(parent, hitNode, this::refreshCachesProxy, node -> startConnecting(node)));
                 } else {

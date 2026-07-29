@@ -16,7 +16,6 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.input.KeyInput;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -213,6 +212,7 @@ public class PassiveNodeEditScreen extends Screen {
                 if (startConnectingCallback != null) {
                     startConnectingCallback.accept(PassiveNodeRegistry.getNodes().get(idField.getText()));
                 }
+                MinecraftClient.getInstance().setScreen(parentScreen);
             }).dimensions(centerX + 120, btnY, 100, 20).build();
             
             this.addDrawableChild(deleteBtn);
@@ -298,7 +298,7 @@ public class PassiveNodeEditScreen extends Screen {
                         double val = Double.parseDouble(valStr);
                         Identifier attrId = Identifier.tryParse(attr);
                         if (attrId != null) {
-                            Registries.ATTRIBUTE.getOptionalValue(attrId).ifPresent(a -> {
+                            java.util.Optional.ofNullable(Registries.ATTRIBUTE.get(attrId)).ifPresent(a -> {
                                 mods.put(Registries.ATTRIBUTE.getEntry(a), val);
                             });
                         }
@@ -441,8 +441,7 @@ public class PassiveNodeEditScreen extends Screen {
     }
 
     @Override
-    public boolean keyPressed(KeyInput input) {
-        int keyCode = input.key();
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         if (showSuggestions && !filteredSuggestions.isEmpty()) {
             if (keyCode == 264) {
                 selectedSuggestion = (selectedSuggestion + 1) % Math.min(filteredSuggestions.size(), 5);
@@ -457,7 +456,7 @@ public class PassiveNodeEditScreen extends Screen {
                 return true;
             }
         }
-        return super.keyPressed(input);
+        return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
     private void applySuggestion() {

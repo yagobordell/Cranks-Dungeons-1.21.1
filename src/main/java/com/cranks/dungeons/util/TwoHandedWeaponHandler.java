@@ -12,10 +12,10 @@ public class TwoHandedWeaponHandler {
         UseItemCallback.EVENT.register((player, world, hand) -> {
             if (hand == Hand.OFF_HAND) {
                 if (CombatUtility.isTwoHandedWeapon(player.getMainHandStack()) || CombatUtility.isTwoHandedWeapon(player.getStackInHand(Hand.OFF_HAND))) {
-                    return ActionResult.FAIL;
+                    return net.minecraft.util.TypedActionResult.fail(player.getStackInHand(hand));
                 }
             }
-            return ActionResult.PASS;
+            return net.minecraft.util.TypedActionResult.pass(player.getStackInHand(hand));
         });
 
         UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {

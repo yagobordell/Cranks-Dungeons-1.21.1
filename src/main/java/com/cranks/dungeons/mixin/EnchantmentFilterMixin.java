@@ -8,7 +8,7 @@ import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.loot.LootTable;
-import net.minecraft.loot.context.LootWorldContext;
+import net.minecraft.loot.context.LootContextParameterSet;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.registry.tag.EnchantmentTags;
 import org.spongepowered.asm.mixin.Mixin;
@@ -22,7 +22,7 @@ public class EnchantmentFilterMixin {
 
     @Inject(method = "supplyInventory", at = @At("RETURN"))
     private void dungeons$filterInventoryLoot(Inventory inventory,
-                                              LootWorldContext parameters,
+                                              LootContextParameterSet parameters,
                                               long seed,
                                               CallbackInfo ci) {
         for (int i = 0; i < inventory.size(); i++) {

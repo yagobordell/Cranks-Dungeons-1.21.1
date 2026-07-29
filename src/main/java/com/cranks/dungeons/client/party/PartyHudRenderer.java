@@ -6,7 +6,6 @@ import com.cranks.dungeons.party.PartyMemberData;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.util.Identifier;
@@ -187,27 +186,25 @@ public class PartyHudRenderer implements HudRenderCallback {
                 var skinTextures = playerListEntry.getSkinTextures();
                 if (skinTextures != null) {
                     // Get the texture path from the body texture
-                    Identifier texture = skinTextures.body().texturePath();
+                    Identifier texture = skinTextures.texture();
                     
                     if (texture != null) {
                         // Render face (base layer): UV (8, 8) to (16, 16) on 64x64 texture
                         context.drawTexture(
-                            RenderPipelines.GUI_TEXTURED,
                             texture,
                             x, y,           // screen position
-                            8, 8,           // UV start (face region)
                             size, size,     // size on screen
+                            8.0F, 8.0F,     // UV start (face region)
                             8, 8,           // UV region size
                             64, 64          // texture size
                         );
                         
                         // Render hat layer (overlay): UV (40, 8) to (48, 16) on 64x64 texture
                         context.drawTexture(
-                            RenderPipelines.GUI_TEXTURED,
                             texture,
                             x, y,           // screen position (same as face)
-                            40, 8,          // UV start (hat region)
                             size, size,     // size on screen
+                            40.0F, 8.0F,    // UV start (hat region)
                             8, 8,           // UV region size
                             64, 64          // texture size
                         );
@@ -285,7 +282,7 @@ public class PartyHudRenderer implements HudRenderCallback {
 
             // Container
             Identifier container = isFlashing ? HEART_CONTAINER_BLINKING : HEART_CONTAINER;
-            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, container, heartX, heartY, heartSize, heartSize);
+            context.drawGuiTexture(container, heartX, heartY, heartSize, heartSize);
 
             // Logic: Heart i represents range [i*2, i*2 + 2]
             // Half heart: health >= (i*2) + 0.01
@@ -293,16 +290,16 @@ public class PartyHudRenderer implements HudRenderCallback {
             float baseVisibility = i * 2.0f;
 
             if (health >= baseVisibility + 1.01f) {
-                context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, HEART_FULL, heartX, heartY, heartSize, heartSize);
+                context.drawGuiTexture(HEART_FULL, heartX, heartY, heartSize, heartSize);
             } else if (health >= baseVisibility + 0.01f) {
-                context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, HEART_HALF, heartX, heartY, heartSize, heartSize);
+                context.drawGuiTexture(HEART_HALF, heartX, heartY, heartSize, heartSize);
             } else if (baseVisibility >= maxHealth) {
                 // Absorption zone
                 float absorptionVisibility = baseVisibility - maxHealth;
                 if (absorption >= absorptionVisibility + 1.01f) {
-                    context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, HEART_ABSORPTION_FULL, heartX, heartY, heartSize, heartSize);
+                    context.drawGuiTexture(HEART_ABSORPTION_FULL, heartX, heartY, heartSize, heartSize);
                 } else if (absorption >= absorptionVisibility + 0.01f) {
-                    context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, HEART_ABSORPTION_HALF, heartX, heartY, heartSize, heartSize);
+                    context.drawGuiTexture(HEART_ABSORPTION_HALF, heartX, heartY, heartSize, heartSize);
                 }
             }
         }
@@ -328,21 +325,21 @@ public class PartyHudRenderer implements HudRenderCallback {
             int heartX = x + i * spacing;
 
             Identifier container = isFlashing ? HEART_CONTAINER_BLINKING : HEART_CONTAINER;
-            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, container, heartX, y, heartSize, heartSize);
+            context.drawGuiTexture(container, heartX, y, heartSize, heartSize);
 
             float baseVisibility = iconIndex * 2.0f;
 
             if (health >= baseVisibility + 1.01f) {
-                context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, HEART_FULL, heartX, y, heartSize, heartSize);
+                context.drawGuiTexture(HEART_FULL, heartX, y, heartSize, heartSize);
             } else if (health >= baseVisibility + 0.01f) {
-                context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, HEART_HALF, heartX, y, heartSize, heartSize);
+                context.drawGuiTexture(HEART_HALF, heartX, y, heartSize, heartSize);
             } else if (baseVisibility >= maxHealth) {
                 // Absorption zone
                 float absorptionVisibility = baseVisibility - maxHealth;
                 if (absorption >= absorptionVisibility + 1.01f) {
-                    context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, HEART_ABSORPTION_FULL, heartX, y, heartSize, heartSize);
+                    context.drawGuiTexture(HEART_ABSORPTION_FULL, heartX, y, heartSize, heartSize);
                 } else if (absorption >= absorptionVisibility + 0.01f) {
-                    context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, HEART_ABSORPTION_HALF, heartX, y, heartSize, heartSize);
+                    context.drawGuiTexture(HEART_ABSORPTION_HALF, heartX, y, heartSize, heartSize);
                 }
             }
         }
@@ -352,7 +349,7 @@ public class PartyHudRenderer implements HudRenderCallback {
             int spriteX = x + heartsInThisRow * spacing;
             int spriteY = y - (int) (2 * scale);
             Identifier spriteId = ShieldNumberSprites.getSpriteId(currentRow);
-            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, spriteId, spriteX, spriteY, (int) (16 * scale), (int) (16 * scale));
+            context.drawGuiTexture(spriteId, spriteX, spriteY, (int) (16 * scale), (int) (16 * scale));
         }
     }
 
@@ -394,16 +391,16 @@ public class PartyHudRenderer implements HudRenderCallback {
 
             // Container
             Identifier container = isFlashing ? HEART_CONTAINER_BLINKING : SHIELD_CONTAINER;
-            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, container, heartX, heartY, heartSize, heartSize);
+            context.drawGuiTexture(container, heartX, heartY, heartSize, heartSize);
 
             float baseVisibility = i * 2.0f;
 
             if (shield >= baseVisibility + 1.01f) {
                 Identifier tex = isFlashing ? SHIELD_FULL_BLINKING : SHIELD_FULL;
-                context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, tex, heartX, heartY, heartSize, heartSize);
+                context.drawGuiTexture(tex, heartX, heartY, heartSize, heartSize);
             } else if (shield >= baseVisibility + 0.01f) {
                 Identifier tex = isFlashing ? SHIELD_HALF_BLINKING : SHIELD_HALF;
-                context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, tex, heartX, heartY, heartSize, heartSize);
+                context.drawGuiTexture(tex, heartX, heartY, heartSize, heartSize);
             }
         }
     }
@@ -427,16 +424,16 @@ public class PartyHudRenderer implements HudRenderCallback {
 
             // Container
             Identifier container = isFlashing ? HEART_CONTAINER_BLINKING : SHIELD_CONTAINER;
-            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, container, heartX, y, heartSize, heartSize);
+            context.drawGuiTexture(container, heartX, y, heartSize, heartSize);
 
             float baseVisibility = iconIndex * 2.0f;
 
             if (shield >= baseVisibility + 1.01f) {
                 Identifier tex = isFlashing ? SHIELD_FULL_BLINKING : SHIELD_FULL;
-                context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, tex, heartX, y, heartSize, heartSize);
+                context.drawGuiTexture(tex, heartX, y, heartSize, heartSize);
             } else if (shield >= baseVisibility + 0.01f) {
                 Identifier tex = isFlashing ? SHIELD_HALF_BLINKING : SHIELD_HALF;
-                context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, tex, heartX, y, heartSize, heartSize);
+                context.drawGuiTexture(tex, heartX, y, heartSize, heartSize);
             }
         }
 
@@ -445,7 +442,7 @@ public class PartyHudRenderer implements HudRenderCallback {
             int spriteX = x + heartsInThisRow * spacing;
             int spriteY = y - (int) (2 * scale);
             Identifier spriteId = ShieldNumberSprites.getSpriteId(currentRow);
-            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, spriteId, spriteX, spriteY, (int) (16 * scale), (int) (16 * scale));
+            context.drawGuiTexture(spriteId, spriteX, spriteY, (int) (16 * scale), (int) (16 * scale));
         }
     }
 
@@ -462,12 +459,12 @@ public class PartyHudRenderer implements HudRenderCallback {
             int shieldY = y - (int) (7 * scale); // 6px height + 1px gap
             
             // Draw Shield Background
-            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, com.cranks.dungeons.client.render.StatBarHudRenderer.EMPTY_SHIELD_BAR, x, shieldY, barWidth, shieldHeight);
+            context.drawGuiTexture(com.cranks.dungeons.client.render.StatBarHudRenderer.EMPTY_SHIELD_BAR, x, shieldY, barWidth, shieldHeight);
 
             float shieldPercent = net.minecraft.util.math.MathHelper.clamp(shield / maxShield, 0, 1);
             int shieldWidth = (int) (shieldPercent * maxFillWidth);
             if (shieldWidth > 0) {
-                context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, com.cranks.dungeons.client.render.StatBarHudRenderer.SHIELD_FILL, 
+                context.drawGuiTexture(com.cranks.dungeons.client.render.StatBarHudRenderer.SHIELD_FILL, 
                         com.cranks.dungeons.client.render.StatBarHudRenderer.MAX_FILL_WIDTH, 
                         6, 0, 0,
                         x, shieldY, shieldWidth, shieldHeight);
@@ -478,22 +475,22 @@ public class PartyHudRenderer implements HudRenderCallback {
             net.minecraft.client.font.TextRenderer tr = client.textRenderer;
             int sTextWidth = (int) (tr.getWidth(sText) * 0.75f);
             
-            context.getMatrices().pushMatrix();
-            context.getMatrices().translate(x + (barWidth / 2f), shieldY + (shieldHeight / 2f));
-            context.getMatrices().scale(0.75f * scale, 0.75f * scale);
+            context.getMatrices().push();
+            context.getMatrices().translate(x + (barWidth / 2f), shieldY + (shieldHeight / 2f), 0.0f);
+            context.getMatrices().scale(0.75f * scale, 0.75f * scale, 1.0f);
             context.drawTextWithShadow(tr, sText, -(tr.getWidth(sText) / 2), -(tr.fontHeight / 2), 0xFF55FFFF);
-            context.getMatrices().popMatrix();
+            context.getMatrices().pop();
         }
 
         // --- Health Bar ---
         // Draw Background Frame
-        context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, com.cranks.dungeons.client.render.StatBarHudRenderer.EMPTY_BAR, x, y, barWidth, barHeight);
+        context.drawGuiTexture(com.cranks.dungeons.client.render.StatBarHudRenderer.EMPTY_BAR, x, y, barWidth, barHeight);
 
         // Draw HP Fill (Red)
         float hpPercent = net.minecraft.util.math.MathHelper.clamp(health / maxHealth, 0, 1);
         int hpWidth = (int) (hpPercent * maxFillWidth);
         if (hpWidth > 0) {
-            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, com.cranks.dungeons.client.render.StatBarHudRenderer.HEALTH_FILL, 
+            context.drawGuiTexture(com.cranks.dungeons.client.render.StatBarHudRenderer.HEALTH_FILL, 
                     com.cranks.dungeons.client.render.StatBarHudRenderer.MAX_FILL_WIDTH, 
                     com.cranks.dungeons.client.render.StatBarHudRenderer.FILL_HEIGHT, 0, 0,
                     x, y, hpWidth, barHeight);
@@ -504,7 +501,7 @@ public class PartyHudRenderer implements HudRenderCallback {
             float absPercent = net.minecraft.util.math.MathHelper.clamp(absorption / maxHealth, 0, 1);
             int absWidth = (int) (absPercent * maxFillWidth);
             if (absWidth > 0) {
-                context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, com.cranks.dungeons.client.render.StatBarHudRenderer.ABSORPTION_FILL, 
+                context.drawGuiTexture(com.cranks.dungeons.client.render.StatBarHudRenderer.ABSORPTION_FILL, 
                         com.cranks.dungeons.client.render.StatBarHudRenderer.MAX_FILL_WIDTH, 
                         com.cranks.dungeons.client.render.StatBarHudRenderer.FILL_HEIGHT, 0, 0,
                         x, y, absWidth, barHeight);
@@ -521,11 +518,11 @@ public class PartyHudRenderer implements HudRenderCallback {
         }
 
         int hTextWidth = (int) (textRenderer.getWidth(hText) * 0.85f);
-        context.getMatrices().pushMatrix();
-        context.getMatrices().translate(x + (barWidth / 2f), y + (barHeight / 2f));
-        context.getMatrices().scale(0.85f * scale, 0.85f * scale);
+        context.getMatrices().push();
+        context.getMatrices().translate(x + (barWidth / 2f), y + (barHeight / 2f), 0.0f);
+        context.getMatrices().scale(0.85f * scale, 0.85f * scale, 1.0f);
         context.drawTextWithShadow(textRenderer, hText, -(textRenderer.getWidth(hText) / 2), -(textRenderer.fontHeight / 2), hColor);
-        context.getMatrices().popMatrix();
+        context.getMatrices().pop();
     }
 
     

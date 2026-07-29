@@ -1,7 +1,8 @@
 package com.cranks.dungeons.client.render;
 
-import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext;
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.minecraft.client.render.RenderLayers;
+import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.Vec3d;
@@ -18,10 +19,10 @@ public class LightningArcRenderer {
         List<LightningArcManager.ArcInstance> arcs = LightningArcManager.getActiveArcs();
         if (arcs.isEmpty()) return;
 
-        MatrixStack matrices = context.matrices();
-        Vec3d cameraPos = context.gameRenderer().getCamera().getCameraPos();
+        MatrixStack matrices = context.matrixStack();
+        Vec3d cameraPos = context.camera().getPos();
         // Use the discovered lightning() method in RenderLayers (plural)
-        VertexConsumer buffer = consumers.getBuffer(RenderLayers.lightning());
+        VertexConsumer buffer = consumers.getBuffer(RenderLayer.getLightning());
         
         matrices.push();
         matrices.translate(-cameraPos.x, -cameraPos.y, -cameraPos.z);

@@ -78,7 +78,7 @@ public abstract class EnchantmentTableMixin extends ScreenHandler {
 
         context.run((world, pos) -> {
             var registry = world.getRegistryManager()
-                    .getOrThrow(RegistryKeys.ENCHANTMENT);
+                    .get(RegistryKeys.ENCHANTMENT);
 
             int bookshelves = dungeons$countBookshelves(world, pos);
             int maxSlots = dungeons$getSlotCount(bookshelves);
@@ -143,7 +143,7 @@ public abstract class EnchantmentTableMixin extends ScreenHandler {
             if (world.isClient()) return;
 
             EnchantmentLevelEntry offer = dungeons$offers[id];
-            stack.addEnchantment(offer.enchantment(), offer.level());
+            stack.addEnchantment(offer.enchantment, offer.level);
 
             if (!player.getAbilities().creativeMode) {
                 lapis.decrement(lapisCost);

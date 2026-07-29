@@ -63,6 +63,13 @@ public class CranksDungeonsClient implements ClientModInitializer {
 
         ClientConfigCommand.register();
 
+        net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap.INSTANCE.putBlocks(
+            net.minecraft.client.render.RenderLayer.getCutout(),
+            com.cranks.dungeons.block.ModBlocks.QUALITY_STATION,
+            com.cranks.dungeons.block.ModBlocks.ARTIFICIAL_ENHANCEMENT_ALTAR,
+            com.cranks.dungeons.block.ModBlocks.RUNIC_ENHANCEMENT_ALTAR
+        );
+
         net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry.register(
             com.cranks.dungeons.registry.ModEntities.LEVEL_UP_VFX, 
             com.cranks.dungeons.client.render.entity.LevelUpVfxEntityRenderer::new
@@ -137,7 +144,13 @@ public class CranksDungeonsClient implements ClientModInitializer {
                 // Calculate hit offset from entity center
                 Vec3d hitOffset = Vec3d.ZERO;
                 if (payload.victimUuid() != null && context.client().world != null) {
-                    var entity = context.client().world.getEntity(payload.victimUuid());
+                    net.minecraft.entity.Entity entity = null;
+                    for (net.minecraft.entity.Entity e : context.client().world.getEntities()) {
+                        if (e.getUuid().equals(payload.victimUuid())) {
+                            entity = e;
+                            break;
+                        }
+                    }
                     if (entity != null) {
                         // Blood splash effect on hit if they are bleeding
                         if (entity instanceof LivingEntity living && !payload.entries().isEmpty() && !payload.entries().get(0).isHeal()) {
@@ -232,7 +245,7 @@ public class CranksDungeonsClient implements ClientModInitializer {
             DamageNumberRenderer.renderHud(context, 0f);
         });
 
-        net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents.END_MAIN.register(context -> {
+        net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents.LAST.register(context -> {
             net.minecraft.client.render.VertexConsumerProvider.Immediate consumers = MinecraftClient.getInstance().getBufferBuilders().getEntityVertexConsumers();
             com.cranks.dungeons.client.render.LightningArcRenderer.render(context, consumers);
             com.cranks.dungeons.client.render.AilmentIconRenderer.render(context, consumers);

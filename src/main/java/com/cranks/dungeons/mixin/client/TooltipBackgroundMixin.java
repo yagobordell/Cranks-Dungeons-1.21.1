@@ -2,7 +2,6 @@ package com.cranks.dungeons.mixin.client;
 
 import com.cranks.dungeons.client.RarityTooltipContext;
 import com.cranks.dungeons.item.CustomRarity;
-import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.tooltip.TooltipBackgroundRenderer;
 import net.minecraft.util.Identifier;
@@ -55,8 +54,8 @@ public abstract class TooltipBackgroundMixin {
         int bw = width  + 6;
         int bh = height + 7;
 
-        context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, bg,    bx, by, bw, bh);
-        context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, frame, bx, by, bw, bh);
+        context.drawGuiTexture(bg,    bx, by, bw, bh);
+        context.drawGuiTexture(frame, bx, by, bw, bh);
 
         ci.cancel();
     }

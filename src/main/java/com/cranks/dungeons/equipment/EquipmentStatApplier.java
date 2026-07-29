@@ -193,7 +193,7 @@ public class EquipmentStatApplier {
 
                         if (comp.isPercentage()) {
                             Identifier id = Identifier.of(CranksDungeons.MOD_ID, "runic_" + stat.getId() + "_" + i + "_" + attrIndex);
-                            boolean isMultiplicative = isAttribute(attribute, EntityAttributes.ATTACK_SPEED) || 
+                            boolean isMultiplicative = isAttribute(attribute, EntityAttributes.GENERIC_ATTACK_SPEED) || 
                                                        isAttribute(attribute, ModAttributes.RELOAD_SPEED) ||
                                                        isAttribute(attribute, ModAttributes.MINING_EFFICIENCY);
                             EntityAttributeModifier.Operation op = isMultiplicative ? 
@@ -229,8 +229,8 @@ public class EquipmentStatApplier {
         for (var entry : originalDefaults.modifiers()) {
             RegistryEntry<EntityAttribute> attr = entry.attribute();
             
-            boolean isAttack = isAttribute(attr, EntityAttributes.ATTACK_DAMAGE);
-            boolean isArmor = isAttribute(attr, EntityAttributes.ARMOR);
+            boolean isAttack = isAttribute(attr, EntityAttributes.GENERIC_ATTACK_DAMAGE);
+            boolean isArmor = isAttribute(attr, EntityAttributes.GENERIC_ARMOR);
             boolean isEvasion = isAttribute(attr, ModAttributes.EVASION_RATING);
             boolean isES = isAttribute(attr, ModAttributes.ENERGY_SHIELD);
 
@@ -244,7 +244,7 @@ public class EquipmentStatApplier {
                 
                 // Apply Quality Scaling uniformly to the base value
                 if (qBonus > 0) {
-                    if (isAttribute(attr, EntityAttributes.ATTACK_SPEED)) {
+                    if (isAttribute(attr, EntityAttributes.GENERIC_ATTACK_SPEED)) {
                         baseVal = (4.0 + baseVal) * (1.0 + qBonus) - 4.0;
                     } else {
                         baseVal = baseVal * (1.0 + qBonus);
@@ -275,8 +275,8 @@ public class EquipmentStatApplier {
             finalFlatValues.merge(entry.getKey(), entry.getValue(), Double::sum);
         }
 
-        RegistryEntry<EntityAttribute> actualAttackAttr = attackDamageAttr != null ? attackDamageAttr : EntityAttributes.ATTACK_DAMAGE;
-        RegistryEntry<EntityAttribute> actualArmorAttr = armorAttr != null ? armorAttr : EntityAttributes.ARMOR;
+        RegistryEntry<EntityAttribute> actualAttackAttr = attackDamageAttr != null ? attackDamageAttr : EntityAttributes.GENERIC_ATTACK_DAMAGE;
+        RegistryEntry<EntityAttribute> actualArmorAttr = armorAttr != null ? armorAttr : EntityAttributes.GENERIC_ARMOR;
         RegistryEntry<EntityAttribute> actualEvasionAttr = evasionAttr != null ? evasionAttr : ModAttributes.EVASION_RATING;
         RegistryEntry<EntityAttribute> actualESAttr = energyShieldAttr != null ? energyShieldAttr : ModAttributes.ENERGY_SHIELD;
 
@@ -314,7 +314,7 @@ public class EquipmentStatApplier {
             Identifier baseModifierId = originalIds.get(attr);
             Identifier finalModifierId = baseModifierId != null ? baseModifierId : modifierId;
 
-            boolean isMultiplicative = isAttribute(attr, EntityAttributes.ATTACK_SPEED) || 
+            boolean isMultiplicative = isAttribute(attr, EntityAttributes.GENERIC_ATTACK_SPEED) || 
                                        isAttribute(attr, ModAttributes.RELOAD_SPEED) ||
                                        isAttribute(attr, ModAttributes.MINING_EFFICIENCY);
 

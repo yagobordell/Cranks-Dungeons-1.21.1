@@ -3,7 +3,7 @@ package com.cranks.dungeons.client.render;
 import com.cranks.dungeons.CranksDungeons;
 import com.cranks.dungeons.EnergyShieldProvider;
 import com.cranks.dungeons.registry.ModAttributes;
-import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext;
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.render.*;
@@ -68,13 +68,13 @@ public class EntityStatBarRenderer {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.world == null || client.player == null) return;
 
-        MatrixStack matrices = context.matrices();
-        float tickDelta = client.getRenderTickCounter().getTickProgress(true);
+        MatrixStack matrices = context.matrixStack();
+        float tickDelta = client.getRenderTickCounter().getTickDelta(true);
         Camera camera = client.gameRenderer.getCamera();
         
-        double cameraX = camera.getCameraPos().x;
-        double cameraY = camera.getCameraPos().y;
-        double cameraZ = camera.getCameraPos().z;
+        double cameraX = camera.getPos().x;
+        double cameraY = camera.getPos().y;
+        double cameraZ = camera.getPos().z;
 
         // Cleanup caches
         if (client.world.getTime() % 100 == 0) {
@@ -252,7 +252,7 @@ public class EntityStatBarRenderer {
     }
 
     private static void drawBar(MatrixStack matrices, VertexConsumerProvider consumers, Identifier texture, float x, float y, float width, float height, float alpha, float zOffset, float uStart, float uEnd) {
-        VertexConsumer buffer = consumers.getBuffer(RenderLayers.textSeeThrough(texture));
+        VertexConsumer buffer = consumers.getBuffer(RenderLayer.getEntityCutout(texture));
         Matrix4f model = matrices.peek().getPositionMatrix();
         
         buffer.vertex(model, x, y, zOffset).color(1f, 1f, 1f, alpha).texture(uStart, 0).overlay(OverlayTexture.DEFAULT_UV).light(LightmapTextureManager.MAX_LIGHT_COORDINATE).normal(0, 1, 0);

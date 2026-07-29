@@ -33,8 +33,8 @@ public class ModParticleProviders {
     private static <T extends net.minecraft.particle.ParticleEffect> net.fabricmc.fabric.api.client.particle.v1.ParticleFactoryRegistry.PendingParticleFactory<T> createQuickFadeFactory(net.fabricmc.fabric.api.client.particle.v1.ParticleFactoryRegistry.PendingParticleFactory<T> baseFactory, int duration) {
         return (spriteProvider) -> {
             net.minecraft.client.particle.ParticleFactory<T> factory = baseFactory.create(spriteProvider);
-            return (parameters, world, x, y, z, velocityX, velocityY, velocityZ, random) -> {
-                net.minecraft.client.particle.Particle particle = factory.createParticle(parameters, world, x, y, z, velocityX, velocityY, velocityZ, random);
+            return (parameters, world, x, y, z, velocityX, velocityY, velocityZ) -> {
+                net.minecraft.client.particle.Particle particle = factory.createParticle(parameters, world, x, y, z, velocityX, velocityY, velocityZ);
                 if (particle != null) {
                     particle.setMaxAge(duration);
                 }
@@ -46,12 +46,12 @@ public class ModParticleProviders {
     private static <T extends net.minecraft.particle.ParticleEffect> net.fabricmc.fabric.api.client.particle.v1.ParticleFactoryRegistry.PendingParticleFactory<T> createBloodSplashFactory(net.fabricmc.fabric.api.client.particle.v1.ParticleFactoryRegistry.PendingParticleFactory<T> baseFactory) {
         return (spriteProvider) -> {
             net.minecraft.client.particle.ParticleFactory<T> factory = baseFactory.create(spriteProvider);
-            return (parameters, world, x, y, z, velocityX, velocityY, velocityZ, random) -> {
-                net.minecraft.client.particle.Particle particle = factory.createParticle(parameters, world, x, y, z, velocityX, velocityY, velocityZ, random);
+            return (parameters, world, x, y, z, velocityX, velocityY, velocityZ) -> {
+                net.minecraft.client.particle.Particle particle = factory.createParticle(parameters, world, x, y, z, velocityX, velocityY, velocityZ);
                 if (particle != null) {
                     // Access wideners allow direct field access
                     particle.gravityStrength = 1.0f; // High gravity for blood
-                    particle.maxAge = 15 + random.nextInt(10); // Slightly longer life
+                    particle.maxAge = 15 + world.getRandom().nextInt(10); // Slightly longer life
                     particle.scale(1.5f); // Make them more visible
                 }
                 return particle;

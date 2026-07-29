@@ -46,9 +46,8 @@ public enum EquipmentType {
         if (item instanceof MaceItem || itemName.contains("mace")) return Optional.of(MACE);
 
         // 2. Check for generic Armor slots using Data Components
-        var equippable = stack.get(DataComponentTypes.EQUIPPABLE);
-        if (equippable != null) {
-            return switch (equippable.slot()) {
+        if (stack.getItem() instanceof net.minecraft.item.Equipment equippable) {
+            return switch (equippable.getSlotType()) {
                 case HEAD -> Optional.of(HELMET);
                 case CHEST -> Optional.of(CHESTPLATE);
                 case LEGS -> Optional.of(LEGGINGS);

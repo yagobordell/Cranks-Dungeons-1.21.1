@@ -25,7 +25,7 @@ public class LuckMixin {
         // Get luck bonus from custom attribute (Item Rarity)
         double luckBonus = player.getAttributeValue(ModAttributes.ITEM_RARITY_PERCENT);
 
-        var luckAttr = player.getAttributeInstance(EntityAttributes.LUCK);
+        var luckAttr = player.getAttributeInstance(EntityAttributes.GENERIC_LUCK);
         if (luckAttr != null) {
             Identifier modifierId = Identifier.of(CranksDungeons.MOD_ID, "luck_bonus");
 

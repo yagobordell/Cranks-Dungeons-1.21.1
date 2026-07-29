@@ -82,8 +82,8 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
     /**
      * Prevents players from dropping XP on death (Yarn 1.21.1 signature).
      */
-    @Inject(method = "dropExperience", at = @At("HEAD"), cancellable = true)
-    private void preventPlayerXpDrop(ServerWorld world, Entity attacker, CallbackInfo ci) {
+    @Inject(method = "dropXp", at = @At("HEAD"), cancellable = true)
+    private void preventPlayerXpDrop(net.minecraft.entity.Entity attacker, CallbackInfo ci) {
         if ((Object) this instanceof PlayerEntity) {
             ci.cancel();
         }
@@ -164,7 +164,7 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
         if (str != cranks$lastStrength) {
             cranks$lastStrength = str;
             double hpBonus = Math.floor(str / 10.0) * 5.0;
-            updateModifier(entity, net.minecraft.entity.attribute.EntityAttributes.MAX_HEALTH, INTRINSIC_HEALTH_MOD_ID, hpBonus, net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_VALUE);
+            updateModifier(entity, net.minecraft.entity.attribute.EntityAttributes.GENERIC_MAX_HEALTH, INTRINSIC_HEALTH_MOD_ID, hpBonus, net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_VALUE);
         }
 
         if (dex != cranks$lastDexterity) {
@@ -286,12 +286,14 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
         // Show accumulated healing
         if (cranks$accumulatedHeal > 0) {
             cranks$healTimer++;
-            if (cranks$accumulatedHeal >= 1.0f || cranks$healTimer >= 10) {
-                DamageNumberSender.broadcastHeal((ServerWorld) entity.getEntityWorld(), entity,
-                        (double) Math.round(cranks$accumulatedHeal * 10.0) / 10.0);
-                cranks$accumulatedHeal = 0;
-                cranks$healTimer = 0;
+            double healAmount = (double) Math.round(cranks$accumulatedHeal * 10.0) / 10.0;
+            if (healAmount > 0) {
+                if (!entity.getWorld().isClient() && entity.getWorld() instanceof net.minecraft.server.world.ServerWorld serverWorld) {
+                    DamageNumberSender.broadcastHeal(serverWorld, entity, healAmount);
+                }
             }
+            cranks$accumulatedHeal = 0;
+            cranks$healTimer = 0;
         }
     }
 
@@ -324,7 +326,7 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
 
         // Apply modifier
         net.minecraft.entity.attribute.EntityAttributeInstance speedAttr = entity
-                .getAttributeInstance(net.minecraft.entity.attribute.EntityAttributes.MOVEMENT_SPEED);
+                .getAttributeInstance(net.minecraft.entity.attribute.EntityAttributes.GENERIC_MOVEMENT_SPEED);
         if (speedAttr != null) {
             speedAttr.removeModifier(ARMOR_SPEED_MOD_ID);
             if (finalModifier != 0) {
@@ -336,8 +338,8 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
         }
     }
 
-    @Inject(method = "dropExperience", at = @At("HEAD"))
-    private void modifyCombatXp(ServerWorld world, net.minecraft.entity.Entity attacker, CallbackInfo ci) {
+    @Inject(method = "dropXp", at = @At("HEAD"))
+    private void modifyCombatXp(net.minecraft.entity.Entity attacker, CallbackInfo ci) {
         if (attacker instanceof net.minecraft.entity.player.PlayerEntity player) {
             double combatXpBonus = player.getAttributeValue(ModAttributes.COMBAT_EXPERIENCE);
             if (combatXpBonus > 0) {

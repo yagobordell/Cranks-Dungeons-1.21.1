@@ -31,7 +31,7 @@ public abstract class MaxHealthMixin {
 
         if (!(player instanceof ServerPlayerEntity)) return;
 
-        var maxHealthAttr = player.getAttributeInstance(EntityAttributes.MAX_HEALTH);
+        var maxHealthAttr = player.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH);
         if (maxHealthAttr == null) return;
         
         Identifier voidInoculationId = Identifier.of(CranksDungeons.MOD_ID, "void_inoculation");

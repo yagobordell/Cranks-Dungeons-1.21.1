@@ -30,7 +30,7 @@ public class ElementalDamageHelper {
         // But we check for death to trigger proper death logic
         if (target.getHealth() - amount <= 0) {
             DamageSource source = getElementalDamageSource(world, element, attacker);
-            target.damage(world, source, amount);
+            boolean wasDamaged = target.damage(source, amount);
         } else {
             target.setHealth(target.getHealth() - amount);
             // Broadcast damage number since setHealth doesn't trigger our mixins

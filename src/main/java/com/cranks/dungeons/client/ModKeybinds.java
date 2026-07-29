@@ -13,7 +13,7 @@ public class ModKeybinds {
 
 
 
-    public static final net.minecraft.client.option.KeyBinding.Category CATEGORY = new net.minecraft.client.option.KeyBinding.Category(net.minecraft.util.Identifier.of("cranks-dungeons", "keys"));
+    public static final String CATEGORY = "category.cranks-dungeons.keys";
 
     public static void register() {
         TOGGLE_ENCHANTMENT_DISABLE = KeyBindingHelper.registerKeyBinding(new KeyBinding(

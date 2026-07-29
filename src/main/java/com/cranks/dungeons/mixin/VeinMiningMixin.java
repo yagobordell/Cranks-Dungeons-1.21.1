@@ -48,7 +48,7 @@ public class VeinMiningMixin {
         if (EnchantmentDisableManager.isDisabled(player.getUuid(), VEIN_MINING_ID)) return;
 
         int veinLevel = EnchantmentHelper.getLevel(
-                world.getRegistryManager().getOrThrow(RegistryKeys.ENCHANTMENT).getOrThrow(ModEnchantments.VEIN_MINING),
+                world.getRegistryManager().get(RegistryKeys.ENCHANTMENT).getEntry(ModEnchantments.VEIN_MINING).get(),
                 tool
         );
 
@@ -99,8 +99,8 @@ public class VeinMiningMixin {
         }
 
         boolean hasSilk = EnchantmentHelper.getLevel(
-                world.getRegistryManager().getOrThrow(RegistryKeys.ENCHANTMENT)
-                        .getOrThrow(net.minecraft.enchantment.Enchantments.SILK_TOUCH), tool) > 0;
+                world.getRegistryManager().get(RegistryKeys.ENCHANTMENT)
+                        .getEntry(net.minecraft.enchantment.Enchantments.SILK_TOUCH).get(), tool) > 0;
 
         // If silk touch is toggled disabled, ignore it
         if (EnchantmentDisableManager.isDisabled(player.getUuid(), SILK_TOUCH_ID)) {

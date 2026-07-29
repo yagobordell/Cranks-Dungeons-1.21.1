@@ -8,7 +8,7 @@ import java.io.InputStreamReader;
 
 public class FindYarn {
     public static void main(String[] args) throws Exception {
-        File dir = new File("C:\\Users\\yagob\\.gradle\\caches\\fabric-loom\\1.21.11");
+        File dir = new File("C:\\Users\\yagob\\.gradle\\caches\\fabric-loom\\1.21.1");
         findYarn(dir);
     }
     

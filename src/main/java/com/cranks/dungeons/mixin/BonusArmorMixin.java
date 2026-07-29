@@ -29,7 +29,7 @@ public abstract class BonusArmorMixin {
         PlayerEntity player = (PlayerEntity) (Object) this;
         if (!(player instanceof ServerPlayerEntity serverPlayer)) return;
 
-        var armorAttr = player.getAttributeInstance(EntityAttributes.ARMOR);
+        var armorAttr = player.getAttributeInstance(EntityAttributes.GENERIC_ARMOR);
         if (armorAttr == null) return;
 
         double bonusArmor = player.getAttributeValue(ModAttributes.BONUS_ARMOR);
@@ -76,7 +76,7 @@ public abstract class BonusArmorMixin {
                     var comp = leggings.get(net.minecraft.component.DataComponentTypes.ATTRIBUTE_MODIFIERS);
                     if (comp != null) {
                         for (var modEntry : comp.modifiers()) {
-                            if (modEntry.attribute().equals(EntityAttributes.ARMOR)) {
+                            if (modEntry.attribute().equals(EntityAttributes.GENERIC_ARMOR)) {
                                 leggingsBaseArmor += modEntry.modifier().value();
                             }
                         }

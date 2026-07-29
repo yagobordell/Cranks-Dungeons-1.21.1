@@ -178,23 +178,16 @@ public class WorldTreeDataComponentImpl implements WorldTreeDataComponent, AutoS
         internal_write(tag);
     }
 
-    public void readFromNbt(NbtCompound tag) {
-        internal_read(tag);
-    }
-
-    public void writeToNbt(NbtCompound tag) {
-        internal_write(tag);
-    }
-
     private void internal_read(NbtCompound tag) {
-        this.unspentPoints = tag.getInt("unspentPoints").orElse(0);
-        this.gatheringXp = tag.getInt("gatheringXp").orElse(0);
-        this.gatheringLevel = tag.getInt("gatheringLevel").orElse(1);
+        this.unspentPoints = tag.getInt("unspentPoints");
+        this.gatheringXp = tag.getInt("gatheringXp");
+        this.gatheringLevel = tag.getInt("gatheringLevel");
+        if (this.gatheringLevel < 1) this.gatheringLevel = 1;
         
         this.unlockedNodes.clear();
-        NbtList list = tag.getList("unlockedNodes").orElse(new NbtList());
+        NbtList list = tag.getList("unlockedNodes", 8);
         for (int i = 0; i < list.size(); i++) {
-            String id = list.getString(i).orElse("").trim();
+            String id = list.getString(i).trim();
             if (!id.isEmpty()) {
                 this.unlockedNodes.add(id);
             }
@@ -202,9 +195,9 @@ public class WorldTreeDataComponentImpl implements WorldTreeDataComponent, AutoS
 
         this.nodeChoices.clear();
         if (tag.contains("nodeChoices")) {
-            NbtCompound choicesTag = tag.getCompound("nodeChoices").orElse(new NbtCompound());
+            NbtCompound choicesTag = tag.getCompound("nodeChoices");
             for (String key : choicesTag.getKeys()) {
-                this.nodeChoices.put(key, choicesTag.getString(key).orElse(""));
+                this.nodeChoices.put(key, choicesTag.getString(key));
             }
         }
         System.out.println("[CranksDungeons] Loaded World Tree Data for " + player.getName().getString());
@@ -262,33 +255,5 @@ public class WorldTreeDataComponentImpl implements WorldTreeDataComponent, AutoS
             }
         }
         System.out.println("[CranksDungeons] Synced World Tree Data from Server");
-    }
-
-    public void cca_bridge_writeData(Object buf) {
-        try {
-            java.lang.reflect.Method writeNbt = buf.getClass().getMethod("writeNbt", NbtCompound.class);
-            NbtCompound tag = new NbtCompound();
-            this.internal_write(tag);
-            writeNbt.invoke(buf, tag);
-        } catch (Exception e) {
-            if (buf instanceof net.minecraft.network.RegistryByteBuf rbb) {
-                NbtCompound tag = new NbtCompound();
-                this.internal_write(tag);
-                rbb.writeNbt(tag);
-            }
-        }
-    }
-
-    public void cca_bridge_readData(Object buf) {
-        try {
-            java.lang.reflect.Method readNbt = buf.getClass().getMethod("readNbt");
-            NbtCompound tag = (NbtCompound) readNbt.invoke(buf);
-            if (tag != null) this.internal_read(tag);
-        } catch (Exception e) {
-            if (buf instanceof net.minecraft.network.RegistryByteBuf rbb) {
-                NbtCompound tag = rbb.readNbt();
-                if (tag != null) this.internal_read(tag);
-            }
-        }
     }
 }

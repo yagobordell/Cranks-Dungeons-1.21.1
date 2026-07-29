@@ -26,7 +26,7 @@ public class AttackRangeMixin {
     @Inject(method = "getEntityInteractionRange", at = @At("HEAD"))
     private void removeOldRangeModifier(CallbackInfoReturnable<Double> cir) {
         PlayerEntity player = (PlayerEntity) (Object) this;
-        EntityAttributeInstance rangeAttr = player.getAttributeInstance(EntityAttributes.ENTITY_INTERACTION_RANGE);
+        EntityAttributeInstance rangeAttr = player.getAttributeInstance(EntityAttributes.PLAYER_ENTITY_INTERACTION_RANGE);
         if (rangeAttr != null) {
             rangeAttr.removeModifier(RANGE_SYNC_ID);
         }
@@ -63,7 +63,7 @@ public class AttackRangeMixin {
 
         // Re-apply a temporary modifier on ENTITY_INTERACTION_RANGE so other mods see
         // the same value
-        EntityAttributeInstance rangeAttr = player.getAttributeInstance(EntityAttributes.ENTITY_INTERACTION_RANGE);
+        EntityAttributeInstance rangeAttr = player.getAttributeInstance(EntityAttributes.PLAYER_ENTITY_INTERACTION_RANGE);
         if (rangeAttr != null) {
             rangeAttr.addTemporaryModifier(new EntityAttributeModifier(
                     RANGE_SYNC_ID,

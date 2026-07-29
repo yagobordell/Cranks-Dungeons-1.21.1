@@ -56,9 +56,10 @@ public abstract class EvasionMixin {
     }
 
     @Inject(method = "damage", at = @At("HEAD"), cancellable = true)
-    private void handleEvasion(ServerWorld world, DamageSource source, float amount,
+    private void handleEvasion(DamageSource source, float amount,
             CallbackInfoReturnable<Boolean> cir) {
         LivingEntity entity = (LivingEntity) (Object) this;
+        net.minecraft.world.World world = entity.getWorld();
 
         // All living entities can evade; exclude void/fall damage
         if (source.isIn(net.minecraft.registry.tag.DamageTypeTags.BYPASSES_ARMOR)) {
@@ -93,14 +94,12 @@ public abstract class EvasionMixin {
                     net.minecraft.sound.SoundEvents.ENTITY_PLAYER_ATTACK_SWEEP,
                     entity instanceof PlayerEntity ? net.minecraft.sound.SoundCategory.PLAYERS : net.minecraft.sound.SoundCategory.HOSTILE, 1.0f, 1.5f);
 
-            world.spawnParticles(
-                    net.minecraft.particle.ParticleTypes.CLOUD,
-                    entity.getX(),
-                    entity.getY() + entity.getHeight() / 2.0,
-                    entity.getZ(),
-                    10,
-                    0.5, 0.5, 0.5,
-                    0.1);
+            if (world instanceof ServerWorld serverWorld) {
+                serverWorld.spawnParticles(
+                        net.minecraft.particle.ParticleTypes.POOF,
+                        entity.getX(), entity.getY() + entity.getHeight() / 2, entity.getZ(),
+                        10, 0.2, 0.3, 0.2, 0.05);
+            }
 
             cir.setReturnValue(false);
         } else {

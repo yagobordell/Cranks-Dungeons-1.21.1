@@ -31,8 +31,8 @@ public abstract class AilmentSyncMixin {
         }
     }
 
-    @Inject(method = "onStatusEffectsRemoved", at = @At("TAIL"))
-    private void onAilmentsCleared(Collection<StatusEffectInstance> effects, CallbackInfo ci) {
+    @Inject(method = "clearStatusEffects", at = @At("TAIL"))
+    private void onAilmentsCleared(CallbackInfoReturnable<Boolean> cir) {
         // Just always sync when all effects are removed (e.g. milk)
         AilmentManager.syncAilments((LivingEntity) (Object) this);
     }

@@ -30,7 +30,7 @@ public abstract class SnowballDamageMixin extends ThrownItemEntity {
                 damage = 3.0f;
             }
             
-            target.damage((ServerWorld) this.getEntityWorld(), this.getDamageSources().thrown(this, this.getOwner()), damage);
+            target.damage(this.getDamageSources().thrown(this, this.getOwner()), damage);
         }
     }
 }

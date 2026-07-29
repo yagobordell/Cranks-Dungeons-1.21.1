@@ -8,7 +8,7 @@ import net.minecraft.entity.passive.AnimalEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.loot.LootTable;
-import net.minecraft.loot.context.LootWorldContext;
+import net.minecraft.loot.context.LootContextParameterSet;
 import net.minecraft.loot.context.LootContextParameters;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
@@ -19,24 +19,16 @@ import net.minecraft.registry.RegistryWrapper;
 import java.util.ArrayList;
 import java.util.List;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.minecraft.world.World;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import net.minecraft.registry.RegistryWrapper;
-import java.util.ArrayList;
-import java.util.List;
 
 @Mixin(LootTable.class)
 public class WorldTreeMobLootMixin {
 
-    @Inject(method = "generateLoot(Lnet/minecraft/loot/context/LootWorldContext;)Lit/unimi/dsi/fastutil/objects/ObjectArrayList;", at = @At("RETURN"), cancellable = true)
-    private void modifyMobLoot(LootWorldContext context, CallbackInfoReturnable<ObjectArrayList<ItemStack>> cir) {
-        if (!context.getParameters().contains(LootContextParameters.ATTACKING_ENTITY) || !context.getParameters().contains(LootContextParameters.THIS_ENTITY)) return;
+    @Inject(method = "generateLoot(Lnet/minecraft/loot/context/LootContextParameterSet;)Lit/unimi/dsi/fastutil/objects/ObjectArrayList;", at = @At("RETURN"), cancellable = true)
+    private void modifyMobLoot(LootContextParameterSet context, CallbackInfoReturnable<ObjectArrayList<ItemStack>> cir) {
+        if (!context.contains(LootContextParameters.ATTACKING_ENTITY) || !context.contains(LootContextParameters.THIS_ENTITY)) return;
         
-        Entity killerEntity = context.getParameters().getNullable(LootContextParameters.ATTACKING_ENTITY);
-        Entity thisEntity = context.getParameters().getNullable(LootContextParameters.THIS_ENTITY);
+        Entity killerEntity = context.get(LootContextParameters.ATTACKING_ENTITY);
+        Entity thisEntity = context.get(LootContextParameters.THIS_ENTITY);
 
         if (!(killerEntity instanceof PlayerEntity player) || !(thisEntity instanceof LivingEntity victim)) return;
 

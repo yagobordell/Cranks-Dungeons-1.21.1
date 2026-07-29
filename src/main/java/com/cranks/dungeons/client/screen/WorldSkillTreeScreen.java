@@ -7,12 +7,9 @@ import com.cranks.dungeons.stat.passive.PassiveNode;
 import com.cranks.dungeons.stat.passive.WorldNodeRegistry;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.input.KeyInput;
 import net.minecraft.text.Text;
 import net.minecraft.sound.SoundEvents;
 import com.cranks.dungeons.registry.ModSounds;
@@ -93,7 +90,7 @@ public class WorldSkillTreeScreen extends Screen {
 
     // UI BACKGROUNDS
     private static final Identifier MENU_BACKGROUND = Identifier.of("cranks-dungeons", "world/menu_background");
-    private static final Identifier STATS_BACKGROUND = Identifier.of("cranks-dungeons", "world/stats_background");
+    private static final Identifier STATS_PANEL_TEXTURE = Identifier.of("cranks-dungeons", "textures/gui/stats_panel.png");
 
 
     private final Map<String, String> draftUnlocked = new HashMap<>();
@@ -178,11 +175,11 @@ public class WorldSkillTreeScreen extends Screen {
                             showStatsPanel = !showStatsPanel;
                             this.init(); // Refresh button text
                         })
-                        .dimensions(this.width - 110, 10, 100, 20).build());
+                        .dimensions(this.width - 130, 5, 100, 20).build());
 
         // Close Button for Passive Tree
         this.addDrawableChild(ButtonWidget.builder(Text.literal("✕"), b -> this.close())
-                .dimensions(this.width - 135, 10, 20, 20).build());
+                .dimensions(this.width - 25, 5, 20, 20).build());
 
         // Center the view on the starting node for their class (only if not already
         // panned)
@@ -548,7 +545,7 @@ public class WorldSkillTreeScreen extends Screen {
             if (activeNode != null && activeNode.modifiers() != null) {
                 int count = activeNode.modifiers().size();
                 int bgHeight = 8 + (count * 22);
-                context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, MENU_BACKGROUND, cx - 4, cy - 4, 158, bgHeight);
+                context.drawGuiTexture(MENU_BACKGROUND, cx - 4, cy - 4, 158, bgHeight);
 
                 int i = 0;
                 for (Map.Entry<RegistryEntry<EntityAttribute>, Double> entry : activeNode.modifiers().entrySet()) {
@@ -556,7 +553,7 @@ public class WorldSkillTreeScreen extends Screen {
                     Identifier btnTex = (mouseX >= cx && mouseX <= cx + 150 && mouseY >= btnY && mouseY <= btnY + 20)
                             ? Identifier.of("minecraft", "widget/button_highlighted")
                             : Identifier.of("minecraft", "widget/button");
-                    context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, btnTex, cx, btnY, 150, 20);
+                    context.drawGuiTexture(btnTex, cx, btnY, 150, 20);
 
                     String modId = entry.getKey().getKey().map(k -> k.getValue().getPath()).orElse("unknown");
                     double amount = entry.getValue();
@@ -606,7 +603,7 @@ public class WorldSkillTreeScreen extends Screen {
         int panelY = (this.height - panelHeight) / 2;
 
         // Draw Panel Background
-        context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, STATS_BACKGROUND, panelX, panelY, panelWidth, panelHeight);
+        context.drawTexture(STATS_PANEL_TEXTURE, panelX, panelY, 0.0F, 0.0F, panelWidth, panelHeight, panelWidth, panelHeight);
 
         int ty = panelY + 10;
         context.drawCenteredTextWithShadow(this.textRenderer, "=== Tree Summary ===", panelX + panelWidth / 2, ty,
@@ -627,11 +624,11 @@ public class WorldSkillTreeScreen extends Screen {
         int barWidth = 182;
         int barX = panelX + (panelWidth - barWidth) / 2;
 
-        context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, expBg, barX, ty + 2, 182, 5);
+        context.drawGuiTexture(expBg, barX, ty + 2, 182, 5);
 
         int progressWidth = nextXp > 0 ? (int) (182.0 * currentXp / nextXp) : 0;
         if (progressWidth > 0) {
-            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, expFg, 182, 5, 0, 0, barX, ty + 2, progressWidth, 5);
+            context.drawGuiTexture(expFg, 182, 5, 0, 0, barX, ty + 2, progressWidth, 5);
         }
 
         // Draw text over bar
@@ -800,9 +797,9 @@ public class WorldSkillTreeScreen extends Screen {
         float angle = (float) Math.atan2(dy, dx);
 
         var matrices = context.getMatrices();
-        matrices.pushMatrix();
-        matrices.translate(x1, y1);
-        matrices.rotate(angle);
+        matrices.push();
+        matrices.translate(x1, y1, 0);
+        matrices.multiply(net.minecraft.util.math.RotationAxis.POSITIVE_Z.rotation(angle));
 
         // Scale a fixed integer base to achieve sub-pixel float width/length
         float baseLen = 1000.0f;
@@ -811,16 +808,15 @@ public class WorldSkillTreeScreen extends Screen {
         float scaleX = len / baseLen;
         float scaleY = width / baseWidth;
 
-        matrices.scale(scaleX, scaleY);
+        matrices.scale(scaleX, scaleY, 1.0f);
 
         int finalColor = (color & 0x00FFFFFF) | ((int) (alpha * 255) << 24);
         context.drawGuiTexture(
-                net.minecraft.client.gl.RenderPipelines.GUI_TEXTURED,
                 sprite,
                 0, (int) (-baseWidth / 2.0f), (int) baseLen, (int) baseWidth,
                 finalColor);
 
-        matrices.popMatrix();
+        matrices.pop();
     }
 
     private void drawNodeShape(DrawContext context, double cx, double cy, String shape, String state,
@@ -861,14 +857,14 @@ public class WorldSkillTreeScreen extends Screen {
      */
     private void drawPrecisionTexture(DrawContext context, Identifier texture, double cx, double cy, double size, int color) {
         var matrices = context.getMatrices();
-        matrices.pushMatrix();
+        matrices.push();
         // Translate with full float precision
-        matrices.translate((float) cx, (float) cy);
+        matrices.translate((float) cx, (float) cy, 0);
 
         // Scale a fixed integer base to achieve sub-pixel float size
         float baseSize = 256.0f;
         float scale = (float) (size / baseSize);
-        matrices.scale(scale, scale);
+        matrices.scale(scale, scale, 1.0f);
 
         int drawW = (int) baseSize;
         int drawH = (int) baseSize;
@@ -876,12 +872,11 @@ public class WorldSkillTreeScreen extends Screen {
         int drawY = -drawH / 2;
 
         context.drawGuiTexture(
-                net.minecraft.client.gl.RenderPipelines.GUI_TEXTURED,
                 texture,
                 drawX, drawY, drawW, drawH,
                 color);
 
-        matrices.popMatrix();
+        matrices.pop();
     }
 
     @Override
@@ -902,13 +897,13 @@ public class WorldSkillTreeScreen extends Screen {
     }
 
     @Override
-    public boolean mouseDragged(Click click, double deltaX, double deltaY) {
-        if (super.mouseDragged(click, deltaX, deltaY)) return true;
-        if (click.button() == 0 || click.button() == 2) { // Left or Middle click dragging
-            if (editMode && click.button() == 0) {
+    public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
+        if (super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY)) return true;
+        if (button == 0 || button == 2) { // Left or Middle click dragging
+            if (editMode && button == 0) {
                 if (isSelectingBox) {
-                    selectionCurrentX = click.x();
-                    selectionCurrentY = click.y();
+                    selectionCurrentX = mouseX;
+                    selectionCurrentY = mouseY;
                     return true;
                 }
                 if (draggedNode != null) {
@@ -936,13 +931,13 @@ public class WorldSkillTreeScreen extends Screen {
             panY += deltaY;
             return true;
         }
-        return super.mouseDragged(click, deltaX, deltaY);
+        return super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
     }
 
     @Override
-    public boolean mouseReleased(Click click) {
-        if (super.mouseReleased(click)) return true;
-        if (click.button() == 0) {
+    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        if (super.mouseReleased(mouseX, mouseY, button)) return true;
+        if (button == 0) {
             if (isSelectingBox) {
                 double minX = Math.min(selectionStartX, selectionCurrentX);
                 double maxX = Math.max(selectionStartX, selectionCurrentX);
@@ -981,22 +976,20 @@ public class WorldSkillTreeScreen extends Screen {
                 draggedNode = null;
             }
         }
-        return super.mouseReleased(click);
+        return super.mouseReleased(mouseX, mouseY, button);
     }
 
     @Override
-    public boolean keyPressed(net.minecraft.client.input.KeyInput input) {
-        if (com.cranks.dungeons.client.ModKeybinds.OPEN_WORLD_TREE.matchesKey(input)) {
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (com.cranks.dungeons.client.ModKeybinds.OPEN_WORLD_TREE.matchesKey(keyCode, scanCode)) {
             this.close();
             return true;
         }
 
-        if (com.cranks.dungeons.client.ModKeybinds.OPEN_PASSIVE_TREE.matchesKey(input)) {
+        if (com.cranks.dungeons.client.ModKeybinds.OPEN_PASSIVE_TREE.matchesKey(keyCode, scanCode)) {
             this.client.setScreen(new com.cranks.dungeons.client.screen.PassiveSkillTreeScreen(null));
             return true;
         }
-
-        int keyCode = input.key();
 
         if (editMode && (keyCode == GLFW.GLFW_KEY_LEFT_SHIFT || keyCode == GLFW.GLFW_KEY_RIGHT_SHIFT)) {
             toggleSnapToGrid();
@@ -1074,7 +1067,7 @@ public class WorldSkillTreeScreen extends Screen {
             }
         }
 
-        return super.keyPressed(input);
+        return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
     public void startConnecting(PassiveNode source) {
@@ -1084,12 +1077,8 @@ public class WorldSkillTreeScreen extends Screen {
     }
 
     @Override
-    public boolean mouseClicked(Click click, boolean bl) {
-        if (super.mouseClicked(click, bl)) return true;
-
-        double mouseX = click.x();
-        double mouseY = click.y();
-        int button = click.button();
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (super.mouseClicked(mouseX, mouseY, button)) return true;
         var player = MinecraftClient.getInstance().player;
         if (player == null) return false;
 
@@ -1126,8 +1115,8 @@ public class WorldSkillTreeScreen extends Screen {
                         this.cacheDirty = true;
                         player.playSound(SoundEvents.BLOCK_ANVIL_PLACE, 0.4f, 1.2f);
                     } else {
-                        boolean shiftHeld = InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow(), GLFW.GLFW_KEY_LEFT_SHIFT) ||
-                                InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow(), GLFW.GLFW_KEY_RIGHT_SHIFT);
+                        boolean shiftHeld = InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow().getHandle(), GLFW.GLFW_KEY_LEFT_SHIFT) ||
+                                InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow().getHandle(), GLFW.GLFW_KEY_RIGHT_SHIFT);
                         if (shiftHeld) {
                             // Toggle selection
                             if (selectedNodeIds.contains(hitNode.id())) {
@@ -1147,8 +1136,8 @@ public class WorldSkillTreeScreen extends Screen {
                     }
                 } else {
                     // Clicking empty space
-                    if (!(InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow(), GLFW.GLFW_KEY_LEFT_SHIFT) ||
-                            InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow(), GLFW.GLFW_KEY_RIGHT_SHIFT))) {
+                    if (!(InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow().getHandle(), GLFW.GLFW_KEY_LEFT_SHIFT) ||
+                            InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow().getHandle(), GLFW.GLFW_KEY_RIGHT_SHIFT))) {
                         selectedNodeIds.clear();
                     }
                     isSelectingBox = true;
@@ -1164,8 +1153,8 @@ public class WorldSkillTreeScreen extends Screen {
                 } else {
                     // CREATE NEW NODE
                     double scale = BASE_GRID_SCALE * zoom;
-                    double gx = (click.x() - panX) / scale;
-                    double gy = (click.y() - panY) / scale;
+                    double gx = (mouseX - panX) / scale;
+                    double gy = (mouseY - panY) / scale;
                     this.client.setScreen(new WorldNodeEditScreen(this, gx, gy, this::refreshCachesProxy, this::startConnecting));
                 }
                 return true;
@@ -1307,7 +1296,7 @@ public class WorldSkillTreeScreen extends Screen {
                 return true;
             }
         }
-        return super.mouseClicked(click, bl);
+        return super.mouseClicked(mouseX, mouseY, button);
     }
 
     /**

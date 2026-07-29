@@ -73,38 +73,27 @@ public class ItemStatManager {
                 net.minecraft.component.type.NbtComponent.DEFAULT).copyNbt();
 
         if (nbt.contains(STATS_KEY)) {
-            Optional<NbtList> statsListOpt = nbt.getList(STATS_KEY);
-            if (statsListOpt.isPresent()) {
-                NbtList statsList = statsListOpt.get();
-                for (int i = 0; i < statsList.size(); i++) {
-                    Optional<NbtCompound> statNbtOpt = statsList.getCompound(i);
-                    if (statNbtOpt.isPresent()) {
-                        NbtCompound statNbt = statNbtOpt.get();
-                        Optional<String> idOpt = statNbt.getString("id");
+            NbtList statsList = nbt.getList(STATS_KEY, net.minecraft.nbt.NbtElement.COMPOUND_TYPE);
+            for (int i = 0; i < statsList.size(); i++) {
+                NbtCompound statNbt = statsList.getCompound(i);
+                String id = statNbt.getString("id");
 
-                        double[] valuesArray;
-                        if (statNbt.contains("values")) {
-                            Optional<NbtList> nbtListOpt = statNbt.getList("values");
-                            if (nbtListOpt.isPresent()) {
-                                NbtList nbtList = nbtListOpt.get();
-                                valuesArray = new double[nbtList.size()];
-                                for (int j = 0; j < nbtList.size(); j++) valuesArray[j] = nbtList.getDouble(j).orElse(0.0);
-                            } else {
-                                valuesArray = new double[0];
-                            }
-                        } else if (statNbt.contains("value")) {
-                            valuesArray = new double[]{statNbt.getDouble("value").orElse(0.0)};
-                        } else {
-                            continue;
-                        }
+                double[] valuesArray;
+                if (statNbt.contains("values")) {
+                    NbtList nbtList = statNbt.getList("values", net.minecraft.nbt.NbtElement.DOUBLE_TYPE);
+                    valuesArray = new double[nbtList.size()];
+                    for (int j = 0; j < nbtList.size(); j++) valuesArray[j] = nbtList.getDouble(j);
+                } else if (statNbt.contains("value")) {
+                    valuesArray = new double[]{statNbt.getDouble("value")};
+                } else {
+                    continue;
+                }
 
-                        int tier = statNbt.getInt("tier").orElse(1);
-                        boolean isArtificial = statNbt.getBoolean("artificial").orElse(false);
+                int tier = statNbt.contains("tier") ? statNbt.getInt("tier") : 1;
+                boolean isArtificial = statNbt.getBoolean("artificial");
 
-                        if (idOpt.isPresent()) {
-                            stats.add(new ItemStat(idOpt.get(), valuesArray, tier, isArtificial));
-                        }
-                    }
+                if (!id.isEmpty()) {
+                    stats.add(new ItemStat(id, valuesArray, tier, isArtificial));
                 }
             }
         }
@@ -179,16 +168,6 @@ public class ItemStatManager {
         
         NbtCompound nbt = stack.getOrDefault(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,
                 net.minecraft.component.type.NbtComponent.DEFAULT).copyNbt();
-        Optional<NbtList> statsListOpt = nbt.getList(STATS_KEY);
-        if (statsListOpt.isPresent()) {
-            NbtList statsList = statsListOpt.get();
-            statsList.remove(indexToRemove);
-            nbt.put(STATS_KEY, statsList);
-            stack.set(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,
-                    net.minecraft.component.type.NbtComponent.of(nbt));
-            EquipmentStatApplier.updateItemAttributes(stack);
-            return true;
-        }
         return false;
     }
 
@@ -271,9 +250,8 @@ public class ItemStatManager {
                 net.minecraft.component.type.NbtComponent.DEFAULT).copyNbt();
 
         NbtList statsList;
-        Optional<NbtList> statsListOpt = nbt.getList(STATS_KEY);
-        if (statsListOpt.isPresent()) {
-            statsList = statsListOpt.get();
+        if (nbt.contains(STATS_KEY, net.minecraft.nbt.NbtElement.LIST_TYPE)) {
+            statsList = nbt.getList(STATS_KEY, net.minecraft.nbt.NbtElement.COMPOUND_TYPE);
         } else {
             statsList = new NbtList();
         }
@@ -318,7 +296,7 @@ public class ItemStatManager {
         if (stack.isEmpty()) return false;
         NbtCompound nbt = stack.getOrDefault(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,
                 net.minecraft.component.type.NbtComponent.DEFAULT).copyNbt();
-        return nbt.getBoolean(ARTIFICIAL_KEY).orElse(false);
+        return nbt.getBoolean(ARTIFICIAL_KEY);
     }
 
     public static boolean addCrypticStat(ItemStack stack, CustomStat.AffixType type) {
@@ -335,7 +313,7 @@ public class ItemStatManager {
     public static CustomStat.AffixType getCrypticAffixType(ItemStack stack) {
         NbtCompound nbt = stack.getOrDefault(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,
                 net.minecraft.component.type.NbtComponent.DEFAULT).copyNbt();
-        String name = nbt.getString(CRYPTIC_AFFIX_KEY).orElse("PREFIX");
+        String name = nbt.contains(CRYPTIC_AFFIX_KEY) ? nbt.getString(CRYPTIC_AFFIX_KEY) : "PREFIX";
         try {
             return CustomStat.AffixType.valueOf(name);
         } catch (Exception e) {
@@ -357,13 +335,7 @@ public class ItemStatManager {
         nbt.remove(ARTIFICIAL_KEY);
         nbt.remove(CRYPTIC_AFFIX_KEY);
 
-        NbtList statsList;
-        Optional<NbtList> statsListOpt = nbt.getList(STATS_KEY);
-        if (statsListOpt.isPresent()) {
-            statsList = statsListOpt.get();
-        } else {
-            statsList = new NbtList();
-        }
+        NbtList statsList = nbt.contains(STATS_KEY) ? nbt.getList(STATS_KEY, 10) : new NbtList();
 
         NbtCompound newStat = new NbtCompound();
         newStat.putString("id", statId);
@@ -400,12 +372,10 @@ public class ItemStatManager {
         NbtCompound nbt = stack.getOrDefault(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,
                 net.minecraft.component.type.NbtComponent.DEFAULT).copyNbt();
         if (!nbt.contains(CRYPTIC_OPTIONS_KEY)) return null;
-        Optional<NbtCompound> optionsOpt = nbt.getCompound(CRYPTIC_OPTIONS_KEY);
-        if (optionsOpt.isEmpty()) return null;
-        NbtCompound options = optionsOpt.get();
+        NbtCompound options = nbt.getCompound(CRYPTIC_OPTIONS_KEY);
         String[] statIds = new String[3];
         for (int i = 0; i < 3; i++) {
-            statIds[i] = options.getString("stat" + i).orElse("");
+            statIds[i] = options.getString("stat" + i);
         }
         if (statIds[0].isEmpty() && statIds[1].isEmpty() && statIds[2].isEmpty()) return null;
         return statIds;
@@ -415,12 +385,10 @@ public class ItemStatManager {
         NbtCompound nbt = stack.getOrDefault(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,
                 net.minecraft.component.type.NbtComponent.DEFAULT).copyNbt();
         if (!nbt.contains(CRYPTIC_OPTIONS_KEY)) return null;
-        Optional<NbtCompound> optionsOpt = nbt.getCompound(CRYPTIC_OPTIONS_KEY);
-        if (optionsOpt.isEmpty()) return null;
-        NbtCompound options = optionsOpt.get();
+        NbtCompound options = nbt.getCompound(CRYPTIC_OPTIONS_KEY);
         int[] tiers = new int[3];
         for (int i = 0; i < 3; i++) {
-            tiers[i] = options.getInt("tier" + i).orElse(1);
+            tiers[i] = options.contains("tier" + i) ? options.getInt("tier" + i) : 1;
         }
         return tiers;
     }

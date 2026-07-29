@@ -43,7 +43,6 @@ public class QualityStationScreen extends HandledScreen<QualityStationScreenHand
         int y = (this.height - this.backgroundHeight) / 2;
 
         context.drawTexture(
-                net.minecraft.client.gl.RenderPipelines.GUI_TEXTURED,
                 TEXTURE,
                 x, y,
                 0.0f, 0.0f,
@@ -56,7 +55,6 @@ public class QualityStationScreen extends HandledScreen<QualityStationScreenHand
         int progress = handler.getScaledProgress();
         if (progress > 0) {
             context.drawTexture(
-                    net.minecraft.client.gl.RenderPipelines.GUI_TEXTURED,
                     TEXTURE,
                     x + 76, y + 26,
                     176.0f, 14.0f,

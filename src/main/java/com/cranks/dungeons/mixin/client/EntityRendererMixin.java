@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class EntityRendererMixin {
 
     @Inject(method = "hasLabel", at = @At("HEAD"), cancellable = true)
-    private void hideNametag(Entity entity, double distance, CallbackInfoReturnable<Boolean> cir) {
+    private void hideNametag(Entity entity, CallbackInfoReturnable<Boolean> cir) {
         // Hide vanilla nametags if our custom UI is enabled
         if ((entity instanceof PlayerEntity || entity.hasCustomName()) && CranksDungeons.CONFIG.showPlayerInfoAboveHead()) {
             cir.setReturnValue(false);

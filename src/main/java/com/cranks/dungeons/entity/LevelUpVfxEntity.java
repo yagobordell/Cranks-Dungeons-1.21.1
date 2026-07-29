@@ -52,7 +52,7 @@ public class LevelUpVfxEntity extends Entity {
                 double z = this.getZ() + Math.sin(angle) * radius;
                 double y = this.getY() + (this.age * 0.4) % 10.0;
                 
-                this.getEntityWorld().addParticleClient(
+                this.getEntityWorld().addParticle(
                     net.minecraft.particle.ParticleTypes.END_ROD, 
                     x, y, z, 
                     0.0, 0.1, 0.0
@@ -62,7 +62,7 @@ public class LevelUpVfxEntity extends Entity {
             // Central explosion particles
             if (this.age < 5) {
                 for (int i = 0; i < 10; i++) {
-                    this.getEntityWorld().addParticleClient(
+                    this.getEntityWorld().addParticle(
                         net.minecraft.particle.ParticleTypes.FIREWORK, 
                         this.getX() + (this.random.nextDouble() - 0.5) * 2.0, 
                         this.getY() + this.random.nextDouble() * 2.0, 
@@ -81,15 +81,15 @@ public class LevelUpVfxEntity extends Entity {
     }
 
     @Override
-    public boolean damage(net.minecraft.server.world.ServerWorld world, net.minecraft.entity.damage.DamageSource source, float amount) {
+    public boolean damage(net.minecraft.entity.damage.DamageSource source, float amount) {
         return false;
     }
 
     @Override
-    protected void readCustomData(net.minecraft.storage.ReadView nbt) {
+    protected void readCustomDataFromNbt(NbtCompound nbt) {
     }
 
     @Override
-    protected void writeCustomData(net.minecraft.storage.WriteView nbt) {
+    protected void writeCustomDataToNbt(NbtCompound nbt) {
     }
 }

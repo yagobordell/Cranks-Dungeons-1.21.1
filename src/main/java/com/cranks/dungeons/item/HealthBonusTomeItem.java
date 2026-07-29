@@ -2,10 +2,11 @@ package com.cranks.dungeons.item;
 
 import com.cranks.dungeons.equipment.EquipmentType;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
-import java.util.function.Consumer;
+import java.util.List;
 
 public class HealthBonusTomeItem extends AbstractTomeItem {
 
@@ -22,16 +23,14 @@ public class HealthBonusTomeItem extends AbstractTomeItem {
     }
 
     @Override
-    public void appendTooltip(ItemStack stack, TooltipContext context,
-                              net.minecraft.component.type.TooltipDisplayComponent displayComponent,
-                              Consumer<Text> textConsumer, net.minecraft.item.tooltip.TooltipType type) {
+    public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
 
-        addTomeDescription(textConsumer);
+        addTomeDescription(tooltip::add);
 
-        addStatRange(textConsumer, EquipmentType.LEGGINGS, "Leggings");
-        addStatRange(textConsumer, EquipmentType.HELMET, "Helmet");
-        addStatRange(textConsumer, EquipmentType.CHESTPLATE, "Chest/Boots");
+        addStatRange(tooltip::add, EquipmentType.LEGGINGS, "Leggings");
+        addStatRange(tooltip::add, EquipmentType.HELMET, "Helmet");
+        addStatRange(tooltip::add, EquipmentType.CHESTPLATE, "Chest/Boots");
 
-        super.appendTooltip(stack, context, displayComponent, textConsumer, type);
+        super.appendTooltip(stack, context, tooltip, type);
     }
 }

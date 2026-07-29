@@ -6,7 +6,6 @@ import com.cranks.dungeons.registry.ModAttributes;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.entity.player.PlayerEntity;
@@ -130,7 +129,7 @@ public class EnergyShieldHudRenderer implements HudRenderCallback {
             Identifier containerTexture = shieldBlinking ? 
                 Identifier.of("minecraft", "hud/heart/container_blinking") : 
                 Identifier.of("minecraft", "hud/heart/container");
-            drawContext.drawGuiTexture(RenderPipelines.GUI_TEXTURED, containerTexture, heartX, heartY, 9, 9);
+            drawContext.drawGuiTexture(containerTexture, heartX, heartY, 9, 9);
             
             float baseVisibility = iconIndex * 2.0f;
             Identifier texture = null;
@@ -159,7 +158,7 @@ public class EnergyShieldHudRenderer implements HudRenderCallback {
             }
             
             if (texture != null) {
-                drawContext.drawGuiTexture(RenderPipelines.GUI_TEXTURED, texture, heartX, heartY, 9, 9);
+                drawContext.drawGuiTexture(texture, heartX, heartY, 9, 9);
             }
         }
         
@@ -170,7 +169,7 @@ public class EnergyShieldHudRenderer implements HudRenderCallback {
     
     private void drawSpriteRowCount(DrawContext context, int currentRow, int x, int y) {
         Identifier spriteId = ShieldNumberSprites.getSpriteId(currentRow);
-        context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, spriteId, x, y, 16, 16);
+        context.drawGuiTexture(spriteId, x, y, 16, 16);
     }
 
     private void drawBorderedText(DrawContext context, net.minecraft.client.font.TextRenderer textRenderer, 
@@ -195,9 +194,9 @@ public class EnergyShieldHudRenderer implements HudRenderCallback {
         if (alpha == 0) alpha = 255;
         int shadowColor = (alpha << 24);
         
-        context.getMatrices().pushMatrix();
-        context.getMatrices().translate(x, y);
-        context.getMatrices().scale(scale, scale);
+        context.getMatrices().push();
+        context.getMatrices().translate(x, y, 0.0f);
+        context.getMatrices().scale(scale, scale, 1.0f);
         
         // Draw shadow on all four sides for border effect
         context.drawText(textRenderer, text, -1, 0, shadowColor, false);
@@ -208,7 +207,7 @@ public class EnergyShieldHudRenderer implements HudRenderCallback {
         // Draw actual text
         context.drawText(textRenderer, text, 0, 0, color, false);
         
-        context.getMatrices().popMatrix();
+        context.getMatrices().pop();
     }
     
     private void drawAllShieldRows(DrawContext drawContext, MinecraftClient client, int healthBarX, int armorBarY, 
@@ -228,7 +227,7 @@ public class EnergyShieldHudRenderer implements HudRenderCallback {
             Identifier containerTexture = shieldBlinking ? 
                 Identifier.of("minecraft", "hud/heart/container_blinking") : 
                 Identifier.of("minecraft", "hud/heart/container");
-            drawContext.drawGuiTexture(RenderPipelines.GUI_TEXTURED, containerTexture, heartX, heartY, 9, 9);
+            drawContext.drawGuiTexture(containerTexture, heartX, heartY, 9, 9);
             
             float baseVisibility = i * 2.0f;
             Identifier texture = null;
@@ -239,7 +238,7 @@ public class EnergyShieldHudRenderer implements HudRenderCallback {
             }
             
             if (texture != null) {
-                drawContext.drawGuiTexture(RenderPipelines.GUI_TEXTURED, texture, heartX, heartY, 9, 9);
+                drawContext.drawGuiTexture(texture, heartX, heartY, 9, 9);
             }
         }
     }

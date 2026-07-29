@@ -83,7 +83,7 @@ public class EnergyShieldRegenMixin {
         if (self.age < 20)
             return;
 
-        ServerWorld world = (ServerWorld) self.getEntityWorld();
+        net.minecraft.world.World world = self.getEntityWorld();
         EnergyShieldProvider provider = (EnergyShieldProvider) self;
 
         double maxShield = self.getAttributeValue(ModAttributes.ENERGY_SHIELD);

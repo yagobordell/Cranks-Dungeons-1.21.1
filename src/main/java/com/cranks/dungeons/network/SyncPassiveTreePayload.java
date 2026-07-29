@@ -33,31 +33,59 @@ public record SyncPassiveTreePayload(
             );
 
     // Codec for PassiveNode
-    private static final PacketCodec<RegistryByteBuf, PassiveNode> NODE_CODEC = PacketCodec.tuple(
-            PacketCodecs.STRING, PassiveNode::id,
-            PacketCodecs.STRING, PassiveNode::name,
-            PacketCodecs.STRING, PassiveNode::description,
-            PacketCodecs.DOUBLE, PassiveNode::gridX,
-            PacketCodecs.DOUBLE, PassiveNode::gridY,
-            PacketCodecs.STRING.collect(PacketCodecs.toList()), PassiveNode::connections,
-            MODIFIERS_CODEC, PassiveNode::modifiers,
-            PacketCodecs.optional(Identifier.PACKET_CODEC).xmap(opt -> opt.orElse(null), Optional::ofNullable), PassiveNode::icon,
-            PacketCodecs.STRING, PassiveNode::shape,
-            PacketCodecs.BOOLEAN, PassiveNode::isAttributeSelection,
-            PacketCodecs.DOUBLE, PassiveNode::attributeSelectionAmount,
-            PassiveNode::new
+    private static final PacketCodec<RegistryByteBuf, PassiveNode> NODE_CODEC = PacketCodec.of(
+        (value, buf) -> {
+            PacketCodecs.STRING.encode(buf, value.id());
+            PacketCodecs.STRING.encode(buf, value.name());
+            PacketCodecs.STRING.encode(buf, value.description());
+            buf.writeDouble(value.gridX());
+            buf.writeDouble(value.gridY());
+            PacketCodecs.STRING.collect(PacketCodecs.toList()).encode(buf, value.connections());
+            MODIFIERS_CODEC.encode(buf, value.modifiers());
+            PacketCodecs.optional(Identifier.PACKET_CODEC).xmap(opt -> opt.orElse(null), Optional::ofNullable).encode(buf, value.icon());
+            PacketCodecs.optional(PacketCodecs.STRING).xmap(opt -> opt.orElse(null), Optional::ofNullable).encode(buf, value.shape());
+            buf.writeBoolean(value.isAttributeSelection());
+            buf.writeDouble(value.attributeSelectionAmount());
+        },
+        buf -> {
+            return new PassiveNode(
+                PacketCodecs.STRING.decode(buf),
+                PacketCodecs.STRING.decode(buf),
+                PacketCodecs.STRING.decode(buf),
+                buf.readDouble(),
+                buf.readDouble(),
+                PacketCodecs.STRING.collect(PacketCodecs.toList()).decode(buf),
+                MODIFIERS_CODEC.decode(buf),
+                PacketCodecs.optional(Identifier.PACKET_CODEC).xmap(opt -> opt.orElse(null), Optional::ofNullable).decode(buf),
+                PacketCodecs.optional(PacketCodecs.STRING).xmap(opt -> opt.orElse(null), Optional::ofNullable).decode(buf),
+                buf.readBoolean(),
+                buf.readDouble()
+            );
+        }
     );
 
     // Codec for ClassDefinition
-    private static final PacketCodec<RegistryByteBuf, PassiveTreeConfig.ClassDefinition> CLASS_CODEC = PacketCodec.tuple(
-            PacketCodecs.STRING, PassiveTreeConfig.ClassDefinition::id,
-            PacketCodecs.STRING, PassiveTreeConfig.ClassDefinition::name,
-            PacketCodecs.STRING, PassiveTreeConfig.ClassDefinition::subtitle,
-            PacketCodecs.STRING, PassiveTreeConfig.ClassDefinition::description,
-            PacketCodecs.STRING, PassiveTreeConfig.ClassDefinition::recommendedStats,
-            PacketCodecs.STRING, PassiveTreeConfig.ClassDefinition::color,
-            PacketCodecs.STRING, PassiveTreeConfig.ClassDefinition::startNode,
-            PassiveTreeConfig.ClassDefinition::new
+    private static final PacketCodec<RegistryByteBuf, PassiveTreeConfig.ClassDefinition> CLASS_CODEC = PacketCodec.of(
+        (value, buf) -> {
+            PacketCodecs.STRING.encode(buf, value.id());
+            PacketCodecs.STRING.encode(buf, value.name());
+            PacketCodecs.STRING.encode(buf, value.subtitle());
+            PacketCodecs.STRING.encode(buf, value.description());
+            PacketCodecs.STRING.encode(buf, value.recommendedStats());
+            PacketCodecs.STRING.encode(buf, value.color());
+            PacketCodecs.STRING.encode(buf, value.startNode());
+        },
+        buf -> {
+            return new PassiveTreeConfig.ClassDefinition(
+                PacketCodecs.STRING.decode(buf),
+                PacketCodecs.STRING.decode(buf),
+                PacketCodecs.STRING.decode(buf),
+                PacketCodecs.STRING.decode(buf),
+                PacketCodecs.STRING.decode(buf),
+                PacketCodecs.STRING.decode(buf),
+                PacketCodecs.STRING.decode(buf)
+            );
+        }
     );
 
     public static final PacketCodec<RegistryByteBuf, SyncPassiveTreePayload> CODEC = PacketCodec.tuple(

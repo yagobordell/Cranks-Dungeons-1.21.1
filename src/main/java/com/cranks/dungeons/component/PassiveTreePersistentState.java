@@ -7,7 +7,6 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.PersistentState;
-import net.minecraft.world.PersistentStateType;
 
 import java.util.*;
 
@@ -98,15 +97,32 @@ public class PassiveTreePersistentState extends PersistentState {
             s -> s.playerData
     );
 
+    public static PassiveTreePersistentState fromNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
+        return CODEC.parse(registryLookup.getOps(net.minecraft.nbt.NbtOps.INSTANCE), nbt)
+                .resultOrPartial(err -> CranksDungeons.LOGGER.error("Failed to parse PassiveTreePersistentState: {}", err))
+                .orElseGet(PassiveTreePersistentState::new);
+    }
+
+    @Override
+    public NbtCompound writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
+        CODEC.encodeStart(registryLookup.getOps(net.minecraft.nbt.NbtOps.INSTANCE), this)
+                .resultOrPartial(err -> CranksDungeons.LOGGER.error("Failed to encode PassiveTreePersistentState: {}", err))
+                .ifPresent(encoded -> {
+                    if (encoded instanceof NbtCompound compound) {
+                        nbt.copyFrom(compound);
+                    }
+                });
+        return nbt;
+    }
+
     // --- Static Helper ---
 
     public static PassiveTreePersistentState get(MinecraftServer server) {
-        PersistentStateType<PassiveTreePersistentState> type = new PersistentStateType<>(
-                STATE_KEY,
+        PersistentState.Type<PassiveTreePersistentState> type = new PersistentState.Type<>(
                 PassiveTreePersistentState::new,
-                CODEC,
+                PassiveTreePersistentState::fromNbt,
                 null
         );
-        return server.getOverworld().getPersistentStateManager().getOrCreate(type);
+        return server.getOverworld().getPersistentStateManager().getOrCreate(type, STATE_KEY);
     }
 }

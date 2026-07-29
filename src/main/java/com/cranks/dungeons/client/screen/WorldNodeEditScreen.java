@@ -16,7 +16,6 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.input.KeyInput;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -288,7 +287,7 @@ public class WorldNodeEditScreen extends Screen {
                     double val = Double.parseDouble(valStr);
                     Identifier attrId = Identifier.tryParse(attr);
                     if (attrId != null) {
-                        Registries.ATTRIBUTE.getOptionalValue(attrId).ifPresent(a -> {
+                        java.util.Optional.ofNullable(Registries.ATTRIBUTE.get(attrId)).ifPresent(a -> {
                             mods.put(Registries.ATTRIBUTE.getEntry(a), val);
                         });
                     }
@@ -416,8 +415,7 @@ public class WorldNodeEditScreen extends Screen {
     }
 
     @Override
-    public boolean keyPressed(KeyInput input) {
-        int keyCode = input.key();
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         if (showSuggestions && !filteredSuggestions.isEmpty()) {
             if (keyCode == 264) {
                 selectedSuggestion = (selectedSuggestion + 1) % Math.min(filteredSuggestions.size(), 5);
@@ -432,7 +430,7 @@ public class WorldNodeEditScreen extends Screen {
                 return true;
             }
         }
-        return super.keyPressed(input);
+        return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
     private void applySuggestion() {

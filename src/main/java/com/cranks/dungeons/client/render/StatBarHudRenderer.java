@@ -5,7 +5,6 @@ import com.cranks.dungeons.EnergyShieldProvider;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.entity.player.PlayerEntity;
@@ -89,7 +88,7 @@ public class StatBarHudRenderer implements HudRenderCallback {
             int SHIELD_HEIGHT = 6;
             
             // Draw Shield Background
-            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, EMPTY_SHIELD_BAR, x, shieldY, BAR_WIDTH, SHIELD_HEIGHT);
+            context.drawGuiTexture(EMPTY_SHIELD_BAR, x, shieldY, BAR_WIDTH, SHIELD_HEIGHT);
 
             float shieldPercent = MathHelper.clamp(shield / maxShield, 0, 1);
             int shieldWidth = (int) (shieldPercent * MAX_FILL_WIDTH);
@@ -98,14 +97,14 @@ public class StatBarHudRenderer implements HudRenderCallback {
             if (displayedShield > shield) {
                 int trailWidth = (int) (MathHelper.clamp(displayedShield / maxShield, 0, 1) * MAX_FILL_WIDTH);
                 if (trailWidth > shieldWidth) {
-                    context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, SHIELD_TRAIL, MAX_FILL_WIDTH, SHIELD_HEIGHT, shieldWidth, 0,
+                    context.drawGuiTexture(SHIELD_TRAIL, MAX_FILL_WIDTH, SHIELD_HEIGHT, shieldWidth, 0,
                             x + FILL_OFFSET_X + shieldWidth, shieldY + FILL_OFFSET_Y, trailWidth - shieldWidth, SHIELD_HEIGHT);
                 }
             }
 
             // Draw Shield Fill
             if (shieldWidth > 0) {
-                context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, SHIELD_FILL, MAX_FILL_WIDTH, SHIELD_HEIGHT, 0, 0,
+                context.drawGuiTexture(SHIELD_FILL, MAX_FILL_WIDTH, SHIELD_HEIGHT, 0, 0,
                         x + FILL_OFFSET_X, shieldY + FILL_OFFSET_Y, shieldWidth, SHIELD_HEIGHT);
             }
 
@@ -114,16 +113,16 @@ public class StatBarHudRenderer implements HudRenderCallback {
             TextRenderer tr = client.textRenderer;
             int sTextWidth = tr.getWidth(sText);
 
-            context.getMatrices().pushMatrix();
-            context.getMatrices().translate(x + (BAR_WIDTH / 2f), shieldY + (SHIELD_HEIGHT / 2f));
-            context.getMatrices().scale(0.8f, 0.8f);
+            context.getMatrices().push();
+            context.getMatrices().translate(x + (BAR_WIDTH / 2f), shieldY + (SHIELD_HEIGHT / 2f), 0.0f);
+            context.getMatrices().scale(0.8f, 0.8f, 1.0f);
             context.drawTextWithShadow(tr, sText, -(sTextWidth / 2), -(tr.fontHeight / 2), 0xFF55FFFF);
-            context.getMatrices().popMatrix();
+            context.getMatrices().pop();
         }
 
         // --- Render Health Bar ---
         // Draw Background Frame
-        context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, EMPTY_BAR, x, y, BAR_WIDTH, BAR_HEIGHT);
+        context.drawGuiTexture(EMPTY_BAR, x, y, BAR_WIDTH, BAR_HEIGHT);
 
         float hpPercent = MathHelper.clamp(health / maxHealth, 0, 1);
         int hpWidth = (int) (hpPercent * MAX_FILL_WIDTH);
@@ -132,14 +131,14 @@ public class StatBarHudRenderer implements HudRenderCallback {
         if (displayedHealth > health) {
             int trailWidth = (int) (MathHelper.clamp(displayedHealth / maxHealth, 0, 1) * MAX_FILL_WIDTH);
             if (trailWidth > hpWidth) {
-                context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, HEALTH_TRAIL, MAX_FILL_WIDTH, FILL_HEIGHT, hpWidth, 0,
+                context.drawGuiTexture(HEALTH_TRAIL, MAX_FILL_WIDTH, FILL_HEIGHT, hpWidth, 0,
                         x + FILL_OFFSET_X + hpWidth, y + FILL_OFFSET_Y, trailWidth - hpWidth, FILL_HEIGHT);
             }
         }
 
         // Draw HP Fill (Red)
         if (hpWidth > 0) {
-            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, HEALTH_FILL, MAX_FILL_WIDTH, FILL_HEIGHT, 0, 0,
+            context.drawGuiTexture(HEALTH_FILL, MAX_FILL_WIDTH, FILL_HEIGHT, 0, 0,
                     x + FILL_OFFSET_X, y + FILL_OFFSET_Y, hpWidth, FILL_HEIGHT);
         }
 
@@ -150,14 +149,14 @@ public class StatBarHudRenderer implements HudRenderCallback {
         if (displayedAbsorption > absorption) {
             int trailWidth = (int) (MathHelper.clamp(displayedAbsorption / maxHealth, 0, 1) * MAX_FILL_WIDTH);
             if (trailWidth > absWidth) {
-                context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, ABSORPTION_TRAIL, MAX_FILL_WIDTH, FILL_HEIGHT, absWidth, 0,
+                context.drawGuiTexture(ABSORPTION_TRAIL, MAX_FILL_WIDTH, FILL_HEIGHT, absWidth, 0,
                         x + FILL_OFFSET_X + absWidth, y + FILL_OFFSET_Y, trailWidth - absWidth, FILL_HEIGHT);
             }
         }
 
         // Draw Absorption Overlay (Yellow)
         if (absWidth > 0) {
-            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, ABSORPTION_FILL, MAX_FILL_WIDTH, FILL_HEIGHT, 0, 0,
+            context.drawGuiTexture(ABSORPTION_FILL, MAX_FILL_WIDTH, FILL_HEIGHT, 0, 0,
                     x + FILL_OFFSET_X, y + FILL_OFFSET_Y, absWidth, FILL_HEIGHT);
         }
 
@@ -179,13 +178,13 @@ public class StatBarHudRenderer implements HudRenderCallback {
         int hunger = player.getHungerManager().getFoodLevel();
 
         // Draw Background Frame
-        context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, EMPTY_BAR, x, y, BAR_WIDTH, BAR_HEIGHT);
+        context.drawGuiTexture(EMPTY_BAR, x, y, BAR_WIDTH, BAR_HEIGHT);
 
         // Draw Hunger Fill (Orange)
         float hungerPercent = MathHelper.clamp(hunger / 20f, 0, 1);
         int hungerWidth = (int) (hungerPercent * MAX_FILL_WIDTH);
         if (hungerWidth > 0) {
-            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, HUNGER_FILL, MAX_FILL_WIDTH, FILL_HEIGHT, 0, 0,
+            context.drawGuiTexture(HUNGER_FILL, MAX_FILL_WIDTH, FILL_HEIGHT, 0, 0,
                     x + FILL_OFFSET_X, y + FILL_OFFSET_Y, hungerWidth, FILL_HEIGHT);
         }
 

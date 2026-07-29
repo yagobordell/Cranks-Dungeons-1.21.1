@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class PartyPvPMixin {
 
     @Inject(method = "damage", at = @At("HEAD"), cancellable = true)
-    private void preventPartyPvP(ServerWorld world, DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
+    private void preventPartyPvP(DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
         PlayerEntity victim = (PlayerEntity) (Object) this;
         
         if (!(source.getAttacker() instanceof PlayerEntity attacker)) {

@@ -1,135 +1,170 @@
-package com.cranks.dungeons.mixin;
+package com.cranks.dungeons.item;
 
 import com.cranks.dungeons.registry.ModAttributes;
+import net.fabricmc.fabric.api.item.v1.DefaultItemComponentEvents;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.AttributeModifiersComponent;
+import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;
-import net.minecraft.item.Item;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.util.Identifier;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(Item.class)
-public class ItemDefaultComponentsMixin {
+public class ItemComponentModifier {
 
-    @Inject(method = "getComponents", at = @At("RETURN"), cancellable = true)
-    private void modifyDefaultComponents(CallbackInfoReturnable<net.minecraft.component.ComponentMap> cir) {
-        Item item = (Item) (Object) this;
-        String itemName = net.minecraft.registry.Registries.ITEM.getId(item).toString().toLowerCase();
+    public static void register() {
+        DefaultItemComponentEvents.MODIFY.register(context -> {
+            context.modify(item -> true, (builder, item) -> {
+                String itemName = Registries.ITEM.getId(item).toString().toLowerCase();
 
-        if (!shouldModify(itemName))
-            return;
+                if (!shouldModify(itemName)) {
+                    return;
+                }
 
-        var originalMap = cir.getReturnValue();
-        var attributes = originalMap.get(DataComponentTypes.ATTRIBUTE_MODIFIERS);
+                AttributeModifiersComponent attributes = item.getComponents().get(DataComponentTypes.ATTRIBUTE_MODIFIERS);
+                if (attributes == null) {
+                    attributes = AttributeModifiersComponent.DEFAULT;
+                }
 
-        // If it's not a weapon/armor/shield and has no attributes, return
-        if (attributes == null && !isWeapon(itemName) && !isArmor(itemName) && !itemName.contains("shield"))
-            return;
+                AttributeModifiersComponent.Builder attrBuilder = AttributeModifiersComponent.builder();
+                boolean modified = false;
 
-        AttributeModifiersComponent.Builder builder = AttributeModifiersComponent.builder();
-        boolean modified = false;
-
-        if (attributes != null) {
-            for (var entry : attributes.modifiers()) {
-                if (isArmor(itemName) && entry.attribute().equals(EntityAttributes.ARMOR)) {
-                    // Only apply armor multiplier for sets that use traditional armor
+                if (isArmor(itemName)) {
+                    // For armors in 1.21.1, the AttributeModifiersComponent might be empty natively. 
+                    // So we manually rebuild it using the vanilla base values + our multipliers.
+                    
                     if (usesTraditionalArmor(itemName)) {
-                        double multiplier = getArmorMultiplier(itemName);
-                        builder.add(
-                                entry.attribute(),
-                                new EntityAttributeModifier(
-                                        entry.modifier().id(),
-                                        entry.modifier().value() * multiplier,
-                                        entry.modifier().operation()),
-                                entry.slot());
+                        double vanillaArmor = getVanillaArmor(itemName);
+                        if (vanillaArmor > 0) {
+                            double multiplier = getArmorMultiplier(itemName);
+                            attrBuilder.add(
+                                    EntityAttributes.GENERIC_ARMOR,
+                                    new EntityAttributeModifier(
+                                            Identifier.of("minecraft", "armor." + getArmorSlot(itemName)),
+                                            vanillaArmor * multiplier,
+                                            EntityAttributeModifier.Operation.ADD_VALUE),
+                                    getEquipmentSlot(itemName));
+                            modified = true;
+                        }
 
-                        // Add armor toughness for sets that use it
+                        double vanillaToughness = getVanillaToughness(itemName);
                         if (usesTraditionalArmorToughness(itemName)) {
-                            double toughness = getToughnessBonus(itemName);
-                            if (toughness > 0) {
-                                builder.add(
-                                        EntityAttributes.ARMOR_TOUGHNESS,
-                                        new EntityAttributeModifier(
-                                                Identifier.of("minecraft", "armor.toughness." + getArmorSlot(itemName)),
-                                                toughness,
-                                                EntityAttributeModifier.Operation.ADD_VALUE),
-                                        entry.slot());
-                            }
+                            vanillaToughness += getToughnessBonus(itemName); // Custom mod toughness
+                        }
+                        if (vanillaToughness > 0) {
+                            attrBuilder.add(
+                                    EntityAttributes.GENERIC_ARMOR_TOUGHNESS,
+                                    new EntityAttributeModifier(
+                                            Identifier.of("minecraft", "armor.toughness." + getArmorSlot(itemName)),
+                                            vanillaToughness,
+                                            EntityAttributeModifier.Operation.ADD_VALUE),
+                                    getEquipmentSlot(itemName));
+                            modified = true;
+                        }
+
+                        double vanillaKbRes = getVanillaKnockbackRes(itemName);
+                        if (vanillaKbRes > 0) {
+                            attrBuilder.add(
+                                    EntityAttributes.GENERIC_KNOCKBACK_RESISTANCE,
+                                    new EntityAttributeModifier(
+                                            Identifier.of("minecraft", "armor.knockback_resistance." + getArmorSlot(itemName)),
+                                            vanillaKbRes,
+                                            EntityAttributeModifier.Operation.ADD_VALUE),
+                                    getEquipmentSlot(itemName));
+                            modified = true;
                         }
                     }
-                    // Add unique bonuses based on armor type
-                    addArmorTypeBonuses(builder, itemName, entry.slot());
+
+                    addArmorTypeBonuses(attrBuilder, itemName, getEquipmentSlot(itemName));
                     modified = true;
+
                 } else if (isWeapon(itemName)) {
-                    if (entry.attribute().equals(EntityAttributes.ATTACK_DAMAGE)) {
-                        double value = entry.modifier().value();
-                        if (isTool(itemName)) {
-                            value = 0.0; // Total 1.0 (player base)
-                        } else {
-                            value += getDamageBonus(itemName);
-                        }
+                    for (var entry : attributes.modifiers()) {
+                        if (attributesMatch(entry.attribute(), EntityAttributes.GENERIC_ATTACK_DAMAGE)) {
+                            double value = entry.modifier().value();
+                            if (isTool(itemName)) {
+                                value = 0.0; // Total 1.0 (player base)
+                            } else {
+                                value += getDamageBonus(itemName);
+                            }
 
-                        builder.add(
-                                entry.attribute(),
-                                new EntityAttributeModifier(
-                                        entry.modifier().id(),
-                                        value,
-                                        entry.modifier().operation()),
-                                entry.slot());
-                        modified = true;
-                    } else if (entry.attribute().equals(EntityAttributes.ATTACK_SPEED)) {
-                        double value = entry.modifier().value();
-                        if (isTool(itemName)) {
-                            value = -3.0; // Total 1.0 (4.0 base - 3.0)
-                        } else {
-                            value += getWeaponSpeedBonus(itemName);
-                        }
+                            attrBuilder.add(
+                                    entry.attribute(),
+                                    new EntityAttributeModifier(
+                                            entry.modifier().id(),
+                                            value,
+                                            entry.modifier().operation()),
+                                    entry.slot());
+                            modified = true;
+                        } else if (attributesMatch(entry.attribute(), EntityAttributes.GENERIC_ATTACK_SPEED)) {
+                            double value = entry.modifier().value();
+                            if (isTool(itemName)) {
+                                value = -3.0; // Total 1.0 (4.0 base - 3.0)
+                            } else {
+                                value += getWeaponSpeedBonus(itemName);
+                            }
 
-                        builder.add(
-                                entry.attribute(),
-                                new EntityAttributeModifier(
-                                        entry.modifier().id(),
-                                        value,
-                                        entry.modifier().operation()),
-                                entry.slot());
+                            attrBuilder.add(
+                                    entry.attribute(),
+                                    new EntityAttributeModifier(
+                                            entry.modifier().id(),
+                                            value,
+                                            entry.modifier().operation()),
+                                    entry.slot());
+                            modified = true;
+                        } else {
+                            attrBuilder.add(entry.attribute(), entry.modifier(), entry.slot());
+                        }
+                    }
+
+                    if (isWeapon(itemName)) {
+                        addWeaponNativeAttributes(attrBuilder, itemName);
                         modified = true;
-                    } else {
-                        builder.add(entry.attribute(), entry.modifier(), entry.slot());
                     }
                 } else {
-                    // Keep other modifiers unchanged
-                    builder.add(entry.attribute(), entry.modifier(), entry.slot());
+                    for (var entry : attributes.modifiers()) {
+                        attrBuilder.add(entry.attribute(), entry.modifier(), entry.slot());
+                    }
                 }
-            }
-        }
 
-        // Add additional weapon attributes that aren't in vanilla defaults
-        if (isWeapon(itemName)) {
-            addWeaponNativeAttributes(builder, itemName);
-            modified = true;
-        }
+                if (itemName.contains("shield")) {
+                    attrBuilder.add(ModAttributes.CHANCE_TO_BLOCK, new EntityAttributeModifier(Identifier.of("cranks-dungeons", "shield.chance_to_block"), 0.3, EntityAttributeModifier.Operation.ADD_VALUE), net.minecraft.component.type.AttributeModifierSlot.ANY);
+                    attrBuilder.add(ModAttributes.BLOCK_VALUE, new EntityAttributeModifier(Identifier.of("cranks-dungeons", "shield.block_value"), 3.0, EntityAttributeModifier.Operation.ADD_VALUE), net.minecraft.component.type.AttributeModifierSlot.ANY);
+                    modified = true;
+                }
 
-        if (itemName.contains("shield")) {
-            builder.add(ModAttributes.CHANCE_TO_BLOCK, new EntityAttributeModifier(Identifier.of("cranks-dungeons", "shield.chance_to_block"), 0.3, EntityAttributeModifier.Operation.ADD_VALUE), net.minecraft.component.type.AttributeModifierSlot.ANY);
-            builder.add(ModAttributes.BLOCK_VALUE, new EntityAttributeModifier(Identifier.of("cranks-dungeons", "shield.block_value"), 3.0, EntityAttributeModifier.Operation.ADD_VALUE), net.minecraft.component.type.AttributeModifierSlot.ANY);
-            modified = true;
-        }
-
-        if (modified) {
-            // Create new component map with modified attributes
-            var newMap = net.minecraft.component.ComponentMap.builder()
-                    .addAll(originalMap)
-                    .add(DataComponentTypes.ATTRIBUTE_MODIFIERS, builder.build())
-                    .build();
-            cir.setReturnValue(newMap);
-        }
+                if (modified) {
+                    builder.add(DataComponentTypes.ATTRIBUTE_MODIFIERS, attrBuilder.build());
+                }
+            });
+        });
     }
 
-    private void addArmorTypeBonuses(AttributeModifiersComponent.Builder builder, String itemName,
+    private static boolean attributesMatch(RegistryEntry<EntityAttribute> e1, RegistryEntry<EntityAttribute> e2) {
+        if (e1 == e2) return true;
+        if (e1 == null) {
+            System.out.println("[DEBUG] e1 is null!");
+            return false;
+        }
+        if (e2 == null) {
+            System.out.println("[DEBUG] e2 is null! (e1 key=" + e1.value().getTranslationKey() + ")");
+            return false;
+        }
+        if (e1.equals(e2)) return true;
+        
+        String key1 = e1.value().getTranslationKey();
+        String key2 = e2.value().getTranslationKey();
+        boolean match = key1.equals(key2);
+        
+        if (!match && key1.contains("armor")) {
+            System.out.println("[DEBUG] attributesMatch failed! key1=" + key1 + ", key2=" + key2);
+        }
+        
+        return match;
+    }
+
+    private static void addArmorTypeBonuses(AttributeModifiersComponent.Builder builder, String itemName,
             net.minecraft.component.type.AttributeModifierSlot slot) {
         String armorSlot = getArmorSlot(itemName);
 
@@ -209,7 +244,7 @@ public class ItemDefaultComponentsMixin {
 
             double attackSpeed = getChainmailAttackSpeed(itemName);
             builder.add(
-                    EntityAttributes.ATTACK_SPEED,
+                    EntityAttributes.GENERIC_ATTACK_SPEED,
                     new EntityAttributeModifier(
                             Identifier.of("cranks-dungeons", "armor.attack_speed." + armorSlot),
                             attackSpeed,
@@ -266,7 +301,7 @@ public class ItemDefaultComponentsMixin {
             // Diamond: Armor + Armor Toughness + HP + HP Regen
             double maxHealth = getDiamondMaxHealth(itemName);
             builder.add(
-                    EntityAttributes.MAX_HEALTH,
+                    EntityAttributes.GENERIC_MAX_HEALTH,
                     new EntityAttributeModifier(
                             Identifier.of("cranks-dungeons", "armor.max_health." + armorSlot),
                             maxHealth,
@@ -285,7 +320,7 @@ public class ItemDefaultComponentsMixin {
         }
     }
 
-    private String getArmorSlot(String itemName) {
+    private static String getArmorSlot(String itemName) {
         if (itemName.contains("helmet"))
             return "helmet";
         if (itemName.contains("chestplate"))
@@ -297,11 +332,11 @@ public class ItemDefaultComponentsMixin {
         return "unknown";
     }
 
-    private boolean shouldModify(String itemName) {
+    private static boolean shouldModify(String itemName) {
         return isArmor(itemName) || isWeapon(itemName) || itemName.contains("shield");
     }
 
-    private boolean isArmor(String itemName) {
+    private static boolean isArmor(String itemName) {
         return (itemName.contains("helmet") || itemName.contains("chestplate") ||
                 itemName.contains("leggings") || itemName.contains("boots")) &&
                 (itemName.contains("leather") || itemName.contains("chainmail") ||
@@ -310,7 +345,7 @@ public class ItemDefaultComponentsMixin {
                         itemName.contains("netherite"));
     }
 
-    private boolean isWeapon(String itemName) {
+    private static boolean isWeapon(String itemName) {
         // Handle names that clearly indicate weapon type
         if (itemName.contains("sword") || itemName.contains("spear") ||
                 itemName.contains("mace") || itemName.contains("trident") ||
@@ -326,22 +361,21 @@ public class ItemDefaultComponentsMixin {
         return false;
     }
 
-    private boolean isTool(String itemName) {
+    private static boolean isTool(String itemName) {
         return itemName.contains("pickaxe") || itemName.contains("shovel") ||
                 itemName.contains("hoe") || itemName.contains("axe");
     }
 
-    // Returns true for armor sets that use traditional armor/toughness stats
-    private boolean usesTraditionalArmor(String itemName) {
+    private static boolean usesTraditionalArmor(String itemName) {
         return itemName.contains("copper") || itemName.contains("iron") ||
                 itemName.contains("diamond") || itemName.contains("netherite");
     }
 
-    private boolean usesTraditionalArmorToughness(String itemName) {
+    private static boolean usesTraditionalArmorToughness(String itemName) {
         return itemName.contains("iron") || itemName.contains("diamond") || itemName.contains("netherite");
     }
 
-    private double getArmorMultiplier(String itemName) {
+    private static double getArmorMultiplier(String itemName) {
         if (itemName.contains("copper"))
             return 5.0;
         if (itemName.contains("iron"))
@@ -353,7 +387,7 @@ public class ItemDefaultComponentsMixin {
         return 1.0;
     }
 
-    private double getToughnessBonus(String itemName) {
+    private static double getToughnessBonus(String itemName) {
         if (itemName.contains("copper"))
             return 5.0;
         if (itemName.contains("iron"))
@@ -365,8 +399,7 @@ public class ItemDefaultComponentsMixin {
         return 0.0;
     }
 
-    // ========== LEATHER: Evasion Rating + Movement Speed ==========
-    private double getLeatherEvasionBonus(String itemName) {
+    private static double getLeatherEvasionBonus(String itemName) {
         if (itemName.contains("helmet"))
             return 20.0;
         if (itemName.contains("chestplate"))
@@ -378,7 +411,7 @@ public class ItemDefaultComponentsMixin {
         return 0.0;
     }
 
-    private double getLeatherMovementSpeed(String itemName) {
+    private static double getLeatherMovementSpeed(String itemName) {
         if (itemName.contains("helmet"))
             return 0.05;
         if (itemName.contains("chestplate"))
@@ -390,8 +423,7 @@ public class ItemDefaultComponentsMixin {
         return 0.0;
     }
 
-    // ========== GOLD: Energy Shield + Luck ==========
-    private double getGoldEnergyShieldBonus(String itemName) {
+    private static double getGoldEnergyShieldBonus(String itemName) {
         if (itemName.contains("helmet"))
             return 4.0;
         if (itemName.contains("chestplate"))
@@ -403,21 +435,19 @@ public class ItemDefaultComponentsMixin {
         return 0.0;
     }
 
-    private double getGoldLuck(String itemName) {
+    private static double getGoldLuck(String itemName) {
         if (itemName.contains("helmet"))
-            return 0.01; // 1%
+            return 0.01;
         if (itemName.contains("chestplate"))
-            return 0.03; // 3%
+            return 0.03;
         if (itemName.contains("leggings"))
-            return 0.02; // 2%
+            return 0.02;
         if (itemName.contains("boots"))
-            return 0.01; // 1%
+            return 0.01;
         return 0.0;
     }
 
-    // ========== CHAINMAIL: Evasion Rating + Energy Shield + Attack Speed
-    // ==========
-    private double getChainmailEvasionBonus(String itemName) {
+    private static double getChainmailEvasionBonus(String itemName) {
         if (itemName.contains("helmet"))
             return 10.0;
         if (itemName.contains("chestplate"))
@@ -429,7 +459,7 @@ public class ItemDefaultComponentsMixin {
         return 0.0;
     }
 
-    private double getChainmailEnergyShieldBonus(String itemName) {
+    private static double getChainmailEnergyShieldBonus(String itemName) {
         if (itemName.contains("helmet"))
             return 2.0;
         if (itemName.contains("chestplate"))
@@ -441,7 +471,7 @@ public class ItemDefaultComponentsMixin {
         return 0.0;
     }
 
-    private double getChainmailAttackSpeed(String itemName) {
+    private static double getChainmailAttackSpeed(String itemName) {
         if (itemName.contains("helmet"))
             return 0.07;
         if (itemName.contains("chestplate"))
@@ -453,9 +483,7 @@ public class ItemDefaultComponentsMixin {
         return 0.0;
     }
 
-    // ========== COPPER: 10% Elemental Resistances ==========
-    private double getCopperElementalResistance(String itemName) {
-        // Returns 10% per piece (0.10)
+    private static double getCopperElementalResistance(String itemName) {
         if (itemName.contains("helmet"))
             return 0.07;
         if (itemName.contains("chestplate"))
@@ -467,8 +495,7 @@ public class ItemDefaultComponentsMixin {
         return 0.0;
     }
 
-    // ========== IRON: Knockback Resistance ==========
-    private double getIronKnockbackResistance(String itemName) {
+    private static double getIronKnockbackResistance(String itemName) {
         if (itemName.contains("helmet"))
             return 0.03;
         if (itemName.contains("chestplate"))
@@ -480,8 +507,7 @@ public class ItemDefaultComponentsMixin {
         return 0.0;
     }
 
-    // ========== DIAMOND: Max Health + HP Regen ==========
-    private double getDiamondMaxHealth(String itemName) {
+    private static double getDiamondMaxHealth(String itemName) {
         if (itemName.contains("helmet"))
             return 2.0;
         if (itemName.contains("chestplate"))
@@ -493,7 +519,7 @@ public class ItemDefaultComponentsMixin {
         return 0.0;
     }
 
-    private double getDiamondHPRegen(String itemName) {
+    private static double getDiamondHPRegen(String itemName) {
         if (itemName.contains("helmet"))
             return 0.15;
         if (itemName.contains("chestplate"))
@@ -505,28 +531,26 @@ public class ItemDefaultComponentsMixin {
         return 0.0;
     }
 
-    // Removed getNetheriteMaxHealth and getNetheriteBonusArmor
-
-    private double getWeaponSpeedBonus(String itemName) {
+    private static double getWeaponSpeedBonus(String itemName) {
         if (itemName.contains("sword")) {
             if (itemName.contains("wood"))
                 return -0.2;
             if (itemName.contains("stone"))
                 return -0.1;
             if (itemName.contains("iron"))
-                return 0.0; // Total 1.6
+                return 0.0;
             if (itemName.contains("golden"))
-                return 0.1; // Total 1.7
+                return 0.1;
             if (itemName.contains("diamond"))
-                return 0.1; // Total 1.7
+                return 0.1;
             if (itemName.contains("netherite"))
-                return 0.2; // Total 1.8
+                return 0.2;
             return 0.0;
         }
 
         if (itemName.contains("spear")) {
             if (itemName.contains("wood"))
-                return -0.8; // Slowest
+                return -0.8;
             if (itemName.contains("stone"))
                 return -0.6;
             if (itemName.contains("iron"))
@@ -536,12 +560,12 @@ public class ItemDefaultComponentsMixin {
             if (itemName.contains("diamond"))
                 return 0.0;
             if (itemName.contains("netherite"))
-                return 0.2; // Fastest
+                return 0.2;
             return -0.4;
         }
 
         if (itemName.contains("mace")) {
-            return 0.2; // Total 0.8
+            return 0.2;
         }
 
         if (itemName.contains("trident")) {
@@ -551,7 +575,7 @@ public class ItemDefaultComponentsMixin {
         return 0.0;
     }
 
-    private void addWeaponNativeAttributes(AttributeModifiersComponent.Builder builder, String itemName) {
+    private static void addWeaponNativeAttributes(AttributeModifiersComponent.Builder builder, String itemName) {
         double rangeBonus = getWeaponRangeBonus(itemName);
         if (rangeBonus != 0) {
             builder.add(
@@ -573,9 +597,8 @@ public class ItemDefaultComponentsMixin {
                             EntityAttributeModifier.Operation.ADD_VALUE),
                     net.minecraft.component.type.AttributeModifierSlot.MAINHAND);
 
-            // ALSO add to vanilla attack knockback so it works with vanilla logic
             builder.add(
-                    EntityAttributes.ATTACK_KNOCKBACK,
+                    EntityAttributes.GENERIC_ATTACK_KNOCKBACK,
                     new EntityAttributeModifier(
                             Identifier.of("cranks-dungeons", "weapon.vanilla_knockback"),
                             knockbackBonus,
@@ -583,42 +606,39 @@ public class ItemDefaultComponentsMixin {
                     net.minecraft.component.type.AttributeModifierSlot.MAINHAND);
         }
 
-        // Bow / Crossbow Base Stats
         if (itemName.contains("bow") || itemName.contains("crossbow")) {
             double baseDamage = getDamageBonus(itemName);
             builder.add(
-                    EntityAttributes.ATTACK_DAMAGE,
+                    EntityAttributes.GENERIC_ATTACK_DAMAGE,
                     new EntityAttributeModifier(
                             Identifier.of("cranks-dungeons", "weapon.base_damage"),
                             baseDamage,
                             EntityAttributeModifier.Operation.ADD_VALUE),
                     net.minecraft.component.type.AttributeModifierSlot.MAINHAND);
             
-            // Add Base Reload Speed
             double baseReload = itemName.contains("crossbow") ? 0.4 : 0.7;
             builder.add(
                     ModAttributes.RELOAD_SPEED,
                     new EntityAttributeModifier(
                             Identifier.of("cranks-dungeons", "weapon.base_reload"),
-                            baseReload - 1.0, // Because default is 1.0, we add difference
+                            baseReload - 1.0,
                             EntityAttributeModifier.Operation.ADD_VALUE),
                     net.minecraft.component.type.AttributeModifierSlot.MAINHAND);
         }
 
-        // --- Tool Stats (Mining Efficiency / Harvest Speed) ---
         if (isTool(itemName)) {
             double miningSpeed = getMiningSpeedBonus(itemName);
             builder.add(
                     ModAttributes.MINING_EFFICIENCY,
                     new EntityAttributeModifier(
                             Identifier.of("cranks-dungeons", "tool.mining_speed"),
-                            miningSpeed - 1.0, // Default is 1.0
+                            miningSpeed - 1.0,
                             EntityAttributeModifier.Operation.ADD_VALUE),
                     net.minecraft.component.type.AttributeModifierSlot.MAINHAND);
         }
     }
 
-    private double getMiningSpeedBonus(String itemName) {
+    private static double getMiningSpeedBonus(String itemName) {
         if (itemName.contains("wood"))
             return 2.0;
         if (itemName.contains("stone"))
@@ -632,7 +652,7 @@ public class ItemDefaultComponentsMixin {
         return 2.0;
     }
 
-    private double getWeaponRangeBonus(String itemName) {
+    private static double getWeaponRangeBonus(String itemName) {
         if (itemName.contains("spear")) {
             if (itemName.contains("wood"))
                 return 1.0;
@@ -656,12 +676,6 @@ public class ItemDefaultComponentsMixin {
         }
 
         if (itemName.contains("sword")) {
-            if (itemName.contains("wood"))
-                return 0.0;
-            if (itemName.contains("stone"))
-                return 0.0;
-            if (itemName.contains("iron"))
-                return 0.0;
             if (itemName.contains("diamond"))
                 return 0.1;
             if (itemName.contains("netherite"))
@@ -671,7 +685,7 @@ public class ItemDefaultComponentsMixin {
         return 0.0;
     }
 
-    private double getWeaponKnockbackBonus(String itemName) {
+    private static double getWeaponKnockbackBonus(String itemName) {
         if (itemName.contains("mace")) {
             return 1.2;
         }
@@ -693,29 +707,26 @@ public class ItemDefaultComponentsMixin {
         return 0.0;
     }
 
-    private double getDamageBonus(String itemName) {
-        // Swords
+    private static double getDamageBonus(String itemName) {
         if (itemName.contains("sword")) {
             if (itemName.contains("wood"))
-                return 2.0; // Total 6
+                return 2.0;
             if (itemName.contains("stone"))
-                return 2.0; // Total 7
+                return 2.0;
             if (itemName.contains("iron"))
-                return 2.0; // Total 8
+                return 2.0;
             if (itemName.contains("golden"))
-                return 3.0; // Total 7 (Vanilla gold is 4)
+                return 3.0;
             if (itemName.contains("diamond"))
-                return 3.0; // Total 10
+                return 3.0;
             if (itemName.contains("netherite"))
-                return 4.0; // Total 12
+                return 4.0;
         }
 
-        // Axes - Keep vanilla damage for now
         if (itemName.contains("axe")) {
             return 0.0;
         }
 
-        // Spears - Higher damage than swords
         if (itemName.contains("spear")) {
             if (itemName.contains("wood"))
                 return 3.0;
@@ -740,13 +751,62 @@ public class ItemDefaultComponentsMixin {
         }
 
         if (itemName.contains("crossbow")) {
-            return 7.0; // Total 8
+            return 7.0;
         }
 
         if (itemName.contains("bow")) {
-            return 5.0; // Total 6
+            return 5.0;
         }
 
         return 0.0;
+    }
+
+    private static double getVanillaArmor(String itemName) {
+        if (itemName.contains("leather")) {
+            if (itemName.contains("helmet")) return 1.0;
+            if (itemName.contains("chestplate")) return 3.0;
+            if (itemName.contains("leggings")) return 2.0;
+            if (itemName.contains("boots")) return 1.0;
+        } else if (itemName.contains("chainmail")) {
+            if (itemName.contains("helmet")) return 2.0;
+            if (itemName.contains("chestplate")) return 5.0;
+            if (itemName.contains("leggings")) return 4.0;
+            if (itemName.contains("boots")) return 1.0;
+        } else if (itemName.contains("iron")) {
+            if (itemName.contains("helmet")) return 2.0;
+            if (itemName.contains("chestplate")) return 6.0;
+            if (itemName.contains("leggings")) return 5.0;
+            if (itemName.contains("boots")) return 2.0;
+        } else if (itemName.contains("golden")) {
+            if (itemName.contains("helmet")) return 2.0;
+            if (itemName.contains("chestplate")) return 5.0;
+            if (itemName.contains("leggings")) return 3.0;
+            if (itemName.contains("boots")) return 1.0;
+        } else if (itemName.contains("diamond") || itemName.contains("netherite")) {
+            if (itemName.contains("helmet")) return 3.0;
+            if (itemName.contains("chestplate")) return 8.0;
+            if (itemName.contains("leggings")) return 6.0;
+            if (itemName.contains("boots")) return 3.0;
+        }
+        return 0.0;
+    }
+
+    private static double getVanillaToughness(String itemName) {
+        if (itemName.contains("diamond")) return 2.0;
+        if (itemName.contains("netherite")) return 3.0;
+        return 0.0;
+    }
+
+    private static double getVanillaKnockbackRes(String itemName) {
+        if (itemName.contains("netherite")) return 0.1;
+        return 0.0;
+    }
+
+    private static net.minecraft.component.type.AttributeModifierSlot getEquipmentSlot(String itemName) {
+        if (itemName.contains("helmet")) return net.minecraft.component.type.AttributeModifierSlot.HEAD;
+        if (itemName.contains("chestplate")) return net.minecraft.component.type.AttributeModifierSlot.CHEST;
+        if (itemName.contains("leggings")) return net.minecraft.component.type.AttributeModifierSlot.LEGS;
+        if (itemName.contains("boots")) return net.minecraft.component.type.AttributeModifierSlot.FEET;
+        return net.minecraft.component.type.AttributeModifierSlot.MAINHAND;
     }
 }

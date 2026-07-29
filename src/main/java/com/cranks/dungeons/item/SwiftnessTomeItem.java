@@ -2,9 +2,11 @@ package com.cranks.dungeons.item;
 
 import com.cranks.dungeons.equipment.EquipmentType;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
+import java.util.List;
 import java.util.function.Consumer;
 
 public class SwiftnessTomeItem extends AbstractTomeItem {
@@ -35,16 +37,14 @@ public class SwiftnessTomeItem extends AbstractTomeItem {
     }
 
     @Override
-    public void appendTooltip(ItemStack stack, TooltipContext context,
-                              net.minecraft.component.type.TooltipDisplayComponent displayComponent,
-                              Consumer<Text> textConsumer, net.minecraft.item.tooltip.TooltipType type) {
+    public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
 
-        addTomeDescription(textConsumer);
+        addTomeDescription(tooltip::add);
 
-        addStatRange(textConsumer, EquipmentType.SWORD, "Melee Weapons");
-        addStatRange(textConsumer, EquipmentType.BOW, "Ranged Weapons");
-        addStatRange(textConsumer, EquipmentType.BOOTS, "Boots");
+        addStatRange(tooltip::add, EquipmentType.SWORD, "Melee Weapons");
+        addStatRange(tooltip::add, EquipmentType.BOW, "Ranged Weapons");
+        addStatRange(tooltip::add, EquipmentType.BOOTS, "Boots");
 
-        super.appendTooltip(stack, context, displayComponent, textConsumer, type);
+        super.appendTooltip(stack, context, tooltip, type);
     }
 }
