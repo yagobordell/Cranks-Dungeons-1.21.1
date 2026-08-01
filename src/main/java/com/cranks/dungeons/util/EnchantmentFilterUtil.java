@@ -60,6 +60,14 @@ public class EnchantmentFilterUtil {
      * Checks if an enchantment is approved based on the custom tags.
      */
     public static boolean isApproved(RegistryEntry<Enchantment> enchantment) {
+        if (enchantment.matchesId(net.minecraft.util.Identifier.of("minecraft", "loyalty")) ||
+            enchantment.matchesId(net.minecraft.util.Identifier.of("minecraft", "riptide")) ||
+            enchantment.matchesId(net.minecraft.util.Identifier.of("minecraft", "density")) ||
+            enchantment.matchesId(net.minecraft.util.Identifier.of("minecraft", "wind_burst")) ||
+            enchantment.matchesId(net.minecraft.util.Identifier.of("minecraft", "breach"))) {
+            return false;
+        }
+
         return enchantment.isIn(EnchantmentTags.IN_ENCHANTING_TABLE) || 
                enchantment.isIn(EnchantmentTags.ON_RANDOM_LOOT);
     }

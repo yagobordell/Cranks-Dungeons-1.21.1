@@ -206,6 +206,10 @@ public class ModAttributes {
             0.0, 0.0, 10.0);
     public static final RegistryEntry<EntityAttribute> TRIDENT_DAMAGE_PERCENT = register("trident_damage_percent", 0.0,
             0.0, 10.0);
+    public static final RegistryEntry<EntityAttribute> TRIDENT_RETURN = register("trident_return", 0.0, 0.0, 1.0);
+    public static final RegistryEntry<EntityAttribute> MACE_FALLING_DAMAGE = register("mace_falling_damage", 0.0, 0.0, 10.0);
+    public static final RegistryEntry<EntityAttribute> MACE_WIND_BOUNCE = register("mace_wind_bounce", 0.0, 0.0, 1.0);
+    
     public static final RegistryEntry<EntityAttribute> LEGGINGS_ARMOR_PERCENT = register("leggings_armor_percent", 0.0,
             0.0, 10.0);
 

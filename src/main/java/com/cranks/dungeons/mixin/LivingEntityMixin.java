@@ -114,6 +114,39 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
         cir.setReturnValue(builder);
     }
 
+    @org.spongepowered.asm.mixin.injection.ModifyVariable(method = "damage", at = @At("HEAD"), ordinal = 0, argsOnly = true)
+    private float applyMaceFallingDamage(float amount, net.minecraft.entity.damage.DamageSource source) {
+        if (source.getAttacker() instanceof PlayerEntity player) {
+            if (player.getMainHandStack().isOf(net.minecraft.item.Items.MACE)) {
+                double fallingDamageMult = player.getAttributeValue(ModAttributes.MACE_FALLING_DAMAGE);
+                if (fallingDamageMult > 0 && player.fallDistance > 1.5f) {
+                    amount *= (1.0f + (player.fallDistance * (float)fallingDamageMult));
+                }
+            }
+        }
+        return amount;
+    }
+
+    @Inject(method = "damage", at = @At("RETURN"))
+    private void applyMaceBounce(net.minecraft.entity.damage.DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
+        if (cir.getReturnValue() && source.getAttacker() instanceof PlayerEntity player) {
+            if (player.getMainHandStack().isOf(net.minecraft.item.Items.MACE)) {
+                double bounce = player.getAttributeValue(ModAttributes.MACE_WIND_BOUNCE);
+                if (bounce > 0 && player.fallDistance > 1.5f) {
+                    // Calculate bounce velocity
+                    double bounceVelocity = Math.min(1.5, 0.7 + (player.fallDistance * 0.05));
+                    player.setVelocity(player.getVelocity().x, bounceVelocity, player.getVelocity().z);
+                    player.velocityModified = true;
+                    player.fallDistance = 0.0f; // Reset fall distance to prevent falling damage and allow chained bounces
+                    
+                    if (!player.getWorld().isClient) {
+                        ((net.minecraft.server.world.ServerWorld)player.getWorld()).playSound(null, player.getX(), player.getY(), player.getZ(), net.minecraft.sound.SoundEvents.ITEM_MACE_SMASH_GROUND, net.minecraft.sound.SoundCategory.PLAYERS, 1.0F, 1.0F);
+                    }
+                }
+            }
+        }
+    }
+
     @Unique
     private double cranks$lastStrength = -1;
     @Unique
@@ -272,6 +305,20 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
         updateArmorSpeed(entity);
         updateIntrinsicAttributes(entity);
         updateRequirementPenalties(entity);
+        updateElytraSpeed(entity);
+    }
+
+    @Unique
+    private void updateElytraSpeed(LivingEntity entity) {
+        if (entity.isFallFlying()) {
+            double flyingSpeed = entity.getAttributeValue(ModAttributes.FLYING_SPEED);
+            if (flyingSpeed > 0) {
+                // flyingSpeed is roughly 0.15 to 0.35
+                net.minecraft.util.math.Vec3d look = entity.getRotationVector();
+                // Apply a small continuous thrust in the direction the player is looking
+                entity.addVelocity(look.x * flyingSpeed * 0.03, look.y * flyingSpeed * 0.03, look.z * flyingSpeed * 0.03);
+            }
+        }
     }
 
     @Inject(method = "tick", at = @At("TAIL"))

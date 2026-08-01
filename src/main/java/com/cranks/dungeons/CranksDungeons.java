@@ -374,7 +374,8 @@ public class CranksDungeons implements ModInitializer {
 			"minecraft:riptide",
 			"minecraft:respiration",
 			"minecraft:depth_strider",
-			"minecraft:lunge",
+			"minecraft:density",
+			"minecraft:breach",
 			"cranks-dungeons:vein_mining",
 
 			// New Hybrid Stat Enchantments

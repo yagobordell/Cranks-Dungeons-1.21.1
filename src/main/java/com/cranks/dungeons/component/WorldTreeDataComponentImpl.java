@@ -220,7 +220,7 @@ public class WorldTreeDataComponentImpl implements WorldTreeDataComponent, AutoS
         }
         tag.put("nodeChoices", choicesTag);
 
-        System.out.println("[CranksDungeons] Saved World Tree Data for " + player.getName().getString());
+
     }
 
     @Override

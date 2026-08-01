@@ -1,7 +1,6 @@
 package com.cranks.dungeons;
 
 import com.cranks.dungeons.datagen.RunicEnhancementAltarRecipeProvider;
-import com.cranks.dungeons.datagen.RunicTomeRecipeProvider;
 import net.fabricmc.fabric.api.datagen.v1.DataGeneratorEntrypoint;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
 
@@ -10,7 +9,6 @@ public class CranksDungeonsDataGenerator implements DataGeneratorEntrypoint {
 	public void onInitializeDataGenerator(FabricDataGenerator fabricDataGenerator) {
 		FabricDataGenerator.Pack pack = fabricDataGenerator.createPack();
 
-		pack.addProvider(RunicTomeRecipeProvider::new);
 		pack.addProvider(RunicEnhancementAltarRecipeProvider::new);
 	}
 }

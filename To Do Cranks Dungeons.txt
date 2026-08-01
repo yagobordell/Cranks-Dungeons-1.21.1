@@ -1,0 +1,64 @@
+# Cranks Dungeons - To Do List
+
+1. **Optimize Skill Tree UI:** 
+   Add viewport culling to the Passive and World skill tree screens. Nodes outside the visible screen area will not be rendered, fixing the lag that occurs when zooming out, without changing how it looks visually.
+
+2. **Remove Custom Mob Stats:** 
+   Remove the custom elemental damage, elemental resistances, and other mod-specific stats that are currently being injected into vanilla mobs (via `MobAttributeMixin.java` or `LivingEntityMixin.java`).
+
+3. **Individual Requirement Coloring:** 
+   Update equipment tooltips so that if a player doesn't meet the stat requirements (STR, DEX, INT), only the specific requirement they are missing turns red, rather than the entire requirement block.
+
+4. **Nameplate Energy Shield (Entity Nameplate):** 
+   Update the floating nameplate above players and entities to correctly fetch and render their current Energy Shield amount in addition to their health.
+
+5. **Fix Movement Speed Rune:** 
+   The movement speed rune currently provides much more speed than it should because it's adding flat values to a multiplier stat. It needs to be converted/fixed to grant movement speed as a percentage, ensuring the rune tooltip and the Stats Screen match.
+
+6. **Fix Main Stats Tooltips:** 
+   Format the stats (like Armor, Evasion, Damage) on item tooltips to clearly show the base value alongside any extra modifications (local percentage bonuses).
+
+7. **Update Stat Screen Tooltips:** 
+   In the inventory Stats Screen, hovering over stats like Armor and Evasion Rating should show their converted physical damage mitigation percentage or dodge chance, rather than just the flat numbers.
+
+8. **Artificial Altar UI Improvements:** 
+   When generating options, the Artificial Enhancement Altar should show the the rolled value before being selected. Additionally, it should never offer runes that have a weight of 0.
+
+9. **Artificial Rune Prefix/Suffix Fix:** 
+   An Artificial Rune should correctly display whether it will be a Prefix or Suffix in its tooltip, even before it is revealed.
+
+10. **Prevent Duplicate Runes in Artificial Altar:** 
+    Ensure the Artificial Altar does not offer the same rune multiple times in a single batch of options.
+
+11. **Perfect Tome Armor Consistency:** 
+    Fix the application logic for Perfect Tomes so they correctly check `canApplyTo` and are able to be applied to all valid armor pieces consistently.
+
+12. **Apply Elemental Status Effects:** 
+    Update the damage handler so that dealing Cold damage correctly applies the Chill effect, and dealing Lightning damage applies the Shock effect.
+
+13. **Enable Player Ailments:** 
+    Ensure that Ailments (Shock, Chill, Electrocuted, Freeze) can target and affect `PlayerEntity`, allowing players to be affected by these statuses (e.g., when taking elemental damage or shooting yourself).
+
+14. **Format Flat Values (Remove Decimals):** 
+    Ensure that flat stat values (e.g., +15 Armor) are displayed as integers without decimals on item tooltips or any Stats Screen.
+
+15. **World Tree Re-selection:** 
+    Allow players to change their modifier node selections in the World Tree after they have already allocated them.
+
+16. **Local Enchantments:** 
+    Make custom enchantments (like Fire Damage) act locally on the weapon or armor piece they are applied to, meaning their stats are baked into the weapon's damage rather than being applied globally to the player holding them. This ensures local percentages (like `attack_damage_percent`) scale the enchantment's damage too.
+
+17. **Shield Stats Rework:** 
+    Remove the `CHANCE_TO_BLOCK` stat from shields. Replace it with a flat `BLOCK_DAMAGE_REDUCTION` stat and rune so shields simply reduce blocked damage by a fixed amount.
+
+18. **Class Base Attributes (JSON):** 
+    Update the `passive_classes.json` to allow specifying base STR, DEX, and INT values for each class. Modify the mod to read these values and apply them to the player as base stats when they select that class.
+
+19. **HP Bar on top of Entities:**
+    Fix problem where form a distance hp bars on top of entities appear swapping between full and empty and it doesn't render through water
+
+20. **Loot Journal: Pickup Notifier Compatibility:**
+    Make this mod use my mods rarity system for colors, just like its done with the Obscure Tooltips mod.
+
+21. **JEI Recipes:**
+    Have JEI also show the recipes from my custom items

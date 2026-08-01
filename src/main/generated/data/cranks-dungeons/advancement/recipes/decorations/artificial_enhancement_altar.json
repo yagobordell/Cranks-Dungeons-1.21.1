@@ -1,11 +1,11 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_runic_tome_t2": {
+    "has_ender_eye": {
       "conditions": {
         "items": [
           {
-            "items": "cranks-dungeons:runic_tome_t2"
+            "items": "minecraft:ender_eye"
           }
         ]
       },
@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "cranks-dungeons:runic_tome_t3"
+        "recipe": "cranks-dungeons:artificial_enhancement_altar"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -21,12 +21,12 @@
   "requirements": [
     [
       "has_the_recipe",
-      "has_runic_tome_t2"
+      "has_ender_eye"
     ]
   ],
   "rewards": {
     "recipes": [
-      "cranks-dungeons:runic_tome_t3"
+      "cranks-dungeons:artificial_enhancement_altar"
     ]
   }
 }

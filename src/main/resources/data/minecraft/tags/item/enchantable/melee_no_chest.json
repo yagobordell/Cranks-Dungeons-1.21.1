@@ -1,8 +1,6 @@
 {
   "values": [
-    "#minecraft:enchantable/sweeping",
     "#minecraft:enchantable/trident",
     "#minecraft:enchantable/mace",
-    "#minecraft:spears"
   ]
 }

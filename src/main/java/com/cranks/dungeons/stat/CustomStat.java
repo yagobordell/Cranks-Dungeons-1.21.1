@@ -55,6 +55,23 @@ public class CustomStat {
             return Math.round(value);
         }
 
+        public String getFormattedMinMax(int tier) {
+            int index = 10 - tier;
+            if (index >= normalRanges.length) index = normalRanges.length - 1;
+            double min = normalRanges[index];
+            double max = uncommonRanges[index];
+            DecimalFormat df = new DecimalFormat("#.##");
+            if (isPercentage || displayAsPercentage) {
+                String minStr = df.format(min * 100);
+                String maxStr = df.format(max * 100);
+                return minStr.equals(maxStr) ? "[" + minStr + "%]" : "[" + minStr + "-" + maxStr + "%]";
+            } else {
+                long minRounded = Math.round(min);
+                long maxRounded = Math.round(max);
+                return minRounded == maxRounded ? "[" + minRounded + "]" : "[" + minRounded + "-" + maxRounded + "]";
+            }
+        }
+
         private boolean isWeapon(EquipmentType type) {
             if (type == null) return false;
             switch (type) {
@@ -66,7 +83,14 @@ public class CustomStat {
             }
         }
 
+        public boolean isBooleanStat() {
+            return displayName.equals("Returns when thrown") || displayName.equals("Bounces on Hit");
+        }
+
         public String getFormattedRange(int minTier, int maxTier, EquipmentType eqType) {
+            if (isBooleanStat()) {
+                return displayName;
+            }
             DecimalFormat df = new DecimalFormat("#.##");
             int minIndex = 10 - minTier;
             int maxIndex = 10 - maxTier;
@@ -94,6 +118,9 @@ public class CustomStat {
         }
 
         public String formatValue(double value, EquipmentType eqType) {
+            if (isBooleanStat()) {
+                return displayName;
+            }
             DecimalFormat df = new DecimalFormat("#.##");
             if (displayAsPercentage || isPercentage) {
                 String formattedValue = df.format(value * 100) + "%";

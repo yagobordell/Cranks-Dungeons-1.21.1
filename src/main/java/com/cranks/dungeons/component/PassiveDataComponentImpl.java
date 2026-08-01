@@ -172,7 +172,7 @@ public class PassiveDataComponentImpl implements PassiveDataComponent, AutoSynce
         }
         tag.put("nodeChoices", choicesTag);
 
-        System.out.println("[CranksDungeons] Saved Passive Data for " + player.getName().getString());
+
     }
 
     @Override

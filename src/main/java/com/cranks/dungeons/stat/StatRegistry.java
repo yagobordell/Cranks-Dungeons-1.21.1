@@ -950,6 +950,54 @@ public class StatRegistry {
                                 new CustomStat.StatComponent("Maximum Energy Shield", ModAttributes.ENERGY_SHIELD, r(10, 15, 20, 25, 30, 35, 40, 45, 50, 55), r(15, 20, 25, 30, 35, 40, 45, 50, 55, 60), false, false)
                         ),
                         Formatting.BLUE, CustomStat.AffixType.PREFIX, 1, 6000, EquipmentType.LEGGINGS);
+                // ===================================================================
+                // UNIQUE ITEMS EXCLUSIVE STATS (Elytra, Trident, Mace)
+                // ===================================================================
+
+                // Elytra specific unique stats
+                register(new CustomStat("elytra_flying_speed", "Gliding Speed",
+                        EquipmentType.ELYTRA, ModAttributes.FLYING_SPEED,
+                        r(0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15),
+                        r(0.35, 0.35, 0.35, 0.35, 0.35, 0.35, 0.35, 0.35, 0.35, 0.35),
+                        true, true, Formatting.WHITE, CustomStat.AffixType.PREFIX,
+                        1, 0)); // Weight 0 so it doesn't roll randomly
+                        
+                // Trident specific unique stats
+                register(new CustomStat("trident_return", "Returns when thrown",
+                        EquipmentType.TRIDENT, ModAttributes.TRIDENT_RETURN,
+                        r(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0),
+                        r(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0),
+                        false, false, Formatting.GOLD, CustomStat.AffixType.PREFIX,
+                        1, 0));
+                        
+                register(new CustomStat("trident_chance_to_shock", "Chance to Shock",
+                        EquipmentType.TRIDENT, ModAttributes.CHANCE_TO_SHOCK,
+                        r(0.10, 0.10, 0.10, 0.10, 0.10, 0.10, 0.10, 0.10, 0.10, 0.10),
+                        r(0.20, 0.20, 0.20, 0.20, 0.20, 0.20, 0.20, 0.20, 0.20, 0.20),
+                        true, true, Formatting.YELLOW, CustomStat.AffixType.PREFIX,
+                        1, 0));
+                
+                // Mace specific unique stats
+                register(new CustomStat("mace_falling_damage", "Damage per Fallen Block",
+                        EquipmentType.MACE, ModAttributes.MACE_FALLING_DAMAGE,
+                        r(0.10, 0.10, 0.10, 0.10, 0.10, 0.10, 0.10, 0.10, 0.10, 0.10),
+                        r(0.30, 0.30, 0.30, 0.30, 0.30, 0.30, 0.30, 0.30, 0.30, 0.30),
+                        true, true, Formatting.WHITE, CustomStat.AffixType.PREFIX,
+                        1, 0));
+                        
+                register(new CustomStat("mace_wind_bounce", "Bounces on Hit",
+                        EquipmentType.MACE, ModAttributes.MACE_WIND_BOUNCE,
+                        r(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0),
+                        r(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0),
+                        false, false, Formatting.AQUA, CustomStat.AffixType.PREFIX,
+                        1, 0));
+
+                register(new CustomStat("mace_armor_penetration_percent", "Armor Penetration",
+                        EquipmentType.MACE, ModAttributes.ARMOR_PENETRATION_PERCENT,
+                        r(0.10, 0.10, 0.10, 0.10, 0.10, 0.10, 0.10, 0.10, 0.10, 0.10),
+                        r(0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25),
+                        true, true, Formatting.WHITE, CustomStat.AffixType.PREFIX,
+                        1, 0));
 
                 LOGGER.info("Registered {} custom stats", STATS.size());
         }

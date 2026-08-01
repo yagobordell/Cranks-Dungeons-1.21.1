@@ -548,26 +548,28 @@ public abstract class ItemStackTooltipMixin {
             }
         }
 
+        boolean isUnique = CustomRarity.getRarity(stack) == CustomRarity.UNIQUE;
+
         if (!prefixes.isEmpty()) {
-            if (showDetails) {
+            if (showDetails && !isUnique) {
                 tooltip.add(Text.literal("Prefixes:").formatted(Formatting.DARK_GRAY, Formatting.ITALIC));
             }
             for (ItemStatManager.ItemStat p : prefixes) {
                 CustomStat stat = StatRegistry.getStat(p.statId);
                 if (stat != null) {
-                    tooltip.addAll(createRunicStatLines(stat, p.values, p.tier, p.isArtificial, showDetails));
+                    tooltip.addAll(createRunicStatLines(stat, p.values, p.tier, p.isArtificial, showDetails, isUnique));
                 }
             }
         }
 
         if (!suffixes.isEmpty()) {
-            if (showDetails) {
+            if (showDetails && !isUnique) {
                 tooltip.add(Text.literal("Suffixes:").formatted(Formatting.DARK_GRAY, Formatting.ITALIC));
             }
             for (ItemStatManager.ItemStat s : suffixes) {
                 CustomStat stat = StatRegistry.getStat(s.statId);
                 if (stat != null) {
-                    tooltip.addAll(createRunicStatLines(stat, s.values, s.tier, s.isArtificial, showDetails));
+                    tooltip.addAll(createRunicStatLines(stat, s.values, s.tier, s.isArtificial, showDetails, isUnique));
                 }
             }
         }
@@ -639,7 +641,7 @@ public abstract class ItemStackTooltipMixin {
     }
 
     @Unique
-    private List<Text> createRunicStatLines(CustomStat stat, double[] values, int tier, boolean isArtificial, boolean showDetails) {
+    private List<Text> createRunicStatLines(CustomStat stat, double[] values, int tier, boolean isArtificial, boolean showDetails, boolean isUnique) {
         List<Text> lines = new ArrayList<>();
         for (int i = 0; i < stat.getComponents().size(); i++) {
             CustomStat.StatComponent comp = stat.getComponents().get(i);
@@ -647,7 +649,13 @@ public abstract class ItemStackTooltipMixin {
             String displayText = comp.formatValue(value, stat.getEquipmentType());
             MutableText line = Text.literal(displayText).formatted(isArtificial ? Formatting.DARK_GREEN : Formatting.BLUE);
             if (showDetails && i == stat.getComponents().size() - 1) {
-                line.append(Text.literal(" [T" + tier + "]").formatted(getTierColor(tier)));
+                if (isUnique && !comp.isBooleanStat()) {
+                    line.append(Text.literal(" " + comp.getFormattedMinMax(tier)).formatted(getTierColor(tier)));
+                } else if (isUnique) {
+                    line.append(Text.literal(" [TX]").formatted(getTierColor(tier)));
+                } else {
+                    line.append(Text.literal(" [T" + tier + "]").formatted(getTierColor(tier)));
+                }
             }
             lines.add(line);
         }

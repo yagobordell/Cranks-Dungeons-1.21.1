@@ -1,0 +1,5 @@
+// 1.21.1	2026-08-01T20:57:46.6417122	Cranks Dungeons/Runic Altar Recipes
+617ae85204f2198a4545374310c5d1e5cee52061 data\cranks-dungeons\recipe\artificial_enhancement_altar.json
+3a68ef117fe4f2a1cc5504332297f87b40dbd945 data\cranks-dungeons\recipe\runic_enhancement_altar.json
+95cf33d548cef9420df3668cb74f41a32686f86e data\cranks-dungeons\advancement\recipes\decorations\runic_enhancement_altar.json
+e423d1d5ba6a2064354de6aec16d42d4912e6b23 data\cranks-dungeons\advancement\recipes\decorations\artificial_enhancement_altar.json
