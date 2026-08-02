@@ -151,6 +151,11 @@ public class RunicEnhancementAltarBlockEntity extends BlockEntity implements Nam
         if (!getStack(RESULT_SLOT).isEmpty())
             return false;
 
+        // TODO: Remove this check when adding tomes that modify uniques
+        if (com.cranks.dungeons.item.CustomRarity.getRarity(equipment) == com.cranks.dungeons.item.CustomRarity.UNIQUE) {
+            return false;
+        }
+
         // Handle Artificial Tomes
         if (tome.getItem() instanceof ArtificialTomeItem) {
             return tryArtificialEnhance(equipment, tome);

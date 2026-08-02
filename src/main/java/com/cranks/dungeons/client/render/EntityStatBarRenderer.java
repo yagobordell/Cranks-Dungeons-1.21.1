@@ -262,7 +262,7 @@ public class EntityStatBarRenderer {
     }
 
     private static void drawText(MatrixStack matrices, TextRenderer textRenderer, String text, float x, float y, int color, VertexConsumerProvider consumers) {
-        textRenderer.draw(net.minecraft.text.Text.literal(text), x, y, color, true, matrices.peek().getPositionMatrix(), consumers, TextRenderer.TextLayerType.SEE_THROUGH, 0, 0xF000F0);
+        textRenderer.draw(text, x, y, color, true, matrices.peek().getPositionMatrix(), consumers, TextRenderer.TextLayerType.NORMAL, 0, 0xF000F0);
     }
 
     private static String capitalize(String s) {

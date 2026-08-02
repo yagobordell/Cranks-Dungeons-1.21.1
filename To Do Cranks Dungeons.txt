@@ -59,6 +59,3 @@
 
 20. **Loot Journal: Pickup Notifier Compatibility:**
     Make this mod use my mods rarity system for colors, just like its done with the Obscure Tooltips mod.
-
-21. **JEI Recipes:**
-    Have JEI also show the recipes from my custom items
