@@ -33,35 +33,23 @@ import java.util.List;
 public abstract class InventoryScreenStatsMixin {
 
         @Unique
-        private static final Identifier STATS_PANEL_TEXTURE = Identifier.of("cranks-dungeons",
-                        "textures/gui/stats_panel.png");
+        private static Identifier STATS_PANEL_BACKGROUND;
         @Unique
-        private static final Identifier STATS_BUTTON_NORMAL = Identifier.of("cranks-dungeons",
-                        "textures/gui/stats_button.png");
+        private static Identifier SCROLLER_TEXTURE;
         @Unique
-        private static final Identifier STATS_BUTTON_HOVER = Identifier.of("cranks-dungeons",
-                        "textures/gui/stats_button_hover.png");
+        private static final Identifier PAGE_FORWARD = Identifier.ofVanilla("recipe_book/page_forward");
         @Unique
-        private static final Identifier STATS_BUTTON_PRESSED = Identifier.of("cranks-dungeons",
-                        "textures/gui/stats_button_pressed.png");
+        private static final Identifier PAGE_FORWARD_HIGHLIGHTED = Identifier.ofVanilla("recipe_book/page_forward_highlighted");
         @Unique
-        private static final Identifier STATS_BUTTON_PRESSED_HOVER = Identifier.of("cranks-dungeons",
-                        "textures/gui/stats_button_pressed_hover.png");
+        private static final Identifier PAGE_BACKWARD = Identifier.ofVanilla("recipe_book/page_backward");
+        @Unique
+        private static final Identifier PAGE_BACKWARD_HIGHLIGHTED = Identifier.ofVanilla("recipe_book/page_backward_highlighted");
 
         // COMPENDIUM BUTTON (replaces separate Passive Tree and World Tree buttons)
         @Unique
-        private static final Identifier COMPENDIUM_BUTTON_NORMAL = Identifier.of("cranks-dungeons",
-                        "textures/gui/compendium_button.png");
+        private static Identifier COMPENDIUM_BUTTON_NORMAL;
         @Unique
-        private static final Identifier COMPENDIUM_BUTTON_HOVER = Identifier.of("cranks-dungeons",
-                        "textures/gui/compendium_button_hover.png");
-
-        @Unique
-        private static final Identifier SCROLLBAR_TRACK_TEXTURE = Identifier.of("cranks-dungeons",
-                        "textures/gui/stats_scrollbar_background.png");
-        @Unique
-        private static final Identifier SCROLLBAR_THUMB_TEXTURE = Identifier.of("cranks-dungeons",
-                        "textures/gui/stats_scrollbar_scroller.png");
+        private static Identifier COMPENDIUM_BUTTON_HOVER;
 
         // Note: statsVisible, scrollOffset and maxScrollOffset are now managed by
         // StatsPanelScrollHandler
@@ -91,6 +79,23 @@ public abstract class InventoryScreenStatsMixin {
         @Unique
         private static long lastLogTime = 0;
 
+        @Inject(method = "init", at = @At("HEAD"))
+        private void onInitStatsScreen(CallbackInfo ci) {
+                var rm = MinecraftClient.getInstance().getResourceManager();
+                
+                STATS_PANEL_BACKGROUND = rm.getResource(Identifier.of("cranks-dungeons", "textures/gui/sprites/stats_panel_background.png")).isPresent() ? 
+                                Identifier.of("cranks-dungeons", "stats_panel_background") : Identifier.ofVanilla("social_interactions/background");
+                
+                SCROLLER_TEXTURE = rm.getResource(Identifier.of("cranks-dungeons", "textures/gui/sprites/stats_scroller.png")).isPresent() ? 
+                                Identifier.of("cranks-dungeons", "stats_scroller") : Identifier.ofVanilla("container/creative_inventory/scroller");
+                
+                COMPENDIUM_BUTTON_NORMAL = rm.getResource(Identifier.of("cranks-dungeons", "textures/gui/sprites/compendium_button.png")).isPresent() ? 
+                                Identifier.of("cranks-dungeons", "compendium_button") : Identifier.ofVanilla("recipe_book/button");
+                
+                COMPENDIUM_BUTTON_HOVER = rm.getResource(Identifier.of("cranks-dungeons", "textures/gui/sprites/compendium_button_highlighted.png")).isPresent() ? 
+                                Identifier.of("cranks-dungeons", "compendium_button_highlighted") : Identifier.ofVanilla("recipe_book/button_highlighted");
+        }
+
         @Inject(method = "drawBackground", at = @At("TAIL"))
         private void renderStatsPanel(DrawContext context, float delta, int mouseX, int mouseY, CallbackInfo ci) {
                 InventoryScreen screen = (InventoryScreen) (Object) this;
@@ -101,10 +106,12 @@ public abstract class InventoryScreenStatsMixin {
                         int backgroundWidth = ((HandledScreenAccessor) screen).getBackgroundWidth();
                         TextRenderer tr = MinecraftClient.getInstance().textRenderer;
 
-                        int buttonX = x + backgroundWidth - 21;
-                        int buttonY = y + 6;
-                        int buttonWidth = 14;
-                        int buttonHeight = 14;
+                        int buttonWidth = 12;
+                        int buttonHeight = 17;
+                        
+                        // Center around the original intended position
+                        int buttonX = x + backgroundWidth - 14 - (buttonWidth / 2);
+                        int buttonY = y + 13 - (buttonHeight / 2);
 
                         boolean isHovering = mouseX >= buttonX && mouseX <= buttonX + buttonWidth &&
                                         mouseY >= buttonY && mouseY <= buttonY + buttonHeight;
@@ -123,23 +130,19 @@ public abstract class InventoryScreenStatsMixin {
                         lastClickState = leftClick;
 
                         Identifier buttonTexture;
-                        if (statsVisible && isHovering) {
-                                buttonTexture = STATS_BUTTON_PRESSED_HOVER;
-                        } else if (statsVisible) {
-                                buttonTexture = STATS_BUTTON_PRESSED;
-                        } else if (isHovering) {
-                                buttonTexture = STATS_BUTTON_HOVER;
+                        if (statsVisible) {
+                                buttonTexture = isHovering ? PAGE_BACKWARD_HIGHLIGHTED : PAGE_BACKWARD;
                         } else {
-                                buttonTexture = STATS_BUTTON_NORMAL;
+                                buttonTexture = isHovering ? PAGE_FORWARD_HIGHLIGHTED : PAGE_FORWARD;
                         }
 
-                        context.drawTexture(buttonTexture, buttonX, buttonY, 0.0F, 0.0F, buttonWidth, buttonHeight, buttonWidth, buttonHeight);
+                        context.drawGuiTexture(buttonTexture, buttonX, buttonY, buttonWidth, buttonHeight);
 
                         // --- COMPENDIUM BUTTON (Replaces separate Passive Tree and World Tree buttons) ---
-                        int compButtonX = x + 126;
-                        int compButtonY = y + 61;
                         int compButtonWidth = 20;
                         int compButtonHeight = 18;
+                        int compButtonX = buttonX + (buttonWidth / 2) - (compButtonWidth / 2) + 4; // Centered above stats button, shifted 4px right
+                        int compButtonY = y - compButtonHeight + 1; // Sits outside the inventory on the top edge, shifted 1px down
 
                         boolean isHoveringComp = mouseX >= compButtonX && mouseX <= compButtonX + compButtonWidth &&
                                         mouseY >= compButtonY && mouseY <= compButtonY + compButtonHeight;
@@ -153,7 +156,7 @@ public abstract class InventoryScreenStatsMixin {
                         lastCompendiumClickState = leftClick;
 
                         Identifier compButtonTexture = isHoveringComp ? COMPENDIUM_BUTTON_HOVER : COMPENDIUM_BUTTON_NORMAL;
-                        context.drawTexture(compButtonTexture, compButtonX, compButtonY, 0.0F, 0.0F, compButtonWidth, compButtonHeight, compButtonWidth, compButtonHeight);
+                        context.drawGuiTexture(compButtonTexture, compButtonX, compButtonY, compButtonWidth, compButtonHeight);
 
                         if (!statsVisible)
                                 return;
@@ -163,7 +166,7 @@ public abstract class InventoryScreenStatsMixin {
                         int panelWidth = 147;
                         int panelHeight = 166;
 
-                        context.drawTexture(STATS_PANEL_TEXTURE, panelX, panelY, 0.0F, 0.0F, panelWidth, panelHeight, panelWidth, panelHeight);
+                        context.drawGuiTexture(STATS_PANEL_BACKGROUND, panelX, panelY, panelWidth, panelHeight);
 
                         var player = MinecraftClient.getInstance().player;
                         if (player == null)
@@ -174,13 +177,13 @@ public abstract class InventoryScreenStatsMixin {
                         int visibleHeight = panelHeight - 16;
                         int scrollOffset = StatsPanelScrollHandler.getScrollOffset();
 
-                        context.enableScissor(panelX + 4, panelY + 4, panelX + panelWidth - 14,
-                                        panelY + panelHeight - 4);
+                        context.enableScissor(panelX + 4, panelY + 8, panelX + panelWidth - 14,
+                                        panelY + panelHeight - 8);
 
-                        int curY = panelY + 8 - scrollOffset;
+                        int curY = panelY + 12 - scrollOffset;
 
                         // --- CATEGORY 0: ATTRIBUTES ---
-                        context.drawText(tr, Text.literal("Attributes"), panelX + 6, curY, 0xFF404040, false);
+                        context.drawText(tr, Text.literal("Attributes"), panelX + 12, curY, 0xFFE0E0E0, false);
                         curY += 11;
                         curY = drawStatWithTooltip(context, tr, panelX, curY, "Strength",
                                         player.getAttributeValue(ModAttributes.STRENGTH),
@@ -200,7 +203,7 @@ public abstract class InventoryScreenStatsMixin {
                         ItemStack boots = player.getEquippedStack(EquipmentSlot.FEET);
 
                         // --- CATEGORY 1: LIFE ---
-                        context.drawText(tr, Text.literal("Life"), panelX + 6, curY, 0xFF404040, false);
+                        context.drawText(tr, Text.literal("Life"), panelX + 12, curY, 0xFFE0E0E0, false);
                         curY += 11;
 
                         curY = drawStatWithTooltip(context, tr, panelX, curY, "Max Health",
@@ -221,7 +224,7 @@ public abstract class InventoryScreenStatsMixin {
                         curY += 6;
 
                         // --- CATEGORY 2: ENERGY SHIELD ---
-                        context.drawText(tr, Text.literal("Energy Shield"), panelX + 6, curY, 0xFF404040, false);
+                        context.drawText(tr, Text.literal("Energy Shield"), panelX + 12, curY, 0xFFE0E0E0, false);
                         curY += 11;
                         curY = drawStatWithTooltip(context, tr, panelX, curY, "Energy Shield",
                                         player.getAttributeValue(ModAttributes.KEYSTONE_CRIMSON_PACT) > 0 ? 0 : player.getAttributeValue(ModAttributes.ENERGY_SHIELD),
@@ -238,7 +241,7 @@ public abstract class InventoryScreenStatsMixin {
                         curY += 6;
 
                         // --- CATEGORY 3: ARMOUR ---
-                        context.drawText(tr, Text.literal("Armour"), panelX + 6, curY, 0xFF404040, false);
+                        context.drawText(tr, Text.literal("Armour"), panelX + 12, curY, 0xFFE0E0E0, false);
                         curY += 11;
                         double displayArmor = player.getAttributeValue(EntityAttributes.GENERIC_ARMOR);
                         double displayEvasion = player.getAttributeValue(ModAttributes.EVASION_RATING);
@@ -254,7 +257,7 @@ public abstract class InventoryScreenStatsMixin {
                         curY += 6;
 
                         // --- CATEGORY 4: EVASION ---
-                        context.drawText(tr, Text.literal("Evasion"), panelX + 6, curY, 0xFF404040, false);
+                        context.drawText(tr, Text.literal("Evasion"), panelX + 12, curY, 0xFFE0E0E0, false);
                         curY += 11;
                         curY = drawStatWithTooltip(context, tr, panelX, curY, "Evasion Rating",
                                         displayEvasion,
@@ -263,7 +266,7 @@ public abstract class InventoryScreenStatsMixin {
                         curY += 6;
 
                         // --- CATEGORY 5: RESISTANCES ---
-                        context.drawText(tr, Text.literal("Resistances"), panelX + 6, curY, 0xFF404040, false);
+                        context.drawText(tr, Text.literal("Resistances"), panelX + 12, curY, 0xFFE0E0E0, false);
                         curY += 11;
                         curY = drawStatWithTooltip(context, tr, panelX, curY, "Fire Res",
                                         player.getAttributeValue(ModAttributes.FIRE_RESISTANCE) * 100,
@@ -289,7 +292,7 @@ public abstract class InventoryScreenStatsMixin {
                         curY += 6;
 
                         // --- CATEGORY 6: CRITICAL ---
-                        context.drawText(tr, Text.literal("Critical"), panelX + 6, curY, 0xFF404040, false);
+                        context.drawText(tr, Text.literal("Critical"), panelX + 12, curY, 0xFFE0E0E0, false);
                         curY += 11;
 
                         // 4. Critical Strike
@@ -317,7 +320,7 @@ public abstract class InventoryScreenStatsMixin {
                         curY += 6;
 
                         // --- CATEGORY 7: AILMENTS ---
-                        context.drawText(tr, Text.literal("Ailments"), panelX + 6, curY, 0xFF404040, false);
+                        context.drawText(tr, Text.literal("Ailments"), panelX + 12, curY, 0xFFE0E0E0, false);
                         curY += 11;
 
                         // BURN
@@ -371,7 +374,7 @@ public abstract class InventoryScreenStatsMixin {
                         curY += 6;
 
                         // --- CATEGORY 8: MISC ---
-                        context.drawText(tr, Text.literal("Misc"), panelX + 6, curY, 0xFF404040, false);
+                        context.drawText(tr, Text.literal("Misc"), panelX + 12, curY, 0xFFE0E0E0, false);
                         curY += 11;
 
                         double passiveMovePercent = cranks$getPassivePercentBonus(player, ModAttributes.MOVEMENT_SPEED);
@@ -407,7 +410,7 @@ public abstract class InventoryScreenStatsMixin {
                         curY += 6;
 
                         // --- CATEGORY 9: GATHERING ---
-                        context.drawText(tr, Text.literal("Gathering"), panelX + 6, curY, 0xFF404040, false);
+                        context.drawText(tr, Text.literal("Gathering"), panelX + 12, curY, 0xFFE0E0E0, false);
                         curY += 11;
 
                         // Gathering Speed
@@ -738,8 +741,8 @@ public abstract class InventoryScreenStatsMixin {
         @Unique
         private int drawStat(DrawContext context, TextRenderer tr, int x, int y, String name, double val,
                         String suffix) {
-                context.drawText(tr, Text.literal(name + ": " + String.format("%.1f", val) + suffix), x + 8, y,
-                                0xFF404040,
+                context.drawText(tr, Text.literal(name + ": " + String.format("%.1f", val) + suffix), x + 16, y,
+                                0xFFE0E0E0,
                                 false);
                 return y + 10;
         }
@@ -760,7 +763,7 @@ public abstract class InventoryScreenStatsMixin {
                         double base, String suffix, int mouseX, int mouseY, int panelX, int panelWidth) {
                 String totalStr = formatStatValue(name, total) + suffix;
                 String text = name + ": " + totalStr;
-                int statX = x + 8;
+                int statX = x + 16;
                 
                 if (mouseX >= statX && mouseX <= statX + tr.getWidth(text) && mouseY >= y && mouseY <= y + 9) {
                         hoveredStat = name;
@@ -771,7 +774,7 @@ public abstract class InventoryScreenStatsMixin {
                         hoveredSuffix = suffix;
                 }
                 
-                context.drawText(tr, Text.literal(text), statX, y, 0xFF404040, false);
+                context.drawText(tr, Text.literal(text), statX, y, 0xFFE0E0E0, false);
                 
                 return y + 10;
         }
@@ -791,21 +794,22 @@ public abstract class InventoryScreenStatsMixin {
         @Unique
         private void renderScrollbar(DrawContext context, int panelX, int panelY, int panelWidth, int panelHeight,
                         int mouseX, int mouseY, boolean leftClick) {
-                int sbX = panelX + panelWidth - 12;
+                int sbWidth = 12; // Vanilla scroller width
+                int sbX = panelX + panelWidth - 14; // Fit nicely in the panel
                 int sbY = panelY + 18;
-                int sbWidth = 6;
                 int sbHeight = panelHeight - 36;
 
                 int scrollOffset = StatsPanelScrollHandler.getScrollOffset();
                 int maxScrollOffset = StatsPanelScrollHandler.getMaxScrollOffset();
 
-                context.drawTexture(SCROLLBAR_TRACK_TEXTURE, sbX, sbY, 0.0F, 0.0F, sbWidth, sbHeight, sbWidth, sbHeight);
+                // The track is removed so the thumb floats directly on the panel, just like vanilla creative inventory
 
                 float scrollPercent = maxScrollOffset > 0 ? (float) scrollOffset / maxScrollOffset : 0;
-                int thumbHeight = Math.max(20, sbHeight / 4);
+                int thumbHeight = 15; // Vanilla scroller height
                 int thumbY = sbY + (int) (scrollPercent * (sbHeight - thumbHeight));
 
-                context.drawTexture(SCROLLBAR_THUMB_TEXTURE, sbX, thumbY, 0.0F, 0.0F, sbWidth, thumbHeight, sbWidth, thumbHeight);
+                // Draw the vanilla creative inventory scroller
+                context.drawGuiTexture(SCROLLER_TEXTURE, sbX, thumbY, sbWidth, thumbHeight);
 
                 if (leftClick) {
                         if (!draggingScrollbar && mouseX >= sbX && mouseX <= sbX + sbWidth && mouseY >= sbY

@@ -27,7 +27,7 @@ public class QualityStationScreen extends HandledScreen<QualityStationScreenHand
         titleX = (backgroundWidth - textRenderer.getWidth(title)) / 2;
         
         int buttonX = x + 62;
-        int buttonY = y + 48;
+        int buttonY = y + 53;
         upgradeButton = ButtonWidget.builder(Text.literal("Upgrade"), button -> {
             ClientPlayNetworking.send(new StartQualityUpgradePayload(!handler.isProcessing()));
         })
