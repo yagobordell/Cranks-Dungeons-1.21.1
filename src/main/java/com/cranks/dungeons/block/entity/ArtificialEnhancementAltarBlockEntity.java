@@ -214,6 +214,7 @@ public class ArtificialEnhancementAltarBlockEntity extends BlockEntity implement
 
         List<ItemStatManager.ItemStat> existingStats = ItemStatManager.getStats(equipment);
         availableStats = availableStats.stream()
+                .filter(stat -> stat.getWeight() > 0) // Exclude disabled (zero-weight) stats
                 .filter(stat -> stat.getAffixType() == requiredType) // Only show the required type
                 .filter(stat -> armorBase.canRoll(stat.getArmorBaseType())) // Filter by item's armor base type
                 .filter(stat -> {

@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 
 public class PassiveSkillTreeScreen extends Screen {
     private final Screen parent;
@@ -123,6 +124,9 @@ public class PassiveSkillTreeScreen extends Screen {
     private PassiveNode connectionSource = null;
     private boolean isConnecting = false;
     private boolean snapToGrid = false;
+
+    private final com.cranks.dungeons.util.SpatialGrid<PassiveNode> nodeGrid = new com.cranks.dungeons.util.SpatialGrid<>(20.0);
+    private final com.cranks.dungeons.util.SpatialGrid<Edge> edgeGrid = new com.cranks.dungeons.util.SpatialGrid<>(20.0);
 
     // Multi-Selection fields
     private final Set<String> selectedNodeIds = new HashSet<>();
@@ -455,17 +459,18 @@ public class PassiveSkillTreeScreen extends Screen {
             cacheDirty = false;
         }
 
+        double minGridX = (-panX - margin) / currentGridScale;
+        double minGridY = (-panY - margin) / currentGridScale;
+        double maxGridX = (screenW - panX + margin) / currentGridScale;
+        double maxGridY = (screenH - panY + margin) / currentGridScale;
+
         // --- PRE-CALCULATE HOVERED NODE ---
         PassiveNode hovered = null;
-        Map<String, PassiveNode> allNodesMap = PassiveNodeRegistry.getNodes();
-        for (PassiveNode node : allNodesMap.values()) {
+        List<PassiveNode> visibleNodes = nodeGrid.query(minGridX, minGridY, maxGridX, maxGridY);
+        
+        for (PassiveNode node : visibleNodes) {
             double nx = panX + node.gridX() * currentGridScale;
             double ny = panY + node.gridY() * currentGridScale;
-
-            // Spatial Culling Check
-            if (nx < -margin || nx > screenW + margin || ny < -margin || ny > screenH + margin) {
-                continue;
-            }
 
             double multiplier = getNodeSizeMultiplier(node.shape());
             double actualNodeSize = currentNodeSize * multiplier;
@@ -491,17 +496,12 @@ public class PassiveSkillTreeScreen extends Screen {
         }
 
         // --- DRAW CONNECTIONS ---
-        for (Edge edge : edgeCache) {
+        List<Edge> visibleEdges = edgeGrid.query(minGridX, minGridY, maxGridX, maxGridY);
+        for (Edge edge : visibleEdges) {
             float x1 = (float) (panX + edge.n1.gridX() * currentGridScale);
             float y1 = (float) (panY + edge.n1.gridY() * currentGridScale);
             float x2 = (float) (panX + edge.n2.gridX() * currentGridScale);
             float y2 = (float) (panY + edge.n2.gridY() * currentGridScale);
-
-            // Spatial Culling
-            if ((x1 < -margin && x2 < -margin) || (x1 > screenW + margin && x2 > screenW + margin) ||
-                    (y1 < -margin && y2 < -margin) || (y1 > screenH + margin && y2 > screenH + margin)) {
-                continue;
-            }
 
             // Determine State
             Identifier lineTex = LINE_NORMAL;
@@ -554,14 +554,9 @@ public class PassiveSkillTreeScreen extends Screen {
         }
 
         // --- DRAW NODES ---
-        for (PassiveNode node : allNodesMap.values()) {
+        for (PassiveNode node : visibleNodes) {
             double nx = panX + node.gridX() * currentGridScale;
             double ny = panY + node.gridY() * currentGridScale;
-
-            // Spatial Culling (Wide margin for large keystone glows)
-            if (nx < -margin || nx > screenW + margin || ny < -margin || ny > screenH + margin) {
-                continue;
-            }
 
             boolean isUnlocked = unlocked.contains(node.id()) || draftUnlocked.containsKey(node.id());
             boolean isDraft = draftUnlocked.containsKey(node.id());
@@ -822,13 +817,18 @@ public class PassiveSkillTreeScreen extends Screen {
         }
 
         // 2. Populate Logic Caches (Edge + Unlock)
+        nodeGrid.clear();
+        edgeGrid.clear();
         for (PassiveNode node : allNodes.values()) {
+            nodeGrid.insert(node, node.gridX(), node.gridY());
             // Edge Cache (For visual lines)
             for (String connId : node.connections()) {
                 if (node.id().compareTo(connId) < 0) {
                     PassiveNode connected = allNodes.get(connId);
                     if (connected != null) {
-                        edgeCache.add(new Edge(node, connected));
+                        Edge edge = new Edge(node, connected);
+                        edgeCache.add(edge);
+                        edgeGrid.insertLine(edge, node.gridX(), node.gridY(), connected.gridX(), connected.gridY());
                     }
                 }
             }

@@ -104,6 +104,26 @@ public class PassiveStatHelper {
         com.cranks.dungeons.component.WorldTreeDataComponent worldData = ModComponents.WORLD_TREE_DATA.get(player);
 
         if (data != null) {
+            // Apply Class Base Attributes First
+            String playerClass = data.getPlayerClass();
+            if (playerClass != null && !playerClass.isEmpty()) {
+                com.cranks.dungeons.config.PassiveTreeConfig.ClassDefinition def = com.cranks.dungeons.config.PassiveTreeConfig.getClassDef(playerClass);
+                if (def != null && def.baseAttributes() != null) {
+                    for (Map.Entry<String, Double> entry : def.baseAttributes().entrySet()) {
+                        String attrId = entry.getKey();
+                        Double value = entry.getValue();
+                        
+                        net.minecraft.util.Identifier id = net.minecraft.util.Identifier.tryParse(attrId);
+                        if (id != null) {
+                            RegistryEntry<EntityAttribute> attr = net.minecraft.registry.Registries.ATTRIBUTE.getEntry(id).orElse(null);
+                            if (attr != null) {
+                                summary.merge(attr, value, Double::sum);
+                            }
+                        }
+                    }
+                }
+            }
+
             mergeTreeStats(summary, data.getUnlockedNodes(), data::getNodeChoice, false);
         }
         if (worldData != null) {

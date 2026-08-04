@@ -69,7 +69,6 @@ public abstract class ElementalDamageMixin {
             // Check for Ranged Damage Override
             if (CombatUtility.isRanged(weapon, source)) {
                 double baseDamage = attacker.getAttributeValue(net.minecraft.entity.attribute.EntityAttributes.GENERIC_ATTACK_DAMAGE);
-                baseDamage += com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, weapon, "minecraft:power", 3.0);
 
                 double totalPercent = 1.0 + attacker.getAttributeValue(ModAttributes.ATTACK_DAMAGE_PERCENT)
                         + attacker.getAttributeValue(ModAttributes.RANGED_DAMAGE_PERCENT);
@@ -153,7 +152,6 @@ public abstract class ElementalDamageMixin {
     private void handleLivingAttacker(ServerWorld world, DamageSource source, float amount, LivingEntity attacker,
             LivingEntity target) {
         ItemStack weapon = CombatUtility.getCombatWeapon(source, attacker);
-        ItemStack chestplate = attacker.getEquippedStack(EquipmentSlot.CHEST);
 
         // Check if this hit was a critical strike
         boolean isPvP = attacker instanceof PlayerEntity && target instanceof PlayerEntity;
@@ -216,16 +214,16 @@ public abstract class ElementalDamageMixin {
 
             // === GATHER BASE DAMAGES ===
             double fireBaseDamage = CombatUtility.getAttributeValue(attacker, ModAttributes.FIRE_DAMAGE, weapon,
-                    "local_fire_damage", source) + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, weapon, "minecraft:fire_damage", 4.0);
+                    "local_fire_damage", source);
 
             double coldBaseDamage = CombatUtility.getAttributeValue(attacker, ModAttributes.COLD_DAMAGE, weapon,
-                    "local_cold_damage", source) + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, weapon, "cranks-dungeons:cold_damage", 4.0);
+                    "local_cold_damage", source);
 
             double lightningBaseDamage = CombatUtility.getAttributeValue(attacker, ModAttributes.LIGHTNING_DAMAGE,
-                    weapon, "local_lightning_damage", source) + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, weapon, "cranks-dungeons:lightning_damage", 4.0);
+                    weapon, "local_lightning_damage", source);
 
             double voidBaseDamage = CombatUtility.getAttributeValue(attacker, ModAttributes.VOID_DAMAGE, weapon,
-                    "local_void_damage", source) + com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, weapon, "cranks-dungeons:void_damage", 4.0);
+                    "local_void_damage", source);
 
             // === PURE DAMAGE CONVERSIONS ===
             double originalUnreducedPhysical = unreducedPhysicalDamage;
@@ -497,9 +495,7 @@ public abstract class ElementalDamageMixin {
             }
 
             // Physical Damage Leeched as Life
-            double physicalLeech = CombatUtility.getAttributeValue(attacker, ModAttributes.PHYSICAL_DAMAGE_LEECHED_AS_LIFE, weapon, "physical_damage_leeched_as_life", source) +
-                    com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, weapon, "minecraft:physical_damage_leeched_as_life", 0.06) +
-                    com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, chestplate, "minecraft:physical_damage_leeched_as_life", 0.06);
+            double physicalLeech = CombatUtility.getAttributeValue(attacker, ModAttributes.PHYSICAL_DAMAGE_LEECHED_AS_LIFE, weapon, "physical_damage_leeched_as_life", source);
 
             if (physicalLeech > 0 && physicalDamage > 0) {
                 float healing = physicalDamage * (float) physicalLeech;
@@ -555,9 +551,7 @@ public abstract class ElementalDamageMixin {
                 float chanceToFreeze = (float) CombatUtility.getAttributeValue(attacker, ModAttributes.CHANCE_TO_FREEZE, weapon, "chance_to_freeze", source);
                 if (chanceToFreeze >= 1.0f || (chanceToFreeze > 0.0f && attacker.getRandom().nextFloat() < chanceToFreeze)) {
                     float freezeMagnitudePercent = 1.0f + (float) CombatUtility.getAttributeValue(attacker, ModAttributes.FREEZE_MAGNITUDE_PERCENT, weapon,
-                            "freeze_magnitude_percent", source) +
-                            (float) com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, weapon, "minecraft:freeze_magnitude_percent", 0.05) +
-                            (float) com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, chestplate, "minecraft:freeze_magnitude_percent", 0.05);
+                            "freeze_magnitude_percent", source);
                     
                     float thresholdReduction = (float) CombatUtility.getAttributeValue(attacker, ModAttributes.FREEZE_THRESHOLD_REDUCTION, weapon, "freeze_threshold_reduction", source);
                     float ailmentThreshold = target.getMaxHealth() * (1.0f - thresholdReduction);
@@ -580,8 +574,7 @@ public abstract class ElementalDamageMixin {
                 float chanceToBleed = (float) CombatUtility.getAttributeValue(attacker, ModAttributes.CHANCE_TO_BLEED, weapon, "chance_to_bleed", source);
                 if (chanceToBleed >= 1.0f || (chanceToBleed > 0.0f && attacker.getRandom().nextFloat() < chanceToBleed)) {
                     float bleedMagnitudePercent = (float) CombatUtility.getAttributeValue(attacker, ModAttributes.BLEED_DAMAGE_PERCENT, weapon,
-                            "bleed_damage_percent", source) +
-                            (float) com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, weapon, "minecraft:BLEED_DAMAGE_PERCENT", 0.10);
+                            "bleed_damage_percent", source);
                     
                     // Bleed deals 100% of physical damage as burst, ignoring crit multiplier
                     float bleedBaseDamage = (float) (physicalDamage / critMultiplier);
@@ -608,8 +601,7 @@ public abstract class ElementalDamageMixin {
                     if (isCrit) baseMagnitude *= 1.5f;
                     
                     float shockMagnitudePercent = 1.0f + (float) CombatUtility.getAttributeValue(attacker, ModAttributes.SHOCK_MAGNITUDE_PERCENT, weapon,
-                            "shock_magnitude_percent", source) +
-                            (float) com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, weapon, "minecraft:shock_magnitude_percent", 0.05);
+                            "shock_magnitude_percent", source);
                             
                     float finalMagnitude = baseMagnitude * shockMagnitudePercent;
                     finalMagnitude = Math.min(finalMagnitude, 0.50f); // Cap at 50%

@@ -106,10 +106,14 @@ public class AilmentManager {
         if (newBuildup >= 1.0f) {
             FREEZE_BUILDUP.remove(target.getUuid());
             FREEZE_BUILDUP_LAST_HIT.remove(target.getUuid());
+            target.removeStatusEffect(net.minecraft.entity.effect.StatusEffects.SLOWNESS);
             applyAilment(target, AilmentType.FREEZE, 0.0f, duration, source);
         } else {
             FREEZE_BUILDUP.put(target.getUuid(), newBuildup);
             FREEZE_BUILDUP_LAST_HIT.put(target.getUuid(), target.getEntityWorld().getTime());
+            int slownessLevel = Math.min(4, (int)(newBuildup * 5));
+            target.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
+                    net.minecraft.entity.effect.StatusEffects.SLOWNESS, 60, slownessLevel, false, false, true));
         }
         syncAilments(target);
     }
@@ -384,6 +388,7 @@ public class AilmentManager {
                 if (newBuildup <= 0) {
                     FREEZE_BUILDUP.remove(entity.getUuid());
                     FREEZE_BUILDUP_LAST_HIT.remove(entity.getUuid());
+                    entity.removeStatusEffect(net.minecraft.entity.effect.StatusEffects.SLOWNESS);
                 } else {
                     FREEZE_BUILDUP.put(entity.getUuid(), newBuildup);
                 }
@@ -650,9 +655,6 @@ public class AilmentManager {
 
         for (LivingEntity target : nearby) {
             if (ailment.getSourceUuid() != null && target.getUuid().equals(ailment.getSourceUuid())) {
-                continue;
-            }
-            if (target instanceof PlayerEntity) {
                 continue;
             }
             if (target instanceof AilmentHistoryProvider history && history.cranks$wasHitByChain(ailment.getChainUuid())) {

@@ -491,8 +491,8 @@ public class StatRegistry {
 
                 register(new CustomStat("boots_movement_speed", "Movement Speed",
                                 EquipmentType.BOOTS, ModAttributes.MOVEMENT_SPEED,
-                                r(1.00, 1.02, 1.05, 1.08, 1.11, 1.15, 1.19, 1.24, 1.29, 1.35),
-                                r(1.00, 1.02, 1.05, 1.08, 1.11, 1.15, 1.19, 1.24, 1.29, 1.35),
+                                r(0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.10, 0.12, 0.15, 0.20),
+                                r(0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.10, 0.12, 0.15, 0.20),
                                 true, true, Formatting.GREEN, CustomStat.AffixType.PREFIX,
                                 60, 2500));
 
@@ -763,8 +763,8 @@ public class StatRegistry {
 
                 register(new CustomStat("elytra_movement_speed", "Movement Speed",
                                 EquipmentType.ELYTRA, ModAttributes.MOVEMENT_SPEED,
-                                r(1.00, 1.02, 1.05, 1.08, 1.11, 1.15, 1.19, 1.24, 1.29, 1.35),
-                                r(1.00, 1.02, 1.05, 1.08, 1.11, 1.15, 1.19, 1.24, 1.29, 1.35),
+                                r(0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.10, 0.12, 0.15, 0.20),
+                                r(0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.10, 0.12, 0.15, 0.20),
                                 true, true, Formatting.GREEN, CustomStat.AffixType.PREFIX,
                                 35, 400));
 

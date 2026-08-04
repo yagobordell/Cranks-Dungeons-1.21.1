@@ -99,9 +99,9 @@ public class EntityStatBarRenderer {
 
                 matrices.push();
                 
-                // Position above head - lowered slightly as requested
+                // Position above head
                 double wx = MathHelper.lerp(tickDelta, living.lastRenderX, living.getX()) - cameraX;
-                double wy = MathHelper.lerp(tickDelta, living.lastRenderY, living.getY()) - cameraY + living.getHeight() + 0.25;
+                double wy = MathHelper.lerp(tickDelta, living.lastRenderY, living.getY()) - cameraY + living.getHeight() + 0.3;
                 double wz = MathHelper.lerp(tickDelta, living.lastRenderZ, living.getZ()) - cameraZ;
 
                 matrices.translate(wx, wy, wz);
@@ -142,7 +142,7 @@ public class EntityStatBarRenderer {
 
         if (!showName && !showLevel && !showBars && !showParty) return;
 
-        float scale = 0.02f;
+        float scale = 0.025f;
         matrices.scale(-scale, -scale, scale); // Standard vanilla nametag scaling logic
 
         // Dynamic yOffset: Start higher if we have more rows to render
@@ -220,7 +220,7 @@ public class EntityStatBarRenderer {
             // Fill - Left-Aligned
             if (shieldPercent > 0) {
                 float fillWidth = barWidth * shieldPercent;
-                drawBar(matrices, consumers, SHIELD_FILL, xStart, yOffset, fillWidth, sHeight, 1.0f, -0.01f, 0, shieldPercent);
+                drawBar(matrices, consumers, SHIELD_FILL, xStart, yOffset, fillWidth, sHeight, 1.0f, -0.1f, 0, shieldPercent);
             }
             yOffset += 3.2f;
         }
@@ -238,21 +238,21 @@ public class EntityStatBarRenderer {
         // HP Fill - Left-Aligned
         if (hpPercent > 0) {
             float fillWidth = barWidth * hpPercent;
-            drawBar(matrices, consumers, HEALTH_FILL, xStart, yOffset, fillWidth, barHeight, 1.0f, -0.01f, 0, hpPercent);
+            drawBar(matrices, consumers, HEALTH_FILL, xStart, yOffset, fillWidth, barHeight, 1.0f, -0.1f, 0, hpPercent);
         }
 
-        // Absorption Fill (Z = -0.02)
+        // Absorption Fill (Z = -0.20)
         if (absorption > 0) {
             float absPercent = MathHelper.clamp(absorption / maxHealth, 0, 1);
             float absWidth = barWidth * absPercent;
-            drawBar(matrices, consumers, ABSORPTION_FILL, xStart, yOffset, absWidth, barHeight, 1.0f, -0.02f, 0, absPercent);
+            drawBar(matrices, consumers, ABSORPTION_FILL, xStart, yOffset, absWidth, barHeight, 1.0f, -0.2f, 0, absPercent);
         }
         
         yOffset += 5;
     }
 
     private static void drawBar(MatrixStack matrices, VertexConsumerProvider consumers, Identifier texture, float x, float y, float width, float height, float alpha, float zOffset, float uStart, float uEnd) {
-        VertexConsumer buffer = consumers.getBuffer(RenderLayer.getEntityCutout(texture));
+        VertexConsumer buffer = consumers.getBuffer(RenderLayer.getText(texture));
         Matrix4f model = matrices.peek().getPositionMatrix();
         
         buffer.vertex(model, x, y, zOffset).color(1f, 1f, 1f, alpha).texture(uStart, 0).overlay(OverlayTexture.DEFAULT_UV).light(LightmapTextureManager.MAX_LIGHT_COORDINATE).normal(0, 1, 0);
@@ -262,7 +262,14 @@ public class EntityStatBarRenderer {
     }
 
     private static void drawText(MatrixStack matrices, TextRenderer textRenderer, String text, float x, float y, int color, VertexConsumerProvider consumers) {
-        textRenderer.draw(text, x, y, color, true, matrices.peek().getPositionMatrix(), consumers, TextRenderer.TextLayerType.NORMAL, 0, 0xF000F0);
+        // Draw just the background box (with black text that will be covered up) at Z=0
+        textRenderer.draw(text, x, y, 0xFF000000, false, matrices.peek().getPositionMatrix(), consumers, TextRenderer.TextLayerType.NORMAL, 0x40000000, 0xF000F0);
+
+        // Draw the actual text slightly in front of the background box to prevent Z-fighting
+        matrices.push();
+        matrices.translate(0.0f, 0.0f, -0.02f);
+        textRenderer.draw(text, x, y, color, false, matrices.peek().getPositionMatrix(), consumers, TextRenderer.TextLayerType.NORMAL, 0, 0xF000F0);
+        matrices.pop();
     }
 
     private static String capitalize(String s) {

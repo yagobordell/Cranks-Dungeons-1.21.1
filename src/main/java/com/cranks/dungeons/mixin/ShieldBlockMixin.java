@@ -55,43 +55,36 @@ public abstract class ShieldBlockMixin {
         }
 
         if (isVanillaBlocking) {
-            double blockChance = entity.getAttributeValue(ModAttributes.CHANCE_TO_BLOCK);
             double blockValue = entity.getAttributeValue(ModAttributes.BLOCK_VALUE);
 
-            if (blockChance <= 0 && blockValue <= 0) {
-                return amount; 
-            }
-
-            if (entity.getRandom().nextFloat() < blockChance) {
-                float remainingDamage = (float) Math.max(0, amount - blockValue);
-
-                double healthOnBlock = entity.getAttributeValue(ModAttributes.HEALTH_ON_BLOCK);
-                if (healthOnBlock > 0) {
-                    entity.heal((float) healthOnBlock);
-                }
-
-                if (amount >= 3.0f) {
-                    net.minecraft.item.ItemStack activeStack = entity.getActiveItem();
-                    if (!activeStack.isEmpty() && activeStack.getItem() instanceof net.minecraft.item.ShieldItem) {
-                        int shieldDamage = 1 + (int) Math.floor(amount);
-                        activeStack.damage(shieldDamage, entity, net.minecraft.entity.EquipmentSlot.OFFHAND);
-                        if (activeStack.isEmpty()) {
-                            entity.clearActiveItem();
-                            net.minecraft.sound.SoundEvent sound = net.minecraft.sound.SoundEvents.ITEM_SHIELD_BREAK;
-                            entity.playSound(sound, 0.8F, 0.8F + entity.getRandom().nextFloat() * 0.4F);
-                        }
-                    }
-                }
-
-                world.sendEntityStatus(entity, (byte) 29);
-
-                cranks$forceSkipVanillaBlock = true;
-
-                return remainingDamage;
-            } else {
-                cranks$forceSkipVanillaBlock = true;
+            if (blockValue <= 0) {
                 return amount;
             }
+
+            // Blocking always succeeds when shield is raised
+            float remainingDamage = (float) Math.max(0, amount - blockValue);
+
+            double healthOnBlock = entity.getAttributeValue(ModAttributes.HEALTH_ON_BLOCK);
+            if (healthOnBlock > 0) {
+                entity.heal((float) healthOnBlock);
+            }
+
+            if (amount >= 3.0f) {
+                net.minecraft.item.ItemStack activeStack = entity.getActiveItem();
+                if (!activeStack.isEmpty() && activeStack.getItem() instanceof net.minecraft.item.ShieldItem) {
+                    int shieldDamage = 1 + (int) Math.floor(amount);
+                    activeStack.damage(shieldDamage, entity, net.minecraft.entity.EquipmentSlot.OFFHAND);
+                    if (activeStack.isEmpty()) {
+                        entity.clearActiveItem();
+                        net.minecraft.sound.SoundEvent sound = net.minecraft.sound.SoundEvents.ITEM_SHIELD_BREAK;
+                        entity.playSound(sound, 0.8F, 0.8F + entity.getRandom().nextFloat() * 0.4F);
+                    }
+                }
+            }
+
+            world.sendEntityStatus(entity, (byte) 29);
+            cranks$forceSkipVanillaBlock = true;
+            return remainingDamage;
         }
 
         return amount;

@@ -74,16 +74,33 @@ public record SyncPassiveTreePayload(
             PacketCodecs.STRING.encode(buf, value.recommendedStats());
             PacketCodecs.STRING.encode(buf, value.color());
             PacketCodecs.STRING.encode(buf, value.startNode());
+            
+            int attrsSize = value.baseAttributes() != null ? value.baseAttributes().size() : 0;
+            buf.writeInt(attrsSize);
+            if (attrsSize > 0) {
+                for (java.util.Map.Entry<String, Double> entry : value.baseAttributes().entrySet()) {
+                    PacketCodecs.STRING.encode(buf, entry.getKey());
+                    buf.writeDouble(entry.getValue());
+                }
+            }
         },
         buf -> {
-            return new PassiveTreeConfig.ClassDefinition(
-                PacketCodecs.STRING.decode(buf),
-                PacketCodecs.STRING.decode(buf),
-                PacketCodecs.STRING.decode(buf),
-                PacketCodecs.STRING.decode(buf),
-                PacketCodecs.STRING.decode(buf),
-                PacketCodecs.STRING.decode(buf),
-                PacketCodecs.STRING.decode(buf)
+            String id = PacketCodecs.STRING.decode(buf);
+            String name = PacketCodecs.STRING.decode(buf);
+            String subtitle = PacketCodecs.STRING.decode(buf);
+            String description = PacketCodecs.STRING.decode(buf);
+            String recStats = PacketCodecs.STRING.decode(buf);
+            String color = PacketCodecs.STRING.decode(buf);
+            String startNode = PacketCodecs.STRING.decode(buf);
+            
+            int attrsSize = buf.readInt();
+            java.util.Map<String, Double> baseAttributes = new java.util.HashMap<>();
+            for (int i = 0; i < attrsSize; i++) {
+                baseAttributes.put(PacketCodecs.STRING.decode(buf), buf.readDouble());
+            }
+
+            return new com.cranks.dungeons.config.PassiveTreeConfig.ClassDefinition(
+                id, name, subtitle, description, recStats, color, startNode, baseAttributes
             );
         }
     );

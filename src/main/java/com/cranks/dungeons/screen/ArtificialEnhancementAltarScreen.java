@@ -76,14 +76,32 @@ public class ArtificialEnhancementAltarScreen extends HandledScreen<ArtificialEn
                 boolean active = statId != null && !statId.isEmpty();
                 if (active) {
                     CustomStat stat = StatRegistry.getStat(statId);
-                    String name = stat != null ? stat.getDisplayName() : "???";
                     int tier = handler.getClientTier(i);
                     final int tierColor = getTierColorRgb(tier);
 
-                    optionButtons[i].setMessage(
-                            Text.literal(name + " ")
-                                    .append(Text.literal("[T" + tier + "]").styled(s -> s.withColor(tierColor)))
-                    );
+                    if (stat != null) {
+                        // Determine prefix/suffix label
+                        String affixLabel = stat.getAffixType() == CustomStat.AffixType.PREFIX ? "[Prefix] " : "[Suffix] ";
+
+                        // Get the value range for this tier from the first component
+                        String rangeText = "";
+                        if (!stat.getComponents().isEmpty()) {
+                            CustomStat.StatComponent comp = stat.getComponents().get(0);
+                            // Show the single-tier range (minTier == maxTier for a fixed tier)
+                            rangeText = " " + comp.getFormattedRange(tier, tier, stat.getEquipmentType());
+                        }
+
+                        optionButtons[i].setMessage(
+                                Text.literal(affixLabel).styled(s -> s.withColor(0x888888))
+                                        .append(Text.literal(rangeText + " "))
+                                        .append(Text.literal("[T" + tier + "]").styled(s -> s.withColor(tierColor)))
+                        );
+                    } else {
+                        optionButtons[i].setMessage(
+                                Text.literal("??? ")
+                                        .append(Text.literal("[T" + tier + "]").styled(s -> s.withColor(tierColor)))
+                        );
+                    }
                     optionButtons[i].active = true;
                 } else {
                     optionButtons[i].setMessage(Text.empty());

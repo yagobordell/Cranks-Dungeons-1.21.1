@@ -245,7 +245,7 @@ public class CranksDungeonsClient implements ClientModInitializer {
             DamageNumberRenderer.renderHud(context, 0f);
         });
 
-        net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents.LAST.register(context -> {
+        net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents.AFTER_ENTITIES.register(context -> {
             net.minecraft.client.render.VertexConsumerProvider.Immediate consumers = MinecraftClient.getInstance().getBufferBuilders().getEntityVertexConsumers();
             com.cranks.dungeons.client.render.LightningArcRenderer.render(context, consumers);
             com.cranks.dungeons.client.render.AilmentIconRenderer.render(context, consumers);

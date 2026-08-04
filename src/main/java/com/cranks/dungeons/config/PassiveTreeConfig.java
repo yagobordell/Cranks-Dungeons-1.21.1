@@ -28,7 +28,7 @@ public class PassiveTreeConfig {
     private static List<PassiveNode> loadedNodes = new ArrayList<>();
     private static List<ClassDefinition> loadedClasses = new ArrayList<>();
 
-    public record ClassDefinition(String id, String name, String subtitle, String description, String recommendedStats, String color, String startNode) {}
+    public record ClassDefinition(String id, String name, String subtitle, String description, String recommendedStats, String color, String startNode, Map<String, Double> baseAttributes) {}
 
     /**
      * Load (or generate) the config files and return the parsed nodes.
@@ -62,6 +62,16 @@ public class PassiveTreeConfig {
 
     public static List<ClassDefinition> getClasses() {
         return loadedClasses;
+    }
+
+    public static ClassDefinition getClassDef(String id) {
+        if (id == null || id.isEmpty()) return null;
+        for (ClassDefinition cd : loadedClasses) {
+            if (cd.id().equals(id)) {
+                return cd;
+            }
+        }
+        return null;
     }
 
     public static void setNodesAndClasses(List<PassiveNode> nodes, List<ClassDefinition> classes) {
@@ -155,6 +165,13 @@ public class PassiveTreeConfig {
         List<ClassDefinition> classes = new ArrayList<>();
         for (JsonElement el : classesArr) {
             JsonObject obj = el.getAsJsonObject();
+            Map<String, Double> baseAttrs = new HashMap<>();
+            if (obj.has("baseAttributes")) {
+                JsonObject attrsObj = obj.getAsJsonObject("baseAttributes");
+                for (Map.Entry<String, JsonElement> entry : attrsObj.entrySet()) {
+                    baseAttrs.put(entry.getKey(), entry.getValue().getAsDouble());
+                }
+            }
             classes.add(new ClassDefinition(
                     obj.get("id").getAsString().trim(),
                     obj.get("name").getAsString(),
@@ -162,7 +179,8 @@ public class PassiveTreeConfig {
                     obj.has("description") ? obj.get("description").getAsString() : "No description provided.",
                     obj.has("recommendedStats") ? obj.get("recommendedStats").getAsString() : "No recommendations provided.",
                     obj.has("color") ? obj.get("color").getAsString() : "#000000",
-                    obj.get("startNode").getAsString().trim()
+                    obj.get("startNode").getAsString().trim(),
+                    baseAttrs
             ));
         }
         return classes;
@@ -238,19 +256,22 @@ public class PassiveTreeConfig {
             "A master of brute force and resilience. Warriors excel at close-quarters combat, trading powerful blows with their enemies while shrugging off damage with heavy armor and high health.", 
             "Focus on Max Health, Armor, and Physical Damage. Strength and Resilience are your best friends to survive the front lines while crushing foes.",
             "#AA0000",
-            "warrior_start"));
+            "warrior_start",
+            Map.of("minecraft:max_health", 20.0, "minecraft:armor", 5.0, "cranks-dungeons:strength", 10.0)));
         classes.add(makeClass("ranger", "Ranger", 
             "Squishy fast, normal damage, ranged.",
             "Quick, lethal, and precise. Rangers dominate from a distance, using their superior movement speed and evasion to stay out of reach while landing deadly critical strikes with bows.", 
             "Prioritize Attack Speed, Crit Chance, and Movement Speed. Stay agile and use Evasion to avoid taking hits, as your health pool is limited.",
             "#00AA00",
-            "ranger_start"));
+            "ranger_start",
+            Map.of("minecraft:movement_speed", 0.05, "cranks-dungeons:evasion_rating", 10.0, "cranks-dungeons:dexterity", 10.0)));
         classes.add(makeClass("mercenary", "Mercenary", 
             "Jack of all trades, both melee and ranged, decent tankiness and damage.",
             "A ruthless tactician who fights for profit. Mercenaries utilize dirty tactics and utility to gain the upper hand, specializing in bleeds, critical multipliers, and experience gains.", 
             "Balance between Physical Damage and Utility. Crit Multiplier and Bleed Chance are great for damage, while Experience Bonus helps you outscale your enemies.",
             "#00AAAA",
-            "mercenary_start"));
+            "mercenary_start",
+            Map.of("minecraft:max_health", 10.0, "cranks-dungeons:intelligence", 5.0, "cranks-dungeons:dexterity", 5.0)));
 
         root.add("classes", classes);
         Files.writeString(CLASSES_FILE, GSON.toJson(root));
@@ -284,7 +305,7 @@ public class PassiveTreeConfig {
         return obj;
     }
 
-    private static JsonObject makeClass(String id, String name, String subtitle, String description, String recommendedStats, String color, String startNode) {
+    private static JsonObject makeClass(String id, String name, String subtitle, String description, String recommendedStats, String color, String startNode, Map<String, Double> baseAttributes) {
         JsonObject obj = new JsonObject();
         obj.addProperty("id", id);
         obj.addProperty("name", name);
@@ -293,6 +314,13 @@ public class PassiveTreeConfig {
         obj.addProperty("recommendedStats", recommendedStats);
         obj.addProperty("color", color);
         obj.addProperty("startNode", startNode);
+        
+        JsonObject attrsObj = new JsonObject();
+        if (baseAttributes != null) {
+            baseAttributes.forEach(attrsObj::addProperty);
+        }
+        obj.add("baseAttributes", attrsObj);
+        
         return obj;
     }
 

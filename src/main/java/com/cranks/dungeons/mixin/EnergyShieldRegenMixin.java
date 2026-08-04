@@ -140,11 +140,12 @@ public class EnergyShieldRegenMixin {
             if (Math.abs(newShield - lastSyncedShield) >= SYNC_THRESHOLD || ticksSinceLastSync >= SYNC_INTERVAL_TICKS || shouldSyncMob) {
                 if (self instanceof ServerPlayerEntity serverPlayer) {
                     ServerPlayNetworking.send(serverPlayer, new EnergyShieldSyncPacket(newShield, (float) maxShield));
-                } else {
-                    // Sync to tracking players for mobs
-                    com.cranks.dungeons.network.EntityShieldSyncPacket packet = new com.cranks.dungeons.network.EntityShieldSyncPacket(self.getId(), newShield, (float) maxShield);
-                    net.fabricmc.fabric.api.networking.v1.PlayerLookup.tracking(self).forEach(p -> ServerPlayNetworking.send(p, packet));
                 }
+                
+                // Sync to tracking players for EVERYONE (mobs AND players)
+                com.cranks.dungeons.network.EntityShieldSyncPacket packet = new com.cranks.dungeons.network.EntityShieldSyncPacket(self.getId(), newShield, (float) maxShield);
+                net.fabricmc.fabric.api.networking.v1.PlayerLookup.tracking(self).forEach(p -> ServerPlayNetworking.send(p, packet));
+                
                 lastSyncedShield = newShield;
                 ticksSinceLastSync = 0;
             }

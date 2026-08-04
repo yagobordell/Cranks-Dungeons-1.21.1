@@ -96,7 +96,10 @@ public class ElementalTomeItem extends AbstractTomeItem {
                 if (element == Element.VOID) {
                     return typeStr + "_physical_taken_as_void";
                 }
-                return null;
+                if (element == Element.PHYSICAL) {
+                    return typeStr + "_armor";
+                }
+                return typeStr + "_" + elementStr + "_resistance";
             }
             return null;
         } else {
@@ -111,7 +114,7 @@ public class ElementalTomeItem extends AbstractTomeItem {
                 return typeStr + "_local_" + elementStr + "_damage";
             } else if (isArmor(equipType)) {
                 if (element == Element.PHYSICAL) {
-                    return null;
+                    return typeStr + "_armor";
                 }
                 return typeStr + "_" + elementStr + "_resistance";
             }

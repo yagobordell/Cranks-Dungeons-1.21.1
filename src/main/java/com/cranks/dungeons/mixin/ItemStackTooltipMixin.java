@@ -142,7 +142,8 @@ public abstract class ItemStackTooltipMixin {
 
     @Unique
     private void addBaseStatsSection(ItemStack stack, List<Text> tooltip, EquipmentType type) {
-        DecimalFormat df = new DecimalFormat("#.#");
+        DecimalFormat flatFmt = new DecimalFormat("#"); // integers for flat values
+        DecimalFormat pctFmt = new DecimalFormat("#.#"); // one decimal for percent values
         Map<String, Double> attributeTotals = calculateItemAttributeTotals(stack, type, true);
         ItemStack defaultStack = new ItemStack(stack.getItem());
         Map<String, Double> defaultTotals = calculateItemAttributeTotals(defaultStack, type, false);
@@ -163,7 +164,7 @@ public abstract class ItemStackTooltipMixin {
             String armorKey = EntityAttributes.GENERIC_ARMOR.value().getTranslationKey();
             if (attributeTotals.getOrDefault(armorKey, 0.0) > 0) {
                 tooltip.add(Text.literal("Armor: ").formatted(Formatting.GRAY)
-                        .append(Text.literal(df.format(attributeTotals.get(armorKey)))
+                        .append(Text.literal(flatFmt.format(attributeTotals.get(armorKey)))
                                 .formatted(getValueColor(stack, EntityAttributes.GENERIC_ARMOR))));
                 addedAny = true;
             }
@@ -171,7 +172,7 @@ public abstract class ItemStackTooltipMixin {
             String evasionKey = ModAttributes.EVASION_RATING.value().getTranslationKey();
             if (attributeTotals.getOrDefault(evasionKey, 0.0) > 0) {
                 tooltip.add(Text.literal("Evasion Rating: ").formatted(Formatting.GRAY)
-                        .append(Text.literal(df.format(attributeTotals.get(evasionKey)))
+                        .append(Text.literal(flatFmt.format(attributeTotals.get(evasionKey)))
                                 .formatted(getValueColor(stack, ModAttributes.EVASION_RATING))));
                 addedAny = true;
             }
@@ -179,7 +180,7 @@ public abstract class ItemStackTooltipMixin {
             String esKey = ModAttributes.ENERGY_SHIELD.value().getTranslationKey();
             if (attributeTotals.getOrDefault(esKey, 0.0) > 0) {
                 tooltip.add(Text.literal("Energy Shield: ").formatted(Formatting.GRAY)
-                        .append(Text.literal(df.format(attributeTotals.get(esKey)))
+                        .append(Text.literal(flatFmt.format(attributeTotals.get(esKey)))
                                 .formatted(getValueColor(stack, ModAttributes.ENERGY_SHIELD))));
                 addedAny = true;
             }
@@ -188,7 +189,7 @@ public abstract class ItemStackTooltipMixin {
             if (attributeTotals.getOrDefault(movementKey, 0.0) != 0 && defaultTotals.getOrDefault(movementKey, 0.0) != 0) {
                 double moveSpeed = attributeTotals.get(movementKey) * 100;
                 tooltip.add(Text.literal("Movement Speed: ").formatted(Formatting.GRAY)
-                        .append(Text.literal(df.format(moveSpeed) + "%")
+                        .append(Text.literal(pctFmt.format(moveSpeed) + "%")
                                 .formatted(getValueColor(stack, ModAttributes.MOVEMENT_SPEED))));
                 addedAny = true;
             }
@@ -197,7 +198,7 @@ public abstract class ItemStackTooltipMixin {
             if (attributeTotals.getOrDefault(speedKey, 0.0) != 0 && defaultTotals.getOrDefault(speedKey, 0.0) != 0) {
                 double speed = attributeTotals.get(speedKey) * 100;
                 tooltip.add(Text.literal("Attack Speed: ").formatted(Formatting.GRAY)
-                        .append(Text.literal(df.format(speed) + "%")
+                        .append(Text.literal(pctFmt.format(speed) + "%")
                                 .formatted(getValueColor(stack, EntityAttributes.GENERIC_ATTACK_SPEED))));
                 addedAny = true;
             }
@@ -206,7 +207,7 @@ public abstract class ItemStackTooltipMixin {
             if (attributeTotals.getOrDefault(kbResKey, 0.0) > 0 && defaultTotals.getOrDefault(kbResKey, 0.0) > 0) {
                 double kbRes = attributeTotals.get(kbResKey) * 100;
                 tooltip.add(Text.literal("Knockback Resistance: ").formatted(Formatting.GRAY)
-                        .append(Text.literal(df.format(kbRes) + "%")
+                        .append(Text.literal(pctFmt.format(kbRes) + "%")
                                 .formatted(getValueColor(stack, ModAttributes.KNOCKBACK_RESISTANCE))));
                 addedAny = true;
             }
@@ -214,7 +215,7 @@ public abstract class ItemStackTooltipMixin {
             String fireKey = ModAttributes.FIRE_RESISTANCE.value().getTranslationKey();
             if (attributeTotals.getOrDefault(fireKey, 0.0) > 0 && defaultTotals.getOrDefault(fireKey, 0.0) > 0) {
                 tooltip.add(Text.literal("Fire Resistance: ").formatted(Formatting.GRAY)
-                        .append(Text.literal(df.format(attributeTotals.get(fireKey) * 100) + "%")
+                        .append(Text.literal(pctFmt.format(attributeTotals.get(fireKey) * 100) + "%")
                                 .formatted(getValueColor(stack, ModAttributes.FIRE_RESISTANCE))));
                 addedAny = true;
             }
@@ -222,7 +223,7 @@ public abstract class ItemStackTooltipMixin {
             String coldKey = ModAttributes.COLD_RESISTANCE.value().getTranslationKey();
             if (attributeTotals.getOrDefault(coldKey, 0.0) > 0 && defaultTotals.getOrDefault(coldKey, 0.0) > 0) {
                 tooltip.add(Text.literal("Cold Resistance: ").formatted(Formatting.GRAY)
-                        .append(Text.literal(df.format(attributeTotals.get(coldKey) * 100) + "%")
+                        .append(Text.literal(pctFmt.format(attributeTotals.get(coldKey) * 100) + "%")
                                 .formatted(getValueColor(stack, ModAttributes.COLD_RESISTANCE))));
                 addedAny = true;
             }
@@ -230,7 +231,7 @@ public abstract class ItemStackTooltipMixin {
             String lightKey = ModAttributes.LIGHTNING_RESISTANCE.value().getTranslationKey();
             if (attributeTotals.getOrDefault(lightKey, 0.0) > 0 && defaultTotals.getOrDefault(lightKey, 0.0) > 0) {
                 tooltip.add(Text.literal("Lightning Resistance: ").formatted(Formatting.GRAY)
-                        .append(Text.literal(df.format(attributeTotals.get(lightKey) * 100) + "%")
+                        .append(Text.literal(pctFmt.format(attributeTotals.get(lightKey) * 100) + "%")
                                 .formatted(getValueColor(stack, ModAttributes.LIGHTNING_RESISTANCE))));
                 addedAny = true;
             }
@@ -238,7 +239,7 @@ public abstract class ItemStackTooltipMixin {
             String voidKey = ModAttributes.VOID_RESISTANCE.value().getTranslationKey();
             if (attributeTotals.getOrDefault(voidKey, 0.0) > 0 && defaultTotals.getOrDefault(voidKey, 0.0) > 0) {
                 tooltip.add(Text.literal("Void Resistance: ").formatted(Formatting.GRAY)
-                        .append(Text.literal(df.format(attributeTotals.get(voidKey) * 100) + "%")
+                        .append(Text.literal(pctFmt.format(attributeTotals.get(voidKey) * 100) + "%")
                                 .formatted(getValueColor(stack, ModAttributes.VOID_RESISTANCE))));
                 addedAny = true;
             }
@@ -246,7 +247,7 @@ public abstract class ItemStackTooltipMixin {
             String luckKey = ModAttributes.ITEM_RARITY_PERCENT.value().getTranslationKey();
             if (attributeTotals.getOrDefault(luckKey, 0.0) > 0 && defaultTotals.getOrDefault(luckKey, 0.0) > 0) {
                 tooltip.add(Text.literal("Rarity of Items Found: ").formatted(Formatting.GRAY)
-                        .append(Text.literal(df.format(attributeTotals.get(luckKey) * 100) + "%")
+                        .append(Text.literal(pctFmt.format(attributeTotals.get(luckKey) * 100) + "%")
                                 .formatted(getValueColor(stack, ModAttributes.ITEM_RARITY_PERCENT))));
                 addedAny = true;
             }
@@ -255,30 +256,23 @@ public abstract class ItemStackTooltipMixin {
             String healthKey = EntityAttributes.GENERIC_MAX_HEALTH.value().getTranslationKey();
             if (attributeTotals.getOrDefault(healthKey, 0.0) > 0 && defaultTotals.getOrDefault(healthKey, 0.0) > 0) {
                 tooltip.add(Text.literal("Max Health: ").formatted(Formatting.GRAY)
-                        .append(Text.literal("+" + df.format(attributeTotals.get(healthKey)))
+                        .append(Text.literal("+" + flatFmt.format(attributeTotals.get(healthKey)))
                                 .formatted(getValueColor(stack, EntityAttributes.GENERIC_MAX_HEALTH))));
                 addedAny = true;
             }
             String regenKey = ModAttributes.LIFE_REGENERATION.value().getTranslationKey();
             if (attributeTotals.getOrDefault(regenKey, 0.0) > 0 && defaultTotals.getOrDefault(regenKey, 0.0) > 0) {
                 tooltip.add(Text.literal("Health Regen: ").formatted(Formatting.GRAY)
-                        .append(Text.literal("+" + df.format(attributeTotals.get(regenKey)))
+                        .append(Text.literal("+" + flatFmt.format(attributeTotals.get(regenKey)))
                                 .formatted(getValueColor(stack, ModAttributes.LIFE_REGENERATION))));
                 addedAny = true;
             }
 
-            String blockChanceKey = ModAttributes.CHANCE_TO_BLOCK.value().getTranslationKey();
-            if (attributeTotals.getOrDefault(blockChanceKey, 0.0) > 0 && defaultTotals.getOrDefault(blockChanceKey, 0.0) > 0) {
-                tooltip.add(Text.literal("Chance to Block: ").formatted(Formatting.GRAY)
-                        .append(Text.literal(df.format(attributeTotals.get(blockChanceKey) * 100) + "%")
-                                .formatted(getValueColor(stack, ModAttributes.CHANCE_TO_BLOCK))));
-                addedAny = true;
-            }
 
             String blockValueKey = ModAttributes.BLOCK_VALUE.value().getTranslationKey();
             if (attributeTotals.getOrDefault(blockValueKey, 0.0) > 0 && defaultTotals.getOrDefault(blockValueKey, 0.0) > 0) {
                 tooltip.add(Text.literal("Block Value: ").formatted(Formatting.GRAY)
-                        .append(Text.literal(df.format(attributeTotals.get(blockValueKey)))
+                        .append(Text.literal(flatFmt.format(attributeTotals.get(blockValueKey)))
                                 .formatted(getValueColor(stack, ModAttributes.BLOCK_VALUE))));
                 addedAny = true;
             }
@@ -286,7 +280,7 @@ public abstract class ItemStackTooltipMixin {
             String healthBlockKey = ModAttributes.HEALTH_ON_BLOCK.value().getTranslationKey();
             if (attributeTotals.getOrDefault(healthBlockKey, 0.0) > 0) {
                 tooltip.add(Text.literal("Health on Block: ").formatted(Formatting.GRAY)
-                        .append(Text.literal(df.format(attributeTotals.get(healthBlockKey)))
+                        .append(Text.literal(flatFmt.format(attributeTotals.get(healthBlockKey)))
                                 .formatted(getValueColor(stack, ModAttributes.HEALTH_ON_BLOCK))));
                 addedAny = true;
             }
@@ -299,13 +293,13 @@ public abstract class ItemStackTooltipMixin {
                 String miningKey = ModAttributes.MINING_EFFICIENCY.value().getTranslationKey();
                 double bonusMining = attributeTotals.getOrDefault(miningKey, 0.0);
                 tooltip.add(Text.literal("Gathering Speed: ").formatted(Formatting.GRAY)
-                        .append(Text.literal(df.format(1.0 + bonusMining))
+                        .append(Text.literal(pctFmt.format(1.0 + bonusMining))
                                 .formatted(getValueColor(stack, ModAttributes.MINING_EFFICIENCY))));
 
                 String breakRangeKey = ModAttributes.BREAKING_RANGE.value().getTranslationKey();
                 double bonusBreakRange = attributeTotals.getOrDefault(breakRangeKey, 0.0);
                 tooltip.add(Text.literal("Breaking Range: ").formatted(Formatting.GRAY)
-                        .append(Text.literal(df.format(4.5 + bonusBreakRange))
+                        .append(Text.literal(pctFmt.format(4.5 + bonusBreakRange))
                                 .formatted(getValueColor(stack, ModAttributes.BREAKING_RANGE))));
 
                 addedAny = true;
@@ -316,17 +310,17 @@ public abstract class ItemStackTooltipMixin {
                     && type != EquipmentType.CROSSBOW && !isTool) {
                 double finalDamage = PLAYER_BASE_ATTACK_DAMAGE + attributeTotals.get(damageKey);
                 tooltip.add(Text.literal("Physical Damage: ").formatted(Formatting.GRAY)
-                        .append(Text.literal(df.format(finalDamage))
+                        .append(Text.literal(pctFmt.format(finalDamage))
                                 .formatted(getValueColor(stack, EntityAttributes.GENERIC_ATTACK_DAMAGE))));
                 
-                addElementalDamageLines(tooltip, attributeTotals, df);
+                addElementalDamageLines(tooltip, attributeTotals, pctFmt);
                 addedAny = true;
             }
             String speedKey = EntityAttributes.GENERIC_ATTACK_SPEED.value().getTranslationKey();
             if (attributeTotals.containsKey(speedKey) && !isTool) {
                 double finalSpeed = PLAYER_BASE_ATTACK_SPEED + attributeTotals.get(speedKey);
                 tooltip.add(Text.literal("Attack Speed: ").formatted(Formatting.GRAY)
-                        .append(Text.literal(df.format(finalSpeed))
+                        .append(Text.literal(pctFmt.format(finalSpeed))
                                 .formatted(getValueColor(stack, EntityAttributes.GENERIC_ATTACK_SPEED))));
                 addedAny = true;
             }
@@ -335,15 +329,15 @@ public abstract class ItemStackTooltipMixin {
                 String bowDamageKey = EntityAttributes.GENERIC_ATTACK_DAMAGE.value().getTranslationKey();
                 double finalDamage = attributeTotals.getOrDefault(bowDamageKey, 0.0);
                 tooltip.add(Text.literal("Physical Damage: ").formatted(Formatting.GRAY)
-                        .append(Text.literal(df.format(finalDamage))
+                        .append(Text.literal(pctFmt.format(finalDamage))
                                 .formatted(getValueColor(stack, EntityAttributes.GENERIC_ATTACK_DAMAGE))));
                 
-                addElementalDamageLines(tooltip, attributeTotals, df);
+                addElementalDamageLines(tooltip, attributeTotals, pctFmt);
                 
                 String reloadKey = ModAttributes.RELOAD_SPEED.value().getTranslationKey();
                 double finalReloadSpeed = 1.0 + attributeTotals.getOrDefault(reloadKey, 0.0);
                 tooltip.add(Text.literal("Reload Speed: ").formatted(Formatting.GRAY)
-                        .append(Text.literal(df.format(finalReloadSpeed))
+                        .append(Text.literal(pctFmt.format(finalReloadSpeed))
                                 .formatted(getValueColor(stack, ModAttributes.RELOAD_SPEED))));
                 addedAny = true;
             }
