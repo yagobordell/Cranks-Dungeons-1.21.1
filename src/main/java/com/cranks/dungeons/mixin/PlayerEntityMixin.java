@@ -47,4 +47,10 @@ public abstract class PlayerEntityMixin extends LivingEntity {
 
         cir.setReturnValue(originalSpeed);
     }
+
+    @Inject(method = "updateTurtleHelmet", at = @At("HEAD"), cancellable = true)
+    private void disableVanillaTurtleHelmet(org.spongepowered.asm.mixin.injection.callback.CallbackInfo ci) {
+        // Disable vanilla water breathing from turtle helmet
+        ci.cancel();
+    }
 }

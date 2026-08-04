@@ -999,6 +999,49 @@ public class StatRegistry {
                         true, true, Formatting.WHITE, CustomStat.AffixType.PREFIX,
                         1, 0));
 
+                // Turtle Helmet specific unique stats
+                register(new CustomStat("turtle_helmet_respiration", "Extended Breathing Time",
+                        EquipmentType.HELMET, EntityAttributes.GENERIC_OXYGEN_BONUS,
+                        r(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0),
+                        r(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0),
+                        false, false, Formatting.AQUA, CustomStat.AffixType.PREFIX,
+                        1, 0));
+
+                register(new CustomStat("turtle_helmet_aqua_affinity", "Increases Underwater Mining Speed",
+                        EquipmentType.HELMET, EntityAttributes.PLAYER_SUBMERGED_MINING_SPEED,
+                        r(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0),
+                        r(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0),
+                        false, false, Formatting.AQUA, CustomStat.AffixType.PREFIX,
+                        1, 0));
+
+                register(new CustomStat("turtle_helmet_cold_resistance", "Cold Resistance",
+                        EquipmentType.HELMET, ModAttributes.COLD_RESISTANCE,
+                        r(0.30, 0.30, 0.30, 0.30, 0.30, 0.30, 0.30, 0.30, 0.30, 0.30),
+                        r(0.45, 0.45, 0.45, 0.45, 0.45, 0.45, 0.45, 0.45, 0.45, 0.45),
+                        true, true, Formatting.AQUA, CustomStat.AffixType.PREFIX,
+                        1, 0));
+
+                register(new CustomStat("turtle_helmet_movement_speed", "Movement Speed",
+                        EquipmentType.HELMET, ModAttributes.MOVEMENT_SPEED,
+                        r(-0.05, -0.05, -0.05, -0.05, -0.05, -0.05, -0.05, -0.05, -0.05, -0.05),
+                        r(-0.15, -0.15, -0.15, -0.15, -0.15, -0.15, -0.15, -0.15, -0.15, -0.15),
+                        true, true, Formatting.GREEN, CustomStat.AffixType.PREFIX,
+                        1, 0));
+
+                register(new CustomStat("turtle_helmet_armor", "Armor",
+                        EquipmentType.HELMET, EntityAttributes.GENERIC_ARMOR,
+                        r(50.0, 50.0, 50.0, 50.0, 50.0, 50.0, 50.0, 50.0, 50.0, 50.0),
+                        r(90.0, 90.0, 90.0, 90.0, 90.0, 90.0, 90.0, 90.0, 90.0, 90.0),
+                        false, false, Formatting.WHITE, CustomStat.AffixType.PREFIX,
+                        1, 0));
+
+                register(new CustomStat("turtle_helmet_local_armor_percent", "Increased Armor",
+                        EquipmentType.HELMET, ModAttributes.ARMOR_PERCENT,
+                        r(0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15),
+                        r(0.30, 0.30, 0.30, 0.30, 0.30, 0.30, 0.30, 0.30, 0.30, 0.30),
+                        true, true, Formatting.GRAY, CustomStat.AffixType.PREFIX,
+                        1, 0));
+
                 LOGGER.info("Registered {} custom stats", STATS.size());
         }
 

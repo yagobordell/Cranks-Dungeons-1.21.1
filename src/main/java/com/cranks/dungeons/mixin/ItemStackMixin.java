@@ -59,7 +59,7 @@ public class ItemStackMixin {
         if (stack.isEmpty()) return;
 
         net.minecraft.item.Item item = stack.getItem();
-        boolean isUnique = item == net.minecraft.item.Items.ELYTRA || item == net.minecraft.item.Items.TRIDENT || item == net.minecraft.item.Items.MACE;
+        boolean isUnique = item == net.minecraft.item.Items.ELYTRA || item == net.minecraft.item.Items.TRIDENT || item == net.minecraft.item.Items.MACE || item == net.minecraft.item.Items.TURTLE_HELMET;
 
         if (isUnique) {
             if (com.cranks.dungeons.equipment.ItemStatManager.getStats(stack).isEmpty()) {
@@ -85,6 +85,13 @@ public class ItemStackMixin {
                         com.cranks.dungeons.equipment.ItemStatManager.addSpecificStat(stack, "mace_attack_speed", 5);
                         com.cranks.dungeons.equipment.ItemStatManager.addSpecificStat(stack, "mace_local_attack_damage_percent", 5);
                         com.cranks.dungeons.equipment.ItemStatManager.addSpecificStat(stack, "mace_armor_penetration_percent", 5);
+                    } else if (item == net.minecraft.item.Items.TURTLE_HELMET) {
+                        com.cranks.dungeons.equipment.ItemStatManager.addSpecificStat(stack, "turtle_helmet_respiration", 5);
+                        com.cranks.dungeons.equipment.ItemStatManager.addSpecificStat(stack, "turtle_helmet_aqua_affinity", 5);
+                        com.cranks.dungeons.equipment.ItemStatManager.addSpecificStat(stack, "turtle_helmet_cold_resistance", 5);
+                        com.cranks.dungeons.equipment.ItemStatManager.addSpecificStat(stack, "turtle_helmet_movement_speed", 5);
+                        com.cranks.dungeons.equipment.ItemStatManager.addSpecificStat(stack, "turtle_helmet_armor", 5);
+                        com.cranks.dungeons.equipment.ItemStatManager.addSpecificStat(stack, "turtle_helmet_local_armor_percent", 5);
                     }
                 } finally {
                     IS_INITIALIZING_UNIQUE.set(false);

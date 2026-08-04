@@ -317,6 +317,14 @@ public class ItemComponentModifier {
                             EntityAttributeModifier.Operation.ADD_VALUE),
                     equipmentSlot);
 
+        } else if (itemName.contains("turtle")) {
+            builder.add(
+                    EntityAttributes.GENERIC_ARMOR,
+                    new EntityAttributeModifier(
+                            Identifier.of("minecraft", "armor." + armorSlot),
+                            45.0,
+                            EntityAttributeModifier.Operation.ADD_VALUE),
+                    equipmentSlot);
         }
     }
 
@@ -342,7 +350,7 @@ public class ItemComponentModifier {
                 (itemName.contains("leather") || itemName.contains("chainmail") ||
                         itemName.contains("copper") || itemName.contains("iron") ||
                         itemName.contains("golden") || itemName.contains("diamond") ||
-                        itemName.contains("netherite"));
+                        itemName.contains("netherite") || itemName.contains("turtle"));
     }
 
     private static boolean isWeapon(String itemName) {

@@ -45,7 +45,7 @@ public enum CustomRarity {
         if (stack.isEmpty()) return NORMAL;
 
         // 1. Check for Uniques (Fixed Uniques)
-        if (stack.isOf(Items.ELYTRA) || stack.isOf(Items.TRIDENT) || stack.isOf(Items.MACE)) {
+        if (stack.isOf(Items.ELYTRA) || stack.isOf(Items.TRIDENT) || stack.isOf(Items.MACE) || stack.isOf(Items.TURTLE_HELMET)) {
             return UNIQUE;
         }
 

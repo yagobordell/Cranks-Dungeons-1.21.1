@@ -64,11 +64,23 @@ public class CustomStat {
             if (isPercentage || displayAsPercentage) {
                 String minStr = df.format(min * 100);
                 String maxStr = df.format(max * 100);
-                return minStr.equals(maxStr) ? "[" + minStr + "%]" : "[" + minStr + "-" + maxStr + "%]";
+                if (minStr.equals(maxStr)) {
+                    return "[" + minStr + "%]";
+                } else if (min < 0 || max < 0) {
+                    return "[(" + minStr + "%)-(" + maxStr + "%)]";
+                } else {
+                    return "[" + minStr + "-" + maxStr + "%]";
+                }
             } else {
                 long minRounded = Math.round(min);
                 long maxRounded = Math.round(max);
-                return minRounded == maxRounded ? "[" + minRounded + "]" : "[" + minRounded + "-" + maxRounded + "]";
+                if (minRounded == maxRounded) {
+                    return "[" + minRounded + "]";
+                } else if (minRounded < 0 || maxRounded < 0) {
+                    return "[(" + minRounded + ")-(" + maxRounded + ")]";
+                } else {
+                    return "[" + minRounded + "-" + maxRounded + "]";
+                }
             }
         }
 
@@ -84,7 +96,10 @@ public class CustomStat {
         }
 
         public boolean isBooleanStat() {
-            return displayName.equals("Returns when thrown") || displayName.equals("Bounces on Hit");
+            return displayName.equals("Returns when thrown") || 
+                   displayName.equals("Bounces on Hit") ||
+                   displayName.equals("Extended Breathing Time") ||
+                   displayName.equals("Increases Underwater Mining Speed");
         }
 
         public String getFormattedRange(int minTier, int maxTier, EquipmentType eqType) {
@@ -100,13 +115,27 @@ public class CustomStat {
             if (displayAsPercentage || isPercentage) {
                 String minStr = df.format(minVal * 100);
                 String maxStr = df.format(maxVal * 100);
-                String range = minStr.equals(maxStr) ? "(" + minStr + ")%" : "(" + minStr + " - " + maxStr + ")%";
+                String range;
+                if (minStr.equals(maxStr)) {
+                    range = "(" + minStr + ")%";
+                } else if (minVal < 0 || maxVal < 0) {
+                    range = "((" + minStr + "%) - (" + maxStr + "%))";
+                } else {
+                    range = "(" + minStr + " - " + maxStr + ")%";
+                }
                 if (displayName.contains("Extra")) return "Gain " + range + " of " + displayName;
                 return range + " " + displayName;
             } else {
                 long minRounded = Math.round(minVal);
                 long maxRounded = Math.round(maxVal);
-                String range = minRounded == maxRounded ? "(" + minRounded + ")" : "(" + minRounded + " - " + maxRounded + ")";
+                String range;
+                if (minRounded == maxRounded) {
+                    range = "(" + minRounded + ")";
+                } else if (minRounded < 0 || maxRounded < 0) {
+                    range = "((" + minRounded + ") - (" + maxRounded + "))";
+                } else {
+                    range = "(" + minRounded + " - " + maxRounded + ")";
+                }
                 if (displayName.endsWith("Damage") && !displayName.contains("Thorns")) {
                     if (isWeapon(eqType)) {
                         return "Adds " + range + " to " + displayName;

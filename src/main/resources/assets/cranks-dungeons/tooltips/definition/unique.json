@@ -13,7 +13,8 @@
         "values": [
           "minecraft:elytra",
           "minecraft:trident",
-          "minecraft:mace"
+          "minecraft:mace",
+          "minecraft:turtle_helmet"
         ]
       }
     ]
