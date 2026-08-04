@@ -169,7 +169,14 @@ public class PassiveTreeConfig {
             if (obj.has("baseAttributes")) {
                 JsonObject attrsObj = obj.getAsJsonObject("baseAttributes");
                 for (Map.Entry<String, JsonElement> entry : attrsObj.entrySet()) {
-                    baseAttrs.put(entry.getKey(), entry.getValue().getAsDouble());
+                    String attrId = entry.getKey();
+                    if (attrId.equals("cranks-dungeons:strength") || 
+                        attrId.equals("cranks-dungeons:dexterity") || 
+                        attrId.equals("cranks-dungeons:intelligence")) {
+                        baseAttrs.put(attrId, entry.getValue().getAsDouble());
+                    } else {
+                        CranksDungeons.LOGGER.warn("[PassiveTree] Ignored invalid baseAttribute '{}' for class '{}'. Only strength, dexterity, and intelligence are permitted.", attrId, obj.get("id").getAsString());
+                    }
                 }
             }
             classes.add(new ClassDefinition(
@@ -257,21 +264,21 @@ public class PassiveTreeConfig {
             "Focus on Max Health, Armor, and Physical Damage. Strength and Resilience are your best friends to survive the front lines while crushing foes.",
             "#AA0000",
             "warrior_start",
-            Map.of("minecraft:max_health", 20.0, "minecraft:armor", 5.0, "cranks-dungeons:strength", 10.0)));
+            Map.of("cranks-dungeons:strength", 10.0)));
         classes.add(makeClass("ranger", "Ranger", 
             "Squishy fast, normal damage, ranged.",
             "Quick, lethal, and precise. Rangers dominate from a distance, using their superior movement speed and evasion to stay out of reach while landing deadly critical strikes with bows.", 
             "Prioritize Attack Speed, Crit Chance, and Movement Speed. Stay agile and use Evasion to avoid taking hits, as your health pool is limited.",
             "#00AA00",
             "ranger_start",
-            Map.of("minecraft:movement_speed", 0.05, "cranks-dungeons:evasion_rating", 10.0, "cranks-dungeons:dexterity", 10.0)));
+            Map.of("cranks-dungeons:dexterity", 10.0)));
         classes.add(makeClass("mercenary", "Mercenary", 
             "Jack of all trades, both melee and ranged, decent tankiness and damage.",
             "A ruthless tactician who fights for profit. Mercenaries utilize dirty tactics and utility to gain the upper hand, specializing in bleeds, critical multipliers, and experience gains.", 
             "Balance between Physical Damage and Utility. Crit Multiplier and Bleed Chance are great for damage, while Experience Bonus helps you outscale your enemies.",
             "#00AAAA",
             "mercenary_start",
-            Map.of("minecraft:max_health", 10.0, "cranks-dungeons:intelligence", 5.0, "cranks-dungeons:dexterity", 5.0)));
+            Map.of("cranks-dungeons:intelligence", 5.0, "cranks-dungeons:dexterity", 5.0)));
 
         root.add("classes", classes);
         Files.writeString(CLASSES_FILE, GSON.toJson(root));
