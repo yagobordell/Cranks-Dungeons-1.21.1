@@ -55,12 +55,16 @@ public abstract class ElementalDamageMixin {
     @Unique
     private static final ThreadLocal<Float> cranks$originalDamageAmount = ThreadLocal.withInitial(() -> 0f);
 
+    @Unique
+    private static final ThreadLocal<Boolean> cranks$hadShock = ThreadLocal.withInitial(() -> false);
+
     // Static flag to prevent shock chain damage from triggering elemental
     // processing
 
     @ModifyVariable(method = "damage", at = @At("HEAD"), argsOnly = true)
     private float cranks$overrideDamage(float amount, DamageSource source) {
         LivingEntity target = (LivingEntity) (Object) this;
+        cranks$hadShock.set(AilmentManager.hasAilment(target, AilmentType.SHOCK));
         Entity attackerEntity = source.getAttacker();
 
         if (attackerEntity instanceof LivingEntity attacker) {
@@ -176,7 +180,7 @@ public abstract class ElementalDamageMixin {
             // Check for shock IMMEDIATELY at start - BEFORE any damage calculations or
             // applications
             // This ensures we capture the shock state before any damage kills the entity
-            final boolean[] hasShockBeforeDamage = { AilmentManager.hasAilment(target, AilmentType.SHOCK) };
+            final boolean[] hasShockBeforeDamage = { cranks$hadShock.get() };
 
             // Get weapon-specific bonus once
             double weaponSpecificPercent = CombatUtility.getWeaponSpecificDamageBonus(attacker, weapon);
@@ -398,7 +402,7 @@ public abstract class ElementalDamageMixin {
                 }
             }
 
-            if (!targetDiedFromElemental && lightningDamage > 0) {
+            if (lightningDamage > 0) {
                 if (armorAppliesPercent > 0) {
                     lightningDamage = DamageConversionHelper.calculateArmorReduction(target, (float)lightningDamage, 0.0, armorAppliesPercent);
                 }
@@ -430,7 +434,7 @@ public abstract class ElementalDamageMixin {
                     }
                 }
 
-                if (finalDamage > 0) {
+                if (!targetDiedFromElemental && finalDamage > 0) {
                     applyElementalDamage(target, world, finalDamage, DamageElement.LIGHTNING);
                     totalElementalDamage += finalDamage;
                     finalLightningDamage = finalDamage;
@@ -546,26 +550,23 @@ public abstract class ElementalDamageMixin {
                 }
             }
 
-            // Freeze Buildup (Scales from Cold Damage vs Max Health, slower than electrocute)
+            // Freeze Buildup (Scales from Cold Damage vs Max Health, always triggers on cold damage)
             if (finalColdDamage > 0) {
-                float chanceToFreeze = (float) CombatUtility.getAttributeValue(attacker, ModAttributes.CHANCE_TO_FREEZE, weapon, "chance_to_freeze", source);
-                if (chanceToFreeze >= 1.0f || (chanceToFreeze > 0.0f && attacker.getRandom().nextFloat() < chanceToFreeze)) {
-                    float freezeMagnitudePercent = 1.0f + (float) CombatUtility.getAttributeValue(attacker, ModAttributes.FREEZE_MAGNITUDE_PERCENT, weapon,
-                            "freeze_magnitude_percent", source);
-                    
-                    float thresholdReduction = (float) CombatUtility.getAttributeValue(attacker, ModAttributes.FREEZE_THRESHOLD_REDUCTION, weapon, "freeze_threshold_reduction", source);
-                    float ailmentThreshold = target.getMaxHealth() * (1.0f - thresholdReduction);
-                    ailmentThreshold = Math.max(1.0f, ailmentThreshold);
-                    
-                    // Freeze is harder to charge (x2 multiplier) because it lasts longer. Ignores crit multiplier for buildup.
-                    float buildupAmount = ((float) (finalColdDamage / critMultiplier) * 2.0f / ailmentThreshold) * freezeMagnitudePercent;
-                    if (isCrit) buildupAmount *= 1.5f;
-                    
-                    if (buildupAmount > 0.05f) {
-                        double freezeDuration = AilmentType.FREEZE.getBaseDuration()
-                                * (1.0 + attacker.getAttributeValue(ModAttributes.FREEZE_DURATION));
-                        AilmentManager.addFreezeBuildup(target, buildupAmount, freezeDuration, attacker);
-                    }
+                float freezeMagnitudePercent = 1.0f + (float) CombatUtility.getAttributeValue(attacker, ModAttributes.FREEZE_MAGNITUDE_PERCENT, weapon,
+                        "freeze_magnitude_percent", source);
+                
+                float thresholdReduction = (float) CombatUtility.getAttributeValue(attacker, ModAttributes.FREEZE_THRESHOLD_REDUCTION, weapon, "freeze_threshold_reduction", source);
+                float freezeAilmentThreshold = target.getMaxHealth() * (1.0f - thresholdReduction);
+                freezeAilmentThreshold = Math.max(1.0f, freezeAilmentThreshold);
+                
+                // Freeze is harder to charge (x2 multiplier) because it lasts longer. Ignores crit multiplier for buildup.
+                float freezeBuildupAmount = ((float) (finalColdDamage / critMultiplier) * 2.0f / freezeAilmentThreshold) * freezeMagnitudePercent;
+                if (isCrit) freezeBuildupAmount *= 1.5f;
+                
+                if (freezeBuildupAmount > 0.01f) {
+                    double freezeDuration = AilmentType.FREEZE.getBaseDuration()
+                            * (1.0 + attacker.getAttributeValue(ModAttributes.FREEZE_DURATION));
+                    AilmentManager.addFreezeBuildup(target, freezeBuildupAmount, freezeDuration, attacker);
                 }
             }
 
@@ -613,23 +614,20 @@ public abstract class ElementalDamageMixin {
                     }
                 }
                 
-                // Electrocute Buildup (Scales from Lightning Damage vs Max Health, faster than freeze)
-                float chanceToShock2 = (float) CombatUtility.getAttributeValue(attacker, ModAttributes.CHANCE_TO_SHOCK, weapon, "chance_to_shock", source);
-                if (chanceToShock2 >= 1.0f || (chanceToShock2 > 0.0f && attacker.getRandom().nextFloat() < chanceToShock2)) {
-                    float thresholdReduction2 = (float) CombatUtility.getAttributeValue(attacker, ModAttributes.SHOCK_THRESHOLD_REDUCTION, weapon, "shock_threshold_reduction", source);
-                    float ailmentThreshold2 = target.getMaxHealth() * (1.0f - thresholdReduction2);
-                    ailmentThreshold2 = Math.max(1.0f, ailmentThreshold2);
-                    float electrocuteBuildupMultiplier = 1.0f + (float) CombatUtility.getAttributeValue(attacker, ModAttributes.ELECTROCUTE_MAGNITUDE_PERCENT, weapon, "electrocute_magnitude_percent", source);
-                    
-                    // Electrocute is easier to charge (x8 multiplier to buildup) because it is a shorter stun
-                    float buildupAmount = ((float) (finalLightningDamage / critMultiplier) * 8.0f / ailmentThreshold2) * electrocuteBuildupMultiplier;
-                    if (isCrit) buildupAmount *= 1.5f;
-                    
-                    if (buildupAmount > 0) {
-                        double electrocuteDuration = AilmentType.ELECTROCUTE.getBaseDuration()
-                                * (1.0 + attacker.getAttributeValue(ModAttributes.ELECTROCUTE_DURATION));
-                        AilmentManager.addElectrocuteBuildup(target, buildupAmount, electrocuteDuration, attacker);
-                    }
+                // Electrocute Buildup (always triggers on lightning damage, independent of shock chance)
+                float electrocuteThresholdReduction = (float) CombatUtility.getAttributeValue(attacker, ModAttributes.SHOCK_THRESHOLD_REDUCTION, weapon, "shock_threshold_reduction", source);
+                float electrocuteAilmentThreshold = target.getMaxHealth() * (1.0f - electrocuteThresholdReduction);
+                electrocuteAilmentThreshold = Math.max(1.0f, electrocuteAilmentThreshold);
+                float electrocuteBuildupMultiplier = 1.0f + (float) CombatUtility.getAttributeValue(attacker, ModAttributes.ELECTROCUTE_MAGNITUDE_PERCENT, weapon, "electrocute_magnitude_percent", source);
+                
+                // Electrocute is easier to charge (x4 multiplier to buildup) because it is a shorter stun
+                float electrocuteBuildupAmount = ((float) (finalLightningDamage / critMultiplier) * 4.0f / electrocuteAilmentThreshold) * electrocuteBuildupMultiplier;
+                if (isCrit) electrocuteBuildupAmount *= 1.5f;
+                
+                if (electrocuteBuildupAmount > 0) {
+                    double electrocuteDuration = AilmentType.ELECTROCUTE.getBaseDuration()
+                            * (1.0 + attacker.getAttributeValue(ModAttributes.ELECTROCUTE_DURATION));
+                    AilmentManager.addElectrocuteBuildup(target, electrocuteBuildupAmount, electrocuteDuration, attacker);
                 }
             }
 
@@ -656,7 +654,7 @@ public abstract class ElementalDamageMixin {
             }
 
             // Check for shock BEFORE calculating damage
-            boolean hasShockBeforeDamage = AilmentManager.hasAilment(target, AilmentType.SHOCK);
+            boolean hasShockBeforeDamage = cranks$hadShock.get();
 
             // The breakdown was already reduced by resistances and armor in DamageReductionMixin
             float physical = breakdown.get(DamageElement.PHYSICAL);

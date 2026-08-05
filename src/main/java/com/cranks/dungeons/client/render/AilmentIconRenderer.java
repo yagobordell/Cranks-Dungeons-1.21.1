@@ -66,9 +66,9 @@ public class AilmentIconRenderer {
 
                 matrices.push();
                 
-                // Position above head, high enough to clear the stat bar
+                // Position above head, exactly matching the stat bar base position
                 double wx = MathHelper.lerp(tickDelta, living.lastRenderX, living.getX()) - cameraX;
-                double wy = MathHelper.lerp(tickDelta, living.lastRenderY, living.getY()) - cameraY + living.getHeight() + 1.1;
+                double wy = MathHelper.lerp(tickDelta, living.lastRenderY, living.getY()) - cameraY + living.getHeight() + 0.1;
                 double wz = MathHelper.lerp(tickDelta, living.lastRenderZ, living.getZ()) - cameraZ;
 
                 matrices.translate(wx, wy, wz);
@@ -77,10 +77,11 @@ public class AilmentIconRenderer {
                 matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(-camera.getYaw()));
                 matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(camera.getPitch()));
 
-                // Bobbing animation
+                // Bobbing animation and local Y offset (so it stays relative to the health bar)
+                // We also pull it slightly forward in Z (-0.05f) so it doesn't z-fight with the stat bar
                 float time = (client.world.getTime() + tickDelta) * 0.1f;
                 float bob = MathHelper.sin(time) * 0.05f;
-                matrices.translate(0, bob, 0);
+                matrices.translate(0, bob + 1.2f, -0.05f);
 
                 float size = 0.4f;
                 float spacing = size * 1.1f;

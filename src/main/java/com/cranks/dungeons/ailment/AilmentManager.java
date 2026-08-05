@@ -504,9 +504,9 @@ public class AilmentManager {
         float damageToApply = damage;
 
         // Energy Shield Mitigation for players (Burn/Shock/Cold/Lightning/Void etc. ailments)
-        // Poison and Bleed bypass Energy Shield based on PoE 2 rules
+        // Poison bypasses Energy Shield based on PoE 2 rules
         if (entity instanceof PlayerEntity player && entity instanceof com.cranks.dungeons.EnergyShieldProvider esProvider) {
-            if (ailment.getType() != AilmentType.POISON && ailment.getType() != AilmentType.BLEED) {
+            if (ailment.getType() != AilmentType.POISON) {
                 float currentShield = esProvider.cranksdungeons$getCurrentEnergyShield();
                 if (currentShield > 0) {
                     float weightedDamage = (ailment.getType() == AilmentType.BURN || ailment.getType() == AilmentType.SHOCK || ailment.getType() == AilmentType.FREEZE) ? damageToApply : damageToApply;
@@ -593,21 +593,63 @@ public class AilmentManager {
         if (entity.getEntityWorld().isClient()) return;
         
         ServerWorld world = (ServerWorld) entity.getEntityWorld();
-        float currentHealth = entity.getHealth();
         
-        // Broadcast damage numbers as physical (dark red)
+        float damageToApply = storedDamage;
+
+        // Energy Shield Mitigation for players
+        if (entity instanceof PlayerEntity player && entity instanceof com.cranks.dungeons.EnergyShieldProvider esProvider) {
+            float currentShield = esProvider.cranksdungeons$getCurrentEnergyShield();
+            if (currentShield > 0) {
+                if (currentShield >= damageToApply) {
+                    float newShield = currentShield - damageToApply;
+                    esProvider.cranksdungeons$setCurrentEnergyShield(newShield);
+                    if (entity instanceof net.minecraft.server.network.ServerPlayerEntity serverPlayer) {
+                        float maxShield = (float) entity.getAttributeValue(com.cranks.dungeons.registry.ModAttributes.ENERGY_SHIELD);
+                        net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(
+                            serverPlayer,
+                            new com.cranks.dungeons.network.EnergyShieldSyncPacket(newShield, maxShield)
+                        );
+                    }
+                    damageToApply = 0; // Fully absorbed
+                } else {
+                    float absorptionRatio = currentShield / damageToApply;
+                    damageToApply -= damageToApply * absorptionRatio;
+                    esProvider.cranksdungeons$setCurrentEnergyShield(0.0f);
+                    if (entity instanceof net.minecraft.server.network.ServerPlayerEntity serverPlayer) {
+                        float maxShield = (float) entity.getAttributeValue(com.cranks.dungeons.registry.ModAttributes.ENERGY_SHIELD);
+                        net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(
+                            serverPlayer,
+                            new com.cranks.dungeons.network.EnergyShieldSyncPacket(0.0f, maxShield)
+                        );
+                    }
+                }
+            }
+        }
+
+        // Broadcast damage numbers as physical (dark red), using the original storedDamage amount
+        // even if it was absorbed, so players see how much the burst did.
         DamageNumberSender.broadcastBleed(world, entity, storedDamage, ailment.getSourceUuid());
+        
+        if (damageToApply <= 0 && storedDamage > 0) {
+            // Damage was fully absorbed by ES. Sound still plays.
+            world.playSound(null, entity.getX(), entity.getY(), entity.getZ(),
+                    ModSounds.BLEED_BURST, SoundCategory.HOSTILE,
+                    0.8f, 0.8f + world.getRandom().nextFloat() * 0.3f);
+            return;
+        }
+
+        float currentHealth = entity.getHealth();
         
         // Mark bleed damage as in progress to prevent void numbers from showing on kill
         setBleedDamageInProgress(entity.getUuid(), true);
         try {
-            if (currentHealth - storedDamage <= 0) {
+            if (currentHealth - damageToApply <= 0) {
                 // Entity will die - use proper damage source to ensure loot drops
                 net.minecraft.entity.damage.DamageSource damageSource = world.getDamageSources().magic();
-                entity.damage(damageSource, storedDamage);
+                entity.damage(damageSource, damageToApply);
             } else {
                 // Entity won't die - apply damage directly
-                entity.setHealth(currentHealth - storedDamage);
+                entity.setHealth(currentHealth - damageToApply);
             }
         } finally {
             setBleedDamageInProgress(entity.getUuid(), false);
@@ -803,15 +845,21 @@ public class AilmentManager {
         ServerWorld world = (ServerWorld) entity.getEntityWorld();
         double radius = 10.0;
         Box box = entity.getBoundingBox().expand(radius);
-        List<LivingEntity> nearby = world.getEntitiesByClass(LivingEntity.class, box, e -> 
-            e.isAlive() && hasAilment(e, AilmentType.SHOCK)
-        );
+        List<LivingEntity> nearby = world.getEntitiesByClass(LivingEntity.class, box, e -> {
+            if (!e.isAlive() || e == entity || e == source || (e instanceof net.minecraft.entity.decoration.ArmorStandEntity)) return false;
+            if (!hasAilment(e, AilmentType.SHOCK)) return false;
+            
+            // Check party
+            if (source instanceof net.minecraft.server.network.ServerPlayerEntity sp && e instanceof net.minecraft.server.network.ServerPlayerEntity ep) {
+                var party = com.cranks.dungeons.party.PartyManager.getParty(sp.getUuid()).orElse(null);
+                if (party != null && party.isMember(ep.getUuid())) {
+                    return false;
+                }
+            }
+            return true;
+        });
         
         for (LivingEntity target : nearby) {
-            // Skip the entity that triggered this chain to prevent self-damage and duplicate numbers
-            if (target == entity) {
-                continue;
-            }
             
             // Apply lightning damage using the elemental damage system
             // Apply resistance reduction
@@ -837,8 +885,8 @@ public class AilmentManager {
                 spawnShockChainParticles(world, target);
 
                 // Send ShockArc visual to all nearby players
-                Vec3d startPos = new Vec3d(entity.getX(), entity.getY() + entity.getStandingEyeHeight() * 0.8, entity.getZ());
-                Vec3d endPos = new Vec3d(target.getX(), target.getY() + target.getStandingEyeHeight() * 0.8, target.getZ());
+                Vec3d startPos = entity.getBoundingBox().getCenter();
+                Vec3d endPos = target.getBoundingBox().getCenter();
                 ShockArcPayload payload = new ShockArcPayload(startPos, endPos, 0xFFFFFF); // White lightning
 
                 for (net.minecraft.server.network.ServerPlayerEntity player : world.getPlayers()) {

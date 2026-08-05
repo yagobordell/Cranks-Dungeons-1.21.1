@@ -101,7 +101,7 @@ public class EntityStatBarRenderer {
                 
                 // Position above head
                 double wx = MathHelper.lerp(tickDelta, living.lastRenderX, living.getX()) - cameraX;
-                double wy = MathHelper.lerp(tickDelta, living.lastRenderY, living.getY()) - cameraY + living.getHeight() + 0.3;
+                double wy = MathHelper.lerp(tickDelta, living.lastRenderY, living.getY()) - cameraY + living.getHeight() + 0.1;
                 double wz = MathHelper.lerp(tickDelta, living.lastRenderZ, living.getZ()) - cameraZ;
 
                 matrices.translate(wx, wy, wz);

@@ -51,9 +51,36 @@ public class AilmentCommand {
         Collection<? extends Entity> targets = EntityArgumentType.getEntities(context, "targets");
         float duration = FloatArgumentType.getFloat(context, "duration");
 
+        // Handle buildup types separately
+        if (typeStr.equalsIgnoreCase("freeze_buildup")) {
+            int[] affected = {0};
+            targets.forEach(entity -> {
+                if (entity instanceof LivingEntity living) {
+                    AilmentManager.addFreezeBuildup(living, duration, AilmentType.FREEZE.getBaseDuration(), context.getSource().getEntity());
+                    affected[0]++;
+                }
+            });
+            final int finalAffected = affected[0];
+            context.getSource().sendFeedback(() -> Text.literal("Added " + (int)(duration * 100) + "% freeze buildup to " + finalAffected + " entities"), true);
+            return finalAffected;
+        }
+
+        if (typeStr.equalsIgnoreCase("electrocute_buildup")) {
+            int[] affected = {0};
+            targets.forEach(entity -> {
+                if (entity instanceof LivingEntity living) {
+                    AilmentManager.addElectrocuteBuildup(living, duration, AilmentType.ELECTROCUTE.getBaseDuration(), context.getSource().getEntity());
+                    affected[0]++;
+                }
+            });
+            final int finalAffected = affected[0];
+            context.getSource().sendFeedback(() -> Text.literal("Added " + (int)(duration * 100) + "% electrocute buildup to " + finalAffected + " entities"), true);
+            return finalAffected;
+        }
+
         AilmentType type = AilmentType.fromId(typeStr.toLowerCase());
         if (type == null) {
-            context.getSource().sendError(Text.literal("Invalid ailment type: " + typeStr + ". Valid types: burn, bleed, poison, shock, freeze"));
+            context.getSource().sendError(Text.literal("Invalid ailment type: " + typeStr + ". Valid types: burn, bleed, poison, shock, freeze, electrocute, freeze_buildup, electrocute_buildup"));
             return 0;
         }
 

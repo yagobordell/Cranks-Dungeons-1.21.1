@@ -92,7 +92,7 @@ public abstract class InventoryScreenStatsMixin {
 
                 int panelX = x + backgroundWidth + 2;
                 int panelY = y;
-                int panelWidth = 147;
+                int panelWidth = 150;
                 int panelHeight = 166;
 
                 return mouseX >= panelX && mouseX <= panelX + panelWidth &&
@@ -197,7 +197,7 @@ public abstract class InventoryScreenStatsMixin {
 
                         int panelX = x + backgroundWidth + 2;
                         int panelY = y;
-                        int panelWidth = 147;
+                        int panelWidth = 150;
                         int panelHeight = 166;
 
                         context.drawGuiTexture(STATS_PANEL_BACKGROUND, panelX, panelY, panelWidth, panelHeight);
@@ -216,9 +216,19 @@ public abstract class InventoryScreenStatsMixin {
 
                         int curY = panelY + 12 - scrollOffset;
 
-                        // --- ATTRIBUTES ---
-                        context.drawText(tr, Text.literal("Attributes"), panelX + 12, curY, 0xFFE0E0E0, false);
+                        // --- HEADER ---
+                        context.drawText(tr, Text.literal(player.getName().getString()), panelX + 16, curY, 0xFFFFFFFF, false);
                         curY += 11;
+                        String playerClass = com.cranks.dungeons.component.ModComponents.PASSIVE_DATA.get(player).getPlayerClass();
+                        if (playerClass == null || playerClass.isEmpty()) {
+                                playerClass = "Class";
+                        } else {
+                                playerClass = playerClass.substring(0, 1).toUpperCase() + playerClass.substring(1);
+                        }
+                        context.drawText(tr, Text.literal("Level " + player.experienceLevel + " " + playerClass), panelX + 16, curY, 0xFFA0A0A0, false);
+                        curY += 16;
+
+                        // --- ATTRIBUTES ---
                         curY = drawStatWithTooltip(context, tr, panelX, curY, "Strength",
                                         player.getAttributeValue(ModAttributes.STRENGTH),
                                         cranks$getPassiveBase(player, ModAttributes.STRENGTH), "", mouseX, mouseY, panelX, panelWidth);
@@ -228,79 +238,94 @@ public abstract class InventoryScreenStatsMixin {
                         curY = drawStatWithTooltip(context, tr, panelX, curY, "Intelligence",
                                         player.getAttributeValue(ModAttributes.INTELLIGENCE),
                                         cranks$getPassiveBase(player, ModAttributes.INTELLIGENCE), "", mouseX, mouseY, panelX, panelWidth);
-                        curY += 6;
+                        curY += 16;
 
-                        // --- LIFE & SHIELD ---
-                        context.drawText(tr, Text.literal("Life & Shield"), panelX + 12, curY, 0xFFE0E0E0, false);
-                        curY += 11;
+                        // --- LIFE ---
+                        curY = drawCategoryTitle(context, tr, panelX, curY, "Life");
                         curY = drawStatWithTooltip(context, tr, panelX, curY, "Max Health",
                                         player.getAttributeValue(EntityAttributes.GENERIC_MAX_HEALTH),
-                                        cranks$getPassiveBase(player, EntityAttributes.GENERIC_MAX_HEALTH), " HP", mouseX,
+                                        cranks$getPassiveBase(player, EntityAttributes.GENERIC_MAX_HEALTH), "", mouseX,
                                         mouseY, panelX, panelWidth);
-                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Energy Shield",
+                        curY += 16;
+
+                        // --- ENERGY SHIELD ---
+                        curY = drawCategoryTitle(context, tr, panelX, curY, "Energy Shield");
+                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Max Energy Shield",
                                         player.getAttributeValue(ModAttributes.KEYSTONE_CRIMSON_PACT) > 0 ? 0 : player.getAttributeValue(ModAttributes.ENERGY_SHIELD),
                                         player.getAttributeValue(ModAttributes.KEYSTONE_CRIMSON_PACT) > 0 ? 0 : cranks$getPassiveBase(player, ModAttributes.ENERGY_SHIELD), "", mouseX, mouseY,
                                         panelX, panelWidth);
-                        curY += 6;
+                        
+                        double rechargeRate = player.getAttributeValue(ModAttributes.ENERGY_SHIELD_RECHARGE_RATE_PERCENT) * 100;
+                        curY = drawStatWithTooltip(context, tr, panelX, curY, "ES Recharge / Sec",
+                                        rechargeRate,
+                                        cranks$getPassiveBase(player, ModAttributes.ENERGY_SHIELD_RECHARGE_RATE_PERCENT) * 100, "%", mouseX, mouseY,
+                                        panelX, panelWidth);
 
-                        // --- DEFENSES ---
-                        context.drawText(tr, Text.literal("Defenses"), panelX + 12, curY, 0xFFE0E0E0, false);
-                        curY += 11;
+                        curY = drawStatWithTooltip(context, tr, panelX, curY, "ES Recharge Delay",
+                                        2.0, Double.NaN, "s", mouseX, mouseY, panelX, panelWidth);
+                        curY += 16;
+
+                        // --- MANA ---
+                        curY = drawCategoryTitle(context, tr, panelX, curY, "Mana");
+                        curY += 16;
+
+                        // --- ARMOUR ---
+                        curY = drawCategoryTitle(context, tr, panelX, curY, "Armour");
                         double displayArmor = player.getAttributeValue(EntityAttributes.GENERIC_ARMOR);
                         double displayEvasion = player.getAttributeValue(ModAttributes.EVASION_RATING);
                         if (player.getAttributeValue(ModAttributes.KEYSTONE_IRON_REFLEXES) > 0) {
                                 displayArmor += displayEvasion;
                                 displayEvasion = 0;
                         }
-
-                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Armor",
+                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Armour",
                                         displayArmor,
                                         cranks$getPassiveBase(player, EntityAttributes.GENERIC_ARMOR), "", mouseX, mouseY,
                                         panelX, panelWidth);
+                        
+                        double physRed = calculateArmorReduction(displayArmor);
+                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Physical Reduction",
+                                        physRed * 100, Double.NaN, "%", mouseX, mouseY, panelX, panelWidth);
+                        curY += 16;
+
+                        // --- EVASION ---
+                        curY = drawCategoryTitle(context, tr, panelX, curY, "Evasion");
                         curY = drawStatWithTooltip(context, tr, panelX, curY, "Evasion Rating",
                                         displayEvasion,
                                         cranks$getPassiveBase(player, ModAttributes.EVASION_RATING), "", mouseX, mouseY,
                                         panelX, panelWidth);
-                        curY += 6;
+                        double evadeChance = calculateEvasionChance(displayEvasion, displayArmor);
+                        if (player.getAttributeValue(ModAttributes.KEYSTONE_IRON_REFLEXES) > 0) evadeChance = 0;
+                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Evade Chance",
+                                        evadeChance * 100, Double.NaN, "%", mouseX, mouseY, panelX, panelWidth);
+                        curY += 16;
 
                         // --- RESISTANCES ---
-                        context.drawText(tr, Text.literal("Resistances"), panelX + 12, curY, 0xFFE0E0E0, false);
-                        curY += 11;
-                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Fire Res",
-                                        player.getAttributeValue(ModAttributes.FIRE_RESISTANCE) * 100,
-                                        cranks$getPassiveBase(player, ModAttributes.FIRE_RESISTANCE) * 100, "%", mouseX,
+                        curY = drawCategoryTitle(context, tr, panelX, curY, "Resistances");
+                        curY = drawResistanceLine(context, tr, panelX, curY, "Fire Res", player.getAttributeValue(ModAttributes.FIRE_RESISTANCE), getUncappedAttributeValue(player, ModAttributes.FIRE_RESISTANCE), mouseX, mouseY);
+                        curY = drawResistanceLine(context, tr, panelX, curY, "Cold Res", player.getAttributeValue(ModAttributes.COLD_RESISTANCE), getUncappedAttributeValue(player, ModAttributes.COLD_RESISTANCE), mouseX, mouseY);
+                        curY = drawResistanceLine(context, tr, panelX, curY, "Lightning Res", player.getAttributeValue(ModAttributes.LIGHTNING_RESISTANCE), getUncappedAttributeValue(player, ModAttributes.LIGHTNING_RESISTANCE), mouseX, mouseY);
+                        curY = drawResistanceLine(context, tr, panelX, curY, "Void Res", player.getAttributeValue(ModAttributes.VOID_RESISTANCE), getUncappedAttributeValue(player, ModAttributes.VOID_RESISTANCE), mouseX, mouseY);
+                        curY += 16;
+
+                        // --- KNOCKBACK ---
+                        curY = drawCategoryTitle(context, tr, panelX, curY, "Knockback");
+                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Knockback",
+                                        player.getAttributeValue(ModAttributes.KNOCKBACK) * 100,
+                                        cranks$getPassiveBase(player, ModAttributes.KNOCKBACK) * 100, "%", mouseX,
                                         mouseY, panelX, panelWidth);
-                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Cold Res",
-                                        player.getAttributeValue(ModAttributes.COLD_RESISTANCE) * 100,
-                                        cranks$getPassiveBase(player, ModAttributes.COLD_RESISTANCE) * 100, "%", mouseX,
-                                        mouseY, panelX, panelWidth);
-                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Lightning Res",
-                                        player.getAttributeValue(ModAttributes.LIGHTNING_RESISTANCE) * 100,
-                                        cranks$getPassiveBase(player, ModAttributes.LIGHTNING_RESISTANCE) * 100, "%",
+                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Knockback Res",
+                                        player.getAttributeValue(ModAttributes.KNOCKBACK_RESISTANCE) * 100,
+                                        cranks$getPassiveBase(player, ModAttributes.KNOCKBACK_RESISTANCE) * 100, "%",
                                         mouseX, mouseY, panelX, panelWidth);
-                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Void Res",
-                                        player.getAttributeValue(ModAttributes.VOID_RESISTANCE) * 100,
-                                        cranks$getPassiveBase(player, ModAttributes.VOID_RESISTANCE) * 100, "%", mouseX,
-                                        mouseY, panelX, panelWidth);
-                        curY += 6;
+                        curY += 16;
 
-                        // --- MISC ---
-                        context.drawText(tr, Text.literal("Misc"), panelX + 12, curY, 0xFFE0E0E0, false);
-                        curY += 11;
-
+                        // --- MISCELLANEOUS ---
+                        curY = drawCategoryTitle(context, tr, panelX, curY, "Miscellaneous");
                         double passiveMovePercent = cranks$getPassivePercentBonus(player, ModAttributes.MOVEMENT_SPEED);
-                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Move Speed",
-                                        player.getAttributeValue(EntityAttributes.GENERIC_MOVEMENT_SPEED) / 0.1 * 100,
-                                        100.0 * (1.0 + passiveMovePercent),
+                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Move Speed Mod",
+                                        (player.getAttributeValue(EntityAttributes.GENERIC_MOVEMENT_SPEED) / 0.1 - 1.0) * 100,
+                                        passiveMovePercent * 100,
                                         "%", mouseX, mouseY, panelX, panelWidth);
-
-                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Item Rarity",
-                                        player.getAttributeValue(ModAttributes.ITEM_RARITY_PERCENT) * 100,
-                                        cranks$getPassiveBase(player, ModAttributes.ITEM_RARITY_PERCENT) * 100, "%", mouseX, mouseY,
-                                        panelX,
-                                        panelWidth);
-
-                        curY += 6;
 
 
                         // Update total content height for the next frame
@@ -350,16 +375,18 @@ public abstract class InventoryScreenStatsMixin {
                         lines.addAll(tr.wrapLines(Text.literal(part).formatted(Formatting.GRAY), maxWrapWidth));
                 }
 
-                // Use standard formatting for values
-                String baseStr = formatStatValue(statName, hoveredBaseVal);
-                String equipVal = formatStatValue(statName, hoveredEquipVal);
-                String sign = (hoveredEquipVal >= 0) ? "+" : "";
+                if (!Double.isNaN(hoveredBaseVal)) {
+                        // Use standard formatting for values
+                        String baseStr = formatStatValue(statName, hoveredBaseVal);
+                        String equipVal = formatStatValue(statName, hoveredEquipVal);
+                        String sign = (hoveredEquipVal >= 0) ? "+" : "";
 
-                lines.add(Text.empty().asOrderedText()); // Spacer
-                lines.add(Text.literal("Base: ").formatted(Formatting.WHITE)
-                                .append(Text.literal(baseStr + hoveredSuffix).formatted(Formatting.GOLD)).asOrderedText());
-                lines.add(Text.literal("Equipment: ").formatted(Formatting.WHITE)
-                                .append(Text.literal(sign + equipVal + hoveredSuffix).formatted(Formatting.AQUA)).asOrderedText());
+                        lines.add(Text.empty().asOrderedText()); // Spacer
+                        lines.add(Text.literal("Base: ").formatted(Formatting.WHITE)
+                                        .append(Text.literal(baseStr + hoveredSuffix).formatted(Formatting.GOLD)).asOrderedText());
+                        lines.add(Text.literal("Equipment: ").formatted(Formatting.WHITE)
+                                        .append(Text.literal(sign + equipVal + hoveredSuffix).formatted(Formatting.AQUA)).asOrderedText());
+                }
 
                 int maxWidth = 0;
                 for (OrderedText line : lines) {
@@ -397,14 +424,20 @@ public abstract class InventoryScreenStatsMixin {
                         case "Dexterity" -> "Every 10 Dexterity grants +20 Evasion Rating";
                         case "Intelligence" -> "Every 10 Intelligence grants +5 Maximum Mana";
                         case "Max Health" -> "Maximum health points";
-                        case "Energy Shield" -> "Absorbs damage before health";
-                        case "Armor" -> calculateArmorDescription();
-                        case "Evasion Rating" -> calculateEvasionDescription();
+                        case "Max Energy Shield" -> "Absorbs damage before health";
+                        case "ES Recharge / Sec" -> "Amount of Energy Shield recovered per second";
+                        case "ES Recharge Delay" -> "Time before Energy Shield begins to recharge";
+                        case "Armour" -> "Reduces incoming physical damage";
+                        case "Physical Reduction" -> "Estimated physical damage reduction against average hits";
+                        case "Evasion Rating" -> "Increases chance to dodge attacks";
+                        case "Evade Chance" -> "Estimated chance to evade attacks from enemies";
                         case "Fire Res" -> "Reduces fire damage taken";
                         case "Cold Res" -> "Reduces cold damage taken";
                         case "Lightning Res" -> "Reduces lightning damage taken";
                         case "Void Res" -> "Reduces void damage taken";
-                        case "Move Speed" -> "Movement speed modifier";
+                        case "Knockback" -> "Chance to knock back enemies on hit";
+                        case "Knockback Res" -> "Reduces distance knocked back by attacks";
+                        case "Move Speed Mod" -> "Movement speed modifier";
                         case "Item Rarity" -> "Increases rarity of items found";
                         default -> null;
                 };
@@ -419,8 +452,12 @@ public abstract class InventoryScreenStatsMixin {
                         return "Evasion converted to Armor by Iron Reflexes";
                 double rating = player.getAttributeValue(ModAttributes.EVASION_RATING);
                 double armor = player.getAttributeValue(EntityAttributes.GENERIC_ARMOR);
-                // Adjusted armor penalty (4.0x) to match new balancing
-                return (int) (rating / (rating + 400.0 + armor * 4.0) * 100) + "% chance to dodge";
+                return (int) (calculateEvasionChance(rating, armor) * 100) + "% chance to dodge";
+        }
+
+        @Unique
+        private double calculateEvasionChance(double evasion, double armor) {
+                return Math.min(0.95, evasion / (evasion + 400.0 + armor * 4.0));
         }
 
         @Unique
@@ -429,19 +466,70 @@ public abstract class InventoryScreenStatsMixin {
                 if (player == null)
                         return "Reduces incoming physical damage";
                 double armor = player.getAttributeValue(EntityAttributes.GENERIC_ARMOR);
-                if (player.getAttributeValue(ModAttributes.KEYSTONE_IRON_REFLEXES) > 0) {
-                        armor += player.getAttributeValue(ModAttributes.EVASION_RATING);
-                }
-
-                // Show reduction against a standard 30 damage hit (modded baseline)
-                double x = 40.0 * 30.0;
-                double pdr = armor / (armor + x);
-
-                boolean capped = pdr >= 0.9;
-                pdr = Math.min(0.9, pdr);
-
-                return (int) (pdr * 100) + "% Physical Damage Reduction" + (capped ? " (Capped)" : "");
+                return (int) (calculateArmorReduction(armor) * 100) + "% estimated physical damage reduction";
         }
+
+        @Unique
+        private double calculateArmorReduction(double armor) {
+                // Simplified formula for tooltip visualization
+                return armor / (armor + 50.0);
+        }
+
+        @Unique
+        private double getUncappedAttributeValue(net.minecraft.entity.LivingEntity entity, net.minecraft.registry.entry.RegistryEntry<net.minecraft.entity.attribute.EntityAttribute> attribute) {
+                var instance = entity.getAttributeInstance(attribute);
+                if (instance == null) return entity.getAttributeBaseValue(attribute);
+                
+                double d = instance.getBaseValue();
+                for (var mod : instance.getModifiers()) {
+                        if (mod.operation() == net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_VALUE) {
+                                d += mod.value();
+                        }
+                }
+                double e = d;
+                for (var mod : instance.getModifiers()) {
+                        if (mod.operation() == net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE) {
+                                e += d * mod.value();
+                        }
+                }
+                for (var mod : instance.getModifiers()) {
+                        if (mod.operation() == net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL) {
+                                e *= 1.0 + mod.value();
+                        }
+                }
+                return e;
+        }
+
+        @Unique
+        private int drawResistanceLine(DrawContext context, TextRenderer tr, int panelX, int y, String name, double cappedValue, double uncappedValue, int mouseX, int mouseY) {
+                double capped = cappedValue * 100;
+                double uncapped = uncappedValue * 100;
+                String text = String.format(java.util.Locale.US, "%s: %.0f%% (%.0f%%)", name, capped, uncapped);
+                
+                int statX = panelX + 16;
+                if (mouseX >= statX && mouseX <= statX + tr.getWidth(text) && mouseY >= y && mouseY <= y + 9) {
+                        hoveredStat = name;
+                        tooltipX = mouseX;
+                        tooltipY = mouseY;
+                        hoveredBaseVal = Double.NaN;
+                        hoveredEquipVal = 0;
+                        hoveredSuffix = "";
+                }
+                
+                context.drawText(tr, Text.literal(text), statX, y, 0xFFE0E0E0, false);
+                return y + 10;
+        }
+
+        @Unique
+        private int drawCategoryTitle(DrawContext context, TextRenderer tr, int panelX, int y, String title) {
+                context.getMatrices().push();
+                float scale = 1.1f;
+                context.getMatrices().scale(scale, scale, 1.0f);
+                context.drawText(tr, Text.literal(title), (int)((panelX + 16) / scale), (int)(y / scale), 0xFFE0E0E0, false);
+                context.getMatrices().pop();
+                return y + (int)(11 * scale);
+        }
+
 
         @Unique
         private String calculateCritDefenseDescription() {
@@ -603,6 +691,7 @@ public abstract class InventoryScreenStatsMixin {
                                 if (mod.id().getNamespace().equals("com.cranks.dungeons")
                                                 || mod.id().getNamespace().equals("cranks-dungeons")) {
                                         if (path.startsWith("passive_") || path.endsWith("_passive_percent")
+                                                        || path.startsWith("intrinsic_")
                                                         || path.equals("max_health_bonus")
                                                         || path.equals("bonus_armor")
                                                         || path.equals("bonus_attack_damage")

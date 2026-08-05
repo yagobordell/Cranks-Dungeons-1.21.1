@@ -5,8 +5,8 @@ public enum AilmentType {
     BLEED("bleed", 5.0, 0.5),
     POISON("poison", 2.0, 0.5),
     SHOCK("shock", 10.0, 0.0),
-    FREEZE("freeze", 4.0, 0.0),
-    ELECTROCUTE("electrocute", 0.75, 0.0);
+    FREEZE("freeze", 2.0, 0.0),
+    ELECTROCUTE("electrocute", 0.5, 0.0);
 
     private final String id;
     private final double baseDuration;
