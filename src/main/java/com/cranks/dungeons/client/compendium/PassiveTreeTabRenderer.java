@@ -35,61 +35,7 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
     private static final int BASE_NODE_SIZE = 10;
     private static final int BASE_GRID_SCALE = 60; // Pixels per grid unit
 
-    private static final Identifier LINE_NORMAL = Identifier.of(com.cranks.dungeons.CranksDungeons.MOD_ID,
-            "passive/line_normal");
-    private static final Identifier LINE_AVAILABLE = Identifier.of("cranks-dungeons", "passive/line_available");
-    private static final Identifier LINE_SELECTED = Identifier.of("cranks-dungeons", "passive/line_selected");
-    private static final Identifier LINE_UNLOCKED = Identifier.of("cranks-dungeons", "passive/line_unlocked");
-    private static final Identifier LINE_HOVER = Identifier.of("cranks-dungeons", "passive/line_hover");
 
-    // NODE SHAPES (Premium Textures)
-    private static final Identifier NODE_SQUARE_LOCKED = Identifier.of("cranks-dungeons", "passive/node_square_locked");
-    private static final Identifier NODE_SQUARE_AVAILABLE = Identifier.of("cranks-dungeons",
-            "passive/node_square_available");
-    private static final Identifier NODE_SQUARE_DRAFTED = Identifier.of("cranks-dungeons",
-            "passive/node_square_drafted");
-    private static final Identifier NODE_SQUARE_UNLOCKED = Identifier.of("cranks-dungeons",
-            "passive/node_square_unlocked");
-
-    private static final Identifier NODE_CIRCLE_LOCKED = Identifier.of("cranks-dungeons", "passive/node_circle_locked");
-    private static final Identifier NODE_CIRCLE_AVAILABLE = Identifier.of("cranks-dungeons",
-            "passive/node_circle_available");
-    private static final Identifier NODE_CIRCLE_DRAFTED = Identifier.of("cranks-dungeons",
-            "passive/node_circle_drafted");
-    private static final Identifier NODE_CIRCLE_UNLOCKED = Identifier.of("cranks-dungeons",
-            "passive/node_circle_unlocked");
-
-    private static final Identifier NODE_DIAMOND_LOCKED = Identifier.of("cranks-dungeons",
-            "passive/node_diamond_locked");
-    private static final Identifier NODE_DIAMOND_AVAILABLE = Identifier.of("cranks-dungeons",
-            "passive/node_diamond_available");
-    private static final Identifier NODE_DIAMOND_DRAFTED = Identifier.of("cranks-dungeons",
-            "passive/node_diamond_drafted");
-    private static final Identifier NODE_DIAMOND_UNLOCKED = Identifier.of("cranks-dungeons",
-            "passive/node_diamond_unlocked");
-
-    private static final Identifier NODE_HEXAGON_LOCKED = Identifier.of("cranks-dungeons",
-            "passive/node_hexagon_locked");
-    private static final Identifier NODE_HEXAGON_AVAILABLE = Identifier.of("cranks-dungeons",
-            "passive/node_hexagon_available");
-    private static final Identifier NODE_HEXAGON_DRAFTED = Identifier.of("cranks-dungeons",
-            "passive/node_hexagon_drafted");
-    private static final Identifier NODE_HEXAGON_UNLOCKED = Identifier.of("cranks-dungeons",
-            "passive/node_hexagon_unlocked");
-
-    // SELECTION HIGHLIGHTS (Pristine White Glows)
-    private static final Identifier NODE_SQUARE_SELECTION = Identifier.of("cranks-dungeons",
-            "passive/node_square_selection");
-    private static final Identifier NODE_CIRCLE_SELECTION = Identifier.of("cranks-dungeons",
-            "passive/node_circle_selection");
-    private static final Identifier NODE_DIAMOND_SELECTION = Identifier.of("cranks-dungeons",
-            "passive/node_diamond_selection");
-    private static final Identifier NODE_HEXAGON_SELECTION = Identifier.of("cranks-dungeons",
-            "passive/node_hexagon_selection");
-
-    // UI BACKGROUNDS
-    private static final Identifier MENU_BACKGROUND = Identifier.of("cranks-dungeons", "passive/menu_background");
-    private static final Identifier STATS_PANEL_TEXTURE = Identifier.of("cranks-dungeons", "textures/gui/stats_panel.png");
 
     private boolean choosingClass = false;
     private final Map<String, String> draftUnlocked = new HashMap<>();
@@ -386,7 +332,7 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
                     double currentGridScale = BASE_GRID_SCALE * zoom;
                     double sx = panX + connectionSource.gridX() * currentGridScale;
                     double sy = panY + connectionSource.gridY() * currentGridScale;
-                    drawOptimizedLine(context, (float)sx, (float)sy, (float)mouseX, (float)mouseY, LINE_NORMAL, 0x80FFFFFF, 2.0f, 0.5f);
+                    drawOptimizedLineGhost(context, (float)sx, (float)sy, (float)mouseX, (float)mouseY, 0x80FFFFFF, 2.0f, 0.5f);
                 } else {
                     context.drawTextWithShadow(textRenderer, "L-Click: Drag | R-Click: Create/Edit | Shift+R-Click: Delete", contentX + 10, contentY + 46, 0xAAAAAA);
                 }
@@ -463,10 +409,9 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
             }
 
             // Determine State
-            Identifier lineTex = LINE_NORMAL;
-            int color = 0xFFFFFF; // Use texture colors primarily
-            float baseWidth = 3.0f; // Thicker base width
-            float alpha = 0.6f;
+            int color = 0xFF888888; // Default locked: Solid gray
+            float baseWidth = 3.0f;
+            float alpha = 1.0f;
 
             boolean n1Unlocked = unlocked.contains(edge.n1.id());
             boolean n2Unlocked = unlocked.contains(edge.n2.id());
@@ -477,18 +422,18 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
             boolean n2Active = n2Unlocked || n2Drafted;
 
             if (n1Unlocked && n2Unlocked) {
-                lineTex = LINE_UNLOCKED;
+                color = 0xFFCCAA00; // Muted Gold
                 baseWidth = 6.0f; // Thickest for unlocked
                 alpha = 1.0f;
             } else if (n1Active && n2Active) {
-                lineTex = LINE_SELECTED;
+                color = 0xFF00AAAA; // Muted Cyan
                 baseWidth = 6.0f;
-                alpha = 0.9f;
+                alpha = 1.0f;
             } else if ((n1Active && canUnlockCache.contains(edge.n2.id()))
                     || (n2Active && canUnlockCache.contains(edge.n1.id()))) {
-                lineTex = LINE_AVAILABLE;
+                color = 0xFF22AA22; // Muted Green
                 baseWidth = 4.5f;
-                alpha = 0.8f;
+                alpha = 1.0f;
             }
 
             // Full-Path Hover logic
@@ -499,7 +444,7 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
                 int d1 = distanceMap.getOrDefault(edge.n1.id(), -1);
                 int d2 = distanceMap.getOrDefault(edge.n2.id(), -1);
                 if (Math.abs(d1 - d2) == 1) {
-                    lineTex = LINE_HOVER;
+                    color = 0xFFDDDDDD; // Muted White
                     baseWidth = 8.0f;
                     alpha = 1.0f;
                 }
@@ -508,8 +453,8 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
             // Apply zoom scaling to width so lines don't vanish at distance
             float finalWidth = (float) (baseWidth * Math.sqrt(zoom));
 
-            drawOptimizedLine(context, (float) x1, (float) y1, (float) x2, (float) y2, lineTex, color, finalWidth,
-                    alpha);
+            ShapeRenderer.drawLine(context, (float) x1, (float) y1, (float) x2, (float) y2, finalWidth,
+                    (color & 0x00FFFFFF) | ((int) (alpha * 255) << 24));
         }
 
         // --- DRAW NODES ---
@@ -539,39 +484,32 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
 
             if (node.shape() != null && !node.shape().isEmpty()) {
                 String state = "locked";
+                int nodeColor = 0xFF555555;
                 if (isDraft) {
                     state = "drafted";
+                    nodeColor = 0xFF00AAAA;
                 } else if (unlocked.contains(node.id())) {
                     state = "unlocked";
+                    nodeColor = 0xFFCCAA00;
                 } else if (canUnlock) {
                     state = "available";
+                    nodeColor = 0xFF22AA22;
                 }
 
-                drawNodeShape(context, nx, ny, node.shape(), state, actualNodeSize);
+                // Draw background and colored border
+                ShapeRenderer.drawShape(context, nx, ny, actualNodeSize, node.shape(), 0xFF111122);
+                ShapeRenderer.drawShape(context, nx, ny, actualNodeSize * 0.9, node.shape(), nodeColor);
 
-                // Draw selection highlight (Cyan)
+                // Draw selection highlight
                 if (selectedNodeIds.contains(node.id())) {
-                    Identifier selectionSprite = switch (node.shape().toLowerCase()) {
-                        case "circle" -> NODE_CIRCLE_SELECTION;
-                        case "diamond" -> NODE_DIAMOND_SELECTION;
-                        case "hexagon" -> NODE_HEXAGON_SELECTION;
-                        default -> NODE_SQUARE_SELECTION;
-                    };
                     double haloSize = actualNodeSize * 1.3;
-                    drawPrecisionTexture(context, selectionSprite, nx, ny, haloSize, 0xFF55FFFF);
+                    ShapeRenderer.drawShape(context, nx, ny, haloSize, node.shape(), 0x6600AAAA);
                 }
 
-                // Draw Hover Radiant Glow (Behind icon)
+                // Draw Hover Radiant Glow
                 if (isHovered) {
-                    Identifier selectionSprite = switch (node.shape().toLowerCase()) {
-                        case "circle" -> NODE_CIRCLE_SELECTION;
-                        case "diamond" -> NODE_DIAMOND_SELECTION;
-                        case "hexagon" -> NODE_HEXAGON_SELECTION;
-                        default -> NODE_SQUARE_SELECTION;
-                    };
-
                     double haloSize = actualNodeSize * 1.15;
-                    drawPrecisionTexture(context, selectionSprite, nx, ny, haloSize, 0xCCFFFFFF);
+                    ShapeRenderer.drawShape(context, nx, ny, haloSize, node.shape(), 0x44FFFFFF);
                 }
             }
 
@@ -597,7 +535,7 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
                         !iconPath.equals("passive/diamond") && !iconPath.equals("passive/hexagon") &&
                         !iconPath.equals("passive/generic")) {
 
-                    double iconSize = actualNodeSize * 1.3;
+                    double iconSize = actualNodeSize * 0.7;
                     drawPrecisionTexture(context, iconToDraw, nx, ny, iconSize, 0xFFFFFFFF);
                 }
             }
@@ -782,7 +720,11 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
         int panelY = contentY + (contentH - panelHeight) / 2;
 
         // Draw Panel Background
-        context.drawTexture(STATS_PANEL_TEXTURE, panelX, panelY, 0.0F, 0.0F, panelWidth, panelHeight, panelWidth, panelHeight);
+        context.fill(panelX, panelY, panelX + panelWidth, panelY + panelHeight, 0xFF111122);
+        context.fill(panelX - 1, panelY - 1, panelX + panelWidth + 1, panelY, 0xFF2A2A4A);
+        context.fill(panelX - 1, panelY + panelHeight, panelX + panelWidth + 1, panelY + panelHeight + 1, 0xFF2A2A4A);
+        context.fill(panelX - 1, panelY, panelX, panelY + panelHeight, 0xFF2A2A4A);
+        context.fill(panelX + panelWidth, panelY, panelX + panelWidth + 1, panelY + panelHeight, 0xFF2A2A4A);
 
         int ty = panelY + 10;
         context.drawCenteredTextWithShadow(textRenderer, "Tree Summary", panelX + panelWidth / 2, ty, 0xFFEEEEFF);
@@ -928,6 +870,10 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
         }
     }
 
+    private void drawOptimizedLineGhost(DrawContext context, float x1, float y1, float x2, float y2, int color, float width, float alpha) {
+        ShapeRenderer.drawLine(context, x1, y1, x2, y2, width, (color & 0x00FFFFFF) | ((int) (alpha * 255) << 24));
+    }
+
     private double getNodeSizeMultiplier(String shape) {
         if (shape == null)
             return 1.0;
@@ -939,77 +885,6 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
         };
     }
 
-    private void drawOptimizedLine(DrawContext context, float x1, float y1, float x2, float y2, Identifier sprite,
-                                   int color, float width, float alpha) {
-        float dx = x2 - x1;
-        float dy = y2 - y1;
-        float len = (float) Math.sqrt(dx * dx + dy * dy);
-        if (len <= 0)
-            return;
-
-        float angle = (float) Math.atan2(dy, dx);
-
-        var matrices = context.getMatrices();
-        matrices.push();
-        matrices.translate(x1, y1, 0.0f);
-        matrices.multiply(net.minecraft.util.math.RotationAxis.POSITIVE_Z.rotation(angle));
-
-        // Scale a fixed integer base to achieve sub-pixel float width/length
-        float baseLen = 1000.0f;
-        float baseWidth = 100.0f;
-
-        float scaleX = len / baseLen;
-        float scaleY = width / baseWidth;
-
-        matrices.scale(scaleX, scaleY, 1.0f);
-
-        int finalColor = (color & 0x00FFFFFF) | ((int) (alpha * 255) << 24);
-        
-        float r = ((finalColor >> 16) & 0xFF) / 255.0F;
-        float g = ((finalColor >> 8) & 0xFF) / 255.0F;
-        float b = (finalColor & 0xFF) / 255.0F;
-        float a = ((finalColor >> 24) & 0xFF) / 255.0F;
-
-        com.mojang.blaze3d.systems.RenderSystem.setShaderColor(r, g, b, a);
-        context.drawGuiTexture(
-                sprite,
-                0, (int) (-baseWidth / 2.0f), (int) baseLen, (int) baseWidth);
-        com.mojang.blaze3d.systems.RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-
-        matrices.pop();
-    }
-
-    private void drawNodeShape(DrawContext context, double cx, double cy, String shape, String state,
-                               double actualSize) {
-        Identifier sprite = switch (shape.toLowerCase()) {
-            case "circle" -> switch (state) {
-                case "unlocked" -> NODE_CIRCLE_UNLOCKED;
-                case "drafted" -> NODE_CIRCLE_DRAFTED;
-                case "available" -> NODE_CIRCLE_AVAILABLE;
-                default -> NODE_CIRCLE_LOCKED;
-            };
-            case "diamond" -> switch (state) {
-                case "unlocked" -> NODE_DIAMOND_UNLOCKED;
-                case "drafted" -> NODE_DIAMOND_DRAFTED;
-                case "available" -> NODE_DIAMOND_AVAILABLE;
-                default -> NODE_DIAMOND_LOCKED;
-            };
-            case "hexagon" -> switch (state) {
-                case "unlocked" -> NODE_HEXAGON_UNLOCKED;
-                case "drafted" -> NODE_HEXAGON_DRAFTED;
-                case "available" -> NODE_HEXAGON_AVAILABLE;
-                default -> NODE_HEXAGON_LOCKED;
-            };
-            default -> switch (state) {
-                case "unlocked" -> NODE_SQUARE_UNLOCKED;
-                case "drafted" -> NODE_SQUARE_DRAFTED;
-                case "available" -> NODE_SQUARE_AVAILABLE;
-                default -> NODE_SQUARE_LOCKED;
-            };
-        };
-
-        drawPrecisionTexture(context, sprite, cx, cy, actualSize, 0xFFFFFFFF);
-    }
 
     private void drawPrecisionTexture(DrawContext context, Identifier texture, double cx, double cy, double size, int color) {
         var matrices = context.getMatrices();
