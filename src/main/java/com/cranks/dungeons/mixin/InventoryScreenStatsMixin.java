@@ -240,11 +240,15 @@ public abstract class InventoryScreenStatsMixin {
                                         cranks$getPassiveBase(player, ModAttributes.INTELLIGENCE), "", mouseX, mouseY, panelX, panelWidth);
                         curY += 16;
 
-                        // --- LIFE ---
-                        curY = drawCategoryTitle(context, tr, panelX, curY, "Life");
+                        // --- HEALTH ---
+                        curY = drawCategoryTitle(context, tr, panelX, curY, "Health");
                         curY = drawStatWithTooltip(context, tr, panelX, curY, "Max Health",
                                         player.getAttributeValue(EntityAttributes.GENERIC_MAX_HEALTH),
                                         cranks$getPassiveBase(player, EntityAttributes.GENERIC_MAX_HEALTH), "", mouseX,
+                                        mouseY, panelX, panelWidth);
+                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Health Regen",
+                                        player.getAttributeValue(ModAttributes.LIFE_REGENERATION),
+                                        cranks$getPassiveBase(player, ModAttributes.LIFE_REGENERATION), " / Sec", mouseX,
                                         mouseY, panelX, panelWidth);
                         curY += 16;
 
@@ -424,6 +428,7 @@ public abstract class InventoryScreenStatsMixin {
                         case "Dexterity" -> "Every 10 Dexterity grants +20 Evasion Rating";
                         case "Intelligence" -> "Every 10 Intelligence grants +5 Maximum Mana";
                         case "Max Health" -> "Maximum health points";
+                        case "Health Regen" -> "Amount of health recovered per second";
                         case "Max Energy Shield" -> "Absorbs damage before health";
                         case "ES Recharge / Sec" -> "Amount of Energy Shield recovered per second";
                         case "ES Recharge Delay" -> "Time before Energy Shield begins to recharge";

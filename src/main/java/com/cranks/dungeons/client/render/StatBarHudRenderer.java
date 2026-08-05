@@ -51,7 +51,7 @@ public class StatBarHudRenderer implements HudRenderCallback {
             return;
 
         MinecraftClient client = MinecraftClient.getInstance();
-        if (client.player == null || client.options.hudHidden)
+        if (client.player == null || client.options.hudHidden || !client.player.isAlive() || com.cranks.dungeons.CranksDungeonsClient.isCinematicRespawnActive())
             return;
         if (client.player.isCreative() || client.player.isSpectator())
             return;

@@ -35,7 +35,7 @@ public class PartyHudRenderer implements HudRenderCallback {
     public void onHudRender(DrawContext context, RenderTickCounter tickCounter) {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.player == null) return;
-        if (client.options.hudHidden) return;
+        if (client.options.hudHidden || !client.player.isAlive() || com.cranks.dungeons.CranksDungeonsClient.isCinematicRespawnActive()) return;
 
         com.cranks.dungeons.config.ModConfig config = CranksDungeons.CONFIG;
         if (!config.partyHudEnabled()) return;

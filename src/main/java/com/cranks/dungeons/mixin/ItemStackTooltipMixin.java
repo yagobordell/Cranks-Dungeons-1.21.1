@@ -263,7 +263,7 @@ public abstract class ItemStackTooltipMixin {
             String regenKey = ModAttributes.LIFE_REGENERATION.value().getTranslationKey();
             if (attributeTotals.getOrDefault(regenKey, 0.0) > 0 && defaultTotals.getOrDefault(regenKey, 0.0) > 0) {
                 tooltip.add(Text.literal("Health Regen: ").formatted(Formatting.GRAY)
-                        .append(Text.literal("+" + flatFmt.format(attributeTotals.get(regenKey)))
+                        .append(Text.literal("+" + pctFmt.format(attributeTotals.get(regenKey)))
                                 .formatted(getValueColor(stack, ModAttributes.LIFE_REGENERATION))));
                 addedAny = true;
             }

@@ -223,22 +223,13 @@ public class ItemComponentModifier {
                     equipmentSlot);
 
         } else if (itemName.contains("chainmail")) {
-            // Chainmail: Evasion Rating + Energy Shield + Attack Speed
+            // Chainmail: Evasion Rating + Armor (from traditional) + Attack Speed
             double evasionBonus = getChainmailEvasionBonus(itemName);
             builder.add(
                     ModAttributes.EVASION_RATING,
                     new EntityAttributeModifier(
                             Identifier.of("cranks-dungeons", "armor.evasion." + armorSlot),
                             evasionBonus,
-                            EntityAttributeModifier.Operation.ADD_VALUE),
-                    equipmentSlot);
-
-            double energyShieldBonus = getChainmailEnergyShieldBonus(itemName);
-            builder.add(
-                    ModAttributes.ENERGY_SHIELD,
-                    new EntityAttributeModifier(
-                            Identifier.of("cranks-dungeons", "armor.energy_shield." + armorSlot),
-                            energyShieldBonus,
                             EntityAttributeModifier.Operation.ADD_VALUE),
                     equipmentSlot);
 
@@ -376,7 +367,8 @@ public class ItemComponentModifier {
 
     private static boolean usesTraditionalArmor(String itemName) {
         return itemName.contains("copper") || itemName.contains("iron") ||
-                itemName.contains("diamond") || itemName.contains("netherite");
+                itemName.contains("diamond") || itemName.contains("netherite") ||
+                itemName.contains("chainmail");
     }
 
     private static boolean usesTraditionalArmorToughness(String itemName) {
@@ -385,6 +377,8 @@ public class ItemComponentModifier {
 
     private static double getArmorMultiplier(String itemName) {
         if (itemName.contains("copper"))
+            return 5.0;
+        if (itemName.contains("chainmail"))
             return 5.0;
         if (itemName.contains("iron"))
             return 8.0;
@@ -467,17 +461,7 @@ public class ItemComponentModifier {
         return 0.0;
     }
 
-    private static double getChainmailEnergyShieldBonus(String itemName) {
-        if (itemName.contains("helmet"))
-            return 2.0;
-        if (itemName.contains("chestplate"))
-            return 4.0;
-        if (itemName.contains("leggings"))
-            return 3.0;
-        if (itemName.contains("boots"))
-            return 1.0;
-        return 0.0;
-    }
+
 
     private static double getChainmailAttackSpeed(String itemName) {
         if (itemName.contains("helmet"))

@@ -57,6 +57,25 @@ public class CranksDungeonsClient implements ClientModInitializer {
         }
     }
 
+    private static java.lang.reflect.Method cinematicActiveMethod = null;
+    private static boolean cinematicMethodLookedUp = false;
+
+    public static boolean isCinematicRespawnActive() {
+        if (!cinematicMethodLookedUp) {
+            cinematicMethodLookedUp = true;
+            try {
+                Class<?> clazz = Class.forName("net.gamev.cinematic_respawn.client.RespawnCinematicController");
+                cinematicActiveMethod = clazz.getMethod("isActive");
+            } catch (Exception ignored) {}
+        }
+        if (cinematicActiveMethod != null) {
+            try {
+                return (Boolean) cinematicActiveMethod.invoke(null);
+            } catch (Exception ignored) {}
+        }
+        return false;
+    }
+
     @Override
     public void onInitializeClient() {
         // Register default HUD component (stamina/energy overlay);

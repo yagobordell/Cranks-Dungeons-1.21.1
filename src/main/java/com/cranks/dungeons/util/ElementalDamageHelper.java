@@ -49,12 +49,20 @@ public class ElementalDamageHelper {
     }
 
     private static DamageSource getElementalDamageSource(ServerWorld world, DamageElement element, Entity attacker) {
+        if (element == DamageElement.VOID || element == DamageElement.PHYSICAL) {
+            if (attacker instanceof net.minecraft.entity.player.PlayerEntity playerAttacker) {
+                return world.getDamageSources().playerAttack(playerAttacker);
+            } else if (attacker instanceof LivingEntity livingAttacker) {
+                return world.getDamageSources().mobAttack(livingAttacker);
+            }
+        }
+        
         return switch (element) {
-            case PHYSICAL -> world.getDamageSources().generic();
+            case PHYSICAL -> world.getDamageSources().generic(); // Fallback if no attacker
             case FIRE -> world.getDamageSources().onFire();
             case COLD -> world.getDamageSources().freeze();
             case LIGHTNING -> world.getDamageSources().lightningBolt();
-            case VOID -> world.getDamageSources().outOfWorld();
+            case VOID -> world.getDamageSources().generic(); // Fallback if no attacker
             default -> world.getDamageSources().generic();
         };
     }

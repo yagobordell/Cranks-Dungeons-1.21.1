@@ -44,6 +44,11 @@ public class LifeRegenerationMixin {
             } else {
                 if (entity.getHealth() < entity.getMaxHealth()) {
                     entity.heal(healAmount);
+                    if (entity.age % 20 == 0) {
+                        if (entity.getWorld() instanceof net.minecraft.server.world.ServerWorld serverWorld) {
+                            com.cranks.dungeons.network.DamageNumberSender.broadcastHeal(serverWorld, entity, lifeRegen);
+                        }
+                    }
                 }
             }
         }

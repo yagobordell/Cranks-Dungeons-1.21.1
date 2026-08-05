@@ -93,7 +93,6 @@
 		"StatusEffectDisplayMixin",
 		"AilmentHeartTextureMixin",
 		"DisableArmorBarMixin",
-		"OverflowingBarsAilmentMixin",
 		"client.LivingEntityRendererMixin",
 		"client.InGameHudMixin",
 		"FreezeVisualMixin",

@@ -4,6 +4,8 @@ import net.minecraft.component.DataComponentTypes;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.item.ItemStack;
 import com.cranks.dungeons.registry.ModAttributes;
+import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.entity.attribute.EntityAttribute;
 
 public enum ArmorBaseType {
     STR,
@@ -25,9 +27,9 @@ public enum ArmorBaseType {
         if (modifiers != null) {
             for (var entry : modifiers.modifiers()) {
                 var attr = entry.attribute();
-                if (attr.equals(EntityAttributes.GENERIC_ARMOR) || attr.equals(ModAttributes.BONUS_ARMOR)) hasArmor = true;
-                if (attr.equals(ModAttributes.EVASION_RATING)) hasEvasion = true;
-                if (attr.equals(ModAttributes.ENERGY_SHIELD)) hasES = true;
+                if (attributesMatch(attr, EntityAttributes.GENERIC_ARMOR) || attributesMatch(attr, ModAttributes.BONUS_ARMOR)) hasArmor = true;
+                if (attributesMatch(attr, ModAttributes.EVASION_RATING)) hasEvasion = true;
+                if (attributesMatch(attr, ModAttributes.ENERGY_SHIELD)) hasES = true;
             }
         }
 
@@ -74,5 +76,12 @@ public enum ArmorBaseType {
         if (statInt && !itemInt) return false;
 
         return true;
+    }
+
+    private static boolean attributesMatch(RegistryEntry<EntityAttribute> e1, RegistryEntry<EntityAttribute> e2) {
+        if (e1 == e2) return true;
+        if (e1 == null || e2 == null) return false;
+        if (e1.equals(e2)) return true;
+        return e1.getKey().isPresent() && e2.getKey().isPresent() && e1.getKey().get().equals(e2.getKey().get());
     }
 }

@@ -20,7 +20,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(InGameHud.class)
+@Mixin(value = InGameHud.class, priority = 100)
 public abstract class EnergyShieldRenderMixin {
 
     @Unique
@@ -33,7 +33,7 @@ public abstract class EnergyShieldRenderMixin {
     private static final Identifier SHIELD_HALF_BLINKING = Identifier.of(CranksDungeons.MOD_ID, "hud/heart/shield/half_blinking");
 
     @Shadow @Final private MinecraftClient client;
-    @Unique private static final boolean OVERFLOWING_BARS_LOADED = FabricLoader.getInstance().isModLoaded("overflowingbars");
+
     @Unique private static int shieldRowCount = 0;
     @Unique private static float cranks$lastRenderedShield = -1;
     @Unique private static long cranks$lastShieldDamageTime = 0;
@@ -51,8 +51,7 @@ public abstract class EnergyShieldRenderMixin {
         if (AilmentManager.hasAilment(client.player, AilmentType.POISON) ||
             AilmentManager.hasAilment(client.player, AilmentType.BURN) ||
             AilmentManager.hasAilment(client.player, AilmentType.BLEED) ||
-            AilmentManager.hasAilment(client.player, AilmentType.FREEZE) ||
-            OVERFLOWING_BARS_LOADED) {
+            AilmentManager.hasAilment(client.player, AilmentType.FREEZE)) {
             shieldRowCount = 0;
             return;
         }

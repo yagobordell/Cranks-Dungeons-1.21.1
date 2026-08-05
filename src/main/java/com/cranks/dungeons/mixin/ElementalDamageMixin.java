@@ -752,7 +752,7 @@ public abstract class ElementalDamageMixin {
             case FIRE -> world.getDamageSources().onFire();
             case COLD -> world.getDamageSources().freeze();
             case LIGHTNING -> world.getDamageSources().lightningBolt();
-            case VOID -> world.getDamageSources().outOfWorld();
+            case VOID -> world.getDamageSources().magic();
             default -> world.getDamageSources().generic();
         };
     }

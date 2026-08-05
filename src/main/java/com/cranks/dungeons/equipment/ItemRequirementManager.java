@@ -64,8 +64,8 @@ public class ItemRequirementManager {
             } else if (name.contains("gold")) {
                 intel = scale;
             } else if (name.contains("chainmail")) {
+                str = scale / 2;
                 dex = scale / 2;
-                intel = scale / 2;
             } else if (name.contains("copper")) {
                 str = scale / 2;
                 intel = scale / 2;
