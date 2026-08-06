@@ -27,12 +27,6 @@
         "operation": "add_value"
       },
       {
-        "id": "minecraft:enchantment.greater_alacrity.reload_speed",
-        "attribute": "cranks-dungeons:reload_speed",
-        "amount": 0.18,
-        "operation": "add_value"
-      },
-      {
         "id": "minecraft:enchantment.greater_alacrity_boots.movement_speed",
         "attribute": "cranks-dungeons:movement_speed",
         "amount": 0.3,

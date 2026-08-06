@@ -29,7 +29,6 @@ public class PassiveIconManager {
 
         ATTRIBUTE_ICONS.put("cranks-dungeons:knockback", "passive/knockback");
         ATTRIBUTE_ICONS.put("cranks-dungeons:physical_damage_leeched_as_life", "passive/life_steal");
-        ATTRIBUTE_ICONS.put("cranks-dungeons:reload_speed", "passive/reload_speed");
 
         // --- Weapon Specialization ---
         ATTRIBUTE_ICONS.put("cranks-dungeons:sword_damage_percent", "passive/sword_damage_percent");

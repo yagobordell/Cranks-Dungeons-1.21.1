@@ -467,12 +467,7 @@ public class StatRegistry {
                                 true, true, Formatting.GRAY, CustomStat.AffixType.SUFFIX,
                                 15, 1500));
 
-                register(new CustomStat("chestplate_reload_speed", "Reload Speed",
-                                EquipmentType.CHESTPLATE, ModAttributes.RELOAD_SPEED,
-                                r(0.05, 0.06, 0.08, 0.13, 0.19, 0.27, 0.36, 0.47, 0.60, 0.75),
-                                r(0.10, 0.11, 0.16, 0.23, 0.33, 0.45, 0.61, 0.80, 1.01, 1.25),
-                                true, true, Formatting.YELLOW, CustomStat.AffixType.SUFFIX,
-                                15, 2000));
+
 
                 // ===================================================================
                 // LEGGINGS-ONLY STATS
@@ -523,7 +518,7 @@ public class StatRegistry {
                                 r(0.08, 0.09, 0.14, 0.21, 0.31, 0.44, 0.60, 0.79, 1.00, 1.25),
                                 true, true, Formatting.YELLOW, CustomStat.AffixType.SUFFIX,
                                 60, 5300,
-                                ALL_MELEE_AND_TRIDENT);
+                                ALL_WEAPONS);
 
                 // --- Ailment Magnitudes (all weapons) ---
                 registerForTypes("burn_damage_percent", "Burn Magnitude",
@@ -577,14 +572,14 @@ public class StatRegistry {
                 // --- Elemental Damages (all weapons) ---
 
                 registerForTypes("local_fire_damage", "Fire Damage",
-                                null,
+                                ModAttributes.FIRE_DAMAGE,
                                 r(3.0, 7.0, 13.0, 21.0, 32.0, 38.0, 56.0, 74.0, 101.0, 133.0),
                                 r(5.0, 10.0, 19.0, 29.0, 37.0, 54.0, 71.0, 97.0, 129.0, 154.0),
                                 false, Formatting.RED, CustomStat.AffixType.PREFIX,
                                 1, 5880,
                                 ONE_HANDED_WEAPONS);
                 registerForTypes("local_fire_damage", "Fire Damage",
-                                null,
+                                ModAttributes.FIRE_DAMAGE,
                                 r(5.0, 10.0, 19.0, 30.0, 45.0, 59.0, 84.0, 112.0, 155.0, 205.0),
                                 r(7.0, 16.0, 28.0, 42.0, 56.0, 80.0, 107.0, 149.0, 198.0, 236.0),
                                 false, Formatting.RED, CustomStat.AffixType.PREFIX,
@@ -592,14 +587,14 @@ public class StatRegistry {
                                 TWO_HANDED_WEAPONS);
 
                 registerForTypes("local_cold_damage", "Cold Damage",
-                                null,
+                                ModAttributes.COLD_DAMAGE,
                                 r(3.0, 6.0, 10.0, 17.0, 26.0, 34.0, 47.0, 62.0, 83.0, 110.0),
                                 r(4.0, 9.0, 16.0, 24.0, 32.0, 44.0, 59.0, 80.0, 106.0, 123.0),
                                 false, Formatting.AQUA, CustomStat.AffixType.PREFIX,
                                 1, 6615,
                                 ONE_HANDED_WEAPONS);
                 registerForTypes("local_cold_damage", "Cold Damage",
-                                null,
+                                ModAttributes.COLD_DAMAGE,
                                 r(4.0, 9.0, 15.0, 25.0, 38.0, 49.0, 70.0, 92.0, 126.0, 168.0),
                                 r(6.0, 14.0, 23.0, 35.0, 46.0, 66.0, 88.0, 121.0, 161.0, 189.0),
                                 false, Formatting.AQUA, CustomStat.AffixType.PREFIX,
@@ -607,14 +602,14 @@ public class StatRegistry {
                                 TWO_HANDED_WEAPONS);
 
                 registerForTypes("local_lightning_damage", "Lightning Damage",
-                                null,
+                                ModAttributes.LIGHTNING_DAMAGE,
                                 r(4.0, 13.0, 20.0, 36.0, 55.0, 63.0, 85.0, 111.0, 157.0, 202.0),
                                 r(6.0, 19.0, 30.0, 52.0, 60.0, 82.0, 107.0, 152.0, 196.0, 234.0),
                                 false, Formatting.DARK_BLUE, CustomStat.AffixType.PREFIX,
                                 1, 8085,
                                 ONE_HANDED_WEAPONS);
                 registerForTypes("local_lightning_damage", "Lightning Damage",
-                                null,
+                                ModAttributes.LIGHTNING_DAMAGE,
                                 r(7.0, 19.0, 31.0, 53.0, 80.0, 93.0, 128.0, 168.0, 239.0, 310.0),
                                 r(10.0, 27.0, 43.0, 76.0, 88.0, 122.0, 162.0, 231.0, 300.0, 358.0),
                                 false, Formatting.DARK_BLUE, CustomStat.AffixType.PREFIX,
@@ -732,14 +727,7 @@ public class StatRegistry {
                                 15, 6000,
                                 ALL_RANGED_WEAPONS);
 
-                // --- Reload Speed (Bow, Crossbow, Chestplate already registered above) ---
-                registerForTypes("reload_speed", "Reload Speed",
-                                ModAttributes.RELOAD_SPEED,
-                                r(0.05, 0.06, 0.08, 0.13, 0.19, 0.27, 0.36, 0.47, 0.60, 0.75),
-                                r(0.10, 0.11, 0.16, 0.23, 0.33, 0.45, 0.61, 0.80, 1.01, 1.25),
-                                true, true, Formatting.YELLOW, CustomStat.AffixType.SUFFIX,
-                                25, 2000,
-                                ALL_RANGED_WEAPONS);
+
 
                 // --- Projectile Speed (Ranged) ---
                 registerForTypes("projectile_speed", "Projectile Speed",

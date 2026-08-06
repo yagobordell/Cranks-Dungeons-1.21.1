@@ -21,8 +21,7 @@ public class SwiftnessTomeItem extends AbstractTomeItem {
     @Override
     public String getStatIdForEquipment(EquipmentType equipType) {
         return switch (equipType) {
-            case SWORD, SPEAR, MACE, TRIDENT -> equipType.name().toLowerCase() + "_attack_speed";
-            case BOW, CROSSBOW -> equipType.name().toLowerCase() + "_reload_speed";
+            case SWORD, SPEAR, MACE, TRIDENT, BOW, CROSSBOW -> equipType.name().toLowerCase() + "_attack_speed";
             case CHESTPLATE -> "chestplate_attack_speed";
             case BOOTS -> "boots_movement_speed";
             case ELYTRA -> "elytra_movement_speed";
@@ -41,8 +40,7 @@ public class SwiftnessTomeItem extends AbstractTomeItem {
 
         addTomeDescription(tooltip::add);
 
-        addStatRange(tooltip::add, EquipmentType.SWORD, "Melee Weapons");
-        addStatRange(tooltip::add, EquipmentType.BOW, "Ranged Weapons");
+        addStatRange(tooltip::add, EquipmentType.SWORD, "Martial Weapons");
         addStatRange(tooltip::add, EquipmentType.BOOTS, "Boots");
 
         super.appendTooltip(stack, context, tooltip, type);

@@ -16,14 +16,26 @@ public class CrossbowItemMixin {
     @Inject(method = "getPullTime", at = @At("RETURN"), cancellable = true)
     private static void cranks$applyReloadSpeedToCrossbow(ItemStack stack, LivingEntity user, CallbackInfoReturnable<Integer> cir) {
         if (user != null) {
-            EntityAttributeInstance inst = user.getAttributeInstance(ModAttributes.RELOAD_SPEED);
-            if (inst != null) {
-                double speed = inst.getValue();
-                if (speed > 0 && speed != 1.0) {
-                    int originalTime = cir.getReturnValue();
-                    // If speed is 0.5, it takes twice as long (originalTime / 0.5)
-                    cir.setReturnValue((int) (originalTime / speed));
-                }
+            double genericAttackSpeedMultiplier = 1.0;
+            if (user.getAttributes().hasAttribute(net.minecraft.entity.attribute.EntityAttributes.GENERIC_ATTACK_SPEED)) {
+                genericAttackSpeedMultiplier = user.getAttributeValue(net.minecraft.entity.attribute.EntityAttributes.GENERIC_ATTACK_SPEED) / 4.0;
+            }
+            
+            double customAttackSpeedBonus = 0.0;
+            if (user.getAttributes().hasAttribute(ModAttributes.ATTACK_SPEED)) {
+                customAttackSpeedBonus = user.getAttributeValue(ModAttributes.ATTACK_SPEED);
+            }
+            
+            double speed = genericAttackSpeedMultiplier * (1.0 + customAttackSpeedBonus);
+            
+            if (user.getActiveHand() == net.minecraft.util.Hand.OFF_HAND) {
+                speed += com.cranks.dungeons.equipment.ItemStatManager.getTotalStatValue(stack, "attack_speed");
+            }
+
+            if (speed > 0 && speed != 1.0) {
+                int originalTime = cir.getReturnValue();
+                // If speed is 0.5, it takes twice as long (originalTime / 0.5)
+                cir.setReturnValue((int) (originalTime / speed));
             }
         }
     }

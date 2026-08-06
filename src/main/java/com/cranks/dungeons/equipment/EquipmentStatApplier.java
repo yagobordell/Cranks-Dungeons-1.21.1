@@ -194,7 +194,6 @@ public class EquipmentStatApplier {
                         if (comp.isPercentage()) {
                             Identifier id = Identifier.of(CranksDungeons.MOD_ID, "runic_" + stat.getId() + "_" + i + "_" + attrIndex);
                             boolean isMultiplicative = isAttribute(attribute, EntityAttributes.GENERIC_ATTACK_SPEED) || 
-                                                       isAttribute(attribute, ModAttributes.RELOAD_SPEED) ||
                                                        isAttribute(attribute, ModAttributes.MINING_EFFICIENCY);
                             EntityAttributeModifier.Operation op = isMultiplicative ? 
                                     EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE : 
@@ -207,6 +206,54 @@ public class EquipmentStatApplier {
                             flatRuneValues.merge(attribute, val, Double::sum);
                             attributeToStatMap.put(attribute, stat);
                         }
+                    }
+                }
+            }
+        }
+
+        // 1.5 Parse Enchantments and convert to local stats
+        var enchantments = stack.getEnchantments();
+        for (var enchEntry : enchantments.getEnchantmentEntries()) {
+            var enchantment = enchEntry.getKey().value();
+            int level = enchEntry.getIntValue();
+
+            var attributeEffects = enchantment.effects().get(net.minecraft.component.EnchantmentEffectComponentTypes.ATTRIBUTES);
+            if (attributeEffects != null) {
+                for (net.minecraft.enchantment.effect.AttributeEnchantmentEffect effect : attributeEffects) {
+                    RegistryEntry<EntityAttribute> attr = effect.attribute();
+                    
+                    boolean isWeaponAttr = com.cranks.dungeons.util.EnchantmentFilterUtil.isWeaponAttribute(attr);
+                    boolean isArmorAttr = com.cranks.dungeons.util.EnchantmentFilterUtil.isArmorAttribute(attr);
+                    boolean isWeapon = com.cranks.dungeons.util.EnchantmentFilterUtil.isWeapon(stack);
+                    boolean isArmor = com.cranks.dungeons.util.EnchantmentFilterUtil.isArmor(stack);
+
+                    if (isWeaponAttr && !isWeapon) continue;
+                    if (isArmorAttr && !isArmor) continue;
+
+                    double value = (double) effect.amount().getValue(level);
+                    double effectiveness = ItemStatManager.getAttributeValue(stack, ModAttributes.ENCHANTMENT_EFFECTIVENESS);
+                    if (effectiveness > 0) {
+                        value *= (1.0 + effectiveness);
+                    }
+
+                    if (isAttribute(attr, ModAttributes.ATTACK_DAMAGE_PERCENT)) {
+                        localAttackDamagePercent += value;
+                    } else if (isAttribute(attr, ModAttributes.ARMOR_PERCENT)) {
+                        localArmorPercent += value;
+                    } else if (isAttribute(attr, ModAttributes.EVASION_RATING_PERCENT)) {
+                        localEvasionPercent += value;
+                    } else if (isAttribute(attr, ModAttributes.ENERGY_SHIELD_PERCENT)) {
+                        localEnergyShieldPercent += value;
+                    } else if (effect.operation() == EntityAttributeModifier.Operation.ADD_VALUE &&
+                               !isAttribute(attr, EntityAttributes.GENERIC_ATTACK_SPEED) &&
+                               !isAttribute(attr, ModAttributes.MINING_EFFICIENCY)) {
+                        flatRuneValues.merge(attr, value, Double::sum);
+                    } else {
+                        EntityAttributeModifier.Operation op = effect.operation();
+                        if (isAttribute(attr, ModAttributes.MINING_EFFICIENCY) && op == EntityAttributeModifier.Operation.ADD_VALUE) {
+                            op = EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL;
+                        }
+                        builder.add(attr, new EntityAttributeModifier(effect.id(), value, op), slot);
                     }
                 }
             }
@@ -315,7 +362,6 @@ public class EquipmentStatApplier {
             Identifier finalModifierId = baseModifierId != null ? baseModifierId : modifierId;
 
             boolean isMultiplicative = isAttribute(attr, EntityAttributes.GENERIC_ATTACK_SPEED) || 
-                                       isAttribute(attr, ModAttributes.RELOAD_SPEED) ||
                                        isAttribute(attr, ModAttributes.MINING_EFFICIENCY);
 
             if (isMultiplicative) {

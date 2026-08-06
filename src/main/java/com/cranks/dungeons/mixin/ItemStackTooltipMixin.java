@@ -306,39 +306,54 @@ public abstract class ItemStackTooltipMixin {
             }
 
             String damageKey = EntityAttributes.GENERIC_ATTACK_DAMAGE.value().getTranslationKey();
-            if (attributeTotals.containsKey(damageKey) && type != EquipmentType.BOW
-                    && type != EquipmentType.CROSSBOW && !isTool) {
-                double finalDamage = PLAYER_BASE_ATTACK_DAMAGE + attributeTotals.get(damageKey);
+            if (attributeTotals.containsKey(damageKey) && !isTool) {
+                double finalDamage = attributeTotals.get(damageKey);
+                // Melee weapons add player base attack damage (1.0)
+                if (type != EquipmentType.BOW && type != EquipmentType.CROSSBOW) {
+                    finalDamage += PLAYER_BASE_ATTACK_DAMAGE;
+                }
+                
                 tooltip.add(Text.literal("Physical Damage: ").formatted(Formatting.GRAY)
                         .append(Text.literal(pctFmt.format(finalDamage))
                                 .formatted(getValueColor(stack, EntityAttributes.GENERIC_ATTACK_DAMAGE))));
                 
                 addElementalDamageLines(tooltip, attributeTotals, pctFmt);
-                addedAny = true;
-            }
-            String speedKey = EntityAttributes.GENERIC_ATTACK_SPEED.value().getTranslationKey();
-            if (attributeTotals.containsKey(speedKey) && !isTool) {
-                double finalSpeed = PLAYER_BASE_ATTACK_SPEED + attributeTotals.get(speedKey);
-                tooltip.add(Text.literal("Attack Speed: ").formatted(Formatting.GRAY)
-                        .append(Text.literal(pctFmt.format(finalSpeed))
-                                .formatted(getValueColor(stack, EntityAttributes.GENERIC_ATTACK_SPEED))));
                 addedAny = true;
             }
 
-            if (type == EquipmentType.BOW || type == EquipmentType.CROSSBOW) {
-                String bowDamageKey = EntityAttributes.GENERIC_ATTACK_DAMAGE.value().getTranslationKey();
-                double finalDamage = attributeTotals.getOrDefault(bowDamageKey, 0.0);
-                tooltip.add(Text.literal("Physical Damage: ").formatted(Formatting.GRAY)
-                        .append(Text.literal(pctFmt.format(finalDamage))
-                                .formatted(getValueColor(stack, EntityAttributes.GENERIC_ATTACK_DAMAGE))));
+            String speedKey = EntityAttributes.GENERIC_ATTACK_SPEED.value().getTranslationKey();
+            if (attributeTotals.containsKey(speedKey) && !isTool) {
+                double finalSpeed = PLAYER_BASE_ATTACK_SPEED + attributeTotals.get(speedKey);
                 
-                addElementalDamageLines(tooltip, attributeTotals, pctFmt);
+                if (type == EquipmentType.BOW || type == EquipmentType.CROSSBOW) {
+                    double speedMultiplier = finalSpeed / 4.0;
+                    double originalTimeTicks = (type == EquipmentType.CROSSBOW) ? 25.0 : 20.0;
+                    double actualTicks = originalTimeTicks / speedMultiplier;
+                    double attacksPerSecond = 20.0 / actualTicks; // 20 ticks in a second
+
+                    tooltip.add(Text.literal("Attacks Per Second: ").formatted(Formatting.GRAY)
+                            .append(Text.literal(pctFmt.format(attacksPerSecond))
+                                    .formatted(getValueColor(stack, EntityAttributes.GENERIC_ATTACK_SPEED))));
+                } else {
+                    tooltip.add(Text.literal("Attacks Per Second: ").formatted(Formatting.GRAY)
+                            .append(Text.literal(pctFmt.format(finalSpeed))
+                                    .formatted(getValueColor(stack, EntityAttributes.GENERIC_ATTACK_SPEED))));
+                }
+                addedAny = true;
+            }
+
+            if (type != EquipmentType.PICKAXE && type != EquipmentType.AXE && 
+                type != EquipmentType.SHOVEL && type != EquipmentType.HOE) {
+                String critKey = ModAttributes.CRIT_CHANCE.value().getTranslationKey();
+                double bonusCrit = attributeTotals.getOrDefault(critKey, 0.0);
+                double localCrit = com.cranks.dungeons.equipment.EquipmentStatApplier.getItemStatValue(stack, "local_crit_chance");
+                double totalCrit = (0.05 + bonusCrit) * (1.0 + localCrit) * 100.0;
                 
-                String reloadKey = ModAttributes.RELOAD_SPEED.value().getTranslationKey();
-                double finalReloadSpeed = 1.0 + attributeTotals.getOrDefault(reloadKey, 0.0);
-                tooltip.add(Text.literal("Reload Speed: ").formatted(Formatting.GRAY)
-                        .append(Text.literal(pctFmt.format(finalReloadSpeed))
-                                .formatted(getValueColor(stack, ModAttributes.RELOAD_SPEED))));
+                Formatting critColor = (Math.abs(totalCrit - 5.0) > 0.01) ? Formatting.BLUE : Formatting.WHITE;
+                
+                tooltip.add(Text.literal("Critical Hit Chance: ").formatted(Formatting.GRAY)
+                        .append(Text.literal(pctFmt.format(totalCrit) + "%")
+                                .formatted(critColor)));
                 addedAny = true;
             }
         }
@@ -352,25 +367,25 @@ public abstract class ItemStackTooltipMixin {
     private void addElementalDamageLines(List<Text> tooltip, Map<String, Double> attributeTotals, DecimalFormat df) {
         String fireKey = ModAttributes.FIRE_DAMAGE.value().getTranslationKey();
         if (attributeTotals.containsKey(fireKey) && attributeTotals.get(fireKey) > 0) {
-            tooltip.add(Text.literal("Fire Damage: ").formatted(Formatting.RED)
+            tooltip.add(Text.literal("Fire Damage: ").formatted(Formatting.GRAY)
                     .append(Text.literal(df.format(attributeTotals.get(fireKey))).formatted(Formatting.RED)));
         }
 
         String coldKey = ModAttributes.COLD_DAMAGE.value().getTranslationKey();
         if (attributeTotals.containsKey(coldKey) && attributeTotals.get(coldKey) > 0) {
-            tooltip.add(Text.literal("Cold Damage: ").formatted(Formatting.AQUA)
+            tooltip.add(Text.literal("Cold Damage: ").formatted(Formatting.GRAY)
                     .append(Text.literal(df.format(attributeTotals.get(coldKey))).formatted(Formatting.AQUA)));
         }
 
         String lightningKey = ModAttributes.LIGHTNING_DAMAGE.value().getTranslationKey();
         if (attributeTotals.containsKey(lightningKey) && attributeTotals.get(lightningKey) > 0) {
-            tooltip.add(Text.literal("Lightning Damage: ").formatted(Formatting.DARK_BLUE)
+            tooltip.add(Text.literal("Lightning Damage: ").formatted(Formatting.GRAY)
                     .append(Text.literal(df.format(attributeTotals.get(lightningKey))).formatted(Formatting.DARK_BLUE)));
         }
 
         String voidKey = ModAttributes.VOID_DAMAGE.value().getTranslationKey();
         if (attributeTotals.containsKey(voidKey) && attributeTotals.get(voidKey) > 0) {
-            tooltip.add(Text.literal("Void Damage: ").formatted(Formatting.DARK_PURPLE)
+            tooltip.add(Text.literal("Void Damage: ").formatted(Formatting.GRAY)
                     .append(Text.literal(df.format(attributeTotals.get(voidKey))).formatted(Formatting.DARK_PURPLE)));
         }
     }
@@ -449,7 +464,11 @@ public abstract class ItemStackTooltipMixin {
                                 attributesMatch(runeAttr, ModAttributes.ARMOR_PERCENT) ||
                                 attributesMatch(runeAttr, ModAttributes.EVASION_RATING_PERCENT) ||
                                 attributesMatch(runeAttr, ModAttributes.ENERGY_SHIELD_PERCENT) ||
-                                attributesMatch(runeAttr, ModAttributes.ATTACK_DAMAGE_PERCENT)) {
+                                attributesMatch(runeAttr, ModAttributes.ATTACK_DAMAGE_PERCENT) ||
+                                attributesMatch(runeAttr, ModAttributes.FIRE_DAMAGE) ||
+                                attributesMatch(runeAttr, ModAttributes.COLD_DAMAGE) ||
+                                attributesMatch(runeAttr, ModAttributes.LIGHTNING_DAMAGE) ||
+                                attributesMatch(runeAttr, ModAttributes.VOID_DAMAGE)) {
                                 continue;
                             }
                             String key = runeAttr.value().getTranslationKey();

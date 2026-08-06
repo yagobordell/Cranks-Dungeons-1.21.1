@@ -610,10 +610,10 @@ public class ItemComponentModifier {
             
             double baseReload = itemName.contains("crossbow") ? 0.4 : 0.7;
             builder.add(
-                    ModAttributes.RELOAD_SPEED,
+                    EntityAttributes.GENERIC_ATTACK_SPEED,
                     new EntityAttributeModifier(
                             Identifier.of("cranks-dungeons", "weapon.base_reload"),
-                            baseReload - 1.0,
+                            (baseReload * 4.0) - 4.0,
                             EntityAttributeModifier.Operation.ADD_VALUE),
                     net.minecraft.component.type.AttributeModifierSlot.MAINHAND);
         }

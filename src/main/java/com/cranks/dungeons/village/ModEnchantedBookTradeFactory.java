@@ -41,7 +41,7 @@ public class ModEnchantedBookTradeFactory implements TradeOffers.Factory {
             "physical_damage_leeched_as_life", "lightning_damage", "lightning_resistance",
             "log_fortune", "loyalty", "luck_bonus", "lunge",
             "max_health_bonus", "mining_efficiency", "movement_speed_bonus",
-            "ore_fortune", "reload_speed", "repair_chance", "respiration",
+            "ore_fortune", "repair_chance", "respiration",
             "riptide", "soul_speed", "void_damage", "void_resistance",
             "wind_burst", "electrocute_magnitude_percent", "bleed_magnitude_percent"
         };

@@ -37,12 +37,22 @@ public abstract class ReloadSpeedMixin {
         if (activeStack.isEmpty()) return;
         if (!(activeStack.getItem() instanceof BowItem)) return;
 
-        EntityAttributeInstance inst = self.getAttributeInstance(ModAttributes.RELOAD_SPEED);
-        double speed = 0.0;
-        if (inst != null) speed += inst.getValue();
+        double genericAttackSpeedMultiplier = 1.0;
+        if (self.getAttributes().hasAttribute(net.minecraft.entity.attribute.EntityAttributes.GENERIC_ATTACK_SPEED)) {
+            genericAttackSpeedMultiplier = self.getAttributeValue(net.minecraft.entity.attribute.EntityAttributes.GENERIC_ATTACK_SPEED) / 4.0;
+        }
         
-        // Add rune value from the item itself (allows offhand to work without being global)
-        speed += com.cranks.dungeons.equipment.ItemStatManager.getTotalStatValue(activeStack, "reload_speed");
+        double customAttackSpeedBonus = 0.0;
+        if (self.getAttributes().hasAttribute(ModAttributes.ATTACK_SPEED)) {
+            customAttackSpeedBonus = self.getAttributeValue(ModAttributes.ATTACK_SPEED);
+        }
+        
+        double speed = genericAttackSpeedMultiplier * (1.0 + customAttackSpeedBonus);
+        
+        // Add rune value from the item itself if in offhand (allows offhand to work without double-dipping)
+        if (self.getActiveHand() == net.minecraft.util.Hand.OFF_HAND) {
+            speed += com.cranks.dungeons.equipment.ItemStatManager.getTotalStatValue(activeStack, "attack_speed");
+        }
 
         if (speed == 1.0) return;
 

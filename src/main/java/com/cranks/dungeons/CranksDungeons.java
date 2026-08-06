@@ -146,9 +146,6 @@ public class CranksDungeons implements ModInitializer {
 			PassiveSkillApplier.updatePlayerPassives(handler.player);
 
 			// Retroactive fix for existing players
-			var reloadInst = handler.player.getAttributeInstance(ModAttributes.RELOAD_SPEED);
-			if (reloadInst != null && reloadInst.getBaseValue() == 0.0)
-				reloadInst.setBaseValue(1.0);
 			var miningInst = handler.player.getAttributeInstance(ModAttributes.MINING_EFFICIENCY);
 			if (miningInst != null && miningInst.getBaseValue() == 0.0)
 				miningInst.setBaseValue(1.0);
@@ -172,7 +169,6 @@ public class CranksDungeons implements ModInitializer {
 						.add(ModAttributes.EVASION_RATING, 0.0)
 						.add(ModAttributes.ENERGY_SHIELD, 0.0)
 						.add(ModAttributes.ARMOR_CRIT_MITIGATION, 0.0)
-						.add(ModAttributes.RELOAD_SPEED, 1.0)
 						.add(ModAttributes.CROP_EXPERIENCE, 0.0)
 						// Offensive
 						.add(ModAttributes.BONUS_ATTACK_DAMAGE, 0.0)

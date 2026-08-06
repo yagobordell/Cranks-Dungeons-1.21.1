@@ -90,9 +90,9 @@ public abstract class InventoryScreenStatsMixin {
                 int y = ((com.cranks.dungeons.mixin.HandledScreenAccessor) screen).getY();
                 int backgroundWidth = ((com.cranks.dungeons.mixin.HandledScreenAccessor) screen).getBackgroundWidth();
 
-                int panelX = x + backgroundWidth + 2;
+                int panelX = x + backgroundWidth - 1;
                 int panelY = y;
-                int panelWidth = 150;
+                int panelWidth = 158;
                 int panelHeight = 166;
 
                 return mouseX >= panelX && mouseX <= panelX + panelWidth &&
@@ -195,9 +195,9 @@ public abstract class InventoryScreenStatsMixin {
                         if (!statsVisible)
                                 return;
 
-                        int panelX = x + backgroundWidth + 2;
+                        int panelX = x + backgroundWidth - 1;
                         int panelY = y;
-                        int panelWidth = 150;
+                        int panelWidth = 158;
                         int panelHeight = 166;
 
                         context.drawGuiTexture(STATS_PANEL_BACKGROUND, panelX, panelY, panelWidth, panelHeight);
@@ -217,7 +217,7 @@ public abstract class InventoryScreenStatsMixin {
                         int curY = panelY + 12 - scrollOffset;
 
                         // --- HEADER ---
-                        context.drawText(tr, Text.literal(player.getName().getString()), panelX + 16, curY, 0xFFFFFFFF, false);
+                        context.drawText(tr, Text.literal(player.getName().getString()), panelX + 12, curY, 0xFFFFFFFF, false);
                         curY += 11;
                         String playerClass = com.cranks.dungeons.component.ModComponents.PASSIVE_DATA.get(player).getPlayerClass();
                         if (playerClass == null || playerClass.isEmpty()) {
@@ -225,7 +225,7 @@ public abstract class InventoryScreenStatsMixin {
                         } else {
                                 playerClass = playerClass.substring(0, 1).toUpperCase() + playerClass.substring(1);
                         }
-                        context.drawText(tr, Text.literal("Level " + player.experienceLevel + " " + playerClass), panelX + 16, curY, 0xFFA0A0A0, false);
+                        context.drawText(tr, Text.literal("Level " + player.experienceLevel + " " + playerClass), panelX + 12, curY, 0xFFA0A0A0, false);
                         curY += 16;
 
                         // --- ATTRIBUTES ---
@@ -511,7 +511,7 @@ public abstract class InventoryScreenStatsMixin {
                 double uncapped = uncappedValue * 100;
                 String text = String.format(java.util.Locale.US, "%s: %.0f%% (%.0f%%)", name, capped, uncapped);
                 
-                int statX = panelX + 16;
+                int statX = panelX + 12;
                 if (mouseX >= statX && mouseX <= statX + tr.getWidth(text) && mouseY >= y && mouseY <= y + 9) {
                         hoveredStat = name;
                         tooltipX = mouseX;
@@ -530,7 +530,7 @@ public abstract class InventoryScreenStatsMixin {
                 context.getMatrices().push();
                 float scale = 1.1f;
                 context.getMatrices().scale(scale, scale, 1.0f);
-                context.drawText(tr, Text.literal(title), (int)((panelX + 16) / scale), (int)(y / scale), 0xFFE0E0E0, false);
+                context.drawText(tr, Text.literal(title), (int)((panelX + 12) / scale), (int)(y / scale), 0xFFE0E0E0, false);
                 context.getMatrices().pop();
                 return y + (int)(11 * scale);
         }
@@ -599,7 +599,7 @@ public abstract class InventoryScreenStatsMixin {
         @Unique
         private int drawStat(DrawContext context, TextRenderer tr, int x, int y, String name, double val,
                         String suffix) {
-                context.drawText(tr, Text.literal(name + ": " + String.format("%.1f", val) + suffix), x + 16, y,
+                context.drawText(tr, Text.literal(name + ": " + String.format("%.1f", val) + suffix), x + 12, y,
                                 0xFFE0E0E0,
                                 false);
                 return y + 10;
@@ -621,7 +621,7 @@ public abstract class InventoryScreenStatsMixin {
                         double base, String suffix, int mouseX, int mouseY, int panelX, int panelWidth) {
                 String totalStr = formatStatValue(name, total) + suffix;
                 String text = name + ": " + totalStr;
-                int statX = x + 16;
+                int statX = x + 12;
                 
                 if (mouseX >= statX && mouseX <= statX + tr.getWidth(text) && mouseY >= y && mouseY <= y + 9) {
                         hoveredStat = name;

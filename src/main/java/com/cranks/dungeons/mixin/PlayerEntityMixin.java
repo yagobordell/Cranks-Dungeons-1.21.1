@@ -23,7 +23,7 @@ public abstract class PlayerEntityMixin extends LivingEntity {
     private static void modifyPlayerAttributes(CallbackInfoReturnable<DefaultAttributeContainer.Builder> cir) {
         DefaultAttributeContainer.Builder builder = cir.getReturnValue();
 
-        builder.add(com.cranks.dungeons.registry.ModAttributes.RELOAD_SPEED, 1.0);
+
         builder.add(com.cranks.dungeons.registry.ModAttributes.MINING_EFFICIENCY, 1.0);
 
         cir.setReturnValue(builder);

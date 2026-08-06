@@ -99,4 +99,22 @@ public class ItemStackMixin {
             }
         }
     }
+
+    @Unique
+    private static final ThreadLocal<Boolean> IS_UPDATING_ATTRIBUTES = ThreadLocal.withInitial(() -> false);
+
+    @Inject(method = "set", at = @At("RETURN"))
+    private <T> void onComponentSet(net.minecraft.component.ComponentType<? super T> type, T value, CallbackInfoReturnable<T> cir) {
+        if (type == net.minecraft.component.DataComponentTypes.ENCHANTMENTS) {
+            ItemStack stack = (ItemStack) (Object) this;
+            if (!stack.isEmpty() && !IS_UPDATING_ATTRIBUTES.get()) {
+                IS_UPDATING_ATTRIBUTES.set(true);
+                try {
+                    com.cranks.dungeons.equipment.EquipmentStatApplier.updateItemAttributes(stack);
+                } finally {
+                    IS_UPDATING_ATTRIBUTES.set(false);
+                }
+            }
+        }
+    }
 }

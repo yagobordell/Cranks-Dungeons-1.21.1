@@ -16,7 +16,7 @@ This document explains how item stats (runes), local percentages, and attribute 
 | `EquipmentStatApplier` | **Central hub**: Bakes rune stats into an item's `AttributeModifiersComponent` |
 | `ItemStackTooltipMixin` | Reads the baked component + remaining rune stats to render the tooltip |
 | `LivingEntityMixin` | Handles requirement penalties, intrinsic stat bonuses, and armor speed |
-| `ItemDefaultComponentsMixin` | Sets base stats for armor pieces (e.g., leather gets Evasion Rating, gold gets Energy Shield) |
+| `ItemComponentModifier` | Sets base stats for armor pieces (e.g., leather gets Evasion Rating, gold gets Energy Shield) |
 
 ---
 
@@ -123,8 +123,32 @@ When a player doesn't meet an item's stat requirements (STR/DEX/INT), `LivingEnt
 |---|---|---|
 | `registerForTypes("evasion_rating_percent", ...)` | `{type}_evasion_rating_percent` | `chestplate_evasion_rating_percent` |
 | `registerHybridForTypes("hybrid_dex_eva_life", ...)` | `{type}_hybrid_dex_eva_life` | `chestplate_hybrid_dex_eva_life` |
-
 The base name is just a label — the actual stat ID always has the equipment type prefix.
+
+### 6. Cinematic Respawn & HUD Hiding
+
+Custom HUDs (StatBars, PartyHud, NotificationHud) must **not** render when a cinematic respawn is active (e.g., from the Cinematic Respawn mod). We use reflection to check this without creating a hard dependency:
+
+```java
+// Centralized check in CranksDungeonsClient
+public static boolean isCinematicRespawnActive() {
+    try {
+        Class<?> clazz = Class.forName("net.gamev.cinematic_respawn.client.RespawnCinematicController");
+        Method method = clazz.getMethod("isActive");
+        return (Boolean) method.invoke(null);
+    } catch (Exception e) {
+        return false;
+    }
+}
+```
+
+In any custom HUD render mixin, abort rendering if this returns true.
+
+### 7. Elemental Damage & Void Mechanics
+
+- **Damage Conversions**: `DamageConversionHelper.getBreakdown()` determines how physical damage converts to Fire/Cold/Lightning/Void.
+- **Void Damage**: Bypasses normal armor (unless specific stats allow it) and deals **2x damage to Energy Shields**.
+- **Death Messages & Hardcore Revival**: To maintain compatibility with mods like Hardcore Revival and vanilla death messages, elemental damage must be attributed to the attacking entity (mob/player). In `ElementalDamageHelper.applyDamage()` and `ElementalDamageMixin`, we construct custom damage sources using `player.getDamageSources().playerAttack(...)` or `mobAttack(...)` rather than using `outOfWorld` for Void damage.
 
 ---
 

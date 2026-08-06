@@ -56,7 +56,7 @@ public class PassiveStatHelper {
             "fire_extra_percent", "cold_extra_percent", "lightning_extra_percent", "void_extra_percent",
 
             // Combat Utility
-            "movement_speed", "attack_speed", "projectile_speed", "reload_speed",
+            "movement_speed", "attack_speed", "projectile_speed",
             "attack_range", "physical_damage_leeched_as_life", "life_regeneration",
             "chance_to_block", "health_on_block", "knockback", "knockback_resistance",
             "armor_speed_penalty_reduction", "low_armor_speed_bonus",

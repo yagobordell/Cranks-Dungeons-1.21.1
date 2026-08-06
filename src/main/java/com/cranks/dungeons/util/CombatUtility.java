@@ -43,34 +43,52 @@ public class CombatUtility {
             ItemStack weapon, String statId, DamageSource source) {
         
         double currentTotal = 0.0;
-        double armorAndBase = 0.0;
 
         if (attacker.getAttributes().hasAttribute(attribute)) {
             currentTotal = attacker.getAttributeValue(attribute);
             
-            // 1. Get the "Armor + Base" part by subtracting whatever is currently in hand, 
-            // EXCEPT for local stats which are not part of the global attribute pool
+            // 1. Get the exact flat contribution of the currently held mainhand weapon
             ItemStack held = attacker.getMainHandStack();
-            double heldStat = statId.startsWith("local_") ? 0.0 : com.cranks.dungeons.equipment.EquipmentStatApplier.getItemStatValue(held, statId);
-            if (attacker instanceof PlayerEntity p && !held.isEmpty() && !com.cranks.dungeons.equipment.ItemRequirementManager.meetsRequirements(p, held)) {
-                heldStat *= 0.5;
+            double heldContribution = 0.0;
+            if (!held.isEmpty()) {
+                var modifiers = held.getOrDefault(net.minecraft.component.DataComponentTypes.ATTRIBUTE_MODIFIERS, net.minecraft.component.type.AttributeModifiersComponent.DEFAULT);
+                for (var entry : modifiers.modifiers()) {
+                    if (entry.attribute().equals(attribute) && entry.slot() == net.minecraft.component.type.AttributeModifierSlot.MAINHAND) {
+                        if (entry.modifier().operation() == net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_VALUE) {
+                            heldContribution += entry.modifier().value();
+                        }
+                    }
+                }
+                if (attacker instanceof PlayerEntity p && !com.cranks.dungeons.equipment.ItemRequirementManager.meetsRequirements(p, held)) {
+                    heldContribution *= 0.5; // Requirement penalty
+                }
             }
-            armorAndBase = currentTotal - heldStat;
+            
+            // 2. Get the exact flat contribution of the weapon used for the attack
+            double weaponContribution = 0.0;
+            if (!weapon.isEmpty()) {
+                var modifiers = weapon.getOrDefault(net.minecraft.component.DataComponentTypes.ATTRIBUTE_MODIFIERS, net.minecraft.component.type.AttributeModifiersComponent.DEFAULT);
+                for (var entry : modifiers.modifiers()) {
+                    if (entry.attribute().equals(attribute) && entry.slot() == net.minecraft.component.type.AttributeModifierSlot.MAINHAND) {
+                        if (entry.modifier().operation() == net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_VALUE) {
+                            weaponContribution += entry.modifier().value();
+                        }
+                    }
+                }
+                if (attacker instanceof PlayerEntity p && !com.cranks.dungeons.equipment.ItemRequirementManager.meetsRequirements(p, weapon)) {
+                    weaponContribution *= 0.5; // Requirement penalty
+                }
+            }
+            
+            currentTotal = currentTotal - heldContribution + weaponContribution;
         }
-
-        // 2. Add the projectile weapon's stat
-        double weaponStat = com.cranks.dungeons.equipment.EquipmentStatApplier.getItemStatValue(weapon, statId);
-        if (attacker instanceof PlayerEntity p && !weapon.isEmpty() && !com.cranks.dungeons.equipment.ItemRequirementManager.meetsRequirements(p, weapon)) {
-            weaponStat *= 0.5;
-        }
-        double finalValue = armorAndBase + weaponStat;
 
         // 3. Apply the global trident throw nerf (8/12 = 0.66x) to the WHOLE value
         if (isTridentThrow(source)) {
-            finalValue *= 0.6667;
+            currentTotal *= 0.6667;
         }
 
-        return finalValue;
+        return currentTotal;
     }
 
     /**

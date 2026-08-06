@@ -86,7 +86,7 @@ public class EnchantmentFilterUtil {
         return (key.contains("damage") || key.contains("chance_to") || key.contains("duration") ||
                key.contains("penetration") || key.contains("steal") || key.contains("attack") ||
                key.contains("knockback") || key.contains("breaking_range") || key.contains("precision_mining") ||
-               key.contains("efficiency") || key.contains("reload_speed") ||
+               key.contains("efficiency") || 
                key.contains("extra") || key.contains("stacks") || key.contains("fortune") ||
                key.contains("experience") || key.contains("crit_chance") || key.contains("crit_multiplier"))
                && !key.contains("resistance");

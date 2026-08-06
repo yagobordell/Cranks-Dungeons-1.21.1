@@ -20,8 +20,6 @@ public class FreezeSlowdownMixin {
     private static final Identifier FREEZE_MOVEMENT_MODIFIER_ID = Identifier.of(CranksDungeons.MOD_ID, "freeze_movement_slow");
     @Unique
     private static final Identifier FREEZE_ATTACK_MODIFIER_ID = Identifier.of(CranksDungeons.MOD_ID, "freeze_attack_slow");
-    @Unique
-    private static final Identifier FREEZE_RELOAD_MODIFIER_ID = Identifier.of(CranksDungeons.MOD_ID, "freeze_reload_slow");
 
     // Snapshot of the entity's pose at the moment it was frozen
     @Unique private boolean cranks$wasFrozenLastTick = false;
@@ -54,12 +52,7 @@ public class FreezeSlowdownMixin {
         applyModifier(entity, net.minecraft.entity.attribute.EntityAttributes.GENERIC_ATTACK_SPEED,
                 FREEZE_ATTACK_MODIFIER_ID, attackSlow, shouldApplyAttack);
                 
-        // Apply or remove reload speed modifier
-        EntityAttributeInstance reloadAttr = entity.getAttributeInstance(ModAttributes.RELOAD_SPEED);
-        if (reloadAttr != null) {
-            applyModifier(entity, ModAttributes.RELOAD_SPEED,
-                    FREEZE_RELOAD_MODIFIER_ID, attackSlow, shouldApplyAttack);
-        }
+
     }
 
     @Unique

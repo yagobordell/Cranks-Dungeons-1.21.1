@@ -23,18 +23,18 @@ public class PunchyAnimationManagerMixin {
         if (isBow || isCrossbow) {
             MinecraftClient client = MinecraftClient.getInstance();
             if (client.player != null) {
-                EntityAttributeInstance inst = client.player.getAttributeInstance(ModAttributes.RELOAD_SPEED);
-                double speed = 0.0;
-                if (inst != null) {
-                    speed += inst.getValue();
-                }
+                double genericAttackSpeedMultiplier = client.player.getAttributeValue(net.minecraft.entity.attribute.EntityAttributes.GENERIC_ATTACK_SPEED) / 4.0;
+                double customAttackSpeedBonus = client.player.getAttributeValue(ModAttributes.ATTACK_SPEED);
+                double speed = genericAttackSpeedMultiplier * (1.0 + customAttackSpeedBonus);
                 
                 ItemStack stack = client.player.getActiveItem();
                 if (stack.isEmpty()) {
                     stack = client.player.getMainHandStack();
                 }
                 
-                speed += com.cranks.dungeons.equipment.ItemStatManager.getTotalStatValue(stack, "reload_speed");
+                if (client.player.getActiveHand() == net.minecraft.util.Hand.OFF_HAND) {
+                    speed += com.cranks.dungeons.equipment.ItemStatManager.getTotalStatValue(stack, "attack_speed");
+                }
                 
                 if (speed > 0 && speed != 1.0) {
                     float original = cir.getReturnValue();
