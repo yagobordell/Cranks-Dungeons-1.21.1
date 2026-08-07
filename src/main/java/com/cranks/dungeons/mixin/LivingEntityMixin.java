@@ -147,6 +147,24 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
         }
     }
 
+    @Inject(method = "damage", at = @At("RETURN"))
+    private void trackDamageContributions(net.minecraft.entity.damage.DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
+        if (cir.getReturnValue() && !((LivingEntity) (Object) this).getWorld().isClient()) {
+            if ((Object) this instanceof com.cranks.dungeons.util.MobDamageTracker tracker) {
+                net.minecraft.entity.player.PlayerEntity attacker = null;
+                if (source.getAttacker() instanceof net.minecraft.entity.player.PlayerEntity player) {
+                    attacker = player;
+                } else {
+                    attacker = ((LivingEntityAccessor) this).cranks$getAttackingPlayer();
+                }
+                
+                if (attacker != null) {
+                    tracker.cranks$addDamageContribution(attacker.getUuid(), amount);
+                }
+            }
+        }
+    }
+
     @Unique
     private double cranks$lastStrength = -1;
     @Unique
@@ -348,6 +366,102 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
     private static final net.minecraft.util.Identifier ARMOR_SPEED_MOD_ID = net.minecraft.util.Identifier
             .of("cranks-dungeons", "armor_speed_penalty");
 
+    @Inject(method = "onDeath", at = @At("TAIL"))
+    private void awardCombatXp(net.minecraft.entity.damage.DamageSource source, CallbackInfo ci) {
+        if (((LivingEntity) (Object) this).getWorld().isClient()) return;
+        
+        LivingEntity entity = (LivingEntity) (Object) this;
+        if (!(entity instanceof net.minecraft.entity.mob.MobEntity mob)) return;
+        
+        int baseXP = ((MobEntityAccessor) mob).getExperiencePoints();
+        if (baseXP <= 0) return;
+
+        net.minecraft.server.MinecraftServer server = entity.getServer();
+        if (server == null) return;
+
+        // Group damage by Party or Solo UUID
+        java.util.Map<Object, Float> teamDamage = new java.util.HashMap<>();
+        
+        if (entity instanceof com.cranks.dungeons.util.MobDamageTracker tracker) {
+            java.util.Map<java.util.UUID, Float> contributions = tracker.cranks$getDamageContributions();
+            for (java.util.Map.Entry<java.util.UUID, Float> entry : contributions.entrySet()) {
+                java.util.UUID uuid = entry.getKey();
+                float damage = entry.getValue();
+                
+                java.util.Optional<com.cranks.dungeons.party.Party> optParty = com.cranks.dungeons.party.PartyManager.getParty(uuid);
+                Object key = optParty.isPresent() ? optParty.get() : uuid;
+                teamDamage.merge(key, damage, Float::sum);
+            }
+        }
+        
+        Object winner = null;
+        float maxDamage = -1;
+        
+        // Find winner
+        for (java.util.Map.Entry<Object, Float> entry : teamDamage.entrySet()) {
+            if (entry.getValue() > maxDamage) {
+                maxDamage = entry.getValue();
+                winner = entry.getKey();
+            }
+        }
+        
+        // Fallback to old logic if no damage was tracked but there's an attacking player
+        if (winner == null) {
+            net.minecraft.entity.player.PlayerEntity attacker = null;
+            if (source.getAttacker() instanceof net.minecraft.entity.player.PlayerEntity player) {
+                attacker = player;
+            } else {
+                attacker = ((LivingEntityAccessor) this).cranks$getAttackingPlayer();
+            }
+            if (attacker != null) {
+                java.util.Optional<com.cranks.dungeons.party.Party> optParty = com.cranks.dungeons.party.PartyManager.getParty(attacker.getUuid());
+                winner = optParty.isPresent() ? optParty.get() : attacker.getUuid();
+            }
+        }
+
+        if (winner instanceof com.cranks.dungeons.party.Party party) {
+            java.util.List<net.minecraft.server.network.ServerPlayerEntity> eligiblePlayers = new java.util.ArrayList<>();
+            double maxBonus = 0;
+            for (java.util.UUID memberId : party.getMembers()) {
+                net.minecraft.server.network.ServerPlayerEntity member = server.getPlayerManager().getPlayer(memberId);
+                if (member != null && member.getWorld() == entity.getWorld() && member.squaredDistanceTo(entity) <= 10000) {
+                    eligiblePlayers.add(member);
+                    maxBonus = Math.max(maxBonus, member.getAttributeValue(ModAttributes.COMBAT_EXPERIENCE));
+                }
+            }
+            
+            if (maxBonus > 0) {
+                baseXP += (int)(baseXP * maxBonus);
+            }
+
+            int n = eligiblePlayers.size();
+            if (n > 1) {
+                int sharedXp = (int) Math.ceil((baseXP / (double) n) * 1.2);
+                for (net.minecraft.server.network.ServerPlayerEntity member : eligiblePlayers) {
+                    com.cranks.dungeons.util.CombatXpContext.setCombatXp(true);
+                    member.addExperience(sharedXp);
+                    com.cranks.dungeons.util.CombatXpContext.setCombatXp(false);
+                }
+            } else if (n == 1) {
+                com.cranks.dungeons.util.CombatXpContext.setCombatXp(true);
+                eligiblePlayers.get(0).addExperience(baseXP);
+                com.cranks.dungeons.util.CombatXpContext.setCombatXp(false);
+            }
+        } else if (winner instanceof java.util.UUID soloUuid) {
+            net.minecraft.server.network.ServerPlayerEntity player = server.getPlayerManager().getPlayer(soloUuid);
+            if (player != null && player.getWorld() == entity.getWorld() && player.squaredDistanceTo(entity) <= 10000) {
+                double bonus = player.getAttributeValue(ModAttributes.COMBAT_EXPERIENCE);
+                if (bonus > 0) {
+                    baseXP += (int)(baseXP * bonus);
+                }
+                
+                com.cranks.dungeons.util.CombatXpContext.setCombatXp(true);
+                player.addExperience(baseXP);
+                com.cranks.dungeons.util.CombatXpContext.setCombatXp(false);
+            }
+        }
+    }
+
 
     @Unique
     private void updateArmorSpeed(LivingEntity entity) {
@@ -385,19 +499,12 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
         }
     }
 
-    @Inject(method = "dropXp", at = @At("HEAD"))
+    @Inject(method = "dropXp", at = @At("HEAD"), cancellable = true)
     private void modifyCombatXp(net.minecraft.entity.Entity attacker, CallbackInfo ci) {
-        if (attacker instanceof net.minecraft.entity.player.PlayerEntity player) {
-            double combatXpBonus = player.getAttributeValue(ModAttributes.COMBAT_EXPERIENCE);
-            if (combatXpBonus > 0) {
-                LivingEntity entity = (LivingEntity) (Object) this;
-                if (entity instanceof net.minecraft.entity.mob.MobEntity mob) {
-                    int currentXp = ((MobEntityAccessor) mob).getExperiencePoints();
-                    if (currentXp > 0) {
-                        ((MobEntityAccessor) mob).setExperiencePoints(currentXp + (int)(currentXp * combatXpBonus));
-                    }
-                }
-            }
+        if ((Object) this instanceof net.minecraft.entity.mob.MobEntity) {
+            // Unconditionally cancel physical XP drops for mobs.
+            // We handle all combat XP distribution manually in onDeath(TAIL).
+            ci.cancel();
         }
     }
 }

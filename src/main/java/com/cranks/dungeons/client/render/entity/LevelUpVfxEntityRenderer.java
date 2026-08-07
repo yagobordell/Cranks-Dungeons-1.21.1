@@ -28,7 +28,7 @@ public class LevelUpVfxEntityRenderer extends EntityRenderer<LevelUpVfxEntity> {
     @Override
     public void render(LevelUpVfxEntity entity, float yaw, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light) {
         float age = entity.age + tickDelta;
-        float maxAge = 60.0f;
+        float maxAge = 30.0f;
         float progress = age / maxAge;
         if (progress > 1.0f) progress = 1.0f;
 
@@ -79,20 +79,23 @@ public class LevelUpVfxEntityRenderer extends EntityRenderer<LevelUpVfxEntity> {
         float ringAlpha2 = finalAlpha * (1.0f - ringProgress2) * 0.8f;
         drawRing(consumer, localMatrices.peek().getPositionMatrix(), ringRadius2 - 0.15f, ringRadius2, finalR, finalG, finalB, ringAlpha2, 32);
 
-        // 3. Draw smooth multi-sided inner cylinder
+        // 3. Draw smooth multi-sided inner cylinder (thinner, more transparent, growing)
+        float innerHeight = Math.min(height, progress * 25.0f);
+        float innerAlphaBase = finalAlpha * 0.3f;
         localMatrices = new MatrixStack();
         localMatrices.multiplyPositionMatrix(posMatrix);
         localMatrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(-age * 4.0f));
-        drawCylinder(consumer, localMatrices.peek().getPositionMatrix(), 0.35f, height, finalR, finalG, finalB, finalAlpha, 0.0f, 0, vOffset, 16);
+        drawCylinder(consumer, localMatrices.peek().getPositionMatrix(), 0.15f, innerHeight, finalR, finalG, finalB, innerAlphaBase, 0.0f, 0, vOffset, 16);
 
-        // 4. Draw smooth multi-sided outer cylinder (pulsing)
-        float outerRadius = 0.6f + MathHelper.sin(age * 0.15f) * 0.1f;
-        float outerAlphaBase = finalAlpha * 0.5f;
+        // 4. Draw smooth multi-sided outer cylinder (pulsing, thin, very transparent)
+        float outerHeight = Math.min(height + 1.0f, progress * 25.0f);
+        float outerRadius = 0.3f + MathHelper.sin(age * 0.3f) * 0.05f;
+        float outerAlphaBase = finalAlpha * 0.1f;
         float outerVOffset = -(age * 0.03f);
         localMatrices = new MatrixStack();
         localMatrices.multiplyPositionMatrix(posMatrix);
         localMatrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(age * 2.5f));
-        drawCylinder(consumer, localMatrices.peek().getPositionMatrix(), outerRadius, height + 1.0f, finalR, finalG, finalB, outerAlphaBase, 0.0f, 0, outerVOffset, 16);
+        drawCylinder(consumer, localMatrices.peek().getPositionMatrix(), outerRadius, outerHeight, finalR, finalG, finalB, outerAlphaBase, 0.0f, 0, outerVOffset, 16);
 
         matrices.pop();
     }

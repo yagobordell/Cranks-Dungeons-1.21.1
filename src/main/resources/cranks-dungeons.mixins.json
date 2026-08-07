@@ -79,7 +79,8 @@
 		"LivingEntityTickFreezeMixin",
 		"LivingEntityAccessor",
 		"CrossbowItemMixin",
-		"TridentEntityMixin"
+		"TridentEntityMixin",
+		"MobEntityMixin"
 	],
 	"client": [
 		"CrashReportMixin",

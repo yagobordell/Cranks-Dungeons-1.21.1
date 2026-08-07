@@ -100,7 +100,7 @@ public class WorldTreeDataComponentImpl implements WorldTreeDataComponent, AutoS
     public int getNextLevelXp() {
         int maxLevel = Math.max(1, com.cranks.dungeons.stat.passive.WorldNodeRegistry.getNodes().size());
         if (this.gatheringLevel >= maxLevel) return 0;
-        return (int) (15.0 * this.gatheringLevel + 0.5 * Math.pow(this.gatheringLevel, 2));
+        return (int) (200 + 75.0 * this.gatheringLevel + 0.5 * Math.pow(this.gatheringLevel, 2));
     }
 
     @Override
@@ -115,7 +115,7 @@ public class WorldTreeDataComponentImpl implements WorldTreeDataComponent, AutoS
         this.gatheringXp += xp;
         
         boolean leveledUp = false;
-        int nextLevelXp = (int) (15.0 * this.gatheringLevel + 0.5 * Math.pow(this.gatheringLevel, 2));
+        int nextLevelXp = (int) (200 + 75.0 * this.gatheringLevel + 0.5 * Math.pow(this.gatheringLevel, 2));
         
         while (this.gatheringXp >= nextLevelXp && this.gatheringLevel < maxLevel) {
             this.gatheringXp -= nextLevelXp;
@@ -127,7 +127,7 @@ public class WorldTreeDataComponentImpl implements WorldTreeDataComponent, AutoS
                 this.gatheringXp = 0;
                 break;
             }
-            nextLevelXp = (int) (15.0 * this.gatheringLevel + 0.5 * Math.pow(this.gatheringLevel, 2));
+            nextLevelXp = (int) (200 + 75.0 * this.gatheringLevel + 0.5 * Math.pow(this.gatheringLevel, 2));
         }
         
         if (leveledUp) {

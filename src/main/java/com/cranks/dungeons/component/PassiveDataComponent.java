@@ -22,4 +22,5 @@ public interface PassiveDataComponent extends Component, CopyableComponent<Passi
     
     // Called to retroactively grant points if the user was leveled before the update
     void checkRetroactivePoints(int currentLevel);
+
 }

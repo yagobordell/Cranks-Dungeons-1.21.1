@@ -161,3 +161,9 @@ In any custom HUD render mixin, abort rendering if this returns true.
 3. **Comparing attributes anywhere?** Use `isAttribute()` or `attributesMatch()`, never `.equals()`.
 
 4. **Why isn't my percent stat working?** Check if the stat's `StatComponent` has a non-null attribute. If the attribute is `null`, the component's attribute list is empty and no loops will execute.
+
+5. **1.21 AttributeModifierSlot Location**: Remember that in Minecraft 1.21, `AttributeModifierSlot` was moved. It is now located at `net.minecraft.component.type.AttributeModifierSlot`, NOT `net.minecraft.entity.attribute`.
+
+6. **Reading Baked Weapon Attributes**: When computing combat math (like in `CombatUtility.getAttributeValue`), do NOT read flat rune values (like flat elemental damage) directly from the item's NBT using `EquipmentStatApplier.getItemStatValue()`. Because these flat stats are baked directly into the item's `AttributeModifiersComponent` by `EquipmentStatApplier`, doing so will cause double-counting! You must parse the weapon's `AttributeModifiersComponent` for `ADD_VALUE` modifiers in the `MAINHAND` slot to correctly calculate weapon contributions.
+
+7. **Tooltip Rendering for Custom Multipliers**: Some stats (like `local_crit_chance`) have a `null` underlying attribute because they act as invisible math multipliers in `CriticalStrikeMixin`. As a result, they do NOT automatically get picked up by `ItemStackTooltipMixin.calculateItemAttributeTotals()`. To reflect these properly in the item's base stats block, you must manually query `EquipmentStatApplier.getItemStatValue(stack, "local_crit_chance")` inside `ItemStackTooltipMixin` and manually compute the final scaled base value.

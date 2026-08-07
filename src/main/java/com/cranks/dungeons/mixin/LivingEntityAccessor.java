@@ -11,4 +11,7 @@ public interface LivingEntityAccessor {
 
     @Accessor("lastDamageTaken")
     void cranks$setLastDamageTaken(float lastDamageTaken);
+
+    @Accessor("attackingPlayer")
+    net.minecraft.entity.player.PlayerEntity cranks$getAttackingPlayer();
 }

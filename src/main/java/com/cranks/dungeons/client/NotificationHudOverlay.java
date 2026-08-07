@@ -70,7 +70,7 @@ public class NotificationHudOverlay implements HudRenderCallback {
         int screenWidth = client.getWindow().getScaledWidth();
         int screenHeight = client.getWindow().getScaledHeight();
 
-        int yOffset = screenHeight - 80;
+        int yOffset = screenHeight - 85;
 
         List<Text> linesToDraw = new ArrayList<>();
 

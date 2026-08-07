@@ -47,21 +47,21 @@ public class LevelUpVfxEntity extends Entity {
             // Ascending spiral particles
             float radius = 1.5f;
             for (int i = 0; i < 3; i++) {
-                double angle = (this.age * 10 + i * 120) * Math.PI / 180.0;
+                double angle = (this.age * 15 + i * 120) * Math.PI / 180.0;
                 double x = this.getX() + Math.cos(angle) * radius;
                 double z = this.getZ() + Math.sin(angle) * radius;
-                double y = this.getY() + (this.age * 0.4) % 10.0;
+                double y = this.getY() + (this.age * 0.6) % 10.0;
                 
                 this.getEntityWorld().addParticle(
                     net.minecraft.particle.ParticleTypes.END_ROD, 
                     x, y, z, 
-                    0.0, 0.1, 0.0
+                    0.0, 0.15, 0.0
                 );
             }
             
             // Central explosion particles
             if (this.age < 5) {
-                for (int i = 0; i < 10; i++) {
+                for (int i = 0; i < 15; i++) {
                     this.getEntityWorld().addParticle(
                         net.minecraft.particle.ParticleTypes.FIREWORK, 
                         this.getX() + (this.random.nextDouble() - 0.5) * 2.0, 
@@ -74,7 +74,7 @@ public class LevelUpVfxEntity extends Entity {
                 }
             }
         } else {
-            if (this.age > 60) {
+            if (this.age > 30) {
                 this.discard();
             }
         }
