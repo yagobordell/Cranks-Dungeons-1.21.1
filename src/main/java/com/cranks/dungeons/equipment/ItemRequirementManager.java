@@ -36,6 +36,10 @@ public class ItemRequirementManager {
             baseScale = 45;
         } else if (name.contains("netherite")) {
             baseScale = 65;
+        } else if (type == EquipmentType.MACE || type == EquipmentType.TRIDENT) {
+            baseScale = 65;
+        } else if (type == EquipmentType.ELYTRA) {
+            baseScale = 90;
         } else if (type != null) {
             // Default for unknown material items
             baseScale = 10;
@@ -50,8 +54,11 @@ public class ItemRequirementManager {
         // Roughly match PoE themes
         if (type == EquipmentType.MACE || type == EquipmentType.SHIELD) {
             str = scale;
-        } else if (type == EquipmentType.SWORD || type == EquipmentType.TRIDENT || type == EquipmentType.SPEAR) {
+        } else if (type == EquipmentType.SWORD || type == EquipmentType.SPEAR) {
             str = scale / 2;
+            dex = scale / 2;
+        } else if (type == EquipmentType.TRIDENT) {
+            str = 20;
             dex = scale / 2;
         } else if (type == EquipmentType.BOW || type == EquipmentType.CROSSBOW) {
             dex = scale;
@@ -76,6 +83,14 @@ public class ItemRequirementManager {
             // Elytra or others
             dex = scale / 2;
             intel = scale / 2;
+        }
+
+        double reducedReq = com.cranks.dungeons.equipment.EquipmentStatApplier.getItemStatValue(stack, "reduced_requirements");
+        if (reducedReq > 0) {
+            double multiplier = 1.0 - reducedReq;
+            str = (int) Math.round(str * multiplier);
+            dex = (int) Math.round(dex * multiplier);
+            intel = (int) Math.round(intel * multiplier);
         }
 
         return new int[]{str, dex, intel};

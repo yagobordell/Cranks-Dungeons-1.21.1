@@ -156,6 +156,18 @@ public class StatRegistry {
                                 EquipmentType.SWORD, EquipmentType.SPEAR, EquipmentType.MACE, EquipmentType.TRIDENT,
                                 EquipmentType.BOW, EquipmentType.CROSSBOW, EquipmentType.SHIELD, EquipmentType.ELYTRA);
 
+                // --- Reduced Attribute Requirements (ALL equipment) ---
+                registerForTypes("reduced_requirements", "% reduced Attribute Requirements",
+                                null,
+                                r(0.10, 0.13, 0.16, 0.18, 0.21, 0.24, 0.27, 0.29, 0.32, 0.35),
+                                r(0.10, 0.13, 0.16, 0.18, 0.21, 0.24, 0.27, 0.29, 0.32, 0.35),
+                                true, true, Formatting.WHITE, CustomStat.AffixType.SUFFIX,
+                                60, 5000,
+                                EquipmentType.HELMET, EquipmentType.CHESTPLATE, EquipmentType.LEGGINGS,
+                                EquipmentType.BOOTS,
+                                EquipmentType.SWORD, EquipmentType.SPEAR, EquipmentType.MACE, EquipmentType.TRIDENT,
+                                EquipmentType.BOW, EquipmentType.CROSSBOW, EquipmentType.SHIELD, EquipmentType.ELYTRA);
+
                 // --- Energy Shield (Armor + Elytra) ---
                 registerForTypes("energy_shield", "Energy Shield",
                                 ModAttributes.ENERGY_SHIELD,
@@ -408,6 +420,15 @@ public class StatRegistry {
                                 null,
                                 r(0.20, 0.23, 0.27, 0.32, 0.37, 0.43, 0.49, 0.54, 0.57, 0.60),
                                 r(0.25, 0.29, 0.34, 0.39, 0.45, 0.51, 0.57, 0.62, 0.65, 0.68),
+                                true, true, Formatting.GOLD, CustomStat.AffixType.SUFFIX,
+                                73, 3875,
+                                ALL_WEAPONS);
+
+                // Weapons use Critical Strike Multiplier
+                registerForTypes("crit_multiplier", "Critical Strike Multiplier",
+                                ModAttributes.CRIT_MULTIPLIER,
+                                r(0.10, 0.11, 0.13, 0.14, 0.16, 0.17, 0.19, 0.20, 0.22, 0.24),
+                                r(0.12, 0.13, 0.15, 0.16, 0.18, 0.19, 0.21, 0.22, 0.24, 0.25),
                                 true, true, Formatting.GOLD, CustomStat.AffixType.SUFFIX,
                                 73, 3875,
                                 ALL_WEAPONS);

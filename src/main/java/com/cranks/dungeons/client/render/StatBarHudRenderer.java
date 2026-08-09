@@ -22,6 +22,9 @@ public class StatBarHudRenderer implements HudRenderCallback {
     public static final Identifier ABSORPTION_FILL = Identifier.of(CranksDungeons.MOD_ID, "hud/stat_bar/absorption");
     public static final Identifier ABSORPTION_TRAIL = Identifier.of(CranksDungeons.MOD_ID, "hud/stat_bar/absorption_trail");
     public static final Identifier HUNGER_FILL = Identifier.of(CranksDungeons.MOD_ID, "hud/stat_bar/hunger");
+    public static final Identifier HUNGER_HIGH_FILL = Identifier.of(CranksDungeons.MOD_ID, "hud/stat_bar/hunger_high");
+    public static final Identifier HUNGER_LOW_FILL = Identifier.of(CranksDungeons.MOD_ID, "hud/stat_bar/hunger_low");
+    public static final Identifier OXYGEN_FILL = Identifier.of(CranksDungeons.MOD_ID, "hud/stat_bar/oxygen");
 
     // Default dimensions for the bar (scaled to match a vanilla heart row: 81x9)
     public static final int BAR_WIDTH = 81;
@@ -160,6 +163,21 @@ public class StatBarHudRenderer implements HudRenderCallback {
                     x + FILL_OFFSET_X, y + FILL_OFFSET_Y, absWidth, FILL_HEIGHT);
         }
 
+        // --- Render Oxygen Overlay ---
+        int air = player.getAir();
+        int maxAir = player.getMaxAir();
+        if (air < maxAir || player.isSubmergedIn(net.minecraft.registry.tag.FluidTags.WATER)) {
+            float airPercent = MathHelper.clamp((float) air / maxAir, 0f, 1f);
+            int airWidth = (int) (airPercent * MAX_FILL_WIDTH);
+            if (airWidth > 0) {
+                com.mojang.blaze3d.systems.RenderSystem.enableBlend();
+                com.mojang.blaze3d.systems.RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 0.7F);
+                context.drawGuiTexture(OXYGEN_FILL, MAX_FILL_WIDTH, FILL_HEIGHT, 0, 0,
+                        x + FILL_OFFSET_X, y + FILL_OFFSET_Y, airWidth, FILL_HEIGHT);
+                com.mojang.blaze3d.systems.RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+            }
+        }
+
         // Health Text
         TextRenderer textRenderer = client.textRenderer;
         String hText = (int) health + " / " + (int) maxHealth;
@@ -180,11 +198,17 @@ public class StatBarHudRenderer implements HudRenderCallback {
         // Draw Background Frame
         context.drawGuiTexture(EMPTY_BAR, x, y, BAR_WIDTH, BAR_HEIGHT);
 
-        // Draw Hunger Fill (Orange)
+        // Draw Hunger Fill
         float hungerPercent = MathHelper.clamp(hunger / 20f, 0, 1);
         int hungerWidth = (int) (hungerPercent * MAX_FILL_WIDTH);
         if (hungerWidth > 0) {
-            context.drawGuiTexture(HUNGER_FILL, MAX_FILL_WIDTH, FILL_HEIGHT, 0, 0,
+            Identifier hungerTexture = HUNGER_FILL;
+            if (hunger > 16) {
+                hungerTexture = HUNGER_HIGH_FILL;
+            } else if (hunger < 6) {
+                hungerTexture = HUNGER_LOW_FILL;
+            }
+            context.drawGuiTexture(hungerTexture, MAX_FILL_WIDTH, FILL_HEIGHT, 0, 0,
                     x + FILL_OFFSET_X, y + FILL_OFFSET_Y, hungerWidth, FILL_HEIGHT);
         }
 

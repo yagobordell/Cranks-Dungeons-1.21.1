@@ -83,7 +83,7 @@ public class EnergyShieldDamageMixin {
         }
 
         // Specific bypasses
-        if (source.isIn(DamageTypeTags.BYPASSES_INVULNERABILITY) || source.isOf(DamageTypes.DROWN)) {
+        if (source.isIn(DamageTypeTags.BYPASSES_INVULNERABILITY) || source.isOf(DamageTypes.DROWN) || source.isOf(DamageTypes.STARVE)) {
             return amount;
         }
 

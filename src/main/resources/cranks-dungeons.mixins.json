@@ -3,6 +3,10 @@
 	"package": "com.cranks.dungeons.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
+		"StarvationDamageMixin",
+		"HungerActionSpeedMixin",
+		"FoodTooltipMixin",
+		"RemoveSaturationMixin",
 		"VanillaPoisonConversionMixin",
 		"DamageReductionMixin",
 		"LivingEntityMixin",
@@ -80,7 +84,8 @@
 		"LivingEntityAccessor",
 		"CrossbowItemMixin",
 		"TridentEntityMixin",
-		"MobEntityMixin"
+		"MobEntityMixin",
+		"ExperienceOrbEntitySpawnMixin"
 	],
 	"client": [
 		"CrashReportMixin",
