@@ -17,6 +17,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyArgs;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
@@ -39,10 +40,7 @@ public abstract class EnergyShieldRenderMixin {
     @Unique private static long cranks$lastShieldDamageTime = 0;
     @Unique private static final long SHIELD_BLINK_DURATION = 1000; // Blink for 1000ms (1 second) to allow 2 blinks
 
-    @ModifyVariable(method = "renderHealthBar", at = @At(value = "STORE", ordinal = 0), ordinal = 9)
-    private int modifyArmorY(int originalY) {
-        return originalY - (shieldRowCount * 10);
-    }
+    // Removed legacy modifyArmorY hook which was corrupting renderHealthBar local variables
 
     @Inject(method = "renderHealthBar", at = @At("HEAD"))
     private void calculateShieldRows(DrawContext context, PlayerEntity player, int x, int y, int lines, int regeneratingHeartIndex, float maxHealth, int lastHealth, int health, int absorption, boolean blinking, CallbackInfo ci) {
@@ -63,10 +61,21 @@ public abstract class EnergyShieldRenderMixin {
 
         int maxHealthHearts = (int) Math.ceil(maxHealth / 2.0f);
         int absorptionHearts = (int) Math.ceil(absorption / 2.0f);
-        int totalShieldHearts = (int) Math.ceil(maxShield / 2.0);
+        int totalShieldHearts = (int) Math.ceil((maxShield / 2.5) / 2.0);
         int totalHearts = maxHealthHearts + absorptionHearts + totalShieldHearts;
         int totalRows = (int) Math.ceil(totalHearts / 10.0);
         shieldRowCount = totalRows - lines;
+    }
+
+    @ModifyArgs(
+        method = "renderStatusBars",
+        at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/hud/InGameHud;renderArmor(Lnet/minecraft/client/gui/DrawContext;Lnet/minecraft/entity/player/PlayerEntity;IIII)V")
+    )
+    private void modifyArmorY(org.spongepowered.asm.mixin.injection.invoke.arg.Args args) {
+        if (shieldRowCount > 0) {
+            int originalY = args.get(2);
+            args.set(2, originalY - (shieldRowCount * 10));
+        }
     }
 
     @Inject(method = "renderHealthBar", at = @At("RETURN"))

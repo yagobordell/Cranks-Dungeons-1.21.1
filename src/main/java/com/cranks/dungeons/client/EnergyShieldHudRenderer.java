@@ -34,14 +34,14 @@ public class EnergyShieldHudRenderer implements HudRenderCallback {
         PlayerEntity player = client.player;
         if (!(player instanceof EnergyShieldProvider shieldProvider)) return;
         
-        float currentShield = shieldProvider.cranksdungeons$getCurrentEnergyShield();
-        double maxShield = player.getAttributeValue(ModAttributes.ENERGY_SHIELD);
+        float currentShield = shieldProvider.cranksdungeons$getCurrentEnergyShield() / 2.5f;
+        double maxShield = player.getAttributeValue(ModAttributes.ENERGY_SHIELD) / 2.5;
         if (player.getAttributeValue(ModAttributes.KEYSTONE_CRIMSON_PACT) > 0) {
             maxShield = 0;
         }
         if (maxShield <= 0) return;
         
-        if (currentShield < 1.0f) currentShield = 0.0f;
+        if (currentShield < 0.4f) currentShield = 0.0f;
         
         // Get screen dimensions
         int screenWidth = client.getWindow().getScaledWidth();
@@ -75,21 +75,16 @@ public class EnergyShieldHudRenderer implements HudRenderCallback {
         // Calculate shield rows
         int shieldRows = (int) Math.ceil(totalShieldHearts / 10.0);
         
-        // Calculate health rows based on MAX health (not current) so shields stay in fixed position
-        // Use maxHealth from attributes to ensure consistent positioning
-        int maxHealthHearts = (int) Math.ceil(player.getMaxHealth() / 2.0f);
-        int absorptionHearts = (int) Math.ceil(player.getAbsorptionAmount() / 2.0f);
-        int totalHealthRows = (int) Math.ceil((maxHealthHearts + absorptionHearts) / 10.0);
+        // Position shields directly above the health hearts.
+        // With our 5-HP-per-heart scaling, the health bar always sits at healthBarY (screenHeight - 39).
+        // The armor bar slot is 10px above that base. We place shield hearts there.
+        int scaledMaxHealthHearts = (int) Math.ceil((player.getMaxHealth() / 2.5f) / 2.0f);
+        int scaledAbsorptionHearts = (int) Math.ceil((player.getAbsorptionAmount() / 2.5f) / 2.0f);
+        int scaledHealthRows = Math.max(1, (int) Math.ceil((scaledMaxHealthHearts + scaledAbsorptionHearts) / 10.0));
+        int scaledSpacing = Math.max(10 - (scaledHealthRows - 2), 3);
+        int shieldBaseY = healthBarY - 10 - ((scaledHealthRows - 1) * scaledSpacing);
         
-        // Shields replace armor bar - position above all health rows with proper spacing
-        // Match vanilla Minecraft's dynamic spacing formula: Math.max(10 - (rows - 2), 3)
-        // 1-2 rows: 10px spacing, 3 rows: 9px, 4 rows: 8px, etc. (min 3px for 9+ rows)
-        int healthRowsToAccountFor = Math.max(1, totalHealthRows);
-        int vanillaSpacing = Math.max(10 - (healthRowsToAccountFor - 2), 3);
-        // Armor bar is at -10px, then add spacing for each additional row above
-        int armorBarY = healthBarY - 10 - ((healthRowsToAccountFor - 1) * vanillaSpacing);
-        
-        drawAllShieldRows(drawContext, client, healthBarX, armorBarY, 
+        drawAllShieldRows(drawContext, client, healthBarX, shieldBaseY, 
                         totalShieldHearts, effectiveShield, shieldBlinking);
         
         lastRenderedShield = currentShield;

@@ -162,6 +162,7 @@ public class CranksDungeons implements ModInitializer {
 		FabricDefaultAttributeRegistry.register(
 				EntityType.PLAYER,
 				PlayerEntity.createPlayerAttributes()
+						.add(net.minecraft.entity.attribute.EntityAttributes.GENERIC_MAX_HEALTH, 50.0)
 						.add(ModAttributes.CROP_FORTUNE, 0.0)
 						.add(ModAttributes.LOG_FORTUNE, 0.0)
 						.add(ModAttributes.DIG_FORTUNE, 0.0)
@@ -264,7 +265,7 @@ public class CranksDungeons implements ModInitializer {
 						.add(ModAttributes.EXPERIENCE_BONUS, 0.0)
 						.add(ModAttributes.PRECISION_MINING, 0.0)
 						.add(ModAttributes.BREAKING_RANGE, 0.0)
-						.add(ModAttributes.MAX_MANA, 100.0)
+						.add(ModAttributes.MAX_MANA, 34.0)
 						.add(ModAttributes.MAX_MANA_BONUS, 0.0)
 						.add(ModAttributes.MANA_REGENERATION_PERCENT, 0.04)
 						.add(ModAttributes.MANA_REGENERATION, 0.0)
