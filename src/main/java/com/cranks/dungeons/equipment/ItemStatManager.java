@@ -52,6 +52,15 @@ public class ItemStatManager {
         }
     }
 
+    public static boolean isUnique(ItemStack stack) {
+        if (stack.isEmpty()) return false;
+        net.minecraft.item.Item item = stack.getItem();
+        return item == net.minecraft.item.Items.ELYTRA ||
+               item == net.minecraft.item.Items.TRIDENT ||
+               item == net.minecraft.item.Items.MACE ||
+               item == net.minecraft.item.Items.TURTLE_HELMET;
+    }
+
     public static double getAttributeValue(ItemStack stack, net.minecraft.registry.entry.RegistryEntry<net.minecraft.entity.attribute.EntityAttribute> attribute) {
         double total = 0;
         for (ItemStat s : getStats(stack)) {
@@ -176,6 +185,7 @@ public class ItemStatManager {
     }
 
     public static boolean addRandomStat(ItemStack stack, CustomStat.AffixType type, int minLevel, int maxLevel) {
+        if (isUnique(stack)) return false;
         if (!canAddStat(stack, type)) return false;
 
         Optional<EquipmentType> equipType = EquipmentType.getTypeForItem(stack);
@@ -203,6 +213,7 @@ public class ItemStatManager {
     }
 
     public static boolean addRandomStatWithFixedTier(ItemStack stack, int tier, CustomStat.AffixType type) {
+        if (isUnique(stack)) return false;
         if (!canAddStat(stack, type)) return false;
 
         Optional<EquipmentType> equipType = EquipmentType.getTypeForItem(stack);

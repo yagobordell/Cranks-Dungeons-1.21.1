@@ -85,7 +85,9 @@
 		"CrossbowItemMixin",
 		"TridentEntityMixin",
 		"MobEntityMixin",
-		"ExperienceOrbEntitySpawnMixin"
+		"ExperienceOrbEntitySpawnMixin",
+		"ManaDataMixin",
+		"ManaRegenMixin"
 	],
 	"client": [
 		"CrashReportMixin",

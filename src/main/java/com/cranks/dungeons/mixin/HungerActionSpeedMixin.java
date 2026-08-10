@@ -33,7 +33,7 @@ public class HungerActionSpeedMixin {
         int foodLevel = player.getHungerManager().getFoodLevel();
         double multiplier = 0.0;
         
-        if (foodLevel > 16) {
+        if (foodLevel >= 16) {
             multiplier = 0.1; // +10%
         } else if (foodLevel <= 6) {
             multiplier = -0.1; // -10%

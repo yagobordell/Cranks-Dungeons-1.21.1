@@ -354,6 +354,12 @@ public class CranksDungeonsClient implements ClientModInitializer {
             });
         });
 
+        ClientPlayNetworking.registerGlobalReceiver(com.cranks.dungeons.network.ManaSyncPacket.ID, (payload, context) -> {
+            context.client().execute(() -> {
+                com.cranks.dungeons.network.ManaSyncPacket.handle(payload, context.client());
+            });
+        });
+
         ClientPlayNetworking.registerGlobalReceiver(com.cranks.dungeons.network.SyncPassiveTreePayload.ID, (payload, context) -> {
             context.client().execute(() -> {
                 com.cranks.dungeons.config.PassiveTreeConfig.setNodesAndClasses(payload.nodes(), payload.classes());

@@ -316,13 +316,21 @@ public class ItemComponentModifier {
                             45.0,
                             EntityAttributeModifier.Operation.ADD_VALUE),
                     equipmentSlot);
+        } else if (itemName.contains("elytra")) {
+            builder.add(
+                    ModAttributes.ENERGY_SHIELD,
+                    new EntityAttributeModifier(
+                            Identifier.of("cranks-dungeons", "armor.energy_shield." + armorSlot),
+                            90.0,
+                            EntityAttributeModifier.Operation.ADD_VALUE),
+                    equipmentSlot);
         }
     }
 
     private static String getArmorSlot(String itemName) {
         if (itemName.contains("helmet"))
             return "helmet";
-        if (itemName.contains("chestplate"))
+        if (itemName.contains("chestplate") || itemName.contains("elytra"))
             return "chestplate";
         if (itemName.contains("leggings"))
             return "leggings";
@@ -336,6 +344,7 @@ public class ItemComponentModifier {
     }
 
     private static boolean isArmor(String itemName) {
+        if (itemName.contains("elytra")) return true;
         return (itemName.contains("helmet") || itemName.contains("chestplate") ||
                 itemName.contains("leggings") || itemName.contains("boots")) &&
                 (itemName.contains("leather") || itemName.contains("chainmail") ||
@@ -796,7 +805,7 @@ public class ItemComponentModifier {
 
     private static net.minecraft.component.type.AttributeModifierSlot getEquipmentSlot(String itemName) {
         if (itemName.contains("helmet")) return net.minecraft.component.type.AttributeModifierSlot.HEAD;
-        if (itemName.contains("chestplate")) return net.minecraft.component.type.AttributeModifierSlot.CHEST;
+        if (itemName.contains("chestplate") || itemName.contains("elytra")) return net.minecraft.component.type.AttributeModifierSlot.CHEST;
         if (itemName.contains("leggings")) return net.minecraft.component.type.AttributeModifierSlot.LEGS;
         if (itemName.contains("boots")) return net.minecraft.component.type.AttributeModifierSlot.FEET;
         return net.minecraft.component.type.AttributeModifierSlot.MAINHAND;

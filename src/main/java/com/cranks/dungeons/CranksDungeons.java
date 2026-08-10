@@ -264,6 +264,10 @@ public class CranksDungeons implements ModInitializer {
 						.add(ModAttributes.EXPERIENCE_BONUS, 0.0)
 						.add(ModAttributes.PRECISION_MINING, 0.0)
 						.add(ModAttributes.BREAKING_RANGE, 0.0)
+						.add(ModAttributes.MAX_MANA, 100.0)
+						.add(ModAttributes.MAX_MANA_BONUS, 0.0)
+						.add(ModAttributes.MANA_REGENERATION_PERCENT, 0.04)
+						.add(ModAttributes.MANA_REGENERATION, 0.0)
 						.add(ModAttributes.MOVEMENT_SPEED, 0.0));
 
 		registerCreativeTabItems();

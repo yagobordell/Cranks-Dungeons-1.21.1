@@ -59,13 +59,15 @@ public class ItemStackMixin {
         if (stack.isEmpty()) return;
 
         net.minecraft.item.Item item = stack.getItem();
-        boolean isUnique = item == net.minecraft.item.Items.ELYTRA || item == net.minecraft.item.Items.TRIDENT || item == net.minecraft.item.Items.MACE || item == net.minecraft.item.Items.TURTLE_HELMET;
+        boolean isUnique = com.cranks.dungeons.equipment.ItemStatManager.isUnique(stack);
 
         if (isUnique) {
             if (com.cranks.dungeons.equipment.ItemStatManager.getStats(stack).isEmpty()) {
                 IS_INITIALIZING_UNIQUE.set(true);
                 try {
                     if (item == net.minecraft.item.Items.ELYTRA) {
+                        int rechargeTier = world.getRandom().nextBetween(3, 4);
+                        com.cranks.dungeons.equipment.ItemStatManager.addSpecificStat(stack, "elytra_energy_shield_recharge_rate_percent", rechargeTier);
                         com.cranks.dungeons.equipment.ItemStatManager.addSpecificStat(stack, "elytra_flying_speed", 1);
                         com.cranks.dungeons.equipment.ItemStatManager.addSpecificStat(stack, "elytra_energy_shield", 1);
                         com.cranks.dungeons.equipment.ItemStatManager.addSpecificStat(stack, "elytra_local_energy_shield_percent", 1);

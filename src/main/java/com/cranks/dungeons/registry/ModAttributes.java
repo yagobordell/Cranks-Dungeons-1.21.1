@@ -218,7 +218,9 @@ public class ModAttributes {
     public static final RegistryEntry<EntityAttribute> LOG_FORTUNE = register("log_fortune", 0.0, 0.0, 1.0);
     public static final RegistryEntry<EntityAttribute> DIG_FORTUNE = register("dig_fortune", 0.0, 0.0, 1.0);
     public static final RegistryEntry<EntityAttribute> CROP_EXPERIENCE = register("crop_experience", 0.0, 0.0, 1.0);
+    public static final RegistryEntry<EntityAttribute> MAX_MANA = register("max_mana", 100.0, 0.0, 10000.0);
     public static final RegistryEntry<EntityAttribute> MAX_MANA_BONUS = register("max_mana_bonus", 0.0, 0.0, 1000.0);
+    public static final RegistryEntry<EntityAttribute> MANA_REGENERATION_PERCENT = register("mana_regeneration_percent", 0.04, 0.0, 10.0);
     public static final RegistryEntry<EntityAttribute> MANA_REGENERATION = register("mana_regeneration", 0.0, 0.0, 100.0);
 
     // World Tree / Gathering stats

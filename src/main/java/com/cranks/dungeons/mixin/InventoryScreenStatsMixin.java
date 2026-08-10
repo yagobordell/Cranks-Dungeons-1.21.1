@@ -254,15 +254,18 @@ public abstract class InventoryScreenStatsMixin {
 
                         // --- ENERGY SHIELD ---
                         curY = drawCategoryTitle(context, tr, panelX, curY, "Energy Shield");
+                        double maxShield = player.getAttributeValue(ModAttributes.KEYSTONE_CRIMSON_PACT) > 0 ? 0 : player.getAttributeValue(ModAttributes.ENERGY_SHIELD);
+                        double baseMaxShield = player.getAttributeValue(ModAttributes.KEYSTONE_CRIMSON_PACT) > 0 ? 0 : cranks$getPassiveBase(player, ModAttributes.ENERGY_SHIELD);
                         curY = drawStatWithTooltip(context, tr, panelX, curY, "Max Energy Shield",
-                                        player.getAttributeValue(ModAttributes.KEYSTONE_CRIMSON_PACT) > 0 ? 0 : player.getAttributeValue(ModAttributes.ENERGY_SHIELD),
-                                        player.getAttributeValue(ModAttributes.KEYSTONE_CRIMSON_PACT) > 0 ? 0 : cranks$getPassiveBase(player, ModAttributes.ENERGY_SHIELD), "", mouseX, mouseY,
+                                        maxShield,
+                                        baseMaxShield, "", mouseX, mouseY,
                                         panelX, panelWidth);
                         
-                        double rechargeRate = player.getAttributeValue(ModAttributes.ENERGY_SHIELD_RECHARGE_RATE_PERCENT) * 100;
+                        double rechargeRate = maxShield * (0.125 * (1.0 + player.getAttributeValue(ModAttributes.ENERGY_SHIELD_RECHARGE_RATE_PERCENT)));
+                        double baseRechargeRate = baseMaxShield * (0.125 * (1.0 + cranks$getPassiveBase(player, ModAttributes.ENERGY_SHIELD_RECHARGE_RATE_PERCENT)));
                         curY = drawStatWithTooltip(context, tr, panelX, curY, "ES Recharge / Sec",
                                         rechargeRate,
-                                        cranks$getPassiveBase(player, ModAttributes.ENERGY_SHIELD_RECHARGE_RATE_PERCENT) * 100, "%", mouseX, mouseY,
+                                        baseRechargeRate, "", mouseX, mouseY,
                                         panelX, panelWidth);
 
                         curY = drawStatWithTooltip(context, tr, panelX, curY, "ES Recharge Delay",
@@ -271,6 +274,20 @@ public abstract class InventoryScreenStatsMixin {
 
                         // --- MANA ---
                         curY = drawCategoryTitle(context, tr, panelX, curY, "Mana");
+                        double maxManaStat = player.getAttributeValue(ModAttributes.MAX_MANA);
+                        double baseMaxManaStat = cranks$getPassiveBase(player, ModAttributes.MAX_MANA);
+                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Max Mana",
+                                        maxManaStat,
+                                        baseMaxManaStat, "", mouseX, mouseY, panelX, panelWidth);
+
+                        double manaRegenPercent = player.getAttributeValue(ModAttributes.MANA_REGENERATION_PERCENT);
+                        double manaRegenFlat = maxManaStat * manaRegenPercent;
+                        double baseManaRegenPercent = cranks$getPassiveBase(player, ModAttributes.MANA_REGENERATION_PERCENT);
+                        double baseManaRegenFlat = baseMaxManaStat * baseManaRegenPercent;
+
+                        curY = drawStatWithTooltip(context, tr, panelX, curY, "Mana Recovery / Sec",
+                                        manaRegenFlat,
+                                        baseManaRegenFlat, "", mouseX, mouseY, panelX, panelWidth);
                         curY += 16;
 
                         // --- ARMOUR ---
@@ -380,16 +397,36 @@ public abstract class InventoryScreenStatsMixin {
                 }
 
                 if (!Double.isNaN(hoveredBaseVal)) {
+                        double overrideBase = hoveredBaseVal;
+                        double overrideEquip = hoveredEquipVal;
+                        String overrideSuffix = hoveredSuffix;
+
+                        if (statName.equals("ES Recharge / Sec")) {
+                                var player = MinecraftClient.getInstance().player;
+                                if (player != null) {
+                                        overrideBase = 12.5 * (1.0 + cranks$getPassiveBase(player, ModAttributes.ENERGY_SHIELD_RECHARGE_RATE_PERCENT));
+                                        overrideEquip = (12.5 * (1.0 + player.getAttributeValue(ModAttributes.ENERGY_SHIELD_RECHARGE_RATE_PERCENT))) - overrideBase;
+                                        overrideSuffix = "%";
+                                }
+                        } else if (statName.equals("Mana Recovery / Sec")) {
+                                var player = MinecraftClient.getInstance().player;
+                                if (player != null) {
+                                        overrideBase = cranks$getPassiveBase(player, ModAttributes.MANA_REGENERATION_PERCENT) * 100.0;
+                                        overrideEquip = (player.getAttributeValue(ModAttributes.MANA_REGENERATION_PERCENT) * 100.0) - overrideBase;
+                                        overrideSuffix = "%";
+                                }
+                        }
+
                         // Use standard formatting for values
-                        String baseStr = formatStatValue(statName, hoveredBaseVal);
-                        String equipVal = formatStatValue(statName, hoveredEquipVal);
-                        String sign = (hoveredEquipVal >= 0) ? "+" : "";
+                        String baseStr = formatStatValue(statName, overrideBase);
+                        String equipVal = formatStatValue(statName, overrideEquip);
+                        String sign = (overrideEquip >= 0) ? "+" : "";
 
                         lines.add(Text.empty().asOrderedText()); // Spacer
                         lines.add(Text.literal("Base: ").formatted(Formatting.WHITE)
-                                        .append(Text.literal(baseStr + hoveredSuffix).formatted(Formatting.GOLD)).asOrderedText());
+                                        .append(Text.literal(baseStr + overrideSuffix).formatted(Formatting.GOLD)).asOrderedText());
                         lines.add(Text.literal("Equipment: ").formatted(Formatting.WHITE)
-                                        .append(Text.literal(sign + equipVal + hoveredSuffix).formatted(Formatting.AQUA)).asOrderedText());
+                                        .append(Text.literal(sign + equipVal + overrideSuffix).formatted(Formatting.AQUA)).asOrderedText());
                 }
 
                 int maxWidth = 0;
@@ -424,9 +461,11 @@ public abstract class InventoryScreenStatsMixin {
         @Unique
         private String getStatDescription(String statName) {
                 return switch (statName) {
-                        case "Strength" -> "Every 10 Strength grants +5 Max Health";
-                        case "Dexterity" -> "Every 10 Dexterity grants +20 Evasion Rating";
-                        case "Intelligence" -> "Every 10 Intelligence grants +5 Maximum Mana";
+                        case "Strength" -> "Every 1 Strength grants +2 Max Health";
+                        case "Dexterity" -> "Every 1 Dexterity grants +2 Evasion Rating";
+                        case "Intelligence" -> "Every 1 Intelligence grants +2 Maximum Mana";
+                        case "Max Mana" -> "Maximum mana available for casting abilities";
+                        case "Mana Recovery / Sec" -> "Amount of mana recovered per second";
                         case "Max Health" -> "Maximum health points";
                         case "Health Regen" -> "Amount of health recovered per second";
                         case "Max Energy Shield" -> "Absorbs damage before health";

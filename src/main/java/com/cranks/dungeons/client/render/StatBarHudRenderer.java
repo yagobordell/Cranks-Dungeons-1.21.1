@@ -25,6 +25,8 @@ public class StatBarHudRenderer implements HudRenderCallback {
     public static final Identifier HUNGER_HIGH_FILL = Identifier.of(CranksDungeons.MOD_ID, "hud/stat_bar/hunger_high");
     public static final Identifier HUNGER_LOW_FILL = Identifier.of(CranksDungeons.MOD_ID, "hud/stat_bar/hunger_low");
     public static final Identifier OXYGEN_FILL = Identifier.of(CranksDungeons.MOD_ID, "hud/stat_bar/oxygen");
+    public static final Identifier MANA_FILL = Identifier.of(CranksDungeons.MOD_ID, "hud/stat_bar/mana");
+    public static final Identifier MANA_TRAIL = Identifier.of(CranksDungeons.MOD_ID, "hud/stat_bar/mana_trail");
 
     // Default dimensions for the bar (scaled to match a vanilla heart row: 81x9)
     public static final int BAR_WIDTH = 81;
@@ -42,6 +44,9 @@ public class StatBarHudRenderer implements HudRenderCallback {
 
     private float displayedAbsorption = -1;
     private long lastAbsorptionChangeTime = 0;
+    
+    private float displayedMana = -1;
+    private long lastManaChangeTime = 0;
     
     private long lastRenderTime = 0;
 
@@ -67,11 +72,18 @@ public class StatBarHudRenderer implements HudRenderCallback {
         int x = screenWidth / 2 - 91;
         int y = screenHeight - 39;
 
-        renderHealthAndShield(context, client, player, x, y);
-        renderHunger(context, client, player, screenWidth / 2 + 10, y);
+        float mana = 0;
+        float maxMana = 0;
+        if (player instanceof com.cranks.dungeons.ManaProvider provider) {
+            mana = provider.cranksdungeons$getCurrentMana();
+            maxMana = (float) player.getAttributeValue(com.cranks.dungeons.registry.ModAttributes.MAX_MANA);
+        }
+
+        renderHealthAndShield(context, client, player, x, y, mana);
+        renderManaAndHunger(context, client, player, screenWidth / 2 + 10, y, mana, maxMana);
     }
 
-    private void renderHealthAndShield(DrawContext context, MinecraftClient client, PlayerEntity player, int x, int y) {
+    private void renderHealthAndShield(DrawContext context, MinecraftClient client, PlayerEntity player, int x, int y, float mana) {
         float health = player.getHealth();
         float maxHealth = player.getMaxHealth();
         float absorption = player.getAbsorptionAmount();
@@ -83,7 +95,7 @@ public class StatBarHudRenderer implements HudRenderCallback {
             maxShield = (float) player.getAttributeValue(com.cranks.dungeons.registry.ModAttributes.ENERGY_SHIELD);
         }
 
-        updateTrails(health, shield, absorption);
+        updateTrails(health, shield, absorption, mana);
 
         // --- Render Shield Bar (Above HP) ---
         if (maxShield > 0) {
@@ -119,7 +131,7 @@ public class StatBarHudRenderer implements HudRenderCallback {
             context.getMatrices().push();
             context.getMatrices().translate(x + (BAR_WIDTH / 2f), shieldY + (SHIELD_HEIGHT / 2f), 0.0f);
             context.getMatrices().scale(0.8f, 0.8f, 1.0f);
-            context.drawTextWithShadow(tr, sText, -(sTextWidth / 2), -(tr.fontHeight / 2), 0xFF55FFFF);
+            context.drawTextWithShadow(tr, sText, -(sTextWidth / 2), -(tr.fontHeight / 2), 0xFFFFFFFF);
             context.getMatrices().pop();
         }
 
@@ -192,8 +204,39 @@ public class StatBarHudRenderer implements HudRenderCallback {
                 y + (BAR_HEIGHT / 2) - (textRenderer.fontHeight / 2), hColor);
     }
 
-    private void renderHunger(DrawContext context, MinecraftClient client, PlayerEntity player, int x, int y) {
+    private void renderManaAndHunger(DrawContext context, MinecraftClient client, PlayerEntity player, int x, int y, float mana, float maxMana) {
         int hunger = player.getHungerManager().getFoodLevel();
+
+        // --- Render Mana Bar (Above Hunger) ---
+        if (maxMana > 0) {
+            int manaY = y - 10;
+            int MANA_HEIGHT = 9;
+            
+            context.drawGuiTexture(EMPTY_BAR, x, manaY, BAR_WIDTH, MANA_HEIGHT);
+
+            float manaPercent = MathHelper.clamp(mana / maxMana, 0, 1);
+            int manaWidth = (int) (manaPercent * MAX_FILL_WIDTH);
+            
+            if (displayedMana > mana) {
+                int trailWidth = (int) (MathHelper.clamp(displayedMana / maxMana, 0, 1) * MAX_FILL_WIDTH);
+                if (trailWidth > manaWidth) {
+                    context.drawGuiTexture(MANA_TRAIL, MAX_FILL_WIDTH, MANA_HEIGHT, manaWidth, 0,
+                            x + FILL_OFFSET_X + manaWidth, manaY + FILL_OFFSET_Y, trailWidth - manaWidth, MANA_HEIGHT);
+                }
+            }
+
+            if (manaWidth > 0) {
+                context.drawGuiTexture(MANA_FILL, MAX_FILL_WIDTH, MANA_HEIGHT, 0, 0,
+                        x + FILL_OFFSET_X, manaY + FILL_OFFSET_Y, manaWidth, MANA_HEIGHT);
+            }
+
+            String mText = (int) mana + " / " + (int) maxMana;
+            TextRenderer tr = client.textRenderer;
+            int mTextWidth = tr.getWidth(mText);
+
+            context.drawTextWithShadow(tr, mText, x + (BAR_WIDTH / 2) - (mTextWidth / 2),
+                    manaY + (MANA_HEIGHT / 2) - (tr.fontHeight / 2), 0xFFFFFFFF);
+        }
 
         // Draw Background Frame
         context.drawGuiTexture(EMPTY_BAR, x, y, BAR_WIDTH, BAR_HEIGHT);
@@ -203,9 +246,9 @@ public class StatBarHudRenderer implements HudRenderCallback {
         int hungerWidth = (int) (hungerPercent * MAX_FILL_WIDTH);
         if (hungerWidth > 0) {
             Identifier hungerTexture = HUNGER_FILL;
-            if (hunger > 16) {
+            if (hunger >= 16) {
                 hungerTexture = HUNGER_HIGH_FILL;
-            } else if (hunger < 6) {
+            } else if (hunger <= 6) {
                 hungerTexture = HUNGER_LOW_FILL;
             }
             context.drawGuiTexture(hungerTexture, MAX_FILL_WIDTH, FILL_HEIGHT, 0, 0,
@@ -220,7 +263,7 @@ public class StatBarHudRenderer implements HudRenderCallback {
                 y + (BAR_HEIGHT / 2) - (textRenderer.fontHeight / 2), 0xFFFFFFFF);
     }
 
-    private void updateTrails(float health, float shield, float absorption) {
+    private void updateTrails(float health, float shield, float absorption, float mana) {
         long currentTime = net.minecraft.util.Util.getMeasuringTimeMs();
         
         if (lastRenderTime == 0) lastRenderTime = currentTime;
@@ -260,6 +303,17 @@ public class StatBarHudRenderer implements HudRenderCallback {
             if (currentTime - lastAbsorptionChangeTime > TRAIL_DELAY_MS) {
                 displayedAbsorption -= TRAIL_SHRINK_SPEED * deltaSeconds;
                 if (displayedAbsorption < absorption) displayedAbsorption = absorption;
+            }
+        }
+
+        // Mana trail
+        if (displayedMana < 0 || mana >= displayedMana) {
+            displayedMana = mana;
+            lastManaChangeTime = currentTime;
+        } else if (mana < displayedMana) {
+            if (currentTime - lastManaChangeTime > TRAIL_DELAY_MS) {
+                displayedMana -= TRAIL_SHRINK_SPEED * deltaSeconds;
+                if (displayedMana < mana) displayedMana = mana;
             }
         }
     }

@@ -44,6 +44,8 @@ public abstract class AbstractTomeItem extends Item {
      * and prevents duplicate stats/attributes.
      */
     public boolean canApplyTo(ItemStack equipment) {
+        if (ItemStatManager.isUnique(equipment)) return false;
+
         var equipTypeOpt = EquipmentType.getTypeForItem(equipment);
         if (equipTypeOpt.isEmpty()) return false;
 

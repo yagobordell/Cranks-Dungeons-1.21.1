@@ -180,6 +180,8 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
     private static final net.minecraft.util.Identifier INTRINSIC_EVASION_MOD_ID = net.minecraft.util.Identifier.of("cranks-dungeons", "intrinsic_evasion");
     @Unique
     private static final net.minecraft.util.Identifier INTRINSIC_ES_MOD_ID = net.minecraft.util.Identifier.of("cranks-dungeons", "intrinsic_es");
+    @Unique
+    private static final net.minecraft.util.Identifier INTRINSIC_MANA_MOD_ID = net.minecraft.util.Identifier.of("cranks-dungeons", "intrinsic_mana");
 
     @Unique
     private void updateModifier(LivingEntity entity, net.minecraft.registry.entry.RegistryEntry<net.minecraft.entity.attribute.EntityAttribute> attribute, net.minecraft.util.Identifier id, double value, net.minecraft.entity.attribute.EntityAttributeModifier.Operation operation) {
@@ -214,19 +216,20 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
 
         if (str != cranks$lastStrength) {
             cranks$lastStrength = str;
-            double hpBonus = Math.floor(str / 10.0) * 5.0;
+            double hpBonus = str * 2.0;
             updateModifier(entity, net.minecraft.entity.attribute.EntityAttributes.GENERIC_MAX_HEALTH, INTRINSIC_HEALTH_MOD_ID, hpBonus, net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_VALUE);
         }
 
         if (dex != cranks$lastDexterity) {
             cranks$lastDexterity = dex;
-            double evasionBonus = Math.floor(dex / 10.0) * 20.0;
+            double evasionBonus = dex * 2.0;
             updateModifier(entity, ModAttributes.EVASION_RATING, INTRINSIC_EVASION_MOD_ID, evasionBonus, net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_VALUE);
         }
 
         if (intel != cranks$lastIntelligence) {
             cranks$lastIntelligence = intel;
-            // PoE 2: Intelligence gives Mana (Mana system not yet implemented)
+            double manaBonus = intel * 2.0;
+            updateModifier(entity, ModAttributes.MAX_MANA, INTRINSIC_MANA_MOD_ID, manaBonus, net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_VALUE);
         }
     }
 
