@@ -39,6 +39,12 @@ public class DamageConversionHelper {
             return damages;
         }
 
+        public void scale(float factor) {
+            for (Map.Entry<DamageElement, Float> entry : damages.entrySet()) {
+                entry.setValue(entry.getValue() * factor);
+            }
+        }
+
         public float getTotal() {
             float total = 0;
             for (float f : damages.values()) total += f;
@@ -198,8 +204,12 @@ public class DamageConversionHelper {
             return breakdown;
         }
 
-        // Default: 100% Physical
-        breakdown.add(DamageElement.PHYSICAL, amount);
+        // Default: 100% Physical OR calculated from LivingEntity stats
+        if (attacker instanceof LivingEntity livingAttacker) {
+            calculateLivingAttackerBreakdown(livingAttacker, target, source, amount, breakdown);
+        } else {
+            breakdown.add(DamageElement.PHYSICAL, amount);
+        }
 
         float currentPhysical = breakdown.get(DamageElement.PHYSICAL);
         if (currentPhysical > 0) {
@@ -296,4 +306,169 @@ public class DamageConversionHelper {
         }
         return defaultValue;
     }
+
+    private static void calculateLivingAttackerBreakdown(LivingEntity attacker, LivingEntity target, DamageSource source, float amount, DamageBreakdown breakdown) {
+        net.minecraft.item.ItemStack weapon = com.cranks.dungeons.util.CombatUtility.getCombatWeapon(source, attacker);
+
+        if (com.cranks.dungeons.util.CombatUtility.isRanged(weapon, source)) {
+            double baseDamage = attacker.getAttributeValue(net.minecraft.entity.attribute.EntityAttributes.GENERIC_ATTACK_DAMAGE);
+            double totalPercent = 1.0 + getAttributeValueSafe(attacker, com.cranks.dungeons.registry.ModAttributes.ATTACK_DAMAGE_PERCENT, 0.0)
+                    + getAttributeValueSafe(attacker, com.cranks.dungeons.registry.ModAttributes.RANGED_DAMAGE_PERCENT, 0.0);
+            double drawMultiplier = 1.0;
+            if (weapon.getItem() instanceof net.minecraft.item.BowItem) {
+                drawMultiplier = Math.min(1.0, amount / 6.0);
+            }
+            amount = (float) (baseDamage * totalPercent * drawMultiplier);
+        }
+
+        boolean isPvP = attacker instanceof net.minecraft.entity.player.PlayerEntity && target instanceof net.minecraft.entity.player.PlayerEntity;
+        if (isPvP) {
+            amount *= 0.25f;
+        }
+
+        double pvpMultiplier = isPvP ? 0.25 : 1.0;
+        boolean isCrit = com.cranks.dungeons.util.CriticalHitState.isCriticalHit();
+        float critMultiplier = isCrit ? (float) getAttributeValueSafe(attacker, com.cranks.dungeons.registry.ModAttributes.CRIT_MULTIPLIER, 1.0) : 1.0f;
+        if (isCrit && isPvP) {
+            critMultiplier = 1.0f + (critMultiplier - 1.0f) * 0.5f;
+        }
+
+        float unreducedPhysicalDamage = (float) (amount / pvpMultiplier);
+        float physicalDamage = amount;
+
+        double weaponSpecificPercent = com.cranks.dungeons.util.CombatUtility.getWeaponSpecificDamageBonus(attacker, weapon);
+
+        double afflictedBonus = 0;
+        if (com.cranks.dungeons.ailment.AilmentManager.isAfflicted(target)) {
+            afflictedBonus = getAttributeValueSafe(attacker, com.cranks.dungeons.registry.ModAttributes.DAMAGE_AGAINST_AFFLICTED_PERCENT, 0.0);
+        }
+
+        double selfAfflictedBonus = 0;
+        if (com.cranks.dungeons.ailment.AilmentManager.isAfflicted(attacker)) {
+            selfAfflictedBonus = getAttributeValueSafe(attacker, com.cranks.dungeons.registry.ModAttributes.DAMAGE_WHILE_AFFLICTED_PERCENT, 0.0);
+        }
+
+        double elementalBonus = getAttributeValueSafe(attacker, com.cranks.dungeons.registry.ModAttributes.ELEMENTAL_DAMAGE_PERCENT, 0.0);
+        if (attacker.hasStatusEffect(com.cranks.dungeons.effect.ModEffects.ELEMENTAL_OVERLOAD)) {
+            elementalBonus += 0.40;
+        }
+
+        double typeBonus = 0;
+        if (com.cranks.dungeons.util.CombatUtility.isMelee(weapon, source)) {
+            typeBonus = getAttributeValueSafe(attacker, com.cranks.dungeons.registry.ModAttributes.MELEE_DAMAGE_PERCENT, 0.0);
+        } else if (com.cranks.dungeons.util.CombatUtility.isRanged(weapon, source)) {
+            typeBonus = getAttributeValueSafe(attacker, com.cranks.dungeons.registry.ModAttributes.RANGED_DAMAGE_PERCENT, 0.0);
+        }
+
+        double wieldingBonus = 0;
+        if (com.cranks.dungeons.util.CombatUtility.isTwoHanding(attacker, weapon)) {
+            wieldingBonus = getAttributeValueSafe(attacker, com.cranks.dungeons.registry.ModAttributes.TWO_HANDING_DAMAGE_PERCENT, 0.0);
+        } else if (com.cranks.dungeons.util.CombatUtility.isDualWielding(attacker, weapon)) {
+            wieldingBonus = getAttributeValueSafe(attacker, com.cranks.dungeons.registry.ModAttributes.DUAL_WIELDING_DAMAGE_PERCENT, 0.0);
+        } else if (com.cranks.dungeons.util.CombatUtility.isOneHanding(attacker, weapon)) {
+            wieldingBonus = getAttributeValueSafe(attacker, com.cranks.dungeons.registry.ModAttributes.ONE_HANDED_DAMAGE_PERCENT, 0.0);
+        }
+
+        double fireBaseDamage = com.cranks.dungeons.util.CombatUtility.getAttributeValue(attacker, com.cranks.dungeons.registry.ModAttributes.FIRE_DAMAGE, weapon, "local_fire_damage", source);
+        double coldBaseDamage = com.cranks.dungeons.util.CombatUtility.getAttributeValue(attacker, com.cranks.dungeons.registry.ModAttributes.COLD_DAMAGE, weapon, "local_cold_damage", source);
+        double lightningBaseDamage = com.cranks.dungeons.util.CombatUtility.getAttributeValue(attacker, com.cranks.dungeons.registry.ModAttributes.LIGHTNING_DAMAGE, weapon, "local_lightning_damage", source);
+        double voidBaseDamage = com.cranks.dungeons.util.CombatUtility.getAttributeValue(attacker, com.cranks.dungeons.registry.ModAttributes.VOID_DAMAGE, weapon, "local_void_damage", source);
+
+        double originalUnreducedPhysical = unreducedPhysicalDamage;
+        
+        double toFire = getAttributeValueSafe(attacker, com.cranks.dungeons.registry.ModAttributes.PHYSICAL_TO_FIRE_CONVERSION_PERCENT, 0.0);
+        double toCold = getAttributeValueSafe(attacker, com.cranks.dungeons.registry.ModAttributes.PHYSICAL_TO_COLD_CONVERSION_PERCENT, 0.0);
+        double toLightning = getAttributeValueSafe(attacker, com.cranks.dungeons.registry.ModAttributes.PHYSICAL_TO_LIGHTNING_CONVERSION_PERCENT, 0.0);
+        double toVoid = getAttributeValueSafe(attacker, com.cranks.dungeons.registry.ModAttributes.PHYSICAL_TO_VOID_CONVERSION_PERCENT, 0.0);
+        
+        double totalConversion = toFire + toCold + toLightning + toVoid;
+        if (totalConversion > 1.0) {
+            toFire /= totalConversion;
+            toCold /= totalConversion;
+            toLightning /= totalConversion;
+            toVoid /= totalConversion;
+        }
+
+        double convertedFire = originalUnreducedPhysical * toFire;
+        double convertedCold = originalUnreducedPhysical * toCold;
+        double convertedLightning = originalUnreducedPhysical * toLightning;
+        double convertedVoid = originalUnreducedPhysical * toVoid;
+        
+        double totalConverted = convertedFire + convertedCold + convertedLightning + convertedVoid;
+        unreducedPhysicalDamage -= totalConverted;
+        physicalDamage -= totalConverted * pvpMultiplier;
+
+        fireBaseDamage += convertedFire;
+        coldBaseDamage += convertedCold;
+        lightningBaseDamage += convertedLightning;
+        voidBaseDamage += convertedVoid;
+
+        double totalBasicDamage = unreducedPhysicalDamage + fireBaseDamage + coldBaseDamage + lightningBaseDamage + voidBaseDamage;
+
+        double extraPhysicalPercent = com.cranks.dungeons.util.CombatUtility.getAttributeValue(attacker, com.cranks.dungeons.registry.ModAttributes.PHYSICAL_EXTRA_PERCENT, weapon, "attack_extra_damage", source);
+        double finalPhysicalExtraDamage = totalBasicDamage * extraPhysicalPercent + unreducedPhysicalDamage * selfAfflictedBonus;
+
+        double extraFirePercent = com.cranks.dungeons.util.CombatUtility.getAttributeValue(attacker, com.cranks.dungeons.registry.ModAttributes.FIRE_EXTRA_PERCENT, weapon, "fire_extra_damage", source);
+        fireBaseDamage += totalBasicDamage * extraFirePercent;
+
+        double extraColdPercent = com.cranks.dungeons.util.CombatUtility.getAttributeValue(attacker, com.cranks.dungeons.registry.ModAttributes.COLD_EXTRA_PERCENT, weapon, "cold_extra_damage", source);
+        coldBaseDamage += totalBasicDamage * extraColdPercent;
+
+        double extraLightningPercent = com.cranks.dungeons.util.CombatUtility.getAttributeValue(attacker, com.cranks.dungeons.registry.ModAttributes.LIGHTNING_EXTRA_PERCENT, weapon, "lightning_extra_damage", source);
+        lightningBaseDamage += totalBasicDamage * extraLightningPercent;
+
+        double extraVoidPercent = com.cranks.dungeons.util.CombatUtility.getAttributeValue(attacker, com.cranks.dungeons.registry.ModAttributes.VOID_EXTRA_PERCENT, weapon, "void_extra_damage", source);
+        voidBaseDamage += totalBasicDamage * extraVoidPercent;
+
+        double physAsFire = getAttributeValueSafe(attacker, com.cranks.dungeons.registry.ModAttributes.PHYSICAL_AS_EXTRA_FIRE_PERCENT, 0.0);
+        fireBaseDamage += originalUnreducedPhysical * physAsFire;
+
+        double physAsCold = getAttributeValueSafe(attacker, com.cranks.dungeons.registry.ModAttributes.PHYSICAL_AS_EXTRA_COLD_PERCENT, 0.0);
+        coldBaseDamage += originalUnreducedPhysical * physAsCold;
+
+        double physAsLightning = getAttributeValueSafe(attacker, com.cranks.dungeons.registry.ModAttributes.PHYSICAL_AS_EXTRA_LIGHTNING_PERCENT, 0.0);
+        lightningBaseDamage += originalUnreducedPhysical * physAsLightning;
+
+        double physAsVoid = getAttributeValueSafe(attacker, com.cranks.dungeons.registry.ModAttributes.PHYSICAL_AS_EXTRA_VOID_PERCENT, 0.0);
+        voidBaseDamage += originalUnreducedPhysical * physAsVoid;
+
+        double baseMultiplier = weaponSpecificPercent + afflictedBonus + selfAfflictedBonus + elementalBonus + typeBonus + wieldingBonus;
+
+        double fireTotalPercent = com.cranks.dungeons.util.CombatUtility.getAttributeValue(attacker, com.cranks.dungeons.registry.ModAttributes.FIRE_DAMAGE_PERCENT, weapon, "fire_damage_percent", source);
+        double fireDamage = fireBaseDamage * (1.0 + fireTotalPercent + baseMultiplier) * critMultiplier;
+
+        double coldTotalPercent = com.cranks.dungeons.util.CombatUtility.getAttributeValue(attacker, com.cranks.dungeons.registry.ModAttributes.COLD_DAMAGE_PERCENT, weapon, "cold_damage_percent", source);
+        double coldDamage = coldBaseDamage * (1.0 + coldTotalPercent + baseMultiplier) * critMultiplier;
+
+        double lightningTotalPercent = com.cranks.dungeons.util.CombatUtility.getAttributeValue(attacker, com.cranks.dungeons.registry.ModAttributes.LIGHTNING_DAMAGE_PERCENT, weapon, "lightning_damage_percent", source);
+        double lightningDamage = lightningBaseDamage * (1.0 + lightningTotalPercent + baseMultiplier) * critMultiplier;
+
+        double voidTotalPercent = com.cranks.dungeons.util.CombatUtility.getAttributeValue(attacker, com.cranks.dungeons.registry.ModAttributes.VOID_DAMAGE_PERCENT, weapon, "void_damage_percent", source);
+        double voidDamage = voidBaseDamage * (1.0 + voidTotalPercent + baseMultiplier) * critMultiplier;
+
+        fireDamage *= pvpMultiplier;
+        coldDamage *= pvpMultiplier;
+        lightningDamage *= pvpMultiplier;
+        voidDamage *= pvpMultiplier;
+        finalPhysicalExtraDamage *= pvpMultiplier;
+
+        if (getAttributeValueSafe(attacker, com.cranks.dungeons.registry.ModAttributes.KEYSTONE_AVATAR_OF_FIRE, 0.0) > 0) {
+            fireDamage += (physicalDamage + finalPhysicalExtraDamage) * 0.5;
+            fireDamage += coldDamage * 0.5;
+            fireDamage += lightningDamage * 0.5;
+            
+            physicalDamage = 0;
+            finalPhysicalExtraDamage = 0;
+            coldDamage = 0;
+            lightningDamage = 0;
+            voidDamage = 0;
+        }
+
+        if (physicalDamage + finalPhysicalExtraDamage > 0) breakdown.add(DamageElement.PHYSICAL, (float) (physicalDamage + finalPhysicalExtraDamage));
+        if (fireDamage > 0) breakdown.add(DamageElement.FIRE, (float) fireDamage);
+        if (coldDamage > 0) breakdown.add(DamageElement.COLD, (float) coldDamage);
+        if (lightningDamage > 0) breakdown.add(DamageElement.LIGHTNING, (float) lightningDamage);
+        if (voidDamage > 0) breakdown.add(DamageElement.VOID, (float) voidDamage);
+    }
+
 }

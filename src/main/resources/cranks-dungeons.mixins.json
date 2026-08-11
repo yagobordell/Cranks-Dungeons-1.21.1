@@ -106,7 +106,9 @@
 		"FreezeVisualMixin",
 		"client.LivingEntityClientTickFreezeMixin",
 		"HeartbeatSoundMixin",
-		"client.HandledScreenTextMixin"
+		"client.HandledScreenTextMixin",
+		"client.StatusEffectUtilMixin",
+		"client.AbstractInventoryScreenMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
