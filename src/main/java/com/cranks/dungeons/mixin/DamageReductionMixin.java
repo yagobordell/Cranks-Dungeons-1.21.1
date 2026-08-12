@@ -54,19 +54,8 @@ public abstract class DamageReductionMixin {
                 provider.cranks$setLastDamageBreakdown(breakdown);
             }
 
-            // Chance to apply custom BURN from fire sources (except direct DOT which we handled above)
-            float fireDamage = breakdown.get(DamageElement.FIRE);
-            if (fireDamage > 0 && !world.isClient()) {
-                // Remove chance to burn from environmental sources per user request
-                boolean isEnvironmental = source.isOf(DamageTypes.IN_FIRE) || 
-                                         source.isOf(DamageTypes.LAVA) || 
-                                         source.isOf(DamageTypes.HOT_FLOOR) ||
-                                         source.isOf(DamageTypes.ON_FIRE); // Sun/Vanilla fire DOT doesn't apply the status effect
-                
-                if (!isEnvironmental && Math.random() < 0.20) {
-                    AilmentManager.applyAilment(entity, AilmentType.BURN, fireDamage * 0.4f, AilmentType.BURN.getBaseDuration(), source.getAttacker());
-                }
-            }
+            // We no longer apply a hardcoded 20% chance to burn here.
+            // Burn application is handled dynamically in ElementalDamageMixin based on the attacker's Chance to Burn attribute.
 
             float totalDamage = breakdown.getTotal();
             float shockMagnitude = AilmentManager.getShockMagnitude(entity);

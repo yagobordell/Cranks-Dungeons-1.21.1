@@ -33,16 +33,14 @@ public class DamageNumberRenderer {
         int screenWidth = client.getWindow().getScaledWidth();
         int screenHeight = client.getWindow().getScaledHeight();
 
-        Entity cameraEntity = client.getCameraEntity();
-        if (cameraEntity == null)
-            cameraEntity = client.player;
+        net.minecraft.client.render.Camera camera = client.gameRenderer.getCamera();
+        net.minecraft.util.math.Vec3d camPos = camera.getPos();
+        double camX = camPos.x;
+        double camY = camPos.y;
+        double camZ = camPos.z;
 
-        double camX = cameraEntity.getX();
-        double camY = cameraEntity.getEyeY();
-        double camZ = cameraEntity.getZ();
-
-        float yawRad = (float) Math.toRadians(cameraEntity.getYaw() + 180);
-        float pitchRad = (float) Math.toRadians(cameraEntity.getPitch());
+        float yawRad = (float) Math.toRadians(camera.getYaw() + 180);
+        float pitchRad = (float) Math.toRadians(camera.getPitch());
 
         double fov = Math.toRadians(client.options.getFov().getValue());
         double aspectRatio = (double) screenWidth / (double) screenHeight;

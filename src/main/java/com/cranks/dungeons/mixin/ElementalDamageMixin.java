@@ -145,9 +145,28 @@ public abstract class ElementalDamageMixin {
                 com.cranks.dungeons.util.LeechManager.addLeech(attacker, (float) totalLeech);
             }
 
+            double manaLeechPercent = CombatUtility.getAttributeValue(attacker, ModAttributes.PHYSICAL_DAMAGE_LEECHED_AS_MANA, weapon, "physical_damage_leeched_as_mana", source);
+            double totalManaLeech = 0;
+            if (physicalDamage > 0) totalManaLeech += physicalDamage * manaLeechPercent;
+
+            if (totalManaLeech > 0 && attacker instanceof com.cranks.dungeons.ManaProvider manaProvider) {
+                float currentMana = manaProvider.cranksdungeons$getCurrentMana();
+                float maxMana = (float) attacker.getAttributeValue(ModAttributes.MAX_MANA);
+                if (currentMana < maxMana) {
+                    float maxLeechInstance = maxMana * 0.10f;
+                    float appliedLeech = Math.min((float) totalManaLeech, maxLeechInstance);
+                    float newMana = Math.min(maxMana, currentMana + appliedLeech);
+                    manaProvider.cranksdungeons$setCurrentMana(newMana);
+                    
+                    if (attacker instanceof net.minecraft.server.network.ServerPlayerEntity serverPlayer && serverPlayer.networkHandler != null) {
+                        net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(serverPlayer, new com.cranks.dungeons.network.ManaSyncPacket(newMana, maxMana));
+                    }
+                }
+            }
+
             if (finalFireDamage > 0) {
                 float chanceToBurn = (float) CombatUtility.getAttributeValue(attacker, ModAttributes.CHANCE_TO_BURN, weapon, "chance_to_burn", source);
-                if (chanceToBurn >= 1.0f || (chanceToBurn > 0.0f && attacker.getRandom().nextFloat() < chanceToBurn)) {
+                if (isCrit || chanceToBurn >= 1.0f || (chanceToBurn > 0.0f && attacker.getRandom().nextFloat() < chanceToBurn)) {
                     float burnMagnitudePercent = (float) CombatUtility.getAttributeValue(attacker, ModAttributes.BURN_DAMAGE_PERCENT, weapon, "burn_damage_percent", source);
                     float burnBaseDamage = (float) (finalFireDamage / critMultiplier) * 0.5f;
                     if (isCrit) burnBaseDamage *= 1.5f;
@@ -163,7 +182,7 @@ public abstract class ElementalDamageMixin {
 
             if (physicalDamage > 0 || finalVoidDamage > 0) {
                 float chanceToPoison = (float) CombatUtility.getAttributeValue(attacker, ModAttributes.CHANCE_TO_POISON, weapon, "chance_to_poison", source);
-                if (chanceToPoison >= 1.0f || (chanceToPoison > 0.0f && attacker.getRandom().nextFloat() < chanceToPoison)) {
+                if (isCrit || chanceToPoison >= 1.0f || (chanceToPoison > 0.0f && attacker.getRandom().nextFloat() < chanceToPoison)) {
                     float poisonMagnitudePercent = (float) CombatUtility.getAttributeValue(attacker, ModAttributes.POISON_DAMAGE_PERCENT, weapon, "poison_damage_percent", source);
                     float poisonBaseDamage = (float) ((physicalDamage + finalVoidDamage) / critMultiplier) * 0.2f;
                     if (isCrit) poisonBaseDamage *= 1.5f;
@@ -195,7 +214,7 @@ public abstract class ElementalDamageMixin {
 
             if (physicalDamage > 0) {
                 float chanceToBleed = (float) CombatUtility.getAttributeValue(attacker, ModAttributes.CHANCE_TO_BLEED, weapon, "chance_to_bleed", source);
-                if (chanceToBleed >= 1.0f || (chanceToBleed > 0.0f && attacker.getRandom().nextFloat() < chanceToBleed)) {
+                if (isCrit || chanceToBleed >= 1.0f || (chanceToBleed > 0.0f && attacker.getRandom().nextFloat() < chanceToBleed)) {
                     float bleedMagnitudePercent = (float) CombatUtility.getAttributeValue(attacker, ModAttributes.BLEED_DAMAGE_PERCENT, weapon, "bleed_damage_percent", source);
                     float bleedBaseDamage = (float) (physicalDamage / critMultiplier);
                     if (isCrit) bleedBaseDamage *= 1.5f;
@@ -211,7 +230,7 @@ public abstract class ElementalDamageMixin {
 
             if (finalLightningDamage > 0) {
                 float chanceToShock = (float) CombatUtility.getAttributeValue(attacker, ModAttributes.CHANCE_TO_SHOCK, weapon, "chance_to_shock", source);
-                if (chanceToShock >= 1.0f || (chanceToShock > 0.0f && attacker.getRandom().nextFloat() < chanceToShock)) {
+                if (isCrit || chanceToShock >= 1.0f || (chanceToShock > 0.0f && attacker.getRandom().nextFloat() < chanceToShock)) {
                     float thresholdReduction = (float) CombatUtility.getAttributeValue(attacker, ModAttributes.SHOCK_THRESHOLD_REDUCTION, weapon, "shock_threshold_reduction", source);
                     float ailmentThreshold = target.getMaxHealth() * (1.0f - thresholdReduction);
                     ailmentThreshold = Math.max(1.0f, ailmentThreshold);

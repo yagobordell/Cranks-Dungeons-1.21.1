@@ -488,8 +488,8 @@ public class StatRegistry {
                 // --- Chestplate elemental damages ---
                 register(new CustomStat("chestplate_fire_damage", "Fire Damage",
                                 EquipmentType.CHESTPLATE, ModAttributes.FIRE_DAMAGE,
-                                r(3.0, 3.0, 6.0, 10.0, 14.0, 18.0, 21.0, 27.0, 33.0, 37.0),
-                                r(3.0, 3.0, 9.0, 13.0, 17.0, 20.0, 26.0, 32.0, 36.0, 45.0),
+                                r(4.0, 4.0, 10.0, 16.0, 23.0, 28.0, 33.0, 41.0, 48.0, 60.0),
+                                r(6.0, 6.0, 15.0, 22.0, 27.0, 32.0, 40.0, 47.0, 59.0, 71.0),
                                 false, false, Formatting.RED, CustomStat.AffixType.SUFFIX,
                                 30, 3900));
 
@@ -502,8 +502,8 @@ public class StatRegistry {
 
                 register(new CustomStat("chestplate_lightning_damage", "Lightning Damage",
                                 EquipmentType.CHESTPLATE, ModAttributes.LIGHTNING_DAMAGE,
-                                r(4.0, 4.0, 10.0, 16.0, 23.0, 28.0, 33.0, 41.0, 48.0, 60.0),
-                                r(6.0, 6.0, 15.0, 22.0, 27.0, 32.0, 40.0, 47.0, 59.0, 71.0),
+                                r(3.0, 3.0, 6.0, 10.0, 14.0, 18.0, 21.0, 27.0, 33.0, 37.0),
+                                r(3.0, 3.0, 9.0, 13.0, 17.0, 20.0, 26.0, 32.0, 36.0, 45.0),
                                 false, false, Formatting.DARK_BLUE, CustomStat.AffixType.SUFFIX,
                                 30, 3900));
 
@@ -620,15 +620,15 @@ public class StatRegistry {
 
                 registerForTypes("local_fire_damage", "Fire Damage",
                                 ModAttributes.FIRE_DAMAGE,
-                                r(3.0, 7.0, 13.0, 21.0, 32.0, 38.0, 56.0, 74.0, 101.0, 133.0),
-                                r(5.0, 10.0, 19.0, 29.0, 37.0, 54.0, 71.0, 97.0, 129.0, 154.0),
+                                r(4.0, 13.0, 20.0, 36.0, 55.0, 63.0, 85.0, 111.0, 157.0, 202.0),
+                                r(6.0, 19.0, 30.0, 52.0, 60.0, 82.0, 107.0, 152.0, 196.0, 234.0),
                                 false, Formatting.RED, CustomStat.AffixType.PREFIX,
                                 1, 5880,
                                 ONE_HANDED_WEAPONS);
                 registerForTypes("local_fire_damage", "Fire Damage",
                                 ModAttributes.FIRE_DAMAGE,
-                                r(5.0, 10.0, 19.0, 30.0, 45.0, 59.0, 84.0, 112.0, 155.0, 205.0),
-                                r(7.0, 16.0, 28.0, 42.0, 56.0, 80.0, 107.0, 149.0, 198.0, 236.0),
+                                r(7.0, 19.0, 31.0, 53.0, 80.0, 93.0, 128.0, 168.0, 239.0, 310.0),
+                                r(10.0, 27.0, 43.0, 76.0, 88.0, 122.0, 162.0, 231.0, 300.0, 358.0),
                                 false, Formatting.RED, CustomStat.AffixType.PREFIX,
                                 1, 5880,
                                 TWO_HANDED_WEAPONS);
@@ -650,15 +650,15 @@ public class StatRegistry {
 
                 registerForTypes("local_lightning_damage", "Lightning Damage",
                                 ModAttributes.LIGHTNING_DAMAGE,
-                                r(4.0, 13.0, 20.0, 36.0, 55.0, 63.0, 85.0, 111.0, 157.0, 202.0),
-                                r(6.0, 19.0, 30.0, 52.0, 60.0, 82.0, 107.0, 152.0, 196.0, 234.0),
+                                r(3.0, 7.0, 13.0, 21.0, 32.0, 38.0, 56.0, 74.0, 101.0, 133.0),
+                                r(5.0, 10.0, 19.0, 29.0, 37.0, 54.0, 71.0, 97.0, 129.0, 154.0),
                                 false, Formatting.DARK_BLUE, CustomStat.AffixType.PREFIX,
                                 1, 8085,
                                 ONE_HANDED_WEAPONS);
                 registerForTypes("local_lightning_damage", "Lightning Damage",
                                 ModAttributes.LIGHTNING_DAMAGE,
-                                r(7.0, 19.0, 31.0, 53.0, 80.0, 93.0, 128.0, 168.0, 239.0, 310.0),
-                                r(10.0, 27.0, 43.0, 76.0, 88.0, 122.0, 162.0, 231.0, 300.0, 358.0),
+                                r(5.0, 10.0, 19.0, 30.0, 45.0, 59.0, 84.0, 112.0, 155.0, 205.0),
+                                r(7.0, 16.0, 28.0, 42.0, 56.0, 80.0, 107.0, 149.0, 198.0, 236.0),
                                 false, Formatting.DARK_BLUE, CustomStat.AffixType.PREFIX,
                                 1, 8085,
                                 TWO_HANDED_WEAPONS);
@@ -670,6 +670,22 @@ public class StatRegistry {
                                 r(0.30, 0.32, 0.37, 0.47, 0.59, 0.76, 0.96, 1.20, 1.48, 1.79),
                                 true, true, Formatting.WHITE, CustomStat.AffixType.PREFIX,
                                 70, 3775,
+                                ALL_WEAPONS);
+
+                // --- On Kill Stats (all weapons) ---
+                registerForTypes("health_on_kill", "Gain # Health per enemy killed",
+                                ModAttributes.HEALTH_ON_KILL,
+                                r(4.0, 7.0, 10.0, 14.0, 18.0, 23.0, 28.0, 32.0, 36.0, 41.0),
+                                r(6.0, 11.0, 17.0, 24.0, 32.0, 41.0, 51.0, 61.0, 72.0, 84.0),
+                                false, false, Formatting.RED, CustomStat.AffixType.PREFIX,
+                                77, 6000,
+                                ALL_WEAPONS);
+                registerForTypes("mana_on_kill", "Gain # Mana per enemy killed",
+                                ModAttributes.MANA_ON_KILL,
+                                r(3.0, 6.0, 9.0, 13.0, 17.0, 22.0, 27.0, 32.0, 37.0, 42.0),
+                                r(5.0, 8.0, 12.0, 16.0, 21.0, 26.0, 31.0, 36.0, 41.0, 45.0),
+                                false, false, Formatting.BLUE, CustomStat.AffixType.PREFIX,
+                                77, 6000,
                                 ALL_WEAPONS);
 
                 // --- Proportional Extra Damage (Runes) ---
@@ -736,18 +752,33 @@ public class StatRegistry {
 
 
                 // --- Life Steal (Damage Leeched as Life) ---
-                registerForTypes("physical_damage_leeched_as_life", "Physical Damage Leeched as Life",
+                registerForTypes("physical_damage_leeched_as_life", "Leeches # of Physical Damage as Health",
                                 ModAttributes.PHYSICAL_DAMAGE_LEECHED_AS_LIFE,
                                 r(0.015, 0.018, 0.021, 0.024, 0.027, 0.03, 0.032, 0.035, 0.037, 0.04),
                                 r(0.02, 0.022, 0.025, 0.028, 0.031, 0.034, 0.037, 0.040, 0.043, 0.045),
                                 true, true, Formatting.DARK_RED, CustomStat.AffixType.SUFFIX,
                                 63, 4000,
                                 ALL_WEAPONS);
-                registerForTypes("physical_damage_leeched_as_life", "Physical Damage Leeched as Life",
+                registerForTypes("physical_damage_leeched_as_life", "Leeches # of Physical Damage as Health",
                                 ModAttributes.PHYSICAL_DAMAGE_LEECHED_AS_LIFE,
                                 r(0.005, 0.006, 0.007, 0.008, 0.009, 0.010, 0.011, 0.012, 0.013, 0.015),
                                 r(0.007, 0.008, 0.009, 0.010, 0.012, 0.013, 0.014, 0.015, 0.016, 0.018),
                                 true, true, Formatting.DARK_RED, CustomStat.AffixType.SUFFIX,
+                                63, 4000,
+                                ALL_RANGED_WEAPONS);
+
+                registerForTypes("physical_damage_leeched_as_mana", "Leeches # of Physical Damage as Mana",
+                                ModAttributes.PHYSICAL_DAMAGE_LEECHED_AS_MANA,
+                                r(0.011, 0.013, 0.015, 0.018, 0.020, 0.022, 0.024, 0.026, 0.027, 0.030),
+                                r(0.015, 0.016, 0.018, 0.021, 0.023, 0.025, 0.027, 0.030, 0.032, 0.033),
+                                true, true, Formatting.BLUE, CustomStat.AffixType.SUFFIX,
+                                63, 4000,
+                                ALL_WEAPONS);
+                registerForTypes("physical_damage_leeched_as_mana", "Leeches # of Physical Damage as Mana",
+                                ModAttributes.PHYSICAL_DAMAGE_LEECHED_AS_MANA,
+                                r(0.003, 0.004, 0.005, 0.006, 0.006, 0.007, 0.008, 0.009, 0.009, 0.011),
+                                r(0.005, 0.006, 0.006, 0.007, 0.009, 0.009, 0.010, 0.011, 0.012, 0.013),
+                                true, true, Formatting.BLUE, CustomStat.AffixType.SUFFIX,
                                 63, 4000,
                                 ALL_RANGED_WEAPONS);
 

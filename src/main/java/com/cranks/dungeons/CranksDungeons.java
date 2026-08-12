@@ -212,6 +212,10 @@ public class CranksDungeons implements ModInitializer {
 						.add(ModAttributes.CRIT_CHANCE, 0.05)
 						.add(ModAttributes.CRIT_MULTIPLIER, 1.5)
 						.add(ModAttributes.PHYSICAL_DAMAGE_LEECHED_AS_LIFE, 0.0)
+						.add(ModAttributes.PHYSICAL_DAMAGE_LEECHED_AS_MANA, 0.0)
+						.add(ModAttributes.HEALTH_ON_KILL, 0.0)
+						.add(ModAttributes.MANA_ON_KILL, 0.0)
+						.add(ModAttributes.BONUS_ATTACK_DAMAGE, 0.0)
 						.add(ModAttributes.ATTACK_RANGE, 0.0)
 						.add(ModAttributes.ATTACK_SPEED, 0.0)
 						// Ailments

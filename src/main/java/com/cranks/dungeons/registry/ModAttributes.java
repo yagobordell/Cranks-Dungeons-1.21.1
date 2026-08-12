@@ -110,6 +110,9 @@ public class ModAttributes {
             "physical_to_void_conversion_percent", 0.0, 0.0, 1.0);
 
     public static final RegistryEntry<EntityAttribute> PHYSICAL_DAMAGE_LEECHED_AS_LIFE = register("physical_damage_leeched_as_life", 0.0, 0.0, 1.0);
+    public static final RegistryEntry<EntityAttribute> PHYSICAL_DAMAGE_LEECHED_AS_MANA = register("physical_damage_leeched_as_mana", 0.0, 0.0, 1.0);
+    public static final RegistryEntry<EntityAttribute> HEALTH_ON_KILL = register("health_on_kill", 0.0, 0.0, 1000.0);
+    public static final RegistryEntry<EntityAttribute> MANA_ON_KILL = register("mana_on_kill", 0.0, 0.0, 1000.0);
     public static final RegistryEntry<EntityAttribute> BURN_DAMAGE_PERCENT = register("burn_damage_percent", 0.0, 0.0, 10.0);
     public static final RegistryEntry<EntityAttribute> BURN_DURATION = register("burn_duration", 0.0, 0.0, 10.0);
 

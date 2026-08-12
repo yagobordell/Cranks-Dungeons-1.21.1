@@ -151,18 +151,28 @@ public class CustomStat {
                 return displayName;
             }
             DecimalFormat df = new DecimalFormat("#.##");
+            String formattedValue;
             if (displayAsPercentage || isPercentage) {
-                String formattedValue = df.format(value * 100) + "%";
+                formattedValue = df.format(value * 100) + "%";
+            } else {
+                formattedValue = String.valueOf(Math.round(value));
+            }
+
+            if (displayName.contains("#")) {
+                return displayName.replace("#", formattedValue);
+            }
+
+            if (displayAsPercentage || isPercentage) {
                 if (displayName.contains("Extra")) return "Gain " + formattedValue + " of " + displayName;
                 return formattedValue + " " + displayName;
             } else {
                 if (displayName.endsWith("Damage") && !displayName.contains("Thorns")) {
                     if (isWeapon(eqType)) {
-                        return "Adds " + Math.round(value) + " to " + displayName;
+                        return "Adds " + formattedValue + " to " + displayName;
                     }
-                    return "Adds " + Math.round(value) + " " + displayName + " to Attacks";
+                    return "Adds " + formattedValue + " " + displayName + " to Attacks";
                 }
-                return "+" + Math.round(value) + " to " + displayName;
+                return "+" + formattedValue + " to " + displayName;
             }
         }
     }

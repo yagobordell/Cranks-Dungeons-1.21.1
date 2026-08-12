@@ -22,4 +22,13 @@ public class RemoveSaturationMixin {
     private void clearSaturationOnAdd(int food, float saturationModifier, CallbackInfo ci) {
         this.saturationLevel = 0.0f;
     }
+
+    @org.spongepowered.asm.mixin.injection.Redirect(
+            method = "update",
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/player/PlayerEntity;canFoodHeal()Z")
+    )
+    private boolean disableNaturalRegeneration(net.minecraft.entity.player.PlayerEntity instance) {
+        // Returning false completely disables vanilla natural regeneration (and the exhaustion penalty for it).
+        return false;
+    }
 }

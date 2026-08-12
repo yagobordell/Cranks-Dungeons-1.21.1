@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import net.minecraft.item.ItemStack;
+import net.minecraft.registry.entry.RegistryEntry;
 
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityMixin implements DamageBreakdownProvider, AilmentHistoryProvider {
@@ -77,6 +78,54 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
     @Inject(method = "onDeath", at = @At("HEAD"))
     private void onEntityDeath(DamageSource source, CallbackInfo ci) {
         AilmentManager.onEntityDeath((LivingEntity) (Object) this);
+
+        Entity attacker = source.getAttacker();
+        if (attacker instanceof LivingEntity livingAttacker) {
+            // Read on-kill values directly from the weapon's AttributeModifiersComponent
+            // because the player entity may not have attribute instances for weapon-only stats.
+            double healthOnKill = 0.0;
+            double manaOnKill = 0.0;
+
+            if (livingAttacker instanceof net.minecraft.server.network.ServerPlayerEntity sp) {
+                net.minecraft.item.ItemStack mainHand = sp.getMainHandStack();
+                if (!mainHand.isEmpty()) {
+                    var modifiers = mainHand.getOrDefault(net.minecraft.component.DataComponentTypes.ATTRIBUTE_MODIFIERS,
+                            net.minecraft.component.type.AttributeModifiersComponent.DEFAULT);
+                    for (var entry : modifiers.modifiers()) {
+                        if (entry.slot() == net.minecraft.component.type.AttributeModifierSlot.MAINHAND
+                                && entry.modifier().operation() == net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_VALUE) {
+                            if (attributesMatch(entry.attribute(), ModAttributes.HEALTH_ON_KILL)) {
+                                healthOnKill += entry.modifier().value();
+                            } else if (attributesMatch(entry.attribute(), ModAttributes.MANA_ON_KILL)) {
+                                manaOnKill += entry.modifier().value();
+                            }
+                        }
+                    }
+
+                    // Apply 50% penalty if player doesn't meet weapon requirements
+                    if (!com.cranks.dungeons.equipment.ItemRequirementManager.meetsRequirements(sp, mainHand)) {
+                        healthOnKill *= 0.5;
+                        manaOnKill *= 0.5;
+                    }
+                }
+
+                if (healthOnKill > 0) {
+                    sp.heal((float) healthOnKill);
+                }
+
+                if (manaOnKill > 0 && sp instanceof com.cranks.dungeons.ManaProvider manaProvider) {
+                    float currentMana = manaProvider.cranksdungeons$getCurrentMana();
+                    float maxMana = (float) sp.getAttributeValue(ModAttributes.MAX_MANA);
+                    if (currentMana < maxMana) {
+                        float newMana = Math.min(maxMana, currentMana + (float) manaOnKill);
+                        manaProvider.cranksdungeons$setCurrentMana(newMana);
+                        if (sp.networkHandler != null) {
+                            net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(sp, new com.cranks.dungeons.network.ManaSyncPacket(newMana, maxMana));
+                        }
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -539,5 +588,16 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
             // We handle all combat XP distribution manually in onDeath(TAIL).
             ci.cancel();
         }
+    }
+
+    /**
+     * Safely compares two RegistryEntry<EntityAttribute> references.
+     * Fabric's registry can produce different RegistryEntry objects for the same attribute,
+     * so we fall back to comparing translation keys.
+     */
+    private static boolean attributesMatch(RegistryEntry<net.minecraft.entity.attribute.EntityAttribute> attr1,
+                                           RegistryEntry<net.minecraft.entity.attribute.EntityAttribute> attr2) {
+        if (attr1.equals(attr2)) return true;
+        return attr1.value().getTranslationKey().equals(attr2.value().getTranslationKey());
     }
 }

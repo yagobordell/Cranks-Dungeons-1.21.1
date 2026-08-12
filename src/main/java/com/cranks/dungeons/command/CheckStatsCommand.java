@@ -34,6 +34,7 @@ public class CheckStatsCommand {
                         double weaponLightningDmg = EquipmentStatApplier.getItemStatValue(weapon, "local_lightning_damage");
                         double weaponVoidDmg = EquipmentStatApplier.getItemStatValue(weapon, "local_void_damage");
                         double weaponLifeSteal = EquipmentStatApplier.getItemStatValue(weapon, "physical_damage_leeched_as_life");
+                        double weaponManaSteal = EquipmentStatApplier.getItemStatValue(weapon, "physical_damage_leeched_as_mana");
                         double weaponBurn = EquipmentStatApplier.getItemStatValue(weapon, "burn_damage_percent");
                         double weaponRange = EquipmentStatApplier.getItemStatValue(weapon, "attack_range");
                         double weaponKnockback = EquipmentStatApplier.getItemStatValue(weapon, "knockback");
@@ -49,7 +50,10 @@ public class CheckStatsCommand {
                         double totalColdDmg = player.getAttributeValue(ModAttributes.COLD_DAMAGE) + weaponColdDmg;
                         double totalLightningDmg = player.getAttributeValue(ModAttributes.LIGHTNING_DAMAGE) + weaponLightningDmg;
                         double totalVoidDmg = player.getAttributeValue(ModAttributes.VOID_DAMAGE) + weaponVoidDmg;
-                        double totalLifeSteal = player.getAttributeValue(ModAttributes.PHYSICAL_DAMAGE_LEECHED_AS_LIFE) + weaponLifeSteal;
+                        double totalLifeSteal = player.getAttributeValue(ModAttributes.PHYSICAL_DAMAGE_LEECHED_AS_LIFE);
+                        double totalManaSteal = player.getAttributeValue(ModAttributes.PHYSICAL_DAMAGE_LEECHED_AS_MANA);
+                        double totalHealthOnKill = player.getAttributeValue(ModAttributes.HEALTH_ON_KILL);
+                        double totalManaOnKill = player.getAttributeValue(ModAttributes.MANA_ON_KILL);
                         double totalBurn = player.getAttributeValue(ModAttributes.BURN_DAMAGE_PERCENT) + weaponBurn;
                         double totalRange = player.getAttributeValue(ModAttributes.ATTACK_RANGE) + weaponRange;
                         double totalKnockback = player.getAttributeValue(ModAttributes.KNOCKBACK) + weaponKnockback;
@@ -64,7 +68,10 @@ public class CheckStatsCommand {
                         if (totalColdDmg > 0) sendStat(player, "Cold Damage", totalColdDmg, 0, "");
                         if (totalLightningDmg > 0) sendStat(player, "Lightning Damage", totalLightningDmg, 0, "");
                         if (totalVoidDmg > 0) sendStat(player, "Void Damage", totalVoidDmg, 0, "");
-                        if (totalLifeSteal > 0) sendStat(player, "Damage Leeched as Life", totalLifeSteal * 100, 0, "%");
+                        if (totalLifeSteal > 0) sendStat(player, "Life Steal", totalLifeSteal * 100, 0, "%");
+                        if (totalManaSteal > 0) sendStat(player, "Mana Steal", totalManaSteal * 100, 0, "%");
+                        if (totalHealthOnKill > 0) sendStat(player, "Health on Kill", totalHealthOnKill, 0, "");
+                        if (totalManaOnKill > 0) sendStat(player, "Mana on Kill", totalManaOnKill, 0, "");
                         if (totalBurn > 0) sendStat(player, "Burn Chance", totalBurn * 100, 0, "%");
                         if (totalRange > 0) sendStat(player, "Attack Range", totalRange, 0, " blocks");
                         if (totalKnockback > 0) sendStat(player, "Knockback", totalKnockback * 100, 0, "%");
