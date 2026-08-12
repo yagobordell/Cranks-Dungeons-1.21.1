@@ -299,7 +299,6 @@ public class CranksDungeons implements ModInitializer {
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.FUNCTIONAL).register(content -> {
 			content.add(ModBlocks.RUNIC_ENHANCEMENT_ALTAR);
 			content.add(ModBlocks.ARTIFICIAL_ENHANCEMENT_ALTAR);
-			content.add(ModBlocks.QUALITY_STATION);
 		});
 
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.INGREDIENTS).register(content -> {
@@ -343,6 +342,19 @@ public class CranksDungeons implements ModInitializer {
 
 		// Filter enchanted books in creative to only show allowed enchantments
 		filterCreativeEnchantedBooks();
+		
+		// Completely remove smithing templates and armor trims from creative tabs
+		filterSmithingTemplates();
+	}
+
+	private void filterSmithingTemplates() {
+		ItemGroupEvents.MODIFY_ENTRIES_ALL.register((group, entries) -> {
+			var displayStacks = entries.getDisplayStacks();
+			var searchStacks = entries.getSearchTabStacks();
+			
+			displayStacks.removeIf(stack -> stack.getItem() instanceof net.minecraft.item.SmithingTemplateItem);
+			searchStacks.removeIf(stack -> stack.getItem() instanceof net.minecraft.item.SmithingTemplateItem);
+		});
 	}
 
 	private void filterCreativeEnchantedBooks() {

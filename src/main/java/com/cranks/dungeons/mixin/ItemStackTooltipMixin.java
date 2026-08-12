@@ -562,8 +562,9 @@ public abstract class ItemStackTooltipMixin {
         }
 
         boolean isUnique = CustomRarity.getRarity(stack) == CustomRarity.UNIQUE;
+        CustomStat.AffixType crypticType = hasCryptic ? ItemStatManager.getCrypticAffixType(stack) : null;
 
-        if (!prefixes.isEmpty()) {
+        if (!prefixes.isEmpty() || (hasCryptic && crypticType == CustomStat.AffixType.PREFIX)) {
             if (showDetails && !isUnique) {
                 tooltip.add(Text.literal("Prefixes:").formatted(Formatting.DARK_GRAY, Formatting.ITALIC));
             }
@@ -573,9 +574,14 @@ public abstract class ItemStackTooltipMixin {
                     tooltip.addAll(createRunicStatLines(stat, p.values, p.tier, p.isArtificial, showDetails, isUnique));
                 }
             }
+            if (hasCryptic && crypticType == CustomStat.AffixType.PREFIX) {
+                tooltip.add(Text.literal("?? ").formatted(Formatting.DARK_GREEN, Formatting.OBFUSCATED)
+                        .append(Text.literal("Cryptic Stat").formatted(Formatting.DARK_GREEN))
+                        .append(Text.literal(" ??").formatted(Formatting.DARK_GREEN, Formatting.OBFUSCATED)));
+            }
         }
 
-        if (!suffixes.isEmpty()) {
+        if (!suffixes.isEmpty() || (hasCryptic && crypticType == CustomStat.AffixType.SUFFIX)) {
             if (showDetails && !isUnique) {
                 tooltip.add(Text.literal("Suffixes:").formatted(Formatting.DARK_GRAY, Formatting.ITALIC));
             }
@@ -585,12 +591,11 @@ public abstract class ItemStackTooltipMixin {
                     tooltip.addAll(createRunicStatLines(stat, s.values, s.tier, s.isArtificial, showDetails, isUnique));
                 }
             }
-        }
-
-        if (hasCryptic) {
-            tooltip.add(Text.literal("?? ").formatted(Formatting.DARK_GREEN, Formatting.OBFUSCATED)
-                    .append(Text.literal("Cryptic Stat").formatted(Formatting.DARK_GREEN))
-                    .append(Text.literal(" ??").formatted(Formatting.DARK_GREEN, Formatting.OBFUSCATED)));
+            if (hasCryptic && crypticType == CustomStat.AffixType.SUFFIX) {
+                tooltip.add(Text.literal("?? ").formatted(Formatting.DARK_GREEN, Formatting.OBFUSCATED)
+                        .append(Text.literal("Cryptic Stat").formatted(Formatting.DARK_GREEN))
+                        .append(Text.literal(" ??").formatted(Formatting.DARK_GREEN, Formatting.OBFUSCATED)));
+            }
         }
 
         addDivider(tooltip);

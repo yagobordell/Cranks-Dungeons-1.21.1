@@ -332,13 +332,11 @@ public class ItemStatManager {
         }
     }
 
-    public static boolean revealCrypticStat(ItemStack stack, String statId, int tier) {
+    public static boolean revealCrypticStat(ItemStack stack, String statId, int tier, double[] values) {
         if (!hasCrypticStat(stack)) return false;
 
         CustomStat stat = StatRegistry.getStat(statId);
         if (stat == null) return false;
-
-        double value = stat.rollValue(tier);
 
         NbtCompound nbt = stack.getOrDefault(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,
                 net.minecraft.component.type.NbtComponent.DEFAULT).copyNbt();
@@ -350,7 +348,14 @@ public class ItemStatManager {
 
         NbtCompound newStat = new NbtCompound();
         newStat.putString("id", statId);
-        newStat.putDouble("value", value);
+        
+        NbtList nbtValues = new NbtList();
+        if (values != null && values.length > 0) {
+            for (double v : values) nbtValues.add(net.minecraft.nbt.NbtDouble.of(v));
+        } else {
+            for (double v : stat.rollValues(tier)) nbtValues.add(net.minecraft.nbt.NbtDouble.of(v));
+        }
+        newStat.put("values", nbtValues);
         newStat.putInt("tier", tier);
         newStat.putBoolean("artificial", true);
         statsList.add(newStat);
@@ -363,20 +368,33 @@ public class ItemStatManager {
         return true;
     }
 
+    public static boolean revealCrypticStat(ItemStack stack, String statId, int tier) {
+        return revealCrypticStat(stack, statId, tier, null);
+    }
+
     // ... (other cryptic methods remain same)
     private static final String CRYPTIC_OPTIONS_KEY = "CrypticOptions";
 
-    public static void storeCrypticOptions(ItemStack stack, String[] statIds, int[] tiers) {
+    public static void storeCrypticOptions(ItemStack stack, String[] statIds, int[] tiers, double[][] values) {
         NbtCompound nbt = stack.getOrDefault(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,
                 net.minecraft.component.type.NbtComponent.DEFAULT).copyNbt();
         NbtCompound options = new NbtCompound();
         for (int i = 0; i < 3; i++) {
             options.putString("stat" + i, statIds[i] != null ? statIds[i] : "");
             options.putInt("tier" + i, tiers[i]);
+            if (values != null && i < values.length && values[i] != null) {
+                NbtList valList = new NbtList();
+                for (double v : values[i]) valList.add(net.minecraft.nbt.NbtDouble.of(v));
+                options.put("values" + i, valList);
+            }
         }
         nbt.put(CRYPTIC_OPTIONS_KEY, options);
         stack.set(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,
                 net.minecraft.component.type.NbtComponent.of(nbt));
+    }
+
+    public static void storeCrypticOptions(ItemStack stack, String[] statIds, int[] tiers) {
+        storeCrypticOptions(stack, statIds, tiers, null);
     }
 
     public static String[] getStoredCrypticStatIds(ItemStack stack) {
@@ -402,6 +420,26 @@ public class ItemStatManager {
             tiers[i] = options.contains("tier" + i) ? options.getInt("tier" + i) : 1;
         }
         return tiers;
+    }
+
+    public static double[][] getStoredCrypticValues(ItemStack stack) {
+        NbtCompound nbt = stack.getOrDefault(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,
+                net.minecraft.component.type.NbtComponent.DEFAULT).copyNbt();
+        if (!nbt.contains(CRYPTIC_OPTIONS_KEY)) return null;
+        NbtCompound options = nbt.getCompound(CRYPTIC_OPTIONS_KEY);
+        double[][] values = new double[3][];
+        for (int i = 0; i < 3; i++) {
+            if (options.contains("values" + i)) {
+                NbtList list = options.getList("values" + i, net.minecraft.nbt.NbtElement.DOUBLE_TYPE);
+                values[i] = new double[list.size()];
+                for (int j = 0; j < list.size(); j++) {
+                    values[i][j] = list.getDouble(j);
+                }
+            } else {
+                values[i] = null;
+            }
+        }
+        return values;
     }
 
     public static void removeCrypticOptions(ItemStack stack) {

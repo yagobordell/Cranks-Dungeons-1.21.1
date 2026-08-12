@@ -1,21 +1,31 @@
 package com.cranks.dungeons.client.screen;
 
 import com.cranks.dungeons.CranksDungeons;
-import com.cranks.dungeons.network.StartQualityUpgradePayload;
 import com.cranks.dungeons.screen.QualityStationScreenHandler;
+import com.cranks.dungeons.block.entity.QualityStationBlockEntity;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
-import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
 public class QualityStationScreen extends HandledScreen<QualityStationScreenHandler> {
-    private static final Identifier TEXTURE = Identifier.of(CranksDungeons.MOD_ID, "textures/gui/quality_station.png");
-    private ButtonWidget upgradeButton;
+    // Standard (non-animated) texture — shown when an item is in the equipment slot
+    private static final Identifier TEXTURE = Identifier.of(CranksDungeons.MOD_ID, "textures/gui/quality_station/quality_station.png");
+
+    // Animated idle frames 1-6, cycled when the equipment slot is empty
+    private static final Identifier[] ANIMATED_TEXTURES = new Identifier[] {
+        Identifier.of(CranksDungeons.MOD_ID, "textures/gui/quality_station/quality_station_1.png"),
+        Identifier.of(CranksDungeons.MOD_ID, "textures/gui/quality_station/quality_station_2.png"),
+        Identifier.of(CranksDungeons.MOD_ID, "textures/gui/quality_station/quality_station_3.png"),
+        Identifier.of(CranksDungeons.MOD_ID, "textures/gui/quality_station/quality_station_4.png"),
+        Identifier.of(CranksDungeons.MOD_ID, "textures/gui/quality_station/quality_station_5.png"),
+        Identifier.of(CranksDungeons.MOD_ID, "textures/gui/quality_station/quality_station_6.png"),
+    };
+
+    private int animationTick = 0;
 
     public QualityStationScreen(QualityStationScreenHandler handler, PlayerInventory inventory, Text title) {
         super(handler, inventory, title);
@@ -25,16 +35,12 @@ public class QualityStationScreen extends HandledScreen<QualityStationScreenHand
     protected void init() {
         super.init();
         titleX = (backgroundWidth - textRenderer.getWidth(title)) / 2;
-        
-        int buttonX = x + 62;
-        int buttonY = y + 53;
-        upgradeButton = ButtonWidget.builder(Text.literal("Upgrade"), button -> {
-            ClientPlayNetworking.send(new StartQualityUpgradePayload(!handler.isProcessing()));
-        })
-        .dimensions(buttonX, buttonY, 48, 14)
-        .build();
-        
-        addDrawableChild(upgradeButton);
+    }
+
+    @Override
+    protected void handledScreenTick() {
+        super.handledScreenTick();
+        animationTick++;
     }
 
     @Override
@@ -42,8 +48,22 @@ public class QualityStationScreen extends HandledScreen<QualityStationScreenHand
         int x = (this.width - this.backgroundWidth) / 2;
         int y = (this.height - this.backgroundHeight) / 2;
 
+        // Determine which texture to use based on whether the equipment slot has an item
+        boolean hasEquipment = !handler.getSlot(QualityStationBlockEntity.EQUIPMENT_SLOT).getStack().isEmpty();
+        Identifier currentTexture;
+
+        if (hasEquipment) {
+            // Item present — show the standard static texture and reset animation
+            currentTexture = TEXTURE;
+            animationTick = 0;
+        } else {
+            // No item — cycle through animated textures (30 ticks per frame = ~1.5 seconds)
+            int frameIndex = (animationTick / 30) % ANIMATED_TEXTURES.length;
+            currentTexture = ANIMATED_TEXTURES[frameIndex];
+        }
+
         context.drawTexture(
-                TEXTURE,
+                currentTexture,
                 x, y,
                 0.0f, 0.0f,
                 this.backgroundWidth,
@@ -55,20 +75,14 @@ public class QualityStationScreen extends HandledScreen<QualityStationScreenHand
         int progress = handler.getScaledProgress();
         if (progress > 0) {
             context.drawTexture(
-                    TEXTURE,
-                    x + 76, y + 26,
-                    176.0f, 14.0f,
-                    progress + 1,
-                    16,
+                    currentTexture,
+                    x + 121, y + 48,
+                    176.0f, 0.0f,
+                    progress,
+                    15,
                     256,
                     256
             );
-        }
-        
-        if (handler.isProcessing()) {
-            upgradeButton.setMessage(Text.literal("Stop"));
-        } else {
-            upgradeButton.setMessage(Text.literal("Upgrade"));
         }
     }
 
@@ -79,7 +93,6 @@ public class QualityStationScreen extends HandledScreen<QualityStationScreenHand
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        renderBackground(context, mouseX, mouseY, delta);
         super.render(context, mouseX, mouseY, delta);
         drawMouseoverTooltip(context, mouseX, mouseY);
     }

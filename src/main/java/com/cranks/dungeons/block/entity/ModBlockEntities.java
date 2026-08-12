@@ -2,6 +2,7 @@ package com.cranks.dungeons.block.entity;
 
 import com.cranks.dungeons.CranksDungeons;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
+import net.minecraft.block.Blocks;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
@@ -36,7 +37,7 @@ public class ModBlockEntities {
                 Identifier.of(CranksDungeons.MOD_ID, "quality_station_be"),
                 FabricBlockEntityTypeBuilder.create(
                         QualityStationBlockEntity::new,
-                        Registries.BLOCK.get(Identifier.of(CranksDungeons.MOD_ID, "quality_station"))
+                        Blocks.SMITHING_TABLE
                 ).build()
         );
     }

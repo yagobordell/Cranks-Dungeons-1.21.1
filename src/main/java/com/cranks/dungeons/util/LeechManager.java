@@ -22,6 +22,8 @@ public class LeechManager {
     }
 
     private static final Map<UUID, List<LeechInstance>> LEECH_INSTANCES = new ConcurrentHashMap<>();
+    private static final Map<UUID, Float> ACCUMULATED_HEALING = new ConcurrentHashMap<>();
+    private static final Map<UUID, Integer> LEECH_TICKS = new ConcurrentHashMap<>();
 
     private static void applyHealing(LivingEntity entity, float amount) {
         if (entity.getAttributeValue(com.cranks.dungeons.registry.ModAttributes.KEYSTONE_GHOST_REAVER) > 0) {
@@ -64,7 +66,6 @@ public class LeechManager {
         
         UUID uuid = entity.getUuid();
         List<LeechInstance> instances = LEECH_INSTANCES.get(uuid);
-        if (instances == null || instances.isEmpty()) return;
 
         boolean ghostReaver = entity.getAttributeValue(com.cranks.dungeons.registry.ModAttributes.KEYSTONE_GHOST_REAVER) > 0;
         float currentResource = ghostReaver && entity instanceof com.cranks.dungeons.EnergyShieldProvider provider ? provider.cranksdungeons$getCurrentEnergyShield() : entity.getHealth();
@@ -72,7 +73,28 @@ public class LeechManager {
 
         // If at full health/ES, all instances are removed (like PoE)
         if (currentResource >= maxResource) {
-            instances.clear();
+            if (instances != null) instances.clear();
+            ACCUMULATED_HEALING.remove(uuid);
+            LEECH_TICKS.remove(uuid);
+            return;
+        }
+
+        if (instances == null || instances.isEmpty()) {
+            float rem = ACCUMULATED_HEALING.getOrDefault(uuid, 0f);
+            if (rem > 0.01f) {
+                int ticks = LEECH_TICKS.getOrDefault(uuid, 0) + 1;
+                if (ticks >= 10) {
+                    float toHeal = Math.round(rem * 10.0f) / 10.0f;
+                    if (toHeal > 0) applyHealing(entity, toHeal);
+                    ACCUMULATED_HEALING.remove(uuid);
+                    LEECH_TICKS.remove(uuid);
+                } else {
+                    LEECH_TICKS.put(uuid, ticks);
+                }
+            } else {
+                ACCUMULATED_HEALING.remove(uuid);
+                LEECH_TICKS.remove(uuid);
+            }
             return;
         }
 
@@ -95,7 +117,26 @@ public class LeechManager {
         }
 
         if (totalHealingThisTick > 0) {
-            applyHealing(entity, totalHealingThisTick);
+            float accumulated = ACCUMULATED_HEALING.getOrDefault(uuid, 0f) + totalHealingThisTick;
+            int ticks = LEECH_TICKS.getOrDefault(uuid, 0) + 1;
+            
+            if (ticks >= 10) { // Every 0.5 seconds
+                if (accumulated > 0.01f) {
+                    float toHeal = Math.round(accumulated * 10.0f) / 10.0f;
+                    if (toHeal > 0) applyHealing(entity, toHeal);
+                    accumulated = 0f;
+                }
+                LEECH_TICKS.put(uuid, 0);
+            } else {
+                LEECH_TICKS.put(uuid, ticks);
+            }
+            
+            if (instances.isEmpty() && accumulated <= 0) {
+                ACCUMULATED_HEALING.remove(uuid);
+                LEECH_TICKS.remove(uuid);
+            } else {
+                ACCUMULATED_HEALING.put(uuid, accumulated);
+            }
         }
     }
 }

@@ -39,16 +39,30 @@ public class QualityStationScreenHandler extends ScreenHandler {
         inventory.onOpen(playerInventory.player);
 
         // Quality Station Inventory
-        this.addSlot(new Slot(inventory, QualityStationBlockEntity.EQUIPMENT_SLOT, 56, 26) {
+        this.addSlot(new Slot(inventory, QualityStationBlockEntity.EQUIPMENT_SLOT, 152, 48) {
             @Override
             public boolean canInsert(ItemStack stack) {
-                return com.cranks.dungeons.equipment.EquipmentType.getTypeForItem(stack).isPresent();
+                if (com.cranks.dungeons.equipment.EquipmentType.getTypeForItem(stack).isEmpty()) {
+                    return false;
+                }
+                ItemStack materialStack = inventory.getStack(QualityStationBlockEntity.MATERIAL_SLOT);
+                if (!materialStack.isEmpty() && inventory instanceof QualityStationBlockEntity blockEntity) {
+                    return blockEntity.isValidMaterialForEquipment(stack, materialStack);
+                }
+                return true;
             }
         });
-        this.addSlot(new Slot(inventory, QualityStationBlockEntity.MATERIAL_SLOT, 104, 26) {
+        this.addSlot(new Slot(inventory, QualityStationBlockEntity.MATERIAL_SLOT, 98, 48) {
             @Override
             public boolean canInsert(ItemStack stack) {
-                return stack.getItem() instanceof com.cranks.dungeons.item.QualityMaterialItem;
+                if (!(stack.getItem() instanceof com.cranks.dungeons.item.QualityMaterialItem)) {
+                    return false;
+                }
+                ItemStack equipmentStack = inventory.getStack(QualityStationBlockEntity.EQUIPMENT_SLOT);
+                if (!equipmentStack.isEmpty() && inventory instanceof QualityStationBlockEntity blockEntity) {
+                    return blockEntity.isValidMaterialForEquipment(equipmentStack, stack);
+                }
+                return true;
             }
         });
 
@@ -60,9 +74,9 @@ public class QualityStationScreenHandler extends ScreenHandler {
     public int getScaledProgress() {
         int processTick = propertyDelegate.get(0);
         int maxProcessTime = 600; // 30 seconds
-        int progressArrowSize = 24; 
+        int progressArrowSize = 21; 
         
-        return maxProcessTime != 0 && processTick != 0 ? processTick * progressArrowSize / maxProcessTime : 0;
+        return maxProcessTime != 0 && processTick != 0 ? Math.max(1, processTick * progressArrowSize / maxProcessTime) : 0;
     }
 
     public boolean isProcessing() {

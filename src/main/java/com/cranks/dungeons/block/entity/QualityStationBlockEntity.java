@@ -166,44 +166,19 @@ public class QualityStationBlockEntity extends BlockEntity implements NamedScree
         return true;
     }
 
-    public void setProcessing(boolean processing) {
-        this.isProcessing = processing;
-        if (!processing) {
-            this.processTick = 0;
-            if (world instanceof net.minecraft.server.world.ServerWorld serverWorld) {
-                for (net.minecraft.server.network.ServerPlayerEntity p : serverWorld.getPlayers()) {
-                    if (p.squaredDistanceTo(pos.toCenterPos()) < 1024.0) {
-                        p.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.StopSoundS2CPacket(
-                            net.minecraft.util.Identifier.of(com.cranks.dungeons.CranksDungeons.MOD_ID, "quality_station_2"),
-                            net.minecraft.sound.SoundCategory.BLOCKS
-                        ));
-                        p.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.StopSoundS2CPacket(
-                            net.minecraft.util.Identifier.of(com.cranks.dungeons.CranksDungeons.MOD_ID, "quality_station_3"),
-                            net.minecraft.sound.SoundCategory.BLOCKS
-                        ));
-                    }
-                }
-            }
-        }
-        markDirty();
-    }
-
     public void tick(World world, BlockPos pos, BlockState state) {
         if (world.isClient()) return;
 
-        if (isProcessing) {
-            ItemStack equipment = getStack(EQUIPMENT_SLOT);
-            ItemStack material = getStack(MATERIAL_SLOT);
+        ItemStack equipment = getStack(EQUIPMENT_SLOT);
+        ItemStack material = getStack(MATERIAL_SLOT);
+        boolean canProcess = !equipment.isEmpty() && !material.isEmpty() 
+            && isValidMaterialForEquipment(equipment, material) 
+            && getQuality(equipment) < 20;
 
-            if (equipment.isEmpty() || material.isEmpty() || !isValidMaterialForEquipment(equipment, material)) {
-                setProcessing(false);
-                return;
-            }
-
-            int currentQuality = getQuality(equipment);
-            if (currentQuality >= 20) {
-                setProcessing(false);
-                return;
+        if (canProcess) {
+            if (!isProcessing) {
+                this.isProcessing = true;
+                markDirty();
             }
 
             processTick++;
@@ -219,25 +194,36 @@ public class QualityStationBlockEntity extends BlockEntity implements NamedScree
                 material.decrement(1);
                 
                 int increase = (RandomUtil.nextInt(100) < 33) ? 2 : 1;
-                int newQuality = Math.min(20, currentQuality + increase);
+                int newQuality = Math.min(20, getQuality(equipment) + increase);
                 setQuality(equipment, newQuality);
                 
                 com.cranks.dungeons.equipment.EquipmentStatApplier.updateItemAttributes(equipment);
                 markDirty();
-
-                if (material.isEmpty() || newQuality >= 20) {
-                    setProcessing(false);
-                }
             }
         } else {
-            if (processTick > 0) {
-                processTick = 0;
+            if (isProcessing || processTick > 0) {
+                this.isProcessing = false;
+                this.processTick = 0;
+                if (world instanceof net.minecraft.server.world.ServerWorld serverWorld) {
+                    for (net.minecraft.server.network.ServerPlayerEntity p : serverWorld.getPlayers()) {
+                        if (p.squaredDistanceTo(pos.toCenterPos()) < 1024.0) {
+                            p.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.StopSoundS2CPacket(
+                                net.minecraft.util.Identifier.of(com.cranks.dungeons.CranksDungeons.MOD_ID, "quality_station_2"),
+                                net.minecraft.sound.SoundCategory.BLOCKS
+                            ));
+                            p.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.StopSoundS2CPacket(
+                                net.minecraft.util.Identifier.of(com.cranks.dungeons.CranksDungeons.MOD_ID, "quality_station_3"),
+                                net.minecraft.sound.SoundCategory.BLOCKS
+                            ));
+                        }
+                    }
+                }
                 markDirty();
             }
         }
     }
 
-    private boolean isValidMaterialForEquipment(ItemStack equipment, ItemStack material) {
+    public boolean isValidMaterialForEquipment(ItemStack equipment, ItemStack material) {
         if (!(material.getItem() instanceof QualityMaterialItem qualityItem)) return false;
         
         return EquipmentType.getTypeForItem(equipment).map(type -> {

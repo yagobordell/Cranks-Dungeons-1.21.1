@@ -48,8 +48,6 @@ public class ModNetworking {
         PayloadTypeRegistry.playS2C().register(SyncWorldTreePayload.ID, SyncWorldTreePayload.CODEC);
         PayloadTypeRegistry.playC2S().register(UnlockWorldNodePayload.ID, UnlockWorldNodePayload.CODEC);
         PayloadTypeRegistry.playC2S().register(BulkUnlockWorldNodesPayload.ID, BulkUnlockWorldNodesPayload.CODEC);
-        
-        PayloadTypeRegistry.playC2S().register(StartQualityUpgradePayload.ID, StartQualityUpgradePayload.CODEC);
     }
 
     private static boolean isNodeUnlockable(com.cranks.dungeons.component.PassiveDataComponent data, String nodeId) {
@@ -294,17 +292,6 @@ public class ModNetworking {
                         }
                         player.playSound(net.minecraft.sound.SoundEvents.UI_BUTTON_CLICK.value(), 1.0F, 1.0F);
                         com.cranks.dungeons.component.WorldTreePersistentState.get(context.server()).savePlayerData(player.getUuid(), data);
-                    }
-                }
-            });
-        });
-
-        ServerPlayNetworking.registerGlobalReceiver(StartQualityUpgradePayload.ID, (payload, context) -> {
-            context.server().execute(() -> {
-                var player = context.player();
-                if (player.currentScreenHandler instanceof com.cranks.dungeons.screen.QualityStationScreenHandler handler) {
-                    if (handler.blockEntity != null) {
-                        handler.blockEntity.setProcessing(payload.start());
                     }
                 }
             });

@@ -84,7 +84,6 @@ public class CranksDungeonsClient implements ClientModInitializer {
 
         net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap.INSTANCE.putBlocks(
             net.minecraft.client.render.RenderLayer.getCutout(),
-            com.cranks.dungeons.block.ModBlocks.QUALITY_STATION,
             com.cranks.dungeons.block.ModBlocks.ARTIFICIAL_ENHANCEMENT_ALTAR,
             com.cranks.dungeons.block.ModBlocks.RUNIC_ENHANCEMENT_ALTAR
         );

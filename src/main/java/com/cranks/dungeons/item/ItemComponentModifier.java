@@ -377,7 +377,7 @@ public class ItemComponentModifier {
     private static boolean usesTraditionalArmor(String itemName) {
         return itemName.contains("copper") || itemName.contains("iron") ||
                 itemName.contains("diamond") || itemName.contains("netherite") ||
-                itemName.contains("chainmail");
+                itemName.contains("chainmail") || itemName.contains("golden");
     }
 
     private static boolean usesTraditionalArmorToughness(String itemName) {
@@ -388,6 +388,8 @@ public class ItemComponentModifier {
         if (itemName.contains("copper"))
             return 5.0;
         if (itemName.contains("chainmail"))
+            return 5.0;
+        if (itemName.contains("golden"))
             return 5.0;
         if (itemName.contains("iron"))
             return 8.0;

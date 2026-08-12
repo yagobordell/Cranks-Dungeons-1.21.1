@@ -87,7 +87,11 @@
 		"MobEntityMixin",
 		"ExperienceOrbEntitySpawnMixin",
 		"ManaDataMixin",
-		"ManaRegenMixin"
+		"ManaRegenMixin",
+		"SmithingTableBlockMixin",
+		"SmithingTableStateReplacedMixin",
+		"LootTableMixin",
+		"RecipeManagerMixin"
 	],
 	"client": [
 		"CrashReportMixin",

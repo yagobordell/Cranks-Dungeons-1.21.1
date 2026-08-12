@@ -54,7 +54,7 @@ public class ArtificialEnhancementAltarScreenHandler extends ScreenHandler {
         this.addProperties(propertyDelegate);
 
         // Equipment slot - closer to top
-        this.addSlot(new Slot(inventory, ArtificialEnhancementAltarBlockEntity.EQUIPMENT_SLOT, 80, 10) {
+        this.addSlot(new Slot(inventory, ArtificialEnhancementAltarBlockEntity.EQUIPMENT_SLOT, 80, 15) {
             @Override
             public boolean canInsert(ItemStack stack) {
                 return EquipmentType.getTypeForItem(stack).isPresent();
@@ -65,13 +65,13 @@ public class ArtificialEnhancementAltarScreenHandler extends ScreenHandler {
         int inventoryX = 8;
         for (int i = 0; i < 3; ++i) {
             for (int j = 0; j < 9; ++j) {
-                this.addSlot(new Slot(playerInventory, j + i * 9 + 9, inventoryX + j * 18, 98 + i * 18));
+                this.addSlot(new Slot(playerInventory, j + i * 9 + 9, inventoryX + j * 18, 104 + i * 18));
             }
         }
 
 // Player hotbar
         for (int i = 0; i < 9; ++i) {
-            this.addSlot(new Slot(playerInventory, i, inventoryX + i * 18, 156));
+            this.addSlot(new Slot(playerInventory, i, inventoryX + i * 18, 162));
         }
     }
 

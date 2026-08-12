@@ -113,7 +113,7 @@ public class ArtificialEnhancementAltarBlockEntity extends BlockEntity implement
         if (!result.isEmpty()) {
             if (slot == EQUIPMENT_SLOT) {
                 clearOptions();
-                syncClearToOpenPlayers();
+                syncToOpenPlayers();
             }
             markDirty();
         }
@@ -125,7 +125,7 @@ public class ArtificialEnhancementAltarBlockEntity extends BlockEntity implement
         ItemStack result = Inventories.removeStack(inventory, slot);
         if (slot == EQUIPMENT_SLOT) {
             clearOptions();
-            syncClearToOpenPlayers();
+            syncToOpenPlayers();
         }
         return result;
     }
@@ -140,10 +140,8 @@ public class ArtificialEnhancementAltarBlockEntity extends BlockEntity implement
             clearOptions();
             if (!stack.isEmpty() && ItemStatManager.hasCrypticStat(stack)) {
                 generateOrLoadOptions(stack);
-                syncToOpenPlayers();
-            } else {
-                syncClearToOpenPlayers();
             }
+            syncToOpenPlayers();
         }
         markDirty();
     }
@@ -234,11 +232,14 @@ public class ArtificialEnhancementAltarBlockEntity extends BlockEntity implement
         List<String> selectedGroups = new ArrayList<>();
         int added = 0;
         
+        double[][] valueOptions = new double[3][];
+        
         for (CustomStat stat : availableStats) {
             if (selectedGroups.contains(stat.getGroupId())) continue;
             
             statOptions[added] = stat.getId();
             tierOptions[added] = RandomUtil.nextInt(3) + 1;
+            valueOptions[added] = stat.rollValues(tierOptions[added]);
             selectedGroups.add(stat.getGroupId());
             added++;
             
@@ -251,7 +252,7 @@ public class ArtificialEnhancementAltarBlockEntity extends BlockEntity implement
         }
 
         optionsGenerated = true;
-        ItemStatManager.storeCrypticOptions(equipment, statOptions, tierOptions);
+        ItemStatManager.storeCrypticOptions(equipment, statOptions, tierOptions, valueOptions);
         markDirty();
     }
 
@@ -289,13 +290,19 @@ public class ArtificialEnhancementAltarBlockEntity extends BlockEntity implement
 
         if (statId == null) return false;
 
+        double[][] storedValues = ItemStatManager.getStoredCrypticValues(equipment);
+        double[] valuesToApply = null;
+        if (storedValues != null && storedValues[optionIndex] != null) {
+            valuesToApply = storedValues[optionIndex];
+        }
+
         // Modify the item in place instead of creating a copy
         ItemStatManager.removeCrypticOptions(equipment);
-        boolean success = ItemStatManager.revealCrypticStat(equipment, statId, tier);
+        boolean success = ItemStatManager.revealCrypticStat(equipment, statId, tier, valuesToApply);
 
         if (success) {
             clearOptions();
-            syncClearToOpenPlayers();
+            syncToOpenPlayers();
             markDirty();
             return true;
         }
@@ -304,15 +311,40 @@ public class ArtificialEnhancementAltarBlockEntity extends BlockEntity implement
     }
 
     public void syncOptionsToPlayer(ServerPlayerEntity player, int syncId) {
+        ItemStack equipment = getStack(EQUIPMENT_SLOT);
+        
         if (optionsGenerated) {
+            double[][] storedValues = ItemStatManager.getStoredCrypticValues(equipment);
+            String[] texts = new String[3];
+
+            for (int i = 0; i < 3; i++) {
+                String statId = statOptions[i];
+                if (statId != null && !statId.isEmpty()) {
+                    CustomStat stat = StatRegistry.getStat(statId);
+                    if (stat != null && !stat.getComponents().isEmpty()) {
+                        CustomStat.StatComponent comp = stat.getComponents().get(0);
+                        double val = 0;
+                        if (storedValues != null && storedValues[i] != null && storedValues[i].length > 0) {
+                            val = storedValues[i][0];
+                        }
+                        texts[i] = comp.formatValue(val, stat.getEquipmentType()).trim();
+                    } else {
+                        texts[i] = "???";
+                    }
+                } else {
+                    texts[i] = "";
+                }
+            }
+
             ServerPlayNetworking.send(player,
                     new StatOptionsSyncPacket(
                             syncId,
-                            statOptions[0] != null ? statOptions[0] : "",
-                            statOptions[1] != null ? statOptions[1] : "",
-                            statOptions[2] != null ? statOptions[2] : "",
+                            texts[0], texts[1], texts[2],
                             tierOptions[0], tierOptions[1], tierOptions[2]
                     ));
+        } else if (!equipment.isEmpty() && !ItemStatManager.hasCrypticStat(equipment)) {
+            ServerPlayNetworking.send(player,
+                    new StatOptionsSyncPacket(syncId, "No Artificial Rune", "", "", 0, 0, 0));
         } else {
             ServerPlayNetworking.send(player,
                     new StatOptionsSyncPacket(syncId, "", "", "", 0, 0, 0));

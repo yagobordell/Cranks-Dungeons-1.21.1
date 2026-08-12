@@ -13,31 +13,23 @@ import net.minecraft.util.Identifier;
 
 @Environment(EnvType.CLIENT)
 public class RunicEnhancementAltarScreen extends HandledScreen<RunicEnhancementAltarScreenHandler> {
-    private static final Identifier STANDARD_TEXTURE = Identifier.of(CranksDungeons.MOD_ID, "textures/gui/runic_enhancement_altar_gui.png");
+    private static final Identifier STANDARD_TEXTURE = Identifier.of(CranksDungeons.MOD_ID, "textures/gui/runic_altar/runic_enhancement_altar_gui.png");
 
     private static final Identifier[] TEXTURES = {
-            Identifier.of(CranksDungeons.MOD_ID, "textures/gui/runic_enhancement_altar_gui_1.png"),
-            Identifier.of(CranksDungeons.MOD_ID, "textures/gui/runic_enhancement_altar_gui_2.png"),
-            Identifier.of(CranksDungeons.MOD_ID, "textures/gui/runic_enhancement_altar_gui_3.png"),
-            Identifier.of(CranksDungeons.MOD_ID, "textures/gui/runic_enhancement_altar_gui_4.png"),
-            Identifier.of(CranksDungeons.MOD_ID, "textures/gui/runic_enhancement_altar_gui_5.png"),
-            Identifier.of(CranksDungeons.MOD_ID, "textures/gui/runic_enhancement_altar_gui_6.png"),
-            Identifier.of(CranksDungeons.MOD_ID, "textures/gui/runic_enhancement_altar_gui_7.png"),
-            Identifier.of(CranksDungeons.MOD_ID, "textures/gui/runic_enhancement_altar_gui_8.png"),
-            Identifier.of(CranksDungeons.MOD_ID, "textures/gui/runic_enhancement_altar_gui_9.png"),
-            Identifier.of(CranksDungeons.MOD_ID, "textures/gui/runic_enhancement_altar_gui_10.png")
+            Identifier.of(CranksDungeons.MOD_ID, "textures/gui/runic_altar/runic_enhancement_altar_gui_1.png"),
+            Identifier.of(CranksDungeons.MOD_ID, "textures/gui/runic_altar/runic_enhancement_altar_gui_2.png"),
+            Identifier.of(CranksDungeons.MOD_ID, "textures/gui/runic_altar/runic_enhancement_altar_gui_3.png"),
+            Identifier.of(CranksDungeons.MOD_ID, "textures/gui/runic_altar/runic_enhancement_altar_gui_4.png"),
+            Identifier.of(CranksDungeons.MOD_ID, "textures/gui/runic_altar/runic_enhancement_altar_gui_5.png"),
+            Identifier.of(CranksDungeons.MOD_ID, "textures/gui/runic_altar/runic_enhancement_altar_gui_6.png")
     };
 
-    private int currentTextureIndex = 0;
-    private int tickCounter = 0;
-    private static final int TICKS_PER_TEXTURE = 200;
-
-    private ButtonWidget enhanceButton;
+    private int animationTick = 0;
 
     public RunicEnhancementAltarScreen(RunicEnhancementAltarScreenHandler handler, PlayerInventory inventory, Text title) {
         super(handler, inventory, title);
         this.backgroundWidth = 176;
-        this.backgroundHeight = 166; // standard container height
+        this.backgroundHeight = 170; // updated container height
         this.playerInventoryTitleY = this.backgroundHeight - 94;
     }
 
@@ -46,31 +38,15 @@ public class RunicEnhancementAltarScreen extends HandledScreen<RunicEnhancementA
         super.init();
         this.titleX = 8;
         this.titleY = 6;
-        createButton();
     }
 
-    private void createButton() {
-        int buttonWidth = 48;
-        int buttonHeight = 14;
-        int buttonX = this.x + 28;
-        int buttonY = this.y + 32;
-
-        if (this.enhanceButton != null) {
-            this.remove(this.enhanceButton);
-        }
-
-        this.enhanceButton = ButtonWidget.builder(Text.literal("Enhance"), button -> {
-                    if (this.client != null && this.client.interactionManager != null) {
-                        this.client.interactionManager.clickButton(this.handler.syncId, 0);
-                        // Recreate the button to reset its state
-                        this.client.execute(this::createButton);
-                    }
-                })
-                .dimensions(buttonX, buttonY, buttonWidth, buttonHeight)
-                .build();
-
-        this.addDrawableChild(this.enhanceButton);
+    @Override
+    public void handledScreenTick() {
+        super.handledScreenTick();
+        animationTick++;
     }
+
+
 
     @Override
     protected void drawBackground(DrawContext context, float delta, int mouseX, int mouseY) {
@@ -83,27 +59,42 @@ public class RunicEnhancementAltarScreen extends HandledScreen<RunicEnhancementA
 
         if (hasEquipment) {
             textureToUse = STANDARD_TEXTURE;
-            tickCounter = 0;
-            currentTextureIndex = 0;
+            animationTick = 0; // reset so it starts from frame 1 when item is removed
         } else {
-            tickCounter++;
-            if (tickCounter >= TICKS_PER_TEXTURE) {
-                tickCounter = 0;
-                currentTextureIndex = (currentTextureIndex + 1) % TEXTURES.length;
-            }
-            textureToUse = TEXTURES[currentTextureIndex];
+            // Cycle through the 6 textures (1 frame every 30 ticks / 1.5 seconds)
+            int frameIndex = (animationTick / 30) % TEXTURES.length;
+            textureToUse = TEXTURES[frameIndex];
         }
 
-        // IMPORTANT: texture width/height match drawn width/height (no scaling)
         context.drawTexture(
                 textureToUse,
                 x, y,
                 0.0f, 0.0f,
                 this.backgroundWidth,
                 this.backgroundHeight,
-                this.backgroundWidth,
-                this.backgroundHeight
+                256, 256
         );
+
+        // Draw hover button
+        int buttonX = x + 68;
+        int buttonY = y + 35;
+        if (mouseX >= buttonX && mouseX <= buttonX + 26 && mouseY >= buttonY && mouseY <= buttonY + 19) {
+            context.drawTexture(STANDARD_TEXTURE, buttonX, buttonY, 176, 0, 26, 19, 256, 256);
+        }
+    }
+
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        int buttonX = this.x + 68;
+        int buttonY = this.y + 35;
+        if (button == 0 && mouseX >= buttonX && mouseX <= buttonX + 26 && mouseY >= buttonY && mouseY <= buttonY + 19) {
+            if (this.client != null && this.client.interactionManager != null) {
+                this.client.interactionManager.clickButton(this.handler.syncId, 0);
+                this.client.getSoundManager().play(net.minecraft.client.sound.PositionedSoundInstance.master(net.minecraft.sound.SoundEvents.UI_BUTTON_CLICK, 1.0F));
+            }
+            return true;
+        }
+        return super.mouseClicked(mouseX, mouseY, button);
     }
 
     @Override
@@ -113,7 +104,6 @@ public class RunicEnhancementAltarScreen extends HandledScreen<RunicEnhancementA
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        renderBackground(context, mouseX, mouseY, delta);
         super.render(context, mouseX, mouseY, delta);
         this.drawMouseoverTooltip(context, mouseX, mouseY);
     }

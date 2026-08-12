@@ -24,12 +24,12 @@ public class ItemRequirementManager {
         if (name.contains("wood") || name.contains("stone")) {
             baseScale = 0;
         } else if (name.contains("leather")) {
-            baseScale = 5;
+            baseScale = 15;
         } else if (name.contains("copper")) {
             boolean isArmor = type == EquipmentType.HELMET || type == EquipmentType.CHESTPLATE || type == EquipmentType.LEGGINGS || type == EquipmentType.BOOTS;
             baseScale = isArmor ? 15 : 0;
         } else if (name.contains("chainmail") || name.contains("gold")) {
-            baseScale = 15;
+            baseScale = 22;
         } else if (name.contains("iron")) {
             baseScale = 20;
         } else if (name.contains("diamond")) {
@@ -68,14 +68,12 @@ public class ItemRequirementManager {
                 str = scale;
             } else if (name.contains("leather")) {
                 dex = scale;
-            } else if (name.contains("gold")) {
-                intel = scale;
+            } else if (name.contains("gold") || name.contains("copper")) {
+                str = scale / 2;
+                intel = scale / 2;
             } else if (name.contains("chainmail")) {
                 str = scale / 2;
                 dex = scale / 2;
-            } else if (name.contains("copper")) {
-                str = scale / 2;
-                intel = scale / 2;
             } else {
                 str = scale;
             }

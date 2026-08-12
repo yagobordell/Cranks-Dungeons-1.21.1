@@ -40,7 +40,7 @@ public class RunicEnhancementAltarScreenHandler extends ScreenHandler {
         inventory.onOpen(playerInventory.player);
 
         // Equipment slot
-        this.addSlot(new Slot(inventory, RunicEnhancementAltarBlockEntity.EQUIPMENT_SLOT, 44, 9) {
+        this.addSlot(new Slot(inventory, RunicEnhancementAltarBlockEntity.EQUIPMENT_SLOT, 31, 23) {
             @Override
             public boolean canInsert(ItemStack stack) {
                 return EquipmentType.getTypeForItem(stack).isPresent();
@@ -48,7 +48,7 @@ public class RunicEnhancementAltarScreenHandler extends ScreenHandler {
         });
 
         // Tome slot
-        this.addSlot(new Slot(inventory, RunicEnhancementAltarBlockEntity.TOME_SLOT, 44, 53) {
+        this.addSlot(new Slot(inventory, RunicEnhancementAltarBlockEntity.TOME_SLOT, 31, 51) {
             @Override
             public boolean canInsert(ItemStack stack) {
                 return stack.getItem() instanceof RunicTomeItem
@@ -58,7 +58,7 @@ public class RunicEnhancementAltarScreenHandler extends ScreenHandler {
         });
 
         // Result slot
-        this.addSlot(new Slot(inventory, RunicEnhancementAltarBlockEntity.RESULT_SLOT, 116, 31) {
+        this.addSlot(new Slot(inventory, RunicEnhancementAltarBlockEntity.RESULT_SLOT, 127, 35) {
             @Override
             public boolean canInsert(ItemStack stack) {
                 return false;
@@ -69,13 +69,13 @@ public class RunicEnhancementAltarScreenHandler extends ScreenHandler {
         int inventoryX = 8;
         for (int i = 0; i < 3; ++i) {
             for (int j = 0; j < 9; ++j) {
-                this.addSlot(new Slot(playerInventory, j + i * 9 + 9, inventoryX + j * 18, 84 + i * 18));
+                this.addSlot(new Slot(playerInventory, j + i * 9 + 9, inventoryX + j * 18, 88 + i * 18));
             }
         }
 
         // Player hotbar
         for (int i = 0; i < 9; ++i) {
-            this.addSlot(new Slot(playerInventory, i, inventoryX + i * 18, 142));
+            this.addSlot(new Slot(playerInventory, i, inventoryX + i * 18, 146));
         }
     }
 
