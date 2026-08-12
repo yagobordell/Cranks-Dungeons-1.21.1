@@ -220,6 +220,15 @@ public class StatRegistry {
                                 1, 9000,
                                 EquipmentType.BOOTS);
 
+                registerForTypes("max_health", "Maximum health",
+                                EntityAttributes.GENERIC_MAX_HEALTH,
+                                r(10.0, 20.0, 33.0, 41.0, 60.0, 70.0, 85.0, 100.0, 101.0, 115.0),
+                                r(9.0, 22.0, 35.0, 48.0, 61.0, 74.0, 87.0, 100.0, 114.0, 129.0),
+                                false, Formatting.RED, CustomStat.AffixType.PREFIX,
+                                70, 11000,
+                                EquipmentType.SHIELD)
+                        .forEach(s -> s.setArmorBaseType(com.cranks.dungeons.equipment.ArmorBaseType.STR));
+
                 // --- Health Regeneration (Armor) ---
                 registerForTypes("health_regen", "Health Regeneration",
                                 ModAttributes.LIFE_REGENERATION,
@@ -313,8 +322,16 @@ public class StatRegistry {
                                 true, true, Formatting.GRAY, CustomStat.AffixType.SUFFIX,
                                 45, 6000,
                                 EquipmentType.HELMET, EquipmentType.CHESTPLATE, EquipmentType.LEGGINGS,
-                                EquipmentType.BOOTS,
-                                EquipmentType.SHIELD);
+                                EquipmentType.BOOTS);
+
+                registerForTypes("knockback_resistance", "Knockback Resistance",
+                                ModAttributes.KNOCKBACK_RESISTANCE,
+                                r(0.08, 0.08, 0.09, 0.10, 0.12, 0.14, 0.16, 0.19, 0.22, 0.26),
+                                r(0.12, 0.12, 0.13, 0.15, 0.18, 0.21, 0.24, 0.29, 0.34, 0.40),
+                                true, true, Formatting.GRAY, CustomStat.AffixType.PREFIX,
+                                74, 6000,
+                                EquipmentType.SHIELD)
+                        .forEach(s -> s.setArmorBaseType(com.cranks.dungeons.equipment.ArmorBaseType.STR));
 
                 // --- Elemental Resistances (Armor + Shield) ---
                 EquipmentType[] armorAndShield = {
@@ -361,7 +378,7 @@ public class StatRegistry {
                                 r(0.05, 0.07, 0.09, 0.11, 0.13, 0.16, 0.19, 0.21, 0.24, 0.27),
                                 true, true, Formatting.DARK_PURPLE, CustomStat.AffixType.SUFFIX,
                                 75, 8000,
-                                ALL_ARMOR);
+                                armorAndShield);
 
                 // --- Thorns (Armor) ---
                 registerForTypes("thorns", "Physical Thorns Damage",
@@ -372,6 +389,15 @@ public class StatRegistry {
                                 10, 3000,
                                 ALL_ARMOR);
 
+                registerForTypes("thorns", "Physical Thorns Damage",
+                                ModAttributes.THORNS_DAMAGE,
+                                r(2.0, 3.0, 6.1, 11.2, 18.4, 27.6, 38.9, 52.2, 67.6, 85.0),
+                                r(3.0, 4.2, 7.8, 13.8, 22.2, 32.9, 46.1, 61.7, 79.6, 100.0),
+                                false, Formatting.GRAY, CustomStat.AffixType.PREFIX,
+                                74, 7000,
+                                EquipmentType.SHIELD)
+                        .forEach(s -> s.setArmorBaseType(com.cranks.dungeons.equipment.ArmorBaseType.STR));
+
                 // --- Armor Applies to Elemental Damage (Armor Suffix) ---
                 registerForTypes("armor_applies_to_elemental", "% of Armour also applies to Elemental Damage",
                                 ModAttributes.ARMOR_APPLIES_TO_ELEMENTAL,
@@ -379,7 +405,7 @@ public class StatRegistry {
                                 r(0.16, 0.19, 0.22, 0.26, 0.30, 0.34, 0.38, 0.42, 0.46, 0.50),
                                 true, true, Formatting.DARK_AQUA, CustomStat.AffixType.SUFFIX,
                                 35, 1000,
-                                ALL_ARMOR)
+                                EquipmentType.HELMET, EquipmentType.CHESTPLATE, EquipmentType.LEGGINGS, EquipmentType.BOOTS, EquipmentType.SHIELD)
                         .forEach(s -> s.setArmorBaseType(com.cranks.dungeons.equipment.ArmorBaseType.STR));
 
                 // --- Experience Bonus (Armor + Elytra) ---
@@ -712,15 +738,15 @@ public class StatRegistry {
                 // --- Life Steal (Damage Leeched as Life) ---
                 registerForTypes("physical_damage_leeched_as_life", "Physical Damage Leeched as Life",
                                 ModAttributes.PHYSICAL_DAMAGE_LEECHED_AS_LIFE,
-                                r(0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.10),
-                                r(0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.11),
+                                r(0.015, 0.018, 0.021, 0.024, 0.027, 0.03, 0.032, 0.035, 0.037, 0.04),
+                                r(0.02, 0.022, 0.025, 0.028, 0.031, 0.034, 0.037, 0.040, 0.043, 0.045),
                                 true, true, Formatting.DARK_RED, CustomStat.AffixType.SUFFIX,
                                 63, 4000,
                                 ALL_WEAPONS);
                 registerForTypes("physical_damage_leeched_as_life", "Physical Damage Leeched as Life",
                                 ModAttributes.PHYSICAL_DAMAGE_LEECHED_AS_LIFE,
-                                r(0.001, 0.001, 0.002, 0.003, 0.003, 0.004, 0.005, 0.006, 0.006, 0.007),
-                                r(0.001, 0.002, 0.003, 0.004, 0.004, 0.005, 0.006, 0.007, 0.007, 0.009),
+                                r(0.005, 0.006, 0.007, 0.008, 0.009, 0.010, 0.011, 0.012, 0.013, 0.015),
+                                r(0.007, 0.008, 0.009, 0.010, 0.012, 0.013, 0.014, 0.015, 0.016, 0.018),
                                 true, true, Formatting.DARK_RED, CustomStat.AffixType.SUFFIX,
                                 63, 4000,
                                 ALL_RANGED_WEAPONS);
@@ -792,7 +818,9 @@ public class StatRegistry {
                                 r(10.0, 10.6, 12.2, 15.0, 18.9, 23.9, 30.0, 37.2, 45.6, 55.0),
                                 false, Formatting.RED, CustomStat.AffixType.SUFFIX,
                                 30, 9000,
-                                ALL_GEAR)
+                                EquipmentType.HELMET, EquipmentType.CHESTPLATE, EquipmentType.LEGGINGS, EquipmentType.BOOTS,
+                                EquipmentType.SWORD, EquipmentType.SPEAR, EquipmentType.MACE,
+                                EquipmentType.TRIDENT, EquipmentType.BOW, EquipmentType.CROSSBOW, EquipmentType.SHIELD)
                         .forEach(s -> s.setArmorBaseType(com.cranks.dungeons.equipment.ArmorBaseType.STR));
 
                 registerForTypes("dexterity", "Dexterity",
@@ -814,29 +842,14 @@ public class StatRegistry {
                         .forEach(s -> s.setArmorBaseType(com.cranks.dungeons.equipment.ArmorBaseType.INT));
 
                 // --- Shield Blocking Mechanics (Shield only) ---
-                registerForTypes("chance_to_block", "Chance to Block",
-                                ModAttributes.CHANCE_TO_BLOCK,
-                                r(0.02, 0.02, 0.03, 0.03, 0.05, 0.06, 0.08, 0.10, 0.12, 0.15),
-                                r(0.02, 0.02, 0.03, 0.03, 0.05, 0.06, 0.08, 0.10, 0.12, 0.15),
-                                true, true, Formatting.WHITE, CustomStat.AffixType.PREFIX,
-                                50, 4000,
-                                EquipmentType.SHIELD);
-
                 registerForTypes("block_value", "Block Value",
                                 ModAttributes.BLOCK_VALUE,
-                                r(10.0, 11.7, 16.9, 25.6, 37.7, 53.2, 72.2, 94.7, 120.6, 150.0),
-                                r(20.0, 22.2, 28.9, 40.0, 55.6, 75.6, 100.0, 128.9, 162.2, 200.0),
+                                r(10.0, 30.0, 50.0, 70.0, 90.0, 110.0, 130.0, 150.0, 170.0, 189.0),
+                                r(15.0, 35.0, 55.0, 75.0, 95.0, 115.0, 135.0, 155.0, 175.0, 195.0),
                                 false, Formatting.GRAY, CustomStat.AffixType.PREFIX,
-                                50, 4000,
-                                EquipmentType.SHIELD);
-
-                registerForTypes("health_on_block", "Health Gained on Block",
-                                ModAttributes.HEALTH_ON_BLOCK,
-                                r(2.0, 2.5, 3.9, 6.2, 9.5, 13.7, 18.9, 25.0, 32.0, 40.0),
-                                r(4.0, 4.6, 6.3, 9.1, 13.1, 18.2, 24.4, 31.8, 40.3, 50.0),
-                                false, Formatting.RED, CustomStat.AffixType.SUFFIX,
-                                60, 2000,
-                                EquipmentType.SHIELD);
+                                65, 3000,
+                                EquipmentType.SHIELD)
+                        .forEach(s -> s.setArmorBaseType(com.cranks.dungeons.equipment.ArmorBaseType.STR));
 
                 // --- Hybrid Stats ---
                 registerHybridForTypes("hybrid_dex_eva_life", com.cranks.dungeons.equipment.ArmorBaseType.DEX,
@@ -1082,63 +1095,63 @@ public class StatRegistry {
         }
 
         public static StatAndTier getRandomStatForEquipmentType(EquipmentType equipmentType) {
-                return getRandomStatForEquipmentType(equipmentType, com.cranks.dungeons.equipment.ArmorBaseType.ANY, 1, 100);
+                return getRandomStatForEquipmentType(equipmentType, com.cranks.dungeons.equipment.ArmorBaseType.ANY, 1, 100, 1);
         }
 
         public static StatAndTier getRandomStatForEquipmentType(EquipmentType equipmentType, com.cranks.dungeons.equipment.ArmorBaseType armorBase, int minLevel,
-                        int maxLevel) {
+                        int maxLevel, int bestAllowedTier) {
                 List<CustomStat> stats = getStatsByEquipmentType(equipmentType).stream()
                                 .filter(stat -> stat.getLevel() >= minLevel && stat.getLevel() <= maxLevel)
                                 .filter(stat -> armorBase.canRoll(stat.getArmorBaseType()))
                                 .filter(stat -> !stat.getId().contains("experience_bonus") && !stat.getId().contains("physical_taken_as_void"))
                                 .collect(Collectors.toList());
-                return getRandomWeightedStatAndTier(stats);
+                return getRandomWeightedStatAndTier(stats, bestAllowedTier);
         }
 
         public static StatAndTier getRandomStatForEquipmentType(EquipmentType equipmentType,
                         CustomStat.AffixType affixType) {
-                return getRandomStatForEquipmentType(equipmentType, com.cranks.dungeons.equipment.ArmorBaseType.ANY, affixType, 1, 100);
+                return getRandomStatForEquipmentType(equipmentType, com.cranks.dungeons.equipment.ArmorBaseType.ANY, affixType, 1, 100, 1);
         }
 
         public static StatAndTier getRandomStatForEquipmentType(EquipmentType equipmentType, com.cranks.dungeons.equipment.ArmorBaseType armorBase,
-                        CustomStat.AffixType affixType, int minLevel, int maxLevel) {
+                        CustomStat.AffixType affixType, int minLevel, int maxLevel, int bestAllowedTier) {
                 List<CustomStat> stats = getStatsByEquipmentType(equipmentType).stream()
                                 .filter(stat -> stat.getAffixType() == affixType)
                                 .filter(stat -> stat.getLevel() >= minLevel && stat.getLevel() <= maxLevel)
                                 .filter(stat -> armorBase.canRoll(stat.getArmorBaseType()))
                                 .filter(stat -> !stat.getId().contains("experience_bonus") && !stat.getId().contains("physical_taken_as_void"))
                                 .collect(Collectors.toList());
-                return getRandomWeightedStatAndTier(stats);
+                return getRandomWeightedStatAndTier(stats, bestAllowedTier);
         }
 
-        private static StatAndTier getRandomWeightedStatAndTier(List<CustomStat> stats) {
+        private static StatAndTier getRandomWeightedStatAndTier(List<CustomStat> stats, int bestAllowedTier) {
                 if (stats.isEmpty())
                         return null;
 
                 int totalWeight = 0;
                 for (CustomStat stat : stats) {
-                        for (int t = 1; t <= 10; t++) {
+                        for (int t = bestAllowedTier; t <= 10; t++) {
                                 totalWeight += stat.getTierWeight(t);
                         }
                 }
 
                 if (totalWeight <= 0) {
                         CustomStat randomStat = stats.get(RandomUtil.nextInt(stats.size()));
-                        int randomTier = RandomUtil.nextInt(10) + 1;
+                        int randomTier = RandomUtil.nextInt(10 - bestAllowedTier + 1) + bestAllowedTier;
                         return new StatAndTier(randomStat, randomTier);
                 }
 
                 int roll = RandomUtil.nextInt(totalWeight);
                 int currentWeight = 0;
                 for (CustomStat stat : stats) {
-                        for (int t = 1; t <= 10; t++) {
+                        for (int t = bestAllowedTier; t <= 10; t++) {
                                 currentWeight += stat.getTierWeight(t);
                                 if (roll < currentWeight) {
                                         return new StatAndTier(stat, t);
                                 }
                         }
                 }
-                return new StatAndTier(stats.get(0), 10);
+                return null;
         }
 
         public static Collection<String> getAllStatIds() {

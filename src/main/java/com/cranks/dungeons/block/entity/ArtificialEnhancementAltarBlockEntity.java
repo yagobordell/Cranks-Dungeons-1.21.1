@@ -246,7 +246,7 @@ public class ArtificialEnhancementAltarBlockEntity extends BlockEntity implement
             if (added >= 3) break;
         }
 
-        if (added < 3) {
+        if (added == 0) {
             clearOptions();
             return;
         }

@@ -245,12 +245,7 @@ public class EnergyShieldDamageMixin {
     @Unique
     private static double cranks$getTotalThorns(LivingEntity entity) {
         double totalThorns = 0;
-        net.minecraft.entity.EquipmentSlot[] armorSlots = {
-            net.minecraft.entity.EquipmentSlot.HEAD,
-            net.minecraft.entity.EquipmentSlot.CHEST,
-            net.minecraft.entity.EquipmentSlot.LEGS,
-            net.minecraft.entity.EquipmentSlot.FEET
-        };
+        net.minecraft.entity.EquipmentSlot[] armorSlots = net.minecraft.entity.EquipmentSlot.values();
         for (net.minecraft.entity.EquipmentSlot slot : armorSlots) {
             net.minecraft.item.ItemStack stack = entity.getEquippedStack(slot);
             if (!stack.isEmpty()) {

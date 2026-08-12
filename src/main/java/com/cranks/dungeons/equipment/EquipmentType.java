@@ -66,7 +66,7 @@ public enum EquipmentType {
         }
 
         // Spears (Custom items usually follow the "_spear" naming convention)
-        if (itemName.contains("spear") || itemName.contains("pike") || 
+        if (itemName.contains("spear") || itemName.contains("_pike") || itemName.equals("pike") || 
             itemName.contains("halberd") || itemName.contains("glaive")) {
             return Optional.of(SPEAR);
         }

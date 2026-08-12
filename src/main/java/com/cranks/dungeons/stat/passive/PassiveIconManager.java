@@ -164,7 +164,6 @@ public class PassiveIconManager {
         ATTRIBUTE_ICONS.put("cranks-dungeons:item_rarity_in_nether", "world/item_rarity_in_nether");
         ATTRIBUTE_ICONS.put("cranks-dungeons:item_rarity_in_end", "world/item_rarity_in_end");
 
-        ATTRIBUTE_ICONS.put("cranks-dungeons:chance_to_block", "passive/chance_to_block");
         ATTRIBUTE_ICONS.put("cranks-dungeons:block_value", "passive/block_value");
         ATTRIBUTE_ICONS.put("cranks-dungeons:health_on_block", "passive/health_on_block");
 

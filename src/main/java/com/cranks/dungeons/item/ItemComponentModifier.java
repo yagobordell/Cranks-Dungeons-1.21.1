@@ -129,8 +129,7 @@ public class ItemComponentModifier {
                 }
 
                 if (itemName.contains("shield")) {
-                    attrBuilder.add(ModAttributes.CHANCE_TO_BLOCK, new EntityAttributeModifier(Identifier.of("cranks-dungeons", "shield.chance_to_block"), 0.3, EntityAttributeModifier.Operation.ADD_VALUE), net.minecraft.component.type.AttributeModifierSlot.ANY);
-                    attrBuilder.add(ModAttributes.BLOCK_VALUE, new EntityAttributeModifier(Identifier.of("cranks-dungeons", "shield.block_value"), 3.0, EntityAttributeModifier.Operation.ADD_VALUE), net.minecraft.component.type.AttributeModifierSlot.ANY);
+                    attrBuilder.add(ModAttributes.BLOCK_VALUE, new EntityAttributeModifier(Identifier.of("cranks-dungeons", "shield.block_value"), 8.0, EntityAttributeModifier.Operation.ADD_VALUE), net.minecraft.component.type.AttributeModifierSlot.ANY);
                     modified = true;
                 }
 
@@ -242,40 +241,6 @@ public class ItemComponentModifier {
                             EntityAttributeModifier.Operation.ADD_VALUE),
                     equipmentSlot);
 
-        } else if (itemName.contains("copper")) {
-            // Copper: Armor + 10% Elemental Resistances
-            double fireRes = getCopperElementalResistance(itemName);
-            builder.add(
-                    ModAttributes.FIRE_RESISTANCE,
-                    new EntityAttributeModifier(
-                            Identifier.of("cranks-dungeons", "armor.fire_resistance." + armorSlot),
-                            fireRes,
-                            EntityAttributeModifier.Operation.ADD_VALUE),
-                    equipmentSlot);
-
-            builder.add(
-                    ModAttributes.COLD_RESISTANCE,
-                    new EntityAttributeModifier(
-                            Identifier.of("cranks-dungeons", "armor.cold_resistance." + armorSlot),
-                            fireRes,
-                            EntityAttributeModifier.Operation.ADD_VALUE),
-                    equipmentSlot);
-
-            builder.add(
-                    ModAttributes.LIGHTNING_RESISTANCE,
-                    new EntityAttributeModifier(
-                            Identifier.of("cranks-dungeons", "armor.lightning_resistance." + armorSlot),
-                            fireRes,
-                            EntityAttributeModifier.Operation.ADD_VALUE),
-                    equipmentSlot);
-
-            builder.add(
-                    ModAttributes.VOID_RESISTANCE,
-                    new EntityAttributeModifier(
-                            Identifier.of("cranks-dungeons", "armor.void_resistance." + armorSlot),
-                            fireRes,
-                            EntityAttributeModifier.Operation.ADD_VALUE),
-                    equipmentSlot);
 
         } else if (itemName.contains("iron")) {
             // Iron: Armor + Armor Toughness + Knockback Resistance
@@ -358,7 +323,7 @@ public class ItemComponentModifier {
         if (itemName.contains("sword") || itemName.contains("spear") ||
                 itemName.contains("mace") || itemName.contains("trident") ||
                 itemName.contains("axe") || itemName.contains("dagger") ||
-                itemName.contains("longsword") || itemName.contains("pike") ||
+                itemName.contains("longsword") || itemName.contains("_pike") || itemName.equals("pike") ||
                 itemName.contains("halberd") || itemName.contains("glaive") ||
                 itemName.contains("bow") || itemName.contains("crossbow") ||
                 itemName.contains("pickaxe") || itemName.contains("shovel") ||
@@ -375,7 +340,7 @@ public class ItemComponentModifier {
     }
 
     private static boolean usesTraditionalArmor(String itemName) {
-        return itemName.contains("copper") || itemName.contains("iron") ||
+        return itemName.contains("iron") ||
                 itemName.contains("diamond") || itemName.contains("netherite") ||
                 itemName.contains("chainmail") || itemName.contains("golden");
     }
@@ -385,8 +350,6 @@ public class ItemComponentModifier {
     }
 
     private static double getArmorMultiplier(String itemName) {
-        if (itemName.contains("copper"))
-            return 5.0;
         if (itemName.contains("chainmail"))
             return 5.0;
         if (itemName.contains("golden"))
@@ -401,8 +364,6 @@ public class ItemComponentModifier {
     }
 
     private static double getToughnessBonus(String itemName) {
-        if (itemName.contains("copper"))
-            return 5.0;
         if (itemName.contains("iron"))
             return 10.0;
         if (itemName.contains("diamond"))
@@ -486,17 +447,7 @@ public class ItemComponentModifier {
         return 0.0;
     }
 
-    private static double getCopperElementalResistance(String itemName) {
-        if (itemName.contains("helmet"))
-            return 0.07;
-        if (itemName.contains("chestplate"))
-            return 0.10;
-        if (itemName.contains("leggings"))
-            return 0.09;
-        if (itemName.contains("boots"))
-            return 0.07;
-        return 0.0;
-    }
+
 
     private static double getIronKnockbackResistance(String itemName) {
         if (itemName.contains("helmet"))

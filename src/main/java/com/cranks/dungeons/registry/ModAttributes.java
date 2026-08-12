@@ -186,7 +186,6 @@ public class ModAttributes {
     public static final RegistryEntry<EntityAttribute> INTELLIGENCE = register("intelligence", 0.0, 0.0, 10000.0);
 
     // Shield Block Mechanics
-    public static final RegistryEntry<EntityAttribute> CHANCE_TO_BLOCK = register("chance_to_block", 0.0, 0.0, 1.0);
     public static final RegistryEntry<EntityAttribute> BLOCK_VALUE = register("block_value", 0.0, 0.0, 100000.0);
     public static final RegistryEntry<EntityAttribute> HEALTH_ON_BLOCK = register("health_on_block", 0.0, 0.0, 10000.0);
 

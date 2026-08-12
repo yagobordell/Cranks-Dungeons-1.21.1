@@ -226,13 +226,20 @@ public class RunicEnhancementAltarBlockEntity extends BlockEntity implements Nam
 
         ItemStack result = equipment.copy();
 
-        // Randomly Prefix or Suffix
-        CustomStat.AffixType type = RandomUtil.nextBoolean() ? CustomStat.AffixType.PREFIX
-                : CustomStat.AffixType.SUFFIX;
-
-        // If it selects one that already has the max limit of, it replaces one of them
-        // randomly
-        if (!ItemStatManager.canAddStat(result, type)) {
+        boolean canAddPrefix = ItemStatManager.canAddStat(result, CustomStat.AffixType.PREFIX);
+        boolean canAddSuffix = ItemStatManager.canAddStat(result, CustomStat.AffixType.SUFFIX);
+        
+        CustomStat.AffixType type;
+        
+        if (canAddPrefix && canAddSuffix) {
+            type = RandomUtil.nextBoolean() ? CustomStat.AffixType.PREFIX : CustomStat.AffixType.SUFFIX;
+        } else if (canAddPrefix) {
+            type = CustomStat.AffixType.PREFIX;
+        } else if (canAddSuffix) {
+            type = CustomStat.AffixType.SUFFIX;
+        } else {
+            // Item is full (e.g. 3 prefixes, 3 suffixes). Replace one randomly.
+            type = RandomUtil.nextBoolean() ? CustomStat.AffixType.PREFIX : CustomStat.AffixType.SUFFIX;
             ItemStatManager.removeRandomAffixOfType(result, type);
         }
 
@@ -305,12 +312,12 @@ public class RunicEnhancementAltarBlockEntity extends BlockEntity implements Nam
 
     private boolean addRandomAffix(ItemStack stack, int minLevel) {
         CustomStat.AffixType type = RandomUtil.nextBoolean() ? CustomStat.AffixType.PREFIX : CustomStat.AffixType.SUFFIX;
-        boolean success = ItemStatManager.addRandomStat(stack, type, minLevel, 100);
+        boolean success = addAffixOfType(stack, type, minLevel);
         
-        // If first choice failed (maybe slot full), try the other type
+        // If first choice failed (maybe slot full or all stats taken), try the other type
         if (!success) {
             type = (type == CustomStat.AffixType.PREFIX) ? CustomStat.AffixType.SUFFIX : CustomStat.AffixType.PREFIX;
-            success = ItemStatManager.addRandomStat(stack, type, minLevel, 100);
+            success = addAffixOfType(stack, type, minLevel);
         }
         return success;
     }

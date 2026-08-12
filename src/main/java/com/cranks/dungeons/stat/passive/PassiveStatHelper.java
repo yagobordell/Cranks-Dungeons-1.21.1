@@ -58,7 +58,7 @@ public class PassiveStatHelper {
             // Combat Utility
             "movement_speed", "attack_speed", "projectile_speed",
             "attack_range", "physical_damage_leeched_as_life", "life_regeneration",
-            "chance_to_block", "health_on_block", "knockback", "knockback_resistance",
+            "block_value", "health_on_block", "knockback", "knockback_resistance",
             "armor_speed_penalty_reduction", "low_armor_speed_bonus",
             
             // Keystones

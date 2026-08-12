@@ -75,12 +75,32 @@ public abstract class ItemStackTooltipMixin {
 
         // Item Type (Centered-ish subtitle)
         if (equipType.isPresent()) {
-            String handedness = "";
             EquipmentType typeEnum = equipType.get();
-            if (typeEnum != EquipmentType.SHIELD && typeEnum != EquipmentType.HELMET && typeEnum != EquipmentType.CHESTPLATE && typeEnum != EquipmentType.LEGGINGS && typeEnum != EquipmentType.BOOTS && typeEnum != EquipmentType.ELYTRA) {
-                handedness = com.cranks.dungeons.util.CombatUtility.isTwoHandedWeapon(stack) ? " - Two Handed" : " - One Handed";
+            
+            boolean isTool = typeEnum == EquipmentType.PICKAXE || typeEnum == EquipmentType.SHOVEL || typeEnum == EquipmentType.HOE || typeEnum == EquipmentType.AXE;
+
+            if (!isTool) {
+                String handedness = "";
+                if (typeEnum != EquipmentType.SHIELD && typeEnum != EquipmentType.HELMET && typeEnum != EquipmentType.CHESTPLATE && typeEnum != EquipmentType.LEGGINGS && typeEnum != EquipmentType.BOOTS && typeEnum != EquipmentType.ELYTRA) {
+                    handedness = com.cranks.dungeons.util.CombatUtility.isTwoHandedWeapon(stack) ? " - Two Handed" : " - One Handed";
+                }
+
+                String typeName = typeEnum.getName();
+                if (typeEnum == EquipmentType.ELYTRA) {
+                    typeName = "Chestplate";
+                } else if (typeEnum == EquipmentType.TRIDENT) {
+                    typeName = "Spear";
+                }
+
+                String tierPrefix = "";
+                if (com.cranks.dungeons.equipment.ItemStatManager.isUnique(stack)) {
+                    tierPrefix = "Unique ";
+                } else {
+                    int maxTier = com.cranks.dungeons.equipment.ItemStatManager.getBestAllowedTier(stack);
+                    tierPrefix = "Tier " + maxTier + " ";
+                }
+                newTooltip.add(Text.literal(tierPrefix + typeName + handedness).formatted(Formatting.DARK_GRAY));
             }
-            newTooltip.add(Text.literal(equipType.get().getName() + handedness).formatted(Formatting.DARK_GRAY, Formatting.ITALIC));
             
             int quality = com.cranks.dungeons.block.entity.QualityStationBlockEntity.getQuality(stack);
             if (quality > 0) {
@@ -468,7 +488,8 @@ public abstract class ItemStackTooltipMixin {
                                 attributesMatch(runeAttr, ModAttributes.FIRE_DAMAGE) ||
                                 attributesMatch(runeAttr, ModAttributes.COLD_DAMAGE) ||
                                 attributesMatch(runeAttr, ModAttributes.LIGHTNING_DAMAGE) ||
-                                attributesMatch(runeAttr, ModAttributes.VOID_DAMAGE)) {
+                                attributesMatch(runeAttr, ModAttributes.VOID_DAMAGE) ||
+                                attributesMatch(runeAttr, ModAttributes.BLOCK_VALUE)) {
                                 continue;
                             }
                             String key = runeAttr.value().getTranslationKey();

@@ -44,7 +44,7 @@ public abstract class ShieldBlockMixin {
             net.minecraft.util.math.Vec3d entityPos = new net.minecraft.util.math.Vec3d(entity.getX(), entity.getY(), entity.getZ());
             net.minecraft.util.math.Vec3d attackDir = attackPos.subtract(entityPos).normalize();
             attackDir = new net.minecraft.util.math.Vec3d(attackDir.x, 0.0, attackDir.z);
-            if (attackDir.lengthSquared() > 0 && viewVec.dotProduct(attackDir) < 0.0) {
+            if (attackDir.lengthSquared() > 0 && viewVec.dotProduct(attackDir) > 0.0) {
                 isVanillaBlocking = true;
             }
         } else if (source.isIn(DamageTypeTags.IS_PROJECTILE)) {
@@ -92,6 +92,13 @@ public abstract class ShieldBlockMixin {
 
     @Inject(method = "isBlocking", at = @At("HEAD"), cancellable = true)
     private void overrideIsBlocking(CallbackInfoReturnable<Boolean> cir) {
+        if (cranks$forceSkipVanillaBlock) {
+            cir.setReturnValue(false);
+        }
+    }
+
+    @Inject(method = "blockedByShield", at = @At("HEAD"), cancellable = true)
+    private void overrideBlockedByShield(DamageSource source, CallbackInfoReturnable<Boolean> cir) {
         if (cranks$forceSkipVanillaBlock) {
             cir.setReturnValue(false);
         }

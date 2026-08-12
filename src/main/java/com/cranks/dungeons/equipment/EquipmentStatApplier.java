@@ -185,8 +185,6 @@ public class EquipmentStatApplier {
                         }
 
                         if (isAttribute(attribute, ModAttributes.DURABILITY_BONUS) ||
-                            isAttribute(attribute, ModAttributes.CHANCE_TO_BLOCK) ||
-                            isAttribute(attribute, ModAttributes.BLOCK_VALUE) ||
                             isAttribute(attribute, ModAttributes.HEALTH_ON_BLOCK)) {
                             continue;
                         }
@@ -453,8 +451,6 @@ public class EquipmentStatApplier {
 
                 // For armor stats, we generally skip everything EXCEPT standard player attributes
                 if (isAttribute(attribute, ModAttributes.DURABILITY_BONUS)) continue;
-                if (isAttribute(attribute, ModAttributes.CHANCE_TO_BLOCK)) continue;
-                if (isAttribute(attribute, ModAttributes.BLOCK_VALUE)) continue;
                 if (isAttribute(attribute, ModAttributes.HEALTH_ON_BLOCK)) continue;
 
                 Identifier id = Identifier.of(CranksDungeons.MOD_ID, "runic_" + stat.getId() + "_" + i + "_" + attrIndex);

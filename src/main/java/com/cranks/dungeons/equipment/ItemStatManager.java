@@ -177,7 +177,28 @@ public class ItemStatManager {
         
         NbtCompound nbt = stack.getOrDefault(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,
                 net.minecraft.component.type.NbtComponent.DEFAULT).copyNbt();
+                
+        if (nbt.contains(STATS_KEY, net.minecraft.nbt.NbtElement.LIST_TYPE)) {
+            NbtList statsList = nbt.getList(STATS_KEY, net.minecraft.nbt.NbtElement.COMPOUND_TYPE);
+            if (indexToRemove >= 0 && indexToRemove < statsList.size()) {
+                statsList.remove(indexToRemove);
+                nbt.put(STATS_KEY, statsList);
+                stack.set(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,
+                        net.minecraft.component.type.NbtComponent.of(nbt));
+                EquipmentStatApplier.updateItemAttributes(stack);
+                return true;
+            }
+        }
         return false;
+    }
+
+    public static int getBestAllowedTier(ItemStack stack) {
+        String itemName = net.minecraft.registry.Registries.ITEM.getId(stack.getItem()).toString().toLowerCase();
+        if (itemName.contains("wood") || itemName.contains("stone") || itemName.contains("leather")) return 10;
+        if (itemName.contains("iron") || itemName.contains("chainmail") || itemName.contains("golden") || itemName.contains("shield") || itemName.contains("bow")) return 9;
+        if (itemName.contains("diamond")) return 8;
+        if (itemName.contains("netherite")) return 7;
+        return 1;
     }
 
     public static boolean addRandomStat(ItemStack stack, CustomStat.AffixType type) {
@@ -192,7 +213,8 @@ public class ItemStatManager {
         if (equipType.isEmpty()) return false;
 
         com.cranks.dungeons.equipment.ArmorBaseType armorBase = com.cranks.dungeons.equipment.ArmorBaseType.getFromItem(stack);
-        StatRegistry.StatAndTier statAndTier = StatRegistry.getRandomStatForEquipmentType(equipType.get(), armorBase, type, minLevel, maxLevel);
+        int bestAllowedTier = getBestAllowedTier(stack);
+        StatRegistry.StatAndTier statAndTier = StatRegistry.getRandomStatForEquipmentType(equipType.get(), armorBase, type, minLevel, maxLevel, bestAllowedTier);
         if (statAndTier == null || statAndTier.stat == null) return false;
         
         CustomStat stat = statAndTier.stat;
@@ -220,7 +242,8 @@ public class ItemStatManager {
         if (equipType.isEmpty()) return false;
 
         com.cranks.dungeons.equipment.ArmorBaseType armorBase = com.cranks.dungeons.equipment.ArmorBaseType.getFromItem(stack);
-        StatRegistry.StatAndTier statAndTier = StatRegistry.getRandomStatForEquipmentType(equipType.get(), armorBase, type, 1, 100);
+        int bestAllowedTier = getBestAllowedTier(stack);
+        StatRegistry.StatAndTier statAndTier = StatRegistry.getRandomStatForEquipmentType(equipType.get(), armorBase, type, 1, 100, bestAllowedTier);
         if (statAndTier == null || statAndTier.stat == null) return false;
 
         CustomStat stat = statAndTier.stat;
