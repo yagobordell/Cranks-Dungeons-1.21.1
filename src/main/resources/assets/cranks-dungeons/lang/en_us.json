@@ -250,5 +250,7 @@
   "attribute.name.cranks-dungeons.armor_percent": "Increased Armor",
   "attribute.name.cranks-dungeons.evasion_rating_percent": "Increased Evasion Rating",
   "attribute.name.cranks-dungeons.energy_shield_percent": "Increased Energy Shield",
-  "attribute.name.cranks-dungeons.item_rarity_percent": "Rarity of Items Found"
+  "attribute.name.cranks-dungeons.item_rarity_percent": "Rarity of Items Found",
+  "attribute.name.cranks-dungeons.chance_to_burn": "Increased Flammability Magnitude",
+  "attribute.name.cranks-dungeons.chance_to_shock": "Increased Chance to Shock"
 }

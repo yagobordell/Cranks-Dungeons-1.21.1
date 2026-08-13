@@ -54,8 +54,7 @@ public class CheckStatsCommand {
                         double totalManaSteal = player.getAttributeValue(ModAttributes.PHYSICAL_DAMAGE_LEECHED_AS_MANA);
                         double totalHealthOnKill = player.getAttributeValue(ModAttributes.HEALTH_ON_KILL);
                         double totalManaOnKill = player.getAttributeValue(ModAttributes.MANA_ON_KILL);
-                        double totalBurn = player.getAttributeValue(ModAttributes.BURN_DAMAGE_PERCENT) + weaponBurn;
-                        double totalRange = player.getAttributeValue(ModAttributes.ATTACK_RANGE) + weaponRange;
+                        double totalBurn = player.getAttributeValue(ModAttributes.BURN_MAGNITUDE_PERCENT) + weaponBurn;
                         double totalKnockback = player.getAttributeValue(ModAttributes.KNOCKBACK) + weaponKnockback;
                         double totalSpeed = player.getAttributeValue(ModAttributes.ATTACK_SPEED) + weaponSpeed;
                         double totalBonusDmg = player.getAttributeValue(ModAttributes.BONUS_ATTACK_DAMAGE) + weaponBonusDmg;
@@ -73,7 +72,6 @@ public class CheckStatsCommand {
                         if (totalHealthOnKill > 0) sendStat(player, "Health on Kill", totalHealthOnKill, 0, "");
                         if (totalManaOnKill > 0) sendStat(player, "Mana on Kill", totalManaOnKill, 0, "");
                         if (totalBurn > 0) sendStat(player, "Burn Chance", totalBurn * 100, 0, "%");
-                        if (totalRange > 0) sendStat(player, "Attack Range", totalRange, 0, " blocks");
                         if (totalKnockback > 0) sendStat(player, "Knockback", totalKnockback * 100, 0, "%");
 
                         // DEFENSIVE STATS

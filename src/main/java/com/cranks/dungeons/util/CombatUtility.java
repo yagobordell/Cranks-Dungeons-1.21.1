@@ -35,6 +35,29 @@ public class CombatUtility {
     }
 
     /**
+     * Safely compares two attribute RegistryEntry objects.
+     * Fabric's registry can return different RegistryEntry instances for the same attribute,
+     * so .equals() may return false. This method checks identity, equals, registry key, and translation key.
+     */
+    public static boolean attributesMatch(net.minecraft.registry.entry.RegistryEntry<net.minecraft.entity.attribute.EntityAttribute> e1,
+                                          net.minecraft.registry.entry.RegistryEntry<net.minecraft.entity.attribute.EntityAttribute> e2) {
+        if (e1 == e2) return true;
+        if (e1 == null || e2 == null) return false;
+        if (e1.equals(e2)) return true;
+        if (e1.getKey().isPresent() && e2.getKey().isPresent() && e1.getKey().get().equals(e2.getKey().get())) {
+            return true;
+        }
+        if (e1.value() != null && e2.value() != null) {
+            String k1 = e1.value().getTranslationKey();
+            String k2 = e2.value().getTranslationKey();
+            if (k1 != null && k1.equals(k2)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Returns the attribute value for an entity, accounting for trident throws and
      * potential doubling.
      */
@@ -53,7 +76,7 @@ public class CombatUtility {
             if (!held.isEmpty()) {
                 var modifiers = held.getOrDefault(net.minecraft.component.DataComponentTypes.ATTRIBUTE_MODIFIERS, net.minecraft.component.type.AttributeModifiersComponent.DEFAULT);
                 for (var entry : modifiers.modifiers()) {
-                    if (entry.attribute().equals(attribute) && entry.slot() == net.minecraft.component.type.AttributeModifierSlot.MAINHAND) {
+                    if (attributesMatch(entry.attribute(), attribute) && entry.slot() == net.minecraft.component.type.AttributeModifierSlot.MAINHAND) {
                         if (entry.modifier().operation() == net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_VALUE) {
                             heldContribution += entry.modifier().value();
                         }
@@ -69,7 +92,7 @@ public class CombatUtility {
             if (!weapon.isEmpty()) {
                 var modifiers = weapon.getOrDefault(net.minecraft.component.DataComponentTypes.ATTRIBUTE_MODIFIERS, net.minecraft.component.type.AttributeModifiersComponent.DEFAULT);
                 for (var entry : modifiers.modifiers()) {
-                    if (entry.attribute().equals(attribute) && entry.slot() == net.minecraft.component.type.AttributeModifierSlot.MAINHAND) {
+                    if (attributesMatch(entry.attribute(), attribute) && entry.slot() == net.minecraft.component.type.AttributeModifierSlot.MAINHAND) {
                         if (entry.modifier().operation() == net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_VALUE) {
                             weaponContribution += entry.modifier().value();
                         }
@@ -127,7 +150,7 @@ public class CombatUtility {
             case SPEAR -> attacker.getAttributes().hasAttribute(ModAttributes.SPEAR_DAMAGE_PERCENT) ? attacker.getAttributeValue(ModAttributes.SPEAR_DAMAGE_PERCENT) : 0.0;
             case BOW -> attacker.getAttributes().hasAttribute(ModAttributes.BOW_DAMAGE_PERCENT) ? attacker.getAttributeValue(ModAttributes.BOW_DAMAGE_PERCENT) : 0.0;
             case CROSSBOW -> attacker.getAttributes().hasAttribute(ModAttributes.CROSSBOW_DAMAGE_PERCENT) ? attacker.getAttributeValue(ModAttributes.CROSSBOW_DAMAGE_PERCENT) : 0.0;
-            case TRIDENT -> attacker.getAttributes().hasAttribute(ModAttributes.TRIDENT_DAMAGE_PERCENT) ? attacker.getAttributeValue(ModAttributes.TRIDENT_DAMAGE_PERCENT) : 0.0;
+            case TRIDENT -> attacker.getAttributes().hasAttribute(ModAttributes.SPEAR_DAMAGE_PERCENT) ? attacker.getAttributeValue(ModAttributes.SPEAR_DAMAGE_PERCENT) : 0.0;
             default -> 0.0;
         };
     }
@@ -135,11 +158,21 @@ public class CombatUtility {
     public static boolean isMelee(ItemStack weapon, DamageSource source) {
         if (source.isIn(net.minecraft.registry.tag.DamageTypeTags.IS_PROJECTILE) || source.isOf(net.minecraft.entity.damage.DamageTypes.THORNS) || source.isOf(net.minecraft.entity.damage.DamageTypes.MAGIC))
             return false;
+        EquipmentType type = EquipmentType.getTypeForItem(weapon).orElse(null);
+        if (type == EquipmentType.BOW || type == EquipmentType.CROSSBOW)
+            return false;
         return source.isOf(net.minecraft.entity.damage.DamageTypes.PLAYER_ATTACK) || source.isOf(net.minecraft.entity.damage.DamageTypes.MOB_ATTACK);
     }
 
-    public static boolean isRanged(ItemStack weapon, DamageSource source) {
+    public static boolean isProjectile(DamageSource source) {
         return source.isIn(net.minecraft.registry.tag.DamageTypeTags.IS_PROJECTILE);
+    }
+
+    public static boolean isRanged(ItemStack weapon, DamageSource source) {
+        // In some UI contexts (like InventoryScreenStatsMixin), a dummy melee source is passed.
+        // We shouldn't strictly require IS_PROJECTILE if it's a UI check, but we need to know it's a ranged weapon.
+        EquipmentType type = EquipmentType.getTypeForItem(weapon).orElse(null);
+        return type == EquipmentType.BOW || type == EquipmentType.CROSSBOW;
     }
 
     public static boolean isTwoHandedWeapon(ItemStack stack) {

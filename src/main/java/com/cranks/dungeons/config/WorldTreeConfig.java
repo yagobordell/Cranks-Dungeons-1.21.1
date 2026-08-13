@@ -64,7 +64,20 @@ public class WorldTreeConfig {
             seenIds.add(id);
 
             String name = obj.get("name").getAsString();
-            String description = obj.get("description").getAsString();
+            String description = "";
+            if (obj.has("description")) {
+                JsonElement descElement = obj.get("description");
+                if (descElement.isJsonArray()) {
+                    StringBuilder sb = new StringBuilder();
+                    for (JsonElement el2 : descElement.getAsJsonArray()) {
+                        if (sb.length() > 0) sb.append("\n");
+                        sb.append(el2.getAsString());
+                    }
+                    description = sb.toString();
+                } else {
+                    description = descElement.getAsString();
+                }
+            }
             double gridX = obj.get("gridX").getAsDouble();
             double gridY = obj.get("gridY").getAsDouble();
             String shape = obj.has("shape") ? obj.get("shape").getAsString() : null;
@@ -169,7 +182,15 @@ public class WorldTreeConfig {
             JsonObject obj = new JsonObject();
             obj.addProperty("id", node.id());
             obj.addProperty("name", node.name());
-            obj.addProperty("description", node.description());
+            if (node.description() != null && node.description().contains("\n")) {
+                JsonArray descArray = new JsonArray();
+                for (String line : node.description().split("\n")) {
+                    descArray.add(line);
+                }
+                obj.add("description", descArray);
+            } else {
+                obj.addProperty("description", node.description());
+            }
             
             obj.addProperty("gridX", Math.round(node.gridX() * 1000.0) / 1000.0);
             obj.addProperty("gridY", Math.round(node.gridY() * 1000.0) / 1000.0);

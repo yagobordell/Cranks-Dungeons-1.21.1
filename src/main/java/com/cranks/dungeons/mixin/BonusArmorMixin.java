@@ -2,6 +2,7 @@ package com.cranks.dungeons.mixin;
 
 import com.cranks.dungeons.CranksDungeons;
 import com.cranks.dungeons.registry.ModAttributes;
+import com.cranks.dungeons.util.CombatUtility;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.player.PlayerEntity;
@@ -76,7 +77,7 @@ public abstract class BonusArmorMixin {
                     var comp = leggings.get(net.minecraft.component.DataComponentTypes.ATTRIBUTE_MODIFIERS);
                     if (comp != null) {
                         for (var modEntry : comp.modifiers()) {
-                            if (modEntry.attribute().equals(EntityAttributes.GENERIC_ARMOR)) {
+                            if (CombatUtility.attributesMatch(modEntry.attribute(), EntityAttributes.GENERIC_ARMOR)) {
                                 leggingsBaseArmor += modEntry.modifier().value();
                             }
                         }

@@ -86,7 +86,7 @@ public class ItemStackMixin {
                         com.cranks.dungeons.equipment.ItemStatManager.addSpecificStat(stack, "mace_attack_damage", 5);
                         com.cranks.dungeons.equipment.ItemStatManager.addSpecificStat(stack, "mace_attack_speed", 5);
                         com.cranks.dungeons.equipment.ItemStatManager.addSpecificStat(stack, "mace_local_attack_damage_percent", 5);
-                        com.cranks.dungeons.equipment.ItemStatManager.addSpecificStat(stack, "mace_armor_penetration_percent", 5);
+                        com.cranks.dungeons.equipment.ItemStatManager.addSpecificStat(stack, "mace_armor_penetration", 5);
                     } else if (item == net.minecraft.item.Items.TURTLE_HELMET) {
                         com.cranks.dungeons.equipment.ItemStatManager.addSpecificStat(stack, "turtle_helmet_respiration", 5);
                         com.cranks.dungeons.equipment.ItemStatManager.addSpecificStat(stack, "turtle_helmet_aqua_affinity", 5);

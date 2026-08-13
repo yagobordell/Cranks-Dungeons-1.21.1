@@ -22,6 +22,7 @@ public class PassiveIconManager {
         ATTRIBUTE_ICONS.put("cranks-dungeons:attack_damage_percent", "passive/attack_damage_percent");
         ATTRIBUTE_ICONS.put("cranks-dungeons:melee_damage_percent", "passive/melee_damage_percent");
         ATTRIBUTE_ICONS.put("cranks-dungeons:ranged_damage_percent", "passive/ranged_damage_percent");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:projectile_damage_percent", "passive/projectile_damage_percent");
         ATTRIBUTE_ICONS.put("cranks-dungeons:one_handed_damage_percent", "passive/one_handed_damage_percent");
         ATTRIBUTE_ICONS.put("cranks-dungeons:dual_wielding_damage_percent", "passive/dual_wielding_damage_percent");
         ATTRIBUTE_ICONS.put("cranks-dungeons:two_handing_damage_percent", "passive/two_handing_damage_percent");

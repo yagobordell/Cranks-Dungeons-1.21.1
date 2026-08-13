@@ -111,9 +111,12 @@ public class EnergyShieldRegenMixin {
         
         // Ghost Reaver prevents Energy Shield Recharge
         boolean ghostReaver = self.getAttributeValue(ModAttributes.KEYSTONE_GHOST_REAVER) > 0;
+        
+        double fasterStartPercent = self.getAttributeValue(ModAttributes.FASTER_START_OF_ENERGY_SHIELD_RECHARGE);
+        int actualRegenDelayTicks = (int) (REGEN_DELAY_TICKS / (1.0 + fasterStartPercent));
 
         // Check if we should be regenerating
-        if (!ghostReaver && timeSinceLastDamage >= REGEN_DELAY_TICKS && currentShield < maxShield) {
+        if (!ghostReaver && timeSinceLastDamage >= actualRegenDelayTicks && currentShield < maxShield) {
             // Play sound when regeneration STARTS
             if (!wasRegenerating) {
                 world.playSoundFromEntity(

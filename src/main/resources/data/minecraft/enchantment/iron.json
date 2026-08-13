@@ -25,7 +25,7 @@
     "minecraft:attributes": [
       {
         "id": "minecraft:enchantment.iron.physical_damage",
-        "attribute": "cranks-dungeons:attack_damage_percent",
+        "attribute": "cranks-dungeons:physical_damage_percent",
         "amount": 0.16,
         "operation": "add_value"
       },

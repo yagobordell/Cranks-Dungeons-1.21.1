@@ -75,6 +75,12 @@ public class ManaRegenMixin {
             double regenPercent = self.getAttributeValue(ModAttributes.MANA_REGENERATION_PERCENT);
             float regenPerTick = (float) (maxMana * regenPercent / 20.0f);
             
+            double regenRate = self.getAttributeValue(ModAttributes.MANA_REGENERATION_RATE);
+            double recoveryRate = self.getAttributeValue(ModAttributes.MANA_RECOVERY_RATE);
+            
+            regenPerTick *= (float) (1.0 + regenRate);
+            regenPerTick *= (float) (1.0 + recoveryRate);
+            
             float newMana = Math.min(currentMana + regenPerTick, (float) maxMana);
             provider.cranksdungeons$setCurrentMana(newMana);
 

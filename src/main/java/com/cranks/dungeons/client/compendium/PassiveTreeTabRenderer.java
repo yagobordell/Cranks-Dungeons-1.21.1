@@ -228,7 +228,7 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
 
     private void toggleSnapToGrid() {
         snapToGrid = !snapToGrid;
-        parent.switchToTab(CompendiumTabRegistry.PASSIVE_TREE_TAB_ID);
+        parent.refreshTab();
     }
 
     private void selectClass(String classId) {
@@ -307,6 +307,7 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
             return;
 
         PassiveDataComponent data = ModComponents.PASSIVE_DATA.get(player);
+        this.draftPoints = data.getUnspentPoints() - draftUnlocked.size();
         Set<String> unlocked = data.getUnlockedNodes();
 
         if (!choosingClass) {
@@ -410,7 +411,7 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
 
             // Determine State
             int color = 0xFF888888; // Default locked: Solid gray
-            float baseWidth = 3.0f;
+            float baseWidth = 0.75f;
             float alpha = 1.0f;
 
             boolean n1Unlocked = unlocked.contains(edge.n1.id());
@@ -422,17 +423,17 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
             boolean n2Active = n2Unlocked || n2Drafted;
 
             if (n1Unlocked && n2Unlocked) {
-                color = 0xFFCCAA00; // Muted Gold
-                baseWidth = 6.0f; // Thickest for unlocked
+                color = 0xFF997700; // Darker Gold
+                baseWidth = 1.5f; // Thickest for unlocked
                 alpha = 1.0f;
             } else if (n1Active && n2Active) {
-                color = 0xFF00AAAA; // Muted Cyan
-                baseWidth = 6.0f;
+                color = 0xFF007777; // Darker Cyan
+                baseWidth = 1.5f;
                 alpha = 1.0f;
             } else if ((n1Active && canUnlockCache.contains(edge.n2.id()))
                     || (n2Active && canUnlockCache.contains(edge.n1.id()))) {
-                color = 0xFF22AA22; // Muted Green
-                baseWidth = 4.5f;
+                color = 0xFF117711; // Darker Green
+                baseWidth = 1.125f;
                 alpha = 1.0f;
             }
 
@@ -445,7 +446,7 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
                 int d2 = distanceMap.getOrDefault(edge.n2.id(), -1);
                 if (Math.abs(d1 - d2) == 1) {
                     color = 0xFFDDDDDD; // Muted White
-                    baseWidth = 8.0f;
+                    baseWidth = 2.0f;
                     alpha = 1.0f;
                 }
             }
@@ -487,13 +488,13 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
                 int nodeColor = 0xFF555555;
                 if (isDraft) {
                     state = "drafted";
-                    nodeColor = 0xFF00AAAA;
+                    nodeColor = 0xFF007777;
                 } else if (unlocked.contains(node.id())) {
                     state = "unlocked";
-                    nodeColor = 0xFFCCAA00;
+                    nodeColor = 0xFF997700;
                 } else if (canUnlock) {
                     state = "available";
-                    nodeColor = 0xFF22AA22;
+                    nodeColor = 0xFF117711;
                 }
 
                 // Draw background and colored border
@@ -557,7 +558,10 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
             java.util.List<Text> tooltipTexts = new java.util.ArrayList<>();
             tooltipTexts.add(Text.literal(title));
             if (hovered.description() != null && !hovered.description().isEmpty()) {
-                tooltipTexts.add(Text.literal("§7" + hovered.description()));
+                String[] lines = hovered.description().split("\n");
+                for (String line : lines) {
+                    tooltipTexts.add(Text.literal("§7" + line));
+                }
             }
             context.drawTooltip(textRenderer, tooltipTexts, mouseX, mouseY);
         }
@@ -994,7 +998,7 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
             }
             if (draggedNode != null) {
                 if (snapToGrid) {
-                    double snap = 0.5;
+                    double snap = 0.1;
                     if (selectedNodeIds.contains(draggedNode.id())) {
                         for (String id : selectedNodeIds) {
                             PassiveNode node = PassiveNodeRegistry.getNode(id);
@@ -1032,12 +1036,12 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
                 connectionSource = null;
                 selectedNodeIds.clear();
             }
-            parent.switchToTab(CompendiumTabRegistry.PASSIVE_TREE_TAB_ID);
+            parent.refreshTab();
             return true;
         }
 
         if (editMode && !selectedNodeIds.isEmpty()) {
-            double snap = 0.5;
+            double snap = 0.1;
             if (keyCode == GLFW.GLFW_KEY_UP) {
                 for (String id : selectedNodeIds) { PassiveNode n = PassiveNodeRegistry.getNode(id); if (n != null) n.setGridY(n.gridY() - snap); }
                 this.cacheDirty = true; return true;
@@ -1297,7 +1301,7 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
             if (editMode) {
                 if (draggedNode != null) {
                     if (snapToGrid) {
-                        double snap = 0.5;
+                        double snap = 0.1;
                         if (selectedNodeIds.contains(draggedNode.id())) {
                             for (String id : selectedNodeIds) {
                                 PassiveNode n = PassiveNodeRegistry.getNode(id);

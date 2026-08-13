@@ -56,6 +56,8 @@ public abstract class ShieldBlockMixin {
 
         if (isVanillaBlocking) {
             double blockValue = entity.getAttributeValue(ModAttributes.BLOCK_VALUE);
+            double blockValuePercent = entity.getAttributeValue(ModAttributes.BLOCK_VALUE_PERCENT);
+            blockValue *= (1.0 + blockValuePercent);
 
             if (blockValue <= 0) {
                 return amount;
@@ -64,10 +66,7 @@ public abstract class ShieldBlockMixin {
             // Blocking always succeeds when shield is raised
             float remainingDamage = (float) Math.max(0, amount - blockValue);
 
-            double healthOnBlock = entity.getAttributeValue(ModAttributes.HEALTH_ON_BLOCK);
-            if (healthOnBlock > 0) {
-                entity.heal((float) healthOnBlock);
-            }
+
 
             if (amount >= 3.0f) {
                 net.minecraft.item.ItemStack activeStack = entity.getActiveItem();

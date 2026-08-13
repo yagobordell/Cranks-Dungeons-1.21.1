@@ -18,34 +18,34 @@ public class PassiveStatHelper {
             "strength", "dexterity", "intelligence",
 
             // Percentage Damage Scaling
-            "attack_damage_percent", "elemental_damage_percent",
+            "physical_damage_percent", "elemental_damage_percent",
             "fire_damage_percent", "cold_damage_percent", "lightning_damage_percent", "void_damage_percent",
-            "melee_damage_percent", "ranged_damage_percent",
+            "melee_damage_percent", "ranged_damage_percent", "projectile_damage_percent",
             "one_handed_damage_percent", "dual_wielding_damage_percent", "two_handing_damage_percent",
             "sword_damage_percent", "axe_damage_percent", "mace_damage_percent", "spear_damage_percent",
-            "bow_damage_percent", "crossbow_damage_percent", "trident_damage_percent",
+            "bow_damage_percent", "crossbow_damage_percent",
             "damage_against_afflicted_percent", "damage_while_afflicted_percent",
 
             // Percentage Defense Scaling
             "max_health_percent", "armor_percent", "evasion_rating_percent",
             "energy_shield_percent", "leggings_armor_percent", "armor_crit_mitigation",
+            "bonus_armor", "evasion_rating", "energy_shield",
 
             // Resistances & Penetration
             "fire_resistance", "cold_resistance", "lightning_resistance", "void_resistance",
             "fire_penetration_percent", "cold_penetration_percent", "lightning_penetration_percent", "void_penetration_percent",
-            "elemental_penetration_percent", "armor_penetration_percent",
+            "elemental_penetration_percent", "armor_penetration_percent", "flat_armor_penetration",
 
             // Critical Strikes
             "global_crit_chance_percent", "crit_multiplier", "crit_chance_against_afflicted",
 
             // Ailment Magnitudes & Durations
-            "chance_to_shock", "shock_magnitude_percent", "shock_duration",
-            "chance_to_burn", "burn_damage_percent", "burn_duration",
-            "chance_to_poison", "poison_damage_percent", "poison_duration", "poison_max_stacks",
-            "chance_to_bleed", "bleed_damage_percent", "bleed_duration",
-            "chance_to_freeze", "freeze_magnitude_percent", "freeze_duration",
-            "electrocute_magnitude_percent", "electrocute_duration",
-            "shock_threshold_reduction", "freeze_threshold_reduction", "electrocute_threshold_reduction",
+            "chance_to_shock", "shock_magnitude_percent",
+            "chance_to_burn", "burn_magnitude_percent", "flammability_magnitude_percent",
+            "chance_to_poison", "poison_magnitude_percent", "poison_max_stacks",
+            "chance_to_bleed", "bleed_magnitude_percent",
+            "freeze_buildup_percent", "electrocute_buildup_percent",
+            "shock_threshold_reduction",
 
             // Conversions & Extra Damage
             "physical_extra_percent",
@@ -57,9 +57,15 @@ public class PassiveStatHelper {
 
             // Combat Utility
             "movement_speed", "attack_speed", "projectile_speed",
-            "attack_range", "physical_damage_leeched_as_life", "life_regeneration",
-            "block_value", "health_on_block", "knockback", "knockback_resistance",
-            "armor_speed_penalty_reduction", "low_armor_speed_bonus",
+            "physical_damage_leeched_as_life", "physical_damage_leeched_as_mana", 
+            "health_on_kill", "health_on_kill_percent", "faster_start_of_energy_shield_recharge",
+            "max_mana",
+            "increased_life_leech_percent", "increased_mana_leech_percent", 
+            "life_regeneration", "max_health_regeneration_percent",
+            "mana_regeneration_percent", "mana_regeneration_rate", "mana_recovery_rate",
+            "block_value", "block_value_percent", "knockback", "knockback_resistance",
+            "armor_speed_penalty_reduction", "low_armor_speed_bonus", "armor_applies_to_elemental",
+            "energy_shield_recharge_rate_percent",
             
             // Keystones
             "keystone_void_inoculation", "keystone_avatar_of_fire", "keystone_resolute_technique",
@@ -228,7 +234,7 @@ public class PassiveStatHelper {
             double value = entry.getValue();
 
             // Special case for Leggings Armor Multiplier
-            if (attr.equals(com.cranks.dungeons.registry.ModAttributes.LEGGINGS_ARMOR_PERCENT)) {
+            if (com.cranks.dungeons.util.CombatUtility.attributesMatch(attr, com.cranks.dungeons.registry.ModAttributes.LEGGINGS_ARMOR_PERCENT)) {
                 double leggingsBaseArmor = 0;
                 net.minecraft.item.ItemStack leggings = player
                         .getEquippedStack(net.minecraft.entity.EquipmentSlot.LEGS);
@@ -236,7 +242,7 @@ public class PassiveStatHelper {
                     var comp = leggings.get(net.minecraft.component.DataComponentTypes.ATTRIBUTE_MODIFIERS);
                     if (comp != null) {
                         for (var modEntry : comp.modifiers()) {
-                            if (modEntry.attribute().equals(net.minecraft.entity.attribute.EntityAttributes.GENERIC_ARMOR)) {
+                            if (com.cranks.dungeons.util.CombatUtility.attributesMatch(modEntry.attribute(), net.minecraft.entity.attribute.EntityAttributes.GENERIC_ARMOR)) {
                                 leggingsBaseArmor += modEntry.modifier().value();
                             }
                         }
@@ -247,7 +253,7 @@ public class PassiveStatHelper {
             }
 
             // Special case for Flat Bonus Armor
-            if (attr.equals(com.cranks.dungeons.registry.ModAttributes.BONUS_ARMOR)) {
+            if (com.cranks.dungeons.util.CombatUtility.attributesMatch(attr, com.cranks.dungeons.registry.ModAttributes.BONUS_ARMOR)) {
                 totalArmor += value;
                 continue; // Don't add as a separate entry
             }
@@ -270,7 +276,7 @@ public class PassiveStatHelper {
         String translationKey = attribute.value().getTranslationKey().toLowerCase();
 
         // Targeted mappings for consistency with the rest of the mod
-        if (translationKey.contains("attack_damage")) {
+        if (translationKey.contains("physical_damage") || translationKey.contains("attack_damage")) {
             String name = translationKey.replace("attribute.name.minecraft.", "")
                     .replace("attribute.name.cranks-dungeons.", "")
                     .replace("generic.attack_damage", "physical_damage")
@@ -306,7 +312,8 @@ public class PassiveStatHelper {
                 .replace("physical to lightning conversion percent", "phys to light. conversion")
                 .replace("physical to void conversion percent", "phys to void conversion")
                 .replace("crit chance against afflicted", "crit chance vs afflicted")
-                .replace("armor penetration percent", "armor penetration")
+                .replace("armor penetration percent", "increased armor penetration")
+                .replace("flat armor penetration", "armor penetration")
                 .replace("fire penetration percent", "fire penetration")
                 .replace("cold penetration percent", "cold penetration")
                 .replace("lightning penetration percent", "lightning penetration")
@@ -318,6 +325,15 @@ public class PassiveStatHelper {
                 .replace("energy shield recharge rate percent", "increased energy shield recharge rate")
                 .replace("energy shield percent", "increased energy shield")
                 .replace("evasion rating percent", "increased evasion rating")
+                .replace("increased life leech percent", "increased life leech")
+                .replace("increased mana leech percent", "increased mana leech")
+                .replace("burn magnitude percent", "burn magnitude")
+                .replace("flammability magnitude percent", "flammability magnitude")
+                .replace("poison magnitude percent", "poison magnitude")
+                .replace("bleed magnitude percent", "bleed magnitude")
+                .replace("shock magnitude percent", "shock magnitude")
+                .replace("freeze buildup percent", "freeze buildup")
+                .replace("electrocute buildup percent", "electrocute buildup")
                 .replace("_", " ");
 
         if (name.isEmpty())
@@ -340,6 +356,8 @@ public class PassiveStatHelper {
             return " max";
         if (lower.contains("max health"))
             return " HP";
+        if (lower.contains("max mana"))
+            return " Mana";
         if (lower.contains("health regen"))
             return " HP/s";
         if (lower.contains("xp"))

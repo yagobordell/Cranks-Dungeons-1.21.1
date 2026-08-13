@@ -23,7 +23,11 @@ public class LifeRegenerationMixin {
             return;
         }
 
-        double lifeRegen = entity.getAttributeValue(ModAttributes.LIFE_REGENERATION);
+        double flatLifeRegen = entity.getAttributeValue(ModAttributes.LIFE_REGENERATION);
+        double percentLifeRegen = entity.getAttributeValue(ModAttributes.MAX_HEALTH_REGENERATION_PERCENT);
+        
+        double lifeRegen = flatLifeRegen + (entity.getMaxHealth() * percentLifeRegen);
+        
         if (lifeRegen > 0) {
             float healAmount = (float) (lifeRegen / 20.0);
 

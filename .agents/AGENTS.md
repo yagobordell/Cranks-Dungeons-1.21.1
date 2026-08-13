@@ -1,169 +1,159 @@
-# Cranks Dungeons - Stat System Architecture
+# Cranks Dungeons - Architecture & Developer Guidelines
 
 ## Overview
 
-This document explains how item stats (runes), local percentages, and attribute modifiers flow through the codebase. It exists to prevent future bugs related to double-counting, attribute comparison failures, and stat pipeline ordering.
+This document explains the core systems of the Cranks Dungeons mod:
+1. **Equipment & Rune Stat Pipeline** (item stats, local percentages, quality scaling, baking)
+2. **Combat Damage & Conversion Pipeline** (physical scaling, conversions, elemental multipliers)
+3. **Passive Skill Tree & World Tree Architecture** (whitelisting, player attribute modifiers, UI sync)
 
 ---
 
-## Core Classes
+## 1. Core Classes & Roles
 
 | Class | Role |
 |---|---|
-| `StatRegistry` | Defines all possible stats (runes) with their attributes, ranges, and equipment type filters |
-| `CustomStat` / `StatComponent` | Data class for a stat definition. Contains attribute references, value ranges, and display info |
-| `ItemStatManager` | Stores rolled stat values on items via NBT. Calls `EquipmentStatApplier.updateItemAttributes()` |
-| `EquipmentStatApplier` | **Central hub**: Bakes rune stats into an item's `AttributeModifiersComponent` |
-| `ItemStackTooltipMixin` | Reads the baked component + remaining rune stats to render the tooltip |
-| `LivingEntityMixin` | Handles requirement penalties, intrinsic stat bonuses, and armor speed |
-| `ItemComponentModifier` | Sets base stats for armor pieces (e.g., leather gets Evasion Rating, gold gets Energy Shield) |
+| `ModAttributes` | Registry of all custom entity attributes (`RegistryEntry<EntityAttribute>`) |
+| `StatRegistry` | Defines equipment rune stats with ranges, slots, and equipment types |
+| `CustomStat` / `StatComponent` | Data definition for an item rune stat |
+| `ItemStatManager` | Stores rolled rune stat values in item NBT |
+| `EquipmentStatApplier` | Bakes rune stats into item's `AttributeModifiersComponent` |
+| `ItemComponentModifier` | Defines baseline stats for armor/weapons (e.g. Leather = Evasion, Gold = Energy Shield) |
+| `CombatUtility` | **Central utility**: Contains `attributesMatch()`, weapon determination, and slot-aware queries |
+| `BonusAttackDamageMixin` | Global physical/weapon/wielding percentage damage scaling on `LivingEntity.damage()` |
+| `DamageConversionHelper` | Elemental conversions, extra damage calculation, armor/resistance reduction, and breakdown |
+| `ElementalDamageMixin` | Post-damage elemental handling (ailments, leech, damage numbers) |
+| `PassiveStatHelper` | Whitelists passive/world tree attributes, aggregates total bonuses from unlocked nodes |
+| `PassiveSkillApplier` | Applies aggregated passive tree bonuses as `ADD_VALUE` modifiers to player attribute instances |
+| `LivingEntityMixin` | Dynamic requirement penalties, on-kill effects, intrinsic attribute bonuses, armor speed |
+| `ItemStackTooltipMixin` | Tooltip rendering with quality scaling and base stat computation |
 
 ---
 
-## Stat Application Pipeline
+## 2. Damage Application Pipeline (No Double-Dipping)
 
 ```
-┌──────────────────────────────────────────────────────────────────┐
-│  1. Player applies rune / uses Alchemy Tome / Quality Station   │
-│     → ItemStatManager stores values in NBT                      │
-│     → Calls EquipmentStatApplier.updateItemAttributes(stack)    │
-└────────────────────────────┬─────────────────────────────────────┘
-                             ▼
-┌──────────────────────────────────────────────────────────────────┐
-│  2. EquipmentStatApplier.updateItemAttributes(stack)            │
-│                                                                  │
-│  Step A: Classify each rune stat by attribute type:              │
-│    • LOCAL PERCENT (ARMOR_PERCENT, EVASION_RATING_PERCENT,       │
-│      ENERGY_SHIELD_PERCENT, ATTACK_DAMAGE_PERCENT)               │
-│      → Accumulated into localXPercent buffers                    │
-│      → NOT added as direct modifiers (continue)                  │
-│    • FLAT STAT (e.g. +Armor, +Evasion Rating)                   │
-│      → Stored in flatRuneValues map                              │
-│    • OTHER PERCENTAGE (resistances, crit chance, etc.)           │
-│      → Added directly to builder as ADD_VALUE                    │
-│    • MULTIPLICATIVE (attack speed, reload speed)                 │
-│      → Added directly to builder as ADD_MULTIPLIED_BASE          │
-│                                                                  │
-│  Step B: Read base item defaults from a fresh ItemStack          │
-│    • Apply quality scaling                                       │
-│    • Capture actual RegistryEntry references for lookup           │
-│                                                                  │
-│  Step C: Merge flat rune values into base values                 │
-│    • finalValue = base + flatRune                                │
-│                                                                  │
-│  Step D: Apply local percentages                                 │
-│    • finalValue = (base + flatRune) * (1 + localPercent)         │
-│                                                                  │
-│  Step E: Write everything into a new AttributeModifiersComponent │
-│    • stack.set(ATTRIBUTE_MODIFIERS, builder.build())             │
-└────────────────────────────┬─────────────────────────────────────┘
-                             ▼
-┌──────────────────────────────────────────────────────────────────┐
-│  3. Minecraft applies the component automatically when equipped  │
-│     → Player gets the stat bonuses                               │
-└──────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 1. Attack occurs (Melee or Projectile)                                      │
+│    • Vanilla computes base damage (for bows: velocity * base = draw-scaled) │
+└──────────────────────────────────────┬──────────────────────────────────────┘
+                                       ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 2. BonusAttackDamageMixin.java (HEAD of LivingEntity.damage())              │
+│    • Adds flat BONUS_ATTACK_DAMAGE                                          │
+│    • Multiplies by total global percentage bonuses:                         │
+│      - PHYSICAL_DAMAGE_PERCENT                                              │
+│      - Weapon-specific (SWORD_DAMAGE_PERCENT, BOW_DAMAGE_PERCENT, etc.)      │
+│      - Type-specific (MELEE_DAMAGE_PERCENT, PROJECTILE / RANGED_DAMAGE_PERCENT)│
+│      - Wielding (TWO_HANDING, DUAL_WIELDING, ONE_HANDED)                    │
+│      - DAMAGE_AGAINST_AFFLICTED_PERCENT                                     │
+│    • Returns fully scaled `amount`                                          │
+└──────────────────────────────────────┬──────────────────────────────────────┘
+                                       ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 3. DamageConversionHelper.calculateLivingAttackerBreakdown()                │
+│    • Preserves incoming `amount` (do NOT discard or recalculate projectiles)│
+│    • Converts physical to Fire/Cold/Lightning/Void based on conversion %    │
+│    • Calculates extra damage (% of total basic or physical as extra)        │
+│    • Scales elements individually:                                          │
+│      - Fire: fireBase * (1.0 + firePercent + selfAfflicted + elementalBonus)│
+│      - Cold: coldBase * (1.0 + coldPercent + selfAfflicted + elementalBonus)│
+│      - Lightning: lightningBase * (1.0 + lightningPercent + selfAfflicted + elementalBonus)│
+│      - Void: voidBase * (1.0 + voidPercent + selfAfflicted)                 │
+│      * NOTE: elementalBonus (ELEMENTAL_DAMAGE_PERCENT) ONLY affects Fire,   │
+│        Cold, and Lightning — NEVER Void.                                    │
+│      * NOTE: baseMultiplier ONLY contains selfAfflictedBonus (damage while   │
+│        afflicted). All other global stats were already applied in Step 2.   │
+└──────────────────────────────────────┬──────────────────────────────────────┘
+                                       ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 4. ElementalDamageMixin.java (RETURN of LivingEntity.damage())              │
+│    • Leech (life & mana leech from physical portion)                        │
+│    • Ailments (burn, shock, poison, bleed, freeze, electrocute)             │
+│    • Damage numbers broadcast to clients                                    │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Critical Rules
+## 3. Passive Skill Tree Architecture
 
-### 1. Attribute Comparison: NEVER use `.equals()` on RegistryEntry
+### How Passive Nodes Work
+1. When a player unlocks a node (or chooses an attribute on a selection node), the choice is stored in `ModComponents.PASSIVE_DATA` (or `WORLD_TREE_DATA`).
+2. `PassiveSkillApplier.updatePlayerPassives(player)` is called.
+3. `PassiveStatHelper.getPassiveTreeSummary(player)` aggregates all unlocked nodes, filtering through `WHITELISTED_PASSIVE_ATTRIBUTES` (or `WHITELISTED_WORLD_ATTRIBUTES`).
+4. `PassiveSkillApplier` creates an `EntityAttributeModifier` with `Operation.ADD_VALUE` and adds it to the player's attribute instance:
+   - Identifier: `cranks-dungeons:passive_{attrKey}`
+   - Operation: `ADD_VALUE`
 
-Fabric's registry can return **different RegistryEntry objects** for the same attribute depending on when/how they were loaded. This means:
+### Step-by-Step Guide: Adding a New Passive Modifier
 
-```java
-// ❌ WRONG - may fail even for the same attribute
-attribute.equals(ModAttributes.EVASION_RATING_PERCENT)
+1. **Register Attribute in `ModAttributes.java`**:
+   ```java
+   public static final RegistryEntry<EntityAttribute> MY_STAT = register("my_stat", defaultVal, minVal, maxVal);
+   ```
+   *Attributes registered here are automatically added to `ALL_ATTRIBUTES` and attached to players on spawn.*
 
-// ✅ CORRECT - falls back to translation key comparison
-isAttribute(attribute, ModAttributes.EVASION_RATING_PERCENT)   // in EquipmentStatApplier
-attributesMatch(runeAttr, ModAttributes.EVASION_RATING)        // in ItemStackTooltipMixin
-```
+2. **Whitelist in `PassiveStatHelper.java`**:
+   - Add `"my_stat"` (without `cranks-dungeons:`) to `WHITELISTED_PASSIVE_ATTRIBUTES` (or `WHITELISTED_WORLD_ATTRIBUTES`).
+   - Add player-friendly name formatting to `PassiveStatHelper.getReadableName()`.
 
-### 2. Local Percent Detection: Use attribute TYPE, not stat ID strings
+3. **Add Translation in `assets/cranks-dungeons/lang/en_us.json`**:
+   ```json
+   "attribute.name.cranks-dungeons.my_stat": "My Stat Name"
+   ```
 
-```java
-// ❌ WRONG - fragile, breaks when stat IDs don't contain expected substrings
-boolean isLocalEvasion = stat.getId().contains("local_evasion_percent");
+4. **Implement Gameplay Logic**:
+   - Query the attribute with `player.getAttributeValue(ModAttributes.MY_STAT)` or `CombatUtility.getAttributeValue(...)`.
+   - If it's a damage modifier, add it to `BonusAttackDamageMixin.java` or `DamageConversionHelper.java`.
+   - If it's a defensive modifier, hook it into `DamageReductionMixin.java`, `ArmorDamageMixin.java`, or `LivingEntityMixin.java`.
 
-// ✅ CORRECT - works for ALL stats that use this attribute
-if (isAttribute(attribute, ModAttributes.EVASION_RATING_PERCENT)) {
-    localEvasionPercent += val;
-}
-```
+5. **Register UI Icon in `PassiveIconManager.java`** (if applicable):
+   - Map the attribute to an icon tag/texture in `PassiveIconManager.java`.
 
-The stat `evasion_rating_percent` generates IDs like `chestplate_evasion_rating_percent`, which does NOT contain `local_evasion_percent`. Checking by attribute type is always correct.
-
-### 3. Tooltip Double-Counting Prevention
-
-`EquipmentStatApplier` bakes these values into the item's `AttributeModifiersComponent`:
-- Flat rune values for armor, evasion, energy shield, attack damage
-- Local percentage scaling of those values
-
-Therefore, `ItemStackTooltipMixin.calculateItemAttributeTotals()` must **skip** these stats when reading from `ItemStatManager.getStats()`, or they'll be counted twice.
-
-Stats that ARE safe to read from ItemStatManager in the tooltip:
-- Resistances (fire, cold, lightning, void)
-- Max health
-- Movement speed
-- Crit stats
-- Any stat NOT baked into the AttributeModifiersComponent
-
-### 4. Requirement Penalty System
-
-When a player doesn't meet an item's stat requirements (STR/DEX/INT), `LivingEntityMixin.updateRequirementPenalties()` applies a **50% penalty** as a negative modifier with the **same operation type** as the original.
-
-- Flat stats: penalty = `-value * 0.5` with `ADD_VALUE`
-- Attack speed: special-cased to halve the final speed, not the raw modifier
-
-### 5. Stat Registration Patterns
-
-| Registration Method | ID Format | Example |
-|---|---|---|
-| `registerForTypes("evasion_rating_percent", ...)` | `{type}_evasion_rating_percent` | `chestplate_evasion_rating_percent` |
-| `registerHybridForTypes("hybrid_dex_eva_life", ...)` | `{type}_hybrid_dex_eva_life` | `chestplate_hybrid_dex_eva_life` |
-The base name is just a label — the actual stat ID always has the equipment type prefix.
-
-### 6. Cinematic Respawn & HUD Hiding
-
-Custom HUDs (StatBars, PartyHud, NotificationHud) must **not** render when a cinematic respawn is active (e.g., from the Cinematic Respawn mod). We use reflection to check this without creating a hard dependency:
-
-```java
-// Centralized check in CranksDungeonsClient
-public static boolean isCinematicRespawnActive() {
-    try {
-        Class<?> clazz = Class.forName("net.gamev.cinematic_respawn.client.RespawnCinematicController");
-        Method method = clazz.getMethod("isActive");
-        return (Boolean) method.invoke(null);
-    } catch (Exception e) {
-        return false;
-    }
-}
-```
-
-In any custom HUD render mixin, abort rendering if this returns true.
-
-### 7. Elemental Damage & Void Mechanics
-
-- **Damage Conversions**: `DamageConversionHelper.getBreakdown()` determines how physical damage converts to Fire/Cold/Lightning/Void.
-- **Void Damage**: Bypasses normal armor (unless specific stats allow it) and deals **2x damage to Energy Shields**.
-- **Death Messages & Hardcore Revival**: To maintain compatibility with mods like Hardcore Revival and vanilla death messages, elemental damage must be attributed to the attacking entity (mob/player). In `ElementalDamageHelper.applyDamage()` and `ElementalDamageMixin`, we construct custom damage sources using `player.getDamageSources().playerAttack(...)` or `mobAttack(...)` rather than using `outOfWorld` for Void damage.
+6. **Add to Stats Display** (if applicable):
+   - `InventoryScreenStatsMixin.java` / `CheckStatsCommand.java`.
 
 ---
 
-## Common Pitfalls (for future agents)
+## 4. Critical Invariant Rules (DO NOT BREAK)
 
-1. **Adding a new local percent stat?** Add it to the detection block in `EquipmentStatApplier.updateItemAttributes()` AND to the skip list in `ItemStackTooltipMixin.calculateItemAttributeTotals()`.
+### Rule 1: Attribute Comparison: NEVER use `.equals()` on RegistryEntry
+Fabric's registry can return **different RegistryEntry instances** for the same attribute depending on class loading order.
+```java
+// ❌ WRONG - can silently fail
+attr1.equals(attr2)
+entry.attribute().equals(ModAttributes.MY_STAT)
 
-2. **Adding a new flat stat that gets baked into the component?** Add it to the skip list in `ItemStackTooltipMixin.calculateItemAttributeTotals()`.
+// ✅ CORRECT - uses identity, equals, registry key, and translation key fallback
+CombatUtility.attributesMatch(attr1, attr2)
+```
 
-3. **Comparing attributes anywhere?** Use `isAttribute()` or `attributesMatch()`, never `.equals()`.
+### Rule 2: No Combat Double-Dipping
+- Global damage modifiers (`MELEE_DAMAGE_PERCENT`, `PHYSICAL_DAMAGE_PERCENT`, weapon types, wielding, `DAMAGE_AGAINST_AFFLICTED_PERCENT`) are applied **once** in `BonusAttackDamageMixin`.
+- `DamageConversionHelper` must **never** re-apply these modifiers in `baseMultiplier`.
+- `DamageConversionHelper`'s `baseMultiplier` only contains `DAMAGE_WHILE_AFFLICTED_PERCENT` (`selfAfflictedBonus`).
+- `ELEMENTAL_DAMAGE_PERCENT` only applies to Fire, Cold, and Lightning (NOT Void).
 
-4. **Why isn't my percent stat working?** Check if the stat's `StatComponent` has a non-null attribute. If the attribute is `null`, the component's attribute list is empty and no loops will execute.
+### Rule 3: Preserving Projectile Damage
+- `PersistentProjectileEntity` in Minecraft already computes draw-scaled damage (`velocity * baseDamage`) before `damage()` is called.
+- `DamageConversionHelper` must **preserve** the incoming `amount` and not discard or recalculate it from scratch.
 
-5. **1.21 AttributeModifierSlot Location**: Remember that in Minecraft 1.21, `AttributeModifierSlot` was moved. It is now located at `net.minecraft.component.type.AttributeModifierSlot`, NOT `net.minecraft.entity.attribute`.
+### Rule 4: On-Kill Attribute Queries
+- On-kill logic in `LivingEntityMixin` must query `player.getAttributeValue(ModAttributes.HEALTH_ON_KILL)` and `ModAttributes.MANA_ON_KILL` directly from the player attribute instance.
+- Do NOT parse only the weapon's `AttributeModifiersComponent` (or passive tree nodes will be ignored).
+- Requirement penalties are dynamically managed by `updateRequirementPenalties()` via negative attribute modifiers.
 
-6. **Reading Baked Weapon Attributes**: When computing combat math (like in `CombatUtility.getAttributeValue`), do NOT read flat rune values (like flat elemental damage) directly from the item's NBT using `EquipmentStatApplier.getItemStatValue()`. Because these flat stats are baked directly into the item's `AttributeModifiersComponent` by `EquipmentStatApplier`, doing so will cause double-counting! You must parse the weapon's `AttributeModifiersComponent` for `ADD_VALUE` modifiers in the `MAINHAND` slot to correctly calculate weapon contributions.
+### Rule 5: Local vs Global Equipment Percent Detection
+- Use attribute type, not stat ID strings:
+  ```java
+  // ❌ WRONG
+  boolean isLocal = stat.getId().contains("local_evasion_percent");
+  
+  // ✅ CORRECT
+  if (CombatUtility.attributesMatch(attribute, ModAttributes.EVASION_RATING_PERCENT)) { ... }
+  ```
 
-7. **Tooltip Rendering for Custom Multipliers**: Some stats (like `local_crit_chance`) have a `null` underlying attribute because they act as invisible math multipliers in `CriticalStrikeMixin`. As a result, they do NOT automatically get picked up by `ItemStackTooltipMixin.calculateItemAttributeTotals()`. To reflect these properly in the item's base stats block, you must manually query `EquipmentStatApplier.getItemStatValue(stack, "local_crit_chance")` inside `ItemStackTooltipMixin` and manually compute the final scaled base value.
+### Rule 6: Tooltip Double-Counting Prevention
+- `EquipmentStatApplier` bakes flat values (Armor, Evasion, ES, Attack Damage) and local percentages directly into the item's `AttributeModifiersComponent`.
+- `ItemStackTooltipMixin.calculateItemAttributeTotals()` must skip these baked stats when reading rune NBT from `ItemStatManager`.

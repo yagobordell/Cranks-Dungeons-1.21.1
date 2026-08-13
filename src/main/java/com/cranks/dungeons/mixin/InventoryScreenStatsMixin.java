@@ -246,9 +246,17 @@ public abstract class InventoryScreenStatsMixin {
                                         player.getAttributeValue(EntityAttributes.GENERIC_MAX_HEALTH),
                                         cranks$getPassiveBase(player, EntityAttributes.GENERIC_MAX_HEALTH), "", mouseX,
                                         mouseY, panelX, panelWidth);
+                        double flatLifeRegen = player.getAttributeValue(ModAttributes.LIFE_REGENERATION);
+                        double percentLifeRegen = player.getAttributeValue(ModAttributes.MAX_HEALTH_REGENERATION_PERCENT);
+                        double totalLifeRegen = flatLifeRegen + (player.getMaxHealth() * percentLifeRegen);
+                        
+                        double baseFlatLifeRegen = cranks$getPassiveBase(player, ModAttributes.LIFE_REGENERATION);
+                        double basePercentLifeRegen = cranks$getPassiveBase(player, ModAttributes.MAX_HEALTH_REGENERATION_PERCENT);
+                        double baseTotalLifeRegen = baseFlatLifeRegen + (player.getMaxHealth() * basePercentLifeRegen);
+
                         curY = drawStatWithTooltip(context, tr, panelX, curY, "Health Regen",
-                                        player.getAttributeValue(ModAttributes.LIFE_REGENERATION),
-                                        cranks$getPassiveBase(player, ModAttributes.LIFE_REGENERATION), " / Sec", mouseX,
+                                        totalLifeRegen,
+                                        baseTotalLifeRegen, " / Sec", mouseX,
                                         mouseY, panelX, panelWidth);
                         curY += 16;
 
@@ -268,8 +276,13 @@ public abstract class InventoryScreenStatsMixin {
                                         baseRechargeRate, "", mouseX, mouseY,
                                         panelX, panelWidth);
 
+                        double fasterStart = player.getAttributeValue(ModAttributes.FASTER_START_OF_ENERGY_SHIELD_RECHARGE);
+                        double esDelay = 4.0 / (1.0 + fasterStart);
+                        double baseFasterStart = cranks$getPassiveBase(player, ModAttributes.FASTER_START_OF_ENERGY_SHIELD_RECHARGE);
+                        double baseEsDelay = 4.0 / (1.0 + baseFasterStart);
                         curY = drawStatWithTooltip(context, tr, panelX, curY, "ES Recharge Delay",
-                                        2.0, Double.NaN, "s", mouseX, mouseY, panelX, panelWidth);
+                                        esDelay,
+                                        baseEsDelay, "s", mouseX, mouseY, panelX, panelWidth);
                         curY += 16;
 
                         // --- MANA ---
@@ -281,9 +294,14 @@ public abstract class InventoryScreenStatsMixin {
                                         baseMaxManaStat, "", mouseX, mouseY, panelX, panelWidth);
 
                         double manaRegenPercent = player.getAttributeValue(ModAttributes.MANA_REGENERATION_PERCENT);
-                        double manaRegenFlat = maxManaStat * manaRegenPercent;
+                        double manaRegenRate = player.getAttributeValue(ModAttributes.MANA_REGENERATION_RATE);
+                        double manaRecoveryRate = player.getAttributeValue(ModAttributes.MANA_RECOVERY_RATE);
+                        double manaRegenFlat = maxManaStat * manaRegenPercent * (1.0 + manaRegenRate) * (1.0 + manaRecoveryRate);
+                        
                         double baseManaRegenPercent = cranks$getPassiveBase(player, ModAttributes.MANA_REGENERATION_PERCENT);
-                        double baseManaRegenFlat = baseMaxManaStat * baseManaRegenPercent;
+                        double baseManaRegenRate = cranks$getPassiveBase(player, ModAttributes.MANA_REGENERATION_RATE);
+                        double baseManaRecoveryRate = cranks$getPassiveBase(player, ModAttributes.MANA_RECOVERY_RATE);
+                        double baseManaRegenFlat = baseMaxManaStat * baseManaRegenPercent * (1.0 + baseManaRegenRate) * (1.0 + baseManaRecoveryRate);
 
                         curY = drawStatWithTooltip(context, tr, panelX, curY, "Mana Recovery / Sec",
                                         manaRegenFlat,
@@ -479,7 +497,7 @@ public abstract class InventoryScreenStatsMixin {
                         case "Cold Res" -> "Reduces cold damage taken";
                         case "Lightning Res" -> "Reduces lightning damage taken";
                         case "Void Res" -> "Reduces void damage taken";
-                        case "Knockback" -> "Chance to knock back enemies on hit";
+                        case "Knockback" -> "Increases the distance enemies are knocked back by attacks";
                         case "Knockback Res" -> "Reduces distance knocked back by attacks";
                         case "Move Speed Mod" -> "Movement speed modifier";
                         case "Item Rarity" -> "Increases rarity of items found";
@@ -614,8 +632,11 @@ public abstract class InventoryScreenStatsMixin {
                 net.minecraft.entity.damage.DamageSource dummySource = player.getDamageSources().playerAttack(player);
                 if (CombatUtility.isMelee(weapon, dummySource)) {
                         pct += player.getAttributeValue(ModAttributes.MELEE_DAMAGE_PERCENT);
-                } else if (CombatUtility.isRanged(weapon, dummySource)) {
-                        pct += player.getAttributeValue(ModAttributes.RANGED_DAMAGE_PERCENT);
+                } else if (CombatUtility.isProjectile(dummySource) || CombatUtility.isRanged(weapon, dummySource)) {
+                        pct += player.getAttributeValue(ModAttributes.PROJECTILE_DAMAGE_PERCENT);
+                        if (CombatUtility.isRanged(weapon, dummySource)) {
+                            pct += player.getAttributeValue(ModAttributes.RANGED_DAMAGE_PERCENT);
+                        }
                 }
 
                 if (CombatUtility.isTwoHanding(player, weapon)) {
@@ -683,7 +704,7 @@ public abstract class InventoryScreenStatsMixin {
                 var comp = stack.get(DataComponentTypes.ATTRIBUTE_MODIFIERS);
                 if (comp != null)
                         for (var entry : comp.modifiers())
-                                if (entry.attribute().equals(attr))
+                                if (com.cranks.dungeons.util.CombatUtility.attributesMatch(entry.attribute(), attr))
                                         val += entry.modifier().value();
                 return val;
         }

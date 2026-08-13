@@ -80,9 +80,32 @@ public class EquipmentStatApplier {
         for (EquipmentSlot slot : ARMOR_SLOTS) {
             ItemStack stack = player.getEquippedStack(slot);
             if (!stack.isEmpty()) {
-                // If the item has custom attributes set, Minecraft applies them automatically.
-                // We ONLY add stats here if they AREN'T already in the item's component.
-                if (!stack.contains(DataComponentTypes.ATTRIBUTE_MODIFIERS)) {
+                if (stack.contains(net.minecraft.component.DataComponentTypes.ATTRIBUTE_MODIFIERS)) {
+                    // Minecraft's native AttributeContainer relies on strict RegistryEntry matching (.equals).
+                    // Because Fabric can generate duplicate Reference instances for custom attributes loaded from NBT,
+                    // Minecraft natively fails to apply them and silently drops the modifiers.
+                    // We manually detect modifiers in the item's component that failed to apply, map them to the 
+                    // canonical ModAttributes entry, and apply them.
+                    net.minecraft.component.type.AttributeModifiersComponent comp = stack.get(net.minecraft.component.DataComponentTypes.ATTRIBUTE_MODIFIERS);
+                    for (net.minecraft.component.type.AttributeModifiersComponent.Entry entry : comp.modifiers()) {
+                        if (entry.slot().matches(slot)) {
+                            net.minecraft.registry.entry.RegistryEntry<net.minecraft.entity.attribute.EntityAttribute> canonical = getCanonicalAttribute(entry.attribute());
+                            if (canonical != null) {
+                                net.minecraft.entity.attribute.EntityAttributeInstance instance = player.getAttributeInstance(canonical);
+                                if (instance != null) {
+                                    // If vanilla failed to apply it, it won't exist in the player's attribute instance
+                                    if (instance.getModifier(entry.modifier().id()) == null) {
+                                        instance.addTemporaryModifier(entry.modifier());
+                                        // Track it so we can remove it when unequipped (removeAllModifiers)
+                                        Map<net.minecraft.util.Identifier, net.minecraft.registry.entry.RegistryEntry<net.minecraft.entity.attribute.EntityAttribute>> applied = appliedModifiers.computeIfAbsent(player.getUuid(), k -> new HashMap<>());
+                                        applied.put(entry.modifier().id(), canonical);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    // Legacy items without component
                     armorItems.add(stack);
                 }
             }
@@ -165,7 +188,7 @@ public class EquipmentStatApplier {
                         // Detect local percentage stats by their attribute type.
                         // These scale the item's base stat and should NOT be added as direct modifiers.
                         boolean isLocalPercent = false;
-                        if (isAttribute(attribute, ModAttributes.ATTACK_DAMAGE_PERCENT)) {
+                        if (isAttribute(attribute, ModAttributes.PHYSICAL_DAMAGE_PERCENT)) {
                             localAttackDamagePercent += val;
                             isLocalPercent = true;
                         } else if (isAttribute(attribute, ModAttributes.ARMOR_PERCENT)) {
@@ -184,8 +207,7 @@ public class EquipmentStatApplier {
                             continue;
                         }
 
-                        if (isAttribute(attribute, ModAttributes.DURABILITY_BONUS) ||
-                            isAttribute(attribute, ModAttributes.HEALTH_ON_BLOCK)) {
+                        if (isAttribute(attribute, ModAttributes.DURABILITY_BONUS)) {
                             continue;
                         }
 
@@ -200,6 +222,8 @@ public class EquipmentStatApplier {
                                     id, val, op
                             );
                             builder.add(attribute, modifier, slot);
+                            CranksDungeons.LOGGER.info("[StatBake] Baked percentage stat '{}' attr='{}' val={} op={} slot={}", 
+                                stat.getId(), attribute.value().getTranslationKey(), val, op, slot);
                         } else {
                             flatRuneValues.merge(attribute, val, Double::sum);
                             attributeToStatMap.put(attribute, stat);
@@ -234,7 +258,7 @@ public class EquipmentStatApplier {
                         value *= (1.0 + effectiveness);
                     }
 
-                    if (isAttribute(attr, ModAttributes.ATTACK_DAMAGE_PERCENT)) {
+                    if (isAttribute(attr, ModAttributes.PHYSICAL_DAMAGE_PERCENT)) {
                         localAttackDamagePercent += value;
                     } else if (isAttribute(attr, ModAttributes.ARMOR_PERCENT)) {
                         localArmorPercent += value;
@@ -423,8 +447,16 @@ public class EquipmentStatApplier {
      * <p><b>ALWAYS use this instead of .equals() when comparing attributes in this class.</b></p>
      */
     private static boolean isAttribute(RegistryEntry<EntityAttribute> attr1, RegistryEntry<EntityAttribute> attr2) {
-        if (attr1.equals(attr2)) return true;
-        return attr1.value().getTranslationKey().equals(attr2.value().getTranslationKey());
+        return com.cranks.dungeons.util.CombatUtility.attributesMatch(attr1, attr2);
+    }
+
+    public static RegistryEntry<EntityAttribute> getCanonicalAttribute(RegistryEntry<EntityAttribute> attribute) {
+        for (RegistryEntry<EntityAttribute> knownAttr : com.cranks.dungeons.registry.ModAttributes.ALL_ATTRIBUTES) {
+            if (isAttribute(attribute, knownAttr)) {
+                return knownAttr;
+            }
+        }
+        return attribute;
     }
 
     public static double getItemStatValue(ItemStack stack, String baseStatId) {
@@ -451,7 +483,7 @@ public class EquipmentStatApplier {
 
                 // For armor stats, we generally skip everything EXCEPT standard player attributes
                 if (isAttribute(attribute, ModAttributes.DURABILITY_BONUS)) continue;
-                if (isAttribute(attribute, ModAttributes.HEALTH_ON_BLOCK)) continue;
+                
 
                 Identifier id = Identifier.of(CranksDungeons.MOD_ID, "runic_" + stat.getId() + "_" + i + "_" + attrIndex);
                 EntityAttributeModifier modifier = new EntityAttributeModifier(

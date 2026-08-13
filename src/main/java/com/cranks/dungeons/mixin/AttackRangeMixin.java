@@ -44,10 +44,6 @@ public class AttackRangeMixin {
 
         // 1) Bonus from your custom ATTACK_RANGE attribute (includes runes, etc.)
         double attrBonus = 0.0;
-        var inst = player.getAttributeInstance(ModAttributes.ATTACK_RANGE);
-        if (inst != null) {
-            attrBonus = inst.getValue();
-        }
 
         // 2) Optional enchantment bonus from the weapon
         ItemStack weapon = player.getMainHandStack();

@@ -140,7 +140,9 @@ public class PassiveNodeEditScreen extends Screen {
 
         descField = new TextFieldWidget(this.textRenderer, leftX, 130, fieldW, 20, Text.literal("Description"));
         descField.setMaxLength(256);
-        if (nodeToEdit != null) descField.setText(nodeToEdit.description());
+        if (nodeToEdit != null && nodeToEdit.description() != null) {
+            descField.setText(nodeToEdit.description().replace("\n", "\\n"));
+        }
         this.addDrawableChild(descField);
 
         shapeField = new TextFieldWidget(this.textRenderer, leftX, 175, fieldW, 20, Text.literal("Shape"));
@@ -280,7 +282,7 @@ public class PassiveNodeEditScreen extends Screen {
         String id = idField.getText().trim();
         if (id.isEmpty()) id = "new_node";
         String name = nameField.getText().trim();
-        String desc = descField.getText().trim();
+        String desc = descField.getText().trim().replace("\\n", "\n");
         String shape = shapeField.getText().trim();
         if (shape.isEmpty()) shape = "square";
 

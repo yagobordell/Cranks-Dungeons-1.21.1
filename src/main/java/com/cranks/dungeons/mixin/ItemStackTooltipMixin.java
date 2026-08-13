@@ -287,6 +287,13 @@ public abstract class ItemStackTooltipMixin {
                                 .formatted(getValueColor(stack, ModAttributes.LIFE_REGENERATION))));
                 addedAny = true;
             }
+            String maxRegenPctKey = ModAttributes.MAX_HEALTH_REGENERATION_PERCENT.value().getTranslationKey();
+            if (attributeTotals.getOrDefault(maxRegenPctKey, 0.0) > 0 && defaultTotals.getOrDefault(maxRegenPctKey, 0.0) > 0) {
+                tooltip.add(Text.literal("Health Regen: ").formatted(Formatting.GRAY)
+                        .append(Text.literal("+" + pctFmt.format(attributeTotals.get(maxRegenPctKey) * 100.0) + "% Max Health")
+                                .formatted(getValueColor(stack, ModAttributes.MAX_HEALTH_REGENERATION_PERCENT))));
+                addedAny = true;
+            }
 
 
             String blockValueKey = ModAttributes.BLOCK_VALUE.value().getTranslationKey();
@@ -296,14 +303,15 @@ public abstract class ItemStackTooltipMixin {
                                 .formatted(getValueColor(stack, ModAttributes.BLOCK_VALUE))));
                 addedAny = true;
             }
-
-            String healthBlockKey = ModAttributes.HEALTH_ON_BLOCK.value().getTranslationKey();
-            if (attributeTotals.getOrDefault(healthBlockKey, 0.0) > 0) {
-                tooltip.add(Text.literal("Health on Block: ").formatted(Formatting.GRAY)
-                        .append(Text.literal(flatFmt.format(attributeTotals.get(healthBlockKey)))
-                                .formatted(getValueColor(stack, ModAttributes.HEALTH_ON_BLOCK))));
+            String blockValuePctKey = ModAttributes.BLOCK_VALUE_PERCENT.value().getTranslationKey();
+            if (attributeTotals.getOrDefault(blockValuePctKey, 0.0) > 0 && defaultTotals.getOrDefault(blockValuePctKey, 0.0) > 0) {
+                tooltip.add(Text.literal("Block Value: ").formatted(Formatting.GRAY)
+                        .append(Text.literal("+" + pctFmt.format(attributeTotals.get(blockValuePctKey) * 100.0) + "%")
+                                .formatted(getValueColor(stack, ModAttributes.BLOCK_VALUE_PERCENT))));
                 addedAny = true;
             }
+
+
         } else {
             // WEAPON/TOOL BASE STATS
             // TOOLS
@@ -451,7 +459,7 @@ public abstract class ItemStackTooltipMixin {
                 double baseVal = entry.modifier().value();
                 
                 if (!includeModifications && qBonus > 0) {
-                    if (entry.attribute().equals(EntityAttributes.GENERIC_ATTACK_SPEED)) {
+                    if (attributesMatch(entry.attribute(), EntityAttributes.GENERIC_ATTACK_SPEED)) {
                         baseVal = (4.0 + baseVal) * (1.0 + qBonus) - 4.0;
                     } else {
                         baseVal = baseVal * (1.0 + qBonus);
@@ -484,7 +492,7 @@ public abstract class ItemStackTooltipMixin {
                                 attributesMatch(runeAttr, ModAttributes.ARMOR_PERCENT) ||
                                 attributesMatch(runeAttr, ModAttributes.EVASION_RATING_PERCENT) ||
                                 attributesMatch(runeAttr, ModAttributes.ENERGY_SHIELD_PERCENT) ||
-                                attributesMatch(runeAttr, ModAttributes.ATTACK_DAMAGE_PERCENT) ||
+                                attributesMatch(runeAttr, ModAttributes.PHYSICAL_DAMAGE_PERCENT) ||
                                 attributesMatch(runeAttr, ModAttributes.FIRE_DAMAGE) ||
                                 attributesMatch(runeAttr, ModAttributes.COLD_DAMAGE) ||
                                 attributesMatch(runeAttr, ModAttributes.LIGHTNING_DAMAGE) ||
@@ -531,7 +539,7 @@ public abstract class ItemStackTooltipMixin {
                         }
 
                         // Special case: Mining Efficiency (Gathering Speed) should be multiplicative
-                        if (attr.equals(com.cranks.dungeons.registry.ModAttributes.MINING_EFFICIENCY)) {
+                        if (attributesMatch(attr, com.cranks.dungeons.registry.ModAttributes.MINING_EFFICIENCY)) {
                             multTotal.merge(key, value, Double::sum);
                         } else {
                             // Default to ADD_VALUE for enchantments in vanilla
@@ -804,16 +812,13 @@ public abstract class ItemStackTooltipMixin {
      */
     @Unique
     private boolean attributesMatch(RegistryEntry<EntityAttribute> e1, RegistryEntry<EntityAttribute> e2) {
-        if (e1 == e2) return true;
-        if (e1 == null || e2 == null) return false;
-        if (e1.equals(e2)) return true;
-        return e1.getKey().isPresent() && e2.getKey().isPresent() && e1.getKey().get().equals(e2.getKey().get());
+        return com.cranks.dungeons.util.CombatUtility.attributesMatch(e1, e2);
     }
 
     @Unique
     private boolean isPercentageModifierFor(RegistryEntry<EntityAttribute> modifierAttr, RegistryEntry<EntityAttribute> baseAttr) {
         if (attributesMatch(baseAttr, net.minecraft.entity.attribute.EntityAttributes.GENERIC_ATTACK_DAMAGE)) {
-            return attributesMatch(modifierAttr, ModAttributes.ATTACK_DAMAGE_PERCENT);
+            return attributesMatch(modifierAttr, ModAttributes.PHYSICAL_DAMAGE_PERCENT);
         }
         if (attributesMatch(baseAttr, net.minecraft.entity.attribute.EntityAttributes.GENERIC_ARMOR)) {
             return attributesMatch(modifierAttr, ModAttributes.ARMOR_PERCENT);

@@ -40,8 +40,10 @@ public class AilmentManager {
     private static final Map<java.util.UUID, List<Ailment>> ENTITY_AILMENTS = new ConcurrentHashMap<>();
     private static final Map<java.util.UUID, Float> FREEZE_BUILDUP = new ConcurrentHashMap<>();
     private static final Map<java.util.UUID, Float> ELECTROCUTE_BUILDUP = new ConcurrentHashMap<>();
+    private static final Map<java.util.UUID, Float> FLAMMABILITY_BUILDUP = new ConcurrentHashMap<>();
     private static final Map<java.util.UUID, Long> FREEZE_BUILDUP_LAST_HIT = new ConcurrentHashMap<>();
     private static final Map<java.util.UUID, Long> ELECTROCUTE_BUILDUP_LAST_HIT = new ConcurrentHashMap<>();
+    private static final Map<java.util.UUID, Long> FLAMMABILITY_LAST_HIT = new ConcurrentHashMap<>();
     private static final int POISON_STACK_CAP = 20;
     
     // Track entities currently being processed by shock chain to prevent recursion
@@ -94,6 +96,26 @@ public class AilmentManager {
 
     public static float getElectrocuteBuildup(UUID entityUuid) {
         return ELECTROCUTE_BUILDUP.getOrDefault(entityUuid, 0.0f);
+    }
+
+    public static float getFlammabilityBuildup(UUID entityUuid) {
+        return FLAMMABILITY_BUILDUP.getOrDefault(entityUuid, 0.0f);
+    }
+
+    public static void addFlammability(LivingEntity target, float amount, double duration, Entity source, float baseDamage) {
+        if (hasAilment(target, AilmentType.BURN)) return;
+        float current = getFlammabilityBuildup(target.getUuid());
+        float newBuildup = current + amount;
+        
+        if (newBuildup >= 1.0f) {
+            FLAMMABILITY_BUILDUP.remove(target.getUuid());
+            FLAMMABILITY_LAST_HIT.remove(target.getUuid());
+            applyAilment(target, AilmentType.BURN, baseDamage, duration, source, null, null, 0, baseDamage);
+        } else {
+            FLAMMABILITY_BUILDUP.put(target.getUuid(), newBuildup);
+            FLAMMABILITY_LAST_HIT.put(target.getUuid(), target.getEntityWorld().getTime());
+        }
+        syncAilments(target);
     }
 
     public static void addFreezeBuildup(LivingEntity target, float amount, double duration, Entity source) {
@@ -154,6 +176,23 @@ public class AilmentManager {
 
     public static void applyAilment(LivingEntity target, AilmentType type, float baseDamage, double duration, Entity source, Entity parent, UUID chainUuid, int generation, float magnitude) {
         if (target == null) return;
+
+        if (type == AilmentType.BLEED) {
+            double reduction = target.getAttributeValue(ModAttributes.REDUCED_BLEED_DURATION_ON_YOU);
+            duration = duration * (1.0 - Math.min(reduction, 1.0));
+        } else if (type == AilmentType.BURN) {
+            double reduction = target.getAttributeValue(ModAttributes.REDUCED_BURN_DURATION_ON_YOU);
+            duration = duration * (1.0 - Math.min(reduction, 1.0));
+        } else if (type == AilmentType.POISON) {
+            double reduction = target.getAttributeValue(ModAttributes.REDUCED_POISON_DURATION_ON_YOU);
+            duration = duration * (1.0 - Math.min(reduction, 1.0));
+        } else if (type == AilmentType.FREEZE) {
+            double reduction = target.getAttributeValue(ModAttributes.REDUCED_FREEZE_DURATION_ON_YOU);
+            duration = duration * (1.0 - Math.min(reduction, 1.0));
+        } else if (type == AilmentType.SHOCK || type == AilmentType.ELECTROCUTE) {
+            double reduction = target.getAttributeValue(ModAttributes.REDUCED_SHOCK_DURATION_ON_YOU);
+            duration = duration * (1.0 - Math.min(reduction, 1.0));
+        }
 
         List<Ailment> ailments = getAilments(target);
 
@@ -384,7 +423,9 @@ public class AilmentManager {
             long lastHit = FREEZE_BUILDUP_LAST_HIT.getOrDefault(entity.getUuid(), 0L);
             if (currentTime - lastHit > 40) { // 2 seconds grace period
                 float current = FREEZE_BUILDUP.get(entity.getUuid());
-                float newBuildup = current - 0.0025f; // Decay 5% per second (0.0025 per tick)
+                float decayRate = 0.0025f; // base decay 5% per second
+                decayRate /= Math.max(0.01f, 1.0f - (float)entity.getAttributeValue(ModAttributes.REDUCED_CHILL_DURATION_ON_YOU));
+                float newBuildup = current - decayRate;
                 if (newBuildup <= 0) {
                     FREEZE_BUILDUP.remove(entity.getUuid());
                     FREEZE_BUILDUP_LAST_HIT.remove(entity.getUuid());
@@ -400,12 +441,30 @@ public class AilmentManager {
             long lastHit = ELECTROCUTE_BUILDUP_LAST_HIT.getOrDefault(entity.getUuid(), 0L);
             if (currentTime - lastHit > 40) { // 2 seconds grace period
                 float current = ELECTROCUTE_BUILDUP.get(entity.getUuid());
-                float newBuildup = current - 0.01f; // Decay 20% per second (0.01 per tick)
+                float decayRate = 0.01f; // base decay 20% per second
+                decayRate /= Math.max(0.01f, 1.0f - (float)entity.getAttributeValue(ModAttributes.REDUCED_SHOCK_DURATION_ON_YOU));
+                float newBuildup = current - decayRate;
                 if (newBuildup <= 0) {
                     ELECTROCUTE_BUILDUP.remove(entity.getUuid());
                     ELECTROCUTE_BUILDUP_LAST_HIT.remove(entity.getUuid());
                 } else {
                     ELECTROCUTE_BUILDUP.put(entity.getUuid(), newBuildup);
+                }
+                buildupChanged = true;
+            }
+        }
+
+        if (FLAMMABILITY_BUILDUP.containsKey(entity.getUuid())) {
+            long lastHit = FLAMMABILITY_LAST_HIT.getOrDefault(entity.getUuid(), 0L);
+            if (currentTime - lastHit > 40) { // 2 seconds grace period
+                float current = FLAMMABILITY_BUILDUP.get(entity.getUuid());
+                float decayRate = 0.005f; // base decay 10% per second
+                float newBuildup = current - decayRate;
+                if (newBuildup <= 0) {
+                    FLAMMABILITY_BUILDUP.remove(entity.getUuid());
+                    FLAMMABILITY_LAST_HIT.remove(entity.getUuid());
+                } else {
+                    FLAMMABILITY_BUILDUP.put(entity.getUuid(), newBuildup);
                 }
                 buildupChanged = true;
             }
@@ -847,7 +906,6 @@ public class AilmentManager {
         Box box = entity.getBoundingBox().expand(radius);
         List<LivingEntity> nearby = world.getEntitiesByClass(LivingEntity.class, box, e -> {
             if (!e.isAlive() || e == entity || e == source || (e instanceof net.minecraft.entity.decoration.ArmorStandEntity)) return false;
-            if (!hasAilment(e, AilmentType.SHOCK)) return false;
             
             // Check party
             if (source instanceof net.minecraft.server.network.ServerPlayerEntity sp && e instanceof net.minecraft.server.network.ServerPlayerEntity ep) {
@@ -880,6 +938,12 @@ public class AilmentManager {
                 
                 // Broadcast damage numbers as lightning damage  
                 DamageNumberSender.broadcast(world, target, 0, 0, 0, finalDamage, 0, source != null ? source.getUuid() : null, false);
+                
+                // Guarantee a baseline shock on chained targets (at least 5%)
+                float ailmentThreshold = Math.max(1.0f, target.getMaxHealth());
+                float finalMagnitude = ((float) finalDamage / ailmentThreshold) * 5.0f;
+                finalMagnitude = Math.max(0.05f, Math.min(finalMagnitude, 0.50f));
+                applyAilment(target, AilmentType.SHOCK, (float) finalDamage, AilmentType.SHOCK.getBaseDuration(), source, null, null, 0, finalMagnitude);
                 
                 // Spawn shock chain particles at target position
                 spawnShockChainParticles(world, target);

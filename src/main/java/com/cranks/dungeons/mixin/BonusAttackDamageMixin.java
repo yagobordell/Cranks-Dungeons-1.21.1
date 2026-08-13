@@ -33,7 +33,7 @@ public class BonusAttackDamageMixin {
             float damageWithBonus = amount + (float) bonusDamage;
 
             // Get percentage multipliers from items and attributes
-            double attributePercent = attacker.getAttributeValue(ModAttributes.ATTACK_DAMAGE_PERCENT);
+            double attributePercent = attacker.getAttributeValue(ModAttributes.PHYSICAL_DAMAGE_PERCENT);
             double weaponSpecificPercent = CombatUtility.getWeaponSpecificDamageBonus(attacker, weapon);
 
             double afflictedBonus = 0;
@@ -44,8 +44,11 @@ public class BonusAttackDamageMixin {
             double typeBonus = 0;
             if (CombatUtility.isMelee(weapon, source)) {
                 typeBonus = attacker.getAttributeValue(ModAttributes.MELEE_DAMAGE_PERCENT);
-            } else if (CombatUtility.isRanged(weapon, source)) {
-                typeBonus = attacker.getAttributeValue(ModAttributes.RANGED_DAMAGE_PERCENT);
+            } else if (CombatUtility.isProjectile(source)) {
+                typeBonus = attacker.getAttributeValue(ModAttributes.PROJECTILE_DAMAGE_PERCENT);
+                if (CombatUtility.isRanged(weapon, source)) {
+                    typeBonus += attacker.getAttributeValue(ModAttributes.RANGED_DAMAGE_PERCENT);
+                }
             }
 
             double totalPercent = attributePercent + weaponSpecificPercent

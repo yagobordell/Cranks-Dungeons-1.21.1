@@ -81,32 +81,33 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
 
         Entity attacker = source.getAttacker();
         if (attacker instanceof LivingEntity livingAttacker) {
-            // Read on-kill values directly from the weapon's AttributeModifiersComponent
-            // because the player entity may not have attribute instances for weapon-only stats.
-            double healthOnKill = 0.0;
-            double manaOnKill = 0.0;
-
             if (livingAttacker instanceof net.minecraft.server.network.ServerPlayerEntity sp) {
-                net.minecraft.item.ItemStack mainHand = sp.getMainHandStack();
-                if (!mainHand.isEmpty()) {
-                    var modifiers = mainHand.getOrDefault(net.minecraft.component.DataComponentTypes.ATTRIBUTE_MODIFIERS,
-                            net.minecraft.component.type.AttributeModifiersComponent.DEFAULT);
-                    for (var entry : modifiers.modifiers()) {
-                        if (entry.slot() == net.minecraft.component.type.AttributeModifierSlot.MAINHAND
-                                && entry.modifier().operation() == net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_VALUE) {
-                            if (attributesMatch(entry.attribute(), ModAttributes.HEALTH_ON_KILL)) {
-                                healthOnKill += entry.modifier().value();
-                            } else if (attributesMatch(entry.attribute(), ModAttributes.MANA_ON_KILL)) {
-                                manaOnKill += entry.modifier().value();
-                            }
-                        }
-                    }
+                double healthOnKill = 0.0;
+                double manaOnKill = 0.0;
 
-                    // Apply 50% penalty if player doesn't meet weapon requirements
-                    if (!com.cranks.dungeons.equipment.ItemRequirementManager.meetsRequirements(sp, mainHand)) {
-                        healthOnKill *= 0.5;
-                        manaOnKill *= 0.5;
+                if (sp.getAttributes().hasAttribute(ModAttributes.HEALTH_ON_KILL)) {
+                    healthOnKill += sp.getAttributeValue(ModAttributes.HEALTH_ON_KILL);
+                }
+                if (sp.getAttributes().hasAttribute(ModAttributes.MANA_ON_KILL)) {
+                    manaOnKill += sp.getAttributeValue(ModAttributes.MANA_ON_KILL);
+                }
+
+                if (sp.getAttributes().hasAttribute(ModAttributes.HEALTH_ON_KILL_PERCENT)) {
+                    double healthOnKillPercent = sp.getAttributeValue(ModAttributes.HEALTH_ON_KILL_PERCENT);
+                    if (healthOnKillPercent > 0) {
+                        double maxHealth = sp.getAttributeValue(net.minecraft.entity.attribute.EntityAttributes.GENERIC_MAX_HEALTH);
+                        healthOnKill += maxHealth * healthOnKillPercent;
                     }
+                }
+
+                if (sp.getAttributes().hasAttribute(ModAttributes.KEYSTONE_VAAL_PACT) && sp.getAttributeValue(ModAttributes.KEYSTONE_VAAL_PACT) > 0) {
+                    healthOnKill *= 0.5;
+                    manaOnKill *= 0.5;
+                }
+                
+                if (sp.getAttributes().hasAttribute(ModAttributes.MANA_RECOVERY_RATE)) {
+                    double recoveryRate = sp.getAttributeValue(ModAttributes.MANA_RECOVERY_RATE);
+                    manaOnKill *= (1.0 + recoveryRate);
                 }
 
                 if (healthOnKill > 0) {
@@ -597,7 +598,6 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
      */
     private static boolean attributesMatch(RegistryEntry<net.minecraft.entity.attribute.EntityAttribute> attr1,
                                            RegistryEntry<net.minecraft.entity.attribute.EntityAttribute> attr2) {
-        if (attr1.equals(attr2)) return true;
-        return attr1.value().getTranslationKey().equals(attr2.value().getTranslationKey());
+        return com.cranks.dungeons.util.CombatUtility.attributesMatch(attr1, attr2);
     }
 }

@@ -27,9 +27,9 @@ public enum ArmorBaseType {
         if (modifiers != null) {
             for (var entry : modifiers.modifiers()) {
                 var attr = entry.attribute();
-                if (attributesMatch(attr, EntityAttributes.GENERIC_ARMOR) || attributesMatch(attr, ModAttributes.BONUS_ARMOR)) hasArmor = true;
-                if (attributesMatch(attr, ModAttributes.EVASION_RATING)) hasEvasion = true;
-                if (attributesMatch(attr, ModAttributes.ENERGY_SHIELD)) hasES = true;
+                if (com.cranks.dungeons.util.CombatUtility.attributesMatch(attr, EntityAttributes.GENERIC_ARMOR) || com.cranks.dungeons.util.CombatUtility.attributesMatch(attr, ModAttributes.BONUS_ARMOR)) hasArmor = true;
+                if (com.cranks.dungeons.util.CombatUtility.attributesMatch(attr, ModAttributes.EVASION_RATING)) hasEvasion = true;
+                if (com.cranks.dungeons.util.CombatUtility.attributesMatch(attr, ModAttributes.ENERGY_SHIELD)) hasES = true;
             }
         }
 
@@ -76,12 +76,5 @@ public enum ArmorBaseType {
         if (statInt && !itemInt) return false;
 
         return true;
-    }
-
-    private static boolean attributesMatch(RegistryEntry<EntityAttribute> e1, RegistryEntry<EntityAttribute> e2) {
-        if (e1 == e2) return true;
-        if (e1 == null || e2 == null) return false;
-        if (e1.equals(e2)) return true;
-        return e1.getKey().isPresent() && e2.getKey().isPresent() && e1.getKey().get().equals(e2.getKey().get());
     }
 }

@@ -1,6 +1,7 @@
 package com.cranks.dungeons.item;
 
 import com.cranks.dungeons.registry.ModAttributes;
+import com.cranks.dungeons.util.CombatUtility;
 import net.fabricmc.fabric.api.item.v1.DefaultItemComponentEvents;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.AttributeModifiersComponent;
@@ -81,7 +82,7 @@ public class ItemComponentModifier {
 
                 } else if (isWeapon(itemName)) {
                     for (var entry : attributes.modifiers()) {
-                        if (attributesMatch(entry.attribute(), EntityAttributes.GENERIC_ATTACK_DAMAGE)) {
+                        if (CombatUtility.attributesMatch(entry.attribute(), EntityAttributes.GENERIC_ATTACK_DAMAGE)) {
                             double value = entry.modifier().value();
                             if (isTool(itemName)) {
                                 value = 0.0; // Total 1.0 (player base)
@@ -97,7 +98,7 @@ public class ItemComponentModifier {
                                             entry.modifier().operation()),
                                     entry.slot());
                             modified = true;
-                        } else if (attributesMatch(entry.attribute(), EntityAttributes.GENERIC_ATTACK_SPEED)) {
+                        } else if (CombatUtility.attributesMatch(entry.attribute(), EntityAttributes.GENERIC_ATTACK_SPEED)) {
                             double value = entry.modifier().value();
                             if (isTool(itemName)) {
                                 value = -3.0; // Total 1.0 (4.0 base - 3.0)
@@ -138,29 +139,6 @@ public class ItemComponentModifier {
                 }
             });
         });
-    }
-
-    private static boolean attributesMatch(RegistryEntry<EntityAttribute> e1, RegistryEntry<EntityAttribute> e2) {
-        if (e1 == e2) return true;
-        if (e1 == null) {
-            System.out.println("[DEBUG] e1 is null!");
-            return false;
-        }
-        if (e2 == null) {
-            System.out.println("[DEBUG] e2 is null! (e1 key=" + e1.value().getTranslationKey() + ")");
-            return false;
-        }
-        if (e1.equals(e2)) return true;
-        
-        String key1 = e1.value().getTranslationKey();
-        String key2 = e2.value().getTranslationKey();
-        boolean match = key1.equals(key2);
-        
-        if (!match && key1.contains("armor")) {
-            System.out.println("[DEBUG] attributesMatch failed! key1=" + key1 + ", key2=" + key2);
-        }
-        
-        return match;
     }
 
     private static void addArmorTypeBonuses(AttributeModifiersComponent.Builder builder, String itemName,
@@ -531,15 +509,7 @@ public class ItemComponentModifier {
 
     private static void addWeaponNativeAttributes(AttributeModifiersComponent.Builder builder, String itemName) {
         double rangeBonus = getWeaponRangeBonus(itemName);
-        if (rangeBonus != 0) {
-            builder.add(
-                    ModAttributes.ATTACK_RANGE,
-                    new EntityAttributeModifier(
-                            Identifier.of("cranks-dungeons", "weapon.range"),
-                            rangeBonus,
-                            EntityAttributeModifier.Operation.ADD_VALUE),
-                    net.minecraft.component.type.AttributeModifierSlot.MAINHAND);
-        }
+        // Removed custom attack range logic as per user request.
 
         double knockbackBonus = getWeaponKnockbackBonus(itemName);
         if (knockbackBonus != 0) {

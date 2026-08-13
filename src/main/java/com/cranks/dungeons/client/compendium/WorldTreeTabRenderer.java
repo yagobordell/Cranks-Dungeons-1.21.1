@@ -394,7 +394,10 @@ public class WorldTreeTabRenderer implements CompendiumTabRenderer {
             java.util.List<Text> tooltipTexts = new java.util.ArrayList<>();
             tooltipTexts.add(Text.literal(title));
             if (hovered.description() != null && !hovered.description().isEmpty()) {
-                tooltipTexts.add(Text.literal("§7" + hovered.description()));
+                String[] lines = hovered.description().split("\n");
+                for (String line : lines) {
+                    tooltipTexts.add(Text.literal("§7" + line));
+                }
             }
             context.drawTooltip(textRenderer, tooltipTexts, mouseX, mouseY);
         }

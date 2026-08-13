@@ -272,7 +272,7 @@ public class DamageConversionHelper {
         ar *= armorMultiplier;
 
         if (penetration > 0) {
-            ar *= (1.0 - penetration);
+            ar = Math.max(0.0, ar - penetration);
         }
 
         if (ar > 0 && amount > 0) {
@@ -293,11 +293,13 @@ public class DamageConversionHelper {
      * Calculates the remaining damage after applying the custom Path of Exile 2 inspired armor reduction.
      */
     public static float calculatePhysicalReduction(LivingEntity target, float amount, Entity attacker) {
-        double penetration = 0.0;
+        double effectivePenetration = 0.0;
         if (attacker instanceof LivingEntity le) {
-            penetration = getAttributeValueSafe(le, ModAttributes.ARMOR_PENETRATION_PERCENT, 0.0);
+            double flatPen = getAttributeValueSafe(le, ModAttributes.FLAT_ARMOR_PENETRATION, 0.0);
+            double percentPen = getAttributeValueSafe(le, ModAttributes.ARMOR_PENETRATION_PERCENT, 0.0);
+            effectivePenetration = flatPen * (1.0 + percentPen);
         }
-        return calculateArmorReduction(target, amount, penetration, 1.0);
+        return calculateArmorReduction(target, amount, effectivePenetration, 1.0);
     }
 
     private static double getAttributeValueSafe(LivingEntity entity, net.minecraft.registry.entry.RegistryEntry<net.minecraft.entity.attribute.EntityAttribute> attribute, double defaultValue) {
@@ -309,17 +311,6 @@ public class DamageConversionHelper {
 
     private static void calculateLivingAttackerBreakdown(LivingEntity attacker, LivingEntity target, DamageSource source, float amount, DamageBreakdown breakdown) {
         net.minecraft.item.ItemStack weapon = com.cranks.dungeons.util.CombatUtility.getCombatWeapon(source, attacker);
-
-        if (com.cranks.dungeons.util.CombatUtility.isRanged(weapon, source)) {
-            double baseDamage = attacker.getAttributeValue(net.minecraft.entity.attribute.EntityAttributes.GENERIC_ATTACK_DAMAGE);
-            double totalPercent = 1.0 + getAttributeValueSafe(attacker, com.cranks.dungeons.registry.ModAttributes.ATTACK_DAMAGE_PERCENT, 0.0)
-                    + getAttributeValueSafe(attacker, com.cranks.dungeons.registry.ModAttributes.RANGED_DAMAGE_PERCENT, 0.0);
-            double drawMultiplier = 1.0;
-            if (weapon.getItem() instanceof net.minecraft.item.BowItem) {
-                drawMultiplier = Math.min(1.0, amount / 6.0);
-            }
-            amount = (float) (baseDamage * totalPercent * drawMultiplier);
-        }
 
         boolean isPvP = attacker instanceof net.minecraft.entity.player.PlayerEntity && target instanceof net.minecraft.entity.player.PlayerEntity;
         if (isPvP) {
@@ -336,13 +327,6 @@ public class DamageConversionHelper {
         float unreducedPhysicalDamage = (float) (amount / pvpMultiplier);
         float physicalDamage = amount;
 
-        double weaponSpecificPercent = com.cranks.dungeons.util.CombatUtility.getWeaponSpecificDamageBonus(attacker, weapon);
-
-        double afflictedBonus = 0;
-        if (com.cranks.dungeons.ailment.AilmentManager.isAfflicted(target)) {
-            afflictedBonus = getAttributeValueSafe(attacker, com.cranks.dungeons.registry.ModAttributes.DAMAGE_AGAINST_AFFLICTED_PERCENT, 0.0);
-        }
-
         double selfAfflictedBonus = 0;
         if (com.cranks.dungeons.ailment.AilmentManager.isAfflicted(attacker)) {
             selfAfflictedBonus = getAttributeValueSafe(attacker, com.cranks.dungeons.registry.ModAttributes.DAMAGE_WHILE_AFFLICTED_PERCENT, 0.0);
@@ -351,22 +335,6 @@ public class DamageConversionHelper {
         double elementalBonus = getAttributeValueSafe(attacker, com.cranks.dungeons.registry.ModAttributes.ELEMENTAL_DAMAGE_PERCENT, 0.0);
         if (attacker.hasStatusEffect(com.cranks.dungeons.effect.ModEffects.ELEMENTAL_OVERLOAD)) {
             elementalBonus += 0.40;
-        }
-
-        double typeBonus = 0;
-        if (com.cranks.dungeons.util.CombatUtility.isMelee(weapon, source)) {
-            typeBonus = getAttributeValueSafe(attacker, com.cranks.dungeons.registry.ModAttributes.MELEE_DAMAGE_PERCENT, 0.0);
-        } else if (com.cranks.dungeons.util.CombatUtility.isRanged(weapon, source)) {
-            typeBonus = getAttributeValueSafe(attacker, com.cranks.dungeons.registry.ModAttributes.RANGED_DAMAGE_PERCENT, 0.0);
-        }
-
-        double wieldingBonus = 0;
-        if (com.cranks.dungeons.util.CombatUtility.isTwoHanding(attacker, weapon)) {
-            wieldingBonus = getAttributeValueSafe(attacker, com.cranks.dungeons.registry.ModAttributes.TWO_HANDING_DAMAGE_PERCENT, 0.0);
-        } else if (com.cranks.dungeons.util.CombatUtility.isDualWielding(attacker, weapon)) {
-            wieldingBonus = getAttributeValueSafe(attacker, com.cranks.dungeons.registry.ModAttributes.DUAL_WIELDING_DAMAGE_PERCENT, 0.0);
-        } else if (com.cranks.dungeons.util.CombatUtility.isOneHanding(attacker, weapon)) {
-            wieldingBonus = getAttributeValueSafe(attacker, com.cranks.dungeons.registry.ModAttributes.ONE_HANDED_DAMAGE_PERCENT, 0.0);
         }
 
         double fireBaseDamage = com.cranks.dungeons.util.CombatUtility.getAttributeValue(attacker, com.cranks.dungeons.registry.ModAttributes.FIRE_DAMAGE, weapon, "local_fire_damage", source);
@@ -432,16 +400,17 @@ public class DamageConversionHelper {
         double physAsVoid = getAttributeValueSafe(attacker, com.cranks.dungeons.registry.ModAttributes.PHYSICAL_AS_EXTRA_VOID_PERCENT, 0.0);
         voidBaseDamage += originalUnreducedPhysical * physAsVoid;
 
-        double baseMultiplier = weaponSpecificPercent + afflictedBonus + selfAfflictedBonus + elementalBonus + typeBonus + wieldingBonus;
+        // baseMultiplier only contains modifiers not already applied in BonusAttackDamageMixin
+        double baseMultiplier = selfAfflictedBonus;
 
         double fireTotalPercent = com.cranks.dungeons.util.CombatUtility.getAttributeValue(attacker, com.cranks.dungeons.registry.ModAttributes.FIRE_DAMAGE_PERCENT, weapon, "fire_damage_percent", source);
-        double fireDamage = fireBaseDamage * (1.0 + fireTotalPercent + baseMultiplier) * critMultiplier;
+        double fireDamage = fireBaseDamage * (1.0 + fireTotalPercent + baseMultiplier + elementalBonus) * critMultiplier;
 
         double coldTotalPercent = com.cranks.dungeons.util.CombatUtility.getAttributeValue(attacker, com.cranks.dungeons.registry.ModAttributes.COLD_DAMAGE_PERCENT, weapon, "cold_damage_percent", source);
-        double coldDamage = coldBaseDamage * (1.0 + coldTotalPercent + baseMultiplier) * critMultiplier;
+        double coldDamage = coldBaseDamage * (1.0 + coldTotalPercent + baseMultiplier + elementalBonus) * critMultiplier;
 
         double lightningTotalPercent = com.cranks.dungeons.util.CombatUtility.getAttributeValue(attacker, com.cranks.dungeons.registry.ModAttributes.LIGHTNING_DAMAGE_PERCENT, weapon, "lightning_damage_percent", source);
-        double lightningDamage = lightningBaseDamage * (1.0 + lightningTotalPercent + baseMultiplier) * critMultiplier;
+        double lightningDamage = lightningBaseDamage * (1.0 + lightningTotalPercent + baseMultiplier + elementalBonus) * critMultiplier;
 
         double voidTotalPercent = com.cranks.dungeons.util.CombatUtility.getAttributeValue(attacker, com.cranks.dungeons.registry.ModAttributes.VOID_DAMAGE_PERCENT, weapon, "void_damage_percent", source);
         double voidDamage = voidBaseDamage * (1.0 + voidTotalPercent + baseMultiplier) * critMultiplier;
