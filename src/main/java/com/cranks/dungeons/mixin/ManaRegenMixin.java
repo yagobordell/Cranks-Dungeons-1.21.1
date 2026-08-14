@@ -25,6 +25,9 @@ public class ManaRegenMixin {
     private boolean manaInitialized = false;
 
     @Unique
+    private int loginGraceTicks = 20;
+
+    @Unique
     private static final float SYNC_THRESHOLD = 0.1f;
 
     @Unique
@@ -66,9 +69,13 @@ public class ManaRegenMixin {
 
         float currentMana = provider.cranksdungeons$getCurrentMana();
 
-        if (currentMana > maxMana) {
-            currentMana = (float) maxMana;
-            provider.cranksdungeons$setCurrentMana(currentMana);
+        if (loginGraceTicks > 0) {
+            loginGraceTicks--;
+        } else {
+            if (currentMana > maxMana) {
+                currentMana = (float) maxMana;
+                provider.cranksdungeons$setCurrentMana(currentMana);
+            }
         }
 
         if (currentMana < maxMana) {

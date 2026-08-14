@@ -41,9 +41,11 @@ public class ModConfigModel {
     public boolean partyHudShowSelf = true;
     
     @RangeConstraint(min = -1, max = 2000)
+    @ExcludeFromScreen
     public int partyHudX = -1;
     
     @RangeConstraint(min = 0, max = 2000)
+    @ExcludeFromScreen
     public int partyHudY = 190;
     
     @RangeConstraint(min = 0.5f, max = 2.0f)
@@ -54,4 +56,60 @@ public class ModConfigModel {
     
     @RangeConstraint(min = 1, max = 2)
     public int partyHudMaxColumns = 2;
+
+    @SectionHeader("status_effects")
+    public boolean customStatusEffectOverlay = true;
+    public StatusEffectOrientation statusEffectsOrientation = StatusEffectOrientation.TOP_TO_BOTTOM;
+
+    @RangeConstraint(min = -1, max = 3000)
+    @ExcludeFromScreen
+    public int statusEffectsX = -1;
+
+    @RangeConstraint(min = -1, max = 3000)
+    @ExcludeFromScreen
+    public int statusEffectsY = -1;
+
+    @RangeConstraint(min = 0.5f, max = 2.0f)
+    public float statusEffectsScale = 1.0f;
+
+    @RangeConstraint(min = 1, max = 50)
+    public int statusEffectsMaxPerLine = 10;
+
+    @RangeConstraint(min = 18, max = 60)
+    public int statusEffectsSpacing = 26;
+
+    public boolean statusEffectsShowDuration = false;
+    public boolean statusEffectsShowAmplifier = true;
+
+    @RangeConstraint(min = -1, max = 3000)
+    @ExcludeFromScreen
+    public int healthBarX = -1;
+
+    @RangeConstraint(min = -1, max = 3000)
+    @ExcludeFromScreen
+    public int healthBarY = -1;
+
+    @RangeConstraint(min = -1, max = 3000)
+    @ExcludeFromScreen
+    public int shieldBarX = -1;
+
+    @RangeConstraint(min = -1, max = 3000)
+    @ExcludeFromScreen
+    public int shieldBarY = -1;
+
+    @RangeConstraint(min = -1, max = 3000)
+    @ExcludeFromScreen
+    public int manaBarX = -1;
+
+    @RangeConstraint(min = -1, max = 3000)
+    @ExcludeFromScreen
+    public int manaBarY = -1;
+
+    @RangeConstraint(min = -1, max = 3000)
+    @ExcludeFromScreen
+    public int hungerBarX = -1;
+
+    @RangeConstraint(min = -1, max = 3000)
+    @ExcludeFromScreen
+    public int hungerBarY = -1;
 }

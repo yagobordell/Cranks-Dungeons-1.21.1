@@ -18,7 +18,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class EvasionMixin {
 
     @Unique
-    private float evasionEntropy = 0.5f; // Initial entropy state
+    private float evasionEntropy = -1.0f; // -1 indicates unseeded / out-of-combat
     @Unique
     private double cranks$lastGlobalEvasionPercentBonus = Double.NaN;
 
@@ -29,10 +29,9 @@ public abstract class EvasionMixin {
             long currentTime = entity.getEntityWorld().getTime();
             long timeSinceLastHit = currentTime - provider.cranksdungeons$getLastDamageTime();
 
-            // If it's been 6 seconds (120 ticks) since last hit, reset entropy to 0.5
-            // This ensures a fresh fight starts with a clean roll
-            if (timeSinceLastHit > 120L && evasionEntropy != 0.5f) {
-                evasionEntropy = 0.5f;
+            // If it's been 6 seconds (120 ticks) since last hit, reset entropy to unseeded state
+            if (timeSinceLastHit > 120L && evasionEntropy >= 0.0f) {
+                evasionEntropy = -1.0f;
             }
         }
 
@@ -61,8 +60,18 @@ public abstract class EvasionMixin {
         LivingEntity entity = (LivingEntity) (Object) this;
         net.minecraft.world.World world = entity.getWorld();
 
-        // All living entities can evade; exclude void/fall damage
-        if (source.isIn(net.minecraft.registry.tag.DamageTypeTags.BYPASSES_ARMOR)) {
+        // Evasion ONLY applies to hits originating from an entity (melee, projectile, mob/player attack)
+        if (source.getAttacker() == null && source.getSource() == null) {
+            return;
+        }
+
+        // Exclude environmental / non-attack damage types
+        if (source.isIn(net.minecraft.registry.tag.DamageTypeTags.BYPASSES_ARMOR)
+                || source.isIn(net.minecraft.registry.tag.DamageTypeTags.BYPASSES_INVULNERABILITY)
+                || source.isIn(net.minecraft.registry.tag.DamageTypeTags.IS_FALL)
+                || source.isIn(net.minecraft.registry.tag.DamageTypeTags.IS_DROWNING)
+                || source.isIn(net.minecraft.registry.tag.DamageTypeTags.IS_FIRE)
+                || source.isIn(net.minecraft.registry.tag.DamageTypeTags.IS_FREEZING)) {
             return;
         }
 
@@ -82,8 +91,16 @@ public abstract class EvasionMixin {
         if (rating <= 0)
             return;
 
-        double k = 400.0;
-        double dodgeChance = rating / (rating + k);
+        // Path of Exile 2 inspired Evasion scaling based on incoming damage (hit threat/accuracy)
+        // Dodge Chance = Evasion / (Evasion + 8 * Damage), capped at 95%
+        double effectiveAccuracy = Math.max(1.0, 8.0 * amount);
+        double dodgeChance = rating / (rating + effectiveAccuracy);
+        dodgeChance = Math.min(0.95, Math.max(0.0, dodgeChance));
+
+        // Roll a random starting entropy seed on combat start
+        if (evasionEntropy < 0.0f) {
+            evasionEntropy = entity.getRandom().nextFloat();
+        }
 
         evasionEntropy += (float) dodgeChance;
 

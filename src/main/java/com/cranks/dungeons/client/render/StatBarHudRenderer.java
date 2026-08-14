@@ -17,6 +17,12 @@ public class StatBarHudRenderer implements HudRenderCallback {
     public static final Identifier EMPTY_SHIELD_BAR = Identifier.of(CranksDungeons.MOD_ID, "hud/stat_bar/empty_energy_shield");
     public static final Identifier HEALTH_FILL = Identifier.of(CranksDungeons.MOD_ID, "hud/stat_bar/health");
     public static final Identifier HEALTH_TRAIL = Identifier.of(CranksDungeons.MOD_ID, "hud/stat_bar/health_trail");
+    public static final Identifier HEALTH_BURN_FILL = Identifier.of(CranksDungeons.MOD_ID, "hud/stat_bar/health_burn");
+    public static final Identifier HEALTH_BURN_TRAIL = Identifier.of(CranksDungeons.MOD_ID, "hud/stat_bar/health_trail_burn");
+    public static final Identifier HEALTH_POISON_FILL = Identifier.of(CranksDungeons.MOD_ID, "hud/stat_bar/health_poison");
+    public static final Identifier HEALTH_POISON_TRAIL = Identifier.of(CranksDungeons.MOD_ID, "hud/stat_bar/health_trail_poison");
+    public static final Identifier HEALTH_BLEED_FILL = Identifier.of(CranksDungeons.MOD_ID, "hud/stat_bar/health_bleed");
+    public static final Identifier HEALTH_BLEED_TRAIL = Identifier.of(CranksDungeons.MOD_ID, "hud/stat_bar/health_trail_bleed");
     public static final Identifier SHIELD_FILL = Identifier.of(CranksDungeons.MOD_ID, "hud/stat_bar/energy_shield");
     public static final Identifier SHIELD_TRAIL = Identifier.of(CranksDungeons.MOD_ID, "hud/stat_bar/energy_shield_trail");
     public static final Identifier ABSORPTION_FILL = Identifier.of(CranksDungeons.MOD_ID, "hud/stat_bar/absorption");
@@ -68,22 +74,27 @@ public class StatBarHudRenderer implements HudRenderCallback {
         int screenWidth = client.getWindow().getScaledWidth();
         int screenHeight = client.getWindow().getScaledHeight();
 
-        // Position health bar at vanilla spot
-        int x = screenWidth / 2 - 91;
-        int y = screenHeight - 39;
+        var config = CranksDungeons.CONFIG;
+        int defaultHealthX = screenWidth / 2 - 91;
+        int defaultHealthY = screenHeight - 39;
+        int healthX = config.healthBarX() >= 0 ? config.healthBarX() : defaultHealthX;
+        int healthY = config.healthBarY() >= 0 ? config.healthBarY() : defaultHealthY;
 
-        float mana = 0;
-        float maxMana = 0;
-        if (player instanceof com.cranks.dungeons.ManaProvider provider) {
-            mana = provider.cranksdungeons$getCurrentMana();
-            maxMana = (float) player.getAttributeValue(com.cranks.dungeons.registry.ModAttributes.MAX_MANA);
-        }
+        int defaultShieldX = healthX;
+        int defaultShieldY = healthY - 7;
+        int shieldX = config.shieldBarX() >= 0 ? config.shieldBarX() : defaultShieldX;
+        int shieldY = config.shieldBarY() >= 0 ? config.shieldBarY() : defaultShieldY;
 
-        renderHealthAndShield(context, client, player, x, y, mana);
-        renderManaAndHunger(context, client, player, screenWidth / 2 + 10, y, mana, maxMana);
-    }
+        int defaultHungerX = screenWidth / 2 + 10;
+        int defaultHungerY = screenHeight - 39;
+        int hungerX = config.hungerBarX() >= 0 ? config.hungerBarX() : defaultHungerX;
+        int hungerY = config.hungerBarY() >= 0 ? config.hungerBarY() : defaultHungerY;
 
-    private void renderHealthAndShield(DrawContext context, MinecraftClient client, PlayerEntity player, int x, int y, float mana) {
+        int defaultManaX = hungerX;
+        int defaultManaY = hungerY - 10;
+        int manaX = config.manaBarX() >= 0 ? config.manaBarX() : defaultManaX;
+        int manaY = config.manaBarY() >= 0 ? config.manaBarY() : defaultManaY;
+
         float health = player.getHealth();
         float maxHealth = player.getMaxHealth();
         float absorption = player.getAbsorptionAmount();
@@ -95,80 +106,53 @@ public class StatBarHudRenderer implements HudRenderCallback {
             maxShield = (float) player.getAttributeValue(com.cranks.dungeons.registry.ModAttributes.ENERGY_SHIELD);
         }
 
-        updateTrails(health, shield, absorption, mana);
-
-        // --- Render Shield Bar (Above HP) ---
-        if (maxShield > 0) {
-            int shieldY = y - 7; // 6px height + 1px gap
-            int SHIELD_HEIGHT = 6;
-            
-            // Draw Shield Background
-            context.drawGuiTexture(EMPTY_SHIELD_BAR, x, shieldY, BAR_WIDTH, SHIELD_HEIGHT);
-
-            float shieldPercent = MathHelper.clamp(shield / maxShield, 0, 1);
-            int shieldWidth = (int) (shieldPercent * MAX_FILL_WIDTH);
-            
-            // Draw Shield Trail
-            if (displayedShield > shield) {
-                int trailWidth = (int) (MathHelper.clamp(displayedShield / maxShield, 0, 1) * MAX_FILL_WIDTH);
-                if (trailWidth > shieldWidth) {
-                    context.drawGuiTexture(SHIELD_TRAIL, MAX_FILL_WIDTH, SHIELD_HEIGHT, shieldWidth, 0,
-                            x + FILL_OFFSET_X + shieldWidth, shieldY + FILL_OFFSET_Y, trailWidth - shieldWidth, SHIELD_HEIGHT);
-                }
-            }
-
-            // Draw Shield Fill
-            if (shieldWidth > 0) {
-                context.drawGuiTexture(SHIELD_FILL, MAX_FILL_WIDTH, SHIELD_HEIGHT, 0, 0,
-                        x + FILL_OFFSET_X, shieldY + FILL_OFFSET_Y, shieldWidth, SHIELD_HEIGHT);
-            }
-
-            // Shield Text
-            String sText = (int) shield + " / " + (int) maxShield;
-            TextRenderer tr = client.textRenderer;
-            int sTextWidth = tr.getWidth(sText);
-
-            context.getMatrices().push();
-            context.getMatrices().translate(x + (BAR_WIDTH / 2f), shieldY + (SHIELD_HEIGHT / 2f), 0.0f);
-            context.getMatrices().scale(0.8f, 0.8f, 1.0f);
-            context.drawTextWithShadow(tr, sText, -(sTextWidth / 2), -(tr.fontHeight / 2), 0xFFFFFFFF);
-            context.getMatrices().pop();
+        float mana = 0;
+        float maxMana = 0;
+        if (player instanceof com.cranks.dungeons.ManaProvider provider) {
+            mana = provider.cranksdungeons$getCurrentMana();
+            maxMana = (float) player.getAttributeValue(com.cranks.dungeons.registry.ModAttributes.MAX_MANA);
         }
 
-        // --- Render Health Bar ---
+        updateTrails(health, shield, absorption, mana);
+
+        if (maxShield > 0) {
+            renderShieldBarDirect(context, client, shieldX, shieldY, shield, maxShield, displayedShield);
+        }
+        renderHealthBarDirect(context, client, player, healthX, healthY, health, maxHealth, absorption, displayedHealth);
+        if (maxMana > 0) {
+            renderManaBarDirect(context, client, manaX, manaY, mana, maxMana, displayedMana);
+        }
+        renderHungerBarDirect(context, client, hungerX, hungerY, player.getHungerManager().getFoodLevel());
+    }
+
+    public static void renderHealthBarDirect(DrawContext context, MinecraftClient client, PlayerEntity player, int x, int y, float health, float maxHealth, float absorption, float displayedHealth) {
         // Draw Background Frame
         context.drawGuiTexture(EMPTY_BAR, x, y, BAR_WIDTH, BAR_HEIGHT);
 
         float hpPercent = MathHelper.clamp(health / maxHealth, 0, 1);
         int hpWidth = (int) (hpPercent * MAX_FILL_WIDTH);
         
+        Identifier healthFillTexture = getHealthFillTexture(player);
+        Identifier healthTrailTexture = getHealthTrailTexture(player);
+
         // Draw Health Trail
         if (displayedHealth > health) {
             int trailWidth = (int) (MathHelper.clamp(displayedHealth / maxHealth, 0, 1) * MAX_FILL_WIDTH);
             if (trailWidth > hpWidth) {
-                context.drawGuiTexture(HEALTH_TRAIL, MAX_FILL_WIDTH, FILL_HEIGHT, hpWidth, 0,
+                context.drawGuiTexture(healthTrailTexture, MAX_FILL_WIDTH, FILL_HEIGHT, hpWidth, 0,
                         x + FILL_OFFSET_X + hpWidth, y + FILL_OFFSET_Y, trailWidth - hpWidth, FILL_HEIGHT);
             }
         }
 
-        // Draw HP Fill (Red)
+        // Draw HP Fill (Red / Ailment color)
         if (hpWidth > 0) {
-            context.drawGuiTexture(HEALTH_FILL, MAX_FILL_WIDTH, FILL_HEIGHT, 0, 0,
+            context.drawGuiTexture(healthFillTexture, MAX_FILL_WIDTH, FILL_HEIGHT, 0, 0,
                     x + FILL_OFFSET_X, y + FILL_OFFSET_Y, hpWidth, FILL_HEIGHT);
         }
 
         float absPercent = MathHelper.clamp(absorption / maxHealth, 0, 1);
         int absWidth = (int) (absPercent * MAX_FILL_WIDTH);
         
-        // Draw Absorption Trail
-        if (displayedAbsorption > absorption) {
-            int trailWidth = (int) (MathHelper.clamp(displayedAbsorption / maxHealth, 0, 1) * MAX_FILL_WIDTH);
-            if (trailWidth > absWidth) {
-                context.drawGuiTexture(ABSORPTION_TRAIL, MAX_FILL_WIDTH, FILL_HEIGHT, absWidth, 0,
-                        x + FILL_OFFSET_X + absWidth, y + FILL_OFFSET_Y, trailWidth - absWidth, FILL_HEIGHT);
-            }
-        }
-
         // Draw Absorption Overlay (Yellow)
         if (absWidth > 0) {
             context.drawGuiTexture(ABSORPTION_FILL, MAX_FILL_WIDTH, FILL_HEIGHT, 0, 0,
@@ -176,17 +160,19 @@ public class StatBarHudRenderer implements HudRenderCallback {
         }
 
         // --- Render Oxygen Overlay ---
-        int air = player.getAir();
-        int maxAir = player.getMaxAir();
-        if (air < maxAir || player.isSubmergedIn(net.minecraft.registry.tag.FluidTags.WATER)) {
-            float airPercent = MathHelper.clamp((float) air / maxAir, 0f, 1f);
-            int airWidth = (int) (airPercent * MAX_FILL_WIDTH);
-            if (airWidth > 0) {
-                com.mojang.blaze3d.systems.RenderSystem.enableBlend();
-                com.mojang.blaze3d.systems.RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 0.7F);
-                context.drawGuiTexture(OXYGEN_FILL, MAX_FILL_WIDTH, FILL_HEIGHT, 0, 0,
-                        x + FILL_OFFSET_X, y + FILL_OFFSET_Y, airWidth, FILL_HEIGHT);
-                com.mojang.blaze3d.systems.RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        if (player != null) {
+            int air = player.getAir();
+            int maxAir = player.getMaxAir();
+            if (air < maxAir || player.isSubmergedIn(net.minecraft.registry.tag.FluidTags.WATER)) {
+                float airPercent = MathHelper.clamp((float) air / maxAir, 0f, 1f);
+                int airWidth = (int) (airPercent * MAX_FILL_WIDTH);
+                if (airWidth > 0) {
+                    com.mojang.blaze3d.systems.RenderSystem.enableBlend();
+                    com.mojang.blaze3d.systems.RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 0.7F);
+                    context.drawGuiTexture(OXYGEN_FILL, MAX_FILL_WIDTH, FILL_HEIGHT, 0, 0,
+                            x + FILL_OFFSET_X, y + FILL_OFFSET_Y, airWidth, FILL_HEIGHT);
+                    com.mojang.blaze3d.systems.RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+                }
             }
         }
 
@@ -204,44 +190,68 @@ public class StatBarHudRenderer implements HudRenderCallback {
                 y + (BAR_HEIGHT / 2) - (textRenderer.fontHeight / 2), hColor);
     }
 
-    private void renderManaAndHunger(DrawContext context, MinecraftClient client, PlayerEntity player, int x, int y, float mana, float maxMana) {
-        int hunger = player.getHungerManager().getFoodLevel();
+    public static void renderShieldBarDirect(DrawContext context, MinecraftClient client, int x, int y, float shield, float maxShield, float displayedShield) {
+        int SHIELD_HEIGHT = 6;
+        context.drawGuiTexture(EMPTY_SHIELD_BAR, x, y, BAR_WIDTH, SHIELD_HEIGHT);
 
-        // --- Render Mana Bar (Above Hunger) ---
-        if (maxMana > 0) {
-            int manaY = y - 10;
-            int MANA_HEIGHT = 9;
-            
-            context.drawGuiTexture(EMPTY_BAR, x, manaY, BAR_WIDTH, MANA_HEIGHT);
-
-            float manaPercent = MathHelper.clamp(mana / maxMana, 0, 1);
-            int manaWidth = (int) (manaPercent * MAX_FILL_WIDTH);
-            
-            if (displayedMana > mana) {
-                int trailWidth = (int) (MathHelper.clamp(displayedMana / maxMana, 0, 1) * MAX_FILL_WIDTH);
-                if (trailWidth > manaWidth) {
-                    context.drawGuiTexture(MANA_TRAIL, MAX_FILL_WIDTH, MANA_HEIGHT, manaWidth, 0,
-                            x + FILL_OFFSET_X + manaWidth, manaY + FILL_OFFSET_Y, trailWidth - manaWidth, MANA_HEIGHT);
-                }
+        float shieldPercent = MathHelper.clamp(shield / maxShield, 0, 1);
+        int shieldWidth = (int) (shieldPercent * MAX_FILL_WIDTH);
+        
+        if (displayedShield > shield) {
+            int trailWidth = (int) (MathHelper.clamp(displayedShield / maxShield, 0, 1) * MAX_FILL_WIDTH);
+            if (trailWidth > shieldWidth) {
+                context.drawGuiTexture(SHIELD_TRAIL, MAX_FILL_WIDTH, SHIELD_HEIGHT, shieldWidth, 0,
+                        x + FILL_OFFSET_X + shieldWidth, y + FILL_OFFSET_Y, trailWidth - shieldWidth, SHIELD_HEIGHT);
             }
-
-            if (manaWidth > 0) {
-                context.drawGuiTexture(MANA_FILL, MAX_FILL_WIDTH, MANA_HEIGHT, 0, 0,
-                        x + FILL_OFFSET_X, manaY + FILL_OFFSET_Y, manaWidth, MANA_HEIGHT);
-            }
-
-            String mText = (int) mana + " / " + (int) maxMana;
-            TextRenderer tr = client.textRenderer;
-            int mTextWidth = tr.getWidth(mText);
-
-            context.drawTextWithShadow(tr, mText, x + (BAR_WIDTH / 2) - (mTextWidth / 2),
-                    manaY + (MANA_HEIGHT / 2) - (tr.fontHeight / 2), 0xFFFFFFFF);
         }
 
-        // Draw Background Frame
+        if (shieldWidth > 0) {
+            context.drawGuiTexture(SHIELD_FILL, MAX_FILL_WIDTH, SHIELD_HEIGHT, 0, 0,
+                    x + FILL_OFFSET_X, y + FILL_OFFSET_Y, shieldWidth, SHIELD_HEIGHT);
+        }
+
+        String sText = (int) shield + " / " + (int) maxShield;
+        TextRenderer tr = client.textRenderer;
+        int sTextWidth = tr.getWidth(sText);
+
+        context.getMatrices().push();
+        context.getMatrices().translate(x + (BAR_WIDTH / 2f), y + (SHIELD_HEIGHT / 2f), 0.0f);
+        context.getMatrices().scale(0.8f, 0.8f, 1.0f);
+        context.drawTextWithShadow(tr, sText, -(sTextWidth / 2), -(tr.fontHeight / 2), 0xFFFFFFFF);
+        context.getMatrices().pop();
+    }
+
+    public static void renderManaBarDirect(DrawContext context, MinecraftClient client, int x, int y, float mana, float maxMana, float displayedMana) {
+        int MANA_HEIGHT = 9;
+        context.drawGuiTexture(EMPTY_BAR, x, y, BAR_WIDTH, MANA_HEIGHT);
+
+        float manaPercent = MathHelper.clamp(mana / maxMana, 0, 1);
+        int manaWidth = (int) (manaPercent * MAX_FILL_WIDTH);
+        
+        if (displayedMana > mana) {
+            int trailWidth = (int) (MathHelper.clamp(displayedMana / maxMana, 0, 1) * MAX_FILL_WIDTH);
+            if (trailWidth > manaWidth) {
+                context.drawGuiTexture(MANA_TRAIL, MAX_FILL_WIDTH, MANA_HEIGHT, manaWidth, 0,
+                        x + FILL_OFFSET_X + manaWidth, y + FILL_OFFSET_Y, trailWidth - manaWidth, MANA_HEIGHT);
+            }
+        }
+
+        if (manaWidth > 0) {
+            context.drawGuiTexture(MANA_FILL, MAX_FILL_WIDTH, MANA_HEIGHT, 0, 0,
+                    x + FILL_OFFSET_X, y + FILL_OFFSET_Y, manaWidth, MANA_HEIGHT);
+        }
+
+        String mText = (int) mana + " / " + (int) maxMana;
+        TextRenderer tr = client.textRenderer;
+        int mTextWidth = tr.getWidth(mText);
+
+        context.drawTextWithShadow(tr, mText, x + (BAR_WIDTH / 2) - (mTextWidth / 2),
+                y + (MANA_HEIGHT / 2) - (tr.fontHeight / 2), 0xFFFFFFFF);
+    }
+
+    public static void renderHungerBarDirect(DrawContext context, MinecraftClient client, int x, int y, int hunger) {
         context.drawGuiTexture(EMPTY_BAR, x, y, BAR_WIDTH, BAR_HEIGHT);
 
-        // Draw Hunger Fill
         float hungerPercent = MathHelper.clamp(hunger / 20f, 0, 1);
         int hungerWidth = (int) (hungerPercent * MAX_FILL_WIDTH);
         if (hungerWidth > 0) {
@@ -255,7 +265,6 @@ public class StatBarHudRenderer implements HudRenderCallback {
                     x + FILL_OFFSET_X, y + FILL_OFFSET_Y, hungerWidth, FILL_HEIGHT);
         }
 
-        // Text Display
         TextRenderer textRenderer = client.textRenderer;
         String text = hunger + " / 20";
         int textWidth = textRenderer.getWidth(text);
@@ -316,6 +325,36 @@ public class StatBarHudRenderer implements HudRenderCallback {
                 if (displayedMana < mana) displayedMana = mana;
             }
         }
+    }
+
+    public static Identifier getHealthFillTexture(net.minecraft.entity.LivingEntity entity) {
+        if (entity != null) {
+            if (entity.hasStatusEffect(com.cranks.dungeons.effect.ModEffects.BLEED) || com.cranks.dungeons.ailment.AilmentManager.hasAilment(entity, com.cranks.dungeons.ailment.AilmentType.BLEED)) {
+                return HEALTH_BLEED_FILL;
+            }
+            if (entity.hasStatusEffect(com.cranks.dungeons.effect.ModEffects.POISON) || entity.hasStatusEffect(net.minecraft.entity.effect.StatusEffects.POISON) || com.cranks.dungeons.ailment.AilmentManager.hasAilment(entity, com.cranks.dungeons.ailment.AilmentType.POISON)) {
+                return HEALTH_POISON_FILL;
+            }
+            if (entity.hasStatusEffect(com.cranks.dungeons.effect.ModEffects.BURN) || entity.isOnFire() || com.cranks.dungeons.ailment.AilmentManager.hasAilment(entity, com.cranks.dungeons.ailment.AilmentType.BURN)) {
+                return HEALTH_BURN_FILL;
+            }
+        }
+        return HEALTH_FILL;
+    }
+
+    public static Identifier getHealthTrailTexture(net.minecraft.entity.LivingEntity entity) {
+        if (entity != null) {
+            if (entity.hasStatusEffect(com.cranks.dungeons.effect.ModEffects.BLEED) || com.cranks.dungeons.ailment.AilmentManager.hasAilment(entity, com.cranks.dungeons.ailment.AilmentType.BLEED)) {
+                return HEALTH_BLEED_TRAIL;
+            }
+            if (entity.hasStatusEffect(com.cranks.dungeons.effect.ModEffects.POISON) || entity.hasStatusEffect(net.minecraft.entity.effect.StatusEffects.POISON) || com.cranks.dungeons.ailment.AilmentManager.hasAilment(entity, com.cranks.dungeons.ailment.AilmentType.POISON)) {
+                return HEALTH_POISON_TRAIL;
+            }
+            if (entity.hasStatusEffect(com.cranks.dungeons.effect.ModEffects.BURN) || entity.isOnFire() || com.cranks.dungeons.ailment.AilmentManager.hasAilment(entity, com.cranks.dungeons.ailment.AilmentType.BURN)) {
+                return HEALTH_BURN_TRAIL;
+            }
+        }
+        return HEALTH_TRAIL;
     }
 
     public static void register() {

@@ -39,6 +39,13 @@ public class ClientConfigCommand {
                         return 1;
                     })))
                 )
+                .then(literal("hud")
+                    .executes(ctx -> {
+                        net.minecraft.client.MinecraftClient mc = net.minecraft.client.MinecraftClient.getInstance();
+                        mc.send(() -> mc.setScreen(new com.cranks.dungeons.client.screen.HudLayoutEditScreen(null)));
+                        return 1;
+                    })
+                )
                 .then(literal("healing")
                     .then(literal("other").then(argument("value", BoolArgumentType.bool()).executes(ctx -> {
                         com.cranks.dungeons.CranksDungeons.CONFIG.showOtherPlayerHealing(BoolArgumentType.getBool(ctx, "value"));
@@ -51,6 +58,14 @@ public class ClientConfigCommand {
                         return 1;
                     })))
                 )
+            );
+
+            dispatcher.register(literal("cdhud")
+                .executes(ctx -> {
+                    net.minecraft.client.MinecraftClient mc = net.minecraft.client.MinecraftClient.getInstance();
+                    mc.send(() -> mc.setScreen(new com.cranks.dungeons.client.screen.HudLayoutEditScreen(null)));
+                    return 1;
+                })
             );
         });
     }

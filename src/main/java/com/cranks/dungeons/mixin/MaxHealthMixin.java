@@ -21,9 +21,25 @@ public abstract class MaxHealthMixin {
     @Unique
     private double cranks$lastHealthPercentBonus = Double.NaN;
     @Unique
-    private float cranks$lastHealth = -1;
+    private float cranks$savedRealHealth = -1;
     @Unique
-    private double cranks$lastMaxHealth = -1;
+    private int cranks$loginGraceTicks = 0;
+
+    @Inject(method = "writeCustomDataToNbt", at = @At("RETURN"))
+    private void writeRealHealth(net.minecraft.nbt.NbtCompound nbt, CallbackInfo ci) {
+        PlayerEntity player = (PlayerEntity) (Object) this;
+        nbt.putFloat("CranksRealHealth", player.getHealth());
+    }
+
+    @Inject(method = "readCustomDataFromNbt", at = @At("TAIL"))
+    private void readRealHealth(net.minecraft.nbt.NbtCompound nbt, CallbackInfo ci) {
+        if (nbt.contains("CranksRealHealth")) {
+            this.cranks$savedRealHealth = nbt.getFloat("CranksRealHealth");
+        } else if (nbt.contains("Health")) {
+            this.cranks$savedRealHealth = nbt.getFloat("Health");
+        }
+        this.cranks$loginGraceTicks = 20;
+    }
 
     @Inject(method = "tick", at = @At("HEAD"))
     private void applyMaxHealthBonus(CallbackInfo ci) {
@@ -63,6 +79,7 @@ public abstract class MaxHealthMixin {
 
         // Apply Flat Bonus
         if (healthFlatBonus != cranks$lastHealthBonus) {
+            float healthBefore = player.getHealth();
             maxHealthAttr.removeModifier(flatModifierId);
             if (healthFlatBonus > 0) {
                 maxHealthAttr.addTemporaryModifier(new EntityAttributeModifier(
@@ -70,6 +87,9 @@ public abstract class MaxHealthMixin {
                         healthFlatBonus,
                         EntityAttributeModifier.Operation.ADD_VALUE
                 ));
+            }
+            if (healthBefore > 0 && healthBefore <= player.getMaxHealth()) {
+                player.setHealth(healthBefore);
             }
             cranks$lastHealthBonus = healthFlatBonus;
         }
@@ -85,11 +105,15 @@ public abstract class MaxHealthMixin {
         double currentCP = cpMod != null ? cpMod.value() : 0;
         
         if (Math.abs(crimsonPactHealth - currentCP) > 0.01) {
+            float healthBefore = player.getHealth();
             maxHealthAttr.removeModifier(crimsonPactId);
             if (crimsonPactHealth > 0) {
                 maxHealthAttr.addTemporaryModifier(new EntityAttributeModifier(
                         crimsonPactId, crimsonPactHealth, EntityAttributeModifier.Operation.ADD_VALUE
                 ));
+            }
+            if (healthBefore > 0 && healthBefore <= player.getMaxHealth()) {
+                player.setHealth(healthBefore);
             }
         }
         
@@ -103,6 +127,7 @@ public abstract class MaxHealthMixin {
         double newPercentBonus = totalWithoutThis * healthPercent;
 
         if (Math.abs(newPercentBonus - cranks$lastHealthPercentBonus) > 0.01) {
+            float healthBefore = player.getHealth();
             maxHealthAttr.removeModifier(percentModifierId);
             if (newPercentBonus > 0) {
                 maxHealthAttr.addTemporaryModifier(new EntityAttributeModifier(
@@ -111,19 +136,18 @@ public abstract class MaxHealthMixin {
                         EntityAttributeModifier.Operation.ADD_VALUE
                 ));
             }
+            if (healthBefore > 0 && healthBefore <= player.getMaxHealth()) {
+                player.setHealth(healthBefore);
+            }
             cranks$lastHealthPercentBonus = newPercentBonus;
         }
 
-        double newMaxHealth = player.getMaxHealth();
-        float currentHealth = player.getHealth();
-        
-        if (cranks$lastMaxHealth != -1 && newMaxHealth < cranks$lastMaxHealth) {
-            if (currentHealth < cranks$lastHealth) {
-                player.setHealth(Math.min(cranks$lastHealth, (float)newMaxHealth));
+        // Restore saved health from NBT on world join / login across the initial grace ticks
+        if (cranks$loginGraceTicks > 0) {
+            cranks$loginGraceTicks--;
+            if (cranks$savedRealHealth > 0) {
+                player.setHealth(Math.min(cranks$savedRealHealth, (float) player.getMaxHealth()));
             }
         }
-        
-        cranks$lastHealth = player.getHealth();
-        cranks$lastMaxHealth = player.getMaxHealth();
     }
 }

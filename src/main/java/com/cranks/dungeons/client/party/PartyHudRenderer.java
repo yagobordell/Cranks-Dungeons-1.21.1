@@ -28,8 +28,8 @@ public class PartyHudRenderer implements HudRenderCallback {
 
     private static final boolean OVERFLOWING_BARS_LOADED = FabricLoader.getInstance().isModLoaded("overflowingbars");
 
-    private static final int BASE_MEMBER_WIDTH = 110;
-    private static final int BASE_MEMBER_HEIGHT = 36;
+    public static final int BASE_MEMBER_WIDTH = 110;
+    public static final int BASE_MEMBER_HEIGHT = 36;
 
     @Override
     public void onHudRender(DrawContext context, RenderTickCounter tickCounter) {
@@ -157,7 +157,7 @@ public class PartyHudRenderer implements HudRenderCallback {
 
             int barsX = x + (int) (24 * scale);
             if (useStatBars) {
-                renderStatBars(context, client, barsX, healthBaseY, health, maxHealth, absorption, shield, maxShield, scale);
+                renderStatBars(context, client, barsX, healthBaseY, health, maxHealth, absorption, shield, maxShield, member.uuid(), scale);
             } else {
                 renderShieldBar(context, barsX, shieldBaseY, shield, maxShield, member.uuid(), scale);
                 renderHealthBar(context, barsX, healthBaseY, health, maxHealth, absorption, member.uuid(), scale);
@@ -446,7 +446,7 @@ public class PartyHudRenderer implements HudRenderCallback {
         }
     }
 
-    private void renderStatBars(DrawContext context, MinecraftClient client, int x, int y, float health, float maxHealth, float absorption, float shield, float maxShield, float scale) {
+    private void renderStatBars(DrawContext context, MinecraftClient client, int x, int y, float health, float maxHealth, float absorption, float shield, float maxShield, java.util.UUID memberUuid, float scale) {
         if (maxHealth <= 0) return;
 
         int barWidth = (int) (com.cranks.dungeons.client.render.StatBarHudRenderer.BAR_WIDTH * scale);
@@ -486,11 +486,13 @@ public class PartyHudRenderer implements HudRenderCallback {
         // Draw Background Frame
         context.drawGuiTexture(com.cranks.dungeons.client.render.StatBarHudRenderer.EMPTY_BAR, x, y, barWidth, barHeight);
 
-        // Draw HP Fill (Red)
+        // Draw HP Fill (Red / Ailment color)
         float hpPercent = net.minecraft.util.math.MathHelper.clamp(health / maxHealth, 0, 1);
         int hpWidth = (int) (hpPercent * maxFillWidth);
         if (hpWidth > 0) {
-            context.drawGuiTexture(com.cranks.dungeons.client.render.StatBarHudRenderer.HEALTH_FILL, 
+            net.minecraft.entity.player.PlayerEntity partyPlayer = (client.world != null && memberUuid != null) ? client.world.getPlayerByUuid(memberUuid) : null;
+            Identifier healthTexture = com.cranks.dungeons.client.render.StatBarHudRenderer.getHealthFillTexture(partyPlayer);
+            context.drawGuiTexture(healthTexture, 
                     com.cranks.dungeons.client.render.StatBarHudRenderer.MAX_FILL_WIDTH, 
                     com.cranks.dungeons.client.render.StatBarHudRenderer.FILL_HEIGHT, 0, 0,
                     x, y, hpWidth, barHeight);
@@ -526,6 +528,53 @@ public class PartyHudRenderer implements HudRenderCallback {
     }
 
     
+    public static void renderPreview(DrawContext context, MinecraftClient client, int x, int y, int maxRows, int maxColumns, float scale) {
+        int totalMembers = maxRows * maxColumns;
+        String[] mockNames = { "Player 1", "Player 2", "Player 3", "Player 4", "Player 5", "Player 6", "Player 7", "Player 8", "Player 9", "Player 10" };
+        
+        context.getMatrices().push();
+        context.getMatrices().translate(x, y, 0);
+        context.getMatrices().scale(scale, scale, 1.0f);
+
+        for (int i = 0; i < totalMembers; i++) {
+            int col = i / maxRows;
+            int row = i % maxRows;
+            
+            int memberX = col * (BASE_MEMBER_WIDTH + 5);
+            int memberY = row * (BASE_MEMBER_HEIGHT + 2);
+            
+            String name = i < mockNames.length ? mockNames[i] : ("Member " + (i + 1));
+            boolean isLeader = (i == 0);
+            
+            int nameColor = isLeader ? 0xFFFFD700 : 0xFFFFFFFF;
+            int healthBaseY = memberY + 12;
+            int highestBarY = healthBaseY - 7;
+            int iconY = healthBaseY - 4;
+            int nameY = highestBarY - 10;
+            
+            context.drawTextWithShadow(client.textRenderer, name + (isLeader ? " ★" : ""), memberX + 2, nameY, nameColor);
+            
+            int headSize = 16;
+            context.fill(memberX + 2, iconY, memberX + 2 + headSize, iconY + headSize, 0xFF333333);
+            context.drawBorder(memberX + 2, iconY, headSize, headSize, 0xFF666666);
+            
+            int barsX = memberX + 24;
+            int barWidth = com.cranks.dungeons.client.render.StatBarHudRenderer.BAR_WIDTH;
+            int barHeight = com.cranks.dungeons.client.render.StatBarHudRenderer.BAR_HEIGHT;
+            int shieldHeight = 6;
+            int maxFillWidth = com.cranks.dungeons.client.render.StatBarHudRenderer.MAX_FILL_WIDTH;
+            int shieldY = healthBaseY - 7;
+            
+            context.drawGuiTexture(com.cranks.dungeons.client.render.StatBarHudRenderer.EMPTY_SHIELD_BAR, barsX, shieldY, barWidth, shieldHeight);
+            context.drawGuiTexture(com.cranks.dungeons.client.render.StatBarHudRenderer.SHIELD_FILL, maxFillWidth, 6, 0, 0, barsX, shieldY, maxFillWidth, shieldHeight);
+            
+            context.drawGuiTexture(com.cranks.dungeons.client.render.StatBarHudRenderer.EMPTY_BAR, barsX, healthBaseY, barWidth, barHeight);
+            context.drawGuiTexture(com.cranks.dungeons.client.render.StatBarHudRenderer.HEALTH_FILL, maxFillWidth, com.cranks.dungeons.client.render.StatBarHudRenderer.FILL_HEIGHT, 0, 0, barsX, healthBaseY, maxFillWidth, barHeight);
+        }
+
+        context.getMatrices().pop();
+    }
+
     public static void register() {
         HudRenderCallback.EVENT.register(new PartyHudRenderer());
     }

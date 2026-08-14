@@ -20,6 +20,14 @@ public abstract class InGameHudMixin {
 
     @Shadow @Final private MinecraftClient client;
 
+    @Inject(method = "renderStatusEffectOverlay", at = @At("HEAD"), cancellable = true)
+    private void customStatusEffectOverlay(DrawContext context, net.minecraft.client.render.RenderTickCounter tickCounter, CallbackInfo ci) {
+        if (CranksDungeons.CONFIG.customStatusEffectOverlay()) {
+            ci.cancel();
+            com.cranks.dungeons.client.render.StatusEffectHudRenderer.render(context, tickCounter, client);
+        }
+    }
+
     @Inject(method = "renderStatusBars", at = @At("HEAD"), cancellable = true)
     private void cancelStatusBars(DrawContext context, CallbackInfo ci) {
         if (CranksDungeons.CONFIG.useStatBars()) {

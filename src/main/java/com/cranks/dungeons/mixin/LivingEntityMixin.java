@@ -216,11 +216,11 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
     }
 
     @Unique
-    private double cranks$lastStrength = -1;
+    private double cranks$lastStrength = Double.NaN;
     @Unique
-    private double cranks$lastDexterity = -1;
+    private double cranks$lastDexterity = Double.NaN;
     @Unique
-    private double cranks$lastIntelligence = -1;
+    private double cranks$lastIntelligence = Double.NaN;
     @Unique
     private int cranks$lastLevel = -1;
 
@@ -247,9 +247,15 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
             if (existing != null && existing.value() == value && existing.operation() == operation) {
                 return; // Already has the exact modifier, skip to prevent spamming client syncs
             }
+            float healthBefore = entity.getHealth();
             instance.removeModifier(id);
             if (value != 0) {
                 instance.addTemporaryModifier(new net.minecraft.entity.attribute.EntityAttributeModifier(id, value, operation));
+            }
+            if (com.cranks.dungeons.util.CombatUtility.attributesMatch(attribute, net.minecraft.entity.attribute.EntityAttributes.GENERIC_MAX_HEALTH)) {
+                if (healthBefore > 0 && healthBefore <= entity.getMaxHealth()) {
+                    entity.setHealth(healthBefore);
+                }
             }
         }
     }
@@ -271,14 +277,13 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
         double intel = entity.getAttributeValue(ModAttributes.INTELLIGENCE);
 
         if (str != cranks$lastStrength) {
+            double oldStr = cranks$lastStrength;
             cranks$lastStrength = str;
             double hpBonus = str * 2.0;
-            // Preserve current health when re-applying the modifier (e.g. on relog)
-            float healthBefore = entity.getHealth();
             updateModifier(entity, net.minecraft.entity.attribute.EntityAttributes.GENERIC_MAX_HEALTH, INTRINSIC_HEALTH_MOD_ID, hpBonus, net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_VALUE);
-            float newMax = entity.getMaxHealth();
-            if (healthBefore > 0 && healthBefore < newMax) {
-                entity.setHealth(healthBefore);
+            if (!Double.isNaN(oldStr) && oldStr >= 0 && str > oldStr) {
+                double gainedHealth = (str - oldStr) * 2.0;
+                entity.setHealth(Math.min(entity.getMaxHealth(), entity.getHealth() + (float) gainedHealth));
             }
         }
 
@@ -289,26 +294,39 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
         }
 
         if (intel != cranks$lastIntelligence) {
+            double oldIntel = cranks$lastIntelligence;
             cranks$lastIntelligence = intel;
             double manaBonus = intel * 2.0;
             updateModifier(entity, ModAttributes.MAX_MANA, INTRINSIC_MANA_MOD_ID, manaBonus, net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_VALUE);
+            if (!Double.isNaN(oldIntel) && oldIntel >= 0 && intel > oldIntel && entity instanceof com.cranks.dungeons.ManaProvider mp) {
+                double gainedMana = (intel - oldIntel) * 2.0;
+                float maxMana = (float) entity.getAttributeValue(ModAttributes.MAX_MANA);
+                mp.cranksdungeons$setCurrentMana(Math.min(maxMana, mp.cranksdungeons$getCurrentMana() + (float) gainedMana));
+            }
         }
 
         if (entity instanceof net.minecraft.entity.player.PlayerEntity player) {
             int currentLevel = player.experienceLevel;
             if (currentLevel != cranks$lastLevel) {
+                int oldLevel = cranks$lastLevel;
                 cranks$lastLevel = currentLevel;
                 double levelHealthBonus = currentLevel * 12.0;
                 double levelManaBonus = currentLevel * 4.0;
-                // Preserve current health when re-applying the modifier (e.g. on relog),
-                // otherwise Minecraft auto-heals to the new max health.
-                float healthBefore = player.getHealth();
+
                 updateModifier(entity, net.minecraft.entity.attribute.EntityAttributes.GENERIC_MAX_HEALTH, INTRINSIC_LEVEL_HEALTH_MOD_ID, levelHealthBonus, net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_VALUE);
-                float newMax = player.getMaxHealth();
-                if (healthBefore > 0 && healthBefore < newMax) {
-                    player.setHealth(healthBefore);
-                }
                 updateModifier(entity, ModAttributes.MAX_MANA, INTRINSIC_LEVEL_MANA_MOD_ID, levelManaBonus, net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_VALUE);
+
+                if (oldLevel != -1 && oldLevel >= 0 && currentLevel > oldLevel) {
+                    double gainedHealth = (currentLevel - oldLevel) * 12.0;
+                    double gainedMana = (currentLevel - oldLevel) * 4.0;
+
+                    player.setHealth(Math.min(player.getMaxHealth(), player.getHealth() + (float) gainedHealth));
+
+                    if (player instanceof com.cranks.dungeons.ManaProvider mp) {
+                        float maxMana = (float) player.getAttributeValue(ModAttributes.MAX_MANA);
+                        mp.cranksdungeons$setCurrentMana(Math.min(maxMana, mp.cranksdungeons$getCurrentMana() + (float) gainedMana));
+                    }
+                }
             }
         }
     }

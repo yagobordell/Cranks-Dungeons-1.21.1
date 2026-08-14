@@ -605,6 +605,7 @@ public class AilmentManager {
                     if (currentShield >= weightedDamage) {
                         float newShield = currentShield - weightedDamage;
                         esProvider.cranksdungeons$setCurrentEnergyShield(newShield);
+                        esProvider.cranksdungeons$setLastDamageTime(entity.getEntityWorld().getTime());
                         if (entity instanceof net.minecraft.server.network.ServerPlayerEntity serverPlayer) {
                             float maxShield = (float) entity.getAttributeValue(com.cranks.dungeons.registry.ModAttributes.ENERGY_SHIELD);
                             net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(
@@ -617,6 +618,7 @@ public class AilmentManager {
                         float absorptionRatio = currentShield / weightedDamage;
                         damageToApply -= damageToApply * absorptionRatio;
                         esProvider.cranksdungeons$setCurrentEnergyShield(0.0f);
+                        esProvider.cranksdungeons$setLastDamageTime(entity.getEntityWorld().getTime());
                         if (entity instanceof net.minecraft.server.network.ServerPlayerEntity serverPlayer) {
                             float maxShield = (float) entity.getAttributeValue(com.cranks.dungeons.registry.ModAttributes.ENERGY_SHIELD);
                             net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(
@@ -662,6 +664,9 @@ public class AilmentManager {
             } else {
                 // Apply non-lethal damage directly for cleaner numbers
                 entity.setHealth(newHealth);
+                if (entity instanceof com.cranks.dungeons.EnergyShieldProvider es) {
+                    es.cranksdungeons$setLastDamageTime(entity.getEntityWorld().getTime());
+                }
                 DamageNumberSender.broadcast(serverWorld, entity, physical, fire, 0.0, 0.0, 0.0, ailment.getSourceUuid(), false);
             }
         }
@@ -693,6 +698,7 @@ public class AilmentManager {
                 if (currentShield >= damageToApply) {
                     float newShield = currentShield - damageToApply;
                     esProvider.cranksdungeons$setCurrentEnergyShield(newShield);
+                    esProvider.cranksdungeons$setLastDamageTime(entity.getEntityWorld().getTime());
                     if (entity instanceof net.minecraft.server.network.ServerPlayerEntity serverPlayer) {
                         float maxShield = (float) entity.getAttributeValue(com.cranks.dungeons.registry.ModAttributes.ENERGY_SHIELD);
                         net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(
@@ -705,6 +711,7 @@ public class AilmentManager {
                     float absorptionRatio = currentShield / damageToApply;
                     damageToApply -= damageToApply * absorptionRatio;
                     esProvider.cranksdungeons$setCurrentEnergyShield(0.0f);
+                    esProvider.cranksdungeons$setLastDamageTime(entity.getEntityWorld().getTime());
                     if (entity instanceof net.minecraft.server.network.ServerPlayerEntity serverPlayer) {
                         float maxShield = (float) entity.getAttributeValue(com.cranks.dungeons.registry.ModAttributes.ENERGY_SHIELD);
                         net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(
@@ -740,6 +747,9 @@ public class AilmentManager {
             } else {
                 // Entity won't die - apply damage directly
                 entity.setHealth(currentHealth - damageToApply);
+                if (entity instanceof com.cranks.dungeons.EnergyShieldProvider es) {
+                    es.cranksdungeons$setLastDamageTime(entity.getEntityWorld().getTime());
+                }
             }
         } finally {
             setBleedDamageInProgress(entity.getUuid(), false);
@@ -833,6 +843,9 @@ public class AilmentManager {
             } else {
                 // Entity won't die - apply damage directly to avoid vanilla damage numbers
                 entity.setHealth(currentHealth - finalPoisonDamage);
+                if (entity instanceof com.cranks.dungeons.EnergyShieldProvider es) {
+                    es.cranksdungeons$setLastDamageTime(entity.getEntityWorld().getTime());
+                }
                 
                 // Poison sound effect (custom)
                 world.playSound(null, entity.getX(), entity.getY(), entity.getZ(),

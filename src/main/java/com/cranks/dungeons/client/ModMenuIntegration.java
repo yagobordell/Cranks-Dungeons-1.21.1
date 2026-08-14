@@ -6,6 +6,6 @@ import com.terraformersmc.modmenu.api.ModMenuApi;
 public class ModMenuIntegration implements ModMenuApi {
     @Override
     public ConfigScreenFactory<?> getModConfigScreenFactory() {
-        return parent -> io.wispforest.owo.config.ui.ConfigScreen.create(com.cranks.dungeons.CranksDungeons.CONFIG, parent);
+        return com.cranks.dungeons.client.screen.CranksConfigScreen::new;
     }
 }

@@ -20,12 +20,22 @@ public class PassiveSkillApplier {
     public static void updatePlayerPassives(PlayerEntity player) {
         if (player.getEntityWorld().isClient()) return; // Server only normally
 
+        float healthBefore = player.getHealth();
+        float manaBefore = (player instanceof com.cranks.dungeons.ManaProvider mp) ? mp.cranksdungeons$getCurrentMana() : -1.0f;
+
         removeAllModifiers(player);
 
         Map<RegistryEntry<EntityAttribute>, Double> totalStats = PassiveStatHelper.getPassiveTreeSummary(player);
 
         for (Map.Entry<RegistryEntry<EntityAttribute>, Double> entry : totalStats.entrySet()) {
             applyStatModifier(player, entry.getKey(), entry.getValue());
+        }
+
+        if (healthBefore > 0) {
+            player.setHealth(Math.min(healthBefore, player.getMaxHealth()));
+        }
+        if (manaBefore >= 0 && player instanceof com.cranks.dungeons.ManaProvider mp) {
+            mp.cranksdungeons$setCurrentMana(Math.min(manaBefore, (float) player.getAttributeValue(com.cranks.dungeons.registry.ModAttributes.MAX_MANA)));
         }
     }
 

@@ -104,6 +104,7 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
             
             CompendiumButtonWidget overviewBtn = CompendiumButtonWidget.builder(Text.literal("Overview"), b -> {
                 selectedClassTab = 0;
+                cacheDirty = true;
                 int previewCenterX = contentX + contentW / 2;
                 int previewCenterY = contentY + contentH / 2;
                 panX = previewCenterX;
@@ -121,6 +122,7 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
                 int tabWidth = 80;
                 CompendiumButtonWidget classBtn = CompendiumButtonWidget.builder(Text.literal(def.name()), b -> {
                     selectedClassTab = index;
+                    cacheDirty = true;
                     
                     // Pan to this class's starting node for preview
                     PassiveNode startNode = PassiveNodeRegistry.getNode(def.startNode());
@@ -239,12 +241,20 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
         // Optimistically update client
         var player = MinecraftClient.getInstance().player;
         if (player != null) {
-            ModComponents.PASSIVE_DATA.get(player).setPlayerClass(classId);
+            PassiveDataComponent data = ModComponents.PASSIVE_DATA.get(player);
+            data.setPlayerClass(classId);
+            var def = com.cranks.dungeons.config.PassiveTreeConfig.getClasses().stream()
+                    .filter(c -> c.id().equals(classId))
+                    .findFirst().orElse(null);
+            if (def != null && def.startNode() != null) {
+                data.unlockNode(def.startNode());
+            }
         }
 
         // Close the selection panel
         choosingClass = false;
         showingConfirmPopup = false;
+        cacheDirty = true;
 
         // Reset pan so it centers on the new class start node
         panX = 0;
@@ -356,8 +366,9 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
         PassiveNode hovered = null;
         Map<String, PassiveNode> allNodesMap = PassiveNodeRegistry.getNodes();
 
-        // Prevent hover interactions when a choice popup is active or choosing class
-        if (activeChoiceNodeId == null && !choosingClass) {
+        // Prevent hover interactions when a choice popup is active or when hovering the class tablet panel / top tabs / confirm popup
+        boolean hoveringClassPanel = choosingClass && (mouseX < contentX + 320 || mouseY < contentY + 30 || showingConfirmPopup);
+        if (activeChoiceNodeId == null && !hoveringClassPanel) {
             for (PassiveNode node : allNodesMap.values()) {
                 double nx = panX + node.gridX() * currentGridScale;
                 double ny = panY + node.gridY() * currentGridScale;
@@ -391,8 +402,8 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
             }
         }
 
-        // Scissor for tree rendering so it doesn't bleed into sidebar (and left menu if choosing class)
-        int scissorX = choosingClass ? (contentX + 320) : contentX;
+        // Scissor for tree rendering so it doesn't bleed outside the compendium content area
+        int scissorX = contentX;
         context.draw();
         context.enableScissor(scissorX, contentY, contentX + contentW, contentY + contentH);
 
@@ -597,26 +608,6 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
         context.draw();
         context.disableScissor();
 
-        if (hovered != null) {
-            String title = "§6" + hovered.name();
-            if (draftUnlocked.containsKey(hovered.id()))
-                title = "§b[DRAFTED] §6" + hovered.name();
-            else if (unlocked.contains(hovered.id()))
-                title = "§e[UNLOCKED] §6" + hovered.name();
-            else if (canUnlockCache.contains(hovered.id()))
-                title = "§a[AVAILABLE] §6" + hovered.name();
-
-            java.util.List<Text> tooltipTexts = new java.util.ArrayList<>();
-            tooltipTexts.add(Text.literal(title));
-            if (hovered.description() != null && !hovered.description().isEmpty()) {
-                String[] lines = hovered.description().split("\n");
-                for (String line : lines) {
-                    tooltipTexts.add(Text.literal("§7" + line));
-                }
-            }
-            context.drawTooltip(textRenderer, tooltipTexts, mouseX, mouseY);
-        }
-
         if (!choosingClass) {
             String pointsText = "§6Unspent Points: §a" + draftPoints;
             context.drawCenteredTextWithShadow(textRenderer, pointsText, contentX + contentW / 2, contentY + contentH - 48, 0xFFFFAA00);
@@ -733,6 +724,27 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
                 drawWrappedText(context, Text.literal(msg), centerX, ppy + 40, popupW - 20, 0xFFD4D4DC, true);
             }
         }
+
+        // Render hovered node tooltip on top of everything
+        if (hovered != null) {
+            String title = "§6" + hovered.name();
+            if (draftUnlocked.containsKey(hovered.id()))
+                title = "§b[DRAFTED] §6" + hovered.name();
+            else if (unlocked.contains(hovered.id()))
+                title = "§e[UNLOCKED] §6" + hovered.name();
+            else if (canUnlockCache.contains(hovered.id()))
+                title = "§a[AVAILABLE] §6" + hovered.name();
+
+            java.util.List<Text> tooltipTexts = new java.util.ArrayList<>();
+            tooltipTexts.add(Text.literal(title));
+            if (hovered.description() != null && !hovered.description().isEmpty()) {
+                String[] lines = hovered.description().split("\n");
+                for (String line : lines) {
+                    tooltipTexts.add(Text.literal("§7" + line));
+                }
+            }
+            context.drawTooltip(textRenderer, tooltipTexts, mouseX, mouseY);
+        }
     }
 
     private void drawWrappedText(DrawContext context, Text text, int x, int y, int maxWidth, int color, boolean centered) {
@@ -839,6 +851,11 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
         Map<String, PassiveNode> allNodes = PassiveNodeRegistry.getNodes();
         Set<String> unlocked = data.getUnlockedNodes();
 
+        String previewStartNode = null;
+        if (choosingClass && selectedClassTab > 0 && selectedClassTab <= com.cranks.dungeons.config.PassiveTreeConfig.getClasses().size()) {
+            previewStartNode = com.cranks.dungeons.config.PassiveTreeConfig.getClasses().get(selectedClassTab - 1).startNode();
+        }
+
         // 1. Build Unified Adjacency Map for bi-directional pathing
         for (PassiveNode node : allNodes.values()) {
             for (String connId : node.connections()) {
@@ -862,11 +879,12 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
             }
 
             // Unlock Cache (Reachability logic)
-            if (!unlocked.contains(node.id()) && !draftUnlocked.containsKey(node.id()) && draftPoints > 0) {
+            boolean isRootActive = unlocked.contains(node.id()) || draftUnlocked.containsKey(node.id()) || (previewStartNode != null && previewStartNode.equals(node.id()));
+            if (!isRootActive && (draftPoints > 0 || choosingClass)) {
                 Set<String> neighbors = adjacencyMap.get(node.id());
                 if (neighbors != null) {
                     for (String conn : neighbors) {
-                        if (unlocked.contains(conn) || draftUnlocked.containsKey(conn)) {
+                        if (unlocked.contains(conn) || draftUnlocked.containsKey(conn) || (previewStartNode != null && previewStartNode.equals(conn))) {
                             canUnlockCache.add(node.id());
                             break;
                         }
@@ -878,7 +896,7 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
         // 3. Calculate Distances from active tree (BFS)
         java.util.Queue<String> queue = new java.util.LinkedList<>();
         for (String id : allNodes.keySet()) {
-            if (unlocked.contains(id) || draftUnlocked.containsKey(id)) {
+            if (unlocked.contains(id) || draftUnlocked.containsKey(id) || (previewStartNode != null && previewStartNode.equals(id))) {
                 distanceMap.put(id, 0);
                 queue.add(id);
             }
@@ -963,57 +981,58 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
-        if (!choosingClass) {
-            double zoomFactor = verticalAmount > 0 ? 1.1 : 0.9;
-            double nextZoom = Math.max(0.1, Math.min(2.0, zoom * zoomFactor));
+        if (showingConfirmPopup) return false;
+        double zoomFactor = verticalAmount > 0 ? 1.1 : 0.9;
+        double nextZoom = Math.max(0.1, Math.min(2.0, zoom * zoomFactor));
 
-            // Zoom toward mouse
-            double targetX = (mouseX - panX) / zoom;
-            double targetY = (mouseY - panY) / zoom;
+        // Zoom toward mouse
+        double targetX = (mouseX - panX) / zoom;
+        double targetY = (mouseY - panY) / zoom;
 
-            zoom = nextZoom;
-            panX = mouseX - targetX * zoom;
-            panY = mouseY - targetY * zoom;
-            return true;
-        }
-        return false;
+        zoom = nextZoom;
+        panX = mouseX - targetX * zoom;
+        panY = mouseY - targetY * zoom;
+        return true;
     }
 
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
-        if (!choosingClass) {
-            if (editMode) {
-                if (isSelectingBox) {
-                    selectionCurrentX = mouseX;
-                    selectionCurrentY = mouseY;
-                    return true;
-                }
-                if (draggedNode != null) {
-                    double currentGridScale = BASE_GRID_SCALE * zoom;
-                    double moveX = deltaX / currentGridScale;
-                    double moveY = deltaY / currentGridScale;
-
-                    if (selectedNodeIds.contains(draggedNode.id())) {
-                        for (String id : selectedNodeIds) {
-                            PassiveNode node = PassiveNodeRegistry.getNode(id);
-                            if (node != null) {
-                                node.setGridX(node.gridX() + moveX);
-                                node.setGridY(node.gridY() + moveY);
-                            }
-                        }
-                    } else {
-                        draggedNode.setGridX(draggedNode.gridX() + moveX);
-                        draggedNode.setGridY(draggedNode.gridY() + moveY);
-                    }
-                    this.cacheDirty = true;
-                    return true;
-                }
+        if (showingConfirmPopup) return false;
+        if (choosingClass) {
+            // If drag is on the left class panel or top tab bar, don't drag the tree
+            if (mouseX < contentX + 320 || mouseY < contentY + 30) {
+                return false;
             }
-            panX += deltaX;
-            panY += deltaY;
-            return true;
+        } else if (editMode) {
+            if (isSelectingBox) {
+                selectionCurrentX = mouseX;
+                selectionCurrentY = mouseY;
+                return true;
+            }
+            if (draggedNode != null) {
+                double currentGridScale = BASE_GRID_SCALE * zoom;
+                double moveX = deltaX / currentGridScale;
+                double moveY = deltaY / currentGridScale;
+
+                if (selectedNodeIds.contains(draggedNode.id())) {
+                    for (String id : selectedNodeIds) {
+                        PassiveNode node = PassiveNodeRegistry.getNode(id);
+                        if (node != null) {
+                            node.setGridX(node.gridX() + moveX);
+                            node.setGridY(node.gridY() + moveY);
+                        }
+                    }
+                } else {
+                    draggedNode.setGridX(draggedNode.gridX() + moveX);
+                    draggedNode.setGridY(draggedNode.gridY() + moveY);
+                }
+                this.cacheDirty = true;
+                return true;
+            }
         }
-        return false;
+        panX += deltaX;
+        panY += deltaY;
+        return true;
     }
 
     @Override

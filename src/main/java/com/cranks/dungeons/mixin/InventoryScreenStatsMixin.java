@@ -207,10 +207,6 @@ public abstract class InventoryScreenStatsMixin {
                         }
                         lastCompendiumClickState = leftClick;
 
-                        if (isHoveringComp) {
-                                context.drawTooltip(tr, Text.literal("§6Compendium"), mouseX, mouseY);
-                        }
-
                         if (!statsVisible)
                                 return;
 
@@ -351,7 +347,7 @@ public abstract class InventoryScreenStatsMixin {
                                         displayEvasion,
                                         cranks$getPassiveBase(player, ModAttributes.EVASION_RATING), "", mouseX, mouseY,
                                         panelX, panelWidth);
-                        double evadeChance = calculateEvasionChance(displayEvasion, displayArmor);
+                        double evadeChance = calculateEvasionChance(displayEvasion);
                         if (player.getAttributeValue(ModAttributes.KEYSTONE_IRON_REFLEXES) > 0) evadeChance = 0;
                         curY = drawStatWithTooltip(context, tr, panelX, curY, "Evade Chance",
                                         evadeChance * 100, Double.NaN, "%", mouseX, mouseY, panelX, panelWidth);
@@ -508,10 +504,10 @@ public abstract class InventoryScreenStatsMixin {
                         case "Max Energy Shield" -> "Absorbs damage before health";
                         case "ES Recharge / Sec" -> "Amount of Energy Shield recovered per second";
                         case "ES Recharge Delay" -> "Time before Energy Shield begins to recharge";
-                        case "Armour" -> "Reduces incoming physical damage";
-                        case "Physical Reduction" -> "Estimated physical damage reduction against average hits";
-                        case "Evasion Rating" -> "Increases chance to dodge attacks";
-                        case "Evade Chance" -> "Estimated chance to evade attacks from enemies";
+                        case "Armour" -> "Reduces incoming physical damage.\nDamage reduction scales dynamically based on incoming damage (larger hits bypass more armour).";
+                        case "Physical Reduction" -> "Estimated physical damage reduction against standard hits (50 dmg).\nSmall hits are heavily reduced, massive hits bypass more armour.";
+                        case "Evasion Rating" -> "Grants a chance to completely dodge incoming attacks.\nLight attacks are easier to dodge, massive hits are harder to evade.";
+                        case "Evade Chance" -> "Estimated chance to dodge standard attacks (50 dmg).\nScales based on incoming damage with deterministic entropy to prevent unlucky streaks.";
                         case "Fire Res" -> "Reduces fire damage taken";
                         case "Cold Res" -> "Reduces cold damage taken";
                         case "Lightning Res" -> "Reduces lightning damage taken";
@@ -532,13 +528,15 @@ public abstract class InventoryScreenStatsMixin {
                 if (player.getAttributeValue(ModAttributes.KEYSTONE_IRON_REFLEXES) > 0)
                         return "Evasion converted to Armor by Iron Reflexes";
                 double rating = player.getAttributeValue(ModAttributes.EVASION_RATING);
-                double armor = player.getAttributeValue(EntityAttributes.GENERIC_ARMOR);
-                return (int) (calculateEvasionChance(rating, armor) * 100) + "% chance to dodge";
+                return (int) (calculateEvasionChance(rating) * 100) + "% estimated chance to dodge";
         }
 
         @Unique
-        private double calculateEvasionChance(double evasion, double armor) {
-                return Math.min(0.95, evasion / (evasion + 400.0 + armor * 4.0));
+        private double calculateEvasionChance(double evasion) {
+                if (evasion <= 0) return 0;
+                double estimatedHit = 50.0; // Reference hit size
+                double effectiveAccuracy = 8.0 * estimatedHit;
+                return Math.min(0.95, evasion / (evasion + effectiveAccuracy));
         }
 
         @Unique
@@ -552,8 +550,10 @@ public abstract class InventoryScreenStatsMixin {
 
         @Unique
         private double calculateArmorReduction(double armor) {
-                // Simplified formula for tooltip visualization
-                return armor / (armor + 50.0);
+                if (armor <= 0) return 0;
+                double estimatedHit = 50.0; // Reference hit size
+                double pdr = armor / (armor + 12.0 * estimatedHit);
+                return Math.min(0.90, pdr);
         }
 
         @Unique

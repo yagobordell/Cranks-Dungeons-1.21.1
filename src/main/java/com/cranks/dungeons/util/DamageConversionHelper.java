@@ -262,13 +262,13 @@ public class DamageConversionHelper {
         }
 
         if (ar > 0 && amount > 0) {
-            // Pure PoE 2 style formula: PDR = Armor / (Armor + (10 * Damage))
-            // This makes armor significantly more dynamic against different hit sizes.
-            double x = 10.0 * amount;
+            // Path of Exile 2 Physical Damage Reduction formula:
+            // PDR = Armor / (Armor + 12 * Damage), capped at 90%
+            double x = 12.0 * amount;
             double pdr = ar / (ar + x);
             
-            // Cap PDR at 90%
-            pdr = Math.min(0.9, pdr);
+            // Cap PDR at 90% (0.90)
+            pdr = Math.min(0.90, pdr);
             
             return (float) (amount * (1.0 - pdr));
         }

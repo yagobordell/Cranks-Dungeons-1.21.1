@@ -33,6 +33,9 @@ public class ElementalDamageHelper {
             boolean wasDamaged = target.damage(source, amount);
         } else {
             target.setHealth(target.getHealth() - amount);
+            if (target instanceof EnergyShieldProvider es) {
+                es.cranksdungeons$setLastDamageTime(world.getTime());
+            }
             // Broadcast damage number since setHealth doesn't trigger our mixins
             if (shouldBroadcast) {
                 DamageNumberSender.broadcast(world, target, 

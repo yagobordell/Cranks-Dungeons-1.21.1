@@ -59,8 +59,26 @@ public class EntityStatBarRenderer {
     private static final Identifier EMPTY_BAR = Identifier.of(CranksDungeons.MOD_ID, "textures/gui/sprites/hud/stat_bar/empty.png");
     private static final Identifier EMPTY_SHIELD_BAR = Identifier.of(CranksDungeons.MOD_ID, "textures/gui/sprites/hud/stat_bar/empty_energy_shield.png");
     private static final Identifier HEALTH_FILL = Identifier.of(CranksDungeons.MOD_ID, "textures/gui/sprites/hud/stat_bar/health.png");
+    private static final Identifier HEALTH_BURN_FILL = Identifier.of(CranksDungeons.MOD_ID, "textures/gui/sprites/hud/stat_bar/health_burn.png");
+    private static final Identifier HEALTH_POISON_FILL = Identifier.of(CranksDungeons.MOD_ID, "textures/gui/sprites/hud/stat_bar/health_poison.png");
+    private static final Identifier HEALTH_BLEED_FILL = Identifier.of(CranksDungeons.MOD_ID, "textures/gui/sprites/hud/stat_bar/health_bleed.png");
     private static final Identifier SHIELD_FILL = Identifier.of(CranksDungeons.MOD_ID, "textures/gui/sprites/hud/stat_bar/energy_shield.png");
     private static final Identifier ABSORPTION_FILL = Identifier.of(CranksDungeons.MOD_ID, "textures/gui/sprites/hud/stat_bar/absorption.png");
+
+    public static Identifier getEntityHealthFillTexture(LivingEntity entity) {
+        if (entity != null) {
+            if (entity.hasStatusEffect(com.cranks.dungeons.effect.ModEffects.BLEED) || com.cranks.dungeons.ailment.AilmentManager.hasAilment(entity, com.cranks.dungeons.ailment.AilmentType.BLEED)) {
+                return HEALTH_BLEED_FILL;
+            }
+            if (entity.hasStatusEffect(com.cranks.dungeons.effect.ModEffects.POISON) || entity.hasStatusEffect(net.minecraft.entity.effect.StatusEffects.POISON) || com.cranks.dungeons.ailment.AilmentManager.hasAilment(entity, com.cranks.dungeons.ailment.AilmentType.POISON)) {
+                return HEALTH_POISON_FILL;
+            }
+            if (entity.hasStatusEffect(com.cranks.dungeons.effect.ModEffects.BURN) || entity.isOnFire() || com.cranks.dungeons.ailment.AilmentManager.hasAilment(entity, com.cranks.dungeons.ailment.AilmentType.BURN)) {
+                return HEALTH_BURN_FILL;
+            }
+        }
+        return HEALTH_FILL;
+    }
 
     public static void render(WorldRenderContext context, VertexConsumerProvider consumers) {
         if (!CranksDungeons.CONFIG.useStatBars()) return;
@@ -238,7 +256,8 @@ public class EntityStatBarRenderer {
         // HP Fill - Left-Aligned
         if (hpPercent > 0) {
             float fillWidth = barWidth * hpPercent;
-            drawBar(matrices, consumers, HEALTH_FILL, xStart, yOffset, fillWidth, barHeight, 1.0f, -0.1f, 0, hpPercent);
+            Identifier entityHealthTexture = getEntityHealthFillTexture(entity);
+            drawBar(matrices, consumers, entityHealthTexture, xStart, yOffset, fillWidth, barHeight, 1.0f, -0.1f, 0, hpPercent);
         }
 
         // Absorption Fill (Z = -0.20)

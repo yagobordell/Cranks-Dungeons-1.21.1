@@ -74,6 +74,9 @@ public class EquipmentStatApplier {
      * to prevent doubling.
      */
     public static void updatePlayerStats(PlayerEntity player) {
+        float healthBefore = player.getHealth();
+        float manaBefore = (player instanceof com.cranks.dungeons.ManaProvider mp) ? mp.cranksdungeons$getCurrentMana() : -1.0f;
+
         removeAllModifiers(player);
 
         List<ItemStack> armorItems = new ArrayList<>();
@@ -134,6 +137,13 @@ public class EquipmentStatApplier {
             if (stat != null) {
                 applyStatModifier(player, stat, totalValues);
             }
+        }
+
+        if (healthBefore > 0) {
+            player.setHealth(Math.min(healthBefore, player.getMaxHealth()));
+        }
+        if (manaBefore >= 0 && player instanceof com.cranks.dungeons.ManaProvider mp) {
+            mp.cranksdungeons$setCurrentMana(Math.min(manaBefore, (float) player.getAttributeValue(ModAttributes.MAX_MANA)));
         }
     }
 
