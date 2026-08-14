@@ -47,11 +47,11 @@ public abstract class InventoryScreenStatsMixin {
         @Unique
         private static final Identifier PAGE_BACKWARD_HIGHLIGHTED = Identifier.ofVanilla("recipe_book/page_backward_highlighted");
 
-        // COMPENDIUM BUTTON (replaces separate Passive Tree and World Tree buttons)
+        // COMPENDIUM TOP TAB
         @Unique
-        private static Identifier COMPENDIUM_BUTTON_NORMAL;
+        private static final Identifier TAB_TOP_UNSELECTED = Identifier.ofVanilla("container/creative_inventory/tab_top_unselected_2");
         @Unique
-        private static Identifier COMPENDIUM_BUTTON_HOVER;
+        private static final Identifier TAB_TOP_SELECTED = Identifier.ofVanilla("container/creative_inventory/tab_top_selected_2");
 
         // Note: statsVisible, scrollOffset and maxScrollOffset are now managed by
         // StatsPanelScrollHandler
@@ -119,12 +119,30 @@ public abstract class InventoryScreenStatsMixin {
                 
                 SCROLLER_TEXTURE = rm.getResource(Identifier.of("cranks-dungeons", "textures/gui/sprites/stats_scroller.png")).isPresent() ? 
                                 Identifier.of("cranks-dungeons", "stats_scroller") : Identifier.ofVanilla("container/creative_inventory/scroller");
-                
-                COMPENDIUM_BUTTON_NORMAL = rm.getResource(Identifier.of("cranks-dungeons", "textures/gui/sprites/compendium_button.png")).isPresent() ? 
-                                Identifier.of("cranks-dungeons", "compendium_button") : Identifier.ofVanilla("recipe_book/button");
-                
-                COMPENDIUM_BUTTON_HOVER = rm.getResource(Identifier.of("cranks-dungeons", "textures/gui/sprites/compendium_button_highlighted.png")).isPresent() ? 
-                                Identifier.of("cranks-dungeons", "compendium_button_highlighted") : Identifier.ofVanilla("recipe_book/button_highlighted");
+        }
+
+        @Inject(method = "drawBackground", at = @At("HEAD"))
+        private void renderCompendiumTabBackground(DrawContext context, float delta, int mouseX, int mouseY, CallbackInfo ci) {
+                InventoryScreen screen = (InventoryScreen) (Object) this;
+                int x = ((HandledScreenAccessor) screen).getX();
+                int y = ((HandledScreenAccessor) screen).getY();
+                int backgroundWidth = ((HandledScreenAccessor) screen).getBackgroundWidth();
+
+                int compButtonWidth = 26;
+                int compButtonHeight = 28;
+                // Top-right corner position: tucked behind top-right edge (shifted 1px left)
+                int compButtonX = x + backgroundWidth - compButtonWidth - 3;
+                int compButtonY = y - 23;
+
+                boolean isHoveringComp = mouseX >= compButtonX && mouseX <= compButtonX + compButtonWidth &&
+                                mouseY >= (compButtonY - 2) && mouseY <= compButtonY + compButtonHeight;
+
+                int drawTabY = isHoveringComp ? (compButtonY - 2) : compButtonY;
+
+                // Render TAB BEHIND the inventory (at HEAD of drawBackground)
+                Identifier compButtonTexture = isHoveringComp ? TAB_TOP_SELECTED : TAB_TOP_UNSELECTED;
+                context.drawGuiTexture(compButtonTexture, compButtonX, drawTabY, compButtonWidth, compButtonHeight);
+                context.drawItem(new net.minecraft.item.ItemStack(net.minecraft.item.Items.KNOWLEDGE_BOOK), compButtonX + 5, drawTabY + 6);
         }
 
         @Inject(method = "drawBackground", at = @At("TAIL"))
@@ -172,14 +190,14 @@ public abstract class InventoryScreenStatsMixin {
 
                         context.drawGuiTexture(buttonTexture, buttonX, buttonY, buttonWidth, buttonHeight);
 
-                        // --- COMPENDIUM BUTTON (Replaces separate Passive Tree and World Tree buttons) ---
-                        int compButtonWidth = 20;
-                        int compButtonHeight = 18;
-                        int compButtonX = buttonX + (buttonWidth / 2) - (compButtonWidth / 2) + 4; // Centered above stats button, shifted 4px right
-                        int compButtonY = y - compButtonHeight + 1; // Sits outside the inventory on the top edge, shifted 1px down
+                        // --- COMPENDIUM TOP TAB (CLICK & TOOLTIP) ---
+                        int compButtonWidth = 26;
+                        int compButtonHeight = 28;
+                        int compButtonX = x + backgroundWidth - compButtonWidth - 3;
+                        int compButtonY = y - 23;
 
                         boolean isHoveringComp = mouseX >= compButtonX && mouseX <= compButtonX + compButtonWidth &&
-                                        mouseY >= compButtonY && mouseY <= compButtonY + compButtonHeight;
+                                        mouseY >= (compButtonY - 2) && mouseY <= compButtonY + compButtonHeight;
 
                         if (isHoveringComp && leftClick && !lastCompendiumClickState && !draggingScrollbar) {
                                 MinecraftClient.getInstance().getSoundManager().play(
@@ -189,8 +207,9 @@ public abstract class InventoryScreenStatsMixin {
                         }
                         lastCompendiumClickState = leftClick;
 
-                        Identifier compButtonTexture = isHoveringComp ? COMPENDIUM_BUTTON_HOVER : COMPENDIUM_BUTTON_NORMAL;
-                        context.drawGuiTexture(compButtonTexture, compButtonX, compButtonY, compButtonWidth, compButtonHeight);
+                        if (isHoveringComp) {
+                                context.drawTooltip(tr, Text.literal("§6Compendium"), mouseX, mouseY);
+                        }
 
                         if (!statsVisible)
                                 return;
