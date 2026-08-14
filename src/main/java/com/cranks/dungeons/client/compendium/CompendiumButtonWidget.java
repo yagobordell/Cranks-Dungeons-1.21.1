@@ -69,29 +69,38 @@ public class CompendiumButtonWidget extends ClickableWidget {
     }
 
     public static void drawButton(DrawContext context, int x, int y, int width, int height, boolean hovered, boolean active, String text) {
-        int bgColor = hovered ? 0xFF1A1A3A : 0xFF0D0D1A;
+        int centerColor = hovered ? 0xFF3C3C46 : 0xFF2B2B33;
+        int lightBevel = hovered ? 0xFF707080 : 0xFF585864;
+        int darkBevel = hovered ? 0xFF22222A : 0xFF18181E;
+        int outerBorder = 0xFF101014;
+
         if (!active) {
-            bgColor = 0xFF05050A;
+            centerColor = 0xFF1A1A20;
+            lightBevel = 0xFF2E2E36;
+            darkBevel = 0xFF121216;
+            outerBorder = 0xFF0E0E12;
         }
-        int borderColor = hovered ? 0xFF4A4A7A : 0xFF2A2A4A;
-        if (!active) {
-            borderColor = 0xFF15152A;
-        }
-        
-        context.fill(x, y, x + width, y + height, bgColor);
-        
-        // Borders
-        context.fill(x, y, x + width, y + 1, borderColor);
-        context.fill(x, y + height - 1, x + width, y + height, borderColor);
-        context.fill(x, y, x + 1, y + height, borderColor);
-        context.fill(x + width - 1, y, x + width, y + height, borderColor);
-        
-        int textColor = active ? (hovered ? 0xFFEEEEFF : 0xFFCCCCDD) : 0xFF555566;
+
+        // Outer 1px frame
+        context.fill(x, y, x + width, y + height, outerBorder);
+
+        // Inner beveled stone
+        context.fill(x + 1, y + 1, x + width - 1, y + height - 1, centerColor);
+
+        // Light bevel on Top & Left
+        context.fill(x + 1, y + 1, x + width - 1, y + 2, lightBevel);
+        context.fill(x + 1, y + 1, x + 2, y + height - 1, lightBevel);
+
+        // Dark bevel on Bottom & Right
+        context.fill(x + 1, y + height - 2, x + width - 1, y + height - 1, darkBevel);
+        context.fill(x + width - 2, y + 1, x + width - 1, y + height - 1, darkBevel);
+
+        int textColor = active ? (hovered ? 0xFFFFFFFF : 0xFFE0E0E6) : 0xFF6C6C78;
         context.drawCenteredTextWithShadow(
-                MinecraftClient.getInstance().textRenderer, 
-                text, 
-                x + width / 2, 
-                y + (height - 8) / 2, 
+                MinecraftClient.getInstance().textRenderer,
+                text,
+                x + width / 2,
+                y + (height - 8) / 2,
                 textColor);
     }
 }

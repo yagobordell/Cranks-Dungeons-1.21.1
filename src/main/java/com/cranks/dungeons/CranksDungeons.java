@@ -219,7 +219,6 @@ public class CranksDungeons implements ModInitializer {
 						.add(ModAttributes.BONUS_ATTACK_DAMAGE, 0.0)
 						.add(ModAttributes.ATTACK_SPEED, 0.0)
 						// Ailments
-						.add(ModAttributes.CHANCE_TO_BURN, 0.0)
 						.add(ModAttributes.FLAMMABILITY_MAGNITUDE_PERCENT, 0.0)
 						.add(ModAttributes.CHANCE_TO_POISON, 0.0)
 						.add(ModAttributes.CHANCE_TO_BLEED, 0.0)
@@ -227,9 +226,11 @@ public class CranksDungeons implements ModInitializer {
 						.add(ModAttributes.BURN_MAGNITUDE_PERCENT, 0.0)
 						.add(ModAttributes.POISON_MAGNITUDE_PERCENT, 0.0)
 						.add(ModAttributes.FREEZE_BUILDUP_PERCENT, 0.0)
+						.add(ModAttributes.FREEZE_MAGNITUDE_PERCENT, 0.0)
 						.add(ModAttributes.BLEED_MAGNITUDE_PERCENT, 0.0)
 						.add(ModAttributes.SHOCK_MAGNITUDE_PERCENT, 0.0)
 						.add(ModAttributes.ELECTROCUTE_BUILDUP_PERCENT, 0.0)
+						.add(ModAttributes.ELECTROCUTE_MAGNITUDE_PERCENT, 0.0)
 						.add(ModAttributes.POISON_MAX_STACKS, 0.0)
 						.add(ModAttributes.REDUCED_BLEED_DURATION_ON_YOU, 0.0)
 						.add(ModAttributes.REDUCED_BURN_DURATION_ON_YOU, 0.0)
@@ -270,7 +271,23 @@ public class CranksDungeons implements ModInitializer {
 						.add(ModAttributes.MAX_MANA_BONUS, 0.0)
 						.add(ModAttributes.MANA_REGENERATION_PERCENT, 0.04)
 						.add(ModAttributes.MANA_REGENERATION, 0.0)
-						.add(ModAttributes.MOVEMENT_SPEED, 0.0));
+						.add(ModAttributes.MOVEMENT_SPEED, 0.0)
+						.add(ModAttributes.REDUCED_CRIT_DAMAGE_TAKEN_PERCENT, 0.0)
+						.add(ModAttributes.CLOSE_RANGE_KNOCKBACK_PERCENT, 0.0)
+						.add(ModAttributes.INCREASED_AILMENT_CHANCE_PERCENT, 0.0)
+						.add(ModAttributes.PROJECTILE_RICOCHET_CHANCE, 0.0)
+						.add(ModAttributes.REGENERATION_RATE_WHILE_MOVING_PERCENT, 0.0)
+						.add(ModAttributes.PROJECTILE_PIERCE_CHANCE, 0.0)
+						.add(ModAttributes.DAMAGE_AFTER_CRIT_PERCENT, 0.0)
+						.add(ModAttributes.KNOCKBACK_RESISTANCE_WHEN_FULL_LIFE, 0.0)
+						.add(ModAttributes.CRIT_NON_DAMAGING_AILMENT_MAGNITUDE_PERCENT, 0.0)
+						.add(ModAttributes.KNOCKBACK_RESISTANCE_PER_250_ENERGY_SHIELD, 0.0)
+						.add(ModAttributes.AILMENT_THRESHOLD_PERCENT_OF_MAX_HEALTH, 0.0)
+						.add(ModAttributes.AILMENT_THRESHOLD_PERCENT_OF_MAX_ES, 0.0)
+						.add(ModAttributes.ELEMENTAL_AILMENT_THRESHOLD_PERCENT, 0.0)
+						.add(ModAttributes.FREEZE_THRESHOLD_PERCENT, 0.0)
+						.add(ModAttributes.ELEMENTAL_AILMENT_THRESHOLD_PER_DEXTERITY, 0.0)
+						.add(ModAttributes.AILMENT_THRESHOLD_FROM_BOOTS_LOWEST_ARMOR_EVASION, 0.0));
 
 		registerCreativeTabItems();
 

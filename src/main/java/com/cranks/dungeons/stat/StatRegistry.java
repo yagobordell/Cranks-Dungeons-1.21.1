@@ -40,6 +40,9 @@ public class StatRegistry {
             EquipmentType.SWORD, EquipmentType.SPEAR, EquipmentType.MACE,
             EquipmentType.BOW, EquipmentType.CROSSBOW, EquipmentType.TRIDENT
         };
+        private static final EquipmentType[] CRAFTABLE_WEAPONS = {
+            EquipmentType.SWORD, EquipmentType.SPEAR, EquipmentType.BOW, EquipmentType.CROSSBOW
+        };
         private static final EquipmentType[] ONE_HANDED_WEAPONS = {
             EquipmentType.SWORD, EquipmentType.MACE
         };
@@ -738,6 +741,30 @@ public class StatRegistry {
                                 70, 3775,
                                 ALL_WEAPONS);
 
+                // --- Flat Armor Penetration (craftable weapons) ---
+                registerForTypes("armor_penetration", "Armor Penetration",
+                                ModAttributes.FLAT_ARMOR_PENETRATION,
+                                r(21, 57, 94, 131, 167, 204, 241, 277, 314, 350),
+                                r(21, 57, 94, 131, 167, 204, 241, 277, 314, 350),
+                                false, false, Formatting.GRAY, CustomStat.AffixType.PREFIX,
+                                76, 5700,
+                                CRAFTABLE_WEAPONS);
+
+                // --- Hybrid % Phys + Flat Armor Pen (craftable weapons) ---
+                registerHybridForTypes("hybrid_phys_armor_pen", com.cranks.dungeons.equipment.ArmorBaseType.ALL,
+                                List.of(
+                                                new CustomStat.StatComponent("Increased Physical Damage", ModAttributes.PHYSICAL_DAMAGE_PERCENT,
+                                                                r(0.19, 0.25, 0.32, 0.39, 0.45, 0.52, 0.59, 0.65, 0.72, 0.79),
+                                                                r(0.24, 0.31, 0.38, 0.44, 0.51, 0.58, 0.64, 0.71, 0.78, 0.85),
+                                                                true, true),
+                                                new CustomStat.StatComponent("Armor Penetration", ModAttributes.FLAT_ARMOR_PENETRATION,
+                                                                r(16, 33, 51, 68, 86, 104, 121, 139, 156, 174),
+                                                                r(32, 50, 67, 85, 103, 120, 138, 155, 173, 190),
+                                                                false, false)
+                                ),
+                                Formatting.GRAY, CustomStat.AffixType.PREFIX, 81, 5300,
+                                CRAFTABLE_WEAPONS);
+
                 // --- On Kill Stats (all weapons) ---
                 registerForTypes("health_on_kill", "Gain # Health per enemy killed",
                                 ModAttributes.HEALTH_ON_KILL,
@@ -901,12 +928,6 @@ public class StatRegistry {
                 // ELYTRA-ONLY STATS
                 // ===================================================================
 
-                register(new CustomStat("elytra_flying_speed", "Flying Speed",
-                                EquipmentType.ELYTRA, ModAttributes.FLYING_SPEED,
-                                r(0.05, 0.07, 0.12, 0.20, 0.32, 0.47, 0.65, 0.87, 1.12, 1.40),
-                                r(0.08, 0.11, 0.18, 0.32, 0.50, 0.73, 1.02, 1.36, 1.76, 2.20),
-                                true, true, Formatting.AQUA, CustomStat.AffixType.SUFFIX,
-                                40, 300));
 
                 register(new CustomStat("elytra_movement_speed", "Movement Speed",
                                 EquipmentType.ELYTRA, ModAttributes.MOVEMENT_SPEED,
@@ -1128,32 +1149,10 @@ public class StatRegistry {
 
                 register(new CustomStat("mace_armor_penetration", "Armor Penetration",
                         EquipmentType.MACE, ModAttributes.FLAT_ARMOR_PENETRATION,
-                        r(15, 15, 15, 15, 15, 15, 15, 15, 15, 15),
-                        r(40, 40, 40, 40, 40, 40, 40, 40, 40, 40),
+                        r(86, 86, 86, 86, 86, 86, 86, 86, 86, 86),
+                        r(103, 103, 103, 103, 103, 103, 103, 103, 103, 103),
                         false, false, Formatting.WHITE, CustomStat.AffixType.PREFIX,
                         1, 0));
-
-                // --- Flat Armor Penetration Rune ---
-                registerForTypes("armor_penetration", "Armor Penetration",
-                        ModAttributes.FLAT_ARMOR_PENETRATION,
-                        r(21, 57, 94, 131, 167, 204, 241, 277, 314, 350),
-                        r(21, 57, 94, 131, 167, 204, 241, 277, 314, 350), // Using same for min/max if just one provided
-                        false, false, Formatting.GRAY, CustomStat.AffixType.PREFIX,
-                        76, 5700, ALL_WEAPONS);
-
-                // --- Hybrid % Phys + Flat Armor Pen ---
-                registerHybridForTypes("hybrid_phys_armor_pen", com.cranks.dungeons.equipment.ArmorBaseType.ALL,
-                        List.of(
-                                new CustomStat.StatComponent("Increased Physical Damage", ModAttributes.PHYSICAL_DAMAGE_PERCENT,
-                                        r(0.19, 0.25, 0.32, 0.39, 0.45, 0.52, 0.59, 0.65, 0.72, 0.79),
-                                        r(0.24, 0.31, 0.38, 0.44, 0.51, 0.58, 0.64, 0.71, 0.78, 0.85),
-                                        true, true),
-                                new CustomStat.StatComponent("Armor Penetration", ModAttributes.FLAT_ARMOR_PENETRATION,
-                                        r(16, 33, 51, 68, 86, 104, 121, 139, 156, 174),
-                                        r(32, 50, 67, 85, 103, 120, 138, 155, 173, 190),
-                                        false, false)
-                        ),
-                        Formatting.GRAY, CustomStat.AffixType.PREFIX, 81, 5300, ALL_WEAPONS);
 
                 // Turtle Helmet specific unique stats
                 register(new CustomStat("turtle_helmet_respiration", "Extended Breathing Time",

@@ -22,6 +22,9 @@ import com.cranks.dungeons.network.AilmentSyncPayload;
 import net.minecraft.util.Identifier;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.entity.attribute.EntityAttributeInstance;
+import net.minecraft.entity.attribute.EntityAttributeModifier;
+import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.effect.StatusEffect;
 
 import java.util.Optional;
@@ -37,8 +40,10 @@ import java.util.UUID;
 
 public class AilmentManager {
 
+    private static final Identifier FREEZE_SLOW_MODIFIER_ID = Identifier.of("cranks-dungeons", "freeze_slow");
     private static final Map<java.util.UUID, List<Ailment>> ENTITY_AILMENTS = new ConcurrentHashMap<>();
     private static final Map<java.util.UUID, Float> FREEZE_BUILDUP = new ConcurrentHashMap<>();
+    private static final Map<java.util.UUID, Float> FREEZE_BUILDUP_MAGNITUDE = new ConcurrentHashMap<>();
     private static final Map<java.util.UUID, Float> ELECTROCUTE_BUILDUP = new ConcurrentHashMap<>();
     private static final Map<java.util.UUID, Float> FLAMMABILITY_BUILDUP = new ConcurrentHashMap<>();
     private static final Map<java.util.UUID, Long> FREEZE_BUILDUP_LAST_HIT = new ConcurrentHashMap<>();
@@ -118,7 +123,28 @@ public class AilmentManager {
         syncAilments(target);
     }
 
+    public static void updateFreezeSlowModifier(LivingEntity entity, float buildup, float magnitudeMultiplier) {
+        if (entity == null) return;
+        EntityAttributeInstance speedAttr = entity.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED);
+        if (speedAttr == null) return;
+
+        speedAttr.removeModifier(FREEZE_SLOW_MODIFIER_ID);
+        if (buildup > 0.001f) {
+            double slowFraction = Math.min(0.90, buildup * Math.max(1.0f, magnitudeMultiplier));
+            EntityAttributeModifier modifier = new EntityAttributeModifier(
+                    FREEZE_SLOW_MODIFIER_ID,
+                    -slowFraction,
+                    EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
+            );
+            speedAttr.addTemporaryModifier(modifier);
+        }
+    }
+
     public static void addFreezeBuildup(LivingEntity target, float amount, double duration, Entity source) {
+        addFreezeBuildup(target, amount, duration, source, 1.0f);
+    }
+
+    public static void addFreezeBuildup(LivingEntity target, float amount, double duration, Entity source, float magnitudeMultiplier) {
         if (hasAilment(target, AilmentType.FREEZE)) {
             return;
         }
@@ -128,14 +154,15 @@ public class AilmentManager {
         if (newBuildup >= 1.0f) {
             FREEZE_BUILDUP.remove(target.getUuid());
             FREEZE_BUILDUP_LAST_HIT.remove(target.getUuid());
+            FREEZE_BUILDUP_MAGNITUDE.remove(target.getUuid());
+            updateFreezeSlowModifier(target, 0.0f, 1.0f);
             target.removeStatusEffect(net.minecraft.entity.effect.StatusEffects.SLOWNESS);
             applyAilment(target, AilmentType.FREEZE, 0.0f, duration, source);
         } else {
             FREEZE_BUILDUP.put(target.getUuid(), newBuildup);
             FREEZE_BUILDUP_LAST_HIT.put(target.getUuid(), target.getEntityWorld().getTime());
-            int slownessLevel = Math.min(4, (int)(newBuildup * 5));
-            target.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
-                    net.minecraft.entity.effect.StatusEffects.SLOWNESS, 60, slownessLevel, false, false, true));
+            FREEZE_BUILDUP_MAGNITUDE.put(target.getUuid(), Math.max(1.0f, magnitudeMultiplier));
+            updateFreezeSlowModifier(target, newBuildup, magnitudeMultiplier);
         }
         syncAilments(target);
     }
@@ -429,9 +456,13 @@ public class AilmentManager {
                 if (newBuildup <= 0) {
                     FREEZE_BUILDUP.remove(entity.getUuid());
                     FREEZE_BUILDUP_LAST_HIT.remove(entity.getUuid());
+                    FREEZE_BUILDUP_MAGNITUDE.remove(entity.getUuid());
+                    updateFreezeSlowModifier(entity, 0.0f, 1.0f);
                     entity.removeStatusEffect(net.minecraft.entity.effect.StatusEffects.SLOWNESS);
                 } else {
                     FREEZE_BUILDUP.put(entity.getUuid(), newBuildup);
+                    float mag = FREEZE_BUILDUP_MAGNITUDE.getOrDefault(entity.getUuid(), 1.0f);
+                    updateFreezeSlowModifier(entity, newBuildup, mag);
                 }
                 buildupChanged = true;
             }
@@ -850,6 +881,9 @@ public class AilmentManager {
     public static void clearAllAilments(LivingEntity target) {
         ENTITY_AILMENTS.remove(target.getUuid());
         FREEZE_BUILDUP.remove(target.getUuid());
+        FREEZE_BUILDUP_LAST_HIT.remove(target.getUuid());
+        FREEZE_BUILDUP_MAGNITUDE.remove(target.getUuid());
+        updateFreezeSlowModifier(target, 0.0f, 1.0f);
         ELECTROCUTE_BUILDUP.remove(target.getUuid());
         target.removeStatusEffect(ModEffects.POISON);
         target.removeStatusEffect(ModEffects.BURN);
@@ -940,7 +974,7 @@ public class AilmentManager {
                 DamageNumberSender.broadcast(world, target, 0, 0, 0, finalDamage, 0, source != null ? source.getUuid() : null, false);
                 
                 // Guarantee a baseline shock on chained targets (at least 5%)
-                float ailmentThreshold = Math.max(1.0f, target.getMaxHealth());
+                float ailmentThreshold = com.cranks.dungeons.util.CombatUtility.getEffectiveAilmentThreshold(target, AilmentType.SHOCK);
                 float finalMagnitude = ((float) finalDamage / ailmentThreshold) * 5.0f;
                 finalMagnitude = Math.max(0.05f, Math.min(finalMagnitude, 0.50f));
                 applyAilment(target, AilmentType.SHOCK, (float) finalDamage, AilmentType.SHOCK.getBaseDuration(), source, null, null, 0, finalMagnitude);

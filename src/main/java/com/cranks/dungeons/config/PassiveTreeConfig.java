@@ -156,12 +156,12 @@ public class PassiveTreeConfig {
             boolean isAttributeSelection = obj.has("is_attribute_selection") && obj.get("is_attribute_selection").getAsBoolean();
             double attributeSelectionAmount = obj.has("attribute_selection_amount") ? obj.get("attribute_selection_amount").getAsDouble() : 0.0;
 
-            // Determine Icon (Priority: JSON Override -> PassiveIconManager)
+            // Determine Icon (Priority: JSON Override -> PassiveIconManager title lookup)
             Identifier icon;
             if (obj.has("icon") && !obj.get("icon").getAsString().isEmpty()) {
                 icon = Identifier.of(obj.get("icon").getAsString());
             } else {
-                icon = com.cranks.dungeons.stat.passive.PassiveIconManager.getIcon(id, modifiers, isAttributeSelection);
+                icon = com.cranks.dungeons.stat.passive.PassiveIconManager.getIcon(id, name, isAttributeSelection);
             }
 
             nodes.add(new PassiveNode(id, name, description, gridX, gridY, connections, modifiers, icon, shape, isAttributeSelection, attributeSelectionAmount));
@@ -400,9 +400,12 @@ public class PassiveTreeConfig {
             }
             obj.add("modifiers", mods);
 
-            // Icon is only saved if it's explicitly overwritten from the default
-            if (node.icon() != null) {
-                obj.addProperty("icon", node.icon().toString());
+            // Icon is saved if explicitly overridden or on attribute selection nodes; otherwise saved as empty string to stay dynamically title-bound
+            Identifier defaultTitleIcon = com.cranks.dungeons.stat.passive.PassiveIconManager.getIcon(node.id(), node.name(), node.isAttributeSelection());
+            boolean isCustomOverride = node.icon() != null && !node.icon().equals(defaultTitleIcon) && !node.icon().equals(com.cranks.dungeons.stat.passive.PassiveIconManager.PLACEHOLDER_ICON);
+
+            if (node.isAttributeSelection() || isCustomOverride) {
+                obj.addProperty("icon", node.icon() != null ? node.icon().toString() : "");
             } else {
                 obj.addProperty("icon", "");
             }

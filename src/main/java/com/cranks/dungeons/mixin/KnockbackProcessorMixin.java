@@ -38,6 +38,12 @@ public abstract class KnockbackProcessorMixin {
             if (chestplate != null)
                 knockbackBonus += com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, chestplate, "minecraft:bonus_knockback", 0.35);
 
+            // Close range knockback bonus (within 4 blocks)
+            double closeRangeBonus = attacker.getAttributeValue(ModAttributes.CLOSE_RANGE_KNOCKBACK_PERCENT);
+            if (closeRangeBonus > 0 && attacker.squaredDistanceTo(target) <= 16.0) {
+                knockbackBonus += closeRangeBonus;
+            }
+
             // If base strength is 0 (standing attack), give it a base strength from the
             // bonus
             if (finalStrength <= 0.01 && knockbackBonus > 0) {
@@ -51,6 +57,15 @@ public abstract class KnockbackProcessorMixin {
 
         // 2. Apply Target's Resistance to the NEW total
         double resistance = target.getAttributeValue(ModAttributes.KNOCKBACK_RESISTANCE);
+        if (target.getHealth() >= target.getMaxHealth() - 0.01f) {
+            resistance += target.getAttributeValue(ModAttributes.KNOCKBACK_RESISTANCE_WHEN_FULL_LIFE);
+        }
+
+        double esKnockbackRes = target.getAttributeValue(ModAttributes.KNOCKBACK_RESISTANCE_PER_250_ENERGY_SHIELD);
+        if (esKnockbackRes > 0) {
+            double maxES = target.getAttributeValue(ModAttributes.ENERGY_SHIELD);
+            resistance += esKnockbackRes * (maxES / 250.0);
+        }
 
         // Clamp resistance between 0 and 1 so it doesn't pull the player inward
         double resistanceMultiplier = Math.max(0.0, 1.0 - resistance);

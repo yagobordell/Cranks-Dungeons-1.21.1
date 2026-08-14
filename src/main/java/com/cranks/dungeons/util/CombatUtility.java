@@ -1,6 +1,12 @@
 package com.cranks.dungeons.util;
 
+import com.cranks.dungeons.ailment.AilmentType;
 import com.cranks.dungeons.util.WeaponProvider;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.AttributeModifiersComponent;
+import net.minecraft.entity.EquipmentSlot;
+import net.minecraft.entity.attribute.EntityAttributeModifier;
+import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.TridentEntity;
@@ -198,5 +204,92 @@ public class CombatUtility {
 
     public static boolean isOneHanding(LivingEntity entity, ItemStack mainWeapon) {
         return !isTwoHandedWeapon(mainWeapon) && !mainWeapon.isEmpty();
+    }
+
+    private static final java.util.Map<java.util.UUID, Long> LAST_CRIT_TIME = new java.util.concurrent.ConcurrentHashMap<>();
+
+    /**
+     * Records that an entity performed a critical hit at the specified game time.
+     */
+    public static void recordRecentCrit(LivingEntity entity, long gameTime) {
+        if (entity != null) {
+            LAST_CRIT_TIME.put(entity.getUuid(), gameTime);
+        }
+    }
+
+    /**
+     * Checks whether the entity has performed a critical hit within the last 8 seconds (160 ticks).
+     */
+    public static boolean hasCritInLast8Seconds(LivingEntity entity, long currentGameTime) {
+        if (entity == null) return false;
+        Long lastTime = LAST_CRIT_TIME.get(entity.getUuid());
+        if (lastTime == null) return false;
+        return (currentGameTime - lastTime) <= 160L;
+    }
+
+    /**
+     * Calculates the lowest of Armor and Evasion Rating on the entity's equipped boots.
+     * Returns 0.0 if either Armor or Evasion is missing or <= 0.
+     */
+    public static double getBootsLowestArmorEvasion(LivingEntity entity) {
+        if (entity == null) return 0.0;
+        ItemStack boots = entity.getEquippedStack(EquipmentSlot.FEET);
+        if (boots == null || boots.isEmpty()) return 0.0;
+
+        AttributeModifiersComponent comp = boots.getOrDefault(DataComponentTypes.ATTRIBUTE_MODIFIERS, AttributeModifiersComponent.DEFAULT);
+        double armor = 0.0;
+        double evasion = 0.0;
+        boolean hasArmor = false;
+        boolean hasEvasion = false;
+
+        for (var entry : comp.modifiers()) {
+            if (entry.modifier().operation() == EntityAttributeModifier.Operation.ADD_VALUE) {
+                if (attributesMatch(entry.attribute(), EntityAttributes.GENERIC_ARMOR)) {
+                    armor += entry.modifier().value();
+                    hasArmor = true;
+                } else if (attributesMatch(entry.attribute(), ModAttributes.EVASION_RATING)) {
+                    evasion += entry.modifier().value();
+                    hasEvasion = true;
+                }
+            }
+        }
+
+        if (!hasArmor || !hasEvasion || armor <= 0.0 || evasion <= 0.0) {
+            return 0.0;
+        }
+
+        return Math.min(armor, evasion);
+    }
+
+    /**
+     * Calculates the effective Ailment Threshold for a target entity against a specific ailment type.
+     */
+    public static float getEffectiveAilmentThreshold(LivingEntity target, AilmentType type) {
+        if (target == null) return 1.0f;
+
+        double maxHealth = target.getMaxHealth();
+        double maxES = target.getAttributeValue(ModAttributes.ENERGY_SHIELD);
+        double dexterity = target.getAttributeValue(ModAttributes.DEXTERITY);
+
+        // 1. Base Health + Additional Pool Bonuses
+        double healthBonus = maxHealth * target.getAttributeValue(ModAttributes.AILMENT_THRESHOLD_PERCENT_OF_MAX_HEALTH);
+        double esBonus = maxES * target.getAttributeValue(ModAttributes.AILMENT_THRESHOLD_PERCENT_OF_MAX_ES);
+        double dexBonus = dexterity * target.getAttributeValue(ModAttributes.ELEMENTAL_AILMENT_THRESHOLD_PER_DEXTERITY);
+
+        // 2. Boots Lowest Armor & Evasion
+        double bootsBonus = 0.0;
+        if (target.getAttributeValue(ModAttributes.AILMENT_THRESHOLD_FROM_BOOTS_LOWEST_ARMOR_EVASION) > 0) {
+            bootsBonus = getBootsLowestArmorEvasion(target);
+        }
+
+        double flatThreshold = maxHealth + healthBonus + esBonus + dexBonus + bootsBonus;
+
+        // 3. Percentage Multipliers
+        double percentMultiplier = 1.0 + target.getAttributeValue(ModAttributes.ELEMENTAL_AILMENT_THRESHOLD_PERCENT);
+        if (type == AilmentType.FREEZE) {
+            percentMultiplier += target.getAttributeValue(ModAttributes.FREEZE_THRESHOLD_PERCENT);
+        }
+
+        return Math.max(1.0f, (float) (flatThreshold * percentMultiplier));
     }
 }

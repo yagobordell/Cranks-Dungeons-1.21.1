@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
-@Mixin(LivingEntity.class)
+@Mixin(value = LivingEntity.class, priority = 800)
 public abstract class DamageReductionMixin {
 
     @Unique
@@ -54,56 +54,11 @@ public abstract class DamageReductionMixin {
                 provider.cranks$setLastDamageBreakdown(breakdown);
             }
 
-            // We no longer apply a hardcoded 20% chance to burn here.
-            // Burn application is handled dynamically in ElementalDamageMixin based on the attacker's Chance to Burn attribute.
-
             float totalDamage = breakdown.getTotal();
             float shockMagnitude = AilmentManager.getShockMagnitude(entity);
             if (shockMagnitude > 0) {
                 totalDamage *= (1.0f + shockMagnitude);
                 breakdown.scale(1.0f + shockMagnitude);
-            }
-
-            // Energy Shield Mitigation
-            if (entity instanceof com.cranks.dungeons.EnergyShieldProvider esProvider) {
-                float currentShield = esProvider.cranksdungeons$getCurrentEnergyShield();
-                long currentTime = world.getTime();
-                long lastDamageTime = esProvider.cranksdungeons$getLastDamageTime();
-                boolean isSameHit = (currentTime == lastDamageTime);
-                boolean onCooldown = (currentTime - lastDamageTime < 10L);
-
-                if (currentShield > 0 && (isSameHit || !onCooldown)) {
-                    float weightedDamage = totalDamage + breakdown.get(DamageElement.VOID); // Void deals 2x to shields
-                    
-                    if (currentShield >= weightedDamage) {
-                        float newShield = currentShield - weightedDamage;
-                        esProvider.cranksdungeons$setCurrentEnergyShield(newShield);
-                        esProvider.cranksdungeons$setLastDamageTime(currentTime);
-                        
-                        if (entity instanceof net.minecraft.server.network.ServerPlayerEntity serverPlayer) {
-                            float maxShield = (float) entity.getAttributeValue(com.cranks.dungeons.registry.ModAttributes.ENERGY_SHIELD);
-                            net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(
-                                    serverPlayer,
-                                    new com.cranks.dungeons.network.EnergyShieldSyncPacket(newShield, maxShield));
-                        }
-                        return 0.001f; // Damage fully absorbed by shield
-                    } else {
-                        float remainingWeighted = weightedDamage - currentShield;
-                        esProvider.cranksdungeons$setCurrentEnergyShield(0);
-                        esProvider.cranksdungeons$setLastDamageTime(currentTime);
-                        
-                        if (entity instanceof net.minecraft.server.network.ServerPlayerEntity serverPlayer) {
-                            float maxShield = (float) entity.getAttributeValue(com.cranks.dungeons.registry.ModAttributes.ENERGY_SHIELD);
-                            net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(
-                                    serverPlayer,
-                                    new com.cranks.dungeons.network.EnergyShieldSyncPacket(0, maxShield));
-                        }
-                        
-                        float mitigationRatio = remainingWeighted / weightedDamage;
-                        breakdown.scale(mitigationRatio);
-                        totalDamage = breakdown.getTotal();
-                    }
-                }
             }
 
             return totalDamage;

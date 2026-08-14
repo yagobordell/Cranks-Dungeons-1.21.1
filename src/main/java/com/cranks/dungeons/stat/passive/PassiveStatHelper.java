@@ -41,11 +41,11 @@ public class PassiveStatHelper {
 
             // Ailment Magnitudes & Durations
             "chance_to_shock", "shock_magnitude_percent",
-            "chance_to_burn", "burn_magnitude_percent", "flammability_magnitude_percent",
+            "burn_magnitude_percent", "flammability_magnitude_percent",
             "chance_to_poison", "poison_magnitude_percent", "poison_max_stacks",
             "chance_to_bleed", "bleed_magnitude_percent",
-            "freeze_buildup_percent", "electrocute_buildup_percent",
-            "shock_threshold_reduction",
+            "freeze_buildup_percent", "freeze_magnitude_percent",
+            "electrocute_buildup_percent", "electrocute_magnitude_percent",
 
             // Conversions & Extra Damage
             "physical_extra_percent",
@@ -66,6 +66,20 @@ public class PassiveStatHelper {
             "block_value", "block_value_percent", "knockback", "knockback_resistance",
             "armor_speed_penalty_reduction", "low_armor_speed_bonus", "armor_applies_to_elemental",
             "energy_shield_recharge_rate_percent",
+
+            // New Passive Tree Modifiers
+            "reduced_crit_damage_taken_percent", "close_range_knockback_percent",
+            "increased_ailment_chance_percent", "projectile_ricochet_chance",
+            "regeneration_rate_while_moving_percent", "projectile_pierce_chance",
+            "damage_after_crit_percent", "knockback_resistance_when_full_life",
+            "crit_non_damaging_ailment_magnitude_percent",
+            "knockback_resistance_per_250_energy_shield",
+            "ailment_threshold_percent_of_max_health",
+            "ailment_threshold_percent_of_max_es",
+            "elemental_ailment_threshold_percent",
+            "freeze_threshold_percent",
+            "elemental_ailment_threshold_per_dexterity",
+            "ailment_threshold_from_boots_lowest_armor_evasion",
             
             // Keystones
             "keystone_void_inoculation", "keystone_avatar_of_fire", "keystone_resolute_technique",
@@ -333,7 +347,25 @@ public class PassiveStatHelper {
                 .replace("bleed magnitude percent", "bleed magnitude")
                 .replace("shock magnitude percent", "shock magnitude")
                 .replace("freeze buildup percent", "freeze buildup")
+                .replace("freeze magnitude percent", "freeze magnitude")
                 .replace("electrocute buildup percent", "electrocute buildup")
+                .replace("electrocute magnitude percent", "electrocute magnitude")
+                .replace("reduced crit damage taken percent", "reduced crit dmg taken")
+                .replace("close range knockback percent", "close range knockback")
+                .replace("increased ailment chance percent", "increased ailment chance")
+                .replace("projectile ricochet chance", "terrain ricochet chance")
+                .replace("regeneration rate while moving percent", "moving regen rate")
+                .replace("projectile pierce chance", "pierce chance")
+                .replace("damage after crit percent", "damage after crit")
+                .replace("knockback resistance when full life", "knockback res full life")
+                .replace("crit non damaging ailment magnitude percent", "crit non-damaging ailment magnitude")
+                .replace("knockback resistance per 250 energy shield", "knockback res per 250 ES")
+                .replace("ailment threshold percent of max health", "ailment threshold % of health")
+                .replace("ailment threshold percent of max es", "ailment threshold % of ES")
+                .replace("elemental ailment threshold percent", "elemental ailment threshold")
+                .replace("freeze threshold percent", "freeze threshold")
+                .replace("elemental ailment threshold per dexterity", "elemental ailment threshold per Dex")
+                .replace("ailment threshold from boots lowest armor evasion", "ailment threshold from boots")
                 .replace("_", " ");
 
         if (name.isEmpty())

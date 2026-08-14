@@ -3,41 +3,58 @@ package com.cranks.dungeons.mixin;
 import com.cranks.dungeons.ailment.AilmentManager;
 import com.cranks.dungeons.equipment.EquipmentStatApplier;
 import com.cranks.dungeons.registry.ModAttributes;
+import com.cranks.dungeons.registry.ModSounds;
+import com.cranks.dungeons.util.CombatUtility;
+import com.cranks.dungeons.util.CriticalHitState;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.SoundCategory;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
-import com.cranks.dungeons.util.CombatUtility;
-
-@Mixin(LivingEntity.class)
+@Mixin(value = LivingEntity.class, priority = 500)
 public class BonusAttackDamageMixin {
 
     @ModifyVariable(method = "damage", at = @At("HEAD"), ordinal = 0, argsOnly = true)
     private float applyBonusAttackDamage(float amount, DamageSource source) {
-        if (source.getAttacker() instanceof LivingEntity attacker) {
-            ItemStack weapon = CombatUtility.getCombatWeapon(source, attacker);
-            ItemStack chestplate = attacker.getEquippedStack(EquipmentSlot.CHEST);
+        // Reset crit state for fresh attack
+        CriticalHitState.reset();
 
-            // Get bonus attack damage from attributes
+        if (source.getAttacker() instanceof LivingEntity attacker) {
+            LivingEntity target = (LivingEntity) (Object) this;
+            ItemStack weapon = CombatUtility.getCombatWeapon(source, attacker);
+
+            // 1. Point Blank Keystone (Distance Multiplier for Projectiles)
+            if (attacker.getAttributeValue(ModAttributes.KEYSTONE_POINT_BLANK) > 0) {
+                if (source.isIn(net.minecraft.registry.tag.DamageTypeTags.IS_PROJECTILE) || source.getSource() instanceof net.minecraft.entity.projectile.ProjectileEntity) {
+                    double distance = Math.sqrt(attacker.squaredDistanceTo(target));
+                    if (distance <= 5.0) {
+                        amount *= 1.3f;
+                    } else if (distance >= 30.0) {
+                        amount *= 0.5f;
+                    } else {
+                        amount *= (float) (1.3 - ((distance - 5.0) / 25.0 * 0.8));
+                    }
+                }
+            }
+
+            // 2. Flat bonus attack damage
             double bonusDamage = CombatUtility.getAttributeValue(attacker, ModAttributes.BONUS_ATTACK_DAMAGE, weapon,
                     "bonus_attack_damage", source);
-
-            // Apply flat bonus first
             float damageWithBonus = amount + (float) bonusDamage;
 
-            // Get percentage multipliers from items and attributes
+            // 3. Percentage multipliers
             double attributePercent = attacker.getAttributeValue(ModAttributes.PHYSICAL_DAMAGE_PERCENT);
             double weaponSpecificPercent = CombatUtility.getWeaponSpecificDamageBonus(attacker, weapon);
 
             double afflictedBonus = 0;
-            if (AilmentManager.isAfflicted((LivingEntity) (Object) this)) {
+            if (AilmentManager.isAfflicted(target)) {
                 afflictedBonus = attacker.getAttributeValue(ModAttributes.DAMAGE_AGAINST_AFFLICTED_PERCENT);
             }
 
@@ -51,8 +68,7 @@ public class BonusAttackDamageMixin {
                 }
             }
 
-            double totalPercent = attributePercent + weaponSpecificPercent
-                    + afflictedBonus + typeBonus;
+            double totalPercent = attributePercent + weaponSpecificPercent + afflictedBonus + typeBonus;
 
             if (CombatUtility.isTwoHanding(attacker, weapon)) {
                 totalPercent += attacker.getAttributeValue(ModAttributes.TWO_HANDING_DAMAGE_PERCENT);
@@ -62,11 +78,96 @@ public class BonusAttackDamageMixin {
                 totalPercent += attacker.getAttributeValue(ModAttributes.ONE_HANDED_DAMAGE_PERCENT);
             }
 
-            // Apply percentage to total damage (base + bonus)
-            return (float) (damageWithBonus * (1.0 + totalPercent));
+            double damageAfterCrit = attacker.getAttributeValue(ModAttributes.DAMAGE_AFTER_CRIT_PERCENT);
+            if (damageAfterCrit > 0 && CombatUtility.hasCritInLast8Seconds(attacker, target.getWorld().getTime())) {
+                totalPercent += damageAfterCrit;
+            }
+
+            float finalDamage = (float) (damageWithBonus * (1.0 + totalPercent));
+
+            // 4. Critical Strike Roll & Multiplier
+            double baseCrit = attacker.getAttributeValue(ModAttributes.CRIT_CHANCE);
+            double localCrit = EquipmentStatApplier.getItemStatValue(weapon, "local_crit_chance");
+            double globalCrit = attacker.getAttributeValue(ModAttributes.GLOBAL_CRIT_CHANCE_PERCENT);
+            double critChance = (baseCrit * (1.0 + localCrit)) * (1.0 + globalCrit);
+
+            if (AilmentManager.isAfflicted(target)) {
+                critChance += attacker.getAttributeValue(ModAttributes.CRIT_CHANCE_AGAINST_AFFLICTED);
+            }
+
+            if (attacker.getAttributeValue(ModAttributes.KEYSTONE_RESOLUTE_TECHNIQUE) > 0) {
+                critChance = 0;
+            }
+
+            if (critChance > 0 && attacker.getRandom().nextFloat() < critChance) {
+                double critMult = CombatUtility.getAttributeValue(attacker, ModAttributes.CRIT_MULTIPLIER, weapon, "crit_multiplier", source);
+
+                // Elemental Overload check
+                if (attacker.getAttributeValue(ModAttributes.KEYSTONE_ELEMENTAL_OVERLOAD) > 0) {
+                    critMult = 1.0;
+                    attacker.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
+                            com.cranks.dungeons.effect.ModEffects.ELEMENTAL_OVERLOAD,
+                            160, // 8 seconds (20 ticks * 8)
+                            0, false, true, true
+                    ));
+                }
+
+                // Armor Crit Mitigation & Reduced Critical Damage Taken
+                float extraDamageMult = (float) (critMult - 1.0);
+                double mitigationMultiplier = target.getAttributeValue(ModAttributes.ARMOR_CRIT_MITIGATION);
+                if (mitigationMultiplier > 0) {
+                    double armor = target.getAttributeValue(net.minecraft.entity.attribute.EntityAttributes.GENERIC_ARMOR);
+                    double mitigation = Math.min(1.0, armor * mitigationMultiplier);
+                    extraDamageMult *= (float) (1.0 - mitigation);
+                }
+
+                double reducedCritBonus = target.getAttributeValue(ModAttributes.REDUCED_CRIT_DAMAGE_TAKEN_PERCENT);
+                if (reducedCritBonus > 0) {
+                    extraDamageMult *= (float) Math.max(0.0, 1.0 - reducedCritBonus);
+                }
+
+                float effectiveCritMultiplier = 1.0f + extraDamageMult;
+                finalDamage *= effectiveCritMultiplier;
+
+                CriticalHitState.setCriticalHit(true);
+                CriticalHitState.setCritMultiplier(effectiveCritMultiplier);
+                CombatUtility.recordRecentCrit(attacker, target.getWorld().getTime());
+
+                if (!target.getWorld().isClient() && target.getWorld() instanceof ServerWorld serverWorld) {
+                    spawnCriticalEffects(serverWorld, target, attacker);
+                }
+            }
+
+            return finalDamage;
         }
 
         return amount;
     }
 
+    @Unique
+    private void spawnCriticalEffects(ServerWorld world, LivingEntity target, LivingEntity attacker) {
+        world.spawnParticles(
+                net.minecraft.particle.ParticleTypes.ENCHANTED_HIT,
+                target.getX(), target.getY() + target.getHeight() * 0.75, target.getZ(),
+                15, 0.2, 0.2, 0.2, 0.2
+        );
+        world.spawnParticles(
+                net.minecraft.particle.ParticleTypes.CRIT,
+                target.getX(), target.getY() + target.getHeight() * 0.5, target.getZ(),
+                10, 0.3, 0.3, 0.3, 0.15
+        );
+        world.spawnParticles(
+                net.minecraft.particle.ParticleTypes.GLOW,
+                target.getX(), target.getY() + target.getHeight() * 0.5, target.getZ(),
+                12, 0.4, 0.4, 0.4, 0.05
+        );
+        world.playSound(
+                null,
+                target.getBlockPos(),
+                ModSounds.CRITICAL_HIT,
+                attacker instanceof PlayerEntity ? SoundCategory.PLAYERS : SoundCategory.HOSTILE,
+                1.0f,
+                1.0f
+        );
+    }
 }

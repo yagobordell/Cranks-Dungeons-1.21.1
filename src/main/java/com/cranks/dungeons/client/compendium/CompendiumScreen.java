@@ -33,11 +33,11 @@ public class CompendiumScreen extends Screen {
     private static final int ICON_SLOT_HEIGHT = ICON_SIZE + ICON_PADDING;
 
     /** Colors */
-    private static final int SIDEBAR_BG_COLOR = 0xFF0D0D1A;
-    private static final int SIDEBAR_BORDER_COLOR = 0xFF2A2A4A;
-    private static final int TAB_SELECTED_BG = 0xFF1A1A3A;
-    private static final int TAB_HOVER_BG = 0xFF15152A;
-    private static final int CONTENT_BG_COLOR = 0xFF111122;
+    private static final int SIDEBAR_BG_COLOR = 0xFF141418;
+    private static final int SIDEBAR_BORDER_COLOR = 0xFF2A2A32;
+    private static final int TAB_SELECTED_BG = 0xFF24242C;
+    private static final int TAB_HOVER_BG = 0xFF1C1C22;
+    private static final int CONTENT_BG_COLOR = 0xFF18181E;
 
     /** Content area bounds (set during init) */
     private int contentX, contentY, contentW, contentH;
@@ -184,8 +184,8 @@ public class CompendiumScreen extends Screen {
             // Tab background highlight
             if (isActive) {
                 context.fill(0, iconY - 2, SIDEBAR_WIDTH - 1, iconY + ICON_SIZE + 2, TAB_SELECTED_BG);
-                // Active indicator: thin colored line on the left edge
-                context.fill(0, iconY - 2, 2, iconY + ICON_SIZE + 2, 0xFF6060FF);
+                // Active indicator: Vanilla Gold line on the left edge
+                context.fill(0, iconY - 2, 2, iconY + ICON_SIZE + 2, 0xFFFFAA00);
             } else if (isHovered) {
                 context.fill(0, iconY - 2, SIDEBAR_WIDTH - 1, iconY + ICON_SIZE + 2, TAB_HOVER_BG);
             }

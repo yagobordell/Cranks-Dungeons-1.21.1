@@ -110,7 +110,7 @@ public class WorldTreeConfig {
             if (obj.has("icon") && !obj.get("icon").getAsString().isEmpty()) {
                 icon = Identifier.of(obj.get("icon").getAsString());
             } else {
-                icon = com.cranks.dungeons.stat.passive.PassiveIconManager.getIcon(id, modifiers, isAttributeSelection);
+                icon = com.cranks.dungeons.stat.passive.PassiveIconManager.getIcon(id, name, isAttributeSelection);
             }
 
             nodes.add(new PassiveNode(id, name, description, gridX, gridY, connections, modifiers, icon, shape, isAttributeSelection, attributeSelectionAmount));
@@ -219,8 +219,11 @@ public class WorldTreeConfig {
             }
             obj.add("modifiers", mods);
 
-            if (node.icon() != null) {
-                obj.addProperty("icon", node.icon().toString());
+            Identifier defaultTitleIcon = com.cranks.dungeons.stat.passive.PassiveIconManager.getIcon(node.id(), node.name(), node.isAttributeSelection());
+            boolean isCustomOverride = node.icon() != null && !node.icon().equals(defaultTitleIcon) && !node.icon().equals(com.cranks.dungeons.stat.passive.PassiveIconManager.PLACEHOLDER_ICON);
+
+            if (node.isAttributeSelection() || isCustomOverride) {
+                obj.addProperty("icon", node.icon() != null ? node.icon().toString() : "");
             } else {
                 obj.addProperty("icon", "");
             }

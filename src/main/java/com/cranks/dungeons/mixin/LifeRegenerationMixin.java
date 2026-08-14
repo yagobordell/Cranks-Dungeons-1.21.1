@@ -27,6 +27,14 @@ public class LifeRegenerationMixin {
         double percentLifeRegen = entity.getAttributeValue(ModAttributes.MAX_HEALTH_REGENERATION_PERCENT);
         
         double lifeRegen = flatLifeRegen + (entity.getMaxHealth() * percentLifeRegen);
+
+        double movingRegenBonus = entity.getAttributeValue(ModAttributes.REGENERATION_RATE_WHILE_MOVING_PERCENT);
+        if (movingRegenBonus > 0) {
+            boolean isMoving = Math.abs(entity.getX() - entity.prevX) > 0.001 || Math.abs(entity.getZ() - entity.prevZ) > 0.001 || entity.getVelocity().horizontalLengthSquared() > 0.0001;
+            if (isMoving) {
+                lifeRegen *= (1.0 + movingRegenBonus);
+            }
+        }
         
         if (lifeRegen > 0) {
             float healAmount = (float) (lifeRegen / 20.0);

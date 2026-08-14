@@ -151,20 +151,28 @@ public class WorldTreeTabRenderer implements CompendiumTabRenderer {
         if (!draftUnlocked.isEmpty()) {
             var player = MinecraftClient.getInstance().player;
             if (player != null) {
+                WorldTreeDataComponent data = ModComponents.WORLD_TREE_DATA.get(player);
+                if (draftUnlocked.size() > data.getUnspentPoints()) {
+                    player.sendMessage(Text.literal("Not enough points to apply draft!").formatted(Formatting.RED), false);
+                    return;
+                }
+
                 net.minecraft.client.network.ClientPlayNetworkHandler handler = MinecraftClient.getInstance().getNetworkHandler();
                 net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking.send(
                         new com.cranks.dungeons.network.BulkUnlockWorldNodesPayload(new java.util.HashMap<>(draftUnlocked)));
-                var data = ModComponents.WORLD_TREE_DATA.get(player);
+
                 for (String id : draftUnlocked.keySet()) {
                     data.unlockNode(id);
                     String choice = draftUnlocked.get(id);
                     if (choice != null && !choice.isEmpty()) {
                         data.setNodeChoice(id, choice);
                     }
+                    data.addUnspentPoints(-1);
                 }
 
                 draftUnlocked.clear();
-                parent.init();
+                draftPoints = data.getUnspentPoints();
+                parent.refreshTab();
                 this.cacheDirty = true;
             }
         }
@@ -172,8 +180,13 @@ public class WorldTreeTabRenderer implements CompendiumTabRenderer {
 
     private void resetDraft() {
         draftUnlocked.clear();
+        var player = MinecraftClient.getInstance().player;
+        if (player != null) {
+            WorldTreeDataComponent data = ModComponents.WORLD_TREE_DATA.get(player);
+            draftPoints = data.getUnspentPoints();
+        }
         this.cacheDirty = true;
-        parent.init();
+        parent.refreshTab();
     }
 
     @Override
@@ -184,6 +197,7 @@ public class WorldTreeTabRenderer implements CompendiumTabRenderer {
         if (player == null) return;
 
         WorldTreeDataComponent data = ModComponents.WORLD_TREE_DATA.get(player);
+        this.draftPoints = data.getUnspentPoints() - draftUnlocked.size();
         Set<String> unlocked = data.getUnlockedNodes();
 
         var textRenderer = MinecraftClient.getInstance().textRenderer;
@@ -202,7 +216,7 @@ public class WorldTreeTabRenderer implements CompendiumTabRenderer {
                 double currentGridScale = BASE_GRID_SCALE * zoom;
                 double sx = panX + connectionSource.gridX() * currentGridScale;
                 double sy = panY + connectionSource.gridY() * currentGridScale;
-                drawOptimizedLineGhost(context, (float)sx, (float)sy, (float)mouseX, (float)mouseY, 0x80FFFFFF, 2.0f, 0.5f);
+                drawOptimizedLineGhost(context, (float)sx, (float)sy, (float)mouseX, (float)mouseY, 0x800674BB, 2.0f, 0.5f);
             } else {
                 context.drawTextWithShadow(textRenderer, "L-Click: Drag | R-Click: Create/Edit | Shift+R-Click: Delete", contentX + 10, contentY + 46, 0xAAAAAA);
             }
@@ -253,6 +267,12 @@ public class WorldTreeTabRenderer implements CompendiumTabRenderer {
             }
         }
 
+        context.draw();
+        context.enableScissor(contentX, contentY, contentX + contentW, contentY + contentH);
+
+        // --- BATCH RENDER CONNECTIONS & NODES IN 1 GPU CALL ---
+        ShapeRenderer.beginBatch(context);
+
         for (Edge edge : edgeCache) {
             float x1 = (float) (panX + edge.n1.gridX() * currentGridScale);
             float y1 = (float) (panY + edge.n1.gridY() * currentGridScale);
@@ -264,9 +284,10 @@ public class WorldTreeTabRenderer implements CompendiumTabRenderer {
                 continue;
             }
 
-            int color = 0xFF888888; 
-            float baseWidth = 3.0f; 
-            float alpha = 1.0f;
+            int innerColor = 0xFF18181C; // Deepslate inert core
+            int outerColor = 0xFF424248; // Deepslate chiseled border
+            float baseWidth = 0.75f;
+            boolean isNeon = false;
 
             boolean n1Unlocked = unlocked.contains(edge.n1.id());
             boolean n2Unlocked = unlocked.contains(edge.n2.id());
@@ -277,18 +298,21 @@ public class WorldTreeTabRenderer implements CompendiumTabRenderer {
             boolean n2Active = n2Unlocked || n2Drafted;
 
             if (n1Unlocked && n2Unlocked) {
-                color = 0xFFCCAA00; // Muted Gold
-                baseWidth = 6.0f; 
-                alpha = 1.0f;
+                innerColor = 0xFFFFFDE7; // Radiant white-gold
+                outerColor = 0xFFFFAA00; // Vanilla gold aura
+                baseWidth = 0.85f;
+                isNeon = true;
             } else if (n1Active && n2Active) {
-                color = 0xFF00AAAA; // Muted Cyan
-                baseWidth = 6.0f;
-                alpha = 1.0f;
+                innerColor = 0xFFFFB74D; // Forge ember
+                outerColor = 0xFF8C3B12; // Raw copper
+                baseWidth = 0.75f;
+                isNeon = true;
             } else if ((n1Active && canUnlockCache.contains(edge.n2.id()))
                     || (n2Active && canUnlockCache.contains(edge.n1.id()))) {
-                color = 0xFF22AA22; // Muted Green
-                baseWidth = 4.5f;
-                alpha = 1.0f;
+                innerColor = 0xFF4CAF50; // Muted Emerald core
+                outerColor = 0xFF1B381E; // Deep Moss glow
+                baseWidth = 0.75f;
+                isNeon = true;
             }
 
             boolean n1OnPath = nodesOnHoverPath.contains(edge.n1.id());
@@ -298,16 +322,29 @@ public class WorldTreeTabRenderer implements CompendiumTabRenderer {
                 int d1 = distanceMap.getOrDefault(edge.n1.id(), -1);
                 int d2 = distanceMap.getOrDefault(edge.n2.id(), -1);
                 if (Math.abs(d1 - d2) == 1) {
-                    color = 0xFFDDDDDD; // Muted White
-                    baseWidth = 8.0f;
-                    alpha = 1.0f;
+                    innerColor = 0xFF7DD3FC; // Beacon sparkle
+                    outerColor = 0xFF0369A1; // Lapis glow
+                    baseWidth = 0.75f;
+                    isNeon = true;
                 }
             }
 
             float finalWidth = (float) (baseWidth * Math.sqrt(zoom));
-            ShapeRenderer.drawLine(context, x1, y1, x2, y2, finalWidth, (color & 0x00FFFFFF) | ((int) (alpha * 255) << 24));
+
+            if (isNeon) {
+                ShapeRenderer.drawBatchedLine(x1, y1, x2, y2, finalWidth * 2.5f,
+                        (outerColor & 0x00FFFFFF) | 0xDD000000);
+                ShapeRenderer.drawBatchedLine(x1, y1, x2, y2, finalWidth,
+                        innerColor);
+            } else {
+                ShapeRenderer.drawBatchedLine(x1, y1, x2, y2, finalWidth + 1.2f,
+                        outerColor);
+                ShapeRenderer.drawBatchedLine(x1, y1, x2, y2, finalWidth,
+                        innerColor);
+            }
         }
 
+        // --- DRAW NODE SHAPES (BATCHED) ---
         for (PassiveNode node : allNodesMap.values()) {
             double nx = panX + node.gridX() * currentGridScale;
             double ny = panY + node.gridY() * currentGridScale;
@@ -326,32 +363,72 @@ public class WorldTreeTabRenderer implements CompendiumTabRenderer {
             boolean isHovered = (hovered != null && node.id().equals(hovered.id()));
 
             if (node.shape() != null && !node.shape().isEmpty()) {
-                String state = "locked";
-                int nodeColor = 0xFF555555;
-                if (isDraft) {
-                    state = "drafted";
-                    nodeColor = 0xFF00AAAA;
-                } else if (unlocked.contains(node.id())) {
-                    state = "unlocked";
-                    nodeColor = 0xFFCCAA00;
-                } else if (canUnlock) {
-                    state = "available";
-                    nodeColor = 0xFF22AA22;
-                }
-
-                ShapeRenderer.drawShape(context, nx, ny, actualNodeSize, node.shape(), 0xFF111122);
-                ShapeRenderer.drawShape(context, nx, ny, actualNodeSize * 0.9, node.shape(), nodeColor);
-
-                if (selectedNodeIds.contains(node.id())) {
-                    double haloSize = actualNodeSize * 1.3;
-                    ShapeRenderer.drawShape(context, nx, ny, haloSize, node.shape(), 0x6600AAAA);
-                }
+                int nodeInner = 0xFF18181C;
+                int nodeOuter = 0xFF424248;
+                boolean nodeNeon = false;
 
                 if (isHovered) {
-                    double haloSize = actualNodeSize * 1.15;
-                    ShapeRenderer.drawShape(context, nx, ny, haloSize, node.shape(), 0x44FFFFFF);
+                    nodeInner = 0xFF7DD3FC;
+                    nodeOuter = 0xFF0369A1;
+                    nodeNeon = true;
+                } else if (isDraft) {
+                    nodeInner = 0xFFFFB74D;
+                    nodeOuter = 0xFF8C3B12;
+                    nodeNeon = true;
+                } else if (unlocked.contains(node.id())) {
+                    nodeInner = 0xFFFFFDE7;
+                    nodeOuter = 0xFFFFAA00;
+                    nodeNeon = true;
+                } else if (canUnlock) {
+                    nodeInner = 0xFF4CAF50; // Muted Emerald
+                    nodeOuter = 0xFF1B381E; // Deep Moss
+                    nodeNeon = true;
+                }
+
+                if (nodeNeon) {
+                    // Subtle soft alpha-gradient radial bloom/glow
+                    double glowSpread = isHovered ? 2.8 : 1.6;
+                    int glowAlpha = isHovered ? 0x99000000 : 0x77000000;
+                    ShapeRenderer.drawBatchedShapeGlow(nx, ny, actualNodeSize, glowSpread, node.shape(), (nodeOuter & 0x00FFFFFF) | glowAlpha);
+
+                    // Outer 1px frame
+                    ShapeRenderer.drawBatchedShape(nx, ny, actualNodeSize, node.shape(), 0xFF101014);
+                    // Proportional state outer rim
+                    ShapeRenderer.drawBatchedShape(nx, ny, actualNodeSize * 0.90, node.shape(), nodeOuter);
+                    // Proportional inner luminous core
+                    ShapeRenderer.drawBatchedShape(nx, ny, actualNodeSize * 0.76, node.shape(), nodeInner);
+                    // Dark center socket for icon
+                    ShapeRenderer.drawBatchedShape(nx, ny, actualNodeSize * 0.58, node.shape(), 0xFF141418);
+                } else {
+                    // Locked: 1:1 match with 3D tactile stone button bevels
+                    ShapeRenderer.drawBatchedShape(nx, ny, actualNodeSize, node.shape(), 0xFF101014);
+                    ShapeRenderer.drawBatchedShape(nx, ny, actualNodeSize * 0.90, node.shape(), 0xFF585864);
+                    ShapeRenderer.drawBatchedShape(nx + 0.3, ny + 0.3, actualNodeSize * 0.82, node.shape(), 0xFF18181E);
+                    ShapeRenderer.drawBatchedShape(nx, ny, actualNodeSize * 0.76, node.shape(), 0xFF24242C);
+                    ShapeRenderer.drawBatchedShape(nx, ny, actualNodeSize * 0.58, node.shape(), 0xFF141418);
+                }
+
+                // Draw selection highlight with subtle soft bloom
+                if (selectedNodeIds.contains(node.id())) {
+                    ShapeRenderer.drawBatchedShapeGlow(nx, ny, actualNodeSize, 3.0, node.shape(), 0xAAFFAA00);
                 }
             }
+        }
+
+        // Flush all lines and shapes to GPU in ONE single draw call
+        ShapeRenderer.endBatch();
+
+        // --- DRAW NODE ICONS (ALL ZOOM LEVELS) ---
+        for (PassiveNode node : allNodesMap.values()) {
+            double nx = panX + node.gridX() * currentGridScale;
+            double ny = panY + node.gridY() * currentGridScale;
+
+            if (nx < contentX - margin || nx > screenW + margin || ny < contentY - margin || ny > screenH + margin) {
+                continue;
+            }
+
+            double multiplier = getNodeSizeMultiplier(node.shape());
+            double actualNodeSize = currentNodeSize * multiplier;
 
             Identifier iconToDraw = node.icon();
             if (node.isAttributeSelection()) {
@@ -376,11 +453,14 @@ public class WorldTreeTabRenderer implements CompendiumTabRenderer {
                         !iconPath.equals("passive/diamond") && !iconPath.equals("passive/hexagon") &&
                         !iconPath.equals("passive/generic")) {
 
-                    double iconSize = actualNodeSize * 0.7;
+                    double iconSize = actualNodeSize * 0.56;
                     drawPrecisionTexture(context, iconToDraw, nx, ny, iconSize, 0xFFFFFFFF);
                 }
             }
         }
+
+        context.draw();
+        context.disableScissor();
 
         if (hovered != null) {
             String title = "§6" + hovered.name();
@@ -402,7 +482,7 @@ public class WorldTreeTabRenderer implements CompendiumTabRenderer {
             context.drawTooltip(textRenderer, tooltipTexts, mouseX, mouseY);
         }
 
-        String pointsText = "Unspent Points: " + draftPoints;
+        String pointsText = "§6Unspent Points: §a" + draftPoints;
         context.drawCenteredTextWithShadow(textRenderer, pointsText, contentX + contentW / 2, contentY + contentH - 48, 0xFFFFAA00);
 
         if (isSelectingBox) {
@@ -416,11 +496,11 @@ public class WorldTreeTabRenderer implements CompendiumTabRenderer {
             int minY = Math.min(y1, y2);
             int maxY = Math.max(y1, y2);
 
-            context.fill(minX, minY, maxX, maxY, 0x4055FFFF); 
-            context.fill(minX, minY, maxX, minY + 1, 0xFF55FFFF); 
-            context.fill(minX, maxY - 1, maxX, maxY, 0xFF55FFFF); 
-            context.fill(minX, minY, minX + 1, maxY, 0xFF55FFFF); 
-            context.fill(maxX - 1, minY, maxX, maxY, 0xFF55FFFF); 
+            context.fill(minX, minY, maxX, maxY, 0x40FFAA00); // Amber selection fill
+            context.fill(minX, minY, maxX, minY + 1, 0xFFFFAA00); 
+            context.fill(minX, maxY - 1, maxX, maxY, 0xFFFFAA00); 
+            context.fill(minX, minY, minX + 1, maxY, 0xFFFFAA00); 
+            context.fill(maxX - 1, minY, maxX, maxY, 0xFFFFAA00); 
         }
 
         if (showStatsPanel) {
@@ -435,19 +515,14 @@ public class WorldTreeTabRenderer implements CompendiumTabRenderer {
             if (activeNode != null && activeNode.modifiers() != null) {
                 int count = activeNode.modifiers().size();
                 int bgHeight = 8 + (count * 22);
-                context.fill(cx - 4, cy - 4, cx + 154, cy - 4 + bgHeight, 0xFF111122);
-                context.fill(cx - 5, cy - 5, cx + 155, cy - 4, 0xFF2A2A4A);
-                context.fill(cx - 5, cy - 4 + bgHeight, cx + 155, cy - 3 + bgHeight, 0xFF2A2A4A);
-                context.fill(cx - 5, cy - 4, cx - 4, cy - 4 + bgHeight, 0xFF2A2A4A);
-                context.fill(cx + 154, cy - 4, cx + 155, cy - 4 + bgHeight, 0xFF2A2A4A);
+
+                // Draw 3D Beveled Stone Container
+                ShapeRenderer.drawBeveledPanel(context, cx - 4, cy - 4, 158, bgHeight);
 
                 int i = 0;
                 for (Map.Entry<RegistryEntry<EntityAttribute>, Double> entry : activeNode.modifiers().entrySet()) {
                     int btnY = cy + (i * 22);
-                    Identifier btnTex = (mouseX >= cx && mouseX <= cx + 150 && mouseY >= btnY && mouseY <= btnY + 20)
-                            ? Identifier.of("minecraft", "widget/button_highlighted")
-                            : Identifier.of("minecraft", "widget/button");
-                    context.drawGuiTexture(btnTex, cx, btnY, 150, 20);
+                    boolean hoverBtn = mouseX >= cx && mouseX <= cx + 150 && mouseY >= btnY && mouseY <= btnY + 20;
 
                     String modId = entry.getKey().getKey().map(k -> k.getValue().getPath()).orElse("unknown");
                     double amount = entry.getValue();
@@ -460,7 +535,7 @@ public class WorldTreeTabRenderer implements CompendiumTabRenderer {
                     if (displayName.endsWith("_experience")) displayName = displayName.replace("_experience", " Exp");
                     displayName = java.util.Arrays.stream(displayName.split("_")).map(s -> s.substring(0, 1).toUpperCase() + s.substring(1)).collect(java.util.stream.Collectors.joining(" "));
 
-                    context.drawCenteredTextWithShadow(textRenderer, "+" + amountStr + " " + displayName, cx + 75, btnY + 6, 0xFFFFFFFF);
+                    CompendiumButtonWidget.drawButton(context, cx, btnY, 150, 20, hoverBtn, true, "+" + amountStr + " " + displayName);
                     i++;
                 }
             }
@@ -469,22 +544,18 @@ public class WorldTreeTabRenderer implements CompendiumTabRenderer {
 
     private void renderStatsPanel(DrawContext context) {
         var textRenderer = MinecraftClient.getInstance().textRenderer;
-        int panelWidth = 200;
+        int panelWidth = 230;
         int panelHeight = (int) (contentH * 0.7);
         int panelX = contentX + contentW - panelWidth - 10;
         int panelY = contentY + (contentH - panelHeight) / 2;
 
-        // Draw Panel Background
-        context.fill(panelX, panelY, panelX + panelWidth, panelY + panelHeight, 0xFF111122);
-        context.fill(panelX - 1, panelY - 1, panelX + panelWidth + 1, panelY, 0xFF2A2A4A);
-        context.fill(panelX - 1, panelY + panelHeight, panelX + panelWidth + 1, panelY + panelHeight + 1, 0xFF2A2A4A);
-        context.fill(panelX - 1, panelY, panelX, panelY + panelHeight, 0xFF2A2A4A);
-        context.fill(panelX + panelWidth, panelY, panelX + panelWidth + 1, panelY + panelHeight, 0xFF2A2A4A);
+        // Draw 3D Beveled Stone Panel
+        ShapeRenderer.drawBeveledPanel(context, panelX, panelY, panelWidth, panelHeight);
 
         int ty = panelY + 10;
-        context.drawCenteredTextWithShadow(textRenderer, "Tree Summary", panelX + panelWidth / 2, ty, 0xFFEEEEFF);
-        // Subtle underline
-        context.fill(panelX + 10, ty + 10, panelX + panelWidth - 10, ty + 11, 0xFF4A4A7A);
+        context.drawCenteredTextWithShadow(textRenderer, "§6Tree Summary", panelX + panelWidth / 2, ty, 0xFFFFAA00);
+        // Gold underline
+        context.fill(panelX + 10, ty + 10, panelX + panelWidth - 10, ty + 11, 0xFFFFAA00);
         ty += 18;
 
         com.cranks.dungeons.component.WorldTreeDataComponent wtData = ModComponents.WORLD_TREE_DATA.get(MinecraftClient.getInstance().player);
@@ -492,7 +563,7 @@ public class WorldTreeTabRenderer implements CompendiumTabRenderer {
         int currentXp = wtData.getGatheringXp();
         int nextXp = wtData.getNextLevelXp();
 
-        context.drawCenteredTextWithShadow(textRenderer, "World Lvl: " + level, panelX + panelWidth / 2, ty, 0xFF66FF66);
+        context.drawCenteredTextWithShadow(textRenderer, "§6World Lvl: §a" + level, panelX + panelWidth / 2, ty, 0xFFFFFFFF);
         ty += 16;
 
         Identifier expBg = Identifier.of("minecraft", "hud/experience_bar_background");
@@ -525,7 +596,8 @@ public class WorldTreeTabRenderer implements CompendiumTabRenderer {
 
                 double baseTotal = baseStats.getOrDefault(key, 0.0);
                 boolean isDrafted = (total != baseTotal);
-                int valColor = isDrafted ? 0xFF55FF55 : 0xFF55FFFF;
+                int valColor = isDrafted ? 0xFF66FF66 : 0xFFFFFFFF;
+                int keyColor = isDrafted ? 0xFF88FF88 : 0xFFAAAAFF;
 
                 double displayVal = total;
                 boolean isPercent = key.toLowerCase().contains("percent") ||
@@ -551,11 +623,17 @@ public class WorldTreeTabRenderer implements CompendiumTabRenderer {
                     valStr += PassiveStatHelper.getStatSuffix(key);
                 }
 
-                int keyColor = isDrafted ? 0xFF55FF55 : 0xFFAAAAAA;
-                context.drawTextWithShadow(textRenderer, key + ":", panelX + 8, ty, keyColor);
+                int valW = textRenderer.getWidth(valStr);
+                int maxKeyWidth = panelWidth - 24 - valW - 6;
+                String displayKey = textRenderer.trimToWidth(key, maxKeyWidth);
+                if (!displayKey.equals(key) && displayKey.length() > 3) {
+                    displayKey = textRenderer.trimToWidth(displayKey, maxKeyWidth - textRenderer.getWidth("...")) + "...";
+                }
+
+                context.drawTextWithShadow(textRenderer, displayKey + ":", panelX + 12, ty, keyColor);
                 context.drawTextWithShadow(textRenderer, valStr,
-                        panelX + panelWidth - 8 - textRenderer.getWidth(valStr), ty, valColor);
-                ty += 12;
+                        panelX + panelWidth - 12 - valW, ty, valColor);
+                ty += 14;
 
                 if (ty > panelY + panelHeight - 15) break; 
             }

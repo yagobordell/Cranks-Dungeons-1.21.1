@@ -129,16 +129,16 @@ public class ModAttributes {
     public static final RegistryEntry<EntityAttribute> BLEED_MAGNITUDE_PERCENT = register("bleed_magnitude_percent", 0.0, 0.0, 100.0);
     public static final RegistryEntry<EntityAttribute> CHANCE_TO_BLEED = register("chance_to_bleed", 0.0, 0.0, 1.0);
     
-    public static final RegistryEntry<EntityAttribute> CHANCE_TO_BURN = register("chance_to_burn", 0.0, 0.0, 10.0);
     public static final RegistryEntry<EntityAttribute> FLAMMABILITY_MAGNITUDE_PERCENT = register("flammability_magnitude_percent", 0.0, 0.0, 10.0);
     public static final RegistryEntry<EntityAttribute> CHANCE_TO_POISON = register("chance_to_poison", 0.0, 0.0, 1.0);
     public static final RegistryEntry<EntityAttribute> CHANCE_TO_SHOCK = register("chance_to_shock", 0.0, 0.0, 10.0);
 
     public static final RegistryEntry<EntityAttribute> SHOCK_MAGNITUDE_PERCENT = register("shock_magnitude_percent", 0.0, 0.0, 10.0);
-    public static final RegistryEntry<EntityAttribute> SHOCK_THRESHOLD_REDUCTION = register("shock_threshold_reduction", 0.0, 0.0, 0.99);
-
+ 
     public static final RegistryEntry<EntityAttribute> FREEZE_BUILDUP_PERCENT = register("freeze_buildup_percent", 0.0, 0.0, 10.0);
+    public static final RegistryEntry<EntityAttribute> FREEZE_MAGNITUDE_PERCENT = register("freeze_magnitude_percent", 0.0, 0.0, 10.0);
     public static final RegistryEntry<EntityAttribute> ELECTROCUTE_BUILDUP_PERCENT = register("electrocute_buildup_percent", 0.0, 0.0, 10.0);
+    public static final RegistryEntry<EntityAttribute> ELECTROCUTE_MAGNITUDE_PERCENT = register("electrocute_magnitude_percent", 0.0, 0.0, 10.0);
     
     public static final RegistryEntry<EntityAttribute> REDUCED_BLEED_DURATION_ON_YOU = register("reduced_bleed_duration_on_you", 0.0, 0.0, 1.0);
     public static final RegistryEntry<EntityAttribute> REDUCED_BURN_DURATION_ON_YOU = register("reduced_burn_duration_on_you", 0.0, 0.0, 1.0);
@@ -178,6 +178,24 @@ public class ModAttributes {
 
     public static final RegistryEntry<EntityAttribute> ATTACK_SPEED = register("attack_speed", 0.0, 0.0, 10.0);
     public static final RegistryEntry<EntityAttribute> KNOCKBACK = register("knockback", 0.0, 0.0, 2.0);
+
+    // New Passive Tree Modifiers
+    public static final RegistryEntry<EntityAttribute> REDUCED_CRIT_DAMAGE_TAKEN_PERCENT = register("reduced_crit_damage_taken_percent", 0.0, 0.0, 1.0);
+    public static final RegistryEntry<EntityAttribute> CLOSE_RANGE_KNOCKBACK_PERCENT = register("close_range_knockback_percent", 0.0, 0.0, 10.0);
+    public static final RegistryEntry<EntityAttribute> INCREASED_AILMENT_CHANCE_PERCENT = register("increased_ailment_chance_percent", 0.0, 0.0, 10.0);
+    public static final RegistryEntry<EntityAttribute> PROJECTILE_RICOCHET_CHANCE = register("projectile_ricochet_chance", 0.0, 0.0, 10.0);
+    public static final RegistryEntry<EntityAttribute> REGENERATION_RATE_WHILE_MOVING_PERCENT = register("regeneration_rate_while_moving_percent", 0.0, 0.0, 10.0);
+    public static final RegistryEntry<EntityAttribute> PROJECTILE_PIERCE_CHANCE = register("projectile_pierce_chance", 0.0, 0.0, 10.0);
+    public static final RegistryEntry<EntityAttribute> DAMAGE_AFTER_CRIT_PERCENT = register("damage_after_crit_percent", 0.0, 0.0, 10.0);
+    public static final RegistryEntry<EntityAttribute> KNOCKBACK_RESISTANCE_WHEN_FULL_LIFE = register("knockback_resistance_when_full_life", 0.0, 0.0, 1.0);
+    public static final RegistryEntry<EntityAttribute> CRIT_NON_DAMAGING_AILMENT_MAGNITUDE_PERCENT = register("crit_non_damaging_ailment_magnitude_percent", 0.0, 0.0, 10.0);
+    public static final RegistryEntry<EntityAttribute> KNOCKBACK_RESISTANCE_PER_250_ENERGY_SHIELD = register("knockback_resistance_per_250_energy_shield", 0.0, 0.0, 10.0);
+    public static final RegistryEntry<EntityAttribute> AILMENT_THRESHOLD_PERCENT_OF_MAX_HEALTH = register("ailment_threshold_percent_of_max_health", 0.0, 0.0, 10.0);
+    public static final RegistryEntry<EntityAttribute> AILMENT_THRESHOLD_PERCENT_OF_MAX_ES = register("ailment_threshold_percent_of_max_es", 0.0, 0.0, 10.0);
+    public static final RegistryEntry<EntityAttribute> ELEMENTAL_AILMENT_THRESHOLD_PERCENT = register("elemental_ailment_threshold_percent", 0.0, 0.0, 10.0);
+    public static final RegistryEntry<EntityAttribute> FREEZE_THRESHOLD_PERCENT = register("freeze_threshold_percent", 0.0, 0.0, 10.0);
+    public static final RegistryEntry<EntityAttribute> ELEMENTAL_AILMENT_THRESHOLD_PER_DEXTERITY = register("elemental_ailment_threshold_per_dexterity", 0.0, 0.0, 100.0);
+    public static final RegistryEntry<EntityAttribute> AILMENT_THRESHOLD_FROM_BOOTS_LOWEST_ARMOR_EVASION = register("ailment_threshold_from_boots_lowest_armor_evasion", 0.0, 0.0, 1.0);
 
     // Utility stats
     public static final RegistryEntry<EntityAttribute> MINING_EFFICIENCY = register("mining_efficiency", 1.0, 0.0,

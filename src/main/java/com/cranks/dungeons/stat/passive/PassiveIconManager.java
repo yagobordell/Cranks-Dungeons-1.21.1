@@ -74,7 +74,6 @@ public class PassiveIconManager {
         ATTRIBUTE_ICONS.put("cranks-dungeons:damage_against_afflicted_percent", "passive/damage_against_afflicted_percent");
         ATTRIBUTE_ICONS.put("cranks-dungeons:damage_while_afflicted_percent", "passive/damage_while_afflicted_percent");
         ATTRIBUTE_ICONS.put("cranks-dungeons:crit_chance_against_afflicted", "passive/crit_chance_against_afflicted");
-        ATTRIBUTE_ICONS.put("cranks-dungeons:chance_to_burn", "passive/chance_to_burn");
         ATTRIBUTE_ICONS.put("cranks-dungeons:burn_damage_percent", "passive/burn_damage_percent");
         ATTRIBUTE_ICONS.put("cranks-dungeons:burn_duration", "passive/burn_duration");
         ATTRIBUTE_ICONS.put("cranks-dungeons:chance_to_poison", "passive/chance_to_poison");
@@ -90,9 +89,12 @@ public class PassiveIconManager {
         ATTRIBUTE_ICONS.put("cranks-dungeons:chance_to_freeze", "passive/freeze_buildup_percent");
         ATTRIBUTE_ICONS.put("cranks-dungeons:freeze_magnitude_percent", "passive/freeze_buildup_percent");
         ATTRIBUTE_ICONS.put("cranks-dungeons:electrocute_magnitude_percent", "passive/electrocute_buildup_percent");
-        ATTRIBUTE_ICONS.put("cranks-dungeons:shock_threshold_reduction", "passive/ailment_threshold_reduction");
-        ATTRIBUTE_ICONS.put("cranks-dungeons:freeze_threshold_reduction", "passive/ailment_threshold_reduction");
-        ATTRIBUTE_ICONS.put("cranks-dungeons:electrocute_threshold_reduction", "passive/ailment_threshold_reduction");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:elemental_ailment_threshold_percent", "passive/ailment_threshold_reduction");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:freeze_threshold_percent", "passive/freeze_buildup_percent");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:ailment_threshold_percent_of_max_health", "passive/max_health_bonus");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:ailment_threshold_percent_of_max_es", "passive/energy_shield");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:elemental_ailment_threshold_per_dexterity", "passive/dexterity");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:ailment_threshold_from_boots_lowest_armor_evasion", "passive/bonus_armor");
 
         // --- Defensive ---
         ATTRIBUTE_ICONS.put("cranks-dungeons:max_health_bonus", "passive/max_health_bonus");
@@ -128,6 +130,18 @@ public class PassiveIconManager {
         ATTRIBUTE_ICONS.put("cranks-dungeons:freeze_buildup_percent", "passive/freeze_buildup_percent");
         ATTRIBUTE_ICONS.put("cranks-dungeons:bleed_burst_damage_percent", "passive/bleed_burst_damage_percent");
         ATTRIBUTE_ICONS.put("cranks-dungeons:electrocute_buildup_percent", "passive/electrocute_buildup_percent");
+
+        // New Passive Tree Modifiers
+        ATTRIBUTE_ICONS.put("cranks-dungeons:reduced_crit_damage_taken_percent", "passive/armor_crit_mitigation");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:close_range_knockback_percent", "passive/knockback");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:increased_ailment_chance_percent", "passive/chance_to_shock");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:projectile_ricochet_chance", "passive/projectile_speed");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:regeneration_rate_while_moving_percent", "passive/life_regeneration");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:projectile_pierce_chance", "passive/projectile_damage_percent");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:damage_after_crit_percent", "passive/crit_multiplier");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:knockback_resistance_when_full_life", "passive/knockback_resistance");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:crit_non_damaging_ailment_magnitude_percent", "passive/shock_magnitude_percent");
+        ATTRIBUTE_ICONS.put("cranks-dungeons:knockback_resistance_per_250_energy_shield", "passive/knockback_resistance");
 
 
         ATTRIBUTE_ICONS.put("cranks-dungeons:strength", "passive/strength");
@@ -183,39 +197,62 @@ public class PassiveIconManager {
     }
 
 
+    private static final Map<String, String> TITLE_ICONS = new HashMap<>();
+    public static final Identifier PLACEHOLDER_ICON = Identifier.of("cranks-dungeons", "passive/placeholder");
+
+    static {
+        // Initial / future title-to-icon registrations can be added here or via registerTitleIcon()
+    }
+
     /**
-     * Determine the icon for a node based on its modifiers or its ID.
+     * Registers a title to icon mapping (e.g. "Iron Skin", "passive/armor_percent").
      */
-    public static Identifier getIcon(String nodeId, Map<RegistryEntry<EntityAttribute>, Double> modifiers, boolean isAttributeChoice) {
+    public static void registerTitleIcon(String title, String iconPath) {
+        if (title != null && iconPath != null) {
+            TITLE_ICONS.put(title.trim().toLowerCase(), iconPath);
+        }
+    }
+
+    /**
+     * Determines the icon for a node based on its title / name.
+     * - Attribute selection nodes return passive/no.
+     * - Nodes with no title (or blank/empty) return null (nothing drawn).
+     * - Nodes with a title mapped in TITLE_ICONS return that icon.
+     * - Nodes with an unmapped title return PLACEHOLDER_ICON (black and purple square).
+     */
+    public static Identifier getIcon(String nodeId, String nodeTitle, boolean isAttributeChoice) {
         // Priority 1: Check attribute choice
         if (isAttributeChoice) {
             return Identifier.of("cranks-dungeons", "passive/no");
         }
 
-        // Priority 2: Check modifiers
-        if (modifiers != null && !modifiers.isEmpty()) {
-            for (RegistryEntry<EntityAttribute> entry : modifiers.keySet()) {
-                Identifier attrId = Registries.ATTRIBUTE.getId(entry.value());
-                if (attrId != null) {
-                    String iconPath = ATTRIBUTE_ICONS.get(attrId.toString());
-                    if (iconPath != null) {
-                        return Identifier.of("cranks-dungeons", iconPath);
-                    }
-                }
-            }
+        // Priority 2: Check if node has no title
+        if (nodeTitle == null || nodeTitle.trim().isEmpty()) {
+            return null;
         }
 
-        // Priority 3: Check node ID for class starts
-        if (nodeId.startsWith("marauder_")) {
-            return Identifier.of("cranks-dungeons", "passive/marauder");
-        } else if (nodeId.startsWith("shadow_")) {
-            return Identifier.of("cranks-dungeons", "passive/shadow");
-        } else if (nodeId.startsWith("scoundrel_")) {
-            return Identifier.of("cranks-dungeons", "passive/scoundrel");
+        String stripped = net.minecraft.util.Formatting.strip(nodeTitle);
+        String lookupKey = (stripped != null ? stripped : nodeTitle).trim().toLowerCase();
+
+        if (lookupKey.isEmpty()) {
+            return null;
         }
 
-        // Final fallback
-        return Identifier.of("cranks-dungeons", DEFAULT_ICON);
+        // Priority 3: Check registered title icons
+        String iconPath = TITLE_ICONS.get(lookupKey);
+        if (iconPath != null) {
+            return Identifier.of("cranks-dungeons", iconPath);
+        }
+
+        // Priority 4: Fallback for nodes with a title but no mapped icon
+        return PLACEHOLDER_ICON;
+    }
+
+    /**
+     * Legacy modifier-based overload for backwards compatibility.
+     */
+    public static Identifier getIcon(String nodeId, Map<RegistryEntry<EntityAttribute>, Double> modifiers, boolean isAttributeChoice) {
+        return getIcon(nodeId, "", isAttributeChoice);
     }
 
     public static Identifier getIconForModifier(String modifierId) {
@@ -228,5 +265,35 @@ public class PassiveIconManager {
             return Identifier.of("cranks-dungeons", iconPath);
         }
         return null;
+    }
+
+    /**
+     * Scans the ResourceManager for all existing sprite textures in textures/gui/sprites/ (passive/ and world/ subdirectories).
+     * Only returns icons that actually exist in the resource directory or in loaded resource packs.
+     */
+    public static java.util.List<String> getAllAvailableIcons(net.minecraft.resource.ResourceManager resourceManager) {
+        java.util.Set<String> discovered = new java.util.TreeSet<>();
+        if (resourceManager != null) {
+            try {
+                var resources = resourceManager.findResources("textures/gui/sprites", path -> path.getPath().endsWith(".png"));
+                for (var entry : resources.entrySet()) {
+                    Identifier resId = entry.getKey();
+                    String path = resId.getPath();
+                    if (path.startsWith("textures/gui/sprites/") && path.endsWith(".png")) {
+                        String spritePath = path.substring("textures/gui/sprites/".length(), path.length() - 4);
+                        if (spritePath.startsWith("passive/") || spritePath.startsWith("world/")) {
+                            if (resId.getNamespace().equals("cranks-dungeons")) {
+                                discovered.add(spritePath);
+                            } else {
+                                discovered.add(resId.getNamespace() + ":" + spritePath);
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                com.cranks.dungeons.CranksDungeons.LOGGER.error("[PassiveIconManager] Failed to scan sprites", e);
+            }
+        }
+        return new java.util.ArrayList<>(discovered);
     }
 }

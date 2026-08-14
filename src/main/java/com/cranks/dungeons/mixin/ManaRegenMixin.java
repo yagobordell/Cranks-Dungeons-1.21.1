@@ -80,6 +80,14 @@ public class ManaRegenMixin {
             
             regenPerTick *= (float) (1.0 + regenRate);
             regenPerTick *= (float) (1.0 + recoveryRate);
+
+            double movingRegen = self.getAttributeValue(ModAttributes.REGENERATION_RATE_WHILE_MOVING_PERCENT);
+            if (movingRegen > 0) {
+                boolean isMoving = Math.abs(self.getX() - self.prevX) > 0.001 || Math.abs(self.getZ() - self.prevZ) > 0.001 || self.getVelocity().horizontalLengthSquared() > 0.0001;
+                if (isMoving) {
+                    regenPerTick *= (float) (1.0 + movingRegen);
+                }
+            }
             
             float newMana = Math.min(currentMana + regenPerTick, (float) maxMana);
             provider.cranksdungeons$setCurrentMana(newMana);

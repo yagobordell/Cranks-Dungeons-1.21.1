@@ -25,7 +25,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(LivingEntity.class)
+@Mixin(value = LivingEntity.class, priority = 900)
 public class EnergyShieldDamageMixin {
 
     private static final long SHIELD_COOLDOWN_TICKS = 10L;
@@ -115,7 +115,13 @@ public class EnergyShieldDamageMixin {
         }
 
         // Calculate weighted shield damage (Void deals 2x)
-        DamageConversionHelper.DamageBreakdown breakdown = DamageConversionHelper.getBreakdown(source, amount, self);
+        DamageConversionHelper.DamageBreakdown breakdown = null;
+        if (self instanceof com.cranks.dungeons.util.DamageBreakdownProvider breakdownProvider) {
+            breakdown = breakdownProvider.cranks$getLastDamageBreakdown();
+        }
+        if (breakdown == null) {
+            breakdown = DamageConversionHelper.getBreakdown(source, amount, self);
+        }
         float voidDmg = breakdown.get(DamageElement.VOID);
         float otherDmg = amount - voidDmg;
         float weightedShieldDmg = otherDmg + (voidDmg * 2.0f);

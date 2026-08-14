@@ -1,7 +1,8 @@
 package com.cranks.dungeons.client.screen;
 
-import com.cranks.dungeons.config.PassiveTreeConfig;
+import com.cranks.dungeons.config.WorldTreeConfig;
 import com.cranks.dungeons.registry.ModAttributes;
+import com.cranks.dungeons.stat.passive.PassiveIconManager;
 import com.cranks.dungeons.stat.passive.PassiveNode;
 import com.cranks.dungeons.stat.passive.WorldNodeRegistry;
 import net.minecraft.client.MinecraftClient;
@@ -28,10 +29,12 @@ public class WorldNodeEditScreen extends Screen {
 
     private TextFieldWidget idField;
     private TextFieldWidget nameField;
+    private TextFieldWidget iconField;
     private TextFieldWidget descField;
     private TextFieldWidget shapeField;
 
     private List<String> allAttributeIds = new ArrayList<>();
+    private List<String> allIconSuggestions = new ArrayList<>();
     private List<String> filteredSuggestions = new ArrayList<>();
     private int selectedSuggestion = 0;
     private boolean showSuggestions = false;
@@ -108,13 +111,15 @@ public class WorldNodeEditScreen extends Screen {
                 .filter(id -> com.cranks.dungeons.stat.passive.PassiveStatHelper.WHITELISTED_WORLD_ATTRIBUTES.contains(id))
                 .sorted()
                 .toList();
+
+        allIconSuggestions = PassiveIconManager.getAllAvailableIcons(this.client != null ? this.client.getResourceManager() : null);
         
         int centerX = this.width / 2;
         int leftX = centerX - 210;
         int rightX = centerX + 10;
         int fieldW = 200;
 
-        idField = new TextFieldWidget(this.textRenderer, leftX, 40, fieldW, 20, Text.literal("ID"));
+        idField = new TextFieldWidget(this.textRenderer, leftX, 35, fieldW, 20, Text.literal("ID"));
         idField.setMaxLength(64);
         if (nodeToEdit != null) {
             idField.setText(nodeToEdit.id());
@@ -133,18 +138,28 @@ public class WorldNodeEditScreen extends Screen {
         idField.setEditable(false);
         this.addDrawableChild(idField);
 
-        nameField = new TextFieldWidget(this.textRenderer, leftX, 85, fieldW, 20, Text.literal("Name"));
+        nameField = new TextFieldWidget(this.textRenderer, leftX, 72, fieldW, 20, Text.literal("Name"));
         if (nodeToEdit != null) nameField.setText(nodeToEdit.name());
         this.addDrawableChild(nameField);
 
-        descField = new TextFieldWidget(this.textRenderer, leftX, 130, fieldW, 20, Text.literal("Description"));
+        iconField = new TextFieldWidget(this.textRenderer, leftX, 109, 175, 20, Text.literal("Custom Icon"));
+        iconField.setMaxLength(128);
+        if (nodeToEdit != null && nodeToEdit.icon() != null) {
+            Identifier defaultTitleIcon = PassiveIconManager.getIcon(nodeToEdit.id(), nodeToEdit.name(), nodeToEdit.isAttributeSelection());
+            if (!nodeToEdit.icon().equals(defaultTitleIcon) && !nodeToEdit.icon().equals(PassiveIconManager.PLACEHOLDER_ICON)) {
+                iconField.setText(nodeToEdit.icon().toString());
+            }
+        }
+        this.addDrawableChild(iconField);
+
+        descField = new TextFieldWidget(this.textRenderer, leftX, 146, fieldW, 20, Text.literal("Description"));
         descField.setMaxLength(256);
         if (nodeToEdit != null && nodeToEdit.description() != null) {
             descField.setText(nodeToEdit.description().replace("\n", "\\n"));
         }
         this.addDrawableChild(descField);
 
-        shapeField = new TextFieldWidget(this.textRenderer, leftX, 175, fieldW, 20, Text.literal("Shape"));
+        shapeField = new TextFieldWidget(this.textRenderer, leftX, 183, fieldW, 20, Text.literal("Shape"));
         if (nodeToEdit != null) shapeField.setText(nodeToEdit.shape());
         this.addDrawableChild(shapeField);
 
@@ -184,7 +199,7 @@ public class WorldNodeEditScreen extends Screen {
             }
         }).dimensions(rightX, 165, 205, 20).build();
 
-        int btnY = 270;
+        int btnY = 265;
         if (nodeToEdit != null) {
             saveBtn = ButtonWidget.builder(Text.literal("Save Settings"), b -> {
                 saveNode();
@@ -235,7 +250,7 @@ public class WorldNodeEditScreen extends Screen {
     private void rebuildRows() {
         for (Object child : new ArrayList<>(this.children())) {
             if (child instanceof TextFieldWidget || child instanceof ButtonWidget) {
-                if (child != idField && child != nameField && child != descField && child != shapeField
+                if (child != idField && child != nameField && child != iconField && child != descField && child != shapeField
                         && child != toggleAttrBtn
                         && child != saveBtn && child != cancelBtn
                         && child != deleteBtn && child != connectBtn) {
@@ -246,19 +261,19 @@ public class WorldNodeEditScreen extends Screen {
         
         int i = 0;
         for (ModifierRow row : modifierRows) {
-                int y = 40 + (i * 25);
-                row.attrField.setY(y);
-                row.valField.setY(y);
-                row.removeBtn.setY(y);
-                
-                row.attrField.setVisible(true);
-                row.valField.setVisible(true);
-                row.removeBtn.active = true;
-                
-                this.addDrawableChild(row.attrField);
-                this.addDrawableChild(row.valField);
-                this.addDrawableChild(row.removeBtn);
-                i++;
+            int y = 40 + (i * 25);
+            row.attrField.setY(y);
+            row.valField.setY(y);
+            row.removeBtn.setY(y);
+            
+            row.attrField.setVisible(true);
+            row.valField.setVisible(true);
+            row.removeBtn.active = true;
+            
+            this.addDrawableChild(row.attrField);
+            this.addDrawableChild(row.valField);
+            this.addDrawableChild(row.removeBtn);
+            i++;
         }
         
         int bottomY = 40 + (modifierRows.size() * 25);
@@ -299,7 +314,20 @@ public class WorldNodeEditScreen extends Screen {
         
         double attrAmount = 0.0;
 
-        Identifier calculatedIcon = com.cranks.dungeons.stat.passive.PassiveIconManager.getIcon(id, mods, isAttrSelection);
+        String customIconStr = iconField.getText().trim();
+        Identifier calculatedIcon;
+        if (!customIconStr.isEmpty()) {
+            if (!customIconStr.contains(":")) {
+                calculatedIcon = Identifier.of("cranks-dungeons", customIconStr);
+            } else {
+                calculatedIcon = Identifier.tryParse(customIconStr);
+                if (calculatedIcon == null) {
+                    calculatedIcon = Identifier.of("cranks-dungeons", customIconStr);
+                }
+            }
+        } else {
+            calculatedIcon = PassiveIconManager.getIcon(id, name, isAttrSelection);
+        }
 
         if (nodeToEdit != null) {
             nodeToEdit.setGridX(gridX);
@@ -321,22 +349,51 @@ public class WorldNodeEditScreen extends Screen {
         context.fill(0, 0, this.width, this.height, 0x90000000);
         context.fill(10, 10, this.width - 10, this.height - 10, 0x80000000);
         
-        context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 15, 0xFFFFFF);
+        context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 12, 0xFFFFFF);
         
         int leftX = this.width / 2 - 210;
         int rightX = this.width / 2 + 10;
 
-        context.drawTextWithShadow(this.textRenderer, "Node ID (Auto-generated):", leftX, idField.getY() - 12, 0xFFAAAAAA);
-        context.drawTextWithShadow(this.textRenderer, "Display Name:", leftX, nameField.getY() - 12, 0xFFAAAAAA);
-        context.drawTextWithShadow(this.textRenderer, "Description:", leftX, descField.getY() - 12, 0xFFAAAAAA);
-        context.drawTextWithShadow(this.textRenderer, "Shape (square/circle/diamond/hexagon):", leftX, shapeField.getY() - 12, 0xFFAAAAAA);
+        context.drawTextWithShadow(this.textRenderer, "Node ID:", leftX, idField.getY() - 10, 0xFFAAAAAA);
+        context.drawTextWithShadow(this.textRenderer, "Display Name (Title):", leftX, nameField.getY() - 10, 0xFFAAAAAA);
+        context.drawTextWithShadow(this.textRenderer, "Custom Icon (Optional):", leftX, iconField.getY() - 10, 0xFFAAAAAA);
+        context.drawTextWithShadow(this.textRenderer, "Description:", leftX, descField.getY() - 10, 0xFFAAAAAA);
+        context.drawTextWithShadow(this.textRenderer, "Shape (square/circle/diamond/hexagon):", leftX, shapeField.getY() - 10, 0xFFAAAAAA);
         
-        context.drawTextWithShadow(this.textRenderer, "Modifiers (Attr ID & Value):", rightX, 40 - 12, 0xFFAAAAAA);
+        context.drawTextWithShadow(this.textRenderer, "Modifiers (Attr ID & Value):", rightX, 40 - 10, 0xFFAAAAAA);
 
         super.render(context, mouseX, mouseY, delta);
         
+        // Draw Icon Live Preview Frame & Icon
+        int previewX = leftX + 180;
+        int previewY = iconField.getY();
+        context.fill(previewX, previewY, previewX + 20, previewY + 20, 0xFF111122);
+        context.fill(previewX, previewY, previewX + 20, previewY + 1, 0xFF444466);
+        context.fill(previewX, previewY + 19, previewX + 20, previewY + 20, 0xFF444466);
+        context.fill(previewX, previewY, previewX + 1, previewY + 20, 0xFF444466);
+        context.fill(previewX + 19, previewY, previewX + 20, previewY + 20, 0xFF444466);
+
+        Identifier previewIcon;
+        String customIconStr = iconField.getText().trim();
+        if (!customIconStr.isEmpty()) {
+            if (!customIconStr.contains(":")) {
+                previewIcon = Identifier.of("cranks-dungeons", customIconStr);
+            } else {
+                previewIcon = Identifier.tryParse(customIconStr);
+            }
+        } else {
+            previewIcon = PassiveIconManager.getIcon(idField.getText(), nameField.getText(), isAttrSelection);
+        }
+
+        if (previewIcon != null) {
+            try {
+                context.drawGuiTexture(previewIcon, previewX + 2, previewY + 2, 16, 16);
+            } catch (Exception ignored) {}
+        }
+
         // Render Placeholders
         drawPlaceholder(context, nameField, "e.g. Lumberjack's Precision");
+        drawPlaceholder(context, iconField, "Default (by Title)");
         drawPlaceholder(context, descField, "e.g. Grants +10% log yield");
         drawPlaceholder(context, shapeField, "e.g. square");
         
@@ -354,7 +411,13 @@ public class WorldNodeEditScreen extends Screen {
         }
     }
 
-    private TextFieldWidget getActiveAttrField() {
+    private static final int VISIBLE_SUGGESTIONS = 6;
+    private int scrollOffset = 0;
+
+    private TextFieldWidget getActiveSuggestionField() {
+        if (iconField != null && iconField.isFocused()) {
+            return iconField;
+        }
         for (ModifierRow row : modifierRows) {
             if (row.attrField.isFocused()) {
                 return row.attrField;
@@ -367,13 +430,14 @@ public class WorldNodeEditScreen extends Screen {
         updateSuggestions();
         if (!showSuggestions || filteredSuggestions.isEmpty()) return;
         
-        TextFieldWidget activeField = getActiveAttrField();
+        TextFieldWidget activeField = getActiveSuggestionField();
         if (activeField == null) return;
 
         int x = activeField.getX();
         int y = activeField.getY() + activeField.getHeight();
         int w = activeField.getWidth();
-        int h = Math.min(filteredSuggestions.size(), 5) * 12 + 2;
+        int visibleCount = Math.min(filteredSuggestions.size(), VISIBLE_SUGGESTIONS);
+        int h = visibleCount * 12 + 2;
 
         if (y + h > this.height) {
             y = activeField.getY() - h;
@@ -385,49 +449,112 @@ public class WorldNodeEditScreen extends Screen {
         context.fill(x, y, x + 1, y + h, 0xFFFFFFFF);
         context.fill(x + w - 1, y, x + w, y + h, 0xFFFFFFFF);
 
-        for (int i = 0; i < Math.min(filteredSuggestions.size(), 5); i++) {
-            int color = (i == selectedSuggestion) ? 0xFFFFFF00 : 0xFFFFFFFF;
-            context.drawTextWithShadow(textRenderer, filteredSuggestions.get(i), x + 5, y + 2 + i * 12, color);
+        for (int i = 0; i < visibleCount; i++) {
+            int itemIndex = scrollOffset + i;
+            if (itemIndex < filteredSuggestions.size()) {
+                int color = (itemIndex == selectedSuggestion) ? 0xFFFFFF00 : 0xFFFFFFFF;
+                context.drawTextWithShadow(textRenderer, filteredSuggestions.get(itemIndex), x + 5, y + 2 + i * 12, color);
+            }
         }
     }
 
+    private void ensureVisible() {
+        if (selectedSuggestion < scrollOffset) {
+            scrollOffset = selectedSuggestion;
+        } else if (selectedSuggestion >= scrollOffset + VISIBLE_SUGGESTIONS) {
+            scrollOffset = selectedSuggestion - VISIBLE_SUGGESTIONS + 1;
+        }
+        int maxOffset = Math.max(0, filteredSuggestions.size() - VISIBLE_SUGGESTIONS);
+        if (scrollOffset > maxOffset) scrollOffset = maxOffset;
+        if (scrollOffset < 0) scrollOffset = 0;
+    }
+
     private void updateSuggestions() {
-        TextFieldWidget activeField = getActiveAttrField();
+        TextFieldWidget activeField = getActiveSuggestionField();
         if (activeField == null) {
             showSuggestions = false;
             return;
         }
 
         String text = activeField.getText().trim();
+        List<String> pool = (activeField == iconField) ? allIconSuggestions : allAttributeIds;
 
         if (text.isEmpty()) {
-            filteredSuggestions = allAttributeIds.stream().limit(10).collect(Collectors.toList());
-            showSuggestions = true;
-            if (selectedSuggestion >= filteredSuggestions.size()) selectedSuggestion = 0;
-            return;
+            filteredSuggestions = new ArrayList<>(pool);
+        } else {
+            filteredSuggestions = pool.stream()
+                    .filter(id -> id.toLowerCase().contains(text.toLowerCase()))
+                    .collect(Collectors.toList());
         }
-
-        filteredSuggestions = allAttributeIds.stream()
-                .filter(id -> id.contains(text))
-                .limit(10)
-                .collect(Collectors.toList());
         
         showSuggestions = !filteredSuggestions.isEmpty();
-        if (selectedSuggestion >= filteredSuggestions.size()) selectedSuggestion = 0;
+        if (selectedSuggestion >= filteredSuggestions.size()) {
+            selectedSuggestion = Math.max(0, filteredSuggestions.size() - 1);
+        }
+        ensureVisible();
+    }
+
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+        if (showSuggestions && !filteredSuggestions.isEmpty()) {
+            if (verticalAmount > 0) { // Scroll Up
+                if (selectedSuggestion > 0) {
+                    selectedSuggestion--;
+                    ensureVisible();
+                    return true;
+                }
+            } else if (verticalAmount < 0) { // Scroll Down
+                if (selectedSuggestion < filteredSuggestions.size() - 1) {
+                    selectedSuggestion++;
+                    ensureVisible();
+                    return true;
+                }
+            }
+        }
+        return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
+    }
+
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (showSuggestions && !filteredSuggestions.isEmpty()) {
+            TextFieldWidget activeField = getActiveSuggestionField();
+            if (activeField != null) {
+                int x = activeField.getX();
+                int y = activeField.getY() + activeField.getHeight();
+                int w = activeField.getWidth();
+                int visibleCount = Math.min(filteredSuggestions.size(), VISIBLE_SUGGESTIONS);
+                int h = visibleCount * 12 + 2;
+                if (y + h > this.height) {
+                    y = activeField.getY() - h;
+                }
+                if (mouseX >= x && mouseX <= x + w && mouseY >= y && mouseY <= y + h) {
+                    int clickedRow = (int) ((mouseY - y - 2) / 12);
+                    int itemIndex = scrollOffset + clickedRow;
+                    if (itemIndex >= 0 && itemIndex < filteredSuggestions.size()) {
+                        selectedSuggestion = itemIndex;
+                        applySuggestion();
+                        return true;
+                    }
+                }
+            }
+        }
+        return super.mouseClicked(mouseX, mouseY, button);
     }
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         if (showSuggestions && !filteredSuggestions.isEmpty()) {
-            if (keyCode == 264) {
-                selectedSuggestion = (selectedSuggestion + 1) % Math.min(filteredSuggestions.size(), 5);
+            if (keyCode == 264) { // Down
+                selectedSuggestion = (selectedSuggestion + 1) % filteredSuggestions.size();
+                ensureVisible();
                 return true;
             }
-            if (keyCode == 265) {
-                selectedSuggestion = (selectedSuggestion - 1 + Math.min(filteredSuggestions.size(), 5)) % Math.min(filteredSuggestions.size(), 5);
+            if (keyCode == 265) { // Up
+                selectedSuggestion = (selectedSuggestion - 1 + filteredSuggestions.size()) % filteredSuggestions.size();
+                ensureVisible();
                 return true;
             }
-            if (keyCode == 257 || keyCode == 258) {
+            if (keyCode == 257 || keyCode == 258) { // Enter or Tab
                 applySuggestion();
                 return true;
             }
@@ -436,7 +563,7 @@ public class WorldNodeEditScreen extends Screen {
     }
 
     private void applySuggestion() {
-        TextFieldWidget activeField = getActiveAttrField();
+        TextFieldWidget activeField = getActiveSuggestionField();
         if (activeField == null || filteredSuggestions.isEmpty()) return;
         
         String suggestion = filteredSuggestions.get(selectedSuggestion);

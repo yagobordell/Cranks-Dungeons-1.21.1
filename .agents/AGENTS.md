@@ -30,47 +30,52 @@ This document explains the core systems of the Cranks Dungeons mod:
 
 ---
 
-## 2. Damage Application Pipeline (No Double-Dipping)
+## 2. Damage Application Pipeline (Path of Exile 2 Standard)
+
+The mod uses strict explicit mixin priorities on `LivingEntity.damage()` to ensure the exact PoE 2 sequence:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│ 1. Attack occurs (Melee or Projectile)                                      │
-│    • Vanilla computes base damage (for bows: velocity * base = draw-scaled) │
-└──────────────────────────────────────┬──────────────────────────────────────┘
-                                       ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│ 2. BonusAttackDamageMixin.java (HEAD of LivingEntity.damage())              │
+│ 1. Attacker Calculation: BonusAttackDamageMixin.java (Priority 500 @ HEAD)  │
 │    • Adds flat BONUS_ATTACK_DAMAGE                                          │
 │    • Multiplies by total global percentage bonuses:                         │
-│      - PHYSICAL_DAMAGE_PERCENT                                              │
-│      - Weapon-specific (SWORD_DAMAGE_PERCENT, BOW_DAMAGE_PERCENT, etc.)      │
-│      - Type-specific (MELEE_DAMAGE_PERCENT, PROJECTILE / RANGED_DAMAGE_PERCENT)│
-│      - Wielding (TWO_HANDING, DUAL_WIELDING, ONE_HANDED)                    │
-│      - DAMAGE_AGAINST_AFFLICTED_PERCENT                                     │
-│    • Returns fully scaled `amount`                                          │
+│      - PHYSICAL_DAMAGE_PERCENT, weapon-specific, melee/ranged/projectile,   │
+│        wielding bonuses, DAMAGE_AGAINST_AFFLICTED_PERCENT                   │
+│    • Point Blank distance scaling for projectiles                           │
+│    • Critical strike roll & multiplier (Armor Crit Mitigation / Overload)   │
+│    • Sets CriticalHitState (isCriticalHit, critMultiplier)                  │
 └──────────────────────────────────────┬──────────────────────────────────────┘
                                        ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│ 3. DamageConversionHelper.calculateLivingAttackerBreakdown()                │
-│    • Preserves incoming `amount` (do NOT discard or recalculate projectiles)│
-│    • Converts physical to Fire/Cold/Lightning/Void based on conversion %    │
-│    • Calculates extra damage (% of total basic or physical as extra)        │
-│    • Scales elements individually:                                          │
-│      - Fire: fireBase * (1.0 + firePercent + selfAfflicted + elementalBonus)│
-│      - Cold: coldBase * (1.0 + coldPercent + selfAfflicted + elementalBonus)│
-│      - Lightning: lightningBase * (1.0 + lightningPercent + selfAfflicted + elementalBonus)│
-│      - Void: voidBase * (1.0 + voidPercent + selfAfflicted)                 │
-│      * NOTE: elementalBonus (ELEMENTAL_DAMAGE_PERCENT) ONLY affects Fire,   │
-│        Cold, and Lightning — NEVER Void.                                    │
-│      * NOTE: baseMultiplier ONLY contains selfAfflictedBonus (damage while   │
-│        afflicted). All other global stats were already applied in Step 2.   │
+│ 2. Target Avoidance: EvasionMixin (Priority 600) & ShieldBlockMixin (700)   │
+│    • EvasionMixin: Deterministic entropy counter (0.5 start, dodges at 1.0) │
+│    • ShieldBlockMixin: Subtracts flat Block Value before mitigation         │
 └──────────────────────────────────────┬──────────────────────────────────────┘
                                        ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│ 4. ElementalDamageMixin.java (RETURN of LivingEntity.damage())              │
+│ 3. Target Mitigation: DamageReductionMixin.java (Priority 800 @ HEAD)       │
+│    • Converts physical to Fire/Cold/Lightning/Void & applies extra damage   │
+│    • Scales elements individually with element-specific % and elemental %   │
+│    • Applies Resistances vs Penetration & Armor Reduction (PoE 2 PDR curve) │
+│    • Multiplies by Shock magnitude                                          │
+│    • Caches mitigated breakdown in DamageBreakdownProvider                  │
+└──────────────────────────────────────┬──────────────────────────────────────┘
+                                       ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 4. Energy Shield: EnergyShieldDamageMixin.java (Priority 900 @ HEAD)        │
+│    • Absorbs mitigated damage (Void deals 2x weighted damage to shield)     │
+│    • Poison/Bleed bypasses shield                                           │
+│    • Syncs packets & plays break/hit effects                                │
+│    • Returns remaining unabsorbed damage to Health                          │
+└──────────────────────────────────────┬──────────────────────────────────────┘
+                                       ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 5. Post-Damage Resolution: ElementalDamageMixin.java (Priority 1000 @ RETURN)│
 │    • Leech (life & mana leech from physical portion)                        │
-│    • Ailments (burn, shock, poison, bleed, freeze, electrocute)             │
-│    • Damage numbers broadcast to clients                                    │
+│    • Ailments (burn/ignite, shock, poison, bleed, freeze, electrocute)      │
+│      * Scaled directly from actual damage dealt to target                   │
+│    • Broadcasts floating damage numbers with crit flag                      │
+│    • Resets CriticalHitState                                                │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 

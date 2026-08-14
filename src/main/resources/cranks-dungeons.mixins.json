@@ -24,7 +24,6 @@
 		"MobEntityAccessor",
 		"BreakingRangeMixin",
 		"MovementSpeedMixin",
-		"CriticalStrikeMixin",
 		"ElementalDamageMixin",
 		"BonusAttackDamageMixin",
 		"AttackRangeMixin",
