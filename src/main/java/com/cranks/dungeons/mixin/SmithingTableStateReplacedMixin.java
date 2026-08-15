@@ -28,6 +28,7 @@ public class SmithingTableStateReplacedMixin {
 
         BlockEntity blockEntity = world.getBlockEntity(pos);
         if (blockEntity instanceof QualityStationBlockEntity station) {
+            station.stopSounds();
             ItemScatterer.spawn(world, pos, station);
             world.updateComparators(pos, state.getBlock());
         }

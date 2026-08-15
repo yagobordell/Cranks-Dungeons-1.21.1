@@ -29,6 +29,14 @@ public class ModItems {
     public static final Item GREATER_EXALTED_TOME = registerRunicTome("greater_exalted_tome", RunicTomeItem.TomeType.GREATER_EXALTED);
     public static final Item PERFECT_EXALTED_TOME = registerRunicTome("perfect_exalted_tome", RunicTomeItem.TomeType.PERFECT_EXALTED);
 
+    public static final Item DIVINE_TOME = registerRunicTome("divine_tome", RunicTomeItem.TomeType.DIVINE);
+
+    public static final Item TOME_OF_CHAOS = registerRunicTome("chaos_tome", RunicTomeItem.TomeType.CHAOS);
+    public static final Item GREATER_TOME_OF_CHAOS = registerRunicTome("greater_chaos_tome", RunicTomeItem.TomeType.GREATER_CHAOS);
+    public static final Item PERFECT_TOME_OF_CHAOS = registerRunicTome("perfect_chaos_tome", RunicTomeItem.TomeType.PERFECT_CHAOS);
+
+    public static final Item TOME_OF_ANNULMENT = registerRunicTome("annulment_tome", RunicTomeItem.TomeType.ANNULMENT);
+
     // Normal Elemental Tomes
     public static final Item TOME_OF_FIRE = registerElementalTome("fire_tome", Element.FIRE, ElementalTomeItem.Tier.NORMAL);
     public static final Item TOME_OF_COLD = registerElementalTome("cold_tome", Element.COLD, ElementalTomeItem.Tier.NORMAL);
@@ -42,9 +50,6 @@ public class ModItems {
     public static final Item GREATER_TOME_OF_LIGHTNING = registerElementalTome("greater_lightning_tome", Element.LIGHTNING, ElementalTomeItem.Tier.GREATER);
     public static final Item GREATER_TOME_OF_VOID = registerElementalTome("greater_void_tome", Element.VOID, ElementalTomeItem.Tier.GREATER);
     public static final Item GREATER_TOME_OF_PHYSICALITY = registerElementalTome("greater_physicality_tome", Element.PHYSICAL, ElementalTomeItem.Tier.GREATER);
-
-    // Perfect Elemental Tomes (Removed)
-
 
     // Utility Tomes
     public static final Item TOME_OF_SWIFTNESS = registerSwiftnessTome("swiftness_tome", CustomRarity.RARE);
@@ -69,7 +74,6 @@ public class ModItems {
                 new SwiftnessTomeItem(rarity, new Item.Settings()));
     }
 
-
     private static Item registerElementalTome(String name, Element element, ElementalTomeItem.Tier tier) {
         Identifier id = Identifier.of(CranksDungeons.MOD_ID, name);
         RegistryKey<Item> key = RegistryKey.of(RegistryKeys.ITEM, id);
@@ -92,8 +96,6 @@ public class ModItems {
         return Registry.register(Registries.ITEM, key,
                 new HealthBonusTomeItem(rarity, new Item.Settings()));
     }
-
-
 
     public static final Item ARMOURERS_SCRAP = registerQualityMaterial("armourers_scrap", QualityMaterialItem.Type.ARMOR);
     public static final Item BLACKSMITHS_WHETSTONE = registerQualityMaterial("blacksmiths_whetstone", QualityMaterialItem.Type.WEAPON);

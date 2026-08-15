@@ -459,9 +459,10 @@ public abstract class ItemStackTooltipMixin {
                 double baseVal = entry.modifier().value();
                 
                 if (!includeModifications && qBonus > 0) {
-                    if (attributesMatch(entry.attribute(), EntityAttributes.GENERIC_ATTACK_SPEED)) {
-                        baseVal = (4.0 + baseVal) * (1.0 + qBonus) - 4.0;
-                    } else {
+                    if (attributesMatch(entry.attribute(), EntityAttributes.GENERIC_ATTACK_DAMAGE) ||
+                        attributesMatch(entry.attribute(), EntityAttributes.GENERIC_ARMOR) ||
+                        attributesMatch(entry.attribute(), ModAttributes.EVASION_RATING) ||
+                        attributesMatch(entry.attribute(), ModAttributes.ENERGY_SHIELD)) {
                         baseVal = baseVal * (1.0 + qBonus);
                     }
                 }

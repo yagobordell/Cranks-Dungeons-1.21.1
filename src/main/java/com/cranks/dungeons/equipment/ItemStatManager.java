@@ -192,6 +192,61 @@ public class ItemStatManager {
         return false;
     }
 
+    public static boolean removeRandomStat(ItemStack stack) {
+        if (stack.isEmpty()) return false;
+        NbtCompound nbt = stack.getOrDefault(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,
+                net.minecraft.component.type.NbtComponent.DEFAULT).copyNbt();
+
+        if (nbt.contains(STATS_KEY, net.minecraft.nbt.NbtElement.LIST_TYPE)) {
+            NbtList statsList = nbt.getList(STATS_KEY, net.minecraft.nbt.NbtElement.COMPOUND_TYPE);
+            if (statsList.isEmpty()) return false;
+
+            int indexToRemove = com.cranks.dungeons.util.RandomUtil.nextInt(statsList.size());
+            statsList.remove(indexToRemove);
+
+            nbt.put(STATS_KEY, statsList);
+            stack.set(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,
+                    net.minecraft.component.type.NbtComponent.of(nbt));
+            EquipmentStatApplier.updateItemAttributes(stack);
+            return true;
+        }
+        return false;
+    }
+
+    public static boolean rerollAllStatValues(ItemStack stack) {
+        if (stack.isEmpty()) return false;
+        NbtCompound nbt = stack.getOrDefault(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,
+                net.minecraft.component.type.NbtComponent.DEFAULT).copyNbt();
+
+        if (nbt.contains(STATS_KEY, net.minecraft.nbt.NbtElement.LIST_TYPE)) {
+            NbtList statsList = nbt.getList(STATS_KEY, net.minecraft.nbt.NbtElement.COMPOUND_TYPE);
+            if (statsList.isEmpty()) return false;
+
+            for (int i = 0; i < statsList.size(); i++) {
+                NbtCompound statNbt = statsList.getCompound(i);
+                String id = statNbt.getString("id");
+                int tier = statNbt.contains("tier") ? statNbt.getInt("tier") : 1;
+
+                CustomStat stat = StatRegistry.getStat(id);
+                if (stat != null) {
+                    double[] newValues = stat.rollValues(tier);
+                    NbtList nbtValues = new NbtList();
+                    for (double v : newValues) {
+                        nbtValues.add(net.minecraft.nbt.NbtDouble.of(v));
+                    }
+                    statNbt.put("values", nbtValues);
+                }
+            }
+
+            nbt.put(STATS_KEY, statsList);
+            stack.set(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,
+                    net.minecraft.component.type.NbtComponent.of(nbt));
+            EquipmentStatApplier.updateItemAttributes(stack);
+            return true;
+        }
+        return false;
+    }
+
     public static int getBestAllowedTier(ItemStack stack) {
         String itemName = net.minecraft.registry.Registries.ITEM.getId(stack.getItem()).toString().toLowerCase();
         if (itemName.contains("wood") || itemName.contains("stone") || itemName.contains("leather")) return 10;

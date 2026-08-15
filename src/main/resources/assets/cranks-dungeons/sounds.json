@@ -1,12 +1,12 @@
 {
   "quality_station_2": {
     "sounds": [
-      { "name": "cranks-dungeons:quality_station_2", "volume": 1.0, "pitch": 1.0 }
+      { "name": "cranks-dungeons:quality_station_2", "volume": 0.4, "pitch": 1.0, "attenuation_distance": 12 }
     ]
   },
   "quality_station_3": {
     "sounds": [
-      { "name": "cranks-dungeons:quality_station_3", "volume": 1.0, "pitch": 1.0 }
+      { "name": "cranks-dungeons:quality_station_3", "volume": 0.4, "pitch": 1.0, "attenuation_distance": 12 }
     ]
   },
   "artificial_altar_click": {

@@ -321,13 +321,9 @@ public class EquipmentStatApplier {
             if (entry.modifier().operation() == EntityAttributeModifier.Operation.ADD_VALUE) {
                 double baseVal = entry.modifier().value();
                 
-                // Apply Quality Scaling uniformly to the base value
-                if (qBonus > 0) {
-                    if (isAttribute(attr, EntityAttributes.GENERIC_ATTACK_SPEED)) {
-                        baseVal = (4.0 + baseVal) * (1.0 + qBonus) - 4.0;
-                    } else {
-                        baseVal = baseVal * (1.0 + qBonus);
-                    }
+                // Apply Quality Scaling ONLY to physical damage, armor, evasion rating, and energy shield
+                if (qBonus > 0 && (isAttack || isArmor || isEvasion || isES)) {
+                    baseVal = baseVal * (1.0 + qBonus);
                 }
                 scaledDefaults.put(attr, baseVal);
 

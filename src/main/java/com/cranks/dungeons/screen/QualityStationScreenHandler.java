@@ -74,7 +74,7 @@ public class QualityStationScreenHandler extends ScreenHandler {
     public int getScaledProgress() {
         int processTick = propertyDelegate.get(0);
         int maxProcessTime = 600; // 30 seconds
-        int progressArrowSize = 21; 
+        int progressArrowSize = 22; 
         
         return maxProcessTime != 0 && processTick != 0 ? Math.max(1, processTick * progressArrowSize / maxProcessTime) : 0;
     }

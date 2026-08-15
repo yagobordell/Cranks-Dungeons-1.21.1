@@ -335,6 +335,11 @@ public class CranksDungeons implements ModInitializer {
 			content.add(ModItems.EXALTED_TOME);
 			content.add(ModItems.GREATER_EXALTED_TOME);
 			content.add(ModItems.PERFECT_EXALTED_TOME);
+			content.add(ModItems.DIVINE_TOME);
+			content.add(ModItems.TOME_OF_CHAOS);
+			content.add(ModItems.GREATER_TOME_OF_CHAOS);
+			content.add(ModItems.PERFECT_TOME_OF_CHAOS);
+			content.add(ModItems.TOME_OF_ANNULMENT);
 			// Elemental Tomes
 			content.add(ModItems.TOME_OF_FIRE);
 			content.add(ModItems.GREATER_TOME_OF_FIRE);

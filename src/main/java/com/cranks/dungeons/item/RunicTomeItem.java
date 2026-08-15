@@ -32,8 +32,15 @@ public class RunicTomeItem extends Item {
 
         EXALTED("Exalted Tome", Formatting.YELLOW, "Augments a Rare item", "with a new random rune", 1),
         GREATER_EXALTED("Greater Exalted Tome", Formatting.GOLD, "Augments a Rare item", "with a new random rune", 30),
-        PERFECT_EXALTED("Perfect Exalted Tome", Formatting.LIGHT_PURPLE, "Augments a Rare item", "with a new random rune",
-                60);
+        PERFECT_EXALTED("Perfect Exalted Tome", Formatting.LIGHT_PURPLE, "Augments a Rare item", "with a new random rune", 60),
+
+        DIVINE("Divine Tome", Formatting.GOLD, "Randomises the numeric values", "of runes on an item", 1),
+
+        CHAOS("Tome of Chaos", Formatting.YELLOW, "Removes a random rune and augments", "a Rare item with a new random rune", 1),
+        GREATER_CHAOS("Greater Tome of Chaos", Formatting.GOLD, "Removes a random rune and augments", "a Rare item with a new random rune", 30),
+        PERFECT_CHAOS("Perfect Tome of Chaos", Formatting.LIGHT_PURPLE, "Removes a random rune and augments", "a Rare item with a new random rune", 60),
+
+        ANNULMENT("Tome of Annulment", Formatting.RED, "Removes a random rune", "from an item", 1);
 
         private final String displayName;
         private final Formatting color;

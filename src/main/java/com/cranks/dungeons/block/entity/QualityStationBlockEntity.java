@@ -185,8 +185,8 @@ public class QualityStationBlockEntity extends BlockEntity implements NamedScree
             
             // Play looping sounds every 40 ticks (2 seconds) while processing
             if (processTick % 40 == 1) {
-                world.playSound(null, pos, com.cranks.dungeons.registry.ModSounds.QUALITY_STATION_2, net.minecraft.sound.SoundCategory.BLOCKS, 0.05f, 1.0f);
-                world.playSound(null, pos, com.cranks.dungeons.registry.ModSounds.QUALITY_STATION_3, net.minecraft.sound.SoundCategory.BLOCKS, 0.05f, 1.0f);
+                world.playSound(null, pos, com.cranks.dungeons.registry.ModSounds.QUALITY_STATION_2, net.minecraft.sound.SoundCategory.BLOCKS, 0.4f, 1.0f);
+                world.playSound(null, pos, com.cranks.dungeons.registry.ModSounds.QUALITY_STATION_3, net.minecraft.sound.SoundCategory.BLOCKS, 0.4f, 1.0f);
             }
 
             if (processTick >= PROCESS_TIME) {
@@ -202,25 +202,35 @@ public class QualityStationBlockEntity extends BlockEntity implements NamedScree
             }
         } else {
             if (isProcessing || processTick > 0) {
-                this.isProcessing = false;
-                this.processTick = 0;
-                if (world instanceof net.minecraft.server.world.ServerWorld serverWorld) {
-                    for (net.minecraft.server.network.ServerPlayerEntity p : serverWorld.getPlayers()) {
-                        if (p.squaredDistanceTo(pos.toCenterPos()) < 1024.0) {
-                            p.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.StopSoundS2CPacket(
-                                net.minecraft.util.Identifier.of(com.cranks.dungeons.CranksDungeons.MOD_ID, "quality_station_2"),
-                                net.minecraft.sound.SoundCategory.BLOCKS
-                            ));
-                            p.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.StopSoundS2CPacket(
-                                net.minecraft.util.Identifier.of(com.cranks.dungeons.CranksDungeons.MOD_ID, "quality_station_3"),
-                                net.minecraft.sound.SoundCategory.BLOCKS
-                            ));
-                        }
-                    }
-                }
+                stopSounds();
                 markDirty();
             }
         }
+    }
+
+    public void stopSounds() {
+        this.isProcessing = false;
+        this.processTick = 0;
+        if (this.world instanceof net.minecraft.server.world.ServerWorld serverWorld) {
+            for (net.minecraft.server.network.ServerPlayerEntity p : serverWorld.getPlayers()) {
+                if (p.squaredDistanceTo(pos.toCenterPos()) < 144.0) {
+                    p.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.StopSoundS2CPacket(
+                        net.minecraft.util.Identifier.of(com.cranks.dungeons.CranksDungeons.MOD_ID, "quality_station_2"),
+                        net.minecraft.sound.SoundCategory.BLOCKS
+                    ));
+                    p.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.StopSoundS2CPacket(
+                        net.minecraft.util.Identifier.of(com.cranks.dungeons.CranksDungeons.MOD_ID, "quality_station_3"),
+                        net.minecraft.sound.SoundCategory.BLOCKS
+                    ));
+                }
+            }
+        }
+    }
+
+    @Override
+    public void markRemoved() {
+        stopSounds();
+        super.markRemoved();
     }
 
     public boolean isValidMaterialForEquipment(ItemStack equipment, ItemStack material) {

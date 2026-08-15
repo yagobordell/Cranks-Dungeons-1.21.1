@@ -297,6 +297,24 @@ public class RunicEnhancementAltarBlockEntity extends BlockEntity implements Nam
                     success = addRandomAffix(result, minLevel);
                 }
                 break;
+            case DIVINE:
+                if (!ItemStatManager.getStats(equipment).isEmpty()) {
+                    success = ItemStatManager.rerollAllStatValues(result);
+                }
+                break;
+            case CHAOS, GREATER_CHAOS, PERFECT_CHAOS:
+                if (rarity == CustomRarity.RARE && !ItemStatManager.getStats(equipment).isEmpty()) {
+                    boolean removed = ItemStatManager.removeRandomStat(result);
+                    if (removed) {
+                        success = addRandomAffix(result, minLevel);
+                    }
+                }
+                break;
+            case ANNULMENT:
+                if (!ItemStatManager.getStats(equipment).isEmpty()) {
+                    success = ItemStatManager.removeRandomStat(result);
+                }
+                break;
         }
 
         if (success) {
