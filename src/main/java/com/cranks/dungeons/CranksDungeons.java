@@ -100,6 +100,12 @@ public class CranksDungeons implements ModInitializer {
 		com.cranks.dungeons.config.WorldTreeConfig.load();
 		com.cranks.dungeons.stat.passive.WorldNodeRegistry.loadFromConfig();
 
+		net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents.ENTITY_UNLOAD.register((entity, world) -> {
+			if (entity instanceof net.minecraft.entity.LivingEntity living) {
+				com.cranks.dungeons.ailment.AilmentManager.clearAllAilments(living);
+			}
+		});
+
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             net.minecraft.server.network.ServerPlayerEntity player = handler.player;
             PassiveDataComponent data = ModComponents.PASSIVE_DATA.get(player);

@@ -44,7 +44,7 @@ public class EnergyShieldRegenMixin {
     private static final float REGEN_PERCENT_PER_TICK = 0.00625f; // 12.5% per second
     
     @Unique
-    private static final int MOB_SYNC_INTERVAL_TICKS = 2; // Sync mobs faster to keep interpolation smooth
+    private static final int MOB_SYNC_INTERVAL_TICKS = 10; // Sync mobs every 0.5s to reduce network overhead
 
     @Inject(method = "tick", at = @At("HEAD"))
     private void initializeShield(CallbackInfo ci) {

@@ -67,6 +67,13 @@ public class ToolStatHelper {
      * Convenience method for precision mining.
      */
     public static double getPrecisionMining(ItemStack stack) {
+        return getToolStat(stack, "precision_mining");
+    }
+
+    /**
+     * Convenience method for repair chance (Preservation).
+     */
+    public static double getRepairChance(ItemStack stack) {
         return getToolStat(stack, "repair_chance");
     }
 

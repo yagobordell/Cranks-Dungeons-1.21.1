@@ -254,13 +254,15 @@ public abstract class ElementalDamageMixin {
                 float finalChance = baseChance * (1.0f + increasedChance + globalAilmentChance);
 
                 if (isCrit || finalChance >= 1.0f || attacker.getRandom().nextFloat() < finalChance) {
-                    float baseMagnitude = (finalLightningDamage / shockAilmentThreshold) * 5.0f;
-                    float shockMagnitudePercent = 1.0f + (float) CombatUtility.getAttributeValue(attacker, ModAttributes.SHOCK_MAGNITUDE_PERCENT, weapon, "shock_magnitude_percent", source) + critNonDamagingMagnitude;
+                    float baseMagnitude = (finalLightningDamage / shockAilmentThreshold) * 0.30f;
+                    float shockMagnitudeBonus = (float) CombatUtility.getAttributeValue(attacker, ModAttributes.SHOCK_MAGNITUDE_PERCENT, weapon, "shock_magnitude_percent", source) + critNonDamagingMagnitude;
+                    float shockMagnitudePercent = 1.0f + shockMagnitudeBonus;
                     float finalMagnitude = baseMagnitude * shockMagnitudePercent;
-                    finalMagnitude = Math.min(finalMagnitude, 0.50f);
+                    float maxShockCap = Math.min(0.50f, 0.30f * (1.0f + shockMagnitudeBonus));
+                    finalMagnitude = Math.min(finalMagnitude, maxShockCap);
                     
-                    if (finalMagnitude > 0.05f) {
-                        double shockDuration = AilmentType.SHOCK.getBaseDuration() * shockMagnitudePercent;
+                    if (finalMagnitude >= 0.05f) {
+                        double shockDuration = AilmentType.SHOCK.getBaseDuration() * (1.0 + shockMagnitudeBonus);
                         AilmentManager.applyAilment(target, AilmentType.SHOCK, finalLightningDamage, shockDuration, attacker, null, null, 0, finalMagnitude);
                     }
                 }

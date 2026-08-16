@@ -43,9 +43,14 @@ public class WorldTreeMobLootMixin {
 
             double yield = 0;
 
-            // 1. Monster Drops
+            // 1. Monster Drops & Rare Drops
             if (victim instanceof Monster) {
                 yield += getAttr(player, ModAttributes.MONSTER_DROP_YIELD);
+                double rareChance = getAttr(player, ModAttributes.RARE_MOB_DROP_CHANCE);
+                if (isNether) {
+                    rareChance += getAttr(player, ModAttributes.RARE_MOB_DROP_CHANCE_IN_NETHER);
+                }
+                yield += rareChance;
             }
             
             // 2. Animal Drops

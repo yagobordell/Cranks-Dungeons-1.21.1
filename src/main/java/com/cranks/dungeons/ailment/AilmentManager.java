@@ -198,7 +198,8 @@ public class AilmentManager {
     }
 
     public static void applyAilment(LivingEntity target, AilmentType type, float baseDamage, double duration, Entity source, Entity parent, UUID chainUuid, int generation) {
-        applyAilment(target, type, baseDamage, duration, source, parent, chainUuid, generation, 1.0f);
+        float defaultMagnitude = (type == AilmentType.SHOCK) ? 0.15f : 1.0f;
+        applyAilment(target, type, baseDamage, duration, source, parent, chainUuid, generation, defaultMagnitude);
     }
 
     public static void applyAilment(LivingEntity target, AilmentType type, float baseDamage, double duration, Entity source, Entity parent, UUID chainUuid, int generation, float magnitude) {
@@ -892,12 +893,20 @@ public class AilmentManager {
     }
 
     public static void clearAllAilments(LivingEntity target) {
-        ENTITY_AILMENTS.remove(target.getUuid());
-        FREEZE_BUILDUP.remove(target.getUuid());
-        FREEZE_BUILDUP_LAST_HIT.remove(target.getUuid());
-        FREEZE_BUILDUP_MAGNITUDE.remove(target.getUuid());
+        if (target == null) return;
+        UUID uuid = target.getUuid();
+        ENTITY_AILMENTS.remove(uuid);
+        FREEZE_BUILDUP.remove(uuid);
+        FREEZE_BUILDUP_LAST_HIT.remove(uuid);
+        FREEZE_BUILDUP_MAGNITUDE.remove(uuid);
         updateFreezeSlowModifier(target, 0.0f, 1.0f);
-        ELECTROCUTE_BUILDUP.remove(target.getUuid());
+        ELECTROCUTE_BUILDUP.remove(uuid);
+        ELECTROCUTE_BUILDUP_LAST_HIT.remove(uuid);
+        FLAMMABILITY_BUILDUP.remove(uuid);
+        FLAMMABILITY_LAST_HIT.remove(uuid);
+        PROCESSING_SHOCK_CHAIN.remove(uuid);
+        POISON_DAMAGE_IN_PROGRESS.remove(uuid);
+        BLEED_DAMAGE_IN_PROGRESS.remove(uuid);
         target.removeStatusEffect(ModEffects.POISON);
         target.removeStatusEffect(ModEffects.BURN);
         if (target.hasStatusEffect(ModEffects.FREEZE)) {
@@ -986,10 +995,10 @@ public class AilmentManager {
                 // Broadcast damage numbers as lightning damage  
                 DamageNumberSender.broadcast(world, target, 0, 0, 0, finalDamage, 0, source != null ? source.getUuid() : null, false);
                 
-                // Guarantee a baseline shock on chained targets (at least 5%)
+                // Guarantee a baseline shock on chained targets (between 5% and 30%)
                 float ailmentThreshold = com.cranks.dungeons.util.CombatUtility.getEffectiveAilmentThreshold(target, AilmentType.SHOCK);
-                float finalMagnitude = ((float) finalDamage / ailmentThreshold) * 5.0f;
-                finalMagnitude = Math.max(0.05f, Math.min(finalMagnitude, 0.50f));
+                float finalMagnitude = ((float) finalDamage / ailmentThreshold) * 0.30f;
+                finalMagnitude = Math.max(0.05f, Math.min(finalMagnitude, 0.30f));
                 applyAilment(target, AilmentType.SHOCK, (float) finalDamage, AilmentType.SHOCK.getBaseDuration(), source, null, null, 0, finalMagnitude);
                 
                 // Spawn shock chain particles at target position

@@ -57,6 +57,7 @@ public abstract class DamageReductionMixin {
             float totalDamage = breakdown.getTotal();
             float shockMagnitude = AilmentManager.getShockMagnitude(entity);
             if (shockMagnitude > 0) {
+                shockMagnitude = Math.min(shockMagnitude, 0.50f);
                 totalDamage *= (1.0f + shockMagnitude);
                 breakdown.scale(1.0f + shockMagnitude);
             }

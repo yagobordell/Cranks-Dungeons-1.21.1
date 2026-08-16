@@ -26,32 +26,35 @@ public class PrecisionMiningPlayerMixin {
 
         ItemStack self = (ItemStack) (Object) this;
 
-        // Only for relevant tools
-        if (!(self.isIn(ItemTags.PICKAXES) ||
-                self.isIn(ItemTags.AXES) ||
-                self.isIn(ItemTags.HOES) ||
-                self.isIn(ItemTags.SHOVELS))) {
-            return;
+        // Check precision mining for tools
+        boolean isGatheringTool = self.isIn(ItemTags.PICKAXES) || self.isIn(ItemTags.AXES) || self.isIn(ItemTags.HOES) || self.isIn(ItemTags.SHOVELS);
+        if (isGatheringTool) {
+            double precisionChance = 0.0;
+            var inst = player.getAttributeInstance(ModAttributes.PRECISION_MINING);
+            if (inst != null) {
+                precisionChance = inst.getValue();
+            }
+            if (precisionChance <= 0.0) {
+                precisionChance = ToolStatHelper.getPrecisionMining(self);
+            }
+            precisionChance = Math.clamp(precisionChance, 0.0, 1.0);
+            if (precisionChance > 0.0 && player.getRandom().nextDouble() < precisionChance) {
+                ci.cancel();
+                return;
+            }
         }
 
-        // 1) Prefer attribute (this should already include tool + armor, etc.)
-        double precisionChance = 0.0;
-        var inst = player.getAttributeInstance(ModAttributes.PRECISION_MINING);
-        if (inst != null) {
-            precisionChance = inst.getValue();
+        // Check repair chance (Preservation enchantment / rune stat) for any gear
+        double repairChance = 0.0;
+        var repairInst = player.getAttributeInstance(ModAttributes.REPAIR_CHANCE);
+        if (repairInst != null) {
+            repairChance = repairInst.getValue();
         }
-
-        // 2) If attribute isn't wired, fall back to the raw stat stored on the tool
-        if (precisionChance <= 0.0) {
-            precisionChance = ToolStatHelper.getPrecisionMining(self);
+        if (repairChance <= 0.0) {
+            repairChance = ToolStatHelper.getRepairChance(self);
         }
-
-        // Clamp just in case some value is misconfigured
-        if (precisionChance < 0.0) precisionChance = 0.0;
-        if (precisionChance > 1.0) precisionChance = 1.0;
-
-        if (precisionChance > 0.0 && player.getRandom().nextDouble() < precisionChance) {
-            // Cancel the whole damage call = no durability lost this time
+        repairChance = Math.clamp(repairChance, 0.0, 1.0);
+        if (repairChance > 0.0 && player.getRandom().nextDouble() < repairChance) {
             ci.cancel();
         }
     }

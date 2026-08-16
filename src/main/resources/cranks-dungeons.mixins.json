@@ -36,7 +36,6 @@
 		"FilterTradesMixin",
 		"KnockbackProcessorMixin",
 		"AnvilSlotLimitMixin",
-		"ItemStackTooltipMixin",
 		"FreeAnvilMixin",
 		"ItemStackMixin",
 		"EnchantedBookDescriptionMixin",
@@ -112,7 +111,8 @@
 		"HeartbeatSoundMixin",
 		"client.HandledScreenTextMixin",
 		"client.StatusEffectUtilMixin",
-		"client.AbstractInventoryScreenMixin"
+		"client.AbstractInventoryScreenMixin",
+		"ItemStackTooltipMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

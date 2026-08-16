@@ -25,7 +25,6 @@ public class PartyHealthSyncHandler {
     private static int tickCounter = 0;
     private static int currentSyncInterval = NORMAL_SYNC_INTERVAL;
     private static int fastSyncEndTick = 0;
-    private static MinecraftServer serverInstance = null;
     
     private static class HealthData {
         float health;
@@ -43,8 +42,6 @@ public class PartyHealthSyncHandler {
         }
         
         boolean hasMeaningfulChange(float health, float maxHealth, float absorption, float shield, float maxShield) {
-            // Remove the threshold entirely. Sending a few floats every sync interval (200ms) 
-            // is worth it to ensure the HUD is always 100% accurate and never 'stuck'.
             return this.health != health || this.maxHealth != maxHealth || this.absorption != absorption ||
                    this.shield != shield || this.maxShield != maxShield;
         }
@@ -53,7 +50,6 @@ public class PartyHealthSyncHandler {
     public static void register() {
         // Tick-based sync
         ServerTickEvents.END_SERVER_TICK.register(server -> {
-            serverInstance = server;
             tickCounter++;
             
             // Check if we should revert to normal sync speed
@@ -68,18 +64,25 @@ public class PartyHealthSyncHandler {
         });
         
         // Event-driven sync for damage - sync immediately when damage happens
-        ServerLivingEntityEvents.AFTER_DAMAGE.register((entity, source, amount, dealt, blocked) -> {
+        ServerLivingEntityEvents.ALLOW_DAMAGE.register((entity, source, amount) -> {
             if (entity instanceof ServerPlayerEntity player) {
-                // Sync immediately using stored server reference
-                if (serverInstance != null) {
-                    syncSinglePlayer(player, serverInstance);
+                MinecraftServer server = player.getServer();
+                if (server != null) {
+                    syncSinglePlayer(player, server);
                 }
                 
-                // Also enable fast sync for next 3 seconds (60 ticks) to catch regen
-                // Extended to 3 seconds to ensure we catch all healing ticks
                 enableFastSync(60);
                 pendingFastSync.add(player.getUuid());
             }
+            return true;
+        });
+        
+        net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
+            lastHealthData.clear();
+            pendingFastSync.clear();
+            tickCounter = 0;
+            fastSyncEndTick = 0;
+            currentSyncInterval = NORMAL_SYNC_INTERVAL;
         });
     }
     

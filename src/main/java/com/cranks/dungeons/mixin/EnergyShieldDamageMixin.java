@@ -183,7 +183,6 @@ public class EnergyShieldDamageMixin {
             provider.cranksdungeons$setLastDamageTime(currentTime);
             
             triggerShieldVisuals(world, self, currentShield, 0.0f);
-            triggerDamageNumbers(world, self, source, absorbedAmount);
             
             if (self instanceof ServerPlayerEntity serverPlayer) {
                 ServerPlayNetworking.send(serverPlayer, new EnergyShieldSyncPacket(0.0f, (float) maxShield));
