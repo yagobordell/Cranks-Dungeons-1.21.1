@@ -5,6 +5,7 @@ import com.cranks.dungeons.ailment.AilmentType;
 import com.cranks.dungeons.network.DamageNumberSender;
 import com.cranks.dungeons.registry.ModAttributes;
 import com.cranks.dungeons.util.AilmentHistoryProvider;
+import com.cranks.dungeons.util.CritEntropyProvider;
 import com.cranks.dungeons.util.DamageBreakdownProvider;
 import com.cranks.dungeons.util.DamageConversionHelper;
 import net.minecraft.entity.Entity;
@@ -29,7 +30,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.registry.entry.RegistryEntry;
 
 @Mixin(LivingEntity.class)
-public abstract class LivingEntityMixin implements DamageBreakdownProvider, AilmentHistoryProvider {
+public abstract class LivingEntityMixin implements DamageBreakdownProvider, AilmentHistoryProvider, CritEntropyProvider {
 
     @Inject(method = "getOffHandStack", at = @At("RETURN"), cancellable = true)
     private void hideOffhandWhenTwoHanding(CallbackInfoReturnable<ItemStack> cir) {
@@ -52,6 +53,61 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
 
     @Unique
     private final Set<UUID> cranks$recentBurnChains = new HashSet<>();
+
+    @Unique
+    private float cranks$critEntropy = -1.0f; // -1 = unseeded / out-of-combat
+    @Unique
+    private long cranks$lastCritAttackTime = 0L;
+
+    @Override
+    public float cranks$getCritEntropy() {
+        return this.cranks$critEntropy;
+    }
+
+    @Override
+    public void cranks$setCritEntropy(float entropy) {
+        this.cranks$critEntropy = entropy;
+    }
+
+    @Override
+    public long cranks$getLastCritAttackTime() {
+        return this.cranks$lastCritAttackTime;
+    }
+
+    @Override
+    public void cranks$setLastCritAttackTime(long time) {
+        this.cranks$lastCritAttackTime = time;
+    }
+
+    @Override
+    public boolean cranks$rollCriticalStrike(float critChance, long currentTime, net.minecraft.util.math.random.Random random) {
+        if (critChance <= 0.0f) {
+            return false;
+        }
+
+        // Out-of-combat reset: after 6 seconds (120 ticks) without attacking, reseed entropy
+        if (this.cranks$lastCritAttackTime > 0 && (currentTime - this.cranks$lastCritAttackTime) > 120L) {
+            this.cranks$critEntropy = -1.0f;
+        }
+        this.cranks$lastCritAttackTime = currentTime;
+
+        // Seed random starting entropy if unseeded
+        if (this.cranks$critEntropy < 0.0f) {
+            this.cranks$critEntropy = random.nextFloat();
+        }
+
+        this.cranks$critEntropy += critChance;
+
+        if (this.cranks$critEntropy >= 1.0f) {
+            this.cranks$critEntropy -= 1.0f;
+            if (this.cranks$critEntropy >= 1.0f) {
+                this.cranks$critEntropy %= 1.0f;
+            }
+            return true;
+        }
+
+        return false;
+    }
 
     @Override
     public DamageConversionHelper.DamageBreakdown cranks$getLastDamageBreakdown() {

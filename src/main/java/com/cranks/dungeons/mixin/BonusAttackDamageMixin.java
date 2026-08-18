@@ -5,6 +5,7 @@ import com.cranks.dungeons.equipment.EquipmentStatApplier;
 import com.cranks.dungeons.registry.ModAttributes;
 import com.cranks.dungeons.registry.ModSounds;
 import com.cranks.dungeons.util.CombatUtility;
+import com.cranks.dungeons.util.CritEntropyProvider;
 import com.cranks.dungeons.util.CriticalHitState;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
@@ -99,7 +100,16 @@ public class BonusAttackDamageMixin {
                 critChance = 0;
             }
 
-            if (critChance > 0 && attacker.getRandom().nextFloat() < critChance) {
+            boolean isCrit = false;
+            if (critChance > 0) {
+                if (attacker instanceof CritEntropyProvider provider) {
+                    isCrit = provider.cranks$rollCriticalStrike((float) critChance, target.getWorld().getTime(), attacker.getRandom());
+                } else {
+                    isCrit = attacker.getRandom().nextFloat() < critChance;
+                }
+            }
+
+            if (isCrit) {
                 double critMult = CombatUtility.getAttributeValue(attacker, ModAttributes.CRIT_MULTIPLIER, weapon, "crit_multiplier", source);
 
                 // Elemental Overload check

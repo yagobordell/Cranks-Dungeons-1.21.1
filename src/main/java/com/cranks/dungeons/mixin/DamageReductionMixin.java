@@ -36,13 +36,26 @@ public abstract class DamageReductionMixin {
             LivingEntity entity = (LivingEntity) (Object) this;
             net.minecraft.world.World world = entity.getWorld();
 
-            // If the entity already has our custom BURN ailment, we disable the vanilla "On Fire" DOT
-            // to avoid double-ticking damage. 
-            // However, we let it through if there's no BURN ailment (e.g. Zombies in the sun)
-            // so they still take fire damage and show damage numbers.
-            if (source.isOf(net.minecraft.entity.damage.DamageTypes.ON_FIRE) && 
-                com.cranks.dungeons.ailment.AilmentManager.hasAilment(entity, com.cranks.dungeons.ailment.AilmentType.BURN)) {
+            // All fire damage is unified under AilmentType.BURN.
+            // When environmental fire hits (lava, fire, campfire, on_fire),
+            // apply or refresh the Burn ailment and suppress vanilla duplicate damage.
+            if (source.isOf(net.minecraft.entity.damage.DamageTypes.LAVA)) {
+                if (!world.isClient()) {
+                    com.cranks.dungeons.ailment.AilmentManager.applyAilment(entity, com.cranks.dungeons.ailment.AilmentType.BURN, 8.0f, 4.0, null, null, null, 0);
+                }
                 return 0;
+            } else if (source.isOf(net.minecraft.entity.damage.DamageTypes.CAMPFIRE) || source.isOf(net.minecraft.entity.damage.DamageTypes.IN_FIRE)) {
+                if (!world.isClient()) {
+                    com.cranks.dungeons.ailment.AilmentManager.applyAilment(entity, com.cranks.dungeons.ailment.AilmentType.BURN, 3.0f, 1.0, null, null, null, 0);
+                }
+                return 0;
+            } else if (source.isOf(net.minecraft.entity.damage.DamageTypes.ON_FIRE)) {
+                return 0;
+            }
+
+            // Magma blocks deal 3 direct fire damage without applying the Burn ailment
+            if (source.isOf(net.minecraft.entity.damage.DamageTypes.HOT_FLOOR)) {
+                amount = 3.0f;
             }
 
             DamageConversionHelper.DamageBreakdown breakdown = DamageConversionHelper.getBreakdown(source, amount, entity);

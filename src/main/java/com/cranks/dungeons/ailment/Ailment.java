@@ -85,6 +85,11 @@ public class Ailment {
         return baseDamage;
     }
 
+    public void setBaseDamage(float baseDamage) {
+        this.baseDamage = baseDamage;
+        this.damagePerStack = baseDamage;
+    }
+
     public UUID getSourceUuid() {
         return sourceUuid;
     }

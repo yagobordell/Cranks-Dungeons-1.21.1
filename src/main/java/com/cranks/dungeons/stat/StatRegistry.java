@@ -654,7 +654,7 @@ public class StatRegistry {
                                 ALL_WEAPONS);
 
                 registerForTypes("freeze_magnitude_percent", "Freeze Magnitude",
-                                ModAttributes.FREEZE_BUILDUP_PERCENT,
+                                ModAttributes.FREEZE_MAGNITUDE_PERCENT,
                                 r(0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50),
                                 r(0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50),
                                 true, true, Formatting.AQUA, CustomStat.AffixType.SUFFIX,
@@ -678,7 +678,7 @@ public class StatRegistry {
                                 ALL_WEAPONS);
 
                 registerForTypes("electrocute_magnitude_percent", "Electrocute Magnitude",
-                                ModAttributes.ELECTROCUTE_BUILDUP_PERCENT,
+                                ModAttributes.ELECTROCUTE_MAGNITUDE_PERCENT,
                                 r(0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50),
                                 r(0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50),
                                 true, true, Formatting.YELLOW, CustomStat.AffixType.SUFFIX,

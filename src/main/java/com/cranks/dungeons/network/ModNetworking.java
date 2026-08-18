@@ -261,6 +261,7 @@ public class ModNetworking {
                         }
                         player.playSound(net.minecraft.sound.SoundEvents.UI_BUTTON_CLICK.value(), 1.0F, 1.0F);
                         com.cranks.dungeons.component.WorldTreePersistentState.get(context.server()).savePlayerData(player.getUuid(), data);
+                        com.cranks.dungeons.stat.passive.PassiveSkillApplier.updatePlayerPassives(player);
                     }
                 }
             });
@@ -292,6 +293,7 @@ public class ModNetworking {
                         }
                         player.playSound(net.minecraft.sound.SoundEvents.UI_BUTTON_CLICK.value(), 1.0F, 1.0F);
                         com.cranks.dungeons.component.WorldTreePersistentState.get(context.server()).savePlayerData(player.getUuid(), data);
+                        com.cranks.dungeons.stat.passive.PassiveSkillApplier.updatePlayerPassives(player);
                     }
                 }
             });

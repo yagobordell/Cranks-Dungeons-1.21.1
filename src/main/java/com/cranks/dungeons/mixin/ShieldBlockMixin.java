@@ -102,4 +102,14 @@ public abstract class ShieldBlockMixin {
             cir.setReturnValue(false);
         }
     }
+
+    /**
+     * Reset the force-skip flag after the damage() call completes.
+     * This prevents isBlocking()/blockedByShield() from staying false
+     * during idle periods between incoming hits.
+     */
+    @Inject(method = "damage", at = @At("TAIL"))
+    private void resetForceSkipAfterDamage(DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
+        cranks$forceSkipVanillaBlock = false;
+    }
 }

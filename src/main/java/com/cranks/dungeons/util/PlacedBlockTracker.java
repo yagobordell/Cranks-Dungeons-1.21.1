@@ -69,8 +69,13 @@ public final class PlacedBlockTracker {
                 s -> new ArrayList<>(s.placed)
         );
 
+        private static final String NBT_KEY = "placed";
+
         public static State fromNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
-            return CODEC.parse(registryLookup.getOps(net.minecraft.nbt.NbtOps.INSTANCE), nbt)
+            if (!nbt.contains(NBT_KEY)) {
+                return new State();
+            }
+            return CODEC.parse(registryLookup.getOps(net.minecraft.nbt.NbtOps.INSTANCE), nbt.get(NBT_KEY))
                     .resultOrPartial(err -> com.cranks.dungeons.CranksDungeons.LOGGER.error("Failed to parse PlacedBlockTracker State: {}", err))
                     .orElseGet(State::new);
         }
@@ -79,11 +84,7 @@ public final class PlacedBlockTracker {
         public NbtCompound writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
             CODEC.encodeStart(registryLookup.getOps(net.minecraft.nbt.NbtOps.INSTANCE), this)
                     .resultOrPartial(err -> com.cranks.dungeons.CranksDungeons.LOGGER.error("Failed to encode PlacedBlockTracker State: {}", err))
-                    .ifPresent(encoded -> {
-                        if (encoded instanceof NbtCompound compound) {
-                            nbt.copyFrom(compound);
-                        }
-                    });
+                    .ifPresent(encoded -> nbt.put(NBT_KEY, encoded));
             return nbt;
         }
 

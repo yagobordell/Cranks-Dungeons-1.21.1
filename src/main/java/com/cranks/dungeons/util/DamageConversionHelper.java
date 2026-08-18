@@ -108,7 +108,8 @@ public class DamageConversionHelper {
 
         // Environmental Damage
         if (source.isOf(DamageTypes.IN_FIRE) || source.isOf(DamageTypes.ON_FIRE) ||
-                source.isOf(DamageTypes.LAVA) || source.isOf(DamageTypes.HOT_FLOOR)) {
+                source.isOf(DamageTypes.LAVA) || source.isOf(DamageTypes.HOT_FLOOR) ||
+                source.isOf(DamageTypes.CAMPFIRE)) {
             breakdown.add(DamageElement.FIRE, amount);
             return breakdown;
         }
@@ -305,13 +306,13 @@ public class DamageConversionHelper {
 
         double pvpMultiplier = isPvP ? 0.25 : 1.0;
         boolean isCrit = com.cranks.dungeons.util.CriticalHitState.isCriticalHit();
-        float critMultiplier = isCrit ? (float) getAttributeValueSafe(attacker, com.cranks.dungeons.registry.ModAttributes.CRIT_MULTIPLIER, 1.0) : 1.0f;
-        if (isCrit && isPvP) {
-            critMultiplier = 1.0f + (critMultiplier - 1.0f) * 0.5f;
-        }
+        float critMultiplier = isCrit ? com.cranks.dungeons.util.CriticalHitState.getCritMultiplier() : 1.0f;
 
-        float unreducedPhysicalDamage = (float) (amount / pvpMultiplier);
-        float physicalDamage = amount;
+        // Un-scale incoming physical damage by critMultiplier so that conversions,
+        // extra damages, and flat elemental damages operate on the un-crit base values.
+        // All damage lines (physical + all elements) are then uniformly scaled by critMultiplier at the end.
+        float unreducedPhysicalDamage = (float) (amount / (pvpMultiplier * critMultiplier));
+        float physicalDamage = (float) (amount / critMultiplier);
 
         double selfAfflictedBonus = 0;
         if (com.cranks.dungeons.ailment.AilmentManager.isAfflicted(attacker)) {
@@ -390,22 +391,23 @@ public class DamageConversionHelper {
         double baseMultiplier = selfAfflictedBonus;
 
         double fireTotalPercent = com.cranks.dungeons.util.CombatUtility.getAttributeValue(attacker, com.cranks.dungeons.registry.ModAttributes.FIRE_DAMAGE_PERCENT, weapon, "fire_damage_percent", source);
-        double fireDamage = fireBaseDamage * (1.0 + fireTotalPercent + baseMultiplier + elementalBonus) * critMultiplier;
+        double fireDamage = fireBaseDamage * (1.0 + fireTotalPercent + baseMultiplier + elementalBonus);
 
         double coldTotalPercent = com.cranks.dungeons.util.CombatUtility.getAttributeValue(attacker, com.cranks.dungeons.registry.ModAttributes.COLD_DAMAGE_PERCENT, weapon, "cold_damage_percent", source);
-        double coldDamage = coldBaseDamage * (1.0 + coldTotalPercent + baseMultiplier + elementalBonus) * critMultiplier;
+        double coldDamage = coldBaseDamage * (1.0 + coldTotalPercent + baseMultiplier + elementalBonus);
 
         double lightningTotalPercent = com.cranks.dungeons.util.CombatUtility.getAttributeValue(attacker, com.cranks.dungeons.registry.ModAttributes.LIGHTNING_DAMAGE_PERCENT, weapon, "lightning_damage_percent", source);
-        double lightningDamage = lightningBaseDamage * (1.0 + lightningTotalPercent + baseMultiplier + elementalBonus) * critMultiplier;
+        double lightningDamage = lightningBaseDamage * (1.0 + lightningTotalPercent + baseMultiplier + elementalBonus);
 
         double voidTotalPercent = com.cranks.dungeons.util.CombatUtility.getAttributeValue(attacker, com.cranks.dungeons.registry.ModAttributes.VOID_DAMAGE_PERCENT, weapon, "void_damage_percent", source);
-        double voidDamage = voidBaseDamage * (1.0 + voidTotalPercent + baseMultiplier) * critMultiplier;
+        double voidDamage = voidBaseDamage * (1.0 + voidTotalPercent + baseMultiplier);
 
-        fireDamage *= pvpMultiplier;
-        coldDamage *= pvpMultiplier;
-        lightningDamage *= pvpMultiplier;
-        voidDamage *= pvpMultiplier;
-        finalPhysicalExtraDamage *= pvpMultiplier;
+        fireDamage *= pvpMultiplier * critMultiplier;
+        coldDamage *= pvpMultiplier * critMultiplier;
+        lightningDamage *= pvpMultiplier * critMultiplier;
+        voidDamage *= pvpMultiplier * critMultiplier;
+        finalPhysicalExtraDamage *= pvpMultiplier * critMultiplier;
+        physicalDamage *= critMultiplier;
 
         if (getAttributeValueSafe(attacker, com.cranks.dungeons.registry.ModAttributes.KEYSTONE_AVATAR_OF_FIRE, 0.0) > 0) {
             fireDamage += (physicalDamage + finalPhysicalExtraDamage) * 0.5;

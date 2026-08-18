@@ -24,6 +24,9 @@ public class ModConfigModel {
     public boolean showOtherPlayersParty = true;
     
     @SectionHeader("nameplate_mobs")
+    public HealthBarDisplayMode hostileMobHealthBars = HealthBarDisplayMode.ALWAYS;
+    public HealthBarDisplayMode neutralMobHealthBars = HealthBarDisplayMode.WHEN_DAMAGED;
+    public HealthBarDisplayMode friendlyMobHealthBars = HealthBarDisplayMode.WHEN_DAMAGED;
     public boolean showMobsName = true;
     public boolean showMobsLevel = true;
     public boolean showMobsBars = true;

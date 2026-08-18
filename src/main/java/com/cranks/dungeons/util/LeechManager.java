@@ -73,7 +73,10 @@ public class LeechManager {
 
         // If at full health/ES, all instances are removed (like PoE)
         if (currentResource >= maxResource) {
-            if (instances != null) instances.clear();
+            if (instances != null) {
+                instances.clear();
+                LEECH_INSTANCES.remove(uuid);
+            }
             ACCUMULATED_HEALING.remove(uuid);
             LEECH_TICKS.remove(uuid);
             return;
@@ -132,6 +135,7 @@ public class LeechManager {
             }
             
             if (instances.isEmpty() && accumulated <= 0) {
+                LEECH_INSTANCES.remove(uuid);
                 ACCUMULATED_HEALING.remove(uuid);
                 LEECH_TICKS.remove(uuid);
             } else {

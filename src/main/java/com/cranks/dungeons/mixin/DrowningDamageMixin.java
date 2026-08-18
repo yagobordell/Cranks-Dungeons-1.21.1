@@ -18,7 +18,7 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.util.HashMap;
+
 import java.util.Map;
 import java.util.UUID;
 
@@ -38,7 +38,9 @@ public class DrowningDamageMixin {
 
     // Track last tick we processed for each entity to prevent duplicate processing
     @Unique
-    private static final Map<UUID, Long> LAST_DROWN_TICK = new HashMap<>();
+    private static final Map<UUID, Long> LAST_DROWN_TICK = new java.util.concurrent.ConcurrentHashMap<>();
+    @Unique
+    private static long lastDrownEvictionTick = 0;
 
     /**
      * Hook into tick to detect when drowning damage WOULD occur.
@@ -65,6 +67,12 @@ public class DrowningDamageMixin {
         
         // Mark this tick as processed
         LAST_DROWN_TICK.put(entityUuid, currentTick);
+
+        // Evict stale entries every ~60 seconds (1200 ticks) to prevent memory leak
+        if (currentTick - lastDrownEvictionTick > 1200L) {
+            lastDrownEvictionTick = currentTick;
+            LAST_DROWN_TICK.entrySet().removeIf(e -> (currentTick - e.getValue()) > 100L);
+        }
         
         // Calculate damage based on entity type
         boolean isPlayer = entity instanceof PlayerEntity;
@@ -167,14 +175,7 @@ public class DrowningDamageMixin {
      */
     @Unique
     private void broadcastDrownNumbersToNearbyPlayers(ServerWorld world, LivingEntity entity, float damage) {
-        // Send to all players within 32 blocks
-        double range = 32.0;
-        
-        for (ServerPlayerEntity player : world.getPlayers()) {
-            if (player.squaredDistanceTo(entity) < range * range) {
-                // Use broadcastDrown to get the cyan-blue color (DROWN damage element)
-                DamageNumberSender.broadcastDrown(world, entity, damage);
-            }
-        }
+        // broadcastDrown already finds all players within 32 blocks and sends packets to each
+        DamageNumberSender.broadcastDrown(world, entity, damage);
     }
 }

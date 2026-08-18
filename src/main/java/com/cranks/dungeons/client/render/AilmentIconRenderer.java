@@ -60,6 +60,7 @@ public class AilmentIconRenderer {
                 if (living == client.player) continue;
                 
                 if (living.distanceTo(client.player) > 32) continue;
+                if (!EntityStatBarRenderer.canSeeEntity(client.player, living)) continue;
 
                 List<AilmentSyncPayload.AilmentEntry> activeAilments = AILMENT_CACHE.get(living.getId());
                 if (activeAilments == null || activeAilments.isEmpty()) continue;
@@ -151,7 +152,7 @@ public class AilmentIconRenderer {
     }
 
     private static void renderIcon(MatrixStack matrices, Identifier texture, float size, VertexConsumerProvider consumers) {
-        VertexConsumer buffer = consumers.getBuffer(RenderLayer.getEntityCutout(texture));
+        VertexConsumer buffer = consumers.getBuffer(RenderLayer.getTextSeeThrough(texture));
         MatrixStack.Entry entry = matrices.peek();
         
         float half = size / 2f;
@@ -174,8 +175,6 @@ public class AilmentIconRenderer {
         buffer.vertex(entry, x, y, z)
             .color(r, g, b, alpha)
             .texture(u, v)
-            .overlay(OverlayTexture.DEFAULT_UV)
-            .light(LightmapTextureManager.MAX_LIGHT_COORDINATE)
-            .normal(entry, 0, 1, 0);
+            .light(LightmapTextureManager.MAX_LIGHT_COORDINATE);
     }
 }

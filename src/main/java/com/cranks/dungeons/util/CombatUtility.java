@@ -207,13 +207,20 @@ public class CombatUtility {
     }
 
     private static final java.util.Map<java.util.UUID, Long> LAST_CRIT_TIME = new java.util.concurrent.ConcurrentHashMap<>();
+    private static long lastCritEvictionTick = 0;
 
     /**
      * Records that an entity performed a critical hit at the specified game time.
+     * Periodically evicts stale entries to prevent unbounded memory growth.
      */
     public static void recordRecentCrit(LivingEntity entity, long gameTime) {
         if (entity != null) {
             LAST_CRIT_TIME.put(entity.getUuid(), gameTime);
+            // Evict stale entries every ~60 seconds (1200 ticks)
+            if (gameTime - lastCritEvictionTick > 1200L) {
+                lastCritEvictionTick = gameTime;
+                LAST_CRIT_TIME.entrySet().removeIf(e -> (gameTime - e.getValue()) > 160L);
+            }
         }
     }
 

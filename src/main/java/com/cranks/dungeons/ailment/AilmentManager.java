@@ -246,8 +246,30 @@ public class AilmentManager {
                 return;
             }
             // No existing poison, create new one with 1 stack
+        } else if (type == AilmentType.BURN) {
+            Ailment existingBurn = ailments.stream()
+                    .filter(a -> a.getType() == AilmentType.BURN)
+                    .findFirst()
+                    .orElse(null);
+
+            if (existingBurn != null) {
+                // Refresh remaining duration to at least the new duration
+                if (duration > existingBurn.getRemainingDuration()) {
+                    existingBurn.setRemainingDuration(duration);
+                }
+                existingBurn.setMaxDuration(Math.max(existingBurn.getMaxDuration(), duration));
+
+                // If new burn deals higher damage, upgrade base damage
+                if (baseDamage > existingBurn.getBaseDamage()) {
+                    existingBurn.setBaseDamage(baseDamage);
+                }
+                ENTITY_AILMENTS.put(target.getUuid(), ailments);
+                applyStatusEffect(target, type, existingBurn.getRemainingDuration());
+                syncAilments(target);
+                return;
+            }
         } else {
-            // BURN and other ailments: don't re-apply if already present
+            // other ailments: don't re-apply if already present
             if (hasAilment(target, type)) {
                 return;
             }
@@ -514,13 +536,22 @@ public class AilmentManager {
         float tickDamagePercent = getDamagePercent(entity);
 
         for (Ailment ailment : ailments) {
+            double durationDecay = 0.05;
+            boolean isWet = entity.isTouchingWaterOrRain() || entity.inPowderSnow;
+            if (ailment.getType() == AilmentType.BURN && isWet) {
+                durationDecay = 0.10; // 2x faster duration decay in water/rain/powder snow
+            }
+
             ailment.addTimeSinceLastTick(0.05);
-            ailment.setRemainingDuration(ailment.getRemainingDuration() - 0.05);
+            ailment.setRemainingDuration(ailment.getRemainingDuration() - durationDecay);
 
             if (ailment.isReadyToTick()) {
                 float damage = ailment.getDamagePerTick(tickDamagePercent);
                 if (damage > 0) {
                     if (ailment.getType() == AilmentType.BURN) {
+                        if (isWet) {
+                            damage *= 0.5f; // Half damage while in water/rain/powder snow
+                        }
                         double res = entity.getAttributeValue(ModAttributes.FIRE_RESISTANCE);
                         damage *= (float) (1.0 - res);
                         

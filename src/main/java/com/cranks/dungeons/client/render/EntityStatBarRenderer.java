@@ -21,7 +21,77 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.cranks.dungeons.config.HealthBarDisplayMode;
+
 public class EntityStatBarRenderer {
+
+    public enum MobCategory {
+        HOSTILE,
+        NEUTRAL,
+        FRIENDLY
+    }
+
+    public static MobCategory getMobCategory(LivingEntity entity) {
+        if (entity instanceof PlayerEntity) {
+            return MobCategory.FRIENDLY;
+        }
+
+        // Hostile monsters
+        if (entity instanceof net.minecraft.entity.mob.Monster
+                || entity instanceof net.minecraft.entity.mob.SlimeEntity
+                || entity instanceof net.minecraft.entity.mob.GhastEntity
+                || entity instanceof net.minecraft.entity.mob.PhantomEntity
+                || entity instanceof net.minecraft.entity.boss.WitherEntity
+                || entity instanceof net.minecraft.entity.boss.dragon.EnderDragonEntity
+                || entity instanceof net.minecraft.entity.mob.ShulkerEntity
+                || entity instanceof net.minecraft.entity.mob.HoglinEntity
+                || entity instanceof net.minecraft.entity.mob.ZoglinEntity) {
+            if (entity instanceof net.minecraft.entity.mob.Angerable angerable) {
+                return angerable.hasAngerTime() ? MobCategory.HOSTILE : MobCategory.NEUTRAL;
+            }
+            return MobCategory.HOSTILE;
+        }
+
+        // Neutral / Angerable entities
+        if (entity instanceof net.minecraft.entity.mob.Angerable) {
+            return MobCategory.NEUTRAL;
+        }
+        if (entity instanceof net.minecraft.entity.passive.IronGolemEntity
+                || entity instanceof net.minecraft.entity.passive.SnowGolemEntity
+                || entity instanceof net.minecraft.entity.passive.DolphinEntity
+                || entity instanceof net.minecraft.entity.passive.BatEntity) {
+            return MobCategory.NEUTRAL;
+        }
+
+        // Passive / Friendly (Cows, Sheep, Pigs, Villagers, Horses, Pets, etc.)
+        return MobCategory.FRIENDLY;
+    }
+
+    public static boolean canSeeEntity(PlayerEntity player, LivingEntity entity) {
+        if (player.getWorld() != entity.getWorld()) return false;
+
+        net.minecraft.util.math.Vec3d eyePos = new net.minecraft.util.math.Vec3d(player.getX(), player.getEyeY(), player.getZ());
+
+        // 1. Check head / eyes
+        net.minecraft.util.math.Vec3d headPos = new net.minecraft.util.math.Vec3d(entity.getX(), entity.getEyeY(), entity.getZ());
+        if (player.getWorld().raycast(new net.minecraft.world.RaycastContext(eyePos, headPos, net.minecraft.world.RaycastContext.ShapeType.VISUAL, net.minecraft.world.RaycastContext.FluidHandling.NONE, player)).getType() == net.minecraft.util.hit.HitResult.Type.MISS) {
+            return true;
+        }
+
+        // 2. Check chest / center of entity
+        net.minecraft.util.math.Vec3d centerPos = entity.getBoundingBox().getCenter();
+        if (player.getWorld().raycast(new net.minecraft.world.RaycastContext(eyePos, centerPos, net.minecraft.world.RaycastContext.ShapeType.VISUAL, net.minecraft.world.RaycastContext.FluidHandling.NONE, player)).getType() == net.minecraft.util.hit.HitResult.Type.MISS) {
+            return true;
+        }
+
+        // 3. Check feet / base of entity
+        net.minecraft.util.math.Vec3d feetPos = new net.minecraft.util.math.Vec3d(entity.getX(), entity.getY() + 0.2, entity.getZ());
+        if (player.getWorld().raycast(new net.minecraft.world.RaycastContext(eyePos, feetPos, net.minecraft.world.RaycastContext.ShapeType.VISUAL, net.minecraft.world.RaycastContext.FluidHandling.NONE, player)).getType() == net.minecraft.util.hit.HitResult.Type.MISS) {
+            return true;
+        }
+
+        return false;
+    }
 
     private static final Map<Integer, PlayerInfo> PLAYER_INFO_CACHE = new ConcurrentHashMap<>();
     private static final Map<Integer, ShieldInfo> ENTITY_SHIELD_CACHE = new ConcurrentHashMap<>();
@@ -107,13 +177,12 @@ public class EntityStatBarRenderer {
                 
                 boolean isPlayer = living instanceof PlayerEntity;
                 if (isPlayer && !CranksDungeons.CONFIG.showPlayerInfoAboveHead()) continue;
-                if (!isPlayer && !CranksDungeons.CONFIG.showEntityHealthBars()) continue;
                 
                 double dist = living.squaredDistanceTo(client.player);
                 if (dist > 32 * 32) continue;
                 
                 // Only show nameplate if the entity itself is visible
-                if (!client.player.canSee(living)) continue;
+                if (!canSeeEntity(client.player, living)) continue;
 
                 matrices.push();
                 
@@ -154,7 +223,30 @@ public class EntityStatBarRenderer {
         } else {
             showName = CranksDungeons.CONFIG.showMobsName();
             showLevel = CranksDungeons.CONFIG.showMobsLevel();
-            showBars = CranksDungeons.CONFIG.showMobsBars();
+            
+            if (!CranksDungeons.CONFIG.showEntityHealthBars() || !CranksDungeons.CONFIG.showMobsBars()) {
+                showBars = false;
+            } else {
+                MobCategory category = getMobCategory(entity);
+                HealthBarDisplayMode mode = switch (category) {
+                    case HOSTILE -> CranksDungeons.CONFIG.hostileMobHealthBars();
+                    case NEUTRAL -> CranksDungeons.CONFIG.neutralMobHealthBars();
+                    case FRIENDLY -> CranksDungeons.CONFIG.friendlyMobHealthBars();
+                };
+
+                if (mode == HealthBarDisplayMode.NEVER) {
+                    showBars = false;
+                } else if (mode == HealthBarDisplayMode.WHEN_DAMAGED) {
+                    boolean isDamaged = entity.getHealth() < entity.getMaxHealth() || entity.getAbsorptionAmount() > 0;
+                    ShieldInfo sInfo = ENTITY_SHIELD_CACHE.get(entity.getId());
+                    if (sInfo != null && sInfo.current < sInfo.max) {
+                        isDamaged = true;
+                    }
+                    showBars = isDamaged;
+                } else {
+                    showBars = true;
+                }
+            }
             showParty = false;
         }
 
@@ -163,20 +255,35 @@ public class EntityStatBarRenderer {
         float scale = 0.025f;
         matrices.scale(-scale, -scale, scale); // Standard vanilla nametag scaling logic
 
-        // Dynamic yOffset: Start higher if we have more rows to render
-        float yOffset = -30;
         PlayerInfo info = isPlayer ? PLAYER_INFO_CACHE.get(entity.getId()) : null;
-        
-        if (info != null && !info.partyLeaderName.isEmpty() && showParty) {
-            yOffset -= 10; // Shift everything up to make room for party name
+        PlayerInfo mobInfo = !isPlayer && showLevel ? PLAYER_INFO_CACHE.get(entity.getId()) : null;
+
+        // Dynamic yOffset: calculate total height based on which elements are active
+        float totalHeight = 0;
+        if (showName) totalHeight += 10;
+        if (isPlayer && info != null) {
+            if (showLevel) totalHeight += 10;
+            if (showParty && !info.partyLeaderName.isEmpty()) totalHeight += 10;
+        } else if (mobInfo != null) {
+            totalHeight += 10;
         }
-        
+
+        if (showBars) {
+            ShieldInfo sInfo = ENTITY_SHIELD_CACHE.get(entity.getId());
+            if (sInfo != null && sInfo.max > 0) {
+                totalHeight += 3.2f;
+            }
+            totalHeight += 5f; // Health bar height + spacing
+        }
+
+        float yOffset = -totalHeight;
         TextRenderer textRenderer = client.textRenderer;
 
         if (showName) {
             String name = entity.getName().getString();
             int nameWidth = textRenderer.getWidth(name);
             drawText(matrices, textRenderer, name, -nameWidth / 2f, yOffset, 0xFFFFFFFF, consumers);
+            flush(consumers);
             yOffset += 10;
         }
 
@@ -186,6 +293,7 @@ public class EntityStatBarRenderer {
                 String topText = "Lv." + info.level + " " + (info.className.isEmpty() ? "Novice" : capitalize(info.className));
                 int textWidth = textRenderer.getWidth(topText);
                 drawText(matrices, textRenderer, topText, -textWidth / 2f, yOffset, 0xFFCCCCCC, consumers);
+                flush(consumers);
                 yOffset += 10;
             }
 
@@ -194,17 +302,16 @@ public class EntityStatBarRenderer {
                 String partyText = info.partyLeaderName + "'s Party";
                 int pWidth = textRenderer.getWidth(partyText);
                 drawText(matrices, textRenderer, partyText, -pWidth / 2f, yOffset, 0xFF55FFFF, consumers);
+                flush(consumers);
                 yOffset += 10;
             }
-        } else if (showLevel) {
+        } else if (showLevel && mobInfo != null) {
             // Mobs can show level too if sync data exists (future proofing)
-            PlayerInfo mobInfo = PLAYER_INFO_CACHE.get(entity.getId());
-            if (mobInfo != null) {
-                String topText = "Lv." + mobInfo.level;
-                int textWidth = textRenderer.getWidth(topText);
-                drawText(matrices, textRenderer, topText, -textWidth / 2f, yOffset, 0xFFCCCCCC, consumers);
-                yOffset += 10;
-            }
+            String topText = "Lv." + mobInfo.level;
+            int textWidth = textRenderer.getWidth(topText);
+            drawText(matrices, textRenderer, topText, -textWidth / 2f, yOffset, 0xFFCCCCCC, consumers);
+            flush(consumers);
+            yOffset += 10;
         }
 
         if (!showBars) return;
@@ -235,10 +342,12 @@ public class EntityStatBarRenderer {
             float sHeight = 2.66f; // 6px height (6/9 * 4)
             // Background
             drawBar(matrices, consumers, EMPTY_SHIELD_BAR, xStart, yOffset, barWidth, sHeight, 1.0f, 0, 0, 1.0f);
+            flush(consumers);
             // Fill - Left-Aligned
             if (shieldPercent > 0) {
                 float fillWidth = barWidth * shieldPercent;
                 drawBar(matrices, consumers, SHIELD_FILL, xStart, yOffset, fillWidth, sHeight, 1.0f, -0.1f, 0, shieldPercent);
+                flush(consumers);
             }
             yOffset += 3.2f;
         }
@@ -252,12 +361,14 @@ public class EntityStatBarRenderer {
 
         // Background
         drawBar(matrices, consumers, EMPTY_BAR, xStart, yOffset, barWidth, barHeight, 1.0f, 0, 0, 1.0f);
+        flush(consumers);
         
         // HP Fill - Left-Aligned
         if (hpPercent > 0) {
             float fillWidth = barWidth * hpPercent;
             Identifier entityHealthTexture = getEntityHealthFillTexture(entity);
             drawBar(matrices, consumers, entityHealthTexture, xStart, yOffset, fillWidth, barHeight, 1.0f, -0.1f, 0, hpPercent);
+            flush(consumers);
         }
 
         // Absorption Fill (Z = -0.20)
@@ -265,29 +376,40 @@ public class EntityStatBarRenderer {
             float absPercent = MathHelper.clamp(absorption / maxHealth, 0, 1);
             float absWidth = barWidth * absPercent;
             drawBar(matrices, consumers, ABSORPTION_FILL, xStart, yOffset, absWidth, barHeight, 1.0f, -0.2f, 0, absPercent);
+            flush(consumers);
         }
         
         yOffset += 5;
     }
 
+    private static void flush(VertexConsumerProvider consumers) {
+        if (consumers instanceof VertexConsumerProvider.Immediate immediate) {
+            immediate.draw();
+        }
+    }
+
     private static void drawBar(MatrixStack matrices, VertexConsumerProvider consumers, Identifier texture, float x, float y, float width, float height, float alpha, float zOffset, float uStart, float uEnd) {
-        VertexConsumer buffer = consumers.getBuffer(RenderLayer.getText(texture));
+        VertexConsumer buffer = consumers.getBuffer(RenderLayer.getTextSeeThrough(texture));
         Matrix4f model = matrices.peek().getPositionMatrix();
         
-        buffer.vertex(model, x, y, zOffset).color(1f, 1f, 1f, alpha).texture(uStart, 0).overlay(OverlayTexture.DEFAULT_UV).light(LightmapTextureManager.MAX_LIGHT_COORDINATE).normal(0, 1, 0);
-        buffer.vertex(model, x, y + height, zOffset).color(1f, 1f, 1f, alpha).texture(uStart, 1).overlay(OverlayTexture.DEFAULT_UV).light(LightmapTextureManager.MAX_LIGHT_COORDINATE).normal(0, 1, 0);
-        buffer.vertex(model, x + width, y + height, zOffset).color(1f, 1f, 1f, alpha).texture(uEnd, 1).overlay(OverlayTexture.DEFAULT_UV).light(LightmapTextureManager.MAX_LIGHT_COORDINATE).normal(0, 1, 0);
-        buffer.vertex(model, x + width, y, zOffset).color(1f, 1f, 1f, alpha).texture(uEnd, 0).overlay(OverlayTexture.DEFAULT_UV).light(LightmapTextureManager.MAX_LIGHT_COORDINATE).normal(0, 1, 0);
+        buffer.vertex(model, x, y, zOffset).color(1f, 1f, 1f, alpha).texture(uStart, 0).light(LightmapTextureManager.MAX_LIGHT_COORDINATE);
+        buffer.vertex(model, x, y + height, zOffset).color(1f, 1f, 1f, alpha).texture(uStart, 1).light(LightmapTextureManager.MAX_LIGHT_COORDINATE);
+        buffer.vertex(model, x + width, y + height, zOffset).color(1f, 1f, 1f, alpha).texture(uEnd, 1).light(LightmapTextureManager.MAX_LIGHT_COORDINATE);
+        buffer.vertex(model, x + width, y, zOffset).color(1f, 1f, 1f, alpha).texture(uEnd, 0).light(LightmapTextureManager.MAX_LIGHT_COORDINATE);
     }
 
     private static void drawText(MatrixStack matrices, TextRenderer textRenderer, String text, float x, float y, int color, VertexConsumerProvider consumers) {
-        // Draw just the background box (with black text that will be covered up) at Z=0
-        textRenderer.draw(text, x, y, 0xFF000000, false, matrices.peek().getPositionMatrix(), consumers, TextRenderer.TextLayerType.NORMAL, 0x40000000, 0xF000F0);
+        Matrix4f matrix = matrices.peek().getPositionMatrix();
 
-        // Draw the actual text slightly in front of the background box to prevent Z-fighting
+        // 1. See-through pass (renders through ceiling blocks and obstacles)
+        textRenderer.draw(text, x, y, color, false, matrix, consumers, TextRenderer.TextLayerType.SEE_THROUGH, 0x40000000, LightmapTextureManager.MAX_LIGHT_COORDINATE);
+        flush(consumers);
+
+        // 2. Normal pass (renders crisp full-brightness when in direct view)
         matrices.push();
         matrices.translate(0.0f, 0.0f, -0.02f);
-        textRenderer.draw(text, x, y, color, false, matrices.peek().getPositionMatrix(), consumers, TextRenderer.TextLayerType.NORMAL, 0, 0xF000F0);
+        textRenderer.draw(text, x, y, color, false, matrices.peek().getPositionMatrix(), consumers, TextRenderer.TextLayerType.NORMAL, 0, LightmapTextureManager.MAX_LIGHT_COORDINATE);
+        flush(consumers);
         matrices.pop();
     }
 
