@@ -170,6 +170,9 @@ public class CranksDungeonsClient implements ClientModInitializer {
                         }
                     }
                     if (entity != null) {
+                        if (isDealt) {
+                            com.cranks.dungeons.client.render.EntityStatBarRenderer.onEntityAttacked(entity.getId());
+                        }
                         // Blood splash effect on hit if they are bleeding
                         if (entity instanceof LivingEntity living && !payload.entries().isEmpty() && !payload.entries().get(0).isHeal()) {
                             com.cranks.dungeons.client.render.AilmentParticleManager.onEntityHit(living);
@@ -266,7 +269,6 @@ public class CranksDungeonsClient implements ClientModInitializer {
         net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents.LAST.register(context -> {
             net.minecraft.client.render.VertexConsumerProvider.Immediate consumers = MinecraftClient.getInstance().getBufferBuilders().getEntityVertexConsumers();
             com.cranks.dungeons.client.render.LightningArcRenderer.render(context, consumers);
-            com.cranks.dungeons.client.render.AilmentIconRenderer.render(context, consumers);
             com.cranks.dungeons.client.render.EntityStatBarRenderer.render(context, consumers);
             consumers.draw();
         });

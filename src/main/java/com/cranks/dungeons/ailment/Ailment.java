@@ -7,7 +7,7 @@ public class Ailment {
     private double remainingDuration;
     private double timeSinceLastTick;
     private float baseDamage;
-    private final UUID sourceUuid;
+    private UUID sourceUuid;
     private final UUID parentUuid;
     private final UUID chainUuid;
     private final int generation;
@@ -92,6 +92,10 @@ public class Ailment {
 
     public UUID getSourceUuid() {
         return sourceUuid;
+    }
+
+    public void setSourceUuid(UUID sourceUuid) {
+        this.sourceUuid = sourceUuid;
     }
 
     public boolean isReadyToTick() {

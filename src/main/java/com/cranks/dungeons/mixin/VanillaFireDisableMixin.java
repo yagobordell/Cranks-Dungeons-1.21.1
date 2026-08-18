@@ -27,35 +27,33 @@ public abstract class VanillaFireDisableMixin {
     @Inject(method = "setOnFireForTicks", at = @At("HEAD"), cancellable = true)
     private void interceptSetOnFireForTicks(int ticks, CallbackInfo ci) {
         if ((Object) this instanceof LivingEntity living && !living.getWorld().isClient()) {
-            float seconds = Math.max(1.0f, ticks / 20.0f);
-            float baseDps = 3.0f;
-
             if (living.isInLava()) {
-                baseDps = 8.0f;
-                seconds = 4.0f;
+                AilmentManager.applyAilment(
+                    living,
+                    AilmentType.BURN,
+                    8.0f,
+                    4.0f,
+                    null,
+                    null,
+                    null,
+                    0
+                );
             } else {
                 BlockState state = living.getWorld().getBlockState(living.getBlockPos());
                 if (state.isOf(Blocks.FIRE) || state.isOf(Blocks.SOUL_FIRE) 
                         || state.isOf(Blocks.CAMPFIRE) || state.isOf(Blocks.SOUL_CAMPFIRE)) {
-                    seconds = 1.0f;
-                    baseDps = 3.0f;
-                } else {
-                    // Sunlight or other environmental flame
-                    seconds = Math.min(seconds, 1.0f);
-                    baseDps = 2.0f;
+                    AilmentManager.applyAilment(
+                        living,
+                        AilmentType.BURN,
+                        3.0f,
+                        1.0f,
+                        null,
+                        null,
+                        null,
+                        0
+                    );
                 }
             }
-
-            AilmentManager.applyAilment(
-                living,
-                AilmentType.BURN,
-                baseDps,
-                seconds,
-                null,
-                null,
-                null,
-                0
-            );
             ci.cancel();
         }
     }

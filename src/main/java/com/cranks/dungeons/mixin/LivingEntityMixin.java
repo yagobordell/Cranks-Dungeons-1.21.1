@@ -502,6 +502,8 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
         if (entity.getEntityWorld().isClient())
             return;
 
+        updateSunlightBurn(entity);
+
         AilmentManager.tickAilments(entity);
         com.cranks.dungeons.util.LeechManager.tick(entity);
 
@@ -516,6 +518,54 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
             }
             cranks$accumulatedHeal = 0;
             cranks$healTimer = 0;
+        }
+    }
+
+    @Unique
+    private void updateSunlightBurn(LivingEntity entity) {
+        if (!(entity instanceof net.minecraft.entity.mob.MobEntity mob)) return;
+        if (!mob.isAlive() || mob.getWorld().isClient()) return;
+        if (!mob.getWorld().isDay()) return;
+        if (mob.isWet() || mob.inPowderSnow || mob.wasInPowderSnow) return;
+
+        // Undead mobs that burn in daylight
+        if (!(mob instanceof net.minecraft.entity.mob.ZombieEntity 
+                || mob instanceof net.minecraft.entity.mob.AbstractSkeletonEntity 
+                || mob instanceof net.minecraft.entity.mob.PhantomEntity)) {
+            return;
+        }
+
+        // Husks and Wither Skeletons are immune to sunlight
+        if (mob instanceof net.minecraft.entity.mob.HuskEntity || mob instanceof net.minecraft.entity.mob.WitherSkeletonEntity) {
+            return;
+        }
+
+        // Drowned in water doesn't burn
+        if (mob instanceof net.minecraft.entity.mob.DrownedEntity && mob.isTouchingWater()) {
+            return;
+        }
+
+        // Helmet protects from sunlight
+        ItemStack helmet = mob.getEquippedStack(net.minecraft.entity.EquipmentSlot.HEAD);
+        if (!helmet.isEmpty()) {
+            return;
+        }
+
+        float brightness = mob.getBrightnessAtEyes();
+        if (brightness <= 0.5f) return;
+
+        net.minecraft.util.math.BlockPos eyePos = net.minecraft.util.math.BlockPos.ofFloored(mob.getX(), mob.getEyeY(), mob.getZ());
+        if (mob.getWorld().isSkyVisible(eyePos)) {
+            AilmentManager.applyAilment(
+                mob,
+                AilmentType.BURN,
+                2.0f,
+                1.0f,
+                null,
+                null,
+                null,
+                0
+            );
         }
     }
 

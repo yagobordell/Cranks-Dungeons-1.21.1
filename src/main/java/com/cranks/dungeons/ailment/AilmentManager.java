@@ -108,7 +108,22 @@ public class AilmentManager {
     }
 
     public static void addFlammability(LivingEntity target, float amount, double duration, Entity source, float baseDamage) {
-        if (hasAilment(target, AilmentType.BURN)) return;
+        Ailment existingBurn = null;
+        List<Ailment> ailments = ENTITY_AILMENTS.get(target.getUuid());
+        if (ailments != null) {
+            for (Ailment a : ailments) {
+                if (a.getType() == AilmentType.BURN) {
+                    existingBurn = a;
+                    break;
+                }
+            }
+        }
+
+        // If target already has an equal or stronger burn, skip flammability
+        if (existingBurn != null && existingBurn.getBaseDamage() >= baseDamage) {
+            return;
+        }
+
         float current = getFlammabilityBuildup(target.getUuid());
         float newBuildup = current + amount;
         
@@ -253,16 +268,24 @@ public class AilmentManager {
                     .orElse(null);
 
             if (existingBurn != null) {
-                // Refresh remaining duration to at least the new duration
-                if (duration > existingBurn.getRemainingDuration()) {
-                    existingBurn.setRemainingDuration(duration);
-                }
-                existingBurn.setMaxDuration(Math.max(existingBurn.getMaxDuration(), duration));
-
-                // If new burn deals higher damage, upgrade base damage
+                // If new burn deals HIGHER damage, upgrade base damage, duration, sourceUuid, and magnitude
                 if (baseDamage > existingBurn.getBaseDamage()) {
                     existingBurn.setBaseDamage(baseDamage);
+                    existingBurn.setRemainingDuration(duration);
+                    existingBurn.setMaxDuration(duration);
+                    if (source != null) {
+                        existingBurn.setSourceUuid(source.getUuid());
+                    }
+                    existingBurn.setMagnitude(magnitude);
+                } else if (baseDamage == existingBurn.getBaseDamage()) {
+                    // Equal damage: refresh remaining duration
+                    if (duration > existingBurn.getRemainingDuration()) {
+                        existingBurn.setRemainingDuration(duration);
+                    }
+                    existingBurn.setMaxDuration(Math.max(existingBurn.getMaxDuration(), duration));
                 }
+                // If baseDamage < existingBurn.getBaseDamage(), ignore (do NOT overwrite or refresh stronger combat burn)
+
                 ENTITY_AILMENTS.put(target.getUuid(), ailments);
                 applyStatusEffect(target, type, existingBurn.getRemainingDuration());
                 syncAilments(target);
@@ -816,19 +839,19 @@ public class AilmentManager {
 
     private static void handleBurnSpread(LivingEntity entity, Ailment ailment) {
         if (entity.getEntityWorld().isClient()) return;
+        // Natural / environmental burns (Sunlight, Lava, Fire, Campfire) have no source attacker and must NEVER spread
+        if (ailment.getSourceUuid() == null) return;
         
         ServerWorld world = (ServerWorld) entity.getEntityWorld();
         double radius = 3.0;
         Box box = entity.getBoundingBox().expand(radius);
         List<LivingEntity> nearby = world.getEntitiesByClass(LivingEntity.class, box, e -> e != entity && e.isAlive());
 
-        Entity originalSource = null;
-        if (ailment.getSourceUuid() != null) {
-            originalSource = world.getEntity(ailment.getSourceUuid());
-        }
+        Entity originalSource = world.getEntity(ailment.getSourceUuid());
+        if (originalSource == null) return;
 
         for (LivingEntity target : nearby) {
-            if (ailment.getSourceUuid() != null && target.getUuid().equals(ailment.getSourceUuid())) {
+            if (target.getUuid().equals(ailment.getSourceUuid())) {
                 continue;
             }
             if (target instanceof AilmentHistoryProvider history && history.cranks$wasHitByChain(ailment.getChainUuid())) {
