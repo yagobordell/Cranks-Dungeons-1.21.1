@@ -37,7 +37,8 @@ public class EnchantedBookDescriptionMixin {
 
 
         for (var entry : enchantments.getEnchantmentEntries()) {
-            String enchantId = entry.getKey().getKey().get().getValue().toString();
+            String enchantId = com.cranks.dungeons.CranksDungeons.getEnchantmentId(entry.getKey());
+            if (enchantId.isEmpty()) continue;
             String enchantName = enchantId.contains(":") ? enchantId.split(":")[1] : enchantId;
 
             if (isCustomEnchantment(enchantName)) {
@@ -71,41 +72,34 @@ public class EnchantedBookDescriptionMixin {
     }
 
     private boolean isCustomEnchantment(String name) {
-        return name.equals("lunge") ||
-                name.equals("riptide") ||
-                name.equals("channeling") ||
-                name.equals("infinity") ||
-                name.equals("multishot") ||
-                name.equals("silk_touch") ||
-                name.equals("frost_walker") ||
-                name.equals("loyalty") ||
-                name.equals("depth_strider") ||
-                name.equals("respiration") ||
-                name.equals("soul_speed") ||
-                name.equals("aqua_affinity") ||
-                name.equals("wind_burst") ||
+        return name.equals("silk_touch") ||
                 name.equals("vein_mining") ||
+                name.equals("adept") ||
+                name.equals("greater_adept") ||
+                name.equals("perfect_adept") ||
                 name.equals("body") ||
                 name.equals("greater_body") ||
+                name.equals("perfect_body") ||
                 name.equals("desert") ||
                 name.equals("greater_desert") ||
+                name.equals("perfect_desert") ||
                 name.equals("glacial") ||
                 name.equals("greater_glacial") ||
-                name.equals("storm") ||
-                name.equals("greater_storm") ||
+                name.equals("perfect_glacial") ||
+                name.equals("inspiration") ||
+                name.equals("greater_inspiration") ||
+                name.equals("perfect_inspiration") ||
                 name.equals("iron") ||
                 name.equals("greater_iron") ||
+                name.equals("perfect_iron") ||
+                name.equals("stone") ||
+                name.equals("greater_stone") ||
+                name.equals("perfect_stone") ||
+                name.equals("storm") ||
+                name.equals("greater_storm") ||
+                name.equals("perfect_storm") ||
                 name.equals("vision") ||
                 name.equals("greater_vision") ||
-                name.equals("alacrity") ||
-                name.equals("greater_alacrity") ||
-                name.equals("sundering") ||
-                name.equals("greater_sundering") ||
-                name.equals("avarice") ||
-                name.equals("greater_avarice") ||
-                name.equals("preservation") ||
-                name.equals("greater_preservation") ||
-                name.equals("reach") ||
-                name.equals("greater_reach");
+                name.equals("perfect_vision");
     }
 }

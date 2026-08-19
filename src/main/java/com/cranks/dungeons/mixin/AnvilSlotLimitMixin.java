@@ -47,6 +47,13 @@ public abstract class AnvilSlotLimitMixin {
         // Enchanted books are ALWAYS limited to 1 slot, regardless of rarity
         if (resultStack.isOf(net.minecraft.item.Items.ENCHANTED_BOOK)) {
             maxSlots = 1;
+            ItemEnchantmentsComponent stored = resultStack.getOrDefault(net.minecraft.component.DataComponentTypes.STORED_ENCHANTMENTS, ItemEnchantmentsComponent.DEFAULT);
+            ItemEnchantmentsComponent regular = resultStack.getOrDefault(net.minecraft.component.DataComponentTypes.ENCHANTMENTS, ItemEnchantmentsComponent.DEFAULT);
+            if (stored.isEmpty() && regular.isEmpty()) {
+                handler.getSlot(2).setStack(ItemStack.EMPTY);
+                this.levelCost.set(0);
+                return;
+            }
         }
 
         ItemEnchantmentsComponent enchantments = resultStack.getEnchantments();

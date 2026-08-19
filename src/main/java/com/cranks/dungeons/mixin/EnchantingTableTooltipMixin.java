@@ -65,99 +65,42 @@ public class EnchantingTableTooltipMixin {
     private String[] getDescriptionKeys(String enchantmentLine) {
         String lower = enchantmentLine.toLowerCase();
 
-        if (lower.contains("lunge")) {
-            return new String[]{
-                    "enchantment.cranks-dungeons.lunge.desc",
-                    "enchantment.cranks-dungeons.lunge.desc2"
-            };
-        }
-        if (lower.contains("riptide")) {
-            return new String[]{
-                    "enchantment.cranks-dungeons.riptide.desc",
-                    "enchantment.cranks-dungeons.riptide.desc2"
-            };
-        }
-        if (lower.contains("wind burst")) {
-            return new String[]{
-                    "enchantment.cranks-dungeons.wind_burst.desc",
-                    "enchantment.cranks-dungeons.wind_burst.desc2"
-            };
-        }
+        String[] types = {
+            "adept", "body", "desert", "glacial", "inspiration", "iron", "stone", "storm", "vision"
+        };
 
-        if (lower.contains("infinity")) {
-            return new String[]{
-                    "enchantment.cranks-dungeons.infinity.desc",
-                    "enchantment.cranks-dungeons.infinity.desc2"
-            };
-        }
-
-        if (lower.contains("channeling")) {
-            return new String[]{
-                    "enchantment.cranks-dungeons.channeling.desc",
-                    "enchantment.cranks-dungeons.channeling.desc2"
-            };
-        }
-
-        if (lower.contains("multishot")) {
-            return new String[]{
-                    "enchantment.cranks-dungeons.multishot.desc",
-                    "enchantment.cranks-dungeons.multishot.desc2"
-            };
+        for (String type : types) {
+            if (lower.contains("perfect " + type)) {
+                return new String[]{
+                    "enchantment.cranks-dungeons.perfect_" + type + ".desc",
+                    "enchantment.cranks-dungeons.perfect_" + type + ".desc2"
+                };
+            }
+            if (lower.contains("greater " + type)) {
+                return new String[]{
+                    "enchantment.cranks-dungeons.greater_" + type + ".desc",
+                    "enchantment.cranks-dungeons.greater_" + type + ".desc2"
+                };
+            }
+            if (lower.contains(type)) {
+                return new String[]{
+                    "enchantment.cranks-dungeons." + type + ".desc",
+                    "enchantment.cranks-dungeons." + type + ".desc2"
+                };
+            }
         }
 
         if (lower.contains("silk touch")) {
             return new String[]{
-                    "enchantment.cranks-dungeons.silk_touch.desc",
-                    "enchantment.cranks-dungeons.silk_touch.desc2"
-            };
-        }
-
-        if (lower.contains("frost walker")) {
-            return new String[]{
-                    "enchantment.cranks-dungeons.frost_walker.desc",
-                    "enchantment.cranks-dungeons.frost_walker.desc2"
-            };
-        }
-
-        if (lower.contains("loyalty")) {
-            return new String[]{
-                    "enchantment.cranks-dungeons.loyalty.desc",
-                    "enchantment.cranks-dungeons.loyalty.desc2"
-            };
-        }
-
-        if (lower.contains("depth strider")) {
-            return new String[]{
-                    "enchantment.cranks-dungeons.depth_strider.desc",
-                    "enchantment.cranks-dungeons.depth_strider.desc2"
-            };
-        }
-
-        if (lower.contains("respiration")) {
-            return new String[]{
-                    "enchantment.cranks-dungeons.respiration.desc",
-                    "enchantment.cranks-dungeons.respiration.desc2"
-            };
-        }
-
-        if (lower.contains("soul speed")) {
-            return new String[]{
-                    "enchantment.cranks-dungeons.soul_speed.desc",
-                    "enchantment.cranks-dungeons.soul_speed.desc2"
-            };
-        }
-
-        if (lower.contains("aqua affinity")) {
-            return new String[]{
-                    "enchantment.cranks-dungeons.aqua_affinity.desc",
-                    "enchantment.cranks-dungeons.aqua_affinity.desc2"
+                "enchantment.cranks-dungeons.silk_touch.desc",
+                "enchantment.cranks-dungeons.silk_touch.desc2"
             };
         }
 
         if (lower.contains("vein mining")) {
             return new String[]{
-                    "enchantment.cranks-dungeons.vein_mining.desc",
-                    "enchantment.cranks-dungeons.vein_mining.desc2"
+                "enchantment.cranks-dungeons.vein_mining.desc",
+                "enchantment.cranks-dungeons.vein_mining.desc2"
             };
         }
 

@@ -7,7 +7,12 @@
             "description": "A master of brute force and resilience. Warriors excel at close-quarters combat, trading powerful blows with their enemies while shrugging off damage with impenetrable heavy armor and high health.",
             "recommendedStats": "Focus on Strength, Armour, and Maximum Life. Prioritize Melee Damage and Stun to control the battlefield while withstanding heavy blows.",
             "color": "#AA0000",
-            "startNode": "armor"
+            "startNode": "armor",
+            "baseAttributes": {
+                "cranks-dungeons:strength": 15.0,
+                "cranks-dungeons:dexterity": 7.0,
+                "cranks-dungeons:intelligence": 7.0
+            }
         },
         {
             "id": "ranger",
@@ -16,7 +21,12 @@
             "description": "Quick, lethal, and precise. Rangers dominate from a distance, using their superior movement speed and pure evasion to effortlessly dodge incoming attacks while landing deadly critical strikes.",
             "recommendedStats": "Focus on Dexterity, Evasion Rating, and Movement Speed. Prioritize Attack Speed, Ranged Damage, and Critical Strike Chance to maximize your bow skills.",
             "color": "#00AA00",
-            "startNode": "evasion_rating"
+            "startNode": "evasion_rating",
+            "baseAttributes": {
+                "cranks-dungeons:strength": 7.0,
+                "cranks-dungeons:dexterity": 15.0,
+                "cranks-dungeons:intelligence": 7.0
+            }
         },
         {
             "id": "mercenary",
@@ -25,7 +35,12 @@
             "description": "A ruthless tactician who fights for profit. Mercenaries utilize specialized ammunition and dirty tactics, balancing sturdy armor to mitigate hits with high evasion to dodge them entirely.",
             "recommendedStats": "Focus on a balance of Strength and Dexterity, granting both Armour and Evasion Rating. Prioritize Ranged Damage and Attack Speed.",
             "color": "#00AAAA",
-            "startNode": "armor_evasion_rating"
+            "startNode": "armor_evasion_rating",
+            "baseAttributes": {
+                "cranks-dungeons:strength": 11.0,
+                "cranks-dungeons:dexterity": 11.0,
+                "cranks-dungeons:intelligence": 7.0
+            }
         },
         {
             "id": "monk",
@@ -34,7 +49,12 @@
             "description": "A disciplined martial artist. Monks weave between enemies with lightning-fast strikes, utilizing a mystical energy shield to absorb initial blows and high evasion to dodge the rest.",
             "recommendedStats": "Focus on Dexterity and Intelligence, boosting Evasion Rating and Maximum Energy Shield. Prioritize Attack Speed, Mobility, and Elemental or Physical Melee Damage for fluid combat combinations.",
             "color": "#AAAA00",
-            "startNode": "energy_shield_evasion_rating"
+            "startNode": "energy_shield_evasion_rating",
+            "baseAttributes": {
+                "cranks-dungeons:strength": 7.0,
+                "cranks-dungeons:dexterity": 11.0,
+                "cranks-dungeons:intelligence": 11.0
+            }
         },
         {
             "id": "witch",
@@ -43,7 +63,12 @@
             "description": "A master of the dark arts. Witches wield devastating occult magic and rely entirely on a robust mystical energy shield to absorb damage, foregoing physical armor entirely.",
             "recommendedStats": "Focus on Intelligence and Maximum Energy Shield. Prioritize Spell Damage, and Void or Elemental Damage to overwhelm foes with dark magic.",
             "color": "#5500AA",
-            "startNode": "energy_shield"
+            "startNode": "energy_shield",
+            "baseAttributes": {
+                "cranks-dungeons:strength": 7.0,
+                "cranks-dungeons:dexterity": 7.0,
+                "cranks-dungeons:intelligence": 15.0
+            }
         },
         {
             "id": "death_knight",
@@ -52,7 +77,12 @@
             "description": "A fearsome armored warrior of the undead. Death Knights blend heavy melee combat with magic, layering thick armor beneath a dark energy shield to become an unkillable force.",
             "recommendedStats": "Focus on Strength and Intelligence, building high Armour and Maximum Energy Shield. Prioritize Maximum Life, Melee Damage, and Spell Damage to seamlessly blend heavy attacks with magic.",
             "color": "#4A0000",
-            "startNode": "armor_energy_shield"
+            "startNode": "armor_energy_shield",
+            "baseAttributes": {
+                "cranks-dungeons:strength": 11.0,
+                "cranks-dungeons:dexterity": 7.0,
+                "cranks-dungeons:intelligence": 11.0
+            }
         }
     ]
 }

@@ -43,14 +43,6 @@ public class ItemStackAttributeMixin {
             
             boolean isEnchantment = modifier.id().getPath().contains("enchantment");
 
-            // If this is an RPG item, its enchantments have already been baked into the item's
-            // base AttributeModifiersComponent by EquipmentStatApplier. Applying them here
-            // would result in double-dipping.
-            boolean isRpgItem = com.cranks.dungeons.equipment.EquipmentType.getTypeForItem(stack).isPresent();
-            if (isEnchantment && isRpgItem) {
-                return;
-            }
-
             // Only get effectiveness if we are dealing with an enchantment to save performance
             double effectiveness = 0.0;
             if (isEnchantment) {

@@ -1,9 +1,9 @@
 {
   "description": {
-    "translate": "enchantment.minecraft.greater_alacrity"
+    "translate": "enchantment.minecraft.greater_inspiration"
   },
   "supported_items": "#minecraft:enchantable/combat_equipment",
-  "weight": 2,
+  "weight": 3,
   "max_level": 1,
   "min_cost": {
     "base": 15,
@@ -16,20 +16,23 @@
   "anvil_cost": 4,
   "slots": [
     "mainhand",
+    "head",
+    "chest",
+    "legs",
     "feet"
   ],
   "effects": {
     "minecraft:attributes": [
       {
-        "id": "minecraft:enchantment.greater_alacrity.attack_speed",
-        "attribute": "cranks-dungeons:attack_speed",
-        "amount": 0.18,
+        "id": "minecraft:enchantment.greater_inspiration.mana_on_kill",
+        "attribute": "cranks-dungeons:mana_on_kill",
+        "amount": 20.0,
         "operation": "add_value"
       },
       {
-        "id": "minecraft:enchantment.greater_alacrity_boots.movement_speed",
-        "attribute": "cranks-dungeons:movement_speed",
-        "amount": 0.3,
+        "id": "minecraft:enchantment.greater_inspiration_armor.mana_regeneration_percent",
+        "attribute": "cranks-dungeons:mana_regeneration_percent",
+        "amount": 0.18,
         "operation": "add_value"
       }
     ]

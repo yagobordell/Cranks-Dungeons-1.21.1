@@ -3,7 +3,7 @@
     "translate": "enchantment.minecraft.greater_glacial"
   },
   "supported_items": "#minecraft:enchantable/combat_equipment",
-  "weight": 2,
+  "weight": 3,
   "max_level": 1,
   "min_cost": {
     "base": 15,
@@ -26,13 +26,13 @@
       {
         "id": "minecraft:enchantment.greater_glacial.cold_damage",
         "attribute": "cranks-dungeons:cold_damage",
-        "amount": 15,
+        "amount": 15.0,
         "operation": "add_value"
       },
       {
         "id": "minecraft:enchantment.greater_glacial_armor.cold_resistance",
         "attribute": "cranks-dungeons:cold_resistance",
-        "amount": 0.14,
+        "amount": 0.18,
         "operation": "add_value"
       }
     ]

@@ -41,9 +41,11 @@ import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemGroups;
+import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -387,110 +389,133 @@ public class CranksDungeons implements ModInitializer {
 	}
 
 	private void filterCreativeEnchantedBooks() {
-		// Filter ALL item groups that might contain enchanted books
-		ItemGroupEvents.modifyEntriesEvent(ItemGroups.TOOLS).register(this::filterEnchantedBooks);
-		ItemGroupEvents.modifyEntriesEvent(ItemGroups.COMBAT).register(this::filterEnchantedBooks);
-		ItemGroupEvents.modifyEntriesEvent(ItemGroups.REDSTONE).register(this::filterEnchantedBooks);
-		ItemGroupEvents.modifyEntriesEvent(ItemGroups.FUNCTIONAL).register(this::filterEnchantedBooks);
-		ItemGroupEvents.modifyEntriesEvent(ItemGroups.INGREDIENTS).register(this::filterEnchantedBooks);
-		ItemGroupEvents.modifyEntriesEvent(ItemGroups.BUILDING_BLOCKS).register(this::filterEnchantedBooks);
-		ItemGroupEvents.modifyEntriesEvent(ItemGroups.NATURAL).register(this::filterEnchantedBooks);
-		ItemGroupEvents.modifyEntriesEvent(ItemGroups.SEARCH).register(this::filterEnchantedBooks);
+		ItemGroupEvents.MODIFY_ENTRIES_ALL.register((group, entries) -> {
+			var displayStacks = entries.getDisplayStacks();
+			var searchStacks = entries.getSearchTabStacks();
+
+			displayStacks.removeIf(CranksDungeons::shouldRemoveFromCreative);
+			searchStacks.removeIf(CranksDungeons::shouldRemoveFromCreative);
+		});
 	}
 
 	/**
 	 * Enchantment IDs allowed through the creative tab filter.
 	 * Any enchanted book not in this list is hidden from creative tabs.
 	 */
-	private static final List<String> ALLOWED_ENCHANTMENT_IDS = List.of(
-			// Vanilla utility enchantments kept as-is
-			"minecraft:aqua_affinity",
-			"minecraft:channeling",
-			"minecraft:infinity",
-			"minecraft:multishot",
+	private static final Set<String> ALLOWED_ENCHANTMENT_IDS = Set.of(
 			"minecraft:silk_touch",
-			"minecraft:frost_walker",
-			"minecraft:loyalty",
-			"minecraft:soul_speed",
-			"minecraft:wind_burst",
-			"minecraft:riptide",
-			"minecraft:respiration",
-			"minecraft:depth_strider",
-			"minecraft:density",
-			"minecraft:breach",
 			"cranks-dungeons:vein_mining",
 
-			// New Hybrid Stat Enchantments
+			// Adept
+			"minecraft:adept",
+			"minecraft:greater_adept",
+			"minecraft:perfect_adept",
+
+			// Body
 			"minecraft:body",
 			"minecraft:greater_body",
+			"minecraft:perfect_body",
+
+			// Desert
 			"minecraft:desert",
 			"minecraft:greater_desert",
+			"minecraft:perfect_desert",
+
+			// Glacial
 			"minecraft:glacial",
 			"minecraft:greater_glacial",
-			"minecraft:storm",
-			"minecraft:greater_storm",
+			"minecraft:perfect_glacial",
+
+			// Inspiration
+			"minecraft:inspiration",
+			"minecraft:greater_inspiration",
+			"minecraft:perfect_inspiration",
+
+			// Iron
 			"minecraft:iron",
 			"minecraft:greater_iron",
+			"minecraft:perfect_iron",
+
+			// Stone
+			"minecraft:stone",
+			"minecraft:greater_stone",
+			"minecraft:perfect_stone",
+
+			// Storm
+			"minecraft:storm",
+			"minecraft:greater_storm",
+			"minecraft:perfect_storm",
+
+			// Vision
 			"minecraft:vision",
 			"minecraft:greater_vision",
-			"minecraft:alacrity",
-			"minecraft:greater_alacrity",
-
-			// Gathering & Utility
-			"minecraft:sundering",
-			"minecraft:greater_sundering",
-			"minecraft:avarice",
-			"minecraft:greater_avarice",
-			"minecraft:preservation",
-			"minecraft:greater_preservation",
-			"minecraft:reach",
-			"minecraft:greater_reach"
+			"minecraft:perfect_vision"
 	);
 
-	/** Cached set of allowed enchantment registry keys, built once on first use. */
-	private Set<RegistryKey<Enchantment>> allowedEnchantmentKeys;
+	public static String getEnchantmentId(RegistryEntry<Enchantment> entry) {
+		if (entry == null) return "";
+		var keyOpt = entry.getKey();
+		if (keyOpt.isPresent()) {
+			return keyOpt.get().getValue().toString();
+		}
+		var desc = entry.value().description();
+		if (desc != null && desc.getContent() instanceof net.minecraft.text.TranslatableTextContent translatable) {
+			String key = translatable.getKey();
+			if (key.startsWith("enchantment.minecraft.")) {
+				return "minecraft:" + key.substring("enchantment.minecraft.".length());
+			} else if (key.startsWith("enchantment.cranks_dungeons.")) {
+				return "cranks-dungeons:" + key.substring("enchantment.cranks_dungeons.".length());
+			} else if (key.startsWith("enchantment.cranks-dungeons.")) {
+				return "cranks-dungeons:" + key.substring("enchantment.cranks-dungeons.".length());
+			}
+		}
+		return "";
+	}
 
-	private Set<RegistryKey<Enchantment>> getAllowedEnchantmentKeys() {
-		if (allowedEnchantmentKeys == null) {
-			allowedEnchantmentKeys = new HashSet<>();
-			for (String id : ALLOWED_ENCHANTMENT_IDS) {
-				Identifier identifier = Identifier.tryParse(id);
-				if (identifier != null) {
-					RegistryKey<net.minecraft.registry.Registry<Enchantment>> registryKey = RegistryKey
-							.ofRegistry(Identifier.of("minecraft", "enchantment"));
-					allowedEnchantmentKeys.add(RegistryKey.of(registryKey, identifier));
+	public static boolean shouldRemoveFromCreative(ItemStack stack) {
+		if (stack.isEmpty()) {
+			return false;
+		}
+
+		if (stack.isOf(Items.ENCHANTED_BOOK)) {
+			ItemEnchantmentsComponent stored = stack.get(DataComponentTypes.STORED_ENCHANTMENTS);
+			ItemEnchantmentsComponent regular = stack.get(DataComponentTypes.ENCHANTMENTS);
+
+			boolean hasStored = stored != null && !stored.isEmpty();
+			boolean hasRegular = regular != null && !regular.isEmpty();
+
+			// Remove any empty / blank enchanted books
+			if (!hasStored && !hasRegular) {
+				return true;
+			}
+
+			if (hasStored) {
+				for (var entry : stored.getEnchantmentEntries()) {
+					String id = getEnchantmentId(entry.getKey());
+					if (id.isEmpty() || !ALLOWED_ENCHANTMENT_IDS.contains(id)) {
+						return true;
+					}
 				}
 			}
-		}
-		return allowedEnchantmentKeys;
-	}
 
-	private void filterEnchantedBooks(FabricItemGroupEntries content) {
-		Set<RegistryKey<Enchantment>> allowed = getAllowedEnchantmentKeys();
-
-		// Remove from both display stacks and search tab stacks
-		var displayStacks = content.getDisplayStacks();
-		var searchStacks = content.getSearchTabStacks();
-
-		displayStacks.removeIf(stack -> shouldRemoveBook(stack, allowed));
-		searchStacks.removeIf(stack -> shouldRemoveBook(stack, allowed));
-	}
-
-	private boolean shouldRemoveBook(net.minecraft.item.ItemStack stack,
-			Set<RegistryKey<Enchantment>> allowedEnchantments) {
-		if (!stack.isOf(Items.ENCHANTED_BOOK)) {
-			return false;
-		}
-		var enchantments = stack.get(DataComponentTypes.STORED_ENCHANTMENTS);
-		if (enchantments == null) {
-			return false;
-		}
-		for (var enchantmentEntry : enchantments.getEnchantmentEntries()) {
-			var key = enchantmentEntry.getKey().getKey().orElse(null);
-			if (key == null || !allowedEnchantments.contains(key)) {
-				return true; // Remove this book - has disallowed enchantment
+			if (hasRegular) {
+				for (var entry : regular.getEnchantmentEntries()) {
+					String id = getEnchantmentId(entry.getKey());
+					if (id.isEmpty() || !ALLOWED_ENCHANTMENT_IDS.contains(id)) {
+						return true;
+					}
+				}
 			}
+
+			return false;
 		}
+
+		// Also strip disallowed enchantments from any equipment in creative
+		ItemEnchantmentsComponent enchants = stack.get(DataComponentTypes.ENCHANTMENTS);
+		if (enchants != null && !enchants.isEmpty()) {
+			com.cranks.dungeons.util.EnchantmentFilterUtil.filterStack(stack);
+		}
+
 		return false;
 	}
 }

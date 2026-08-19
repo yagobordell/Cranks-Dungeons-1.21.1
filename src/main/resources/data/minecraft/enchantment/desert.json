@@ -26,13 +26,13 @@
       {
         "id": "minecraft:enchantment.desert.fire_damage",
         "attribute": "cranks-dungeons:fire_damage",
-        "amount": 10,
+        "amount": 20.0,
         "operation": "add_value"
       },
       {
         "id": "minecraft:enchantment.desert_armor.fire_resistance",
         "attribute": "cranks-dungeons:fire_resistance",
-        "amount": 0.12,
+        "amount": 0.14,
         "operation": "add_value"
       }
     ]

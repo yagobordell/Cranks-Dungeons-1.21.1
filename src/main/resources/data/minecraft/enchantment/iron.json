@@ -24,7 +24,7 @@
   "effects": {
     "minecraft:attributes": [
       {
-        "id": "minecraft:enchantment.iron.physical_damage",
+        "id": "minecraft:enchantment.iron.physical_damage_percent",
         "attribute": "cranks-dungeons:physical_damage_percent",
         "amount": 0.16,
         "operation": "add_value"
@@ -36,7 +36,7 @@
         "operation": "add_value"
       },
       {
-        "id": "minecraft:enchantment.iron_armor.evasion_percent",
+        "id": "minecraft:enchantment.iron_armor.evasion_rating_percent",
         "attribute": "cranks-dungeons:evasion_rating_percent",
         "amount": 0.16,
         "operation": "add_value"

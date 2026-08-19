@@ -1,0 +1,40 @@
+{
+  "description": {
+    "translate": "enchantment.minecraft.inspiration"
+  },
+  "supported_items": "#minecraft:enchantable/combat_equipment",
+  "weight": 5,
+  "max_level": 1,
+  "min_cost": {
+    "base": 1,
+    "per_level_above_first": 0
+  },
+  "max_cost": {
+    "base": 50,
+    "per_level_above_first": 0
+  },
+  "anvil_cost": 2,
+  "slots": [
+    "mainhand",
+    "head",
+    "chest",
+    "legs",
+    "feet"
+  ],
+  "effects": {
+    "minecraft:attributes": [
+      {
+        "id": "minecraft:enchantment.inspiration.mana_on_kill",
+        "attribute": "cranks-dungeons:mana_on_kill",
+        "amount": 10.0,
+        "operation": "add_value"
+      },
+      {
+        "id": "minecraft:enchantment.inspiration_armor.mana_regeneration_percent",
+        "attribute": "cranks-dungeons:mana_regeneration_percent",
+        "amount": 0.15,
+        "operation": "add_value"
+      }
+    ]
+  }
+}

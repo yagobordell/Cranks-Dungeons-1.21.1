@@ -121,26 +121,6 @@ public class CombatUtility {
     }
 
     /**
-     * Retrieves the value of an enchantment on an item stack, penalized by 50% if the player does not meet the item's attribute requirements.
-     */
-    public static double getEnchantmentValue(LivingEntity entity, ItemStack stack, String enchantmentId, double baseValue) {
-        if (stack.isEmpty()) return 0.0;
-        
-        var enchantments = stack.getEnchantments();
-        for (var entry : enchantments.getEnchantmentEntries()) {
-            String id = entry.getKey().getKey().get().getValue().toString();
-            if (id.equals(enchantmentId)) {
-                double val = baseValue;
-                if (entity instanceof PlayerEntity p && !com.cranks.dungeons.equipment.ItemRequirementManager.meetsRequirements(p, stack)) {
-                    val *= 0.5;
-                }
-                return val;
-            }
-        }
-        return 0.0;
-    }
-
-    /**
      * Returns the weapon-specific damage percentage bonus for the entity based on
      * the held weapon.
      */

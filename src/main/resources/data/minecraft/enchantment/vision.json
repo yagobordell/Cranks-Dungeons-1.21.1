@@ -15,24 +15,14 @@
   },
   "anvil_cost": 2,
   "slots": [
-    "mainhand",
-    "head",
-    "chest",
-    "legs",
-    "feet"
+    "mainhand"
   ],
   "effects": {
     "minecraft:attributes": [
       {
-        "id": "minecraft:enchantment.vision.crit_chance",
-        "attribute": "cranks-dungeons:crit_chance",
-        "amount": 0.1,
-        "operation": "add_value"
-      },
-      {
-        "id": "minecraft:enchantment.vision_armor.health_regen",
-        "attribute": "cranks-dungeons:life_regeneration",
-        "amount": 3.5,
+        "id": "minecraft:enchantment.vision.armor_penetration",
+        "attribute": "cranks-dungeons:flat_armor_penetration",
+        "amount": 90.0,
         "operation": "add_value"
       }
     ]

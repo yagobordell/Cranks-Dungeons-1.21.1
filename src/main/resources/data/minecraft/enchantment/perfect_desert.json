@@ -1,0 +1,40 @@
+{
+  "description": {
+    "translate": "enchantment.minecraft.perfect_desert"
+  },
+  "supported_items": "#minecraft:enchantable/combat_equipment",
+  "weight": 1,
+  "max_level": 1,
+  "min_cost": {
+    "base": 30,
+    "per_level_above_first": 0
+  },
+  "max_cost": {
+    "base": 80,
+    "per_level_above_first": 0
+  },
+  "anvil_cost": 6,
+  "slots": [
+    "mainhand",
+    "head",
+    "chest",
+    "legs",
+    "feet"
+  ],
+  "effects": {
+    "minecraft:attributes": [
+      {
+        "id": "minecraft:enchantment.perfect_desert.fire_damage",
+        "attribute": "cranks-dungeons:fire_damage",
+        "amount": 40.0,
+        "operation": "add_value"
+      },
+      {
+        "id": "minecraft:enchantment.perfect_desert_armor.fire_resistance",
+        "attribute": "cranks-dungeons:fire_resistance",
+        "amount": 0.22,
+        "operation": "add_value"
+      }
+    ]
+  }
+}

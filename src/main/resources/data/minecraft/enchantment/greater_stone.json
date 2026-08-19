@@ -1,0 +1,40 @@
+{
+  "description": {
+    "translate": "enchantment.minecraft.greater_stone"
+  },
+  "supported_items": "#minecraft:enchantable/combat_equipment",
+  "weight": 3,
+  "max_level": 1,
+  "min_cost": {
+    "base": 15,
+    "per_level_above_first": 0
+  },
+  "max_cost": {
+    "base": 65,
+    "per_level_above_first": 0
+  },
+  "anvil_cost": 4,
+  "slots": [
+    "mainhand",
+    "head",
+    "chest",
+    "legs",
+    "feet"
+  ],
+  "effects": {
+    "minecraft:attributes": [
+      {
+        "id": "minecraft:enchantment.greater_stone.knockback",
+        "attribute": "cranks-dungeons:knockback",
+        "amount": 0.20,
+        "operation": "add_value"
+      },
+      {
+        "id": "minecraft:enchantment.greater_stone_armor.knockback_resistance",
+        "attribute": "cranks-dungeons:knockback_resistance",
+        "amount": 0.15,
+        "operation": "add_value"
+      }
+    ]
+  }
+}

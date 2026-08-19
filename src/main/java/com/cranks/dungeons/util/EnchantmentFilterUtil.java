@@ -60,14 +60,6 @@ public class EnchantmentFilterUtil {
      * Checks if an enchantment is approved based on the custom tags.
      */
     public static boolean isApproved(RegistryEntry<Enchantment> enchantment) {
-        if (enchantment.matchesId(net.minecraft.util.Identifier.of("minecraft", "loyalty")) ||
-            enchantment.matchesId(net.minecraft.util.Identifier.of("minecraft", "riptide")) ||
-            enchantment.matchesId(net.minecraft.util.Identifier.of("minecraft", "density")) ||
-            enchantment.matchesId(net.minecraft.util.Identifier.of("minecraft", "wind_burst")) ||
-            enchantment.matchesId(net.minecraft.util.Identifier.of("minecraft", "breach"))) {
-            return false;
-        }
-
         return enchantment.isIn(EnchantmentTags.IN_ENCHANTING_TABLE) || 
                enchantment.isIn(EnchantmentTags.ON_RANDOM_LOOT);
     }
@@ -77,7 +69,7 @@ public class EnchantmentFilterUtil {
         return (key.contains("resistance") || key.contains("armor") || key.contains("health") || 
                key.contains("shield") || key.contains("evasion") || key.contains("regeneration") ||
                key.contains("mitigation") || key.contains("movement_speed") || key.contains("flying_speed") ||
-               key.contains("feather_falling")) 
+               key.contains("feather_falling") || key.contains("dexterity")) 
                && !key.contains("penetration");
     }
 
@@ -86,7 +78,7 @@ public class EnchantmentFilterUtil {
         return (key.contains("damage") || key.contains("chance_to") || key.contains("duration") ||
                key.contains("penetration") || key.contains("steal") || key.contains("attack") ||
                key.contains("knockback") || key.contains("breaking_range") || key.contains("precision_mining") ||
-               key.contains("efficiency") || 
+               key.contains("efficiency") || key.contains("dexterity") || key.contains("on_kill") || key.contains("leech") ||
                key.contains("extra") || key.contains("stacks") || key.contains("fortune") ||
                key.contains("experience") || key.contains("crit_chance") || key.contains("crit_multiplier"))
                && !key.contains("resistance");

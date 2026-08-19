@@ -3,7 +3,7 @@
     "translate": "enchantment.minecraft.greater_iron"
   },
   "supported_items": "#minecraft:enchantable/combat_equipment",
-  "weight": 2,
+  "weight": 3,
   "max_level": 1,
   "min_cost": {
     "base": 15,
@@ -24,27 +24,27 @@
   "effects": {
     "minecraft:attributes": [
       {
-        "id": "minecraft:enchantment.greater_iron.physical_damage",
+        "id": "minecraft:enchantment.greater_iron.physical_damage_percent",
         "attribute": "cranks-dungeons:physical_damage_percent",
-        "amount": 0.2,
+        "amount": 0.18,
         "operation": "add_value"
       },
       {
         "id": "minecraft:enchantment.greater_iron_armor.armor_percent",
         "attribute": "cranks-dungeons:armor_percent",
-        "amount": 0.2,
+        "amount": 0.18,
         "operation": "add_value"
       },
       {
-        "id": "minecraft:enchantment.greater_iron_armor.evasion_percent",
+        "id": "minecraft:enchantment.greater_iron_armor.evasion_rating_percent",
         "attribute": "cranks-dungeons:evasion_rating_percent",
-        "amount": 0.2,
+        "amount": 0.18,
         "operation": "add_value"
       },
       {
         "id": "minecraft:enchantment.greater_iron_armor.energy_shield_percent",
         "attribute": "cranks-dungeons:energy_shield_percent",
-        "amount": 0.2,
+        "amount": 0.18,
         "operation": "add_value"
       }
     ]

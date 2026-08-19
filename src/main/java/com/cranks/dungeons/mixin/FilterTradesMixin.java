@@ -112,25 +112,20 @@ public class FilterTradesMixin {
      * Add custom mod enchantment book trades to Librarian
      */
     private static void addCustomLibrarianTrades(Int2ObjectMap<TradeOffers.Factory[]> trades) {
-        // Level 1: Basic enchantments (levels 1-2)
-        addTrade(trades, 1, new ModEnchantedBookTradeFactory(1, 2, 5, 3));
-        addTrade(trades, 1, new ModEnchantedBookTradeFactory(1, 1, 3, 2));
+        // Level 1: Standard enchantments (5-12 emeralds)
+        addTrade(trades, 1, new ModEnchantedBookTradeFactory(ModEnchantedBookTradeFactory.Tier.STANDARD, 5, 12));
         
-        // Level 2: Low-mid tier enchantments (levels 1-3)
-        addTrade(trades, 2, new ModEnchantedBookTradeFactory(1, 3, 8, 4));
-        addTrade(trades, 2, new ModEnchantedBookTradeFactory(2, 3, 10, 5));
+        // Level 2: Standard enchantments (8-16 emeralds)
+        addTrade(trades, 2, new ModEnchantedBookTradeFactory(ModEnchantedBookTradeFactory.Tier.STANDARD, 8, 16));
         
-        // Level 3: Mid tier enchantments (levels 2-4)
-        addTrade(trades, 3, new ModEnchantedBookTradeFactory(2, 4, 12, 5));
-        addTrade(trades, 3, new ModEnchantedBookTradeFactory(2, 3, 14, 6));
+        // Level 3: Greater enchantments (15-28 emeralds)
+        addTrade(trades, 3, new ModEnchantedBookTradeFactory(ModEnchantedBookTradeFactory.Tier.GREATER, 15, 28));
         
-        // Level 4: High tier enchantments (levels 3-5)
-        addTrade(trades, 4, new ModEnchantedBookTradeFactory(3, 5, 18, 7));
-        addTrade(trades, 4, new ModEnchantedBookTradeFactory(3, 4, 20, 8));
+        // Level 4: Greater enchantments (22-40 emeralds)
+        addTrade(trades, 4, new ModEnchantedBookTradeFactory(ModEnchantedBookTradeFactory.Tier.GREATER, 22, 40));
         
-        // Level 5: Max tier enchantments (levels 4-max)
-        addTrade(trades, 5, new ModEnchantedBookTradeFactory(4, 10, 25, 10));
-        addTrade(trades, 5, new ModEnchantedBookTradeFactory(5, 10, 30, 12));
+        // Level 5: Perfect enchantments (35-64 emeralds)
+        addTrade(trades, 5, new ModEnchantedBookTradeFactory(ModEnchantedBookTradeFactory.Tier.PERFECT, 35, 64));
     }
     
     private static void addTrade(Int2ObjectMap<TradeOffers.Factory[]> trades, int level, TradeOffers.Factory factory) {

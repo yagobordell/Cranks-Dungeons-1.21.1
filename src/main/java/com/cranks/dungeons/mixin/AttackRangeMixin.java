@@ -42,14 +42,8 @@ public class AttackRangeMixin {
 
         double baseRange = cir.getReturnValue();
 
-        // 1) Bonus from your custom ATTACK_RANGE attribute (includes runes, etc.)
-        double attrBonus = 0.0;
-
-        // 2) Optional enchantment bonus from the weapon
-        ItemStack weapon = player.getMainHandStack();
-        double enchantBonus = com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(player, weapon, "minecraft:attack_range", 1.0);
-
-        double totalBonus = attrBonus + enchantBonus;
+        // 1) Bonus from attributes (if any custom attack range is added)
+        double totalBonus = 0.0;
         if (totalBonus <= 0.0) {
             return;
         }

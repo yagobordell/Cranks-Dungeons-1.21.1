@@ -3,7 +3,7 @@
     "translate": "enchantment.minecraft.greater_body"
   },
   "supported_items": "#minecraft:enchantable/combat_equipment",
-  "weight": 2,
+  "weight": 3,
   "max_level": 1,
   "min_cost": {
     "base": 15,
@@ -26,13 +26,13 @@
       {
         "id": "minecraft:enchantment.greater_body.life_steal",
         "attribute": "cranks-dungeons:physical_damage_leeched_as_life",
-        "amount": 0.06,
+        "amount": 0.02,
         "operation": "add_value"
       },
       {
         "id": "minecraft:enchantment.greater_body_armor.max_health",
         "attribute": "minecraft:generic.max_health",
-        "amount": 40,
+        "amount": 60.0,
         "operation": "add_value"
       }
     ]

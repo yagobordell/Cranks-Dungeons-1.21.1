@@ -32,12 +32,6 @@ public abstract class KnockbackProcessorMixin {
             if (weapon != null)
                 knockbackBonus += EquipmentStatApplier.getItemStatValue(weapon, "knockback");
 
-            // Add enchantment bonuses
-            if (weapon != null)
-                knockbackBonus += com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, weapon, "minecraft:bonus_knockback", 0.35);
-            if (chestplate != null)
-                knockbackBonus += com.cranks.dungeons.util.CombatUtility.getEnchantmentValue(attacker, chestplate, "minecraft:bonus_knockback", 0.35);
-
             // Close range knockback bonus (within 4 blocks)
             double closeRangeBonus = attacker.getAttributeValue(ModAttributes.CLOSE_RANGE_KNOCKBACK_PERCENT);
             if (closeRangeBonus > 0 && attacker.squaredDistanceTo(target) <= 16.0) {

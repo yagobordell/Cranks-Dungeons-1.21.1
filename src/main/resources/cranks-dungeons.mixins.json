@@ -90,7 +90,8 @@
 		"SmithingTableStateReplacedMixin",
 		"LootTableMixin",
 		"RecipeManagerMixin",
-		"ShieldBlockMixin"
+		"ShieldBlockMixin",
+		"ItemGroupMixin"
 	],
 	"client": [
 		"CrashReportMixin",

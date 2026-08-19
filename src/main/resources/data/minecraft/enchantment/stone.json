@@ -1,6 +1,6 @@
 {
   "description": {
-    "translate": "enchantment.minecraft.alacrity"
+    "translate": "enchantment.minecraft.stone"
   },
   "supported_items": "#minecraft:enchantable/combat_equipment",
   "weight": 5,
@@ -16,20 +16,23 @@
   "anvil_cost": 2,
   "slots": [
     "mainhand",
+    "head",
+    "chest",
+    "legs",
     "feet"
   ],
   "effects": {
     "minecraft:attributes": [
       {
-        "id": "minecraft:enchantment.alacrity.attack_speed",
-        "attribute": "cranks-dungeons:attack_speed",
-        "amount": 0.12,
+        "id": "minecraft:enchantment.stone.knockback",
+        "attribute": "cranks-dungeons:knockback",
+        "amount": 0.15,
         "operation": "add_value"
       },
       {
-        "id": "minecraft:enchantment.alacrity_boots.movement_speed",
-        "attribute": "cranks-dungeons:movement_speed",
-        "amount": 0.2,
+        "id": "minecraft:enchantment.stone_armor.knockback_resistance",
+        "attribute": "cranks-dungeons:knockback_resistance",
+        "amount": 0.10,
         "operation": "add_value"
       }
     ]
