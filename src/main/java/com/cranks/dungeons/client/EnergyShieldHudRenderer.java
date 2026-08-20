@@ -72,22 +72,68 @@ public class EnergyShieldHudRenderer implements HudRenderCallback {
             shieldBlinking = phase == 0;
         }
         
+        boolean overflowingBars = com.cranks.dungeons.util.CombatUtility.isOverflowingBarsLoaded();
+
         // Calculate shield rows
         int shieldRows = (int) Math.ceil(totalShieldHearts / 10.0);
         
         // Position shields directly above the health hearts.
         // With our 5-HP-per-heart scaling, the health bar always sits at healthBarY (screenHeight - 39).
-        // The armor bar slot is 10px above that base. We place shield hearts there.
         int scaledMaxHealthHearts = (int) Math.ceil((player.getMaxHealth() / 2.5f) / 2.0f);
         int scaledAbsorptionHearts = (int) Math.ceil((player.getAbsorptionAmount() / 2.5f) / 2.0f);
-        int scaledHealthRows = Math.max(1, (int) Math.ceil((scaledMaxHealthHearts + scaledAbsorptionHearts) / 10.0));
+        int scaledHealthRows = overflowingBars ? 1 : Math.max(1, (int) Math.ceil((scaledMaxHealthHearts + scaledAbsorptionHearts) / 10.0));
         int scaledSpacing = Math.max(10 - (scaledHealthRows - 2), 3);
         int shieldBaseY = healthBarY - 10 - ((scaledHealthRows - 1) * scaledSpacing);
         
-        drawAllShieldRows(drawContext, client, healthBarX, shieldBaseY, 
-                        totalShieldHearts, effectiveShield, shieldBlinking);
+        if (overflowingBars) {
+            drawOverflowingShieldRow(drawContext, client, healthBarX, shieldBaseY, (float) maxShield, effectiveShield, shieldBlinking);
+        } else {
+            drawAllShieldRows(drawContext, client, healthBarX, shieldBaseY, 
+                            totalShieldHearts, effectiveShield, shieldBlinking);
+        }
         
         lastRenderedShield = currentShield;
+    }
+
+    private void drawOverflowingShieldRow(DrawContext drawContext, MinecraftClient client, int healthBarX, int shieldBaseY,
+                                          float maxShield, float currentShield, boolean shieldBlinking) {
+        // maxShield is in 2-points-per-heart units (20.0 = 10 hearts = 1 full bar = 50 ES)
+        int currentShieldLayer = Math.max(1, (int) Math.ceil(currentShield / 20.0f));
+        float layerShield = currentShield - (currentShieldLayer - 1) * 20.0f;
+        if (currentShield <= 0.0f) {
+            layerShield = 0.0f;
+        }
+
+        Identifier containerTexture = shieldBlinking ?
+                Identifier.of("minecraft", "hud/heart/container_blinking") :
+                Identifier.of("minecraft", "hud/heart/container");
+
+        for (int col = 0; col < 10; col++) {
+            int heartX = healthBarX + col * 8;
+            int heartY = shieldBaseY;
+
+            drawContext.drawGuiTexture(containerTexture, heartX, heartY, 9, 9);
+
+            float baseVisibility = col * 2.0f;
+            Identifier texture = null;
+            if (layerShield >= baseVisibility + 1.01f) {
+                texture = shieldBlinking ? SHIELD_FULL_BLINKING : SHIELD_FULL;
+            } else if (layerShield >= baseVisibility + 0.01f) {
+                texture = shieldBlinking ? SHIELD_HALF_BLINKING : SHIELD_HALF;
+            }
+
+            if (texture != null) {
+                drawContext.drawGuiTexture(texture, heartX, heartY, 9, 9);
+            }
+        }
+
+        if (currentShieldLayer > 1) {
+            String badge = currentShieldLayer + "x";
+            int textWidth = client.textRenderer.getWidth(badge);
+            int textX = healthBarX - textWidth - 2;
+            int textY = shieldBaseY + 1;
+            drawBorderedText(drawContext, client.textRenderer, badge, textX, textY, 0xFFFFFFFF);
+        }
     }
     
 

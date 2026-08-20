@@ -17,6 +17,26 @@ import net.minecraft.entity.LivingEntity;
 
 public class CombatUtility {
 
+    private static final java.util.Map<java.util.UUID, Long> ELEMENTAL_OVERLOAD_LAST_CRIT = new java.util.concurrent.ConcurrentHashMap<>();
+
+    public static void triggerElementalOverload(LivingEntity entity) {
+        if (entity != null && entity.getWorld() != null) {
+            ELEMENTAL_OVERLOAD_LAST_CRIT.put(entity.getUuid(), entity.getWorld().getTime());
+        }
+    }
+
+    public static boolean isElementalOverloadActive(LivingEntity entity) {
+        if (entity == null || entity.getWorld() == null) return false;
+        Long lastCrit = ELEMENTAL_OVERLOAD_LAST_CRIT.get(entity.getUuid());
+        if (lastCrit == null) return false;
+        long current = entity.getWorld().getTime();
+        if (current - lastCrit <= 160L && current >= lastCrit) { // 8 seconds (160 ticks)
+            return true;
+        }
+        ELEMENTAL_OVERLOAD_LAST_CRIT.remove(entity.getUuid());
+        return false;
+    }
+
     /**
      * Determines the active weapon stack for a damage event.
      * If the damage was caused by a thrown trident, returns the trident's item
@@ -278,5 +298,10 @@ public class CombatUtility {
         }
 
         return Math.max(1.0f, (float) (flatThreshold * percentMultiplier));
+    }
+
+    public static boolean isOverflowingBarsLoaded() {
+        return net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("overflowingbars")
+                || net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("overflowing-bars");
     }
 }

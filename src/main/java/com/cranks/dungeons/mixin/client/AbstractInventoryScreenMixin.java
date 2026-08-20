@@ -1,18 +1,18 @@
 package com.cranks.dungeons.mixin.client;
 
+import com.cranks.dungeons.client.StatsPanelScrollHandler;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.AbstractInventoryScreen;
 import net.minecraft.client.gui.screen.ingame.InventoryScreen;
-import com.cranks.dungeons.client.StatsPanelScrollHandler;
 import net.minecraft.text.Text;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Environment(EnvType.CLIENT)
 @Mixin(AbstractInventoryScreen.class)
@@ -33,8 +33,8 @@ public class AbstractInventoryScreenMixin {
         )
     )
     private int hideInfinitySymbol(DrawContext instance, TextRenderer textRenderer, Text text, int x, int y, int color) {
-        if (text.getString().equals("∞")) {
-            return 0; // Skip drawing the text
+        if (text.getString().equals("∞") || text.getString().isEmpty()) {
+            return 0; // Skip drawing empty or infinity text
         }
         return instance.drawTextWithShadow(textRenderer, text, x, y, color);
     }

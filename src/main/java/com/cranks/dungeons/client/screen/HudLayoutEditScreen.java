@@ -179,7 +179,6 @@ public class HudLayoutEditScreen extends Screen {
         int statusSpacing = (int) (rawSpacing * statusScale);
         int statusBaseIcon = (int) (24 * statusScale);
         boolean statusDuration = config.statusEffectsShowDuration();
-        boolean statusAmp = config.statusEffectsShowAmplifier();
 
         int statusW, statusH;
         int durationExtra = statusDuration ? (int) (9 * statusScale) : 0;
@@ -209,7 +208,7 @@ public class HudLayoutEditScreen extends Screen {
                 statusX, statusY, statusW, statusH,
                 defaultStatusX, defaultStatusY,
                 config.statusEffectsX() >= 0 || config.statusEffectsY() >= 0,
-                ctx -> StatusEffectHudRenderer.renderPreview(ctx, mc, 0, 0, statusOrientation, statusMaxPerLine, statusScale, rawSpacing, statusDuration, statusAmp),
+                ctx -> StatusEffectHudRenderer.renderPreview(ctx, mc, 0, 0, statusOrientation, statusMaxPerLine, statusScale, rawSpacing, statusDuration),
                 (nx, ny) -> {
                     config.statusEffectsX(nx);
                     config.statusEffectsY(ny);

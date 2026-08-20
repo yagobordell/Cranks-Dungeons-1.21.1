@@ -11,11 +11,12 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(value = InGameHud.class, priority = 99)
+@Mixin(value = InGameHud.class, priority = 1)
 public abstract class InGameHudMixin {
 
     @Shadow @Final private MinecraftClient client;
@@ -58,6 +59,21 @@ public abstract class InGameHudMixin {
         return player.isSubmergedIn(fluidTag);
     }
 
+    // ── Air bubble positioning: Shift air above mana rows when stat bars are disabled ──
+    @ModifyArg(
+        method = "renderStatusBars",
+        at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawGuiTexture(Lnet/minecraft/util/Identifier;IIII)V"),
+        index = 2
+    )
+    private int offsetAirBubbleY(int y) {
+        if (client.player == null || CranksDungeons.CONFIG.useStatBars()) return y;
+        int manaRows = com.cranks.dungeons.client.ManaHudRenderer.getManaRows(client.player);
+        if (manaRows <= 0) return y;
+        int spacing = manaRows > 2 ? Math.max(10 - (manaRows - 2), 3) : 10;
+        int offset = (manaRows - 1) * spacing + 10;
+        return y - offset;
+    }
+
     // ── Heart scaling: 1 heart = 5 HP ──────────────────────────────────────
     // renderHealthBar parameter order (int ordinals in brackets):
     //   DrawContext, PlayerEntity,
@@ -77,6 +93,7 @@ public abstract class InGameHudMixin {
     @ModifyVariable(method = "renderHealthBar", at = @At("HEAD"), argsOnly = true, ordinal = 2)
     private int scaleLines(int lines) {
         if (CranksDungeons.CONFIG.useStatBars()) return lines;
+        if (com.cranks.dungeons.util.CombatUtility.isOverflowingBarsLoaded()) return lines;
         if (client.player == null) return lines;
         float scaledMaxHealth = client.player.getMaxHealth() / 2.5f;
         float scaledAbsorption = client.player.getAbsorptionAmount() / 2.5f;

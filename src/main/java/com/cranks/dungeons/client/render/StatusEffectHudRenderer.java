@@ -2,15 +2,16 @@ package com.cranks.dungeons.client.render;
 
 import com.cranks.dungeons.CranksDungeons;
 import com.cranks.dungeons.config.StatusEffectOrientation;
+import com.cranks.dungeons.effect.ModEffects;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.client.texture.Sprite;
 import net.minecraft.client.texture.StatusEffectSpriteManager;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
@@ -25,17 +26,13 @@ public class StatusEffectHudRenderer {
     private static final Identifier EFFECT_BACKGROUND_TEXTURE = Identifier.ofVanilla("hud/effect_background");
     private static final Identifier EFFECT_BACKGROUND_AMBIENT_TEXTURE = Identifier.ofVanilla("hud/effect_background_ambient");
 
-    public static void render(DrawContext context, net.minecraft.client.render.RenderTickCounter tickCounter, MinecraftClient client) {
+    public static void render(DrawContext context, RenderTickCounter tickCounter, MinecraftClient client) {
         if (client.player == null) return;
-        if (client.options.hudHidden || !client.player.isAlive()) return;
 
-        var config = CranksDungeons.CONFIG;
-        if (!config.customStatusEffectOverlay()) return;
-
-        PlayerEntity player = client.player;
-        Collection<StatusEffectInstance> effects = player.getStatusEffects();
+        Collection<StatusEffectInstance> effects = client.player.getStatusEffects();
         if (effects.isEmpty()) return;
 
+        var config = CranksDungeons.CONFIG;
         StatusEffectOrientation orientation = config.statusEffectsOrientation();
         float scale = config.statusEffectsScale();
         int maxPerLine = config.statusEffectsMaxPerLine();
@@ -45,7 +42,6 @@ public class StatusEffectHudRenderer {
         int innerSpriteSize = (int) (18 * scale);
         int spriteOffset = (int) (3 * scale);
         boolean showDuration = config.statusEffectsShowDuration();
-        boolean showAmplifier = config.statusEffectsShowAmplifier();
         int durationExtra = showDuration ? (int) (9 * scale) : 0;
 
         int screenWidth = client.getWindow().getScaledWidth();
@@ -116,16 +112,19 @@ public class StatusEffectHudRenderer {
             context.drawSprite(iconX + spriteOffset, iconY + spriteOffset, 0, innerSpriteSize, innerSpriteSize, sprite);
             context.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 
-            // Draw Amplifier (Level)
-            if (showAmplifier && effectInstance.getAmplifier() > 0) {
-                String ampText = formatAmplifier(effectInstance.getAmplifier());
-                context.getMatrices().push();
-                float textScale = 0.65f * scale;
-                context.getMatrices().translate(iconX + baseIconSize - 2, iconY + baseIconSize - (7 * scale), 0.0f);
-                context.getMatrices().scale(textScale, textScale, 1.0f);
-                int ampWidth = textRenderer.getWidth(ampText);
-                context.drawTextWithShadow(textRenderer, ampText, -ampWidth, 0, 0xFFFFFFFF);
-                context.getMatrices().pop();
+            // Draw Stacks for Poison only (standard status effects never display level numbers)
+            if (effectType == ModEffects.POISON) {
+                int stacks = effectInstance.getAmplifier() + 1;
+                if (stacks > 1) {
+                    String stackText = String.valueOf(stacks);
+                    context.getMatrices().push();
+                    float textScale = 0.65f * scale;
+                    context.getMatrices().translate(iconX + baseIconSize - 2, iconY + baseIconSize - (7 * scale), 0.0f);
+                    context.getMatrices().scale(textScale, textScale, 1.0f);
+                    int stackWidth = textRenderer.getWidth(stackText);
+                    context.drawTextWithShadow(textRenderer, stackText, -stackWidth, 0, 0xFFFFFFFF);
+                    context.getMatrices().pop();
+                }
             }
 
             // Draw Duration Text (Omit if infinite/permanent)
@@ -159,7 +158,7 @@ public class StatusEffectHudRenderer {
         return String.format("%d:%02d", minutes, seconds);
     }
 
-    public static void renderPreview(DrawContext context, MinecraftClient client, int x, int y, StatusEffectOrientation orientation, int maxPerLine, float scale, int spacingUnscaled, boolean showDuration, boolean showAmplifier) {
+    public static void renderPreview(DrawContext context, MinecraftClient client, int x, int y, StatusEffectOrientation orientation, int maxPerLine, float scale, int spacingUnscaled, boolean showDuration) {
         int baseIconSize = 24;
         int innerSpriteSize = 18;
         int spriteOffset = 3;
@@ -227,13 +226,14 @@ public class StatusEffectHudRenderer {
                 }
             }
 
-            if (showAmplifier && (i % 3 != 0)) {
-                String ampText = String.valueOf((i % 3) + 1);
+            // Draw Stacks for Poison preview only
+            if (effectType == com.cranks.dungeons.effect.ModEffects.POISON) {
+                String stackText = "3";
                 context.getMatrices().push();
                 context.getMatrices().translate(iconX + baseIconSize - 2, iconY + baseIconSize - 7, 0.0f);
                 context.getMatrices().scale(0.65f, 0.65f, 1.0f);
-                int ampWidth = textRenderer.getWidth(ampText);
-                context.drawTextWithShadow(textRenderer, ampText, -ampWidth, 0, 0xFFFFFFFF);
+                int ampWidth = textRenderer.getWidth(stackText);
+                context.drawTextWithShadow(textRenderer, stackText, -ampWidth, 0, 0xFFFFFFFF);
                 context.getMatrices().pop();
             }
 
@@ -252,10 +252,5 @@ public class StatusEffectHudRenderer {
 
         context.getMatrices().pop();
         RenderSystem.disableBlend();
-    }
-
-    public static String formatAmplifier(int amplifier) {
-        if (amplifier <= 0) return "";
-        return String.valueOf(amplifier + 1);
     }
 }

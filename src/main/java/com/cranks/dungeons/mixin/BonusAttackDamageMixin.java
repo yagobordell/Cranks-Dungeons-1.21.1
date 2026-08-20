@@ -115,11 +115,7 @@ public class BonusAttackDamageMixin {
                 // Elemental Overload check
                 if (attacker.getAttributeValue(ModAttributes.KEYSTONE_ELEMENTAL_OVERLOAD) > 0) {
                     critMult = 1.0;
-                    attacker.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
-                            com.cranks.dungeons.effect.ModEffects.ELEMENTAL_OVERLOAD,
-                            160, // 8 seconds (20 ticks * 8)
-                            0, false, true, true
-                    ));
+                    CombatUtility.triggerElementalOverload(attacker);
                 }
 
                 // Armor Crit Mitigation & Reduced Critical Damage Taken

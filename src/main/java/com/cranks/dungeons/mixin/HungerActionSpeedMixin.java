@@ -26,7 +26,7 @@ public class HungerActionSpeedMixin {
         boolean hasHungerHigh = player.hasStatusEffect(ModEffects.WELL_FED);
 
         if (isHungerHigh && !hasHungerHigh) {
-            player.addStatusEffect(new StatusEffectInstance(ModEffects.WELL_FED, 1000000, 0, false, false, true));
+            player.addStatusEffect(new StatusEffectInstance(ModEffects.WELL_FED, StatusEffectInstance.INFINITE, 0, false, false, true));
         } else if (!isHungerHigh && hasHungerHigh) {
             player.removeStatusEffect(ModEffects.WELL_FED);
         }
@@ -35,7 +35,7 @@ public class HungerActionSpeedMixin {
         boolean hasHungerLow = player.hasStatusEffect(ModEffects.STARVING);
 
         if (isHungerLow && !hasHungerLow) {
-            player.addStatusEffect(new StatusEffectInstance(ModEffects.STARVING, 1000000, 0, false, false, true));
+            player.addStatusEffect(new StatusEffectInstance(ModEffects.STARVING, StatusEffectInstance.INFINITE, 0, false, false, true));
         } else if (!isHungerLow && hasHungerLow) {
             player.removeStatusEffect(ModEffects.STARVING);
         }

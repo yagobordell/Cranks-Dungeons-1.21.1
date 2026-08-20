@@ -251,8 +251,6 @@
   "text.config.cranks-dungeons.option.statusEffectsSpacing.tooltip": "Pixel spacing between adjacent icons",
   "text.config.cranks-dungeons.option.statusEffectsShowDuration": "Show Duration Text",
   "text.config.cranks-dungeons.option.statusEffectsShowDuration.tooltip": "Display the remaining time below each status effect icon",
-  "text.config.cranks-dungeons.option.statusEffectsShowAmplifier": "Show Level Number",
-  "text.config.cranks-dungeons.option.statusEffectsShowAmplifier.tooltip": "Display the potion level / amplifier number on each icon",
   "text.config.cranks-dungeons.section.stat_bars_position": "Status Bars Position",
   "text.config.cranks-dungeons.section.stat_bars_position.tooltip": "Custom X/Y positions for individual HUD status bars (-1 = Default)",
   "text.config.cranks-dungeons.option.healthBarX": "Health Bar X",

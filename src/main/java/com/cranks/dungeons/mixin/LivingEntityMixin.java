@@ -481,6 +481,7 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
         updateIntrinsicAttributes(entity);
         updateRequirementPenalties(entity);
         updateElytraSpeed(entity);
+        com.cranks.dungeons.util.StatusEffectStatManager.updateEntityStatusEffectModifiers(entity);
     }
 
     @Unique

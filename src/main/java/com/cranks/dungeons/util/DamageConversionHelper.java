@@ -320,7 +320,7 @@ public class DamageConversionHelper {
         }
 
         double elementalBonus = getAttributeValueSafe(attacker, com.cranks.dungeons.registry.ModAttributes.ELEMENTAL_DAMAGE_PERCENT, 0.0);
-        if (attacker.hasStatusEffect(com.cranks.dungeons.effect.ModEffects.ELEMENTAL_OVERLOAD)) {
+        if (com.cranks.dungeons.util.CombatUtility.isElementalOverloadActive(attacker)) {
             elementalBonus += 0.40;
         }
 

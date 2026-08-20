@@ -1,6 +1,8 @@
 package com.cranks.dungeons.mixin;
 
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.gui.screen.ingame.EnchantmentScreen;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import org.spongepowered.asm.mixin.Mixin;
@@ -21,6 +23,11 @@ public class EnchantingTableTooltipMixin {
     )
     private List<Text> addEnchantmentDescriptions(List<Text> tooltip) {
         if (tooltip == null || tooltip.isEmpty()) return tooltip;
+
+        // Only modify tooltips inside the Enchantment Screen (never in passive tree, items, etc.)
+        if (!(MinecraftClient.getInstance().currentScreen instanceof EnchantmentScreen)) {
+            return tooltip;
+        }
 
         List<Text> newTooltip = new ArrayList<>();
 

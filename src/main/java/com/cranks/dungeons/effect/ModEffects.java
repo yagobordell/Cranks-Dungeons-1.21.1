@@ -15,7 +15,6 @@ public class ModEffects {
     public static RegistryEntry<StatusEffect> BLEED;
     public static RegistryEntry<StatusEffect> SHOCK;
     public static RegistryEntry<StatusEffect> ELECTROCUTE;
-    public static RegistryEntry<StatusEffect> ELEMENTAL_OVERLOAD;
     public static RegistryEntry<StatusEffect> WELL_FED;
     public static RegistryEntry<StatusEffect> STARVING;
 
@@ -43,10 +42,6 @@ public class ModEffects {
         Identifier electrocuteId = Identifier.of(CranksDungeons.MOD_ID, "electrocute");
         Registry.register(Registries.STATUS_EFFECT, electrocuteId, new ElectrocuteStatusEffect());
         ELECTROCUTE = Registries.STATUS_EFFECT.getEntry(electrocuteId).orElseThrow();
-
-        Identifier overloadId = Identifier.of(CranksDungeons.MOD_ID, "elemental_overload");
-        Registry.register(Registries.STATUS_EFFECT, overloadId, new ElementalOverloadEffect());
-        ELEMENTAL_OVERLOAD = Registries.STATUS_EFFECT.getEntry(overloadId).orElseThrow();
 
         Identifier wellFedId = Identifier.of(CranksDungeons.MOD_ID, "hunger_high");
         Registry.register(Registries.STATUS_EFFECT, wellFedId, new WellFedStatusEffect());

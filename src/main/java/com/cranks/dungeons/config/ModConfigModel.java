@@ -82,7 +82,6 @@ public class ModConfigModel {
     public int statusEffectsSpacing = 26;
 
     public boolean statusEffectsShowDuration = false;
-    public boolean statusEffectsShowAmplifier = true;
 
     @RangeConstraint(min = -1, max = 3000)
     @ExcludeFromScreen

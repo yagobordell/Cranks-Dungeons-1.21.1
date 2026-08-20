@@ -91,7 +91,15 @@
 		"LootTableMixin",
 		"RecipeManagerMixin",
 		"ShieldBlockMixin",
-		"ItemGroupMixin"
+		"ItemGroupMixin",
+		"FireResistanceNeutralizeMixin",
+		"ResistanceNeutralizeMixin",
+		"RegenerationNeutralizeMixin",
+		"InstantEffectNeutralizeMixin",
+		"VanillaEffectAttributeSuppressMixin",
+		"PotionContentsComponentMixin",
+		"StatusEffectNameMixin",
+		"AbsorptionReworkMixin"
 	],
 	"client": [
 		"CrashReportMixin",
@@ -113,7 +121,8 @@
 		"client.HandledScreenTextMixin",
 		"client.StatusEffectUtilMixin",
 		"client.AbstractInventoryScreenMixin",
-		"ItemStackTooltipMixin"
+		"ItemStackTooltipMixin",
+		"StatusEffectTooltipMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
