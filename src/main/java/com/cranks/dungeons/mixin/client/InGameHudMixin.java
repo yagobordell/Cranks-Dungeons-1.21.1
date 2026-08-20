@@ -29,6 +29,13 @@ public abstract class InGameHudMixin {
         }
     }
 
+    @Redirect(method = "renderMainHud", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/hud/InGameHud;renderStatusBars(Lnet/minecraft/client/gui/DrawContext;)V"))
+    private void redirectRenderStatusBars(InGameHud instance, DrawContext context) {
+        if (!CranksDungeons.CONFIG.useStatBars()) {
+            instance.renderStatusBars(context);
+        }
+    }
+
     @Inject(method = "renderStatusBars", at = @At("HEAD"), cancellable = true)
     private void cancelStatusBars(DrawContext context, CallbackInfo ci) {
         if (CranksDungeons.CONFIG.useStatBars()) {
@@ -38,6 +45,20 @@ public abstract class InGameHudMixin {
 
     @Inject(method = "renderHealthBar", at = @At("HEAD"), cancellable = true)
     private void cancelHealthBar(DrawContext context, PlayerEntity player, int x, int y, int lines, int regeneratingHeartIndex, float maxHealth, int lastHealth, int health, int absorption, boolean blinking, CallbackInfo ci) {
+        if (CranksDungeons.CONFIG.useStatBars()) {
+            ci.cancel();
+        }
+    }
+
+    @Inject(method = "drawHeart", at = @At("HEAD"), cancellable = true)
+    private void cancelDrawHeart(DrawContext context, InGameHud.HeartType type, int x, int y, boolean hardcore, boolean blinking, boolean half, CallbackInfo ci) {
+        if (CranksDungeons.CONFIG.useStatBars()) {
+            ci.cancel();
+        }
+    }
+
+    @Inject(method = "renderFood", at = @At("HEAD"), cancellable = true)
+    private void cancelFood(DrawContext context, PlayerEntity player, int top, int right, CallbackInfo ci) {
         if (CranksDungeons.CONFIG.useStatBars()) {
             ci.cancel();
         }

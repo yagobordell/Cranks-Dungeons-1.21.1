@@ -5,6 +5,7 @@ accessible class net/minecraft/client/gui/hud/InGameHud$HeartType
 
 # Make drawHeart method accessible  
 accessible method net/minecraft/client/gui/hud/InGameHud drawHeart (Lnet/minecraft/client/gui/DrawContext;Lnet/minecraft/client/gui/hud/InGameHud$HeartType;IIZZZ)V
+accessible method net/minecraft/client/gui/hud/InGameHud renderStatusBars (Lnet/minecraft/client/gui/DrawContext;)V
 # Make Particle fields accessible for custom physics
 accessible field net/minecraft/client/particle/Particle gravityStrength F
 accessible field net/minecraft/client/particle/Particle maxAge I

@@ -65,6 +65,8 @@ public class AilmentHeartTextureMixin {
 
     @Inject(method = "drawHeart", at = @At("HEAD"), cancellable = true)
     private void onDrawHeart(DrawContext context, InGameHud.HeartType type, int x, int y, boolean hardcore, boolean blinking, boolean half, CallbackInfo ci) {
+        if (CranksDungeons.CONFIG.useStatBars()) return;
+
         // Only affect NORMAL health hearts
         if (type != InGameHud.HeartType.NORMAL) {
             return;

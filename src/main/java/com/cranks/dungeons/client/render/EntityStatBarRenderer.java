@@ -152,8 +152,6 @@ public class EntityStatBarRenderer {
     }
 
     public static void render(WorldRenderContext context, VertexConsumerProvider consumers) {
-        if (!CranksDungeons.CONFIG.useStatBars()) return;
-
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.world == null || client.player == null) return;
 

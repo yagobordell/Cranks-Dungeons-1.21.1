@@ -122,7 +122,9 @@
 		"client.StatusEffectUtilMixin",
 		"client.AbstractInventoryScreenMixin",
 		"ItemStackTooltipMixin",
-		"StatusEffectTooltipMixin"
+		"StatusEffectTooltipMixin",
+		"client.DrawContextMixin",
+		"client.TextRendererMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
