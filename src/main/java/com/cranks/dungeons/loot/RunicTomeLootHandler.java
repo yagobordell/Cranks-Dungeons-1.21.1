@@ -4,13 +4,14 @@ import com.cranks.dungeons.item.ModItems;
 import net.fabricmc.fabric.api.loot.v3.LootTableEvents;
 import net.minecraft.entity.EntityType;
 import net.minecraft.item.Item;
+import net.minecraft.item.Items;
 import net.minecraft.loot.LootPool;
 import net.minecraft.loot.LootTable;
 import net.minecraft.loot.entry.ItemEntry;
 import net.minecraft.loot.function.SetCountLootFunction;
 import net.minecraft.loot.provider.number.ConstantLootNumberProvider;
+import net.minecraft.loot.provider.number.UniformLootNumberProvider;
 import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
 import net.minecraft.util.Identifier;
 
 import java.util.HashMap;
@@ -18,26 +19,35 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Handles Runic Tome drops from mobs based on their tier.
+ * Handles Act 1 Runic Tome, Quality Material, and Deepslate Sigil drops from mobs and chests.
  *
- * Drop Rates Philosophy (RARE):
- * - Tier 1 Mobs: 8% chance for T1-T2 tomes
- * - Tier 2 Mobs: 8% chance for T2-T4 tomes
- * - Tier 3 Mobs: 8% chance for T3-T5 tomes
+ * Tome Rarity Hierarchy (Common -> Ultra Rare):
+ * 1. Transmutation (Most Common - Normal -> Magic)
+ * 2. Augmentation (Uncommon - Adds stat to Magic)
+ * 3. Regal (Uncommon/Rare - Magic -> Rare)
+ * 4. Exalted (Rare - Adds stat to Rare)
+ * 5. Alchemy (Very Rare - Normal -> Rare with 3-4 stats)
+ * 6. Chaos (Very Rare - Rerolls all stats on Rare)
+ * 7. Annulment (Super Rare - Removes 1 random stat)
+ * 8. Divine (Ultra Rare - Rerolls stat values)
+ * 9. Artificial (Mythic Jackpot)
  *
- * Tomes can be crafted: 9 tomes → 1 higher tier tome
+ * Thematic Elemental & Utility Tomes:
+ * - Super rare (0.8% base, 0.1% for greater) due to high-tier rune unlocks.
  */
 public class RunicTomeLootHandler {
 
-    // Mob tier classification
     private static final Map<EntityType<?>, Integer> MOB_TIERS = new HashMap<>();
-    
+
     // Chest loot table IDs
     private static final List<Identifier> TIER_1_CHESTS = List.of(
         Identifier.of("minecraft", "chests/abandoned_mineshaft"),
-        Identifier.of("minecraft", "chests/spawn_bonus_chest")
+        Identifier.of("minecraft", "chests/spawn_bonus_chest"),
+        Identifier.of("minecraft", "chests/village/village_weaponsmith"),
+        Identifier.of("minecraft", "chests/village/village_armorer"),
+        Identifier.of("minecraft", "chests/village/village_toolsmith")
     );
-    
+
     private static final List<Identifier> TIER_2_CHESTS = List.of(
         Identifier.of("minecraft", "chests/simple_dungeon"),
         Identifier.of("minecraft", "chests/desert_pyramid"),
@@ -49,9 +59,17 @@ public class RunicTomeLootHandler {
         Identifier.of("minecraft", "chests/shipwreck_treasure"),
         Identifier.of("minecraft", "chests/buried_treasure"),
         Identifier.of("minecraft", "chests/underwater_ruin_small"),
-        Identifier.of("minecraft", "chests/underwater_ruin_big")
+        Identifier.of("minecraft", "chests/underwater_ruin_big"),
+        Identifier.of("minecraft", "chests/trial_chambers/reward"),
+        Identifier.of("minecraft", "chests/trial_chambers/reward_common"),
+        Identifier.of("minecraft", "chests/trial_chambers/reward_rare"),
+        Identifier.of("minecraft", "chests/trial_chambers/reward_unique"),
+        Identifier.of("minecraft", "chests/trial_chambers/reward_ominous"),
+        Identifier.of("minecraft", "chests/trial_chambers/reward_ominous_common"),
+        Identifier.of("minecraft", "chests/trial_chambers/reward_ominous_rare"),
+        Identifier.of("minecraft", "chests/trial_chambers/reward_ominous_unique")
     );
-    
+
     private static final List<Identifier> TIER_3_CHESTS = List.of(
         Identifier.of("minecraft", "chests/stronghold_library"),
         Identifier.of("minecraft", "chests/stronghold_corridor"),
@@ -73,20 +91,29 @@ public class RunicTomeLootHandler {
             if (!source.isBuiltin()) {
                 return;
             }
-            
+
             Identifier lootId = key.getValue();
             String path = lootId.getPath();
-            
+
             // Handle entity loot tables
             if (path.startsWith("entities/")) {
                 EntityType<?> entityType = getEntityTypeFromLootTable(key);
                 if (entityType == null) return;
 
                 Integer mobTier = MOB_TIERS.get(entityType);
-                if (mobTier == null) return;
+                if (mobTier == null) mobTier = 1;
 
-                // Add appropriate tome drops based on mob tier
+                // 1. Primary Runic Tome Pool
                 addTomeDrops(tableBuilder, mobTier);
+
+                // 2. Quality Materials Pool (Scraps & Whetstones)
+                addQualityMaterialDrops(tableBuilder, mobTier, entityType);
+
+                // 3. Deepslate Sigil Pool
+                addDeepslateSigilDrops(tableBuilder, mobTier, entityType);
+
+                // 4. Thematic Elemental & Utility Tomes Pool (Super Rare)
+                addThematicTomeDrops(tableBuilder, entityType);
             }
             // Handle chest loot tables
             else if (path.startsWith("chests/")) {
@@ -102,7 +129,7 @@ public class RunicTomeLootHandler {
     }
 
     private static void registerMobTiers() {
-        // TIER 1 MOBS (Common enemies, basic threats)
+        // TIER 1 MOBS (Common Overworld & Surface enemies)
         registerTier1(EntityType.ZOMBIE);
         registerTier1(EntityType.SKELETON);
         registerTier1(EntityType.SPIDER);
@@ -115,8 +142,9 @@ public class RunicTomeLootHandler {
         registerTier1(EntityType.STRAY);
         registerTier1(EntityType.DROWNED);
         registerTier1(EntityType.CREEPER);
+        registerTier1(EntityType.ZOMBIE_VILLAGER);
 
-        // TIER 2 MOBS (Elite enemies, moderate threats)
+        // TIER 2 MOBS (Elite threats & Nether/Specialty enemies)
         registerTier2(EntityType.PILLAGER);
         registerTier2(EntityType.VINDICATOR);
         registerTier2(EntityType.WITCH);
@@ -130,15 +158,17 @@ public class RunicTomeLootHandler {
         registerTier2(EntityType.GUARDIAN);
         registerTier2(EntityType.PHANTOM);
         registerTier2(EntityType.ZOMBIFIED_PIGLIN);
+        registerTier2(EntityType.POLAR_BEAR);
 
-        // TIER 3 MOBS (Elite enemies, major threats)
+        // TIER 3 MOBS (Elite leaders, mini-bosses & apex threats)
         registerTier3(EntityType.RAVAGER);
         registerTier3(EntityType.EVOKER);
         registerTier3(EntityType.PIGLIN_BRUTE);
-        registerTier3(EntityType.WARDEN);
-        registerTier3(EntityType.ELDER_GUARDIAN);
         registerTier3(EntityType.WITHER_SKELETON);
         registerTier3(EntityType.SHULKER);
+        registerTier3(EntityType.WARDEN);
+        registerTier3(EntityType.ELDER_GUARDIAN);
+        registerTier3(EntityType.IRON_GOLEM);
     }
 
     private static void registerTier1(EntityType<?> entityType) {
@@ -153,132 +183,227 @@ public class RunicTomeLootHandler {
         MOB_TIERS.put(entityType, 3);
     }
 
+    /**
+     * PRIMARY RUNIC TOME POOL
+     */
     private static void addTomeDrops(LootTable.Builder tableBuilder, int mobTier) {
         LootPool.Builder poolBuilder = LootPool.builder()
                 .rolls(ConstantLootNumberProvider.create(1));
 
         switch (mobTier) {
-            case 1 -> addTier1Drops(poolBuilder);
-            case 2 -> addTier2Drops(poolBuilder);
-            case 3 -> addTier3Drops(poolBuilder);
+            case 1 -> addTier1TomeDrops(poolBuilder);
+            case 2 -> addTier2TomeDrops(poolBuilder);
+            case 3 -> addTier3TomeDrops(poolBuilder);
         }
 
         tableBuilder.pool(poolBuilder);
     }
 
     /**
-     * TIER 1 MOBS - Focus on T1 and T2 tomes
-     * Total: 8% drop chance (RARE)
-     * Distribution:
-     * - T1: 65% of drops (5.2% overall)
-     * - T2: 30% of drops (2.4% overall)
-     * - T3: 5% of drops (0.4% overall) - Very lucky
+     * TIER 1 MOBS: ~12.5% overall Tome Drop Rate
+     * Strict Rarity Order: Transmutation > Augmentation > Regal > Exalted > Alchemy > Chaos > Annulment > Divine
      */
-    private static void addTier1Drops(LootPool.Builder poolBuilder) {
+    private static void addTier1TomeDrops(LootPool.Builder poolBuilder) {
         poolBuilder
-                .with(ItemEntry.builder(ModItems.TOME_OF_TRANSMUTATION)
-                        .weight(6500)
-                        .quality(650)
-                        .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))
-                .with(ItemEntry.builder(ModItems.REGAL_TOME)
-                        .weight(3000)
-                        .quality(300)
-                        .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))
-                .with(ItemEntry.builder(ModItems.TOME_OF_AUGMENTATION)
-                        .weight(500)
-                        .quality(50)
-                        .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))
-                .with(ItemEntry.builder(net.minecraft.item.Items.AIR)
-                        .weight(115000)
-                        .quality(0));
+                // 1. Transmutation (Most Common)
+                .with(ItemEntry.builder(ModItems.TOME_OF_TRANSMUTATION).weight(5000).quality(0))
+                // 2. Augmentation (Uncommon)
+                .with(ItemEntry.builder(ModItems.TOME_OF_AUGMENTATION).weight(2800).quality(1))
+                // 3. Regal (Uncommon/Rare)
+                .with(ItemEntry.builder(ModItems.REGAL_TOME).weight(1400).quality(2))
+                // 4. Exalted (Rare)
+                .with(ItemEntry.builder(ModItems.EXALTED_TOME).weight(700).quality(3))
+                // 5. Alchemy (Very Rare)
+                .with(ItemEntry.builder(ModItems.TOME_OF_ALCHEMY).weight(400).quality(4))
+                // 6. Chaos (Very Rare)
+                .with(ItemEntry.builder(ModItems.TOME_OF_CHAOS).weight(250).quality(5))
+                // 7. Annulment (Super Rare)
+                .with(ItemEntry.builder(ModItems.TOME_OF_ANNULMENT).weight(100).quality(6))
+                // 8. Divine (Ultra Rare)
+                .with(ItemEntry.builder(ModItems.DIVINE_TOME).weight(40).quality(7))
+                // 9. Artificial (Mythic)
+                .with(ItemEntry.builder(ModItems.ARTIFICIAL_TOME).weight(10).quality(8))
+                // No Drop (Remaining ~87.5%)
+                .with(ItemEntry.builder(Items.AIR).weight(79300).quality(0));
     }
 
     /**
-     * TIER 2 MOBS - Focus on T2, T3, and T4 tomes
-     * Total: 8% drop chance (RARE)
-     * Distribution:
-     * - T2: 30% of drops (2.4% overall)
-     * - T3: 45% of drops (3.6% overall)
-     * - T4: 20% of drops (1.6% overall)
-     * - T5: 5% of drops (0.4% overall) - Very lucky
+     * TIER 2 MOBS: ~20.0% overall Tome Drop Rate
+     * Strict Rarity Order: Transmutation > Augmentation > Regal > Exalted > Alchemy > Chaos > Annulment > Divine
      */
-    private static void addTier2Drops(LootPool.Builder poolBuilder) {
+    private static void addTier2TomeDrops(LootPool.Builder poolBuilder) {
         poolBuilder
-                .with(ItemEntry.builder(ModItems.REGAL_TOME)
-                        .weight(3000)
-                        .quality(300)
-                        .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))
-                .with(ItemEntry.builder(ModItems.TOME_OF_AUGMENTATION)
-                        .weight(4500)
-                        .quality(450)
-                        .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))
-                .with(ItemEntry.builder(ModItems.TOME_OF_ALCHEMY)
-                        .weight(2000)
-                        .quality(200)
-                        .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))
-                .with(ItemEntry.builder(ModItems.EXALTED_TOME)
-                        .weight(400)
-                        .quality(40)
-                        .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))
-                .with(ItemEntry.builder(ModItems.TOME_OF_CHAOS)
-                        .weight(500)
-                        .quality(50)
-                        .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))
-                .with(ItemEntry.builder(ModItems.TOME_OF_ANNULMENT)
-                        .weight(300)
-                        .quality(30)
-                        .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))
-                .with(ItemEntry.builder(ModItems.DIVINE_TOME)
-                        .weight(100)
-                        .quality(10)
-                        .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))
-                .with(ItemEntry.builder(net.minecraft.item.Items.AIR)
-                        .weight(115000)
-                        .quality(0));
+                .with(ItemEntry.builder(ModItems.TOME_OF_TRANSMUTATION).weight(2000).quality(0))
+                .with(ItemEntry.builder(ModItems.TOME_OF_AUGMENTATION).weight(3000).quality(1))
+                .with(ItemEntry.builder(ModItems.REGAL_TOME).weight(2500).quality(2))
+                .with(ItemEntry.builder(ModItems.EXALTED_TOME).weight(1500).quality(3))
+                .with(ItemEntry.builder(ModItems.TOME_OF_ALCHEMY).weight(1000).quality(4))
+                .with(ItemEntry.builder(ModItems.TOME_OF_CHAOS).weight(600).quality(5))
+                .with(ItemEntry.builder(ModItems.TOME_OF_ANNULMENT).weight(350).quality(6))
+                .with(ItemEntry.builder(ModItems.DIVINE_TOME).weight(150).quality(7))
+                .with(ItemEntry.builder(ModItems.ARTIFICIAL_TOME).weight(50).quality(8))
+                .with(ItemEntry.builder(ModItems.GREATER_TOME_OF_TRANSMUTATION).weight(200).quality(3))
+                .with(ItemEntry.builder(ModItems.GREATER_TOME_OF_AUGMENTATION).weight(150).quality(4))
+                // No Drop (80%)
+                .with(ItemEntry.builder(Items.AIR).weight(46500).quality(0));
     }
 
     /**
-     * TIER 3 MOBS - Focus on T3, T4, and T5 tomes
-     * Total: 8% drop chance (RARE - even bosses!)
-     * Distribution:
-     * - T3: 30% of drops (2.4% overall)
-     * - T4: 40% of drops (3.2% overall)
-     * - T5: 30% of drops (2.4% overall) - Still rare but farmable
+     * TIER 3 MOBS (Elite leaders & Bosses): ~35.0% overall Tome Drop Rate
+     * Strict Rarity Order: Transmutation > Augmentation > Regal > Exalted > Alchemy > Chaos > Annulment > Divine
      */
-    private static void addTier3Drops(LootPool.Builder poolBuilder) {
+    private static void addTier3TomeDrops(LootPool.Builder poolBuilder) {
         poolBuilder
-                .with(ItemEntry.builder(ModItems.TOME_OF_AUGMENTATION)
-                        .weight(2000)
-                        .quality(200)
-                        .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))
-                .with(ItemEntry.builder(ModItems.TOME_OF_ALCHEMY)
-                        .weight(3000)
-                        .quality(300)
-                        .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))
-                .with(ItemEntry.builder(ModItems.EXALTED_TOME)
-                        .weight(2000)
-                        .quality(200)
-                        .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))
-                .with(ItemEntry.builder(ModItems.TOME_OF_CHAOS)
-                        .weight(1500)
-                        .quality(150)
-                        .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))
-                .with(ItemEntry.builder(ModItems.TOME_OF_ANNULMENT)
-                        .weight(1000)
-                        .quality(100)
-                        .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))
-                .with(ItemEntry.builder(ModItems.DIVINE_TOME)
-                        .weight(500)
-                        .quality(50)
-                        .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))
-                .with(ItemEntry.builder(net.minecraft.item.Items.AIR)
-                        .weight(115000)
-                        .quality(0));
+                .with(ItemEntry.builder(ModItems.TOME_OF_AUGMENTATION).weight(2000).quality(1))
+                .with(ItemEntry.builder(ModItems.REGAL_TOME).weight(2500).quality(2))
+                .with(ItemEntry.builder(ModItems.EXALTED_TOME).weight(2500).quality(3))
+                .with(ItemEntry.builder(ModItems.TOME_OF_ALCHEMY).weight(1800).quality(4))
+                .with(ItemEntry.builder(ModItems.TOME_OF_CHAOS).weight(1400).quality(5))
+                .with(ItemEntry.builder(ModItems.TOME_OF_ANNULMENT).weight(800).quality(6))
+                .with(ItemEntry.builder(ModItems.DIVINE_TOME).weight(500).quality(7))
+                .with(ItemEntry.builder(ModItems.ARTIFICIAL_TOME).weight(200).quality(8))
+                .with(ItemEntry.builder(ModItems.GREATER_REGAL_TOME).weight(500).quality(4))
+                .with(ItemEntry.builder(ModItems.GREATER_EXALTED_TOME).weight(500).quality(5))
+                .with(ItemEntry.builder(ModItems.GREATER_TOME_OF_CHAOS).weight(400).quality(5))
+                // No Drop (65%)
+                .with(ItemEntry.builder(Items.AIR).weight(23900).quality(0));
     }
 
     /**
-     * Add tome drops to chests based on tier.
-     * Higher tier chests have better drop chances and higher tier tomes.
+     * QUALITY MATERIALS POOL (Armourer's Scrap & Blacksmith's Whetstone)
+     * Separate pool so polishing gear doesn't compete with tome drops.
+     */
+    private static void addQualityMaterialDrops(LootTable.Builder tableBuilder, int mobTier, EntityType<?> entityType) {
+        LootPool.Builder poolBuilder = LootPool.builder()
+                .rolls(ConstantLootNumberProvider.create(1));
+
+        boolean isArmored = entityType == EntityType.ZOMBIE || entityType == EntityType.HUSK ||
+                            entityType == EntityType.DROWNED || entityType == EntityType.PILLAGER ||
+                            entityType == EntityType.VINDICATOR || entityType == EntityType.PIGLIN ||
+                            entityType == EntityType.PIGLIN_BRUTE || entityType == EntityType.WITHER_SKELETON ||
+                            entityType == EntityType.RAVAGER || entityType == EntityType.ARMADILLO;
+
+        boolean isWeaponWielder = entityType == EntityType.SKELETON || entityType == EntityType.STRAY ||
+                                  entityType == EntityType.BOGGED || entityType == EntityType.PILLAGER ||
+                                  entityType == EntityType.VINDICATOR || entityType == EntityType.PIGLIN ||
+                                  entityType == EntityType.PIGLIN_BRUTE || entityType == EntityType.WITHER_SKELETON ||
+                                  entityType == EntityType.DROWNED;
+
+        int scrapWeight = isArmored ? 1500 : 800;
+        int whetstoneWeight = isWeaponWielder ? 1500 : 800;
+
+        if (mobTier >= 2) {
+            scrapWeight = (int) (scrapWeight * 1.5);
+            whetstoneWeight = (int) (whetstoneWeight * 1.5);
+        }
+        if (mobTier >= 3) {
+            scrapWeight *= 2;
+            whetstoneWeight *= 2;
+        }
+
+        int totalWeight = scrapWeight + whetstoneWeight;
+        int airWeight = 10000 - totalWeight;
+
+        poolBuilder
+                .with(ItemEntry.builder(ModItems.ARMOURERS_SCRAP).weight(scrapWeight).quality(2))
+                .with(ItemEntry.builder(ModItems.BLACKSMITHS_WHETSTONE).weight(whetstoneWeight).quality(2))
+                .with(ItemEntry.builder(Items.AIR).weight(Math.max(1000, airWeight)).quality(0));
+
+        tableBuilder.pool(poolBuilder);
+    }
+
+    /**
+     * DEEPSLATE SIGIL POOL
+     * Drops from subterranean, cave, trial, and elite mobs.
+     */
+    private static void addDeepslateSigilDrops(LootTable.Builder tableBuilder, int mobTier, EntityType<?> entityType) {
+        boolean isCaveOrElite = entityType == EntityType.CAVE_SPIDER || entityType == EntityType.SILVERFISH ||
+                                entityType == EntityType.ENDERMITE || entityType == EntityType.SLIME ||
+                                entityType == EntityType.WITCH || entityType == EntityType.BREEZE ||
+                                entityType == EntityType.BOGGED || entityType == EntityType.WARDEN ||
+                                mobTier >= 3;
+
+        if (!isCaveOrElite) return;
+
+        LootPool.Builder poolBuilder = LootPool.builder()
+                .rolls(ConstantLootNumberProvider.create(1));
+
+        int sigilWeight = (mobTier == 1) ? 350 : (mobTier == 2 ? 600 : 1200); // 3.5%, 6.0%, 12.0%
+        int airWeight = 10000 - sigilWeight;
+
+        poolBuilder
+                .with(ItemEntry.builder(ModItems.DEEPSLATE_SIGIL).weight(sigilWeight).quality(3))
+                .with(ItemEntry.builder(Items.AIR).weight(airWeight).quality(0));
+
+        tableBuilder.pool(poolBuilder);
+    }
+
+    /**
+     * THEMATIC ELEMENTAL & UTILITY TOMES POOL (SUPER RARE - ~0.8% base, ~0.1% greater)
+     * These grant high-tier rune properties so they are strictly gatekept.
+     */
+    private static void addThematicTomeDrops(LootTable.Builder tableBuilder, EntityType<?> entityType) {
+        Item specificTome = null;
+        Item greaterTome = null;
+
+        // FIRE
+        if (entityType == EntityType.BLAZE || entityType == EntityType.MAGMA_CUBE || entityType == EntityType.GHAST) {
+            specificTome = ModItems.TOME_OF_FIRE;
+            greaterTome = ModItems.GREATER_TOME_OF_FIRE;
+        }
+        // COLD
+        else if (entityType == EntityType.STRAY || entityType == EntityType.SNOW_GOLEM || entityType == EntityType.POLAR_BEAR) {
+            specificTome = ModItems.TOME_OF_COLD;
+            greaterTome = ModItems.GREATER_TOME_OF_COLD;
+        }
+        // LIGHTNING
+        else if (entityType == EntityType.GUARDIAN || entityType == EntityType.BREEZE) {
+            specificTome = ModItems.TOME_OF_LIGHTNING;
+            greaterTome = ModItems.GREATER_TOME_OF_LIGHTNING;
+        }
+        // VOID
+        else if (entityType == EntityType.WITCH || entityType == EntityType.EVOKER ||
+                 entityType == EntityType.ENDERMAN || entityType == EntityType.SHULKER ||
+                 entityType == EntityType.PHANTOM || entityType == EntityType.WITHER_SKELETON) {
+            specificTome = ModItems.TOME_OF_VOID;
+            greaterTome = ModItems.GREATER_TOME_OF_VOID;
+        }
+        // PHYSICALITY
+        else if (entityType == EntityType.IRON_GOLEM || entityType == EntityType.RAVAGER ||
+                 entityType == EntityType.HOGLIN || entityType == EntityType.PIGLIN_BRUTE) {
+            specificTome = ModItems.TOME_OF_PHYSICALITY;
+            greaterTome = ModItems.GREATER_TOME_OF_PHYSICALITY;
+        }
+        // SWIFTNESS
+        else if (entityType == EntityType.SPIDER || entityType == EntityType.CAVE_SPIDER ||
+                 entityType == EntityType.SILVERFISH) {
+            specificTome = ModItems.TOME_OF_SWIFTNESS;
+        }
+        // HEALTH BONUS
+        else if (entityType == EntityType.HUSK || entityType == EntityType.ZOGLIN) {
+            specificTome = ModItems.TOME_OF_HEALTH_BONUS;
+        }
+
+        if (specificTome == null) return;
+
+        LootPool.Builder poolBuilder = LootPool.builder()
+                .rolls(ConstantLootNumberProvider.create(1));
+
+        // 80 weight = 0.8% drop chance (Super Rare)
+        poolBuilder.with(ItemEntry.builder(specificTome).weight(80).quality(5));
+        if (greaterTome != null) {
+            // 10 weight = 0.1% drop chance (Ultra Rare)
+            poolBuilder.with(ItemEntry.builder(greaterTome).weight(10).quality(7));
+            poolBuilder.with(ItemEntry.builder(Items.AIR).weight(9910).quality(0));
+        } else {
+            poolBuilder.with(ItemEntry.builder(Items.AIR).weight(9920).quality(0));
+        }
+
+        tableBuilder.pool(poolBuilder);
+    }
+
+    /**
+     * CHEST LOOT TABLES
      */
     private static void addChestTomeDrops(LootTable.Builder tableBuilder, int chestTier) {
         LootPool.Builder poolBuilder = LootPool.builder()
@@ -294,66 +419,59 @@ public class RunicTomeLootHandler {
     }
 
     /**
-     * TIER 1 CHESTS (Mineshafts, Spawn Bonus) - T1-T2 tomes only
-     * 15% chance for tomes
+     * TIER 1 CHESTS (Mineshafts, Villages, Spawn Bonus): ~35% chance for loot
      */
     private static void addTier1ChestDrops(LootPool.Builder poolBuilder) {
         poolBuilder
-                .with(ItemEntry.builder(ModItems.TOME_OF_TRANSMUTATION)
-                        .weight(9000)
-                        .quality(900)
-                        .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))
-                .with(ItemEntry.builder(ModItems.REGAL_TOME)
-                        .weight(1000)
-                        .quality(100)
-                        .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))
-                .with(ItemEntry.builder(net.minecraft.item.Items.AIR)
-                        .weight(85000)
-                        .quality(0));
+                .with(ItemEntry.builder(ModItems.TOME_OF_TRANSMUTATION).weight(1500).quality(0).apply(SetCountLootFunction.builder(UniformLootNumberProvider.create(1, 2))))
+                .with(ItemEntry.builder(ModItems.TOME_OF_AUGMENTATION).weight(800).quality(1))
+                .with(ItemEntry.builder(ModItems.REGAL_TOME).weight(300).quality(2))
+                .with(ItemEntry.builder(ModItems.EXALTED_TOME).weight(100).quality(3))
+                .with(ItemEntry.builder(ModItems.ARMOURERS_SCRAP).weight(500).quality(1).apply(SetCountLootFunction.builder(UniformLootNumberProvider.create(1, 3))))
+                .with(ItemEntry.builder(ModItems.BLACKSMITHS_WHETSTONE).weight(500).quality(1).apply(SetCountLootFunction.builder(UniformLootNumberProvider.create(1, 3))))
+                .with(ItemEntry.builder(ModItems.DEEPSLATE_SIGIL).weight(100).quality(3))
+                .with(ItemEntry.builder(Items.AIR).weight(6200).quality(0));
     }
 
     /**
-     * TIER 2 CHESTS (Dungeons, Temples, Shipwrecks) - T1-T2 tomes only
-     * 20% chance for tomes
+     * TIER 2 CHESTS (Dungeons, Temples, Shipwrecks, Ruined Portals, Trial Chambers): ~50% chance for loot
      */
     private static void addTier2ChestDrops(LootPool.Builder poolBuilder) {
         poolBuilder
-                .with(ItemEntry.builder(ModItems.TOME_OF_TRANSMUTATION)
-                        .weight(3500)
-                        .quality(350)
-                        .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))
-                .with(ItemEntry.builder(ModItems.REGAL_TOME)
-                        .weight(6500)
-                        .quality(650)
-                        .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))
-                .with(ItemEntry.builder(net.minecraft.item.Items.AIR)
-                        .weight(80000)
-                        .quality(0));
+                .with(ItemEntry.builder(ModItems.TOME_OF_TRANSMUTATION).weight(1200).quality(0).apply(SetCountLootFunction.builder(UniformLootNumberProvider.create(1, 3))))
+                .with(ItemEntry.builder(ModItems.TOME_OF_AUGMENTATION).weight(1200).quality(1).apply(SetCountLootFunction.builder(UniformLootNumberProvider.create(1, 2))))
+                .with(ItemEntry.builder(ModItems.REGAL_TOME).weight(800).quality(2))
+                .with(ItemEntry.builder(ModItems.EXALTED_TOME).weight(500).quality(3))
+                .with(ItemEntry.builder(ModItems.TOME_OF_ALCHEMY).weight(350).quality(4))
+                .with(ItemEntry.builder(ModItems.TOME_OF_CHAOS).weight(200).quality(5))
+                .with(ItemEntry.builder(ModItems.TOME_OF_ANNULMENT).weight(100).quality(6))
+                .with(ItemEntry.builder(ModItems.ARMOURERS_SCRAP).weight(800).quality(2).apply(SetCountLootFunction.builder(UniformLootNumberProvider.create(2, 4))))
+                .with(ItemEntry.builder(ModItems.BLACKSMITHS_WHETSTONE).weight(800).quality(2).apply(SetCountLootFunction.builder(UniformLootNumberProvider.create(2, 4))))
+                .with(ItemEntry.builder(ModItems.DEEPSLATE_SIGIL).weight(300).quality(3))
+                .with(ItemEntry.builder(Items.AIR).weight(4350).quality(0));
     }
 
     /**
-     * TIER 3 CHESTS (Strongholds, End Cities, Bastions, Ancient Cities) - T1-T2 tomes only
-     * 25% chance for tomes
+     * TIER 3 CHESTS (Strongholds, Bastions, Ancient Cities, End Cities): ~75% chance for high tier loot
      */
     private static void addTier3ChestDrops(LootPool.Builder poolBuilder) {
         poolBuilder
-                .with(ItemEntry.builder(ModItems.TOME_OF_TRANSMUTATION)
-                        .weight(1500)
-                        .quality(150)
-                        .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))
-                .with(ItemEntry.builder(ModItems.REGAL_TOME)
-                        .weight(8500)
-                        .quality(850)
-                        .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(1))))
-                .with(ItemEntry.builder(net.minecraft.item.Items.AIR)
-                        .weight(75000)
-                        .quality(0));
+                .with(ItemEntry.builder(ModItems.REGAL_TOME).weight(1500).quality(2).apply(SetCountLootFunction.builder(UniformLootNumberProvider.create(1, 2))))
+                .with(ItemEntry.builder(ModItems.EXALTED_TOME).weight(1500).quality(3).apply(SetCountLootFunction.builder(UniformLootNumberProvider.create(1, 2))))
+                .with(ItemEntry.builder(ModItems.TOME_OF_ALCHEMY).weight(1200).quality(4).apply(SetCountLootFunction.builder(UniformLootNumberProvider.create(1, 2))))
+                .with(ItemEntry.builder(ModItems.TOME_OF_CHAOS).weight(1000).quality(5).apply(SetCountLootFunction.builder(UniformLootNumberProvider.create(1, 2))))
+                .with(ItemEntry.builder(ModItems.TOME_OF_ANNULMENT).weight(600).quality(6))
+                .with(ItemEntry.builder(ModItems.DIVINE_TOME).weight(300).quality(7))
+                .with(ItemEntry.builder(ModItems.ARTIFICIAL_TOME).weight(150).quality(8))
+                .with(ItemEntry.builder(ModItems.ARMOURERS_SCRAP).weight(1000).quality(3).apply(SetCountLootFunction.builder(UniformLootNumberProvider.create(3, 6))))
+                .with(ItemEntry.builder(ModItems.BLACKSMITHS_WHETSTONE).weight(1000).quality(3).apply(SetCountLootFunction.builder(UniformLootNumberProvider.create(3, 6))))
+                .with(ItemEntry.builder(ModItems.DEEPSLATE_SIGIL).weight(600).quality(4).apply(SetCountLootFunction.builder(UniformLootNumberProvider.create(1, 2))))
+                .with(ItemEntry.builder(Items.AIR).weight(2150).quality(0));
     }
 
     private static EntityType<?> getEntityTypeFromLootTable(RegistryKey<LootTable> key) {
         String path = key.getValue().getPath();
 
-        // Loot tables are usually "entities/entity_name"
         if (!path.startsWith("entities/")) {
             return null;
         }
@@ -361,13 +479,9 @@ public class RunicTomeLootHandler {
         String entityName = path.substring("entities/".length());
         Identifier entityId = Identifier.of("minecraft", entityName);
 
-        // Get EntityType from the registry
         return net.minecraft.registry.Registries.ENTITY_TYPE.get(entityId);
     }
 
-    /**
-     * Helper method to add new mob tiers programmatically
-     */
     public static void registerCustomMob(EntityType<?> entityType, int tier) {
         if (tier < 1 || tier > 3) {
             throw new IllegalArgumentException("Mob tier must be between 1 and 3");

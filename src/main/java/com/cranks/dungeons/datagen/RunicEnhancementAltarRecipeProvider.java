@@ -21,12 +21,12 @@ public class RunicEnhancementAltarRecipeProvider extends FabricRecipeProvider {
     @Override
     public void generate(RecipeExporter exporter) {
         ShapedRecipeJsonBuilder.create(RecipeCategory.DECORATIONS, ModBlocks.RUNIC_ENHANCEMENT_ALTAR, 1)
-                .pattern(" D ")
+                .pattern(" B ")
                 .pattern("SSS")
                 .pattern("SSS")
-                .input('D', Items.DIAMOND)
+                .input('B', Items.BOOK)
                 .input('S', Blocks.STONE)
-                .criterion(hasItem(Items.DIAMOND), conditionsFromItem(Items.DIAMOND))
+                .criterion(hasItem(Items.BOOK), conditionsFromItem(Items.BOOK))
                 .offerTo(exporter);
 
         ShapedRecipeJsonBuilder.create(RecipeCategory.DECORATIONS, ModBlocks.ARTIFICIAL_ENHANCEMENT_ALTAR, 1)
