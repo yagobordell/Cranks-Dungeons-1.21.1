@@ -104,12 +104,13 @@ public enum EquipmentType {
      */
     public Set<EquipmentSlot> getApplicableSlots() {
         return switch (this) {
-            case HELMET    -> Set.of(EquipmentSlot.HEAD);
-            case CHESTPLATE -> Set.of(EquipmentSlot.CHEST);
-            case LEGGINGS  -> Set.of(EquipmentSlot.LEGS);
-            case BOOTS     -> Set.of(EquipmentSlot.FEET);
+            case HELMET             -> Set.of(EquipmentSlot.HEAD);
+            case CHESTPLATE, ELYTRA -> Set.of(EquipmentSlot.CHEST);
+            case LEGGINGS           -> Set.of(EquipmentSlot.LEGS);
+            case BOOTS              -> Set.of(EquipmentSlot.FEET);
+            case SHIELD             -> Set.of(EquipmentSlot.OFFHAND, EquipmentSlot.MAINHAND);
             // All weapon/tool types go in the mainhand
-            default        -> Set.of(EquipmentSlot.MAINHAND);
+            default                 -> Set.of(EquipmentSlot.MAINHAND);
         };
     }
 }

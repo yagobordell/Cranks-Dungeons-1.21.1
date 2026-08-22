@@ -11,6 +11,7 @@ public class ModSounds {
     public static final SoundEvent ARTIFICIAL_ALTAR_CLICK = register("artificial_altar_click");
     public static final SoundEvent RUNIC_ALTAR_CLICK = register("runic_altar_click");
 
+    public static final SoundEvent QUALITY_STATION_1 = register("quality_station_1");
     public static final SoundEvent QUALITY_STATION_2 = register("quality_station_2");
     public static final SoundEvent QUALITY_STATION_3 = register("quality_station_3");
 

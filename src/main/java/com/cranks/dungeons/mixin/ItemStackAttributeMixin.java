@@ -21,7 +21,8 @@ public class ItemStackAttributeMixin {
             index = 2
     )
     private BiConsumer<RegistryEntry<EntityAttribute>, EntityAttributeModifier> filterAndScaleAttributes(
-            BiConsumer<RegistryEntry<EntityAttribute>, EntityAttributeModifier> original) {
+            BiConsumer<RegistryEntry<EntityAttribute>, EntityAttributeModifier> original,
+            EquipmentSlot slot) {
         
         ItemStack stack = (ItemStack) (Object) this;
         
@@ -34,7 +35,7 @@ public class ItemStackAttributeMixin {
             boolean isWeapon = EnchantmentFilterUtil.isWeapon(stack);
             boolean isArmor = EnchantmentFilterUtil.isArmor(stack);
 
-            if (isWeaponAttr && !isWeapon) return;
+            if (isWeaponAttr && (!isWeapon || slot != EquipmentSlot.MAINHAND)) return;
             if (isArmorAttr && !isArmor) return;
 
             // Base attributes have namespace "minecraft" and don't contain "enchantment"

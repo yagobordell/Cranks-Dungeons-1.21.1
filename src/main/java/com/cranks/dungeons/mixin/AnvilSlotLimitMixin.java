@@ -36,24 +36,34 @@ public abstract class AnvilSlotLimitMixin {
             return;
         }
 
-        CustomRarity rarity = CustomRarity.getRarity(resultStack);
-        int maxSlots = switch (rarity) {
-            case NORMAL -> 1;
-            case MAGIC -> 2;
-            case RARE -> 3;
-            case UNIQUE -> 3;
-        };
+        ItemStack leftStack = handler.getSlot(0).getStack();
+        ItemStack rightStack = handler.getSlot(1).getStack();
 
-        // Enchanted books are ALWAYS limited to 1 slot, regardless of rarity
+        int maxSlots;
+
+        // Enchanted books are ALWAYS limited to 1 slot
         if (resultStack.isOf(net.minecraft.item.Items.ENCHANTED_BOOK)) {
             maxSlots = 1;
             ItemEnchantmentsComponent stored = resultStack.getOrDefault(net.minecraft.component.DataComponentTypes.STORED_ENCHANTMENTS, ItemEnchantmentsComponent.DEFAULT);
-            ItemEnchantmentsComponent regular = resultStack.getOrDefault(net.minecraft.component.DataComponentTypes.ENCHANTMENTS, ItemEnchantmentsComponent.DEFAULT);
-            if (stored.isEmpty() && regular.isEmpty()) {
+            if (stored.isEmpty() || stored.getEnchantmentEntries().size() > 1) {
                 handler.getSlot(2).setStack(ItemStack.EMPTY);
                 this.levelCost.set(0);
                 return;
             }
+        } else {
+            // Inherit the higher slot count when combining items of the same type
+            int leftSlots = com.cranks.dungeons.equipment.EnchantmentSlotHelper.getEnchantmentSlots(leftStack);
+            int rightSlots = com.cranks.dungeons.equipment.EnchantmentSlotHelper.getEnchantmentSlots(rightStack);
+            int maxAllowed = com.cranks.dungeons.equipment.EnchantmentSlotHelper.getMaxEnchantmentSlots(resultStack);
+            int inheritedSlots = Math.min(maxAllowed, Math.max(leftSlots, rightSlots));
+
+            if (inheritedSlots > 0) {
+                com.cranks.dungeons.equipment.EnchantmentSlotHelper.setEnchantmentSlots(resultStack, inheritedSlots);
+            }
+
+            // If leftStack had natural enchantments (e.g. mob drop with 0 slots), allow existing enchantments for repair/rename
+            int leftEnchants = leftStack.getEnchantments().getEnchantmentEntries().size();
+            maxSlots = Math.max(inheritedSlots, leftEnchants);
         }
 
         ItemEnchantmentsComponent enchantments = resultStack.getEnchantments();

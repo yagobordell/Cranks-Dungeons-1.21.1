@@ -1,0 +1,382 @@
+================================================================================
+CRANKS DUNGEONS - ACT 1 VANILLA MOB STAT SYSTEM OVERVIEW
+================================================================================
+
+All vanilla mobs now have bespoke base stats, defenses, and elemental profiles
+registered through com.cranks.dungeons.entity.MobStatRegistry.
+
+These stats represent ACT 1 (Baseline). As the player slays the Capstone Colossi,
+mob stats will scale proportionally in future Acts.
+
+================================================================================
+1. OVERWORLD UNDEAD & SKELETONS
+================================================================================
+
+ZOMBIE
+- Base Health: 60.0 (Vanilla: 20.0)
+- Attack Damage: 12.0 (Vanilla: 3.0)
+- Armor: 30.0 (PoE 2 Physical Damage Reduction curve)
+- Fire Resistance: -25% (Vulnerable to fire)
+- Chance to Bleed: 15%
+
+HUSK
+- Base Health: 75.0
+- Attack Damage: 14.0
+- Armor: 45.0
+- Fire Resistance: +50%
+- Cold Resistance: -50% (Vulnerable to cold/freeze)
+- Chance to Bleed: 25%
+
+DROWNED
+- Base Health: 65.0
+- Attack Damage: 15.0
+- Armor: 20.0
+- Evasion Rating: 25.0
+- Lightning Resistance: -50% (Conductor vulnerability)
+- Cold Resistance: +30%
+- Life Leech: 10% of physical damage dealt
+- Spear Damage Bonus: +20%
+
+ZOMBIE VILLAGER
+- Base Health: 60.0
+- Attack Damage: 12.0
+- Armor: 25.0
+- Fire Resistance: -25%
+
+SKELETON
+- Base Health: 45.0
+- Attack Damage: 14.0
+- Armor: 10.0
+- Evasion Rating: 40.0
+- Fire Resistance: -25%
+- Projectile Speed: +20%
+- Critical Strike: 15% Crit Chance (1.75x Crit Multiplier)
+
+STRAY
+- Base Health: 55.0
+- Attack Damage: 16.0
+- Armor: 15.0
+- Evasion Rating: 35.0
+- Cold Resistance: +75%
+- Fire Resistance: -50%
+- Damage Conversion: 50% Physical -> Cold Damage
+- Freeze Buildup: +50%
+- Freeze Magnitude: +30%
+
+BOGGED
+- Base Health: 50.0
+- Attack Damage: 13.0
+- Armor: 15.0
+- Evasion Rating: 30.0
+- Fire Resistance: -25%
+- Cold Resistance: +25%
+- Chance to Poison: 60%
+- Poison Magnitude: +30%
+
+WITHER SKELETON
+- Base Health: 80.0
+- Attack Damage: 22.0
+- Armor: 50.0
+- Evasion Rating: 20.0
+- Fire Resistance: +75%
+- Void Resistance: +50%
+- Cold Resistance: -25%
+- Damage Conversion: 50% Physical -> Void Damage
+- Flat Armor Penetration: 25.0
+- Critical Strike: 15% Crit Chance (1.75x Crit Multiplier)
+
+
+================================================================================
+2. ARTHROPODS & SWARMERS
+================================================================================
+
+SPIDER
+- Base Health: 40.0
+- Attack Damage: 10.0
+- Armor: 10.0
+- Evasion Rating: 65.0 (High dodge chance against small hits)
+- Cold Resistance: -25%
+- Chance to Bleed: 20%
+- Critical Strike: 10% Crit Chance
+
+CAVE SPIDER
+- Base Health: 30.0
+- Attack Damage: 8.0
+- Armor: 5.0
+- Evasion Rating: 80.0
+- Cold Resistance: -25%
+- Chance to Poison: 100% (Guaranteed venom)
+- Poison Magnitude: +50% (Deadly damage over time bypassing Energy Shield)
+
+SILVERFISH
+- Base Health: 15.0
+- Attack Damage: 6.0
+- Armor: 0.0
+- Evasion Rating: 95.0 (Extreme dodge chance)
+- Fire Resistance: -50%
+- Attack Speed: +20%
+
+ENDERMITE
+- Base Health: 20.0
+- Attack Damage: 9.0
+- Armor: 0.0
+- Evasion Rating: 85.0
+- Energy Shield: 15.0 (Spawns with full shield)
+- Void Resistance: +75%
+- Damage Conversion: 50% Physical -> Void Damage
+
+
+================================================================================
+3. EXPLOSIVES, ILLAGERS & CASTERS
+================================================================================
+
+CREEPER
+- Base Health: 40.0
+- Armor: 15.0
+- Evasion Rating: 20.0
+- Fire Resistance: -25%
+- Lightning Resistance: +50%
+
+PILLAGER
+- Base Health: 65.0
+- Attack Damage: 15.0
+- Armor: 25.0
+- Evasion Rating: 20.0
+- Crossbow Damage Bonus: +25%
+- Armor Penetration: 15%
+
+VINDICATOR
+- Base Health: 90.0
+- Attack Damage: 26.0
+- Armor: 40.0
+- Evasion Rating: 15.0
+- Axe Damage Bonus: +30%
+- Armor Penetration: 20%
+- Chance to Bleed: 20%
+
+WITCH
+- Base Health: 60.0
+- Attack Damage: 12.0
+- Armor: 0.0
+- Evasion Rating: 20.0
+- Energy Shield: 60.0 (Arcane ward)
+- All Elemental Resistances: +30% (Fire, Cold, Lightning, Void)
+- Damage Conversion: 100% Physical -> Void Damage
+- Ailment Duration Reduction: 50% shorter Burn, Freeze, Poison, Shock on self
+
+EVOKER
+- Base Health: 80.0
+- Attack Damage: 22.0
+- Armor: 10.0
+- Evasion Rating: 15.0
+- Energy Shield: 80.0 (Strong arcane shield)
+- Void Resistance: +50%
+- Elemental Resistances: +25% (Fire, Cold, Lightning)
+- Damage Conversion: 100% Physical -> Void Damage (Fangs bypass physical armor)
+- Life Regeneration: 2.0 HP/sec
+
+VEX
+- Base Health: 25.0
+- Attack Damage: 14.0
+- Armor: 0.0
+- Evasion Rating: 85.0 (Ghostly evasion)
+- Void Resistance: +50%
+- Damage Conversion: 100% Physical -> Void Damage
+
+RAVAGER
+- Base Health: 350.0
+- Attack Damage: 40.0
+- Armor: 140.0 (Heavy siege armor)
+- Knockback Resistance: 100%
+- Armor Penetration: 40% (Crushing blows)
+- Chance to Bleed: 25%
+
+
+================================================================================
+4. NETHER INHABITANTS
+================================================================================
+
+BLAZE
+- Base Health: 60.0
+- Attack Damage: 16.0
+- Armor: 15.0
+- Evasion Rating: 30.0
+- Fire Resistance: +75%
+- Cold Resistance: -75% (Extreme frost vulnerability)
+- Damage Conversion: 100% Physical -> Fire Damage
+- Flammability Magnitude: +50%
+- Burn Magnitude: +30%
+
+MAGMA CUBE (Big)
+- Base Health: 80.0
+- Attack Damage: 18.0
+- Armor: 60.0 (Hard magma shell)
+- Fire Resistance: +75%
+- Cold Resistance: -50%
+- Damage Conversion: 60% Physical -> Fire Damage
+- Flammability Magnitude: +30%
+
+GHAST
+- Base Health: 40.0
+- Armor: 0.0
+- Evasion Rating: 20.0
+- Fire Resistance: +50%
+- Cold Resistance: -50%
+- Damage Conversion: 100% Physical -> Fire Damage
+- Burn Magnitude: +80%
+
+ZOMBIFIED PIGLIN
+- Base Health: 85.0
+- Attack Damage: 18.0
+- Armor: 40.0
+- Fire Resistance: +75%
+
+PIGLIN
+- Base Health: 55.0
+- Attack Damage: 14.0
+- Armor: 25.0
+- Evasion Rating: 25.0
+- Fire Resistance: +30%
+- Critical Strike: 10% Crit Chance
+- Weapon Bonuses: +20% Sword Damage, +20% Crossbow Damage
+
+PIGLIN BRUTE
+- Base Health: 140.0
+- Attack Damage: 30.0
+- Armor: 80.0
+- Fire Resistance: +50%
+- Knockback Resistance: 60%
+- Axe Damage Bonus: +25%
+- Armor Penetration: 20%
+- Chance to Bleed: 15%
+
+HOGLIN
+- Base Health: 110.0
+- Attack Damage: 24.0
+- Armor: 40.0
+- Fire Resistance: -25%
+- Knockback Resistance: 50%
+- Chance to Bleed: 20%
+
+ZOGLIN
+- Base Health: 120.0
+- Attack Damage: 26.0
+- Armor: 35.0
+- Fire Resistance: +50%
+- Void Resistance: +30%
+- Knockback Resistance: 75%
+- Chance to Bleed: 30%
+
+STRIDER
+- Base Health: 50.0
+- Fire Resistance: +75%
+- Cold Resistance: -75%
+
+
+================================================================================
+5. OCEAN, SKY & THE END
+================================================================================
+
+GUARDIAN
+- Base Health: 70.0
+- Attack Damage: 18.0
+- Armor: 50.0
+- Cold Resistance: +50%
+- Lightning Resistance: -25%
+- Damage Conversion: 100% Physical -> Lightning Laser Damage
+- Thorns Damage: 12.0 (Reflects damage back to attacker)
+- Chance to Shock: 30%
+
+PHANTOM
+- Base Health: 35.0
+- Attack Damage: 16.0
+- Armor: 0.0
+- Evasion Rating: 70.0
+- Energy Shield: 25.0 (Night sky barrier)
+- Void Resistance: +50%
+- Fire Resistance: -50%
+- Damage Conversion: 40% Physical -> Void Damage
+- Critical Strike: 10% Crit Chance
+
+BREEZE
+- Base Health: 75.0
+- Attack Damage: 18.0
+- Armor: 10.0
+- Evasion Rating: 90.0 (Whirlwind evasion)
+- Lightning Resistance: +75%
+- Cold Resistance: +30%
+- Damage Conversion: 100% Physical -> Lightning/Wind Damage
+- Electrocute Buildup: +40%
+- Projectile Speed: +30%
+
+ENDERMAN
+- Base Health: 100.0
+- Attack Damage: 22.0
+- Armor: 15.0
+- Evasion Rating: 40.0
+- Energy Shield: 50.0 (Void shield)
+- Void Resistance: +75%
+- Cold/Water Resistance: -50%
+- Damage Conversion: 40% Physical -> Void Damage
+- Critical Strike: 15% Crit Chance
+
+SHULKER
+- Base Health: 80.0
+- Attack Damage: 16.0
+- Armor: 100.0 (Thick shell)
+- Energy Shield: 80.0 (Dimensional matrix)
+- Void Resistance: +75%
+- Damage Conversion: 100% Physical -> Void Damage
+
+SLIME (Big)
+- Base Health: 60.0
+- Attack Damage: 12.0
+- Armor: 10.0
+- Knockback Resistance: 40%
+
+
+================================================================================
+6. ALLIES & WILDLIFE
+================================================================================
+
+IRON GOLEM
+- Base Health: 350.0
+- Attack Damage: 45.0
+- Armor: 180.0 (Massive iron plate)
+- Knockback Resistance: 100%
+- Armor Penetration: 30%
+
+SNOW GOLEM
+- Base Health: 25.0
+- Attack Damage: 4.0
+- Armor: 0.0
+- Evasion Rating: 20.0
+- Cold Resistance: +75%
+- Fire Resistance: -100%
+- Damage Conversion: 100% Physical -> Cold Damage
+- Freeze Buildup: +60% (Rapidly chills targets)
+
+POLAR BEAR
+- Base Health: 90.0
+- Attack Damage: 20.0
+- Armor: 30.0
+- Evasion Rating: 15.0
+- Cold Resistance: +75%
+- Fire Resistance: -30%
+- Damage Conversion: 25% Physical -> Cold Damage
+- Chance to Bleed: 20%
+
+WOLF (Tamed)
+- Base Health: 60.0
+- Attack Damage: 16.0
+- Armor: 20.0
+- Evasion Rating: 45.0
+- Chance to Bleed: 25%
+- Critical Strike: 20% Crit Chance (1.75x Crit Multiplier)
+
+ARMADILLO
+- Base Health: 30.0
+- Armor: 150.0 (Tough protective carapace)
+- Knockback Resistance: 100%
+- Reduced Crit Damage Taken: 50%
+================================================================================

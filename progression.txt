@@ -1,0 +1,227 @@
+================================================================================
+CRANKS DUNGEONS - PROGRESSION & 12 COLOSSI SYSTEM ARCHITECTURE
+================================================================================
+
+1. OVERVIEW & PHILOSOPHY
+--------------------------------------------------------------------------------
+The overarching objective of the game is to conquer "The End". However, reaching
+and surviving in The End requires entering the true Endgame with high-tier gear,
+capped resistances, and deep mechanical builds.
+
+Vanilla Eyes of Ender CANNOT activate the End Portal. Instead, the 12 End Portal
+frames require 12 Unique Colossus Eyes dropped by 12 ancient titans known as
+"The Colossi".
+
+CORE RULES:
+- ONE-TIME SPAWN: Each Colossus exists only once per world. When defeated, it
+  will NEVER spawn again.
+- BIZARRE RITUAL SUMMONS: Colossi do not have crafting recipes. They require
+  unusual, atmospheric, and ritualistic triggers (specific deaths, weather events,
+  sacrifices, pocket nightmare dimensions).
+- WORLD SHIFTS: Defeating key Colossi triggers permanent global world evolution
+  (unlocking dimensions, scaling mob difficulty, unlocking rune tiers, or
+  granting unique environmental buffs).
+- 4-ACT SEPARATION: The 12 Colossi are divided across 4 Acts (3 Colossi per Act).
+  Defeating the Capstone Colossus of an Act advances the world to the next Act.
+
+
+================================================================================
+2. THE 4 ACTS & LEVEL PROGRESSION
+================================================================================
+
+ACT 1: THE AWAKENING
+- Environment: Overworld Surface & Shallow Caves (Y >= 0), Mineshafts
+- Level & Gear: Level 1-15 | 50-150 HP | Tier 1-3 Runes (Leather/Iron tier)
+- Theme: Basic physical combat, introducing small Evasion and basic Armor.
+- Loot Pool: Tome of Transmutation, Armourer's Scrap, Blacksmith's Whetstone.
+- Capstone: Sylvanus, the Hollow Warden (Colossus 3).
+
+ACT 2: THE DEPTHS & RUIN
+- Environment: Deepslate Caves (Y < 0), Trial Chambers, Ocean Monuments, Raids
+- Level & Gear: Level 16-30 | 150-350 HP | Tier 4-6 Runes (Diamond tier)
+- Theme: Elemental threats begin (Freeze buildup, Lightning Thorns, Energy Shield).
+- Loot Pool: Tome of Augmentation, Regal Tome, Tome of Alchemy, Deepslate Sigil.
+- Capstone: Ignis, Lord of the Molten Core (Colossus 6).
+
+ACT 3: THE INFERNAL CRUCIBLE
+- Environment: The Nether Dimension (Fortresses, Bastions, Nether Wastes)
+- Level & Gear: Level 31-45 | 350-550 HP | Tier 7-8 Runes (Netherite tier)
+- Theme: Mandatory Fire Resistance, Void conversions, heavy Armor Penetration.
+- Loot Pool: Exalted Tome, Tome of Chaos, Tome of Annulment, Divine Tome.
+- Capstone: Pyroth, the Blazing Sovereign (Colossus 9).
+
+ACT 4: THE VOID FRONTIER
+- Environment: Ancient Cities, High Peaks, Stronghold, The End Dimension
+- Level & Gear: Level 46-60+ | 550-800+ HP | Tier 9-10 Perfect Runes (Endgame)
+- Theme: Massive Void damage, heavy Penetration, pure build test.
+- Loot Pool: Perfect Exalted Tomes, Perfect Tomes of Chaos, Artificial Tomes.
+- Capstone / Final: Ouroboros, Keeper of the Threshold (Colossus 12).
+
+
+================================================================================
+3. THE 12 COLOSSI - DETAILED ENCOUNTERS & WORLD SHIFTS
+================================================================================
+
+--------------------------------------------------------------------------------
+COLOSSUS 1: Ymir, the Frostborn Revenant (Act 1)
+--------------------------------------------------------------------------------
+- Location: Snowy Biomes / Frozen Peaks
+- Spawn Ritual: Die to freezing / powder snow during a midnight blizzard. The player's
+  corpse rises as Ymir, creating a localized permanent blizzard arena.
+- Encounter: Frost aura that inflicts rapid Freeze Buildup. Ymir slams the ground
+  with glacial pillars. Players must fight near heat sources (torches/campfires).
+- Unique Drop: Frostbitten Eye + Rime-Forged Ring (Converts 25% Phys taken to Cold).
+- World Shift ("The Great Thaw"):
+  * Cold damage & freeze mechanics unlock globally.
+  * Skeletons in snowy biomes permanently spawn as Strays with Act 1 cold scaling.
+
+--------------------------------------------------------------------------------
+COLOSSUS 2: Thalassos, the Sunken Leviathan (Act 1)
+--------------------------------------------------------------------------------
+- Location: Deep Ocean Trenches
+- Spawn Ritual: Drown in a Deep Ocean trench at midnight while carrying zero items.
+  The player is dragged down into the pocket dimension: "The Sunken Abyss".
+- Encounter (Time Attack):
+  * 5 real-life minutes of mystical air before pressure crushes the player.
+  * Dying inside respawns the player in the arena (timer keeps ticking).
+  * Expiration ejections the player to the surface and resets the dimension.
+- Unique Drop: Abyssal Eye + Tide-Caller's Conch (Permanent water breathing & +20% Lightning).
+- World Shift ("The Oceanic Surge"):
+  * Ocean trenches spawn luminous geysers.
+  * Drowned gain +30% movement speed and 10% Life Leech.
+
+--------------------------------------------------------------------------------
+COLOSSUS 3: Sylvanus, the Hollow Warden (Act 1 CAPSTONE)
+--------------------------------------------------------------------------------
+- Location: Ancient Dark Forest
+- Spawn Ritual: Locate an ancient Hollow Heartwood Tree and ignite it during a
+  natural Thunderstorm. When lightning strikes the burning tree, Sylvanus emerges.
+- Encounter: Root colosseum locking players in. Sweeping cleaves inflicting heavy Bleed.
+- Unique Drop: Heartwood Eye + Deep Core Key (Unlocks Deepslate Dungeons).
+- World Shift ("Earthquake & Act 2 Transition"):
+  * Earth shatters: Overworld mobs level up to Act 2 stats (+80% HP, +50% Dmg).
+  * Fissures open leading to Deepslate Dungeons (Y < 0).
+  * Tier 4-6 Runes and Tomes of Augmentation begin dropping.
+
+--------------------------------------------------------------------------------
+COLOSSUS 4: Arachna, Weaver of the Hollows (Act 2)
+--------------------------------------------------------------------------------
+- Location: Deepslate Caves (Y <= -40)
+- Spawn Ritual: Step into a massive Cobweb Nest while suffering from Level 3+
+  Poison and kill a spider with bare fists.
+- Encounter: 3D vertical web arena. Arachna has 85% Evasion Rating and fires
+  acidic webs that bypass Energy Shield.
+- Unique Drop: Chitinous Eye + Weaver's Silk Cloak (+60 Evasion, +100% Poison Duration).
+- World Shift ("The Venomous Bloom"):
+  * Spiders worldwide gain +20% Evasion and stacking venom.
+  * Unlocks Tier 2 Quality Station crafts for Evasion gear.
+
+--------------------------------------------------------------------------------
+COLOSSUS 5: Aurum, the Gilded Gladiator (Act 2)
+--------------------------------------------------------------------------------
+- Location: Trial Chambers
+- Spawn Ritual (The Vow of Poverty): Activate an Ominous Trial Spawner with
+  Bad Omen V while having ZERO gold and ZERO armor equipped.
+- Encounter: Moving spike walls and anvil traps. Aurum wields a tower shield
+  that completely blocks frontal hits unless flanked or pierced.
+- Unique Drop: Gilded Eye + Aegis of the Sun (Unique Shield: Blocks 100% elemental on timing).
+- World Shift ("The Golden Age of Raids"):
+  * Illager raids become Act 2 elite battalions with armor penetration.
+  * Trial Chambers have a 25% chance to drop Regal Tomes & Tomes of Alchemy.
+
+--------------------------------------------------------------------------------
+COLOSSUS 6: Ignis, Lord of the Molten Core (Act 2 CAPSTONE)
+--------------------------------------------------------------------------------
+- Location: Bedrock Lava Lakes (Y <= -55)
+- Spawn Ritual: Submerge into bedrock lava holding a Heart of the Sea. The lava
+  solidifies into a Magma Glass arena as Ignis ascends.
+- Encounter: Magma tidal waves that rapidly degrade armor durability and deal Fire/Phys.
+- Unique Drop: Molten Core Eye + Eternal Infernal Igniter (ONLY tool that can light Nether Portals).
+- World Shift ("The Gates of Hell Open - Act 3 Transition"):
+  * NETHER PORTALS CAN NOW BE ACTIVATED.
+  * Mobs globally scale to Act 3 stats.
+  * Tier 7 Runes and Exalted Tomes begin dropping.
+
+--------------------------------------------------------------------------------
+COLOSSUS 7: Charon, the Soul Quicksand Tyrant (Act 3)
+--------------------------------------------------------------------------------
+- Location: Nether Soul Sand Valley
+- Spawn Ritual: Stand motionless on Soul Sand without boots until sinking and
+  reaching 0 movement speed. Pulled into an underground soul crypt.
+- Encounter: Gravity distortion, soul tornadoes, and mana drain.
+- Unique Drop: Soulfire Eye + Charon's Ferryman Oar (50% Phys->Void, 10% Mana Leech).
+- World Shift ("Soul Resonances"):
+  * Soul Fire grants nearby players +25% Mana Recovery.
+  * Nether Skeletons and Ghasts gain +40% Projectile Speed.
+
+--------------------------------------------------------------------------------
+COLOSSUS 8: Skarn, the Crimson Matriarch (Act 3)
+--------------------------------------------------------------------------------
+- Location: Bastion Remnant Treasure Room
+- Spawn Ritual: Drop an Enchanted Golden Apple to a Piglin Brute and strike it
+  while under the Potion of Weakness effect.
+- Encounter: Giant armored boar-titan that charges through terrain, shredding 50% of player armor.
+- Unique Drop: Crimson Eye + Tusk-Breaker Greatsword (2-Handed Colossus Sword with 40% Armor Pen).
+- World Shift ("The Blood Frenzy"):
+  * Piglins and Hoglins gain +25% Attack Speed and Bleed on hit.
+  * Netherite forging yields double quality scaling.
+
+--------------------------------------------------------------------------------
+COLOSSUS 9: Pyroth, the Blazing Sovereign (Act 3 CAPSTONE)
+--------------------------------------------------------------------------------
+- Location: Nether Fortress
+- Spawn Ritual: During a Nether Lava Storm, deflect a Ghast Fireball directly
+  into a Blaze Spawner.
+- Encounter: Aerial bullet-hell battle with concentric solar beams. Requires 50%+ Fire Res.
+- Unique Drop: Solar Eye + Void Resonance Core (Unlocks Stronghold Portal Frames).
+- World Shift ("The Void Beckons - Act 4 Transition"):
+  * Stronghold End Portal frames can now receive the 12 Colossus Eyes.
+  * All mobs globally scale to Act 4 (Endgame Tier).
+  * T9-T10 Runes and Divine/Artificial Tomes begin dropping.
+
+--------------------------------------------------------------------------------
+COLOSSUS 10: Astra, Sovereign of the Eclipse (Act 4)
+--------------------------------------------------------------------------------
+- Location: Mountain Peak (Y >= 220)
+- Spawn Ritual: During a New Moon, stand on the highest peak with zero armor and
+  stare into an Enderman's eyes for 10 seconds without looking away.
+- Encounter: Upper-stratosphere starry arena with falling meteors and 90% Evasion phase-dodging.
+- Unique Drop: Starlit Eye + Crown of the Eclipse (+150 ES, +50% Void Res, Void hits ES normally).
+- World Shift ("Starlight Cascade"):
+  * Energy Shield recharge rate increased by +30% globally.
+  * Endermen deal pure Void damage.
+
+--------------------------------------------------------------------------------
+COLOSSUS 11: Null, the Echoing Dread (Act 4)
+--------------------------------------------------------------------------------
+- Location: Ancient City Center
+- Spawn Ritual: Trigger 5 Sculk Shriekers simultaneously while ringing a Bell at full volume.
+- Encounter: Arena is pitch-black (Zero Visibility). Null is invisible and must be tracked
+  by sound waves and footstep echoes.
+- Unique Drop: Abyssal Echo Eye + Null-Blade Dagger (3.0x Crit multiplier from behind + Silence).
+- World Shift ("Absolute Silence"):
+  * Players deal +25% damage against Afflicted targets.
+  * Sonic attacks gain 50% Armor Penetration.
+
+--------------------------------------------------------------------------------
+COLOSSUS 12: Ouroboros, Keeper of the Threshold (FINAL COLOSSUS)
+--------------------------------------------------------------------------------
+- Location: Stronghold End Portal Room
+- Spawn Ritual: Stand on the End Portal frame carrying the 11 other Colossus Eyes
+  while afflicted by ALL 5 Status Ailments simultaneously (Burn, Freeze, Shock, Poison, Bleed).
+- Encounter: Time-weaving titan that cycles through all 4 elements (Fire -> Cold -> Lightning -> Void).
+  Can rewind time to heal unless staggered by elemental weaknesses during transitions.
+- Unique Drop: The Omega Eye (12th Eye) + World-Breaker Sigil.
+- World Shift ("The End Opens"):
+  * THE END DIMENSION PERMANENTLY UNLOCKS.
+  * The path to the final Endgame is cleared!
+
+
+================================================================================
+4. TECHNICAL IMPLEMENTATION ROADMAP
+================================================================================
+1. ColossusPersistentState: Tracks worldAct and set of defeated Colossi UUIDs.
+2. ColossusRitualEvent: Listens to specific game events (deaths, weather, item throws).
+3. PocketDimensionManager: Dedicated instance worlds for Thalassos & Astra.
+4. EndPortalFrameBlockMixin: Restricts portal activation strictly to the 12 Colossus Eyes.
+================================================================================

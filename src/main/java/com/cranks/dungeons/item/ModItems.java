@@ -99,6 +99,13 @@ public class ModItems {
 
     public static final Item ARMOURERS_SCRAP = registerQualityMaterial("armourers_scrap", QualityMaterialItem.Type.ARMOR);
     public static final Item BLACKSMITHS_WHETSTONE = registerQualityMaterial("blacksmiths_whetstone", QualityMaterialItem.Type.WEAPON);
+    public static final Item DEEPSLATE_SIGIL = registerItem("deepslate_sigil", new DeepslateSigilItem(new Item.Settings()));
+
+    private static Item registerItem(String name, Item item) {
+        Identifier id = Identifier.of(CranksDungeons.MOD_ID, name);
+        RegistryKey<Item> key = RegistryKey.of(RegistryKeys.ITEM, id);
+        return Registry.register(Registries.ITEM, key, item);
+    }
 
     private static Item registerQualityMaterial(String name, QualityMaterialItem.Type type) {
         Identifier id = Identifier.of(CranksDungeons.MOD_ID, name);

@@ -81,6 +81,7 @@ public class CranksDungeons implements ModInitializer {
 		PayloadTypeRegistry.playS2C().register(StatOptionsSyncPacket.ID, StatOptionsSyncPacket.CODEC);
 		PayloadTypeRegistry.playS2C().register(EnergyShieldSyncPacket.ID, EnergyShieldSyncPacket.CODEC);
 		StatRegistry.registerStats();
+		com.cranks.dungeons.entity.MobStatRegistry.registerMobStats();
 		EnchantmentDisableManager.registerToggleable(Identifier.of("minecraft", "silk_touch"));
 		EnchantmentDisableManager.registerToggleable(Identifier.of("cranks-dungeons", "vein_mining"));
 		ApplyStatCommand.register();
@@ -336,6 +337,7 @@ public class CranksDungeons implements ModInitializer {
 			content.add(ModItems.PERFECT_TOME_OF_AUGMENTATION);
 			content.add(ModItems.ARMOURERS_SCRAP);
 			content.add(ModItems.BLACKSMITHS_WHETSTONE);
+			content.add(ModItems.DEEPSLATE_SIGIL);
 			content.add(ModItems.REGAL_TOME);
 			content.add(ModItems.GREATER_REGAL_TOME);
 			content.add(ModItems.PERFECT_REGAL_TOME);

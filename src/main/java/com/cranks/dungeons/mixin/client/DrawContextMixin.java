@@ -42,7 +42,7 @@ public abstract class DrawContextMixin {
 
         // Suppress any heart (including containers), food, armor, air textures, or custom tiny numbers font textures
         return path.contains("heart") || path.contains("food") || path.contains("hunger")
-                || path.contains("armor") || path.startsWith("hud/air") || path.contains("/air_")
+                || path.contains("hud/armor") || path.startsWith("hud/air") || path.contains("/air_")
                 || path.contains("bubble") || path.contains("icons.png") || path.contains("tiny_numbers");
     }
 

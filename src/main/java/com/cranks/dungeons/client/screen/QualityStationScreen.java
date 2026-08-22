@@ -2,6 +2,7 @@ package com.cranks.dungeons.client.screen;
 
 import com.cranks.dungeons.CranksDungeons;
 import com.cranks.dungeons.equipment.EquipmentType;
+import com.cranks.dungeons.item.DeepslateSigilItem;
 import com.cranks.dungeons.item.QualityMaterialItem;
 import com.cranks.dungeons.screen.QualityStationScreenHandler;
 import com.cranks.dungeons.block.entity.QualityStationBlockEntity;
@@ -19,6 +20,7 @@ public class QualityStationScreen extends HandledScreen<QualityStationScreenHand
     private static final Identifier TEXTURE_DEFAULT = Identifier.of(CranksDungeons.MOD_ID, "textures/gui/quality_station/quality_station.png");
     private static final Identifier TEXTURE_MARTIAL = Identifier.of(CranksDungeons.MOD_ID, "textures/gui/quality_station/quality_station_martial.png");
     private static final Identifier TEXTURE_ARMOR = Identifier.of(CranksDungeons.MOD_ID, "textures/gui/quality_station/quality_station_armor.png");
+    private static final Identifier TEXTURE_ENCHANTMENT = Identifier.of(CranksDungeons.MOD_ID, "textures/gui/quality_station/quality_station_enchantment.png");
 
     private static final Identifier FRAME_1 = Identifier.of(CranksDungeons.MOD_ID, "textures/gui/quality_station/quality_station_1.png");
     private static final Identifier FRAME_2 = Identifier.of(CranksDungeons.MOD_ID, "textures/gui/quality_station/quality_station_2.png");
@@ -28,10 +30,24 @@ public class QualityStationScreen extends HandledScreen<QualityStationScreenHand
     private static final Identifier FRAME_6 = Identifier.of(CranksDungeons.MOD_ID, "textures/gui/quality_station/quality_station_6.png");
     private static final Identifier FRAME_7 = Identifier.of(CranksDungeons.MOD_ID, "textures/gui/quality_station/quality_station_7.png");
     private static final Identifier FRAME_8 = Identifier.of(CranksDungeons.MOD_ID, "textures/gui/quality_station/quality_station_8.png");
+    private static final Identifier FRAME_9 = Identifier.of(CranksDungeons.MOD_ID, "textures/gui/quality_station/quality_station_9.png");
+    private static final Identifier FRAME_10 = Identifier.of(CranksDungeons.MOD_ID, "textures/gui/quality_station/quality_station_10.png");
+    private static final Identifier FRAME_11 = Identifier.of(CranksDungeons.MOD_ID, "textures/gui/quality_station/quality_station_11.png");
+    private static final Identifier FRAME_12 = Identifier.of(CranksDungeons.MOD_ID, "textures/gui/quality_station/quality_station_12.png");
+    private static final Identifier FRAME_13 = Identifier.of(CranksDungeons.MOD_ID, "textures/gui/quality_station/quality_station_13.png");
+    private static final Identifier FRAME_14 = Identifier.of(CranksDungeons.MOD_ID, "textures/gui/quality_station/quality_station_14.png");
+    private static final Identifier FRAME_15 = Identifier.of(CranksDungeons.MOD_ID, "textures/gui/quality_station/quality_station_15.png");
+    private static final Identifier FRAME_16 = Identifier.of(CranksDungeons.MOD_ID, "textures/gui/quality_station/quality_station_16.png");
 
-    // All frames 1 to 8 (when no items are placed)
+    // All frames 1 to 16 (when no items are placed)
     private static final Identifier[] ALL_FRAMES = new Identifier[] {
-        FRAME_1, FRAME_2, FRAME_3, FRAME_4, FRAME_5, FRAME_6, FRAME_7, FRAME_8
+        FRAME_1, FRAME_2, FRAME_3, FRAME_4, FRAME_5, FRAME_6, FRAME_7, FRAME_8,
+        FRAME_9, FRAME_10, FRAME_11, FRAME_12, FRAME_13, FRAME_14, FRAME_15, FRAME_16
+    };
+
+    // Deepslate sigil frames 9 to 16 (when only deepslate sigil is placed)
+    private static final Identifier[] SIGIL_FRAMES = new Identifier[] {
+        FRAME_9, FRAME_10, FRAME_11, FRAME_12, FRAME_13, FRAME_14, FRAME_15, FRAME_16
     };
 
     // Armourer's scrap frames 2 to 6 (when only armourer's scrap is placed)
@@ -62,6 +78,11 @@ public class QualityStationScreen extends HandledScreen<QualityStationScreenHand
         animationTick++;
     }
 
+    private boolean isTool(EquipmentType type) {
+        return type == EquipmentType.AXE || type == EquipmentType.PICKAXE || 
+               type == EquipmentType.SHOVEL || type == EquipmentType.HOE;
+    }
+
     private boolean isMartialWeapon(EquipmentType type) {
         return type == EquipmentType.SWORD || type == EquipmentType.SPEAR || 
                type == EquipmentType.MACE || type == EquipmentType.TRIDENT || 
@@ -87,24 +108,32 @@ public class QualityStationScreen extends HandledScreen<QualityStationScreenHand
 
         Identifier currentTexture;
 
-        if (hasEquipment && !hasMaterial) {
-            // Only equipment item is placed
+        if (!hasEquipment && !hasMaterial) {
+            // 1. No items placed: loops from 1 to 16
+            int frameIndex = (animationTick / 30) % ALL_FRAMES.length;
+            currentTexture = ALL_FRAMES[frameIndex];
+        } else if (hasEquipment && !hasMaterial) {
+            // 2. Only equipment item is placed on the right
             Optional<EquipmentType> typeOpt = EquipmentType.getTypeForItem(equipmentStack);
             if (typeOpt.isPresent()) {
                 EquipmentType type = typeOpt.get();
-                if (isMartialWeapon(type)) {
-                    currentTexture = TEXTURE_MARTIAL;
-                } else if (isArmorPiece(type)) {
-                    currentTexture = TEXTURE_ARMOR;
+                if (isTool(type)) {
+                    // Tools only show the enchantment texture with no loop
+                    currentTexture = TEXTURE_ENCHANTMENT;
                 } else {
-                    currentTexture = TEXTURE_DEFAULT;
+                    Identifier partnerTexture = isArmorPiece(type) ? TEXTURE_ARMOR : TEXTURE_MARTIAL;
+                    int frame = (animationTick / 30) % 2;
+                    currentTexture = (frame == 0) ? partnerTexture : TEXTURE_ENCHANTMENT;
                 }
             } else {
                 currentTexture = TEXTURE_DEFAULT;
             }
         } else if (!hasEquipment && hasMaterial) {
-            // Only quality item is placed
-            if (materialStack.getItem() instanceof QualityMaterialItem qualityItem) {
+            // 3. Only material is placed on the left
+            if (materialStack.getItem() instanceof DeepslateSigilItem) {
+                int frameIndex = (animationTick / 30) % SIGIL_FRAMES.length;
+                currentTexture = SIGIL_FRAMES[frameIndex];
+            } else if (materialStack.getItem() instanceof QualityMaterialItem qualityItem) {
                 if (qualityItem.getMaterialType() == QualityMaterialItem.Type.ARMOR) {
                     int frameIndex = (animationTick / 30) % ARMOR_FRAMES.length;
                     currentTexture = ARMOR_FRAMES[frameIndex];
@@ -119,12 +148,8 @@ public class QualityStationScreen extends HandledScreen<QualityStationScreenHand
                 int frameIndex = (animationTick / 30) % ALL_FRAMES.length;
                 currentTexture = ALL_FRAMES[frameIndex];
             }
-        } else if (!hasEquipment && !hasMaterial) {
-            // No items are placed: loops between _1 to _8
-            int frameIndex = (animationTick / 30) % ALL_FRAMES.length;
-            currentTexture = ALL_FRAMES[frameIndex];
         } else {
-            // Both items placed: static default texture
+            // 4. Both items placed: static default texture without any looping
             currentTexture = TEXTURE_DEFAULT;
         }
 

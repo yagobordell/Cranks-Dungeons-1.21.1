@@ -1,7 +1,11 @@
 package com.cranks.dungeons.block.entity;
 
+import com.cranks.dungeons.equipment.EnchantmentSlotHelper;
+import com.cranks.dungeons.equipment.EquipmentStatApplier;
 import com.cranks.dungeons.equipment.EquipmentType;
+import com.cranks.dungeons.item.DeepslateSigilItem;
 import com.cranks.dungeons.item.QualityMaterialItem;
+import com.cranks.dungeons.registry.ModSounds;
 import com.cranks.dungeons.screen.QualityStationScreenHandler;
 import com.cranks.dungeons.util.RandomUtil;
 import net.minecraft.block.BlockState;
@@ -14,12 +18,16 @@ import net.minecraft.inventory.Inventories;
 import net.minecraft.inventory.SidedInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.screen.NamedScreenHandlerFactory;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.screen.PropertyDelegate;
-import net.minecraft.nbt.NbtCompound;
+import net.minecraft.network.packet.s2c.play.StopSoundS2CPacket;
 import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.screen.NamedScreenHandlerFactory;
+import net.minecraft.screen.PropertyDelegate;
+import net.minecraft.screen.ScreenHandler;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.SoundCategory;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -33,7 +41,8 @@ public class QualityStationBlockEntity extends BlockEntity implements NamedScree
     public static final int MATERIAL_SLOT = 1;
 
     private int processTick = 0;
-    private static final int PROCESS_TIME = 600; // 30 seconds
+    public static final int PROCESS_TIME = 600; // 30 seconds for quality
+    public static final int SIGIL_PROCESS_TIME = 1200; // 60 seconds for sigils (double quality time)
     private boolean isProcessing = false;
 
     protected final PropertyDelegate propertyDelegate;
@@ -46,6 +55,7 @@ public class QualityStationBlockEntity extends BlockEntity implements NamedScree
                 return switch (index) {
                     case 0 -> QualityStationBlockEntity.this.processTick;
                     case 1 -> QualityStationBlockEntity.this.isProcessing ? 1 : 0;
+                    case 2 -> QualityStationBlockEntity.this.isSigilMode() ? SIGIL_PROCESS_TIME : PROCESS_TIME;
                     default -> 0;
                 };
             }
@@ -60,9 +70,14 @@ public class QualityStationBlockEntity extends BlockEntity implements NamedScree
 
             @Override
             public int size() {
-                return 2;
+                return 3;
             }
         };
+    }
+
+    public boolean isSigilMode() {
+        ItemStack material = getStack(MATERIAL_SLOT);
+        return !material.isEmpty() && material.getItem() instanceof DeepslateSigilItem;
     }
 
     @Override
@@ -153,12 +168,58 @@ public class QualityStationBlockEntity extends BlockEntity implements NamedScree
     @Override
     public boolean isValid(int slot, ItemStack stack) {
         if (slot == EQUIPMENT_SLOT) {
-            return EquipmentType.getTypeForItem(stack).isPresent();
+            if (EquipmentType.getTypeForItem(stack).isEmpty()) {
+                return false;
+            }
+            ItemStack material = getStack(MATERIAL_SLOT);
+            if (!material.isEmpty()) {
+                if (material.getItem() instanceof QualityMaterialItem) {
+                    return isValidMaterialForEquipment(stack, material) && getQuality(stack) < 20;
+                } else if (material.getItem() instanceof DeepslateSigilItem) {
+                    return EnchantmentSlotHelper.isValidForSigil(stack) && EnchantmentSlotHelper.canAddSlot(stack);
+                }
+                return false;
+            } else {
+                return canIncreaseQuality(stack) || canAddEnchantmentSlot(stack);
+            }
         }
         if (slot == MATERIAL_SLOT) {
-            return stack.getItem() instanceof QualityMaterialItem;
+            ItemStack equipment = getStack(EQUIPMENT_SLOT);
+            if (stack.getItem() instanceof QualityMaterialItem) {
+                if (!equipment.isEmpty()) {
+                    return isValidMaterialForEquipment(equipment, stack) && getQuality(equipment) < 20;
+                }
+                return true;
+            }
+            if (stack.getItem() instanceof DeepslateSigilItem) {
+                if (!equipment.isEmpty()) {
+                    return EnchantmentSlotHelper.isValidForSigil(equipment) && EnchantmentSlotHelper.canAddSlot(equipment);
+                }
+                return true;
+            }
+            return false;
         }
         return false;
+    }
+
+    public boolean canIncreaseQuality(ItemStack equipment) {
+        if (equipment.isEmpty()) return false;
+        if (getQuality(equipment) >= 20) return false;
+        return EquipmentType.getTypeForItem(equipment).map(type -> {
+            boolean isWeapon = type == EquipmentType.SWORD || type == EquipmentType.SPEAR || 
+                               type == EquipmentType.MACE || type == EquipmentType.TRIDENT || 
+                               type == EquipmentType.BOW || type == EquipmentType.CROSSBOW;
+                               
+            boolean isArmor = type == EquipmentType.HELMET || type == EquipmentType.CHESTPLATE || 
+                              type == EquipmentType.LEGGINGS || type == EquipmentType.BOOTS || 
+                              type == EquipmentType.SHIELD || type == EquipmentType.ELYTRA;
+            return isWeapon || isArmor;
+        }).orElse(false);
+    }
+
+    public boolean canAddEnchantmentSlot(ItemStack equipment) {
+        if (equipment.isEmpty()) return false;
+        return EnchantmentSlotHelper.isValidForSigil(equipment) && EnchantmentSlotHelper.canAddSlot(equipment);
     }
 
     @Override
@@ -171,9 +232,24 @@ public class QualityStationBlockEntity extends BlockEntity implements NamedScree
 
         ItemStack equipment = getStack(EQUIPMENT_SLOT);
         ItemStack material = getStack(MATERIAL_SLOT);
-        boolean canProcess = !equipment.isEmpty() && !material.isEmpty() 
-            && isValidMaterialForEquipment(equipment, material) 
-            && getQuality(equipment) < 20;
+
+        boolean isSigil = !material.isEmpty() && material.getItem() instanceof DeepslateSigilItem;
+        boolean isQuality = !material.isEmpty() && material.getItem() instanceof QualityMaterialItem;
+
+        boolean canProcess = false;
+        int currentProcessTime = PROCESS_TIME;
+
+        if (!equipment.isEmpty() && !material.isEmpty()) {
+            if (isSigil) {
+                canProcess = EnchantmentSlotHelper.isValidForSigil(equipment) 
+                          && EnchantmentSlotHelper.canAddSlot(equipment);
+                currentProcessTime = SIGIL_PROCESS_TIME;
+            } else if (isQuality) {
+                canProcess = isValidMaterialForEquipment(equipment, material) 
+                          && getQuality(equipment) < 20;
+                currentProcessTime = PROCESS_TIME;
+            }
+        }
 
         if (canProcess) {
             if (!isProcessing) {
@@ -185,19 +261,29 @@ public class QualityStationBlockEntity extends BlockEntity implements NamedScree
             
             // Play looping sounds every 40 ticks (2 seconds) while processing
             if (processTick % 40 == 1) {
-                world.playSound(null, pos, com.cranks.dungeons.registry.ModSounds.QUALITY_STATION_2, net.minecraft.sound.SoundCategory.BLOCKS, 0.4f, 1.0f);
-                world.playSound(null, pos, com.cranks.dungeons.registry.ModSounds.QUALITY_STATION_3, net.minecraft.sound.SoundCategory.BLOCKS, 0.4f, 1.0f);
+                if (isSigil) {
+                    world.playSound(null, pos, ModSounds.QUALITY_STATION_1, SoundCategory.BLOCKS, 0.4f, 1.0f);
+                    world.playSound(null, pos, ModSounds.QUALITY_STATION_2, SoundCategory.BLOCKS, 0.4f, 1.0f);
+                } else {
+                    world.playSound(null, pos, ModSounds.QUALITY_STATION_2, SoundCategory.BLOCKS, 0.4f, 1.0f);
+                    world.playSound(null, pos, ModSounds.QUALITY_STATION_3, SoundCategory.BLOCKS, 0.4f, 1.0f);
+                }
             }
 
-            if (processTick >= PROCESS_TIME) {
+            if (processTick >= currentProcessTime) {
                 processTick = 0;
                 material.decrement(1);
                 
-                int increase = (RandomUtil.nextInt(100) < 33) ? 2 : 1;
-                int newQuality = Math.min(20, getQuality(equipment) + increase);
-                setQuality(equipment, newQuality);
+                if (isSigil) {
+                    int currentSlots = EnchantmentSlotHelper.getEnchantmentSlots(equipment);
+                    EnchantmentSlotHelper.setEnchantmentSlots(equipment, currentSlots + 1);
+                } else {
+                    int increase = (RandomUtil.nextInt(100) < 33) ? 2 : 1;
+                    int newQuality = Math.min(20, getQuality(equipment) + increase);
+                    setQuality(equipment, newQuality);
+                    EquipmentStatApplier.updateItemAttributes(equipment);
+                }
                 
-                com.cranks.dungeons.equipment.EquipmentStatApplier.updateItemAttributes(equipment);
                 markDirty();
             }
         } else {
@@ -211,16 +297,20 @@ public class QualityStationBlockEntity extends BlockEntity implements NamedScree
     public void stopSounds() {
         this.isProcessing = false;
         this.processTick = 0;
-        if (this.world instanceof net.minecraft.server.world.ServerWorld serverWorld) {
-            for (net.minecraft.server.network.ServerPlayerEntity p : serverWorld.getPlayers()) {
+        if (this.world instanceof ServerWorld serverWorld) {
+            for (ServerPlayerEntity p : serverWorld.getPlayers()) {
                 if (p.squaredDistanceTo(pos.toCenterPos()) < 144.0) {
-                    p.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.StopSoundS2CPacket(
-                        net.minecraft.util.Identifier.of(com.cranks.dungeons.CranksDungeons.MOD_ID, "quality_station_2"),
-                        net.minecraft.sound.SoundCategory.BLOCKS
+                    p.networkHandler.sendPacket(new StopSoundS2CPacket(
+                        Identifier.of(com.cranks.dungeons.CranksDungeons.MOD_ID, "quality_station_1"),
+                        SoundCategory.BLOCKS
                     ));
-                    p.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.StopSoundS2CPacket(
-                        net.minecraft.util.Identifier.of(com.cranks.dungeons.CranksDungeons.MOD_ID, "quality_station_3"),
-                        net.minecraft.sound.SoundCategory.BLOCKS
+                    p.networkHandler.sendPacket(new StopSoundS2CPacket(
+                        Identifier.of(com.cranks.dungeons.CranksDungeons.MOD_ID, "quality_station_2"),
+                        SoundCategory.BLOCKS
+                    ));
+                    p.networkHandler.sendPacket(new StopSoundS2CPacket(
+                        Identifier.of(com.cranks.dungeons.CranksDungeons.MOD_ID, "quality_station_3"),
+                        SoundCategory.BLOCKS
                     ));
                 }
             }

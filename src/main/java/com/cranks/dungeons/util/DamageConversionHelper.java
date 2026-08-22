@@ -88,7 +88,8 @@ public class DamageConversionHelper {
                         };
                     }
 
-                    double finalRes = Math.max(0, res * (1.0 - penetration));
+                    double finalRes = res >= 0 ? res * (1.0 - penetration) : res - penetration;
+                    finalRes = Math.max(-1.0, Math.min(0.75, finalRes));
                     damages.put(element, (float) (amount * (1.0 - finalRes)));
                 }
             }
@@ -135,63 +136,32 @@ public class DamageConversionHelper {
             return breakdown;
         }
 
-        // --- Elemental Mob Conversions ---
-
-        // FIRE
-        if (attacker instanceof BlazeEntity || attacker instanceof MagmaCubeEntity || 
-            attacker instanceof GhastEntity || directSource instanceof SmallFireballEntity || 
-            directSource instanceof FireballEntity || source.isOf(DamageTypes.FIREBALL)) {
+        // Direct projectile / non-living sources
+        if (directSource instanceof SmallFireballEntity || directSource instanceof FireballEntity || source.isOf(DamageTypes.FIREBALL)) {
             breakdown.add(DamageElement.FIRE, amount);
             return breakdown;
         }
 
-        // COLD
         if (directSource instanceof SnowballEntity) {
             breakdown.add(DamageElement.COLD, amount);
             return breakdown;
         }
-        if (attacker instanceof StrayEntity) {
-            float coldPart = amount * 0.5f;
-            breakdown.add(DamageElement.PHYSICAL, amount - coldPart);
-            breakdown.add(DamageElement.COLD, coldPart);
-            return breakdown;
-        }
-        if (attacker instanceof PolarBearEntity) {
-            float coldPart = amount * 0.2f;
-            breakdown.add(DamageElement.PHYSICAL, amount - coldPart);
-            breakdown.add(DamageElement.COLD, coldPart);
-            return breakdown;
-        }
 
-        // LIGHTNING
-        if (attacker instanceof GuardianEntity || attacker instanceof BreezeEntity) {
-            if (!source.isOf(DamageTypes.THORNS)) {
-                breakdown.add(DamageElement.LIGHTNING, amount);
-                return breakdown;
-            }
-        }
-
-        // VOID
-        if (attacker instanceof EndermanEntity || attacker instanceof EndermiteEntity) {
-            float voidPart = amount * 0.4f;
-            breakdown.add(DamageElement.PHYSICAL, amount - voidPart);
-            breakdown.add(DamageElement.VOID, voidPart);
-            return breakdown;
-        }
-        if (attacker instanceof ShulkerEntity || attacker instanceof EvokerEntity || source.isOf(DamageTypes.MAGIC) || source.isOf(DamageTypes.INDIRECT_MAGIC)) {
-            breakdown.add(DamageElement.VOID, amount);
-            return breakdown;
-        }
-
-        // Standard Wither handling (kept from previous implementation)
-        if (attacker instanceof WitherEntity || attacker instanceof WitherSkeletonEntity || directSource instanceof WitherSkullEntity) {
+        if (directSource instanceof WitherSkullEntity) {
             float voidPart = amount * 0.5f;
             breakdown.add(DamageElement.PHYSICAL, amount - voidPart);
             breakdown.add(DamageElement.VOID, voidPart);
             return breakdown;
         }
 
-        // Default: 100% Physical OR calculated from LivingEntity stats
+        if (source.isOf(DamageTypes.MAGIC) || source.isOf(DamageTypes.INDIRECT_MAGIC)) {
+            if (!(attacker instanceof LivingEntity)) {
+                breakdown.add(DamageElement.VOID, amount);
+                return breakdown;
+            }
+        }
+
+        // Living Entity calculations (players and mobs with registered attributes/conversions)
         if (attacker instanceof LivingEntity livingAttacker) {
             calculateLivingAttackerBreakdown(livingAttacker, target, source, amount, breakdown);
         } else {
@@ -245,7 +215,8 @@ public class DamageConversionHelper {
                 };
             }
 
-            double finalRes = Math.max(0, res * (1.0 - penetration));
+            double finalRes = res >= 0 ? res * (1.0 - penetration) : res - penetration;
+            finalRes = Math.max(-1.0, Math.min(0.75, finalRes));
             finalTotal += (float) (amount * (1.0 - finalRes));
         }
         return finalTotal;

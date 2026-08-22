@@ -251,6 +251,17 @@ public class ItemComponentModifier {
                             EntityAttributeModifier.Operation.ADD_VALUE),
                     equipmentSlot);
 
+        } else if (itemName.contains("netherite")) {
+            // Netherite: Armor + Armor Toughness + Knockback Res + Fire Resistance
+            double fireRes = getNetheriteFireResistance(itemName);
+            builder.add(
+                    ModAttributes.FIRE_RESISTANCE,
+                    new EntityAttributeModifier(
+                            Identifier.of("cranks-dungeons", "armor.fire_resistance." + armorSlot),
+                            fireRes,
+                            EntityAttributeModifier.Operation.ADD_VALUE),
+                    equipmentSlot);
+
         } else if (itemName.contains("turtle")) {
             builder.add(
                     EntityAttributes.GENERIC_ARMOR,
@@ -353,37 +364,37 @@ public class ItemComponentModifier {
 
     private static double getLeatherEvasionBonus(String itemName) {
         if (itemName.contains("helmet"))
-            return 20.0;
+            return 12.0;
         if (itemName.contains("chestplate"))
-            return 35.0;
+            return 24.0;
         if (itemName.contains("leggings"))
-            return 25.0;
+            return 14.0;
         if (itemName.contains("boots"))
-            return 20.0;
+            return 10.0;
         return 0.0;
     }
 
     private static double getLeatherMovementSpeed(String itemName) {
         if (itemName.contains("helmet"))
-            return 0.05;
+            return 0.02;
         if (itemName.contains("chestplate"))
-            return 0.1;
+            return 0.04;
         if (itemName.contains("leggings"))
-            return 0.1;
+            return 0.04;
         if (itemName.contains("boots"))
-            return 0.2;
+            return 0.05;
         return 0.0;
     }
 
     private static double getGoldEnergyShieldBonus(String itemName) {
         if (itemName.contains("helmet"))
-            return 4.0;
-        if (itemName.contains("chestplate"))
             return 7.0;
+        if (itemName.contains("chestplate"))
+            return 12.0;
         if (itemName.contains("leggings"))
-            return 5.0;
+            return 9.0;
         if (itemName.contains("boots"))
-            return 4.0;
+            return 7.0;
         return 0.0;
     }
 
@@ -401,13 +412,13 @@ public class ItemComponentModifier {
 
     private static double getChainmailEvasionBonus(String itemName) {
         if (itemName.contains("helmet"))
-            return 10.0;
+            return 6.0;
         if (itemName.contains("chestplate"))
-            return 20.0;
+            return 14.0;
         if (itemName.contains("leggings"))
-            return 20.0;
-        if (itemName.contains("boots"))
             return 10.0;
+        if (itemName.contains("boots"))
+            return 5.0;
         return 0.0;
     }
 
@@ -460,6 +471,18 @@ public class ItemComponentModifier {
             return 0.2;
         if (itemName.contains("boots"))
             return 0.1;
+        return 0.0;
+    }
+
+    private static double getNetheriteFireResistance(String itemName) {
+        if (itemName.contains("helmet"))
+            return 0.05;
+        if (itemName.contains("chestplate"))
+            return 0.10;
+        if (itemName.contains("leggings"))
+            return 0.05;
+        if (itemName.contains("boots"))
+            return 0.05;
         return 0.0;
     }
 

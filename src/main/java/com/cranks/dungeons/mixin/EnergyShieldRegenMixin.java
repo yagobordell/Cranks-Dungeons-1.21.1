@@ -58,12 +58,21 @@ public class EnergyShieldRegenMixin {
         // Initialize shield ONLY ONCE when the entity first has Energy Shield
         if (maxShield > 0) {
             if (!self.getEntityWorld().isClient()) {
-                // If we legitimately don't have any shield yet, start at 0.
-                if (provider.cranksdungeons$getCurrentEnergyShield() <= 0.0f) {
-                    provider.cranksdungeons$setCurrentEnergyShield(0.0f);
-                    
-                    if (self instanceof ServerPlayerEntity serverPlayer) {
-                        ServerPlayNetworking.send(serverPlayer, new EnergyShieldSyncPacket(0.0f, (float) maxShield));
+                if (!(self instanceof PlayerEntity)) {
+                    // Mobs spawn with full Energy Shield
+                    if (provider.cranksdungeons$getCurrentEnergyShield() <= 0.0f) {
+                        provider.cranksdungeons$setCurrentEnergyShield((float) maxShield);
+                        com.cranks.dungeons.network.EntityShieldSyncPacket packet = new com.cranks.dungeons.network.EntityShieldSyncPacket(self.getId(), (float) maxShield, (float) maxShield);
+                        net.fabricmc.fabric.api.networking.v1.PlayerLookup.tracking(self).forEach(p -> ServerPlayNetworking.send(p, packet));
+                    }
+                } else {
+                    // Players start at 0 if no NBT loaded
+                    if (provider.cranksdungeons$getCurrentEnergyShield() <= 0.0f) {
+                        provider.cranksdungeons$setCurrentEnergyShield(0.0f);
+                        
+                        if (self instanceof ServerPlayerEntity serverPlayer) {
+                            ServerPlayNetworking.send(serverPlayer, new EnergyShieldSyncPacket(0.0f, (float) maxShield));
+                        }
                     }
                 }
             }

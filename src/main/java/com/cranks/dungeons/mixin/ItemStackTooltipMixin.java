@@ -445,6 +445,10 @@ public abstract class ItemStackTooltipMixin {
         AttributeModifiersComponent attributes;
         if (includeModifications) {
             attributes = stack.getOrDefault(DataComponentTypes.ATTRIBUTE_MODIFIERS, AttributeModifiersComponent.DEFAULT);
+            if (attributes.modifiers().isEmpty()) {
+                ItemStack defaultStack = new ItemStack(stack.getItem());
+                attributes = defaultStack.getOrDefault(DataComponentTypes.ATTRIBUTE_MODIFIERS, AttributeModifiersComponent.DEFAULT);
+            }
         } else {
             ItemStack defaultStack = new ItemStack(stack.getItem());
             attributes = defaultStack.getOrDefault(DataComponentTypes.ATTRIBUTE_MODIFIERS, AttributeModifiersComponent.DEFAULT);
@@ -633,31 +637,21 @@ public abstract class ItemStackTooltipMixin {
 
     @Unique
     private void addEnchantmentsSection(ItemStack stack, List<Text> tooltip, boolean showDetails) {
-        Optional<EquipmentType> type = EquipmentType.getTypeForItem(stack);
-        if (type.isPresent() && type.get() == EquipmentType.SHIELD) {
+        if (stack.isOf(net.minecraft.item.Items.ENCHANTED_BOOK)) {
             return;
         }
 
-        CustomRarity rarity = CustomRarity.getRarity(stack);
-        int maxSlots = switch (rarity) {
-            case UNIQUE -> 3;
-            default -> 1;
-        };
-
+        int slots = com.cranks.dungeons.equipment.EnchantmentSlotHelper.getEnchantmentSlots(stack);
         var enchantmentComponent = stack.getEnchantments();
         int enchantsCount = 0;
-        DecimalFormat df = new DecimalFormat("#.#");
 
         for (var entry : enchantmentComponent.getEnchantmentEntries()) {
-            if (enchantsCount >= maxSlots)
-                break;
-
             Text enchantName = entry.getKey().value().description();
             tooltip.add(Text.literal("✦ ").formatted(Formatting.DARK_AQUA)
                     .append(Text.literal(enchantName.getString()).formatted(Formatting.AQUA)));
 
             if (showDetails) {
-                String id = entry.getKey().getKey().get().getValue().toString();
+                String id = com.cranks.dungeons.CranksDungeons.getEnchantmentId(entry.getKey());
                 String name = id.contains(":") ? id.split(":")[1] : id;
 
                 // Try to add descriptions
@@ -678,12 +672,12 @@ public abstract class ItemStackTooltipMixin {
             enchantsCount++;
         }
 
-        for (int i = enchantsCount; i < maxSlots; i++) {
+        for (int i = enchantsCount; i < slots; i++) {
             tooltip.add(Text.literal("✧ ").formatted(Formatting.DARK_GRAY)
                     .append(Text.literal("Empty Enchantment Slot").formatted(Formatting.DARK_GRAY)));
         }
 
-        if (maxSlots > 0) {
+        if (slots > 0 || enchantsCount > 0) {
             addDivider(tooltip);
         }
     }

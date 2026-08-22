@@ -49,7 +49,7 @@ public class EnchantedBookDescriptionMixin {
                 for (int i = 1; i < tooltip.size(); i++) {
                     String line = tooltip.get(i).getString();
 
-                    if (line.equals(displayName)) {
+                    if (line.equals(displayName) || line.startsWith(displayName + " ") || line.toLowerCase().contains(displayName.toLowerCase())) {
                         int offset = 1;
                         tooltip.add(i + offset++, Text.empty());
                         

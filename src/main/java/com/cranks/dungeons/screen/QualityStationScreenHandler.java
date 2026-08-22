@@ -22,7 +22,7 @@ public class QualityStationScreenHandler extends ScreenHandler {
     public final QualityStationBlockEntity blockEntity;
 
     public QualityStationScreenHandler(int syncId, PlayerInventory playerInventory) {
-        this(syncId, playerInventory, new SimpleInventory(2), new ArrayPropertyDelegate(2));
+        this(syncId, playerInventory, new SimpleInventory(2), new ArrayPropertyDelegate(3));
     }
 
     public QualityStationScreenHandler(int syncId, PlayerInventory playerInventory, Inventory inventory, PropertyDelegate propertyDelegate) {
@@ -42,27 +42,13 @@ public class QualityStationScreenHandler extends ScreenHandler {
         this.addSlot(new Slot(inventory, QualityStationBlockEntity.EQUIPMENT_SLOT, 152, 48) {
             @Override
             public boolean canInsert(ItemStack stack) {
-                if (com.cranks.dungeons.equipment.EquipmentType.getTypeForItem(stack).isEmpty()) {
-                    return false;
-                }
-                ItemStack materialStack = inventory.getStack(QualityStationBlockEntity.MATERIAL_SLOT);
-                if (!materialStack.isEmpty() && inventory instanceof QualityStationBlockEntity blockEntity) {
-                    return blockEntity.isValidMaterialForEquipment(stack, materialStack);
-                }
-                return true;
+                return inventory.isValid(QualityStationBlockEntity.EQUIPMENT_SLOT, stack);
             }
         });
         this.addSlot(new Slot(inventory, QualityStationBlockEntity.MATERIAL_SLOT, 98, 48) {
             @Override
             public boolean canInsert(ItemStack stack) {
-                if (!(stack.getItem() instanceof com.cranks.dungeons.item.QualityMaterialItem)) {
-                    return false;
-                }
-                ItemStack equipmentStack = inventory.getStack(QualityStationBlockEntity.EQUIPMENT_SLOT);
-                if (!equipmentStack.isEmpty() && inventory instanceof QualityStationBlockEntity blockEntity) {
-                    return blockEntity.isValidMaterialForEquipment(equipmentStack, stack);
-                }
-                return true;
+                return inventory.isValid(QualityStationBlockEntity.MATERIAL_SLOT, stack);
             }
         });
 
@@ -73,10 +59,11 @@ public class QualityStationScreenHandler extends ScreenHandler {
 
     public int getScaledProgress() {
         int processTick = propertyDelegate.get(0);
-        int maxProcessTime = 600; // 30 seconds
+        int maxProcessTime = propertyDelegate.get(2);
+        if (maxProcessTime == 0) maxProcessTime = 600;
         int progressArrowSize = 22; 
         
-        return maxProcessTime != 0 && processTick != 0 ? Math.max(1, processTick * progressArrowSize / maxProcessTime) : 0;
+        return processTick != 0 ? Math.max(1, processTick * progressArrowSize / maxProcessTime) : 0;
     }
 
     public boolean isProcessing() {

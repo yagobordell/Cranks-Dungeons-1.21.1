@@ -119,6 +119,10 @@ public class VeinMiningMixin {
 
             Block.dropStacks(state, world, pos, world.getBlockEntity(pos), player, tool);
 
+            if (!hasSilk) {
+                state.onStacksDropped(world, pos, tool, true);
+            }
+
             if (!hasSilk && fortuneChance > 0 && player.getRandom().nextDouble() < fortuneChance) {
                 Block.dropStacks(state, world, pos, world.getBlockEntity(pos), player, tool);
                 world.playSound(null, pos, net.minecraft.sound.SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, net.minecraft.sound.SoundCategory.BLOCKS, 0.5f, 1.5f);

@@ -74,7 +74,9 @@ public abstract class EnchantmentTableMixin extends ScreenHandler {
         ItemStack lapis = inv.getStack(1);
         if (lapis.isEmpty() || !lapis.isOf(Items.LAPIS_LAZULI)) return;
 
-        if (stack.hasEnchantments()) return;
+        int currentEnchants = stack.getEnchantments().getEnchantmentEntries().size();
+        int itemSlots = stack.isOf(Items.BOOK) ? 1 : com.cranks.dungeons.equipment.EnchantmentSlotHelper.getEnchantmentSlots(stack);
+        if (itemSlots <= 0 || currentEnchants >= itemSlots) return;
 
         context.run((world, pos) -> {
             var registry = world.getRegistryManager()
@@ -86,6 +88,7 @@ public abstract class EnchantmentTableMixin extends ScreenHandler {
             List<RegistryEntry<Enchantment>> pool = registry.streamEntries()
                     .filter(e -> e.isIn(EnchantmentTags.IN_ENCHANTING_TABLE))
                     .filter(e -> e.value().isAcceptableItem(stack))
+                    .filter(e -> stack.getEnchantments().getEnchantmentEntries().stream().noneMatch(existing -> existing.getKey().equals(e)))
                     .sorted(Comparator.comparing(e ->
                             e.getKey().map(k -> k.getValue().toString()).orElse("")))
                     .collect(Collectors.toCollection(ArrayList::new));
@@ -104,8 +107,7 @@ public abstract class EnchantmentTableMixin extends ScreenHandler {
 
                 RegistryEntry<Enchantment> chosen = pool.get(poolIdx++);
                 int rawId = registry.getRawId(chosen.value());
-                int max = chosen.value().getMaxLevel();
-                int lvl = max > 1 ? 1 + rng.nextInt(max) : 1;
+                int lvl = 1; // Enchantments do not have levels, they are independent
 
                 enchantmentPower[slot] = (slot + 1) * 10;
                 enchantmentId[slot] = rawId;
@@ -131,8 +133,14 @@ public abstract class EnchantmentTableMixin extends ScreenHandler {
         }
 
         int lapisCost = 32;
+        int levelRequired = enchantmentPower[id];
+        int levelCost = id + 1;
 
         if (!player.getAbilities().creativeMode) {
+            if (player.experienceLevel < levelRequired) {
+                cir.setReturnValue(false);
+                return;
+            }
             if (!lapis.isOf(Items.LAPIS_LAZULI) || lapis.getCount() < lapisCost) {
                 cir.setReturnValue(false);
                 return;
@@ -143,9 +151,20 @@ public abstract class EnchantmentTableMixin extends ScreenHandler {
             if (world.isClient()) return;
 
             EnchantmentLevelEntry offer = dungeons$offers[id];
-            stack.addEnchantment(offer.enchantment, offer.level);
+            
+            if (stack.isOf(Items.BOOK)) {
+                ItemStack enchantedBook = new ItemStack(Items.ENCHANTED_BOOK);
+                net.minecraft.component.type.ItemEnchantmentsComponent.Builder builder = 
+                        new net.minecraft.component.type.ItemEnchantmentsComponent.Builder(net.minecraft.component.type.ItemEnchantmentsComponent.DEFAULT);
+                builder.add(offer.enchantment, 1);
+                enchantedBook.set(net.minecraft.component.DataComponentTypes.STORED_ENCHANTMENTS, builder.build());
+                inventory.setStack(0, enchantedBook);
+            } else {
+                stack.addEnchantment(offer.enchantment, 1);
+            }
 
             if (!player.getAbilities().creativeMode) {
+                player.applyEnchantmentCosts(stack, levelCost);
                 lapis.decrement(lapisCost);
                 if (lapis.isEmpty()) {
                     inventory.setStack(1, ItemStack.EMPTY);
