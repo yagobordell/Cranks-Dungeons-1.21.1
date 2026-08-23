@@ -1,0 +1,132 @@
+================================================================================
+CRANKS DUNGEONS - ACT 1 MOB EQUIPMENT & RUNIC GEAR SPECIFICATION
+================================================================================
+
+This document details the equipment, property generation, and runic stat rolling
+system applied to humanoid mobs during ACT 1.
+
+All equipment generated on mobs is dynamically baked via EquipmentStatApplier,
+giving mobs real-time defensive attributes (Evasion, Energy Shield, Armor) and 
+offensive bonuses (flat damage, elemental conversions, attack speed).
+
+================================================================================
+1. SPAWN CHANCES & PIECE DISTRIBUTION
+================================================================================
+
+Target Mobs:
+- Zombies, Husks, Drowned, Zombie Villagers
+- Skeletons, Strays, Bogged
+- Piglins
+
+Base Equipment Spawn Chance: ~22%
+(78% of mobs spawn unarmored; 22% receive equipment from the Act 1 tables).
+
+Piece Count Distribution:
+- 1 Piece (Helmet, Boots, Chestplate, or Leggings): 60%
+- 2 Pieces (e.g. Helmet + Boots, or Chestplate + Weapon): 25%
+- Weapon Only (Sword, Bow, Crossbow): 10%
+- Full 4-Piece Set (Elite mini-champion): 5%
+
+Skeletons spawning with bows automatically have their bow processed through the
+Act 1 Quality, Enchantment Slot, and Runic Affix pipeline.
+
+================================================================================
+2. ACT 1 ARMOR MATERIALS & ROLES
+================================================================================
+
+When armor is selected, materials are rolled according to Act 1 progression:
+
+- LEATHER (40% Weight):
+  Role: Evasive Skirmisher
+  Stats: +60 Evasion Rating, +15% Movement Speed
+  Behavior: Mobs dodge player physical attacks using the PoE 2 entropy dodge curve.
+
+- GOLD (30% Weight):
+  Role: Arcane / Shielded
+  Stats: +35 Energy Shield, +55 Armor
+  Behavior: Mobs spawn with an active Energy Shield that absorbs damage before health.
+
+- CHAINMAIL (20% Weight):
+  Role: Hybrid Armor / Evasion
+  Stats: +60 Armor, +35 Evasion Rating, +30% Attack Speed
+
+- IRON (10% Weight):
+  Role: Heavy Physical Tank
+  Stats: +120 Armor, +10 Toughness, -5% Movement Speed
+  Behavior: High Physical Damage Reduction against incoming player hits.
+
+- DIAMOND & NETHERITE (0% Weight):
+  Gated until Act 2+ to prevent impossible early tanks and early-game loot trivialization.
+
+================================================================================
+3. ACT 1 WEAPONS (NO SPEARS)
+================================================================================
+
+When a weapon is equipped on a zombie, piglin, or skeleton:
+
+- Wooden Sword: 25%
+- Stone Sword: 45%
+- Iron Sword: 25%
+- Stone Shovel: 5%
+- Bow / Crossbow: Handled on ranged mobs (Skeletons/Strays/Piglins)
+
+Spears are explicitly disabled from Act 1 mob tables for now.
+
+================================================================================
+4. QUALITY ROLLING CURVE (EXPONENTIAL DECAY)
+================================================================================
+
+Every item piece has a 10% base chance to roll bonus Quality (1% to 20%).
+Quality scales the item's baseline stats (Armor, Evasion, ES, Attack Damage).
+
+Higher quality values are significantly rarer following a steep exponential curve:
+
+- 1% to 5% Quality:   55% chance (Common Quality)
+- 6% to 10% Quality:  25% chance (Good Quality)
+- 11% to 15% Quality: 12% chance (High Quality)
+- 16% to 19% Quality: 6% chance  (Exceptional Quality)
+- 20% Quality (Max):  2% chance  (Perfect Quality Jackpot ~0.2% overall)
+
+================================================================================
+5. ENCHANTMENT SLOTS PROGRESSION
+================================================================================
+
+Items on mobs have a small chance to spawn with pre-unlocked Enchantment Slots
+(obeying the item's maximum slot capacity via EnchantmentSlotHelper):
+
+- 1 Slot:  5.0% chance on eligible items
+- 2 Slots: 0.5% chance (Only on Chestplates, Leggings, Bows/Crossbows)
+- 3 Slots: 0.05% chance (Only on Tridents)
+
+Act 1 Rule: Items spawn with 0 actual enchantments, leaving the unlocked slots
+clean and ready for player enchanting via the Anvil / Enchanting Table.
+
+================================================================================
+6. RUNIC AFFIX SYSTEM (TIERS 10 TO 8)
+================================================================================
+
+Items roll their Runic Rarity:
+
+- NORMAL (0 Runes): 70%
+- MAGIC (1-2 Runes): 24%
+- RARE CHAMPION (3-4 Runes): 6%
+
+Rune Tiers are strictly locked between Tier 10 and Tier 8 in Act 1:
+- Tier 10 (Starter / Lowest):  60% of rune rolls
+- Tier 9 (Early Mid Tier):    30% of rune rolls
+- Tier 8 (Act 1 Ceiling):     10% of rune rolls
+- Tiers 7 down to Tier 1:     0% (Locked until future Acts)
+
+Affix Rules:
+- Magic items: Up to 1 Prefix, 1 Suffix (Max 2 runes).
+- Rare items: Up to 2 Prefixes, 2 Suffixes (Max 4 runes).
+- Duplicate stat groups are strictly disallowed.
+
+================================================================================
+7. DROPS & PLAYER LOOTING
+================================================================================
+
+- Mobs equipped with Act 1 gear maintain the standard 8.5% drop chance.
+- Slain mobs drop the EXACT rolled item with its Quality, open Enchantment Slots,
+  and rolled Runic affixes preserved.
+================================================================================
