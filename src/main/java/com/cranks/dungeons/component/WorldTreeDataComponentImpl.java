@@ -21,6 +21,8 @@ public class WorldTreeDataComponentImpl implements WorldTreeDataComponent, AutoS
     private final Map<String, String> nodeChoices = new HashMap<>();
     private int gatheringXp = 0;
     private int gatheringLevel = 1;
+    private int batchDepth = 0;
+    private boolean syncPending = false;
 
     public WorldTreeDataComponentImpl(PlayerEntity player) {
         this.player = player;
@@ -45,8 +47,11 @@ public class WorldTreeDataComponentImpl implements WorldTreeDataComponent, AutoS
 
     @Override
     public void setUnspentPoints(int points) {
-        this.unspentPoints = points;
-        ModComponents.WORLD_TREE_DATA.sync(this.player);
+        int newValue = Math.max(0, points);
+        if (this.unspentPoints != newValue) {
+            this.unspentPoints = newValue;
+            requestSync();
+        }
     }
 
     @Override
@@ -57,7 +62,7 @@ public class WorldTreeDataComponentImpl implements WorldTreeDataComponent, AutoS
                 this.player.playSound(net.minecraft.sound.SoundEvents.ENTITY_PLAYER_LEVELUP, 1.0F, 1.0F);
                 // this.player.sendMessage(net.minecraft.text.Text.literal("You have " + this.unspentPoints + " unallocated world tree points!").formatted(net.minecraft.util.Formatting.GOLD), false);
             }
-            ModComponents.WORLD_TREE_DATA.sync(this.player);
+            requestSync();
         }
     }
 
@@ -70,7 +75,7 @@ public class WorldTreeDataComponentImpl implements WorldTreeDataComponent, AutoS
     public void unlockNode(String nodeId) {
         if (nodeId == null) return;
         if (unlockedNodes.add(nodeId.trim())) {
-            ModComponents.WORLD_TREE_DATA.sync(this.player);
+            requestSync();
         }
     }
 
@@ -93,7 +98,7 @@ public class WorldTreeDataComponentImpl implements WorldTreeDataComponent, AutoS
     public void setGatheringXp(int xp, int level) {
         this.gatheringXp = xp;
         this.gatheringLevel = level;
-        ModComponents.WORLD_TREE_DATA.sync(this.player);
+        requestSync();
     }
 
     @Override
@@ -141,7 +146,7 @@ public class WorldTreeDataComponentImpl implements WorldTreeDataComponent, AutoS
                 this.player.getEntityWorld().spawnEntity(vfx);
             }
         }
-        ModComponents.WORLD_TREE_DATA.sync(this.player);
+        requestSync();
     }
 
     @Override
@@ -158,13 +163,36 @@ public class WorldTreeDataComponentImpl implements WorldTreeDataComponent, AutoS
     public void setNodeChoice(String nodeId, String choice) {
         if (choice == null || choice.isEmpty()) {
             if (nodeChoices.remove(nodeId) != null) {
-                ModComponents.WORLD_TREE_DATA.sync(this.player);
+                requestSync();
             }
         } else {
             if (!choice.equals(nodeChoices.get(nodeId))) {
                 nodeChoices.put(nodeId, choice);
-                ModComponents.WORLD_TREE_DATA.sync(this.player);
+                requestSync();
             }
+        }
+    }
+
+    @Override
+    public void beginBatch() {
+        batchDepth++;
+    }
+
+    @Override
+    public void endBatch() {
+        if (batchDepth <= 0) throw new IllegalStateException("World tree component batch was not started");
+        batchDepth--;
+        if (batchDepth == 0 && syncPending) {
+            syncPending = false;
+            ModComponents.WORLD_TREE_DATA.sync(this.player);
+        }
+    }
+
+    private void requestSync() {
+        if (batchDepth > 0) {
+            syncPending = true;
+        } else {
+            ModComponents.WORLD_TREE_DATA.sync(this.player);
         }
     }
 

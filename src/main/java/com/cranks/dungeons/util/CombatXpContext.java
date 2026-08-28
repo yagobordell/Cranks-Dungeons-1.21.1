@@ -10,4 +10,14 @@ public class CombatXpContext {
     public static boolean isCombatXp() {
         return IS_COMBAT_XP.get();
     }
+
+    public static void runAsCombatXp(Runnable action) {
+        boolean previous = IS_COMBAT_XP.get();
+        IS_COMBAT_XP.set(true);
+        try {
+            action.run();
+        } finally {
+            IS_COMBAT_XP.set(previous);
+        }
+    }
 }

@@ -166,13 +166,8 @@ public class CranksDungeonsClient implements ClientModInitializer {
                 // Calculate hit offset from entity center
                 Vec3d hitOffset = Vec3d.ZERO;
                 if (payload.victimUuid() != null && context.client().world != null) {
-                    net.minecraft.entity.Entity entity = null;
-                    for (net.minecraft.entity.Entity e : context.client().world.getEntities()) {
-                        if (e.getUuid().equals(payload.victimUuid())) {
-                            entity = e;
-                            break;
-                        }
-                    }
+                    net.minecraft.entity.Entity entity = context.client().world.getEntityById(payload.victimEntityId());
+                    if (entity != null && !entity.getUuid().equals(payload.victimUuid())) entity = null;
                     if (entity != null) {
                         if (isDealt) {
                             com.cranks.dungeons.client.render.EntityStatBarRenderer.onEntityAttacked(entity.getId());
@@ -241,6 +236,7 @@ public class CranksDungeonsClient implements ClientModInitializer {
                             formattedDamageText,
                             formattedDamageWidth,
                             payload.forceDisplay(),
+                            payload.victimEntityId(),
                             payload.victimUuid(),
                             hitOffset,
                             element,

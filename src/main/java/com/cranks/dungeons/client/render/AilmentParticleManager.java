@@ -16,8 +16,10 @@ public class AilmentParticleManager {
     public static void tick(MinecraftClient client) {
         if (client.world == null || client.player == null || client.isPaused()) return;
 
-        // Iterate through all entities the client knows about
-        for (Entity entity : client.world.getEntities()) {
+        // Only visit entities that actually have synchronized ailments.
+        for (int entityId : AilmentIconRenderer.getTrackedEntityIds()) {
+            Entity entity = client.world.getEntityById(entityId);
+            if (entity == null) continue;
             if (!(entity instanceof LivingEntity living) || !living.isAlive() || living.isInvisibleTo(client.player)) continue;
 
             // Only spawn particles for entities within reasonable distance

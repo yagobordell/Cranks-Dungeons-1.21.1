@@ -10,6 +10,18 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class LeechManager {
 
+    public static void clearEntity(UUID uuid) {
+        LEECH_INSTANCES.remove(uuid);
+        ACCUMULATED_HEALING.remove(uuid);
+        LEECH_TICKS.remove(uuid);
+    }
+
+    public static void clearAll() {
+        LEECH_INSTANCES.clear();
+        ACCUMULATED_HEALING.clear();
+        LEECH_TICKS.clear();
+    }
+
     private static class LeechInstance {
         float remainingHealing;
         float healingPerTick; // Healing to apply per tick (20 ticks per second)
@@ -66,6 +78,12 @@ public class LeechManager {
         
         UUID uuid = entity.getUuid();
         List<LeechInstance> instances = LEECH_INSTANCES.get(uuid);
+
+        if ((instances == null || instances.isEmpty())
+                && !ACCUMULATED_HEALING.containsKey(uuid)) {
+            LEECH_TICKS.remove(uuid);
+            return;
+        }
 
         boolean ghostReaver = entity.getAttributeValue(com.cranks.dungeons.registry.ModAttributes.KEYSTONE_GHOST_REAVER) > 0;
         float currentResource = ghostReaver && entity instanceof com.cranks.dungeons.EnergyShieldProvider provider ? provider.cranksdungeons$getCurrentEnergyShield() : entity.getHealth();

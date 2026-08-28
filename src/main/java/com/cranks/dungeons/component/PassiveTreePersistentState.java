@@ -4,6 +4,9 @@ import com.cranks.dungeons.CranksDungeons;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
+import net.minecraft.nbt.NbtList;
+import net.minecraft.nbt.NbtString;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.PersistentState;
@@ -65,6 +68,7 @@ public class PassiveTreePersistentState extends PersistentState {
         PlayerPassiveData data = playerData.computeIfAbsent(playerUuid.toString(), k -> new PlayerPassiveData());
         data.playerClass = component.getPlayerClass() == null ? "" : component.getPlayerClass();
         data.unspentPoints = component.getUnspentPoints();
+        data.checkedRetroactive = component.hasCheckedRetroactive();
         data.unlockedNodes = new HashSet<>(component.getUnlockedNodes());
         data.nodeChoices = new HashMap<>(component.getNodeChoices());
         this.markDirty();
@@ -73,13 +77,19 @@ public class PassiveTreePersistentState extends PersistentState {
     public void loadIntoComponent(UUID playerUuid, PassiveDataComponent component) {
         PlayerPassiveData data = playerData.get(playerUuid.toString());
         if (data != null && data.playerClass != null && !data.playerClass.isEmpty()) {
-            component.setPlayerClass(data.playerClass);
-            component.setUnspentPoints(data.unspentPoints);
-            for (String node : data.unlockedNodes) {
-                component.unlockNode(node);
-            }
-            if (data.nodeChoices != null) {
-                data.nodeChoices.forEach(component::setNodeChoice);
+            component.beginBatch();
+            try {
+                component.setPlayerClass(data.playerClass);
+                component.setUnspentPoints(data.unspentPoints);
+                component.setCheckedRetroactive(data.checkedRetroactive);
+                for (String node : data.unlockedNodes) {
+                    component.unlockNode(node);
+                }
+                if (data.nodeChoices != null) {
+                    data.nodeChoices.forEach(component::setNodeChoice);
+                }
+            } finally {
+                component.endBatch();
             }
             CranksDungeons.LOGGER.info("[PassiveTree] Restored data for {} (Class: {}, Nodes: {}, Choices: {})",
                     playerUuid, data.playerClass, data.unlockedNodes.size(), data.nodeChoices != null ? data.nodeChoices.size() : 0);
@@ -98,20 +108,61 @@ public class PassiveTreePersistentState extends PersistentState {
     );
 
     public static PassiveTreePersistentState fromNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
-        return CODEC.parse(registryLookup.getOps(net.minecraft.nbt.NbtOps.INSTANCE), nbt)
-                .resultOrPartial(err -> CranksDungeons.LOGGER.error("Failed to parse PassiveTreePersistentState: {}", err))
-                .orElseGet(PassiveTreePersistentState::new);
+        PassiveTreePersistentState state = new PassiveTreePersistentState();
+        NbtCompound players = nbt.contains("players", NbtElement.COMPOUND_TYPE)
+                ? nbt.getCompound("players") : nbt; // Legacy codec stored UUIDs at the root.
+
+        for (String playerId : players.getKeys()) {
+            if (!players.contains(playerId, NbtElement.COMPOUND_TYPE)) continue;
+            try {
+                UUID.fromString(playerId);
+                NbtCompound entry = players.getCompound(playerId);
+                PlayerPassiveData data = new PlayerPassiveData();
+                data.playerClass = entry.getString("playerClass").trim();
+                data.unspentPoints = Math.max(0, entry.getInt("unspentPoints"));
+                data.checkedRetroactive = entry.getBoolean("checkedRetroactive");
+
+                NbtList nodes = entry.getList("unlockedNodes", NbtElement.STRING_TYPE);
+                for (int i = 0; i < nodes.size(); i++) {
+                    String node = nodes.getString(i).trim();
+                    if (!node.isEmpty()) data.unlockedNodes.add(node);
+                }
+
+                if (entry.contains("nodeChoices", NbtElement.COMPOUND_TYPE)) {
+                    NbtCompound choices = entry.getCompound("nodeChoices");
+                    for (String node : choices.getKeys()) {
+                        String choice = choices.getString(node).trim();
+                        if (!node.isBlank() && !choice.isEmpty()) data.nodeChoices.put(node.trim(), choice);
+                    }
+                }
+                state.playerData.put(playerId, data);
+            } catch (Exception e) {
+                CranksDungeons.LOGGER.error("[PassiveTree] Skipping corrupt backup entry for {}", playerId, e);
+            }
+        }
+        return state;
     }
 
     @Override
     public NbtCompound writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
-        CODEC.encodeStart(registryLookup.getOps(net.minecraft.nbt.NbtOps.INSTANCE), this)
-                .resultOrPartial(err -> CranksDungeons.LOGGER.error("Failed to encode PassiveTreePersistentState: {}", err))
-                .ifPresent(encoded -> {
-                    if (encoded instanceof NbtCompound compound) {
-                        nbt.copyFrom(compound);
-                    }
-                });
+        NbtCompound players = new NbtCompound();
+        for (Map.Entry<String, PlayerPassiveData> playerEntry : playerData.entrySet()) {
+            PlayerPassiveData data = playerEntry.getValue();
+            NbtCompound entry = new NbtCompound();
+            entry.putString("playerClass", data.playerClass == null ? "" : data.playerClass);
+            entry.putInt("unspentPoints", Math.max(0, data.unspentPoints));
+            entry.putBoolean("checkedRetroactive", data.checkedRetroactive);
+
+            NbtList nodes = new NbtList();
+            data.unlockedNodes.forEach(node -> nodes.add(NbtString.of(node)));
+            entry.put("unlockedNodes", nodes);
+
+            NbtCompound choices = new NbtCompound();
+            data.nodeChoices.forEach(choices::putString);
+            entry.put("nodeChoices", choices);
+            players.put(playerEntry.getKey(), entry);
+        }
+        nbt.put("players", players);
         return nbt;
     }
 

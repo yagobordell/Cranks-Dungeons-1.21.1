@@ -3,17 +3,28 @@ package com.cranks.dungeons.party;
 import java.util.*;
 
 public class Party {
-    private final UUID leader;
+    private UUID leader;
     private final List<UUID> members;
     private final long creationTime;
     
     public static final int MAX_MEMBERS = 10;
     
     public Party(UUID leader) {
-        this.leader = leader;
+        this.leader = Objects.requireNonNull(leader, "leader");
         this.members = new ArrayList<>();
         this.members.add(leader);
         this.creationTime = System.currentTimeMillis();
+    }
+
+    Party(UUID leader, Collection<UUID> members, long creationTime) {
+        this.leader = Objects.requireNonNull(leader, "leader");
+        this.members = new ArrayList<>();
+        this.members.add(leader);
+        for (UUID member : members) {
+            if (this.members.size() >= MAX_MEMBERS) break;
+            if (member != null && !this.members.contains(member)) this.members.add(member);
+        }
+        this.creationTime = creationTime > 0 ? creationTime : System.currentTimeMillis();
     }
     
     public UUID getLeader() {
@@ -33,7 +44,7 @@ public class Party {
     }
     
     public boolean addMember(UUID player) {
-        if (members.size() >= MAX_MEMBERS || members.contains(player)) {
+        if (player == null || members.size() >= MAX_MEMBERS || members.contains(player)) {
             return false;
         }
         members.add(player);
@@ -74,5 +85,6 @@ public class Party {
         }
         members.remove(newLeader);
         members.add(0, newLeader);
+        leader = newLeader;
     }
 }

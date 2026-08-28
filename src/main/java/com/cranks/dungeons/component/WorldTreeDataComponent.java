@@ -22,4 +22,7 @@ public interface WorldTreeDataComponent extends Component, CopyableComponent<Wor
     String getNodeChoice(String nodeId);
     java.util.Map<String, String> getAllNodeChoices();
     void setNodeChoice(String nodeId, String choice);
+
+    void beginBatch();
+    void endBatch();
 }

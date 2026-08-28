@@ -188,13 +188,8 @@ public class DamageNumberRenderer {
         if (number.victimUuid == null)
             return;
 
-        Entity entity = null;
-        for (Entity e : client.world.getEntities()) {
-            if (e.getUuid().equals(number.victimUuid)) {
-                entity = e;
-                break;
-            }
-        }
+        Entity entity = client.world.getEntityById(number.victimEntityId);
+        if (entity != null && !entity.getUuid().equals(number.victimUuid)) entity = null;
 
         if (entity != null && entity.isAlive()) {
             // Entity exists - calculate target position with rotation

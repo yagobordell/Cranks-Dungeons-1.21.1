@@ -1,10 +1,7 @@
 package com.cranks.dungeons.mixin;
 
-import com.cranks.dungeons.component.ModComponents;
-import com.cranks.dungeons.component.PassiveDataComponent;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
+import net.minecraft.world.GameRules;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -21,16 +18,19 @@ public abstract class DeathXpPenaltyMixin {
         if (!alive) {
             ServerPlayerEntity newPlayer = (ServerPlayerEntity) (Object) this;
             
-            // If gamerule KeepInventory is on, vanilla already copies XP.
-            // boolean keepInventory = oldPlayer.serverLevel().getGameRules().getBoolean(GameRules.RULE_KEEPINVENTORY);
-            if (true) { // TODO: Find correct GameRules package for 1.21.1 Mojang mappings if keepInventory check is needed
+            // With keepInventory enabled, vanilla has already retained the XP exactly.
+            boolean keepInventory = oldPlayer.getServerWorld().getGameRules()
+                    .getBoolean(GameRules.KEEP_INVENTORY);
+            if (!keepInventory) {
                 newPlayer.experienceLevel = oldPlayer.experienceLevel;
                 // Penalize 30% of the current level's bar
                 newPlayer.experienceProgress = Math.max(0.0f, oldPlayer.experienceProgress - 0.30f);
-                
-                // Note: The totalExperience field might not be perfectly exact, but it's mainly used for score.
-                // We'll leave it as whatever oldPlayer had, or vanilla handled, because level/progress track the important visual state.
-                newPlayer.totalExperience = oldPlayer.totalExperience; 
+
+                int xpForLevel = Math.max(1, oldPlayer.getNextLevelExperience());
+                int oldProgressXp = Math.round(oldPlayer.experienceProgress * xpForLevel);
+                int newProgressXp = Math.round(newPlayer.experienceProgress * xpForLevel);
+                newPlayer.totalExperience = Math.max(0,
+                        oldPlayer.totalExperience - Math.max(0, oldProgressXp - newProgressXp));
             }
         }
     }

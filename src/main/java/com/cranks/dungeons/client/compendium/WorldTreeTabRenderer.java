@@ -44,6 +44,7 @@ public class WorldTreeTabRenderer implements CompendiumTabRenderer {
     private String activeChoiceNodeId = null;
     private int choicePopupX = 0;
     private int choicePopupY = 0;
+    private boolean suppressTreeDragUntilRelease = false;
 
     // --- Unified Logic & Rendering Caches ---
     private record Edge(PassiveNode n1, PassiveNode n2) {}
@@ -53,6 +54,8 @@ public class WorldTreeTabRenderer implements CompendiumTabRenderer {
     private final Map<String, Set<String>> adjacencyMap = new HashMap<>();
     private final Map<String, Integer> distanceMap = new HashMap<>();
     private final Set<String> nodesOnHoverPath = new HashSet<>();
+    private final Set<String> lastObservedUnlockedNodes = new HashSet<>();
+    private int lastObservedUnspentPoints = Integer.MIN_VALUE;
     private boolean cacheDirty = true;
 
     // designer MODE fields
@@ -112,14 +115,18 @@ public class WorldTreeTabRenderer implements CompendiumTabRenderer {
             panY = contentY + contentH / 2.0;
         }
 
-        // --- designer MODE BUTTONS ---
-        parent.addTabWidget(CompendiumButtonWidget.builder(Text.literal(editMode ? "Designer: ON" : "Designer: OFF"), b -> {
-            editMode = !editMode;
-            if (!editMode) draggedNode = null;
-            parent.refreshTab();
-        }).dimensions(contentX + 10, contentY + contentH - 30, 90, 20).build());
+        // Designer tooling is an explicit local development opt-in.
+        if (com.cranks.dungeons.CranksDungeons.CONFIG.enableTreeDesigner()) {
+            parent.addTabWidget(CompendiumButtonWidget.builder(Text.literal(editMode ? "Designer: ON" : "Designer: OFF"), b -> {
+                editMode = !editMode;
+                if (!editMode) draggedNode = null;
+                parent.refreshTab();
+            }).dimensions(contentX + 10, contentY + contentH - 30, 90, 20).build());
+        } else {
+            editMode = false;
+        }
 
-        if (editMode) {
+        if (editMode && com.cranks.dungeons.CranksDungeons.CONFIG.enableTreeDesigner()) {
             parent.addTabWidget(CompendiumButtonWidget.builder(Text.literal("Save to Config"), b -> {
                 com.cranks.dungeons.config.WorldTreeConfig.saveNodesToFile(WorldNodeRegistry.getNodes().values());
                 if (MinecraftClient.getInstance().player != null) {
@@ -157,25 +164,33 @@ public class WorldTreeTabRenderer implements CompendiumTabRenderer {
                     return;
                 }
 
-                net.minecraft.client.network.ClientPlayNetworkHandler handler = MinecraftClient.getInstance().getNetworkHandler();
                 net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking.send(
                         new com.cranks.dungeons.network.BulkUnlockWorldNodesPayload(new java.util.HashMap<>(draftUnlocked)));
 
-                for (String id : draftUnlocked.keySet()) {
-                    data.unlockNode(id);
-                    String choice = draftUnlocked.get(id);
-                    if (choice != null && !choice.isEmpty()) {
-                        data.setNodeChoice(id, choice);
-                    }
-                    data.addUnspentPoints(-1);
-                }
-
-                draftUnlocked.clear();
-                draftPoints = data.getUnspentPoints();
-                parent.refreshTab();
+                // Keep the draft visible until the synced component confirms the unlock.
+                // This avoids briefly reverting the tree to its pre-apply colors and also
+                // leaves a rejected draft available for correction or retrying.
                 this.cacheDirty = true;
             }
         }
+    }
+
+    private void selectActiveChoice(net.minecraft.entity.player.PlayerEntity player, String choice) {
+        String nodeId = activeChoiceNodeId;
+        if (nodeId == null) return;
+
+        WorldTreeDataComponent data = ModComponents.WORLD_TREE_DATA.get(player);
+        if (data.hasNode(nodeId)) {
+            net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking.send(
+                    new com.cranks.dungeons.network.UpdateNodeChoicePayload(nodeId, choice, true));
+        } else {
+            boolean newlyDrafted = !draftUnlocked.containsKey(nodeId);
+            draftUnlocked.put(nodeId, choice);
+            if (newlyDrafted) draftPoints--;
+        }
+
+        player.playSound(ModSounds.PASSIVE_NODE_SELECT, 0.6f, 1.2f);
+        this.cacheDirty = true;
     }
 
     private void resetDraft() {
@@ -197,8 +212,18 @@ public class WorldTreeTabRenderer implements CompendiumTabRenderer {
         if (player == null) return;
 
         WorldTreeDataComponent data = ModComponents.WORLD_TREE_DATA.get(player);
-        this.draftPoints = data.getUnspentPoints() - draftUnlocked.size();
         Set<String> unlocked = data.getUnlockedNodes();
+
+        boolean confirmedDraft = draftUnlocked.keySet().removeIf(unlocked::contains);
+        if (confirmedDraft
+                || lastObservedUnspentPoints != data.getUnspentPoints()
+                || !lastObservedUnlockedNodes.equals(unlocked)) {
+            lastObservedUnspentPoints = data.getUnspentPoints();
+            lastObservedUnlockedNodes.clear();
+            lastObservedUnlockedNodes.addAll(unlocked);
+            this.cacheDirty = true;
+        }
+        this.draftPoints = data.getUnspentPoints() - draftUnlocked.size();
 
         var textRenderer = MinecraftClient.getInstance().textRenderer;
 
@@ -513,6 +538,14 @@ public class WorldTreeTabRenderer implements CompendiumTabRenderer {
 
             PassiveNode activeNode = WorldNodeRegistry.getNodes().get(activeChoiceNodeId);
             if (activeNode != null && activeNode.modifiers() != null) {
+                String currentChoice = "";
+                var popupPlayer = MinecraftClient.getInstance().player;
+                if (popupPlayer != null) {
+                    WorldTreeDataComponent popupData = ModComponents.WORLD_TREE_DATA.get(popupPlayer);
+                    currentChoice = popupData.hasNode(activeChoiceNodeId)
+                            ? popupData.getNodeChoice(activeChoiceNodeId)
+                            : draftUnlocked.getOrDefault(activeChoiceNodeId, "");
+                }
                 int count = activeNode.modifiers().size();
                 int bgHeight = 8 + (count * 22);
 
@@ -535,7 +568,8 @@ public class WorldTreeTabRenderer implements CompendiumTabRenderer {
                     if (displayName.endsWith("_experience")) displayName = displayName.replace("_experience", " Exp");
                     displayName = java.util.Arrays.stream(displayName.split("_")).map(s -> s.substring(0, 1).toUpperCase() + s.substring(1)).collect(java.util.stream.Collectors.joining(" "));
 
-                    CompendiumButtonWidget.drawButton(context, cx, btnY, 150, 20, hoverBtn, true, "+" + amountStr + " " + displayName);
+                    CompendiumButtonWidget.drawButton(context, cx, btnY, 150, 20, hoverBtn, true,
+                            modId.equals(currentChoice), "+" + amountStr + " " + displayName);
                     i++;
                 }
             }
@@ -762,6 +796,7 @@ public class WorldTreeTabRenderer implements CompendiumTabRenderer {
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+        if (activeChoiceNodeId != null) return true;
         double zoomFactor = verticalAmount > 0 ? 1.1 : 0.9;
         double nextZoom = Math.max(0.1, Math.min(2.0, zoom * zoomFactor));
 
@@ -776,6 +811,11 @@ public class WorldTreeTabRenderer implements CompendiumTabRenderer {
 
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
+        if (suppressTreeDragUntilRelease || activeChoiceNodeId != null) {
+            draggedNode = null;
+            isSelectingBox = false;
+            return true;
+        }
         if (button == 0 || button == 2) { 
             if (editMode && button == 0) {
                 if (isSelectingBox) {
@@ -828,7 +868,7 @@ public class WorldTreeTabRenderer implements CompendiumTabRenderer {
             return true;
         }
 
-        if (keyCode == 258) { 
+        if (keyCode == 258 && com.cranks.dungeons.CranksDungeons.CONFIG.enableTreeDesigner()) {
             editMode = !editMode;
             if (!editMode) {
                 draggedNode = null;
@@ -910,6 +950,33 @@ public class WorldTreeTabRenderer implements CompendiumTabRenderer {
         var player = MinecraftClient.getInstance().player;
         if (player == null) return false;
 
+        // Popup input must be handled before designer/tree hit-testing so nodes
+        // underneath the overlay cannot become drag targets.
+        if (activeChoiceNodeId != null) {
+            suppressTreeDragUntilRelease = true;
+            int cx = choicePopupX;
+            int cy = choicePopupY;
+
+            PassiveNode activeNode = WorldNodeRegistry.getNodes().get(activeChoiceNodeId);
+            if (activeNode != null && activeNode.modifiers() != null
+                    && mouseX >= cx && mouseX <= cx + 150) {
+                int i = 0;
+                for (Map.Entry<RegistryEntry<EntityAttribute>, Double> entry : activeNode.modifiers().entrySet()) {
+                    int btnY = cy + (i * 22);
+                    if (mouseY >= btnY && mouseY <= btnY + 20) {
+                        String modId = entry.getKey().getKey()
+                                .map(k -> k.getValue().getPath()).orElse("unknown");
+                        selectActiveChoice(player, modId);
+                        return true;
+                    }
+                    i++;
+                }
+            }
+
+            activeChoiceNodeId = null;
+            return true;
+        }
+
         if (editMode) {
             double currentGridScale = BASE_GRID_SCALE * zoom;
             double currentNodeSize = BASE_NODE_SIZE * zoom;
@@ -989,34 +1056,6 @@ public class WorldTreeTabRenderer implements CompendiumTabRenderer {
             }
         }
 
-        if (activeChoiceNodeId != null) {
-            int cx = choicePopupX;
-            int cy = choicePopupY;
-
-            PassiveNode activeNode = WorldNodeRegistry.getNodes().get(activeChoiceNodeId);
-            if (activeNode != null && activeNode.modifiers() != null) {
-                if (mouseX >= cx && mouseX <= cx + 150) {
-                    int i = 0;
-                    for (Map.Entry<RegistryEntry<EntityAttribute>, Double> entry : activeNode.modifiers().entrySet()) {
-                        int btnY = cy + (i * 22);
-                        if (mouseY >= btnY && mouseY <= btnY + 20) {
-                            String modId = entry.getKey().getKey().map(k -> k.getValue().getPath()).orElse("unknown");
-                            draftUnlocked.put(activeChoiceNodeId, modId);
-                            draftPoints--;
-                            MinecraftClient.getInstance().player.playSound(com.cranks.dungeons.registry.ModSounds.PASSIVE_NODE_SELECT, 0.6f, 1.2f);
-                            activeChoiceNodeId = null;
-                            this.cacheDirty = true;
-                            return true;
-                        }
-                        i++;
-                    }
-                }
-            }
-
-            activeChoiceNodeId = null;
-            return true;
-        }
-
         if (button == 0) {
             WorldTreeDataComponent data = ModComponents.WORLD_TREE_DATA.get(player);
             Set<String> unlocked = data.getUnlockedNodes();
@@ -1036,6 +1075,15 @@ public class WorldTreeTabRenderer implements CompendiumTabRenderer {
                 if (mouseX >= nx - halfSize && mouseX <= nx + halfSize && mouseY >= ny - halfSize
                         && mouseY <= ny + halfSize) {
                     if (draftUnlocked.containsKey(node.id())) {
+                        if (node.isAttributeSelection()
+                                && !InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow().getHandle(), GLFW.GLFW_KEY_LEFT_SHIFT)
+                                && !InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow().getHandle(), GLFW.GLFW_KEY_RIGHT_SHIFT)) {
+                            activeChoiceNodeId = node.id();
+                            choicePopupX = (int) mouseX;
+                            choicePopupY = (int) mouseY - 25;
+                            player.playSound(ModSounds.PASSIVE_NODE_SELECT, 0.6f, 1.2f);
+                            return true;
+                        }
                         draftUnlocked.remove(node.id());
                         draftPoints++;
                         player.playSound(ModSounds.PASSIVE_NODE_SELECT, 0.5f, 0.8f); 
@@ -1045,7 +1093,15 @@ public class WorldTreeTabRenderer implements CompendiumTabRenderer {
                     }
 
                     boolean isPermanent = unlocked.contains(node.id());
-                    if (isPermanent) return true;
+                    if (isPermanent) {
+                        if (node.isAttributeSelection()) {
+                            activeChoiceNodeId = node.id();
+                            choicePopupX = (int) mouseX;
+                            choicePopupY = (int) mouseY - 25;
+                            player.playSound(ModSounds.PASSIVE_NODE_SELECT, 0.6f, 1.2f);
+                        }
+                        return true;
+                    }
 
                     boolean canUnlock = false;
                     Set<String> neighbors = adjacencyMap.get(node.id());
@@ -1123,6 +1179,12 @@ public class WorldTreeTabRenderer implements CompendiumTabRenderer {
 
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        if (suppressTreeDragUntilRelease || activeChoiceNodeId != null) {
+            draggedNode = null;
+            isSelectingBox = false;
+            suppressTreeDragUntilRelease = false;
+            return true;
+        }
         if (button == 0) {
             if (isSelectingBox) {
                 double minX = Math.min(selectionStartX, selectionCurrentX);

@@ -13,6 +13,7 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.cranks.dungeons.util.PlacedBlockTracker;
 
 public class FortuneEventHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger("FortuneEventHandler");
@@ -22,6 +23,7 @@ public class FortuneEventHandler {
     public static void register() {
         PlayerBlockBreakEvents.BEFORE.register((world, player, pos, state, blockEntity) -> {
             if (!(world instanceof ServerWorld serverWorld)) return true;
+            if (player.isCreative() || player.isSpectator()) return true;
 
         // 1) Preferred: tag-based detection (data pack configurable)
         boolean isOre = state.isIn(ModBlockTags.ORE_FORTUNE_ORES);
@@ -35,6 +37,11 @@ public class FortuneEventHandler {
         }
 
             if (!isOre) return true;
+
+            if (PlacedBlockTracker.isPlacedByPlayer(serverWorld, pos, PlacedBlockTracker.ORES_ID)) {
+                PlacedBlockTracker.removePlaced(serverWorld, pos, PlacedBlockTracker.ORES_ID);
+                return true;
+            }
 
             ItemStack tool = player.getMainHandStack();
             if (tool.isEmpty()) return true;

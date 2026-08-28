@@ -20,6 +20,7 @@ public class DamageNumber {
     private static final double LERP_FACTOR = 0.2; // 20% per frame for smooth following
 
     // NEW: Entity tracking fields
+    public final int victimEntityId;
     public final UUID victimUuid;
     public final Vec3d hitOffset;  // Offset from entity center where hit occurred
     public Vec3d lastKnownPosition;
@@ -43,7 +44,7 @@ public class DamageNumber {
 
     public DamageNumber(double damage, int color, Vec3d position, double offsetX, double offsetZ, 
                        int rowIndex, String formattedDamageText, int formattedDamageWidth, 
-                       boolean forceDisplay, UUID victimUuid, Vec3d hitOffset,
+                       boolean forceDisplay, int victimEntityId, UUID victimUuid, Vec3d hitOffset,
                        DamageElement element, boolean isCritical, boolean isHeal, long spawnTime) {
         this.damage = damage;
         this.color = color;
@@ -55,6 +56,7 @@ public class DamageNumber {
         this.formattedDamageText = formattedDamageText;
         this.formattedDamageWidth = formattedDamageWidth;
         this.forceDisplay = forceDisplay;
+        this.victimEntityId = victimEntityId;
         this.victimUuid = victimUuid;
         this.hitOffset = hitOffset;
         this.lastKnownPosition = position;

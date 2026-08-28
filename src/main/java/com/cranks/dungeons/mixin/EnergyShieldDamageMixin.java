@@ -28,8 +28,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(value = LivingEntity.class, priority = 900)
 public class EnergyShieldDamageMixin {
 
-    private static final long SHIELD_COOLDOWN_TICKS = 10L;
-
     @Unique
     private static final ThreadLocal<Boolean> cranks$processingThorns = ThreadLocal.withInitial(() -> false);
 
@@ -59,13 +57,13 @@ public class EnergyShieldDamageMixin {
             if (sourceEntity instanceof LivingEntity livingAttacker && sourceEntity != self) {
                 double thorns = cranks$getTotalThorns(self);
                 if (thorns > 0) {
+                    int oldTimeUntilRegen = livingAttacker.timeUntilRegen;
                     try {
                         cranks$processingThorns.set(true);
-                        int oldTimeUntilRegen = livingAttacker.timeUntilRegen;
                         livingAttacker.timeUntilRegen = 0;
                         livingAttacker.damage(self.getDamageSources().thorns(self), (float) thorns);
-                        livingAttacker.timeUntilRegen = oldTimeUntilRegen;
                     } finally {
+                        livingAttacker.timeUntilRegen = oldTimeUntilRegen;
                         cranks$processingThorns.set(false);
                     }
                 }
@@ -102,12 +100,9 @@ public class EnergyShieldDamageMixin {
             return amount;
         }
 
-        // I-frame check
+        // Every hit must be accounted for. lastDamageTime controls recharge delay;
+        // it must not turn into a period of complete damage immunity.
         long currentTime = world.getTime();
-        long timeSinceLastHit = currentTime - provider.cranksdungeons$getLastDamageTime();
-        if (timeSinceLastHit < SHIELD_COOLDOWN_TICKS) {
-            return 0.0f; 
-        }
 
         // Ailment Bypass check (Poison/Bleed ignore ES in PoE 2)
         if (AilmentManager.isPoisonDamageInProgress(self.getUuid()) || AilmentManager.isBleedDamageInProgress(self.getUuid())) {
@@ -133,6 +128,8 @@ public class EnergyShieldDamageMixin {
             float newShield = currentShield - weightedShieldDmg;
             provider.cranksdungeons$setCurrentEnergyShield(newShield);
             provider.cranksdungeons$setLastDamageTime(currentTime);
+            com.cranks.dungeons.util.DamageContributionHelper.record(
+                    self, source, currentShield - newShield);
             
             triggerShieldVisuals(world, self, currentShield, newShield);
             triggerDamageNumbers(world, self, source, amount);
@@ -181,6 +178,7 @@ public class EnergyShieldDamageMixin {
 
             provider.cranksdungeons$setCurrentEnergyShield(0.0f);
             provider.cranksdungeons$setLastDamageTime(currentTime);
+            com.cranks.dungeons.util.DamageContributionHelper.record(self, source, currentShield);
             
             triggerShieldVisuals(world, self, currentShield, 0.0f);
             

@@ -148,7 +148,8 @@ public class ArtificialEnhancementAltarBlockEntity extends BlockEntity implement
 
     @Override
     public boolean canPlayerUse(PlayerEntity player) {
-        return player.getBlockPos().isWithinDistance(this.pos, 8.0);
+        return world != null && world.getBlockEntity(pos) == this
+                && player.getBlockPos().isWithinDistance(this.pos, 8.0);
     }
 
     @Override
@@ -296,11 +297,12 @@ public class ArtificialEnhancementAltarBlockEntity extends BlockEntity implement
             valuesToApply = storedValues[optionIndex];
         }
 
-        // Modify the item in place instead of creating a copy
-        ItemStatManager.removeCrypticOptions(equipment);
+        // Reveal first so a validation failure leaves the original cryptic item and
+        // its generated options untouched.
         boolean success = ItemStatManager.revealCrypticStat(equipment, statId, tier, valuesToApply);
 
         if (success) {
+            ItemStatManager.removeCrypticOptions(equipment);
             clearOptions();
             syncToOpenPlayers();
             markDirty();
@@ -355,7 +357,8 @@ public class ArtificialEnhancementAltarBlockEntity extends BlockEntity implement
         if (world != null && !world.isClient()) {
             for (var player : world.getPlayers()) {
                 if (player instanceof ServerPlayerEntity serverPlayer) {
-                    if (serverPlayer.currentScreenHandler instanceof ArtificialEnhancementAltarScreenHandler handler) {
+                    if (serverPlayer.currentScreenHandler instanceof ArtificialEnhancementAltarScreenHandler handler
+                            && handler.isFor(this)) {
                         syncOptionsToPlayer(serverPlayer, handler.syncId);
                     }
                 }
@@ -367,7 +370,8 @@ public class ArtificialEnhancementAltarBlockEntity extends BlockEntity implement
         if (world != null && !world.isClient()) {
             for (var player : world.getPlayers()) {
                 if (player instanceof ServerPlayerEntity serverPlayer) {
-                    if (serverPlayer.currentScreenHandler instanceof ArtificialEnhancementAltarScreenHandler handler) {
+                    if (serverPlayer.currentScreenHandler instanceof ArtificialEnhancementAltarScreenHandler handler
+                            && handler.isFor(this)) {
                         ServerPlayNetworking.send(serverPlayer,
                                 new StatOptionsSyncPacket(handler.syncId, "", "", "", 0, 0, 0));
                     }

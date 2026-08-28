@@ -26,6 +26,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.entry.RegistryEntry;
 
@@ -58,6 +60,11 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
     private float cranks$critEntropy = -1.0f; // -1 = unseeded / out-of-combat
     @Unique
     private long cranks$lastCritAttackTime = 0L;
+
+    private record CranksDamageSnapshot(float health, float absorption) {}
+
+    @Unique
+    private final Deque<CranksDamageSnapshot> cranks$damageSnapshots = new ArrayDeque<>();
 
     @Override
     public float cranks$getCritEntropy() {
@@ -253,21 +260,36 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
         }
     }
 
+    @Inject(method = "damage", at = @At("HEAD"))
+    private void snapshotDamageResources(net.minecraft.entity.damage.DamageSource source, float amount,
+                                         CallbackInfoReturnable<Boolean> cir) {
+        LivingEntity entity = (LivingEntity) (Object) this;
+        if (entity.getWorld().isClient()) return;
+        cranks$damageSnapshots.push(new CranksDamageSnapshot(
+                entity.getHealth(), entity.getAbsorptionAmount()));
+    }
+
     @Inject(method = "damage", at = @At("RETURN"))
     private void trackDamageContributions(net.minecraft.entity.damage.DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
-        if (cir.getReturnValue() && !((LivingEntity) (Object) this).getWorld().isClient()) {
-            if ((Object) this instanceof com.cranks.dungeons.util.MobDamageTracker tracker) {
-                net.minecraft.entity.player.PlayerEntity attacker = null;
-                if (source.getAttacker() instanceof net.minecraft.entity.player.PlayerEntity player) {
-                    attacker = player;
-                } else {
-                    attacker = ((LivingEntityAccessor) this).cranks$getAttackingPlayer();
-                }
-                
-                if (attacker != null) {
-                    tracker.cranks$addDamageContribution(attacker.getUuid(), amount);
-                }
-            }
+        LivingEntity entity = (LivingEntity) (Object) this;
+        if (entity.getWorld().isClient()) return;
+
+        CranksDamageSnapshot before = cranks$damageSnapshots.poll();
+        if (before == null || !((Object) this instanceof com.cranks.dungeons.util.MobDamageTracker tracker)) return;
+
+        float actualDamage = Math.max(0.0f, before.health() - entity.getHealth())
+                + Math.max(0.0f, before.absorption() - entity.getAbsorptionAmount());
+        if (actualDamage <= 0.0f) return;
+
+        net.minecraft.entity.player.PlayerEntity attacker;
+        if (source.getAttacker() instanceof net.minecraft.entity.player.PlayerEntity player) {
+            attacker = player;
+        } else {
+            attacker = ((LivingEntityAccessor) this).cranks$getAttackingPlayer();
+        }
+
+        if (attacker != null) {
+            tracker.cranks$addDamageContribution(attacker.getUuid(), actualDamage);
         }
     }
 
@@ -477,10 +499,15 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
     @Inject(method = "tick", at = @At("HEAD"))
     private void tickLivingEntityClientSafe(CallbackInfo ci) {
         LivingEntity entity = (LivingEntity) (Object) this;
+        if (entity.getEntityWorld().isClient()) return;
+
+        // Flight thrust is movement logic and remains per-tick. Equipment/status
+        // modifiers are substantially more expensive and do not need 20 Hz polling.
+        updateElytraSpeed(entity);
+        if (entity.age % 5 != 0) return;
         updateArmorSpeed(entity);
         updateIntrinsicAttributes(entity);
         updateRequirementPenalties(entity);
-        updateElytraSpeed(entity);
         com.cranks.dungeons.util.StatusEffectStatManager.updateEntityStatusEffectModifiers(entity);
     }
 
@@ -646,14 +673,12 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
             if (n > 1) {
                 int sharedXp = (int) Math.ceil((baseXP / (double) n) * 1.2);
                 for (net.minecraft.server.network.ServerPlayerEntity member : eligiblePlayers) {
-                    com.cranks.dungeons.util.CombatXpContext.setCombatXp(true);
-                    member.addExperience(sharedXp);
-                    com.cranks.dungeons.util.CombatXpContext.setCombatXp(false);
+                    com.cranks.dungeons.util.CombatXpContext.runAsCombatXp(() -> member.addExperience(sharedXp));
                 }
             } else if (n == 1) {
-                com.cranks.dungeons.util.CombatXpContext.setCombatXp(true);
-                eligiblePlayers.get(0).addExperience(baseXP);
-                com.cranks.dungeons.util.CombatXpContext.setCombatXp(false);
+                int awardedXp = baseXP;
+                com.cranks.dungeons.util.CombatXpContext.runAsCombatXp(
+                        () -> eligiblePlayers.get(0).addExperience(awardedXp));
             }
         } else if (winner instanceof java.util.UUID soloUuid) {
             net.minecraft.server.network.ServerPlayerEntity player = server.getPlayerManager().getPlayer(soloUuid);
@@ -663,9 +688,8 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
                     baseXP += (int)(baseXP * bonus);
                 }
                 
-                com.cranks.dungeons.util.CombatXpContext.setCombatXp(true);
-                player.addExperience(baseXP);
-                com.cranks.dungeons.util.CombatXpContext.setCombatXp(false);
+                int awardedXp = baseXP;
+                com.cranks.dungeons.util.CombatXpContext.runAsCombatXp(() -> player.addExperience(awardedXp));
             }
         }
     }

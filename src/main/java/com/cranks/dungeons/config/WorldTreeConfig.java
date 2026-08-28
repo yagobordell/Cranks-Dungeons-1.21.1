@@ -142,7 +142,7 @@ public class WorldTreeConfig {
                 Map.of("cranks-dungeons:fortune", 0.05), null, false, 0.0));
 
         root.add("nodes", nodes);
-        Files.writeString(TREE_FILE, GSON.toJson(root));
+        ConfigFileUtil.atomicWrite(TREE_FILE, GSON.toJson(root));
     }
 
     private static JsonObject makeNode(String id, String name, String desc, double gx, double gy,
@@ -238,7 +238,7 @@ public class WorldTreeConfig {
     public static void saveNodesToFile(Collection<PassiveNode> nodes) {
         try {
             String json = exportNodesToJson(nodes);
-            Files.writeString(TREE_FILE, json);
+            ConfigFileUtil.atomicWrite(TREE_FILE, json);
             CranksDungeons.LOGGER.info("[WorldTree] Successfully saved {} nodes to config.", nodes.size());
         } catch (IOException e) {
             CranksDungeons.LOGGER.error("[WorldTree] FAILED to save nodes to file!", e);

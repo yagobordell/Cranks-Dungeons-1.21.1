@@ -84,6 +84,20 @@ jar {
 	}
 }
 
+tasks.register("regressionTest", JavaExec) {
+	group = "verification"
+	description = "Runs dependency-free regression checks for core state transitions"
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = "com.cranks.dungeons.RegressionTestSuite"
+}
+
+tasks.named("test") {
+	failOnNoDiscoveredTests = false
+}
+
+check.dependsOn regressionTest
+
 
 
 publishing {

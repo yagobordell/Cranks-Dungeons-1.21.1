@@ -45,6 +45,7 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
     private String activeChoiceNodeId = null;
     private int choicePopupX = 0;
     private int choicePopupY = 0;
+    private boolean suppressTreeDragUntilRelease = false;
 
     // --- Unified Logic & Rendering Caches ---
     private record Edge(PassiveNode n1, PassiveNode n2) {
@@ -55,6 +56,8 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
     private final Map<String, Set<String>> adjacencyMap = new HashMap<>();
     private final Map<String, Integer> distanceMap = new HashMap<>();
     private final Set<String> nodesOnHoverPath = new HashSet<>();
+    private final Set<String> lastObservedUnlockedNodes = new HashSet<>();
+    private int lastObservedUnspentPoints = Integer.MIN_VALUE;
     private boolean cacheDirty = true;
 
     // --- Tabbed Selection UI ---
@@ -200,14 +203,18 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
                 panY = contentY + contentH / 2.0;
             }
 
-            // --- designer MODE BUTTONS ---
-            parent.addTabWidget(CompendiumButtonWidget.builder(Text.literal(editMode ? "Designer: ON" : "Designer: OFF"), b -> {
-                editMode = !editMode;
-                if (!editMode) draggedNode = null;
-                parent.refreshTab();
-            }).dimensions(contentX + 10, contentY + contentH - 30, 90, 20).build());
+            // Designer tooling is an explicit local development opt-in.
+            if (com.cranks.dungeons.CranksDungeons.CONFIG.enableTreeDesigner()) {
+                parent.addTabWidget(CompendiumButtonWidget.builder(Text.literal(editMode ? "Designer: ON" : "Designer: OFF"), b -> {
+                    editMode = !editMode;
+                    if (!editMode) draggedNode = null;
+                    parent.refreshTab();
+                }).dimensions(contentX + 10, contentY + contentH - 30, 90, 20).build());
+            } else {
+                editMode = false;
+            }
 
-            if (editMode) {
+            if (editMode && com.cranks.dungeons.CranksDungeons.CONFIG.enableTreeDesigner()) {
                 parent.addTabWidget(CompendiumButtonWidget.builder(Text.literal("Save to Config"), b -> {
                     com.cranks.dungeons.config.PassiveTreeConfig.saveNodesToFile(PassiveNodeRegistry.getNodes().values());
                     var client = MinecraftClient.getInstance();
@@ -277,21 +284,31 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
 
                 net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking.send(
                         new com.cranks.dungeons.network.BulkUnlockNodesPayload(new java.util.HashMap<>(draftUnlocked)));
-                
-                for (String id : draftUnlocked.keySet()) {
-                    data.unlockNode(id);
-                    String choice = draftUnlocked.get(id);
-                    if (choice != null && !choice.isEmpty()) {
-                        data.setNodeChoice(id, choice);
-                    }
-                    data.addUnspentPoints(-1);
-                }
 
-                draftUnlocked.clear();
-                draftPoints = data.getUnspentPoints();
+                // Keep the draft visible until the synced component confirms the unlock.
+                // This avoids briefly reverting the tree to its pre-apply colors and also
+                // leaves a rejected draft available for correction or retrying.
                 cacheDirty = true;
             }
         }
+    }
+
+    private void selectActiveChoice(net.minecraft.entity.player.PlayerEntity player, String choice) {
+        String nodeId = activeChoiceNodeId;
+        if (nodeId == null) return;
+
+        PassiveDataComponent data = ModComponents.PASSIVE_DATA.get(player);
+        if (data.hasNode(nodeId)) {
+            net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking.send(
+                    new com.cranks.dungeons.network.UpdateNodeChoicePayload(nodeId, choice, false));
+        } else {
+            boolean newlyDrafted = !draftUnlocked.containsKey(nodeId);
+            draftUnlocked.put(nodeId, choice);
+            if (newlyDrafted) draftPoints--;
+        }
+
+        player.playSound(ModSounds.PASSIVE_NODE_SELECT, 0.6f, 1.2f);
+        this.cacheDirty = true;
     }
 
     private void resetDraft() {
@@ -317,17 +334,20 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
             return;
 
         PassiveDataComponent data = ModComponents.PASSIVE_DATA.get(player);
-        this.draftPoints = data.getUnspentPoints() - draftUnlocked.size();
         Set<String> unlocked = data.getUnlockedNodes();
 
-        if (!choosingClass) {
-            String className = data.getPlayerClass();
-            String displayClass = (className == null || className.isEmpty()) ? "None" : className.substring(0, 1).toUpperCase() + className.substring(1);
-            
-            context.drawTextWithShadow(textRenderer,
-                    "Class: " + displayClass,
-                    contentX + 10, contentY + 10, 0xFFFFFF);
+        boolean confirmedDraft = draftUnlocked.keySet().removeIf(unlocked::contains);
+        if (confirmedDraft
+                || lastObservedUnspentPoints != data.getUnspentPoints()
+                || !lastObservedUnlockedNodes.equals(unlocked)) {
+            lastObservedUnspentPoints = data.getUnspentPoints();
+            lastObservedUnlockedNodes.clear();
+            lastObservedUnlockedNodes.addAll(unlocked);
+            cacheDirty = true;
+        }
+        this.draftPoints = data.getUnspentPoints() - draftUnlocked.size();
 
+        if (!choosingClass) {
             if (editMode) {
                 context.drawTextWithShadow(textRenderer, "§b[DESIGNER MODE ACTIVE]", contentX + 10, contentY + 22, 0x55FFFF);
                 context.drawTextWithShadow(textRenderer,
@@ -609,6 +629,14 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
         context.disableScissor();
 
         if (!choosingClass) {
+            String className = data.getPlayerClass();
+            String displayClass = (className == null || className.isEmpty())
+                    ? "None"
+                    : className.substring(0, 1).toUpperCase() + className.substring(1);
+            context.drawTextWithShadow(textRenderer,
+                    "Class: " + displayClass,
+                    contentX + 10, contentY + 10, 0xFFFFFF);
+
             String pointsText = "§6Unspent Points: §a" + draftPoints;
             context.drawCenteredTextWithShadow(textRenderer, pointsText, contentX + contentW / 2, contentY + contentH - 48, 0xFFFFAA00);
 
@@ -644,21 +672,32 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
                     amount = activeNode.attributeSelectionAmount();
                 }
                 String amountStr = (amount == (long) amount) ? String.format("%d", (long) amount) : String.format("%s", amount);
+                String currentChoice = "";
+                var popupPlayer = MinecraftClient.getInstance().player;
+                if (popupPlayer != null) {
+                    PassiveDataComponent popupData = ModComponents.PASSIVE_DATA.get(popupPlayer);
+                    currentChoice = popupData.hasNode(activeChoiceNodeId)
+                            ? popupData.getNodeChoice(activeChoiceNodeId)
+                            : draftUnlocked.getOrDefault(activeChoiceNodeId, "");
+                }
 
                 // Draw Deepslate 3D beveled container for buttons
                 ShapeRenderer.drawBeveledPanel(context, cx - 4, cy - 4, 118, 72);
 
                 // Button STR
                 boolean hoverStr = mouseX >= cx && mouseX <= cx + 110 && mouseY >= cy && mouseY <= cy + 20;
-                CompendiumButtonWidget.drawButton(context, cx, cy, 110, 20, hoverStr, true, "+" + amountStr + " Strength");
+                CompendiumButtonWidget.drawButton(context, cx, cy, 110, 20, hoverStr, true,
+                        "strength".equals(currentChoice), "+" + amountStr + " Strength");
 
                 // Button DEX
                 boolean hoverDex = mouseX >= cx && mouseX <= cx + 110 && mouseY >= cy + 22 && mouseY <= cy + 42;
-                CompendiumButtonWidget.drawButton(context, cx, cy + 22, 110, 20, hoverDex, true, "+" + amountStr + " Dexterity");
+                CompendiumButtonWidget.drawButton(context, cx, cy + 22, 110, 20, hoverDex, true,
+                        "dexterity".equals(currentChoice), "+" + amountStr + " Dexterity");
 
                 // Button INT
                 boolean hoverInt = mouseX >= cx && mouseX <= cx + 110 && mouseY >= cy + 44 && mouseY <= cy + 64;
-                CompendiumButtonWidget.drawButton(context, cx, cy + 44, 110, 20, hoverInt, true, "+" + amountStr + " Intelligence");
+                CompendiumButtonWidget.drawButton(context, cx, cy + 44, 110, 20, hoverInt, true,
+                        "intelligence".equals(currentChoice), "+" + amountStr + " Intelligence");
             }
         }
 
@@ -982,6 +1021,7 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
         if (showingConfirmPopup) return false;
+        if (activeChoiceNodeId != null) return true;
         double zoomFactor = verticalAmount > 0 ? 1.1 : 0.9;
         double nextZoom = Math.max(0.1, Math.min(2.0, zoom * zoomFactor));
 
@@ -998,6 +1038,11 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
         if (showingConfirmPopup) return false;
+        if (suppressTreeDragUntilRelease || activeChoiceNodeId != null) {
+            draggedNode = null;
+            isSelectingBox = false;
+            return true;
+        }
         if (choosingClass) {
             // If drag is on the left class panel or top tab bar, don't drag the tree
             if (mouseX < contentX + 320 || mouseY < contentY + 30) {
@@ -1037,6 +1082,12 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
 
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        if (suppressTreeDragUntilRelease || activeChoiceNodeId != null) {
+            draggedNode = null;
+            isSelectingBox = false;
+            suppressTreeDragUntilRelease = false;
+            return true;
+        }
         if (button == 0) {
             if (isSelectingBox) {
                 double minX = Math.min(selectionStartX, selectionCurrentX);
@@ -1088,7 +1139,7 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
             return true;
         }
 
-        if (keyCode == 258) { // TAB key
+        if (keyCode == 258 && com.cranks.dungeons.CranksDungeons.CONFIG.enableTreeDesigner()) { // TAB key
             editMode = !editMode;
             if (!editMode) {
                 draggedNode = null;
@@ -1173,6 +1224,28 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
         var client = MinecraftClient.getInstance();
         var player = client.player;
         if (player == null) return false;
+
+        // Popup input must be handled before designer/tree hit-testing so nodes
+        // underneath the overlay cannot become drag targets.
+        if (activeChoiceNodeId != null) {
+            suppressTreeDragUntilRelease = true;
+            int cx = choicePopupX;
+            int cy = choicePopupY;
+            if (mouseX >= cx && mouseX <= cx + 110 && mouseY >= cy && mouseY <= cy + 20) {
+                selectActiveChoice(player, "strength");
+                return true;
+            }
+            if (mouseX >= cx && mouseX <= cx + 110 && mouseY >= cy + 22 && mouseY <= cy + 42) {
+                selectActiveChoice(player, "dexterity");
+                return true;
+            }
+            if (mouseX >= cx && mouseX <= cx + 110 && mouseY >= cy + 44 && mouseY <= cy + 64) {
+                selectActiveChoice(player, "intelligence");
+                return true;
+            }
+            activeChoiceNodeId = null;
+            return true;
+        }
 
         // Since mouseReleased is not part of the standard interface, we can simulate it on Action_UP if we had it,
         // but for now, we'll handle just the logic we have in mouseClicked.
@@ -1264,39 +1337,6 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
             }
         }
 
-        // If an attribute choice popup is open
-        if (activeChoiceNodeId != null) {
-            int cx = choicePopupX;
-            int cy = choicePopupY;
-            if (mouseX >= cx && mouseX <= cx + 110 && mouseY >= cy && mouseY <= cy + 20) {
-                draftUnlocked.put(activeChoiceNodeId, "strength");
-                draftPoints--;
-                player.playSound(com.cranks.dungeons.registry.ModSounds.PASSIVE_NODE_SELECT, 0.6f, 1.2f);
-                activeChoiceNodeId = null;
-                this.cacheDirty = true;
-                return true;
-            }
-            if (mouseX >= cx && mouseX <= cx + 110 && mouseY >= cy + 22 && mouseY <= cy + 42) {
-                draftUnlocked.put(activeChoiceNodeId, "dexterity");
-                draftPoints--;
-                player.playSound(com.cranks.dungeons.registry.ModSounds.PASSIVE_NODE_SELECT, 0.6f, 1.2f);
-                activeChoiceNodeId = null;
-                this.cacheDirty = true;
-                return true;
-            }
-            if (mouseX >= cx && mouseX <= cx + 110 && mouseY >= cy + 44 && mouseY <= cy + 64) {
-                draftUnlocked.put(activeChoiceNodeId, "intelligence");
-                draftPoints--;
-                player.playSound(com.cranks.dungeons.registry.ModSounds.PASSIVE_NODE_SELECT, 0.6f, 1.2f);
-                activeChoiceNodeId = null;
-                this.cacheDirty = true;
-                return true;
-            }
-            // Click outside closes the popup
-            activeChoiceNodeId = null;
-            return true;
-        }
-
         if (!choosingClass && button == 0) {
             PassiveDataComponent data = ModComponents.PASSIVE_DATA.get(player);
             Set<String> unlocked = data.getUnlockedNodes();
@@ -1316,6 +1356,15 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
                 if (mouseX >= nx - halfSize && mouseX <= nx + halfSize && mouseY >= ny - halfSize
                         && mouseY <= ny + halfSize) {
                     if (draftUnlocked.containsKey(node.id())) {
+                        if (node.isAttributeSelection()
+                                && !InputUtil.isKeyPressed(client.getWindow().getHandle(), GLFW.GLFW_KEY_LEFT_SHIFT)
+                                && !InputUtil.isKeyPressed(client.getWindow().getHandle(), GLFW.GLFW_KEY_RIGHT_SHIFT)) {
+                            activeChoiceNodeId = node.id();
+                            choicePopupX = (int) mouseX;
+                            choicePopupY = (int) mouseY - 25;
+                            player.playSound(ModSounds.PASSIVE_NODE_SELECT, 0.6f, 1.2f);
+                            return true;
+                        }
                         // Toggle OFF: Unselect drafted node
                         draftUnlocked.remove(node.id());
                         draftPoints++;
@@ -1326,8 +1375,15 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
                     }
 
                     boolean isPermanent = unlocked.contains(node.id());
-                    if (isPermanent)
-                        return true; // Already permanently unlocked
+                    if (isPermanent) {
+                        if (node.isAttributeSelection()) {
+                            activeChoiceNodeId = node.id();
+                            choicePopupX = (int) mouseX;
+                            choicePopupY = (int) mouseY - 25;
+                            player.playSound(ModSounds.PASSIVE_NODE_SELECT, 0.6f, 1.2f);
+                        }
+                        return true;
+                    }
 
                     // Node is locked and not in draft: try to select it (Unified check)
                     boolean canUnlock = false;

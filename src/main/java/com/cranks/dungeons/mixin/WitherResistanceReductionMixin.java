@@ -14,17 +14,9 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-
 @Mixin(LivingEntity.class)
 public class WitherResistanceReductionMixin {
 
-    // Track wither level per entity
-    @Unique
-    private static final Map<UUID, Integer> ENTITY_WITHER_LEVEL = new HashMap<>();
-    
     @Unique
     private static final Identifier WITHER_MODIFIER_ID = Identifier.of(CranksDungeons.MOD_ID, "wither_resistance_reduction");
 
@@ -36,17 +28,17 @@ public class WitherResistanceReductionMixin {
 
         StatusEffectInstance witherEffect = entity.getStatusEffect(StatusEffects.WITHER);
         int currentWitherLevel = witherEffect != null ? witherEffect.getAmplifier() + 1 : 0;
-        int previousWitherLevel = ENTITY_WITHER_LEVEL.getOrDefault(entity.getUuid(), 0);
+        int previousWitherLevel = com.cranks.dungeons.util.WitherResistanceTracker.getLevel(entity.getUuid());
 
         // Only update if wither level changed
         if (currentWitherLevel != previousWitherLevel) {
             updateResistances(entity, currentWitherLevel);
-            ENTITY_WITHER_LEVEL.put(entity.getUuid(), currentWitherLevel);
+            com.cranks.dungeons.util.WitherResistanceTracker.setLevel(entity.getUuid(), currentWitherLevel);
         }
 
         // Clear tracking when wither ends
         if (currentWitherLevel == 0 && previousWitherLevel > 0) {
-            ENTITY_WITHER_LEVEL.remove(entity.getUuid());
+            com.cranks.dungeons.util.WitherResistanceTracker.clearEntity(entity.getUuid());
         }
     }
 

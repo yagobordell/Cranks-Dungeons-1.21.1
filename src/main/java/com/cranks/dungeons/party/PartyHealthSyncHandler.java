@@ -20,11 +20,7 @@ public class PartyHealthSyncHandler {
     
     // Configurable sync intervals
     private static final int NORMAL_SYNC_INTERVAL = 4; // Check every 0.2 seconds normally (faster for smooth regen)
-    private static final int FAST_SYNC_INTERVAL = 1;   // Instant sync after damage (every tick for 3 seconds)
-    
     private static int tickCounter = 0;
-    private static int currentSyncInterval = NORMAL_SYNC_INTERVAL;
-    private static int fastSyncEndTick = 0;
     
     private static class HealthData {
         float health;
@@ -48,17 +44,13 @@ public class PartyHealthSyncHandler {
     }
     
     public static void register() {
+        net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.SERVER_STARTED.register(PartyManager::initialize);
+
         // Tick-based sync
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             tickCounter++;
             
-            // Check if we should revert to normal sync speed
-            if (fastSyncEndTick > 0 && tickCounter >= fastSyncEndTick) {
-                currentSyncInterval = NORMAL_SYNC_INTERVAL;
-                fastSyncEndTick = 0;
-            }
-            
-            if (tickCounter % currentSyncInterval == 0 || !pendingFastSync.isEmpty()) {
+            if (tickCounter % NORMAL_SYNC_INTERVAL == 0 || !pendingFastSync.isEmpty()) {
                 syncPartyHealth(server);
             }
         });
@@ -66,12 +58,8 @@ public class PartyHealthSyncHandler {
         // Event-driven sync for damage - sync immediately when damage happens
         ServerLivingEntityEvents.ALLOW_DAMAGE.register((entity, source, amount) -> {
             if (entity instanceof ServerPlayerEntity player) {
-                MinecraftServer server = player.getServer();
-                if (server != null) {
-                    syncSinglePlayer(player, server);
-                }
-                
-                enableFastSync(60);
+                // ALLOW_DAMAGE fires before health changes, so defer exactly this
+                // player's update to the end of the current tick.
                 pendingFastSync.add(player.getUuid());
             }
             return true;
@@ -81,33 +69,8 @@ public class PartyHealthSyncHandler {
             lastHealthData.clear();
             pendingFastSync.clear();
             tickCounter = 0;
-            fastSyncEndTick = 0;
-            currentSyncInterval = NORMAL_SYNC_INTERVAL;
+            PartyManager.clearAll();
         });
-    }
-    
-    private static void enableFastSync(int durationTicks) {
-        currentSyncInterval = FAST_SYNC_INTERVAL;
-        fastSyncEndTick = tickCounter + durationTicks;
-    }
-    
-    private static void syncSinglePlayer(ServerPlayerEntity player, MinecraftServer server) {
-        UUID playerUuid = player.getUuid();
-        
-        Party party = PartyManager.getParty(playerUuid).orElse(null);
-        if (party == null) return;
-        
-        float health = player.getHealth();
-        float maxHealth = player.getMaxHealth();
-        float absorption = player.getAbsorptionAmount();
-        float shield = 0;
-        if (player instanceof com.cranks.dungeons.EnergyShieldProvider provider) {
-            shield = provider.cranksdungeons$getCurrentEnergyShield();
-        }
-        float maxShield = (float) player.getAttributeValue(com.cranks.dungeons.registry.ModAttributes.ENERGY_SHIELD);
-        
-        lastHealthData.put(playerUuid, new HealthData(health, maxHealth, absorption, shield, maxShield));
-        ModNetworking.sendPartyHealthUpdate(server, party, playerUuid);
     }
     
     private static void syncPartyHealth(MinecraftServer server) {
@@ -123,7 +86,6 @@ public class PartyHealthSyncHandler {
             
             // Check if this player needs immediate sync (damage) 
             boolean needsImmediateSync = pendingFastSync.remove(playerUuid);
-            boolean inFastSync = fastSyncEndTick > 0 && tickCounter < fastSyncEndTick;
             
             float health = player.getHealth();
             float maxHealth = player.getMaxHealth();
@@ -136,9 +98,7 @@ public class PartyHealthSyncHandler {
             
             HealthData lastData = lastHealthData.get(playerUuid);
             
-            // Sync if: first time, damage event, during fast sync period, or meaningful change
-            // During fast sync: always sync regardless of threshold to catch every tick
-            if (lastData == null || needsImmediateSync || inFastSync || lastData.hasMeaningfulChange(health, maxHealth, absorption, shield, maxShield)) {
+            if (lastData == null || needsImmediateSync || lastData.hasMeaningfulChange(health, maxHealth, absorption, shield, maxShield)) {
                 lastHealthData.put(playerUuid, new HealthData(health, maxHealth, absorption, shield, maxShield));
                 ModNetworking.sendPartyHealthUpdate(server, party, playerUuid);
             }

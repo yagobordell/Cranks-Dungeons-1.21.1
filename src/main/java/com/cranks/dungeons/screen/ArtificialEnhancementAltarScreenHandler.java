@@ -80,6 +80,10 @@ public class ArtificialEnhancementAltarScreenHandler extends ScreenHandler {
         return this.inventory.canPlayerUse(player);
     }
 
+    public boolean isFor(ArtificialEnhancementAltarBlockEntity altar) {
+        return this.blockEntity == altar;
+    }
+
     @Override
     public ItemStack quickMove(PlayerEntity player, int slot) {
         ItemStack newStack = ItemStack.EMPTY;

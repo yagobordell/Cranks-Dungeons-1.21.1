@@ -69,12 +69,22 @@ public class CompendiumButtonWidget extends ClickableWidget {
     }
 
     public static void drawButton(DrawContext context, int x, int y, int width, int height, boolean hovered, boolean active, String text) {
+        drawButton(context, x, y, width, height, hovered, active, false, text);
+    }
+
+    public static void drawButton(DrawContext context, int x, int y, int width, int height,
+                                  boolean hovered, boolean active, boolean selected, String text) {
         int centerColor = hovered ? 0xFF3C3C46 : 0xFF2B2B33;
         int lightBevel = hovered ? 0xFF707080 : 0xFF585864;
         int darkBevel = hovered ? 0xFF22222A : 0xFF18181E;
         int outerBorder = 0xFF101014;
 
-        if (!active) {
+        if (selected) {
+            centerColor = hovered ? 0xFF70531D : 0xFF543D14;
+            lightBevel = hovered ? 0xFFFFD166 : 0xFFD6A83D;
+            darkBevel = 0xFF2C1D08;
+            outerBorder = 0xFFB7790B;
+        } else if (!active) {
             centerColor = 0xFF1A1A20;
             lightBevel = 0xFF2E2E36;
             darkBevel = 0xFF121216;
@@ -95,7 +105,8 @@ public class CompendiumButtonWidget extends ClickableWidget {
         context.fill(x + 1, y + height - 2, x + width - 1, y + height - 1, darkBevel);
         context.fill(x + width - 2, y + 1, x + width - 1, y + height - 1, darkBevel);
 
-        int textColor = active ? (hovered ? 0xFFFFFFFF : 0xFFE0E0E6) : 0xFF6C6C78;
+        int textColor = selected ? 0xFFFFF3C4
+                : active ? (hovered ? 0xFFFFFFFF : 0xFFE0E0E6) : 0xFF6C6C78;
         context.drawCenteredTextWithShadow(
                 MinecraftClient.getInstance().textRenderer,
                 text,

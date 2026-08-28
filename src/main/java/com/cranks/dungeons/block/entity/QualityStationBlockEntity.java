@@ -131,7 +131,8 @@ public class QualityStationBlockEntity extends BlockEntity implements NamedScree
 
     @Override
     public boolean canPlayerUse(PlayerEntity player) {
-        return player.getBlockPos().isWithinDistance(this.pos, 8.0);
+        return world != null && world.getBlockEntity(pos) == this
+                && player.getBlockPos().isWithinDistance(this.pos, 8.0);
     }
 
     @Override

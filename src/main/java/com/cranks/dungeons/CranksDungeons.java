@@ -106,7 +106,15 @@ public class CranksDungeons implements ModInitializer {
 		net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents.ENTITY_UNLOAD.register((entity, world) -> {
 			if (entity instanceof net.minecraft.entity.LivingEntity living) {
 				com.cranks.dungeons.ailment.AilmentManager.clearAllAilments(living);
+				com.cranks.dungeons.util.LeechManager.clearEntity(living.getUuid());
+				com.cranks.dungeons.util.WitherResistanceTracker.clearEntity(living.getUuid());
 			}
+		});
+
+		net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
+			com.cranks.dungeons.util.LeechManager.clearAll();
+			com.cranks.dungeons.util.WitherResistanceTracker.clearAll();
+			com.cranks.dungeons.network.ModNetworking.clearAllState();
 		});
 
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
@@ -165,8 +173,15 @@ public class CranksDungeons implements ModInitializer {
 		});
 		
 		net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
+			var passiveData = com.cranks.dungeons.component.ModComponents.PASSIVE_DATA.get(handler.player);
+			var worldTreeData = com.cranks.dungeons.component.ModComponents.WORLD_TREE_DATA.get(handler.player);
+			com.cranks.dungeons.component.PassiveTreePersistentState.get(server)
+					.savePlayerData(handler.player.getUuid(), passiveData);
+			com.cranks.dungeons.component.WorldTreePersistentState.get(server)
+					.savePlayerData(handler.player.getUuid(), worldTreeData);
 			com.cranks.dungeons.equipment.EquipmentStatApplier.onPlayerDisconnect(handler.player);
 			com.cranks.dungeons.stat.passive.PassiveSkillApplier.onPlayerDisconnect(handler.player);
+			com.cranks.dungeons.network.ModNetworking.clearPlayerState(handler.player.getUuid());
 		});
 		FabricDefaultAttributeRegistry.register(
 				EntityType.PLAYER,
@@ -302,8 +317,8 @@ public class CranksDungeons implements ModInitializer {
 
 		net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback.EVENT
 				.register((dispatcher, registryAccess, environment) -> {
-					dispatcher.register(net.minecraft.server.command.CommandManager.literal("reloadpassivetree")
-							.requires(source -> true)
+					 dispatcher.register(net.minecraft.server.command.CommandManager.literal("reloadpassivetree")
+							.requires(source -> source.hasPermissionLevel(2))
 							.executes(context -> {
 								com.cranks.dungeons.config.PassiveTreeConfig.load();
 								com.cranks.dungeons.stat.passive.PassiveNodeRegistry.loadFromConfig();
@@ -311,6 +326,11 @@ public class CranksDungeons implements ModInitializer {
 								com.cranks.dungeons.stat.passive.WorldNodeRegistry.loadFromConfig();
 								com.cranks.dungeons.network.ModNetworking
 										.syncPassiveTreeToAll(context.getSource().getServer());
+								com.cranks.dungeons.network.ModNetworking
+										.syncWorldTreeToAll(context.getSource().getServer());
+								for (var player : context.getSource().getServer().getPlayerManager().getPlayerList()) {
+									com.cranks.dungeons.stat.passive.PassiveSkillApplier.updatePlayerPassives(player);
+								}
 								context.getSource().sendFeedback(
 										() -> net.minecraft.text.Text
 												.literal("Passive skill tree reloaded and synced to all players."),

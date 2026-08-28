@@ -17,6 +17,8 @@ public final class PlacedBlockTracker {
 
     public static final String DIG_BLOCKS_ID = "cranks_dungeons_placed_dig_blocks";
     public static final String LOGS_ID = "cranks_dungeons_placed_logs";
+    public static final String ORES_ID = "cranks_dungeons_placed_ores";
+    public static final String GATHERING_BLOCKS_ID = "cranks_dungeons_placed_gathering_blocks";
 
     public static void markPlaced(ServerWorld world, BlockPos pos, String trackerId) {
         State state = State.get(world, trackerId);

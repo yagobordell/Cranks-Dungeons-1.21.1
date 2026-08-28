@@ -8,6 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class PartyManager {
     private static PartyManager INSTANCE;
+    private MinecraftServer server;
     
     private final Map<UUID, Party> playerParties = new ConcurrentHashMap<>();
     private final Map<UUID, PartyInvite> pendingInvites = new ConcurrentHashMap<>();
@@ -69,6 +70,37 @@ public class PartyManager {
     public static void clearPlayerData(UUID playerUuid) {
         getInstance().instanceClearPlayerData(playerUuid);
     }
+
+    public static void clearAll() {
+        PartyManager manager = INSTANCE;
+        if (manager != null) {
+            manager.playerParties.clear();
+            manager.pendingInvites.clear();
+        }
+        INSTANCE = null;
+    }
+
+    public static void initialize(MinecraftServer server) {
+        PartyManager manager = getInstance();
+        manager.server = server;
+        manager.playerParties.clear();
+        manager.pendingInvites.clear();
+        for (Party party : PartyPersistentState.get(server).getParties()) {
+            boolean conflicts = party.getMembers().stream().anyMatch(manager.playerParties::containsKey);
+            if (conflicts) {
+                com.cranks.dungeons.CranksDungeons.LOGGER.warn("[Party] Skipping persisted party with duplicate members; leader={}", party.getLeader());
+                continue;
+            }
+            party.getMembers().forEach(member -> manager.playerParties.put(member, party));
+        }
+    }
+
+    private void persist() {
+        if (server == null) return;
+        Set<Party> uniqueParties = Collections.newSetFromMap(new IdentityHashMap<>());
+        uniqueParties.addAll(playerParties.values());
+        PartyPersistentState.get(server).replaceParties(uniqueParties);
+    }
     
     // Instance methods
     private Optional<Party> instanceGetParty(UUID player) {
@@ -91,6 +123,7 @@ public class PartyManager {
         }
         Party party = new Party(leader);
         playerParties.put(leader, party);
+        persist();
         return party;
     }
     
@@ -103,6 +136,8 @@ public class PartyManager {
         for (UUID member : party.getMembers()) {
             playerParties.remove(member);
         }
+        pendingInvites.entrySet().removeIf(entry -> entry.getValue().getParty() == party);
+        persist();
         return true;
     }
     
@@ -142,7 +177,10 @@ public class PartyManager {
         }
         
         Party party = invite.getParty();
-        if (party.isFull()) {
+        if (playerParties.containsKey(invitee)
+                || playerParties.get(inviter) != party
+                || !party.isLeader(inviter)
+                || party.isFull()) {
             pendingInvites.remove(invitee);
             return false;
         }
@@ -150,6 +188,7 @@ public class PartyManager {
         if (party.addMember(invitee)) {
             playerParties.put(invitee, party);
             pendingInvites.remove(invitee);
+            persist();
             return true;
         }
         
@@ -167,6 +206,9 @@ public class PartyManager {
         
         if (party.removeMember(target)) {
             playerParties.remove(target);
+            pendingInvites.remove(target);
+            pendingInvites.entrySet().removeIf(entry -> entry.getValue().getInviter().equals(target));
+            persist();
             return true;
         }
         return false;
@@ -182,7 +224,10 @@ public class PartyManager {
             Optional<UUID> nextLeader = party.getNextLeader();
             if (nextLeader.isPresent()) {
                 party.transferLeadership(nextLeader.get());
+                party.removeMember(player);
                 playerParties.remove(player);
+                pendingInvites.entrySet().removeIf(entry -> entry.getValue().getParty() == party);
+                persist();
                 return true;
             } else {
                 return instanceDisbandParty(player);
@@ -190,6 +235,7 @@ public class PartyManager {
         } else {
             party.removeMember(player);
             playerParties.remove(player);
+            persist();
             return true;
         }
     }
@@ -204,10 +250,13 @@ public class PartyManager {
         }
         
         party.transferLeadership(newLeader);
+        pendingInvites.entrySet().removeIf(entry -> entry.getValue().getParty() == party);
+        persist();
         return true;
     }
     
     private void instanceClearPlayerData(UUID playerUuid) {
         pendingInvites.remove(playerUuid);
+        pendingInvites.entrySet().removeIf(entry -> entry.getValue().getInviter().equals(playerUuid));
     }
 }

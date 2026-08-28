@@ -54,7 +54,7 @@ public class RunicEnhancementAltarBlock extends BlockWithEntity {
 
     @Override
     protected void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
-        if (!moved) {
+        if (!moved && !state.isOf(newState.getBlock())) {
             BlockEntity blockEntity = world.getBlockEntity(pos);
             if (blockEntity instanceof RunicEnhancementAltarBlockEntity altar) {
                 ItemScatterer.spawn(world, pos, altar);

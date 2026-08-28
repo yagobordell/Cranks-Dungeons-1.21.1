@@ -20,6 +20,105 @@ import com.cranks.dungeons.registry.ModAttributes;
 
 public class ModNetworking {
 
+    private static final int MAX_BULK_UNLOCKS = BulkUnlockNodesPayload.MAX_ENTRIES;
+    private static final long PROGRESSION_REQUEST_COOLDOWN_NANOS = 50_000_000L;
+    private static final java.util.Map<java.util.UUID, Long> LAST_PROGRESSION_REQUEST = new java.util.HashMap<>();
+
+    private static boolean allowProgressionRequest(net.minecraft.server.network.ServerPlayerEntity player, int entryCount) {
+        if (entryCount < 1 || entryCount > MAX_BULK_UNLOCKS) return false;
+
+        long now = System.nanoTime();
+        Long previous = LAST_PROGRESSION_REQUEST.get(player.getUuid());
+        if (previous != null && now - previous < PROGRESSION_REQUEST_COOLDOWN_NANOS) return false;
+        LAST_PROGRESSION_REQUEST.put(player.getUuid(), now);
+        return true;
+    }
+
+    public static void clearPlayerState(java.util.UUID playerUuid) {
+        LAST_PROGRESSION_REQUEST.remove(playerUuid);
+    }
+
+    public static void clearAllState() {
+        LAST_PROGRESSION_REQUEST.clear();
+    }
+
+    private static void runBatched(com.cranks.dungeons.component.PassiveDataComponent data, Runnable action) {
+        data.beginBatch();
+        try {
+            action.run();
+        } finally {
+            data.endBatch();
+        }
+    }
+
+    private static void runBatched(com.cranks.dungeons.component.WorldTreeDataComponent data, Runnable action) {
+        data.beginBatch();
+        try {
+            action.run();
+        } finally {
+            data.endBatch();
+        }
+    }
+
+    private static String validateNodeChoice(com.cranks.dungeons.stat.passive.PassiveNode node,
+                                             String rawChoice, boolean worldTree) {
+        String choice = rawChoice == null ? "" : rawChoice.trim().toLowerCase(java.util.Locale.ROOT);
+        int namespaceSeparator = choice.indexOf(':');
+        if (namespaceSeparator >= 0) choice = choice.substring(namespaceSeparator + 1);
+        if (choice.isEmpty()) return "";
+        if (!node.isAttributeSelection()) return null;
+        final String normalizedChoice = choice;
+
+        if (!worldTree) {
+            return com.cranks.dungeons.stat.passive.PassiveStatHelper.WHITELISTED_PASSIVE_ATTRIBUTES.contains(normalizedChoice)
+                    && java.util.Set.of("strength", "dexterity", "intelligence").contains(normalizedChoice)
+                    ? normalizedChoice : null;
+        }
+
+        if (!com.cranks.dungeons.stat.passive.PassiveStatHelper.WHITELISTED_WORLD_ATTRIBUTES.contains(normalizedChoice)
+                || node.modifiers() == null) {
+            return null;
+        }
+        boolean offeredByNode = node.modifiers().keySet().stream()
+                .anyMatch(attribute -> attribute.getKey()
+                        .map(key -> key.getValue().getPath().equals(normalizedChoice))
+                        .orElse(false));
+        return offeredByNode ? normalizedChoice : null;
+    }
+
+    private static void rejectNodeChoice(net.minecraft.server.network.ServerPlayerEntity player) {
+        ServerPlayNetworking.send(player, new ShowNotificationPayload(
+                Text.literal("That node choice is no longer valid").formatted(Formatting.RED), 60));
+    }
+
+    private static void rejectDraft(net.minecraft.server.network.ServerPlayerEntity player, String message) {
+        ServerPlayNetworking.send(player, new ShowNotificationPayload(
+                Text.literal(message).formatted(Formatting.RED), 80));
+    }
+
+    private static java.util.Set<String> getNodeNeighbors(String nodeId, boolean worldTree) {
+        java.util.Map<String, com.cranks.dungeons.stat.passive.PassiveNode> nodes = worldTree
+                ? com.cranks.dungeons.stat.passive.WorldNodeRegistry.getNodes()
+                : com.cranks.dungeons.stat.passive.PassiveNodeRegistry.getNodes();
+        var node = nodes.get(nodeId);
+        if (node == null) return java.util.Set.of();
+
+        java.util.Set<String> neighbors = new java.util.HashSet<>();
+        for (String connection : node.connections()) {
+            if (connection != null) {
+                String id = connection.trim();
+                if (nodes.containsKey(id)) neighbors.add(id);
+            }
+        }
+        for (var entry : nodes.entrySet()) {
+            if (entry.getValue().connections().stream()
+                    .anyMatch(connection -> connection != null && connection.trim().equals(nodeId))) {
+                neighbors.add(entry.getKey());
+            }
+        }
+        return neighbors;
+    }
+
     public static void registerPayloads() {
         PayloadTypeRegistry.playC2S().register(
                 ToggleEnchantmentDisablePayload.ID,
@@ -48,6 +147,7 @@ public class ModNetworking {
         PayloadTypeRegistry.playS2C().register(SyncWorldTreePayload.ID, SyncWorldTreePayload.CODEC);
         PayloadTypeRegistry.playC2S().register(UnlockWorldNodePayload.ID, UnlockWorldNodePayload.CODEC);
         PayloadTypeRegistry.playC2S().register(BulkUnlockWorldNodesPayload.ID, BulkUnlockWorldNodesPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(UpdateNodeChoicePayload.ID, UpdateNodeChoicePayload.CODEC);
     }
 
     private static boolean isNodeUnlockable(com.cranks.dungeons.component.PassiveDataComponent data, String nodeId) {
@@ -87,8 +187,8 @@ public class ModNetworking {
         var node = com.cranks.dungeons.stat.passive.WorldNodeRegistry.getNode(id);
         if (node == null) return false;
         
-        // Allow unlocking any node if the tree is completely empty
-        if (data.getUnlockedNodes().isEmpty()) return true;
+        // A fresh tree must always begin at the canonical root.
+        if (data.getUnlockedNodes().isEmpty()) return "world_start".equals(id);
 
         for (String connId : node.connections()) {
             if (com.cranks.dungeons.stat.passive.WorldNodeRegistry.getNodes().containsKey(connId)) {
@@ -149,14 +249,18 @@ public class ModNetworking {
                 (payload, context) -> {
                     context.server().execute(() -> {
                         var player = context.player();
+                        if (!allowProgressionRequest(player, 1)) return;
                         var data = com.cranks.dungeons.component.ModComponents.PASSIVE_DATA.get(player);
                         String nodeId = payload.nodeId() != null ? payload.nodeId().trim() : "";
                         var node = com.cranks.dungeons.stat.passive.PassiveNodeRegistry.getNode(nodeId);
                         
-                        if (node != null && !data.hasNode(nodeId) && data.getUnspentPoints() > 0) {
+                        if (node != null && !node.isAttributeSelection()
+                                && !data.hasNode(nodeId) && data.getUnspentPoints() > 0) {
                             if (isNodeUnlockable(data, nodeId)) {
-                                data.setUnspentPoints(data.getUnspentPoints() - 1);
-                                data.unlockNode(nodeId);
+                                runBatched(data, () -> {
+                                    data.setUnspentPoints(data.getUnspentPoints() - 1);
+                                    data.unlockNode(nodeId);
+                                });
                                 com.cranks.dungeons.stat.passive.PassiveSkillApplier.updatePlayerPassives(player);
                                 
                                 // Persist to world backup
@@ -173,6 +277,7 @@ public class ModNetworking {
                 (payload, context) -> {
                     context.server().execute(() -> {
                         var player = context.player();
+                        if (!allowProgressionRequest(player, 1)) return;
                         var data = com.cranks.dungeons.component.ModComponents.PASSIVE_DATA.get(player);
                         
                         // Prevent changing class if already chosen
@@ -183,9 +288,11 @@ public class ModNetworking {
                                     .findFirst().orElse(null);
                             
                             if (def != null) {
-                                data.setPlayerClass(cName);
-                                // Unlocking start node for free
-                                data.unlockNode(def.startNode());
+                                runBatched(data, () -> {
+                                    data.setPlayerClass(cName);
+                                    // Unlocking start node for free
+                                    data.unlockNode(def.startNode());
+                                });
                                 com.cranks.dungeons.stat.passive.PassiveSkillApplier.updatePlayerPassives(player);
 
                                 // Persist to world backup
@@ -201,48 +308,44 @@ public class ModNetworking {
                 (payload, context) -> {
                     context.server().execute(() -> {
                         var player = context.player();
+                        if (!allowProgressionRequest(player, payload.nodeChoices().size())) return;
                         var data = com.cranks.dungeons.component.ModComponents.PASSIVE_DATA.get(player);
-                        java.util.Map<String, String> remainingNodes = new java.util.HashMap<>(payload.nodeChoices());
-                        
-                        boolean totalChanged = false;
-                        boolean progress = true;
-                        
-                        // Keep trying to unlock nodes as long as we make progress in a pass
-                        while (progress && !remainingNodes.isEmpty()) {
-                            progress = false;
-                            java.util.Iterator<java.util.Map.Entry<String, String>> it = remainingNodes.entrySet().iterator();
-                            while (it.hasNext()) {
-                                java.util.Map.Entry<String, String> entry = it.next();
-                                String rawId = entry.getKey();
-                                String nodeId = rawId != null ? rawId.trim() : "";
-                                String choice = entry.getValue() != null ? entry.getValue().trim() : "";
-                                if (nodeId.isEmpty()) { it.remove(); continue; }
-                                var node = com.cranks.dungeons.stat.passive.PassiveNodeRegistry.getNode(nodeId);
-                                
-                                if (node != null && !data.hasNode(nodeId) && data.getUnspentPoints() > 0) {
-                                    if (isNodeUnlockable(data, nodeId)) {
-                                        data.setUnspentPoints(data.getUnspentPoints() - 1);
-                                        data.unlockNode(nodeId);
-                                        if (!choice.isEmpty()) {
-                                            data.setNodeChoice(nodeId, choice);
-                                        }
-                                        it.remove();
-                                        progress = true;
-                                        totalChanged = true;
-                                    }
-                                } else if (data.hasNode(nodeId)) {
-                                    it.remove(); // Already unlocked, just clean up
-                                }
+                        java.util.Map<String, String> choices = new java.util.LinkedHashMap<>();
+                        for (var entry : payload.nodeChoices().entrySet()) {
+                            String nodeId = entry.getKey() == null ? "" : entry.getKey().trim();
+                            var node = com.cranks.dungeons.stat.passive.PassiveNodeRegistry.getNode(nodeId);
+                            String choice = node == null ? null : validateNodeChoice(node, entry.getValue(), false);
+                            if (nodeId.isEmpty() || node == null || choice == null
+                                    || (node.isAttributeSelection() && choice.isEmpty())) {
+                                rejectDraft(player, "The passive-tree draft contains an invalid node or selection");
+                                return;
                             }
+                            if (!data.hasNode(nodeId)) choices.put(nodeId, choice);
                         }
-                        
-                        if (totalChanged) {
-                            com.cranks.dungeons.stat.passive.PassiveSkillApplier.updatePlayerPassives(player);
 
-                            // Persist to world backup
-                            com.cranks.dungeons.component.PassiveTreePersistentState.get(context.server())
-                                    .savePlayerData(player.getUuid(), data);
+                        var plan = com.cranks.dungeons.util.TreeUnlockPlanner.plan(
+                                data.getUnlockedNodes(), choices.keySet(), data.getUnspentPoints(),
+                                nodeId -> getNodeNeighbors(nodeId, false));
+                        if (!plan.successful()) {
+                            rejectDraft(player, plan.failure() == com.cranks.dungeons.util.TreeUnlockPlanner.Failure.NOT_ENOUGH_POINTS
+                                    ? "Not enough passive-tree points for that draft"
+                                    : "That passive-tree draft is no longer connected to an unlocked node");
+                            return;
                         }
+                        if (plan.unlockOrder().isEmpty()) return;
+
+                        runBatched(data, () -> {
+                            data.setUnspentPoints(data.getUnspentPoints() - plan.unlockOrder().size());
+                            for (String nodeId : plan.unlockOrder()) {
+                                data.unlockNode(nodeId);
+                                String choice = choices.get(nodeId);
+                                if (choice != null && !choice.isEmpty()) data.setNodeChoice(nodeId, choice);
+                            }
+                        });
+
+                        com.cranks.dungeons.stat.passive.PassiveSkillApplier.updatePlayerPassives(player);
+                        com.cranks.dungeons.component.PassiveTreePersistentState.get(context.server())
+                                .savePlayerData(player.getUuid(), data);
                     });
                 }
         );
@@ -251,14 +354,20 @@ public class ModNetworking {
         ServerPlayNetworking.registerGlobalReceiver(UnlockWorldNodePayload.ID, (payload, context) -> {
             context.server().execute(() -> {
                 var player = context.player();
+                if (!allowProgressionRequest(player, 1)) return;
                 com.cranks.dungeons.component.WorldTreeDataComponent data = com.cranks.dungeons.component.ModComponents.WORLD_TREE_DATA.get(player);
-                if (data != null && data.getUnspentPoints() > 0) {
-                    if (!data.hasNode(payload.nodeId()) && isWorldNodeUnlockable(data, payload.nodeId())) {
-                        data.setUnspentPoints(data.getUnspentPoints() - 1);
-                        data.unlockNode(payload.nodeId());
-                        if (payload.choice() != null && !payload.choice().isEmpty()) {
-                            data.setNodeChoice(payload.nodeId(), payload.choice());
-                        }
+                String nodeId = payload.nodeId() == null ? "" : payload.nodeId().trim();
+                var node = com.cranks.dungeons.stat.passive.WorldNodeRegistry.getNode(nodeId);
+                String choice = node == null ? null : validateNodeChoice(node, payload.choice(), true);
+                if (data != null && node != null && choice != null
+                        && (!node.isAttributeSelection() || !choice.isEmpty())
+                        && data.getUnspentPoints() > 0) {
+                    if (!data.hasNode(nodeId) && isWorldNodeUnlockable(data, nodeId)) {
+                        runBatched(data, () -> {
+                            data.setUnspentPoints(data.getUnspentPoints() - 1);
+                            data.unlockNode(nodeId);
+                            if (!choice.isEmpty()) data.setNodeChoice(nodeId, choice);
+                        });
                         player.playSound(net.minecraft.sound.SoundEvents.UI_BUTTON_CLICK.value(), 1.0F, 1.0F);
                         com.cranks.dungeons.component.WorldTreePersistentState.get(context.server()).savePlayerData(player.getUuid(), data);
                         com.cranks.dungeons.stat.passive.PassiveSkillApplier.updatePlayerPassives(player);
@@ -271,28 +380,83 @@ public class ModNetworking {
         ServerPlayNetworking.registerGlobalReceiver(BulkUnlockWorldNodesPayload.ID, (payload, context) -> {
             context.server().execute(() -> {
                 var player = context.player();
+                if (!allowProgressionRequest(player, payload.nodeChoices().size())) return;
                 com.cranks.dungeons.component.WorldTreeDataComponent data = com.cranks.dungeons.component.ModComponents.WORLD_TREE_DATA.get(player);
                 if (data != null) {
-                    // For bulk unlock, we simulate the unlocks to ensure the path is valid
-                    java.util.Set<String> simulatedUnlocked = new java.util.HashSet<>(data.getUnlockedNodes());
-                    int requiredPoints = 0;
-                    boolean validPath = true;
-                    
-                    // Simple validation: just ensure we have enough points for the ones we don't have
-                    for (String id : payload.nodeChoices().keySet()) {
-                        if (!data.hasNode(id)) requiredPoints++;
+                    java.util.Map<String, String> choices = new java.util.LinkedHashMap<>();
+                    for (var entry : payload.nodeChoices().entrySet()) {
+                        String nodeId = entry.getKey() == null ? "" : entry.getKey().trim();
+                        var node = com.cranks.dungeons.stat.passive.WorldNodeRegistry.getNode(nodeId);
+                        String choice = node == null ? null : validateNodeChoice(node, entry.getValue(), true);
+                        if (nodeId.isEmpty() || node == null || choice == null
+                                || (node.isAttributeSelection() && choice.isEmpty())) {
+                            rejectDraft(player, "The world-tree draft contains an invalid node or selection");
+                            return;
+                        }
+                        if (!data.hasNode(nodeId)) choices.put(nodeId, choice);
                     }
 
-                    if (data.getUnspentPoints() >= requiredPoints) {
-                        data.setUnspentPoints(data.getUnspentPoints() - requiredPoints);
-                        for (var entry : payload.nodeChoices().entrySet()) {
-                            data.unlockNode(entry.getKey());
-                            if (entry.getValue() != null && !entry.getValue().isEmpty()) {
-                                data.setNodeChoice(entry.getKey(), entry.getValue());
-                            }
+                    var plan = com.cranks.dungeons.util.TreeUnlockPlanner.plan(
+                            data.getUnlockedNodes(), choices.keySet(), data.getUnspentPoints(),
+                            nodeId -> getNodeNeighbors(nodeId, true));
+                    if (!plan.successful()) {
+                        rejectDraft(player, plan.failure() == com.cranks.dungeons.util.TreeUnlockPlanner.Failure.NOT_ENOUGH_POINTS
+                                ? "Not enough world-tree points for that draft"
+                                : "That world-tree draft is no longer connected to an unlocked node");
+                        return;
+                    }
+                    if (plan.unlockOrder().isEmpty()) return;
+
+                    runBatched(data, () -> {
+                        data.setUnspentPoints(data.getUnspentPoints() - plan.unlockOrder().size());
+                        for (String nodeId : plan.unlockOrder()) {
+                            data.unlockNode(nodeId);
+                            String choice = choices.get(nodeId);
+                            if (choice != null && !choice.isEmpty()) data.setNodeChoice(nodeId, choice);
                         }
-                        player.playSound(net.minecraft.sound.SoundEvents.UI_BUTTON_CLICK.value(), 1.0F, 1.0F);
-                        com.cranks.dungeons.component.WorldTreePersistentState.get(context.server()).savePlayerData(player.getUuid(), data);
+                    });
+
+                    player.playSound(net.minecraft.sound.SoundEvents.UI_BUTTON_CLICK.value(), 1.0F, 1.0F);
+                    com.cranks.dungeons.component.WorldTreePersistentState.get(context.server()).savePlayerData(player.getUuid(), data);
+                    com.cranks.dungeons.stat.passive.PassiveSkillApplier.updatePlayerPassives(player);
+                }
+            });
+        });
+
+        ServerPlayNetworking.registerGlobalReceiver(UpdateNodeChoicePayload.ID, (payload, context) -> {
+            context.server().execute(() -> {
+                var player = context.player();
+                if (!allowProgressionRequest(player, 1)) return;
+
+                String nodeId = payload.nodeId() == null ? "" : payload.nodeId().trim();
+                if (payload.worldTree()) {
+                    var node = com.cranks.dungeons.stat.passive.WorldNodeRegistry.getNode(nodeId);
+                    var data = com.cranks.dungeons.component.ModComponents.WORLD_TREE_DATA.get(player);
+                    String choice = node == null ? null : validateNodeChoice(node, payload.choice(), true);
+                    if (node == null || choice == null || choice.isEmpty() || !data.hasNode(nodeId)) {
+                        rejectNodeChoice(player);
+                        return;
+                    }
+
+                    if (!choice.equals(data.getNodeChoice(nodeId))) {
+                        data.setNodeChoice(nodeId, choice);
+                        com.cranks.dungeons.component.WorldTreePersistentState.get(context.server())
+                                .savePlayerData(player.getUuid(), data);
+                        com.cranks.dungeons.stat.passive.PassiveSkillApplier.updatePlayerPassives(player);
+                    }
+                } else {
+                    var node = com.cranks.dungeons.stat.passive.PassiveNodeRegistry.getNode(nodeId);
+                    var data = com.cranks.dungeons.component.ModComponents.PASSIVE_DATA.get(player);
+                    String choice = node == null ? null : validateNodeChoice(node, payload.choice(), false);
+                    if (node == null || choice == null || choice.isEmpty() || !data.hasNode(nodeId)) {
+                        rejectNodeChoice(player);
+                        return;
+                    }
+
+                    if (!choice.equals(data.getNodeChoice(nodeId))) {
+                        data.setNodeChoice(nodeId, choice);
+                        com.cranks.dungeons.component.PassiveTreePersistentState.get(context.server())
+                                .savePlayerData(player.getUuid(), data);
                         com.cranks.dungeons.stat.passive.PassiveSkillApplier.updatePlayerPassives(player);
                     }
                 }

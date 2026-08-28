@@ -6,6 +6,9 @@ import io.wispforest.owo.config.annotation.*;
 @Modmenu(modId = "cranks-dungeons")
 public class ModConfigModel {
 
+    @SectionHeader("development")
+    public boolean enableTreeDesigner = false;
+
     @SectionHeader("hud")
     public boolean useStatBars = false;
     public boolean showEntityHealthBars = true;

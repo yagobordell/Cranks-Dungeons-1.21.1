@@ -68,7 +68,7 @@ public class ArtificialEnhancementAltarBlock extends BlockWithEntity {
 
     @Override
     protected void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
-        if (!moved) {
+        if (!moved && !state.isOf(newState.getBlock())) {
             BlockEntity blockEntity = world.getBlockEntity(pos);
             if (blockEntity instanceof ArtificialEnhancementAltarBlockEntity altar) {
                 net.minecraft.util.ItemScatterer.spawn(world, pos, altar);

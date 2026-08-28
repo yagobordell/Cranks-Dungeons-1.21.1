@@ -35,6 +35,7 @@ public class RuneCommand {
     public static void register() {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
             dispatcher.register(literal("rune")
+                    .requires(source -> source.hasPermissionLevel(2))
                     .then(argument("stat_id", StringArgumentType.word())
                             .suggests(STAT_ID_SUGGESTIONS)
                             .then(argument("tier", IntegerArgumentType.integer(1, 5))

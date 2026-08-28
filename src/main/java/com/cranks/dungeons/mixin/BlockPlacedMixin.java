@@ -30,6 +30,14 @@ public class BlockPlacedMixin {
 
         if (state.isIn(ModBlockTags.LOG_FORTUNE_LOGS) || state.isIn(BlockTags.LOGS)) {
             PlacedBlockTracker.markPlaced(serverWorld, pos, PlacedBlockTracker.LOGS_ID);
+            PlacedBlockTracker.markPlaced(serverWorld, pos, PlacedBlockTracker.GATHERING_BLOCKS_ID);
+        }
+
+        boolean isOre = state.isIn(ModBlockTags.ORE_FORTUNE_ORES)
+                || state.streamTags().anyMatch(tag -> tag.id().getPath().contains("ores"));
+        if (isOre) {
+            PlacedBlockTracker.markPlaced(serverWorld, pos, PlacedBlockTracker.ORES_ID);
+            PlacedBlockTracker.markPlaced(serverWorld, pos, PlacedBlockTracker.GATHERING_BLOCKS_ID);
         }
 
         if (state.isIn(ModBlockTags.DIG_FORTUNE_BLOCKS)

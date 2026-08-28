@@ -32,6 +32,10 @@ public abstract class PlayerEntityXpMixin extends LivingEntity {
             if (!player.getEntityWorld().isClient()) {
                 PassiveDataComponent component = ModComponents.PASSIVE_DATA.get(player);
                 component.addUnspentPoints(levels);
+                if (player instanceof net.minecraft.server.network.ServerPlayerEntity serverPlayer) {
+                    com.cranks.dungeons.component.PassiveTreePersistentState.get(serverPlayer.getServer())
+                            .savePlayerData(player.getUuid(), component);
+                }
                 
                 player.getEntityWorld().playSound(null, player.getX(), player.getY(), player.getZ(), 
                     ModSounds.PASSIVE_LEVEL_UP, net.minecraft.sound.SoundCategory.PLAYERS, 1.0f, 1.0f);
@@ -72,7 +76,12 @@ public abstract class PlayerEntityXpMixin extends LivingEntity {
             PlayerEntity player = (PlayerEntity) (Object) this;
             if (!player.getEntityWorld().isClient()) {
                 // Multiply by 10 to match World Tree gathering curve
-                com.cranks.dungeons.component.ModComponents.WORLD_TREE_DATA.get(player).addGatheringXp(experience * 10);
+                var data = com.cranks.dungeons.component.ModComponents.WORLD_TREE_DATA.get(player);
+                data.addGatheringXp(experience * 10);
+                if (player instanceof net.minecraft.server.network.ServerPlayerEntity serverPlayer) {
+                    com.cranks.dungeons.component.WorldTreePersistentState.get(serverPlayer.getServer())
+                            .savePlayerData(player.getUuid(), data);
+                }
             }
             ci.cancel();
         }

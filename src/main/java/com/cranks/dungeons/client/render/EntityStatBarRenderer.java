@@ -171,7 +171,11 @@ public class EntityStatBarRenderer {
 
         com.mojang.blaze3d.systems.RenderSystem.disableDepthTest();
 
-        for (Entity entity : client.world.getEntities()) {
+        java.util.List<Entity> nearbyEntities = client.world.getOtherEntities(
+                null,
+                client.player.getBoundingBox().expand(32.0),
+                entity -> entity instanceof LivingEntity);
+        for (Entity entity : nearbyEntities) {
             if (entity instanceof LivingEntity living && living.isAlive() && !living.isInvisibleTo(client.player)) {
                 // Hide local player nameplate in first person
                 if (living == client.player && client.options.getPerspective().isFirstPerson()) continue;

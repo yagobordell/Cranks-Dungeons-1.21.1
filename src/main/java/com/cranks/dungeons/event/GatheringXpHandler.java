@@ -5,12 +5,21 @@ import com.cranks.dungeons.component.WorldTreeDataComponent;
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.minecraft.block.BlockState;
 import net.minecraft.registry.tag.BlockTags;
+import net.minecraft.server.world.ServerWorld;
+
+import com.cranks.dungeons.util.PlacedBlockTracker;
 
 public class GatheringXpHandler {
 
     public static void register() {
         PlayerBlockBreakEvents.AFTER.register((world, player, pos, state, blockEntity) -> {
             if (world.isClient() || player.isCreative() || player.isSpectator()) {
+                return;
+            }
+
+            if (world instanceof ServerWorld serverWorld
+                    && PlacedBlockTracker.isPlacedByPlayer(serverWorld, pos, PlacedBlockTracker.GATHERING_BLOCKS_ID)) {
+                PlacedBlockTracker.removePlaced(serverWorld, pos, PlacedBlockTracker.GATHERING_BLOCKS_ID);
                 return;
             }
 

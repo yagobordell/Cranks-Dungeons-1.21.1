@@ -16,7 +16,9 @@ public class ApplyStatCommand {
 
     public static void register() {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
-            dispatcher.register(literal("teststat").then(argument("item", ItemStackArgumentType.itemStack(registryAccess)).then(argument("tier", IntegerArgumentType.integer(1, 5))
+            dispatcher.register(literal("teststat")
+                    .requires(source -> source.hasPermissionLevel(2))
+                    .then(argument("item", ItemStackArgumentType.itemStack(registryAccess)).then(argument("tier", IntegerArgumentType.integer(1, 5))
                                     .executes(context -> {
                                         ServerPlayerEntity player = context.getSource().getPlayerOrThrow();
 

@@ -35,6 +35,10 @@ public class AilmentIconRenderer {
         return AILMENT_CACHE.getOrDefault(entityId, List.of());
     }
 
+    public static java.util.Set<Integer> getTrackedEntityIds() {
+        return java.util.Set.copyOf(AILMENT_CACHE.keySet());
+    }
+
 
 
     public static void render(WorldRenderContext context, VertexConsumerProvider consumers) {
@@ -54,7 +58,9 @@ public class AilmentIconRenderer {
             AILMENT_CACHE.keySet().removeIf(id -> client.world.getEntityById(id) == null);
         }
 
-        for (net.minecraft.entity.Entity entity : client.world.getEntities()) {
+        for (int entityId : getTrackedEntityIds()) {
+            net.minecraft.entity.Entity entity = client.world.getEntityById(entityId);
+            if (entity == null) continue;
             if (entity instanceof LivingEntity living && living.isAlive() && !living.isInvisibleTo(client.player)) {
                 // Skip the local player to prevent blocking their own view if they look up
                 if (living == client.player) continue;

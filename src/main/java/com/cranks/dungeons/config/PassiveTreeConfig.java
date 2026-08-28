@@ -264,7 +264,7 @@ public class PassiveTreeConfig {
                 Map.of("cranks-dungeons:crit_multiplier", 0.10), "circle", false, 0.0));
 
         root.add("nodes", nodes);
-        Files.writeString(TREE_FILE, GSON.toJson(root));
+        ConfigFileUtil.atomicWrite(TREE_FILE, GSON.toJson(root));
     }
 
     private static void generateDefaultClasses() throws IOException {
@@ -294,7 +294,7 @@ public class PassiveTreeConfig {
             Map.of("cranks-dungeons:intelligence", 5.0, "cranks-dungeons:dexterity", 5.0)));
 
         root.add("classes", classes);
-        Files.writeString(CLASSES_FILE, GSON.toJson(root));
+        ConfigFileUtil.atomicWrite(CLASSES_FILE, GSON.toJson(root));
     }
 
     // ─── JSON Helpers ───────────────────────────────────────────────────────────
@@ -424,7 +424,7 @@ public class PassiveTreeConfig {
     public static void saveNodesToFile(Collection<PassiveNode> nodes) {
         try {
             String json = exportNodesToJson(nodes);
-            Files.writeString(TREE_FILE, json);
+            ConfigFileUtil.atomicWrite(TREE_FILE, json);
             CranksDungeons.LOGGER.info("[PassiveTree] Successfully saved {} nodes to config.", nodes.size());
         } catch (IOException e) {
             CranksDungeons.LOGGER.error("[PassiveTree] FAILED to save nodes to file!", e);

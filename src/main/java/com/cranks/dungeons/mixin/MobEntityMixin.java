@@ -49,8 +49,8 @@ public abstract class MobEntityMixin implements MobDamageTracker {
         MobEquipmentManager.equipAct1Mob((MobEntity) (Object) this, world.getRandom(), difficulty);
     }
 
-    @Inject(method = "enchantEquipment(Lnet/minecraft/world/ServerWorldAccess;Lnet/minecraft/util/math/random/Random;Lnet/minecraft/world/LocalDifficulty;)V", at = @At("HEAD"), cancellable = true)
-    private void cranksDungeons$cancelEnchantEquipment(ServerWorldAccess world, net.minecraft.util.math.random.Random random, LocalDifficulty localDifficulty, org.spongepowered.asm.mixin.injection.callback.CallbackInfo ci) {
+    @Inject(method = "enchantEquipment(Lnet/minecraft/world/ServerWorldAccess;Lnet/minecraft/util/math/random/Random;Lnet/minecraft/entity/EquipmentSlot;Lnet/minecraft/world/LocalDifficulty;)V", at = @At("HEAD"), cancellable = true)
+    private void cranksDungeons$cancelEnchantEquipment(ServerWorldAccess world, net.minecraft.util.math.random.Random random, net.minecraft.entity.EquipmentSlot slot, LocalDifficulty localDifficulty, org.spongepowered.asm.mixin.injection.callback.CallbackInfo ci) {
         ci.cancel();
     }
 
@@ -59,7 +59,7 @@ public abstract class MobEntityMixin implements MobDamageTracker {
         ci.cancel();
     }
 
-    @Inject(method = "enchantMainHandEquipment", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "enchantMainHandItem", at = @At("HEAD"), cancellable = true)
     private void cranksDungeons$cancelEnchantMainHand(ServerWorldAccess world, net.minecraft.util.math.random.Random random, LocalDifficulty localDifficulty, org.spongepowered.asm.mixin.injection.callback.CallbackInfo ci) {
         ci.cancel();
     }

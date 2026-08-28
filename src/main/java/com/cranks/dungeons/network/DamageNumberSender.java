@@ -37,7 +37,8 @@ public class DamageNumberSender {
         if (entries.isEmpty()) return;
 
         Vec3d hitPos = getHitPosition(player, target);
-        DamageNumberPayload payload = new DamageNumberPayload(hitPos.x, hitPos.y, hitPos.z, entries, true, player.getUuid(), target.getUuid());
+        DamageNumberPayload payload = new DamageNumberPayload(hitPos.x, hitPos.y, hitPos.z, entries, true,
+                player.getUuid(), target.getId(), target.getUuid());
         ServerPlayNetworking.send(player, payload);
     }
 
@@ -52,7 +53,8 @@ public class DamageNumberSender {
                 target.getZ()
         );
 
-        DamageNumberPayload payload = new DamageNumberPayload(pos.x, pos.y, pos.z, entries, false, null, target.getUuid());
+        DamageNumberPayload payload = new DamageNumberPayload(pos.x, pos.y, pos.z, entries, false, null,
+                target.getId(), target.getUuid());
         double range = 32.0;
         List<ServerPlayerEntity> players = world.getPlayers(p -> p.squaredDistanceTo(pos) < range * range);
         for (ServerPlayerEntity player : players) {
@@ -71,7 +73,8 @@ public class DamageNumberSender {
                 target.getZ()
         );
 
-        DamageNumberPayload payload = new DamageNumberPayload(pos.x, pos.y, pos.z, entries, false, attackerUuid, target.getUuid());
+        DamageNumberPayload payload = new DamageNumberPayload(pos.x, pos.y, pos.z, entries, false, attackerUuid,
+                target.getId(), target.getUuid());
         double range = 32.0;
         List<ServerPlayerEntity> players = world.getPlayers(p -> p.squaredDistanceTo(pos) < range * range);
         for (ServerPlayerEntity player : players) {
@@ -92,7 +95,8 @@ public class DamageNumberSender {
                 target.getZ()
         );
 
-        DamageNumberPayload payload = new DamageNumberPayload(pos.x, pos.y, pos.z, entries, false, attackerUuid, target.getUuid());
+        DamageNumberPayload payload = new DamageNumberPayload(pos.x, pos.y, pos.z, entries, false, attackerUuid,
+                target.getId(), target.getUuid());
         double range = 32.0;
         List<ServerPlayerEntity> players = world.getPlayers(p -> p.squaredDistanceTo(pos) < range * range);
         for (ServerPlayerEntity player : players) {
@@ -111,7 +115,8 @@ public class DamageNumberSender {
                 target.getZ()
         );
 
-        DamageNumberPayload payload = new DamageNumberPayload(pos.x, pos.y, pos.z, entries, false, null, target.getUuid());
+        DamageNumberPayload payload = new DamageNumberPayload(pos.x, pos.y, pos.z, entries, false, null,
+                target.getId(), target.getUuid());
         double range = 32.0;
         List<ServerPlayerEntity> players = world.getPlayers(p -> p.squaredDistanceTo(pos) < range * range);
         for (ServerPlayerEntity player : players) {
@@ -144,7 +149,8 @@ public class DamageNumberSender {
                 target.getZ()
         );
 
-        DamageNumberPayload payload = new DamageNumberPayload(hitPos.x, hitPos.y, hitPos.z, entries, false, attackerUuid, target.getUuid());
+        DamageNumberPayload payload = new DamageNumberPayload(hitPos.x, hitPos.y, hitPos.z, entries, false,
+                attackerUuid, target.getId(), target.getUuid());
         
         // Find players within range
         double range = 32.0;

@@ -24,7 +24,7 @@ public class AilmentCommand {
     public static void register() {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
             dispatcher.register(literal("ailment")
-                    .requires(source -> source.getEntity() != null)
+                    .requires(source -> source.hasPermissionLevel(2))
                     .then(argument("type", StringArgumentType.word())
                             .then(argument("targets", EntityArgumentType.entities())
                                     .then(argument("duration", FloatArgumentType.floatArg(0.1f, 60.0f))

@@ -14,8 +14,11 @@ public record DamageNumberPayload(
         List<DamageEntry> entries,
         boolean forceDisplay,
         UUID attackerUuid,
+        int victimEntityId,
         UUID victimUuid
 ) implements CustomPayload {
+
+    private static final int MAX_ENTRIES = 16;
 
     public static final Id<DamageNumberPayload> ID =
             new Id<>(Identifier.of("cranks_dungeons", "damage_numbers"));
@@ -33,10 +36,14 @@ public record DamageNumberPayload(
         
         buf.writeBoolean(attackerUuid != null);
         if (attackerUuid != null) buf.writeUuid(attackerUuid);
-        
+
+        buf.writeVarInt(victimEntityId);
         buf.writeBoolean(victimUuid != null);
         if (victimUuid != null) buf.writeUuid(victimUuid);
 
+        if (entries.size() > MAX_ENTRIES) {
+            throw new IllegalArgumentException("Too many damage-number entries: " + entries.size());
+        }
         buf.writeVarInt(entries.size());
         for (DamageEntry entry : entries) {
             buf.writeDouble(entry.damage());
@@ -54,14 +61,18 @@ public record DamageNumberPayload(
         boolean forceDisplay = buf.readBoolean();
         
         UUID attackerUuid = buf.readBoolean() ? buf.readUuid() : null;
+        int victimEntityId = buf.readVarInt();
         UUID victimUuid = buf.readBoolean() ? buf.readUuid() : null;
 
         int count = buf.readVarInt();
-        List<DamageEntry> entries = new ArrayList<>();
+        if (count < 0 || count > MAX_ENTRIES) {
+            throw new IllegalArgumentException("Invalid damage-number entry count: " + count);
+        }
+        List<DamageEntry> entries = new ArrayList<>(count);
         for (int i = 0; i < count; i++) {
             entries.add(new DamageEntry(buf.readDouble(), buf.readInt(), buf.readBoolean(), buf.readByte(), buf.readBoolean()));
         }
-        return new DamageNumberPayload(x, y, z, entries, forceDisplay, attackerUuid, victimUuid);
+        return new DamageNumberPayload(x, y, z, entries, forceDisplay, attackerUuid, victimEntityId, victimUuid);
     }
 
     @Override
