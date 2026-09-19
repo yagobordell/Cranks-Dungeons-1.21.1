@@ -1,0 +1,5 @@
+{ "title": "Sword Runes", "content": [
+  { "type": "text", "value": "The catalog below lists every affix that an ordinary random Runic Tome can currently roll on a non-Unique sword, including exact tier ranges, rune level, weight, and armour-base restriction where relevant." },
+  { "type": "note", "style": "info", "value": "Material tier floors still apply. A targeted tome may add a guaranteed rune that bypasses the normal floor." },
+  { "type": "stat_catalog", "value": "SWORD" }
+] }

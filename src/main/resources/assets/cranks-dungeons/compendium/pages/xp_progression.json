@@ -1,0 +1,15 @@
+{
+  "title": "Levels & Experience",
+  "content": [
+    { "type": "heading", "value": "Combat Levels" },
+    { "type": "text", "value": "Mob kills award ordinary player XP through the mod's combat distributor. The XP needed for the next level is 50 + 5 x current level + 0.2 x current level squared, rounded down. At level 90 the next requirement becomes 9,999,999, making 90 the practical cap." },
+    { "type": "list", "value": "Each positive level gained awards the same number of unspent Passive Tree points.\nEach character level grants +12 maximum health and +4 maximum mana independently of passive nodes.\nThe Experience Bonus attribute increases any XP before it is classified. Combat Experience is also applied to kill awards." },
+    { "type": "heading", "value": "Kill Credit and Parties" },
+    { "type": "text", "value": "The solo player or party that contributed the most tracked damage wins the mob's XP. Eligible recipients must be in the same dimension and within 100 blocks. With two or more eligible party members, XP is divided by their count and each share receives a 20% party bonus, rounded up. The highest Combat Experience bonus among eligible members boosts the pool." },
+    { "type": "heading", "value": "Non-Combat XP" },
+    { "type": "text", "value": "XP not explicitly awarded by the combat-kill system is redirected into World Tree gathering XP at 10 World XP per vanilla XP. This includes ordinary furnace, trading, breeding, fishing, crop-rune, block, and loose-orb XP." },
+    { "type": "heading", "value": "Death" },
+    { "type": "text", "value": "Without keepInventory, death preserves your current level but subtracts 30 percentage points from the progress bar toward the next level, never below zero. With keepInventory, XP is retained exactly. Passive and World Tree data persist through death." },
+    { "type": "note", "style": "warning", "value": "The death penalty is not 30% of your current progress. A bar at 80% becomes 50%; a bar at 20% becomes 0%." }
+  ]
+}

@@ -1,0 +1,4 @@
+{ "title": "Boots Runes", "content": [
+  { "type": "text", "value": "Boots have their own defence and movement-oriented pool. Tome of Haste guarantees the boots movement-speed rune at T4. Hybrid boots can also matter to passives that use the lower of boots armour and evasion as ailment threshold." },
+  { "type": "stat_catalog", "value": "BOOTS" }
+] }

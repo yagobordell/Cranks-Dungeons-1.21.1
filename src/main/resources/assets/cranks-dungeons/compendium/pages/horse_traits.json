@@ -1,0 +1,19 @@
+{
+  "title": "Horse Traits & Mutations",
+  "content": [
+    { "type": "heading", "value": "Traits" },
+    { "type": "text", "value": "A horse can carry one trait. Traits affect the horse itself and never add attributes to its rider." },
+    { "type": "list", "value": "Swift: +5% base movement speed, +5% gallop speed, and +10% terrain movement efficiency.\nHardy: +10% base maximum health, +15% maximum stamina, and +25% stamina recovery.\nSure-Footed: +8% base jump, +15% knockback resistance, +0.15 step height, +2 safe-fall distance, 30% less remaining fall damage, and -2 jump stamina cost.\nWarhorse: +30 armour, +20 evasion, and +20% knockback resistance.\nNo Trait: no trait bonuses." },
+    { "type": "heading", "value": "Trait Inheritance" },
+    { "type": "text", "value": "Two parents with the same positive trait pass it automatically unless the separate 3% trait-mutation roll replaces it. When only one parent has a trait, the foal has a 70% chance to inherit it. Two different traits use a 45% first-parent, 45% second-parent, and 10% No Trait split before trait mutation." },
+    { "type": "heading", "value": "Gene Mutations" },
+    { "type": "text", "value": "After inheritance, each gene has an independent 5% mutation chance. A mutation is positive 80% of the time and negative 20% of the time. It changes the selected value by 2–5% of that gene's full legal range, gains a small generation-based magnitude bonus capped at +2% of the range, and is then clamped to the legal minimum or maximum." },
+    { "type": "note", "style": "info", "value": "The guaranteed quality-scaled lineage improvement from breeding focus is selective progress, not a mutation, and does not increase the displayed mutation count." },
+    { "type": "heading", "value": "Birth Record" },
+    { "type": "text", "value": "The horse inventory separates personal mutations from the inherited lineage total. Every personal gene mutation names the affected gene, displays its actual signed change, and uses green for positive or red for negative. Trait mutations show the inherited and replacement traits; coat mutations are marked Cosmetic. A capped mutation may display zero change while still recording whether its attempted direction was positive or negative." },
+    { "type": "note", "style": "important", "value": "Lineage Mutations is a historical count, not a quality score. Always judge a horse by its resulting genes and personal mutation details." },
+    { "type": "heading", "value": "Trait & Coat Mutations" },
+    { "type": "text", "value": "A separate 3% trait mutation replaces the inherited result with one of the four positive traits and increments mutations. After normal vanilla coat inheritance, another 2% roll can replace the foal's colour with a random HorseColor and also increments mutations." },
+    { "type": "text", "value": "The displayed mutation total includes inherited parental mutation totals plus each new gene, trait, and coat mutation. Negative gene mutations still count, while guaranteed lineage improvements do not." }
+  ]
+}

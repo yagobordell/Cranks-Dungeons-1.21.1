@@ -1,0 +1,23 @@
+{
+  "title": "Breeding & Genetics",
+  "content": [
+    { "type": "heading", "value": "Breeding Requirements" },
+    { "type": "text", "value": "Horse breeding is a long-term way to combine strong bloodlines and gradually improve them. Feeding valid breeding food still starts vanilla love mode, but a pair only succeeds when every genetic restriction is satisfied." },
+    { "type": "list", "value": "Both parents must be adult vanilla Horses in love.\nOne must be male and the other female.\nEach parent must have at least one of its three lifetime breeding attempts remaining.\nBoth must be past their 36,000-tick (30-minute) breeding cooldown.\nThey cannot be the same horse, direct ancestors, descendants, or share an ancestor recorded by the system." },
+    { "type": "heading", "value": "Inheritance" },
+    { "type": "text", "value": "Health, Speed, Jump, Evasion, and Endurance are inherited separately. Each normally has a 70% chance to take the better parental value and a 30% chance to take the weaker value. Every foal is guaranteed to take the better parent for at least three of its five genes before mutation and lineage improvement are applied." },
+    { "type": "note", "style": "info", "value": "A foal selects parental values; it does not average them. Pair horses whose best genes complement one another to assemble a stronger bloodline." },
+    { "type": "heading", "value": "Breeding Focus" },
+    { "type": "text", "value": "Open each parent's inventory and use the < and > arrows on its Breeding Focus row to choose None, Health, Speed, Jump, Evasion, or Endurance. A focused gene is guaranteed to select the better parental value. Focus is a breeding instruction, not a gene, and newborn foals begin with no focus selected." },
+    { "type": "text", "value": "Lineage improvement now helps weak genes catch up without making the final push trivial. A matching focus grants 3% of the full range below 25% gene quality, 2.5% below 60%, 2% below 85%, and 1% at 85% or higher. One selected focus or two different focuses receive 75% of that rate; no focus receives 50%." },
+    { "type": "list", "value": "No selected focus: one random gene receives the quality-scaled improvement.\nOne selected focus: that gene is guaranteed better and receives the single-focus rate.\nTwo different focuses: both genes are guaranteed better; one randomly receives the single-focus rate.\nMatching focuses: the shared gene is guaranteed better and receives the full matching-focus rate." },
+    { "type": "note", "style": "tip", "value": "Matching Speed focuses are the most direct way to build a racing line. Different focuses are useful when a bloodline still needs two weak genes corrected." },
+    { "type": "heading", "value": "Pairing Preview" },
+    { "type": "text", "value": "When another adult tamed horse is within eight blocks, the current horse's inventory opens a Pairing Preview. If several are nearby, use the < and > arrows on the Mate row to inspect each candidate; the counter shows the current selection and compatible candidates are ordered first. The preview shows any blocker, both parental values for every gene, focus-guaranteed genes marked with *, the possible lineage gain, and pre-mutation trait odds. It does not reveal random inheritance or mutations before birth." },
+    { "type": "heading", "value": "Generation & Family" },
+    { "type": "text", "value": "The foal's generation is one higher than the higher-generation parent. It stores sire and dam UUID/name, both parents, and combined ancestor records up to 16 UUIDs. Both parents lose one breeding attempt and enter cooldown when the foal is created; the foal starts with three attempts." },
+    { "type": "heading", "value": "Imprinting" },
+    { "type": "text", "value": "The player recorded as the loving breeder becomes the imprint owner. The first sugar care can happen after 1,200 ticks (1 minute); each later care needs 3,000 ticks (2.5 minutes). Each sugar adds 25%, so four successful cares reach 100%. Only the breeder can perform them while the horse is a foal." },
+    { "type": "note", "style": "important", "value": "A fully imprinted horse gains up to 20% base health, speed, and jump only while its imprint owner controls it. Imprint is not genetic and gives no bonus to other riders." }
+  ]
+}

@@ -20,10 +20,39 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
 public class StatusEffectStatManager {
+
+    /**
+     * Adds the custom explanation lines used by status-effect tooltips. The
+     * inventory status-effect panel builds its tooltip directly, so it cannot
+     * rely only on the DrawContext tooltip mixin.
+     */
+    public static List<Text> enrichStatusEffectTooltip(List<Text> tooltip) {
+        if (tooltip == null || tooltip.isEmpty()) return tooltip;
+
+        List<Text> cleaned = new ArrayList<>();
+        for (Text line : tooltip) {
+            if (line != null && !line.getString().trim().isEmpty()) {
+                cleaned.add(line);
+            }
+        }
+        if (cleaned.isEmpty()) return tooltip;
+
+        List<Text> descriptions = getDescriptionsByTitle(cleaned.get(0).getString().trim());
+        if (descriptions == null || descriptions.isEmpty()) return cleaned;
+
+        for (Text line : cleaned) {
+            if (line.getString().contains(descriptions.get(0).getString())) {
+                return cleaned;
+            }
+        }
+        cleaned.addAll(descriptions);
+        return cleaned;
+    }
 
     // Attribute Modifier IDs for neutralized status effects
     public static final Identifier FIRE_RES_MOD_ID = Identifier.of(CranksDungeons.MOD_ID, "effect_fire_resistance");

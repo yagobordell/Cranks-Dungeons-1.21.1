@@ -1,5 +1,6 @@
 package com.cranks.dungeons.item;
 
+import com.cranks.dungeons.equipment.AnimalArmorHelper;
 import com.cranks.dungeons.registry.ModAttributes;
 import com.cranks.dungeons.util.CombatUtility;
 import net.fabricmc.fabric.api.item.v1.DefaultItemComponentEvents;
@@ -8,6 +9,8 @@ import net.minecraft.component.type.AttributeModifiersComponent;
 import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;
+import net.minecraft.item.Item;
+import net.minecraft.item.Items;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.util.Identifier;
@@ -19,7 +22,7 @@ public class ItemComponentModifier {
             context.modify(item -> true, (builder, item) -> {
                 String itemName = Registries.ITEM.getId(item).toString().toLowerCase();
 
-                if (!shouldModify(itemName)) {
+                if (!shouldModify(item, itemName)) {
                     return;
                 }
 
@@ -31,7 +34,11 @@ public class ItemComponentModifier {
                 AttributeModifiersComponent.Builder attrBuilder = AttributeModifiersComponent.builder();
                 boolean modified = false;
 
-                if (isArmor(itemName)) {
+                if (AnimalArmorHelper.isSupported(item)) {
+                    addAnimalArmorAttributes(attrBuilder, item);
+                    modified = true;
+
+                } else if (isArmor(itemName)) {
                     // For armors in 1.21.1, the AttributeModifiersComponent might be empty natively. 
                     // So we manually rebuild it using the vanilla base values + our multipliers.
                     
@@ -139,6 +146,58 @@ public class ItemComponentModifier {
                 }
             });
         });
+    }
+
+    private static void addAnimalArmorAttributes(AttributeModifiersComponent.Builder builder, Item item) {
+        net.minecraft.component.type.AttributeModifierSlot bodySlot =
+                net.minecraft.component.type.AttributeModifierSlot.BODY;
+
+        if (item == Items.LEATHER_HORSE_ARMOR) {
+            addAnimalArmorAttribute(builder, ModAttributes.EVASION_RATING,
+                    "animal_armor.evasion", 60.0,
+                    EntityAttributeModifier.Operation.ADD_VALUE, bodySlot);
+            // MOVEMENT_SPEED is bridged to the vanilla movement attribute only for players.
+            // Applying the equivalent modifier directly makes the horse itself 15% faster.
+            addAnimalArmorAttribute(builder, EntityAttributes.GENERIC_MOVEMENT_SPEED,
+                    "animal_armor.movement_speed", 0.15,
+                    EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE, bodySlot);
+        } else if (item == Items.GOLDEN_HORSE_ARMOR) {
+            addAnimalArmorAttribute(builder, EntityAttributes.GENERIC_ARMOR,
+                    "animal_armor.armor", 55.0,
+                    EntityAttributeModifier.Operation.ADD_VALUE, bodySlot);
+            addAnimalArmorAttribute(builder, ModAttributes.ENERGY_SHIELD,
+                    "animal_armor.energy_shield", 35.0,
+                    EntityAttributeModifier.Operation.ADD_VALUE, bodySlot);
+        } else if (item == Items.DIAMOND_HORSE_ARMOR) {
+            addAnimalArmorAttribute(builder, EntityAttributes.GENERIC_ARMOR,
+                    "animal_armor.armor", 300.0,
+                    EntityAttributeModifier.Operation.ADD_VALUE, bodySlot);
+            addAnimalArmorAttribute(builder, EntityAttributes.GENERIC_MAX_HEALTH,
+                    "animal_armor.max_health", 10.0,
+                    EntityAttributeModifier.Operation.ADD_VALUE, bodySlot);
+            addAnimalArmorAttribute(builder, ModAttributes.LIFE_REGENERATION,
+                    "animal_armor.life_regeneration", 0.75,
+                    EntityAttributeModifier.Operation.ADD_VALUE, bodySlot);
+        } else if (item == Items.IRON_HORSE_ARMOR || item == Items.WOLF_ARMOR) {
+            addAnimalArmorAttribute(builder, EntityAttributes.GENERIC_ARMOR,
+                    "animal_armor.armor", 120.0,
+                    EntityAttributeModifier.Operation.ADD_VALUE, bodySlot);
+            addAnimalArmorAttribute(builder, ModAttributes.KNOCKBACK_RESISTANCE,
+                    "animal_armor.knockback_resistance", 0.20,
+                    EntityAttributeModifier.Operation.ADD_VALUE, bodySlot);
+        }
+    }
+
+    private static void addAnimalArmorAttribute(AttributeModifiersComponent.Builder builder,
+            RegistryEntry<EntityAttribute> attribute, String idPath, double value,
+            EntityAttributeModifier.Operation operation,
+            net.minecraft.component.type.AttributeModifierSlot slot) {
+        builder.add(attribute,
+                new EntityAttributeModifier(
+                        Identifier.of("cranks-dungeons", idPath),
+                        value,
+                        operation),
+                slot);
     }
 
     private static void addArmorTypeBonuses(AttributeModifiersComponent.Builder builder, String itemName,
@@ -293,8 +352,8 @@ public class ItemComponentModifier {
         return "unknown";
     }
 
-    private static boolean shouldModify(String itemName) {
-        return isArmor(itemName) || isWeapon(itemName) || itemName.contains("shield");
+    private static boolean shouldModify(Item item, String itemName) {
+        return AnimalArmorHelper.isSupported(item) || isArmor(itemName) || isWeapon(itemName) || itemName.contains("shield");
     }
 
     private static boolean isArmor(String itemName) {

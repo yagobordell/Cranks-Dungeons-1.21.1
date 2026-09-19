@@ -104,6 +104,22 @@ public class ModConfigModel {
 
     @RangeConstraint(min = -1, max = 3000)
     @ExcludeFromScreen
+    public int horseStaminaBarX = -1;
+
+    @RangeConstraint(min = -1, max = 3000)
+    @ExcludeFromScreen
+    public int horseStaminaBarY = -1;
+
+    @RangeConstraint(min = -1, max = 3000)
+    @ExcludeFromScreen
+    public int mountHealthBarX = -1;
+
+    @RangeConstraint(min = -1, max = 3000)
+    @ExcludeFromScreen
+    public int mountHealthBarY = -1;
+
+    @RangeConstraint(min = -1, max = 3000)
+    @ExcludeFromScreen
     public int manaBarX = -1;
 
     @RangeConstraint(min = -1, max = 3000)

@@ -1,0 +1,16 @@
+{
+  "title": "Targeted Tomes",
+  "content": [
+    { "type": "text", "value": "A targeted tome replaces random family selection with one guaranteed compatible family. Every targeted tome requires a Magic, non-Unique item, changes it to Rare, and consumes an available prefix or suffix slot. The craft fails if the item already has that duplicate group or the tome has no result for that equipment type." },
+    { "type": "heading", "value": "Normal Elemental Tomes - Fixed T4" },
+    { "type": "list", "value": "Tome of Abrasion: adds flat physical Attack Damage to swords, spears, bows, or crossbows; adds flat Armor to helmets, chestplates, leggings, or boots.\nTome of Flames: adds local flat Fire Damage to those weapons; adds Fire Resistance to those armour pieces.\nTome of Ice: adds local flat Cold Damage to those weapons; adds Cold Resistance to those armour pieces.\nTome of Electricity: adds local flat Lightning Damage to those weapons; adds Lightning Resistance to those armour pieces.\nTome of Ruin: has no weapon result; it adds Void Resistance to those armour pieces." },
+    { "type": "text", "value": "All five Normal elemental tomes add their result at exactly T4. These flat damage, Armor, and resistance families can also exist in ordinary random pools; the targeted tome guarantees the named family and bypasses the base item's normal random tier floor." },
+    { "type": "heading", "value": "Greater Elemental Tomes - Random T1 to T3" },
+    { "type": "list", "value": "Greater Tome of Abrasion: weapons gain 15-20% of total basic damage as extra Physical Damage when one-handed, or 25-33% when two-handed. Armour receives its ordinary flat Armor family at a random T1-T3.\nGreater Tome of Flames: weapons gain the same one-handed or two-handed percentage as extra Fire Damage. Armour receives Fire Resistance at a random T1-T3.\nGreater Tome of Ice: weapons gain that percentage as extra Cold Damage. Armour receives Cold Resistance at a random T1-T3.\nGreater Tome of Electricity: weapons gain that percentage as extra Lightning Damage. Armour receives Lightning Resistance at a random T1-T3.\nGreater Tome of Ruin: has no weapon result. Armour gains 10-15% of physical hit damage taken as Void Damage." },
+    { "type": "note", "style": "important", "value": "Damage as Extra Physical, Fire, Cold, or Lightning cannot be rolled by ordinary random tomes. It is obtained from the matching Greater elemental tome. Physical Damage Taken as Void is likewise a special Greater Tome of Ruin armour result." },
+    { "type": "heading", "value": "Haste and Body - Fixed T4" },
+    { "type": "list", "value": "Tome of Haste: adds Attack Speed to swords, spears, bows, crossbows, or chestplates; adds Movement Speed to boots.\nTome of the Body: adds Maximum Health to helmets, chestplates, leggings, or boots." },
+    { "type": "text", "value": "Haste and Body always add T4. Their result families are also part of the compatible ordinary pool; these tomes are valuable because they guarantee the family while upgrading Magic to Rare." },
+    { "type": "note", "style": "info", "value": "Only Normal and Greater elemental tomes are currently registered. There are no obtainable Perfect elemental tomes. No targeted tome currently works on shields, tools, animal armour, the mace, trident, turtle helmet, or Elytra." }
+  ]
+}

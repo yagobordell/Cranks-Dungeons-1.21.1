@@ -3,6 +3,11 @@ package com.cranks.dungeons;
 import com.cranks.dungeons.party.Party;
 import com.cranks.dungeons.util.CombatXpContext;
 import com.cranks.dungeons.util.TreeUnlockPlanner;
+import com.cranks.dungeons.horse.HorseBreedingFocus;
+import com.cranks.dungeons.horse.HorseBreedingManager;
+import com.cranks.dungeons.horse.HorseBreedingRules;
+import com.cranks.dungeons.horse.HorseGeneticsData;
+import com.cranks.dungeons.horse.HorseTrait;
 
 import java.util.Collection;
 import java.util.Map;
@@ -20,6 +25,13 @@ public final class RegressionTestSuite {
         partyRejectsInvalidMembers();
         treeDraftPlansSelectionNodesAcrossNewConnections();
         treeDraftRejectsDisconnectedOrUnaffordableChanges();
+        horseTrainingMilestonesChangeMobilityCosts();
+        hardyTraitImprovesStaminaWithoutChangingOtherCosts();
+        horseBreedingFocusParsingIsSafe();
+        horseBreedingCatchUpRewardsWeakGenes();
+        horseTrainingCurveAndActivityRewardsAreBalanced();
+        horseRoleGradesSeparateMobilityAndSurvival();
+        horsePersonalMutationRecordPersists();
     }
 
     private static void combatXpContextRestoresNestedState() {
@@ -101,6 +113,134 @@ public final class RegressionTestSuite {
                 Set.of("start"), List.of("one", "two"), 1, id -> List.of("start"));
         require(unaffordable.failure() == TreeUnlockPlanner.Failure.NOT_ENOUGH_POINTS,
                 "unaffordable draft was accepted");
+    }
+
+    private static void horseTrainingMilestonesChangeMobilityCosts() {
+        HorseGeneticsData data = new HorseGeneticsData();
+        data.geneticEndurance = 100.0;
+        data.level = 1;
+        require(close(HorseBreedingManager.getMaxStamina(data), 100.0),
+                "level-one horse stamina was incorrect");
+        require(close(HorseBreedingManager.jumpStaminaCost(data), 8.0),
+                "level-one jump cost was incorrect");
+        require(close(HorseBreedingManager.gallopDrainPerSecond(data), 4.0),
+                "level-one gallop drain was incorrect");
+
+        data.level = 30;
+        require(close(HorseBreedingManager.getMaxStamina(data), 143.5),
+                "training stamina did not include all 29 trained levels");
+        require(close(HorseBreedingManager.jumpStaminaCost(data), 6.0),
+                "efficient-jumper milestone did not reduce jump cost");
+        require(close(HorseBreedingManager.gallopDrainPerSecond(data), 3.0),
+                "endurance-training milestone did not reduce gallop drain");
+        require(close(HorseBreedingManager.gallopSpeedBonus(data), 0.20),
+                "mastered-gallop milestone did not increase gallop speed");
+    }
+
+    private static void hardyTraitImprovesStaminaWithoutChangingOtherCosts() {
+        HorseGeneticsData data = new HorseGeneticsData();
+        data.geneticEndurance = 100.0;
+        data.level = 1;
+        data.trait = HorseTrait.HARDY;
+        require(close(HorseBreedingManager.getMaxStamina(data), 115.0),
+                "Hardy did not increase maximum stamina by 15 percent");
+        require(close(HorseBreedingManager.mountedStaminaRegenPerSecond(data), 2.5),
+                "Hardy did not increase mounted recovery by 25 percent");
+        require(close(HorseBreedingManager.jumpStaminaCost(data), 8.0),
+                "Hardy unexpectedly changed jump cost");
+
+        data.trait = HorseTrait.SURE_FOOTED;
+        require(close(HorseBreedingManager.jumpStaminaCost(data), 6.0),
+                "Sure-Footed did not reduce jump cost");
+    }
+
+    private static void horseBreedingFocusParsingIsSafe() {
+        require(HorseBreedingFocus.fromId("speed") == HorseBreedingFocus.SPEED,
+                "lower-case breeding focus was not parsed");
+        require(HorseBreedingFocus.fromId("not_a_focus") == HorseBreedingFocus.NONE,
+                "invalid breeding focus did not fall back to None");
+        require(HorseBreedingFocus.fromId(null) == HorseBreedingFocus.NONE,
+                "null breeding focus did not fall back to None");
+    }
+
+    private static void horseBreedingCatchUpRewardsWeakGenes() {
+        require(close(HorseBreedingRules.lineageImprovement(
+                        HorseBreedingFocus.SPEED, HorseBreedingFocus.SPEED, 0.10), 0.03),
+                "matching focus did not give a three-percent low-gene catch-up");
+        require(close(HorseBreedingRules.lineageImprovement(
+                        HorseBreedingFocus.SPEED, HorseBreedingFocus.NONE, 0.10), 0.0225),
+                "single focus did not retain its proportional catch-up bonus");
+        require(close(HorseBreedingRules.lineageImprovement(
+                        HorseBreedingFocus.NONE, HorseBreedingFocus.NONE, 0.10), 0.015),
+                "unfocused breeding did not retain its proportional catch-up bonus");
+        require(close(HorseBreedingRules.lineageImprovement(
+                        HorseBreedingFocus.SPEED, HorseBreedingFocus.SPEED, 0.90), 0.01),
+                "near-maximum gene did not use the intended one-percent final push");
+    }
+
+    private static void horseTrainingCurveAndActivityRewardsAreBalanced() {
+        require(HorseBreedingManager.experienceForNextLevel(1) == 90,
+                "level-one horse training requirement was not reduced");
+        require(HorseBreedingManager.experienceForNextLevel(10) == 470,
+                "middle horse training requirement did not follow the gradual curve");
+        require(HorseBreedingManager.experienceForNextLevel(20) == 1100,
+                "horse training curve did not return to the original requirement at level 20");
+        require(HorseBreedingRules.travelExperience(false) == 2
+                        && HorseBreedingRules.travelExperience(true) == 4,
+                "horse travel XP rewards were incorrect");
+        require(HorseBreedingRules.longJumpExperience(3.99) == 0
+                        && HorseBreedingRules.longJumpExperience(4.0) == 2
+                        && HorseBreedingRules.longJumpExperience(8.0) == 6
+                        && HorseBreedingRules.longJumpExperience(12.0) == 10,
+                "long-jump XP thresholds were incorrect");
+    }
+
+    private static void horseRoleGradesSeparateMobilityAndSurvival() {
+        HorseGeneticsData data = new HorseGeneticsData();
+        data.geneticHealth = HorseBreedingRules.MIN_HEALTH;
+        data.geneticSpeed = HorseBreedingRules.MAX_SPEED;
+        data.geneticJump = HorseBreedingRules.MAX_JUMP;
+        data.geneticEvasion = HorseBreedingRules.MIN_EVASION;
+        data.geneticEndurance = HorseBreedingRules.MAX_ENDURANCE;
+        require("S".equals(HorseBreedingManager.mobilityGrade(data)),
+                "maximum mobility genes did not produce an S mobility grade");
+        require("E".equals(HorseBreedingManager.survivalGrade(data)),
+                "minimum survival genes did not produce an E survival grade");
+        require(!HorseBreedingManager.grade(data).equals(HorseBreedingManager.mobilityGrade(data)),
+                "overall grade did not remain distinct from a specialized mobility grade");
+    }
+
+    private static void horsePersonalMutationRecordPersists() {
+        HorseGeneticsData data = new HorseGeneticsData();
+        data.initialized = true;
+        data.personalGeneMutationMask = HorseBreedingRules.SPEED_MUTATION
+                | HorseBreedingRules.ENDURANCE_MUTATION;
+        data.personalPositiveMutationMask = HorseBreedingRules.SPEED_MUTATION;
+        data.speedMutation = 0.0125;
+        data.enduranceMutation = -4.5;
+        data.traitMutated = true;
+        data.traitMutationFrom = HorseTrait.HARDY;
+        data.traitMutationTo = HorseTrait.SWIFT;
+        data.coatMutated = true;
+
+        HorseGeneticsData restored = new HorseGeneticsData();
+        restored.readNbt(data.toNbt());
+        require(restored.personalGeneMutationMask == data.personalGeneMutationMask,
+                "personal gene mutation mask was not persisted");
+        require(restored.personalPositiveMutationMask == data.personalPositiveMutationMask,
+                "positive mutation directions were not persisted");
+        require(close(restored.speedMutation, 0.0125)
+                        && close(restored.enduranceMutation, -4.5),
+                "personal mutation magnitudes were not persisted");
+        require(restored.traitMutated
+                        && restored.traitMutationFrom == HorseTrait.HARDY
+                        && restored.traitMutationTo == HorseTrait.SWIFT,
+                "trait mutation history was not persisted");
+        require(restored.coatMutated, "coat mutation history was not persisted");
+    }
+
+    private static boolean close(double first, double second) {
+        return Math.abs(first - second) < 0.000001;
     }
 
     private static void require(boolean condition, String message) {

@@ -1,16 +1,19 @@
 {
   "title": "Ailments",
   "content": [
-    { "type": "text", "value": "Ailments are status effects that can be inflicted through elemental and physical damage. Each damage type has associated ailments that trigger based on the damage dealt." },
-    { "type": "spacer" },
-    { "type": "heading", "value": "Physical Ailments" },
-    { "type": "text", "value": "• Bleed — Deals physical damage over time. Stacks in intensity based on the hit that caused it. Moving while bleeding increases damage taken.\n• Poison — Deals chaos damage over time. Can stack multiple times from separate hits." },
-    { "type": "spacer" },
-    { "type": "heading", "value": "Elemental Ailments" },
-    { "type": "text", "value": "• Burn (Fire) — Deals fire damage over time. Caused by fire damage. Duration and damage scale with the initial hit.\n• Freeze (Cold) — Slows movement and attack speed. Caused by cold damage. Stronger hits cause longer freezes.\n• Shock (Lightning) — Increases damage taken from all sources. Caused by lightning damage.\n• Electrocute (Lightning) — Deals lightning damage over time. A secondary lightning ailment." },
-    { "type": "spacer" },
-    { "type": "heading", "value": "Ailment Mechanics" },
-    { "type": "text", "value": "Ailments are applied based on the elemental damage dealt relative to the target's maximum health. Higher damage relative to HP means a stronger ailment effect. Resistances reduce both the direct damage and the ailment's severity." },
-    { "type": "note", "value": "Elemental resistances are your best defense against ailments. Even if you can't avoid the hit, high resistance significantly reduces the ailment's impact.", "style": "tip" }
+    { "type": "text", "value": "Ailment strength is measured against an effective threshold based on the target's maximum health, with optional bonuses from Energy Shield, Dexterity, boots, and passive modifiers. Freeze, Electrocute, and Flammability show buildup and begin at 100%. Buildup starts decaying after 2 seconds without a contributing hit." },
+    { "type": "subheading", "value": "Burn / Flammability" },
+    { "type": "text", "value": "Fire damage adds Flammability equal to fire damage divided by threshold, multiplied by 20% and Flammability magnitude. At 100%, Burn deals 50% of the triggering fire damage as its base damage over a base 4 seconds, ticking every 0.5 seconds. Only the strongest Burn remains; an equal Burn can refresh it. Burn can spread up to five generations. Water, rain, and powder snow halve its tick damage and make duration expire twice as fast." },
+    { "type": "subheading", "value": "Poison" },
+    { "type": "text", "value": "Physical or void damage can Poison when Chance to Poison succeeds; a critical guarantees that chance check. Each stack uses 20% of the triggering physical + void damage, modified by Poison magnitude, for a base 2 seconds. Poison ticks every 0.5 seconds, scales linearly with stack count, uses void resistance, and bypasses Energy Shield. The base cap is 20 stacks plus Poison Maximum Stacks." },
+    { "type": "subheading", "value": "Bleed" },
+    { "type": "text", "value": "Physical damage can Bleed when Chance to Bleed succeeds; a critical guarantees the check. Its base magnitude starts from 100% of the physical hit and its base duration is 5 seconds. While Bleeding, 40% of subsequent damage taken is accumulated. Bleed does not tick normally: the stored amount bursts when the ailment expires, and it bypasses Energy Shield." },
+    { "type": "subheading", "value": "Freeze" },
+    { "type": "text", "value": "Cold damage adds buildup equal to twice cold damage divided by threshold, multiplied by Freeze Buildup. Partial buildup slows movement by that fraction, capped at 90% and scaled by magnitude. At 100% the target is frozen for a base 2 seconds and cannot act." },
+    { "type": "subheading", "value": "Shock" },
+    { "type": "text", "value": "Lightning hits have base Shock chance equal to lightning damage divided by threshold times 25%; chance bonuses and global ailment chance increase it, while criticals guarantee the check. Magnitude begins at damage divided by threshold times 30%, requires at least 5%, and is normally capped at 50%. Shock increases all damage taken. Hitting an already shocked target with lightning arcs the full lightning amount to valid living entities within 10 blocks and applies a baseline Shock." },
+    { "type": "subheading", "value": "Electrocute" },
+    { "type": "text", "value": "Lightning also builds Electrocute at four times lightning damage divided by threshold, modified by Electrocute Buildup. At 100%, Electrocute stuns the target for a base 0.5 seconds, preventing movement and attacks." },
+    { "type": "note", "style": "tip", "value": "Reduced Ailment Duration on You modifies the final duration. Elemental resistance reduces the hit that generates an ailment, indirectly lowering its chance, buildup, or base damage." }
   ]
 }

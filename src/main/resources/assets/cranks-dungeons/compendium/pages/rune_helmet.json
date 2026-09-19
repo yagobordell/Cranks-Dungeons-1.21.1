@@ -1,0 +1,4 @@
+{ "title": "Helmet Runes", "content": [
+  { "type": "text", "value": "A helmet only receives affinity-compatible random affixes: pure armour, evasion, Energy Shield, or hybrid bases restrict which local defence families can appear. Turtle helmets are fixed Unique." },
+  { "type": "stat_catalog", "value": "HELMET" }
+] }

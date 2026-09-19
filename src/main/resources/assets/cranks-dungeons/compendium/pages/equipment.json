@@ -1,0 +1,14 @@
+{
+  "title": "Equipment Bases",
+  "content": [
+    { "type": "text", "value": "The base item decides its native damage or defence, requirement profile, compatible affix pool, and best random rune tier. Runes and quality build on top of that base." },
+    { "type": "heading", "value": "Armour Identities" },
+    { "type": "list", "value": "Leather: 60 total evasion and 15% total movement speed across a full set; Dexterity-aligned.\nGold: 55 total armour, 35 Energy Shield, and 7% rarity of items found; Strength/Intelligence hybrid.\nChainmail: 60 total armour, 35 evasion, and +0.30 attack speed across the set; Strength/Dexterity hybrid.\nIron: 120 total armour and 20% knockback resistance; Strength-aligned.\nDiamond: 300 total armour, +10 maximum health, and 0.75 health regeneration per second; Strength-aligned.\nNetherite: 500 total armour from its base scaling plus vanilla knockback contribution and 25% fire resistance across the set; Strength-aligned.\nTurtle Helmet: a fixed Unique base with 45 armour.\nElytra: a fixed Unique base with 90 Energy Shield." },
+    { "type": "heading", "value": "Weapons and Tools" },
+    { "type": "text", "value": "Swords, spears, bows, crossbows, and shields can use the ordinary rune system. Spears, bows, and crossbows count as two-handed. The vanilla mace and trident are Unique items and therefore do not use ordinary rune pools." },
+    { "type": "text", "value": "Axes, pickaxes, shovels, and hoes cannot receive rune affixes and cannot be improved with quality materials. They can receive Deepslate Sigil enchantment slots up to their normal cap and can use compatible enchantments." },
+    { "type": "heading", "value": "Defence Affinity" },
+    { "type": "text", "value": "An armour base is classified by whether it naturally has armour, evasion, Energy Shield, or a hybrid. A random affix whose affinity requires a defence the item does not have is excluded. For example, a pure Dexterity/evasion base cannot roll a Strength-only armour family." },
+    { "type": "note", "style": "tip", "value": "Local percentages become more valuable as the underlying base improves. Compare the finished item total, not only the rune text." }
+  ]
+}

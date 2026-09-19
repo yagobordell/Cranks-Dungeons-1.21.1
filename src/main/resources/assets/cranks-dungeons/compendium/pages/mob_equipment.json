@@ -1,0 +1,13 @@
+{
+  "title": "Mob Equipment",
+  "content": [
+    { "type": "text", "value": "Ordinary zombies, ordinary skeletons, and ordinary piglins use an Act 1 equipment generator. Their vanilla gear is cleaned or replaced so dropped equipment follows the mod's quality, slot, rarity, and rune rules." },
+    { "type": "heading", "value": "Who Gets Gear" },
+    { "type": "text", "value": "Skeletons always receive a processed, unenchanted bow with an 8.5% drop chance. Each supported mob also has a 22% chance to roll an extra equipment branch: 60% one armor piece, 25% the two-piece branch, 10% weapon only, or 5% a complete four-piece armor set. The two-piece branch is equally split between two armor pieces and armor plus a weapon; in the latter case, skeletons keep their already processed bow and receive only the armor. Zombies and piglins also receive a weapon with the full-set result. Every generated piece has an 8.5% drop chance." },
+    { "type": "subheading", "value": "Armor and Weapon Selection" },
+    { "type": "list", "value": "Armor material: 40% Leather, 30% Gold, 20% Chainmail, 10% Iron.\nSingle armor slot: 35% helmet, 30% boots, 20% chestplate, 15% leggings.\nZombie or piglin weapon: 25% wooden sword, 45% stone sword, 25% iron sword, 5% stone shovel.\nA generated skeleton weapon is 80% bow or 20% crossbow." },
+    { "type": "heading", "value": "Generated Item Rolls" },
+    { "type": "list", "value": "Quality: 10% of generated items receive quality. Within that success, quality 1-5 is 55%, 6-10 is 25%, 11-15 is 12%, 16-19 is 6%, and perfect 20 is 2%.\nEnchantment slots: 5% receive at least one slot; after that, there is a 10% chance for a second and another 10% chance for a third, never exceeding the item's cap. This produces overall chances of 5%, 0.5%, and 0.05% to reach at least one, two, or three slots.\nRarity: 70% Normal, 24% Magic with one or two runes, and 6% Rare with three or four attempted runes.\nAct 1 rune tier: T10 60%, T9 30%, T8 10%. Generated items start without vanilla enchantments." },
+    { "type": "note", "style": "tip", "value": "A mob visibly wearing equipment is worth inspecting before the fight. Armor base type, rarity, quality, and runes all affect the mob while worn, and the same item becomes normal player equipment if it drops." }
+  ]
+}

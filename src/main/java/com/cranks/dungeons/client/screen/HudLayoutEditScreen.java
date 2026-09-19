@@ -2,6 +2,8 @@ package com.cranks.dungeons.client.screen;
 
 import com.cranks.dungeons.CranksDungeons;
 import com.cranks.dungeons.client.party.PartyHudRenderer;
+import com.cranks.dungeons.client.HorseStaminaHudRenderer;
+import com.cranks.dungeons.client.MountHealthHudRenderer;
 import com.cranks.dungeons.client.render.StatBarHudRenderer;
 import com.cranks.dungeons.client.render.StatusEffectHudRenderer;
 import com.cranks.dungeons.config.StatusEffectOrientation;
@@ -263,7 +265,57 @@ public class HudLayoutEditScreen extends Screen {
                 }
         ));
 
-        // 5. Mana Bar
+        // 5. Horse Stamina Bar
+        int defaultHorseStaminaX = this.width / 2 - HorseStaminaHudRenderer.WIDTH / 2;
+        int defaultHorseStaminaY = this.height - 59;
+        int horseStaminaX = config.horseStaminaBarX() >= 0
+                ? config.horseStaminaBarX() : defaultHorseStaminaX;
+        int horseStaminaY = config.horseStaminaBarY() >= 0
+                ? config.horseStaminaBarY() : defaultHorseStaminaY;
+        elements.add(new DraggableElement(
+                "horse_stamina_bar",
+                Text.literal("Horse Stamina Bar"),
+                horseStaminaX, horseStaminaY,
+                HorseStaminaHudRenderer.WIDTH, HorseStaminaHudRenderer.HEIGHT,
+                defaultHorseStaminaX, defaultHorseStaminaY,
+                config.horseStaminaBarX() >= 0 || config.horseStaminaBarY() >= 0,
+                ctx -> HorseStaminaHudRenderer.renderPreview(ctx, mc, 0, 0),
+                (nx, ny) -> {
+                    config.horseStaminaBarX(nx);
+                    config.horseStaminaBarY(ny);
+                },
+                () -> {
+                    config.horseStaminaBarX(-1);
+                    config.horseStaminaBarY(-1);
+                }
+        ));
+
+        // 6. Mounted Health Bar
+        int defaultMountHealthX = horseStaminaX;
+        int defaultMountHealthY = horseStaminaY - MountHealthHudRenderer.HEIGHT - 1;
+        int mountHealthX = config.mountHealthBarX() >= 0
+                ? config.mountHealthBarX() : defaultMountHealthX;
+        int mountHealthY = config.mountHealthBarY() >= 0
+                ? config.mountHealthBarY() : defaultMountHealthY;
+        elements.add(new DraggableElement(
+                "mount_health_bar",
+                Text.literal("Mount Health Bar"),
+                mountHealthX, mountHealthY,
+                MountHealthHudRenderer.WIDTH, MountHealthHudRenderer.HEIGHT,
+                defaultMountHealthX, defaultMountHealthY,
+                config.mountHealthBarX() >= 0 || config.mountHealthBarY() >= 0,
+                ctx -> MountHealthHudRenderer.renderPreview(ctx, mc, 0, 0),
+                (nx, ny) -> {
+                    config.mountHealthBarX(nx);
+                    config.mountHealthBarY(ny);
+                },
+                () -> {
+                    config.mountHealthBarX(-1);
+                    config.mountHealthBarY(-1);
+                }
+        ));
+
+        // 7. Mana Bar
         int defaultManaX = this.width / 2 + 10;
         int defaultManaY = this.height - 49;
         int manaX = config.manaBarX() >= 0 ? config.manaBarX() : defaultManaX;
@@ -285,7 +337,7 @@ public class HudLayoutEditScreen extends Screen {
                 }
         ));
 
-        // 6. Hunger Bar
+        // 8. Hunger Bar
         int defaultHungerX = this.width / 2 + 10;
         int defaultHungerY = this.height - 39;
         int hungerX = config.hungerBarX() >= 0 ? config.hungerBarX() : defaultHungerX;

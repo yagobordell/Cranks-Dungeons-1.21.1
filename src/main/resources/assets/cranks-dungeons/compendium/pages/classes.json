@@ -1,23 +1,20 @@
 {
   "title": "Choosing a Class",
   "content": [
-    { "type": "text", "value": "When you first open the Passive Skill Tree, you'll be presented with a class selection screen. Each class provides a unique starting position on the tree and different early-game attribute bonuses." },
-    { "type": "spacer" },
-    { "type": "heading", "value": "Available Classes" },
-    { "type": "text", "value": "There are currently three starting classes, each suited to a different playstyle:" },
-    { "type": "spacer" },
-    { "type": "heading", "value": "Warrior" },
-    { "type": "text", "value": "A frontline fighter who excels in raw physical power and durability. Warriors start near Strength nodes and have easy access to Armor, Max Health, and Physical Damage bonuses. They are the most forgiving class for new players." },
-    { "type": "note", "value": "Recommended stats: Strength, Armor, Max Health, Physical Damage.", "style": "tip" },
-    { "type": "spacer" },
-    { "type": "heading", "value": "Ranger" },
-    { "type": "text", "value": "An agile combatant who relies on evasion and precision strikes. Rangers start near Dexterity nodes and have access to Evasion Rating, Critical Strike, and Attack Speed. They deal massive damage but are less durable." },
-    { "type": "note", "value": "Recommended stats: Dexterity, Evasion Rating, Crit Chance, Attack Speed.", "style": "tip" },
-    { "type": "spacer" },
-    { "type": "heading", "value": "Mercenary" },
-    { "type": "text", "value": "A versatile hybrid class that balances offense with magical defenses. Mercenaries start near Intelligence nodes and have access to Energy Shield, Elemental Damage, and Ailment bonuses. They have the most complex builds." },
-    { "type": "note", "value": "Recommended stats: Intelligence, Energy Shield, Elemental Damage.", "style": "tip" },
-    { "type": "spacer" },
-    { "type": "note", "value": "Your class choice is permanent and cannot be changed! Take your time to read each description and think about your preferred playstyle.", "style": "important" }
+    { "type": "text", "value": "The first time you open the Passive Tree, you must select a class. Selection grants the class's base attributes and unlocks its configured starting node without spending a point. It also fixes where your connected route begins." },
+    { "type": "subheading", "value": "Warrior" },
+    { "type": "text", "value": "15 Strength, 7 Dexterity, 7 Intelligence. Starts at the Armour route. Best fit for heavy armour, maximum health, and close-range physical weapons." },
+    { "type": "subheading", "value": "Ranger" },
+    { "type": "text", "value": "7 Strength, 15 Dexterity, 7 Intelligence. Starts at Evasion Rating. Best fit for bows, fast attacks, critical strikes, and avoiding entity-sourced hits." },
+    { "type": "subheading", "value": "Mercenary" },
+    { "type": "text", "value": "11 Strength, 11 Dexterity, 7 Intelligence. Starts at Armour and Evasion Rating. A physical hybrid suited to swords, spears, crossbows, and mixed defensive bases." },
+    { "type": "subheading", "value": "Monk" },
+    { "type": "text", "value": "7 Strength, 11 Dexterity, 11 Intelligence. Starts at Energy Shield and Evasion Rating. A mobile hybrid that combines avoidance with a rechargeable buffer." },
+    { "type": "subheading", "value": "Witch" },
+    { "type": "text", "value": "7 Strength, 7 Dexterity, 15 Intelligence. Starts at Energy Shield. Best fit for mana, elemental damage, ailments, and Intelligence-aligned defence." },
+    { "type": "subheading", "value": "Death Knight" },
+    { "type": "text", "value": "11 Strength, 7 Dexterity, 11 Intelligence. Starts at Armour and Energy Shield. A durable hybrid for physical pressure, recovery, and layered mitigation." },
+    { "type": "note", "style": "important", "value": "Class choice is permanent for that character. The six entries above are the shipped server configuration; a server can edit the class file, so the selection screen is the final authority for that world." },
+    { "type": "note", "style": "tip", "value": "A class is a starting position, not a locked job. Connected routes can eventually travel toward other archetypes if you invest enough points." }
   ]
 }

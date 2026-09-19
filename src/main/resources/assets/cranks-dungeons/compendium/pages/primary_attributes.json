@@ -1,0 +1,15 @@
+{
+  "title": "Primary Attributes",
+  "content": [
+    { "type": "subheading", "value": "Strength" },
+    { "type": "text", "value": "Every 1 Strength grants +2 maximum health. Strength is used by heavy armour, maces, shields, and Strength-aligned rune families." },
+    { "type": "subheading", "value": "Dexterity" },
+    { "type": "text", "value": "Every 1 Dexterity grants +2 evasion rating. Dexterity supports leather/evasion bases, bows, speed, projectile play, and Dexterity-aligned rune families." },
+    { "type": "subheading", "value": "Intelligence" },
+    { "type": "text", "value": "Every 1 Intelligence grants +2 maximum mana. Intelligence supports Energy Shield, elemental/ailment routes, and Intelligence-aligned rune families." },
+    { "type": "heading", "value": "Equipment Requirements" },
+    { "type": "text", "value": "Requirements depend on material and equipment type. Wood and stone need none. Leather needs 15 Dexterity. Copper armour needs roughly 7 Strength and 7 Intelligence. Chainmail uses split Strength/Dexterity. Gold armour uses split Strength/Intelligence. Iron uses 20 Strength, diamond 45 Strength, and netherite 65 Strength. Bows and crossbows use Dexterity; swords and spears split Strength/Dexterity; maces and shields use Strength. Tridents require 20 Strength plus roughly 32 Dexterity. Elytra split a 90-point scale between Dexterity and Intelligence." },
+    { "type": "text", "value": "Reduced Requirements runes multiply each nonzero requirement down and round it to the nearest whole point. Failing any required attribute reduces item-derived stats by 50%." },
+    { "type": "note", "style": "info", "value": "Tools—axes, pickaxes, shovels, and hoes—have no primary-attribute requirements and cannot receive rune affixes. Their progression uses compatible enchantments and Deepslate Sigil slots instead." }
+  ]
+}

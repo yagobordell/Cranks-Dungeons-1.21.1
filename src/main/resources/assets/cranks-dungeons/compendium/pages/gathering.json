@@ -1,13 +1,13 @@
 {
-  "title": "Gathering XP",
+  "title": "Gathering Experience",
   "content": [
-    { "type": "text", "value": "Gathering XP is the experience system that drives World Tree progression. Instead of killing monsters, you earn World Tree points by performing gathering activities throughout the world." },
-    { "type": "spacer" },
-    { "type": "heading", "value": "XP Sources" },
-    { "type": "text", "value": "• Mining — Breaking stone, ore, and mineral blocks. Rarer ores give significantly more XP.\n• Woodcutting — Chopping trees. Larger trees and rarer wood types yield more XP.\n• Fishing — Catching fish and treasure items. Treasure catches give bonus XP.\n• Farming — Harvesting crops. Fully grown crops give full XP; breaking early gives reduced XP.\n• Exploration — Visiting new chunks and discovering structures grants discovery XP." },
-    { "type": "spacer" },
-    { "type": "heading", "value": "XP Multipliers" },
-    { "type": "text", "value": "Several World Tree nodes boost your XP gain rates for specific activities. Stack these nodes to accelerate your World Tree progression in your preferred gathering style." },
-    { "type": "note", "value": "Gathering XP is tracked per-player and persists across sessions. Your progress is never lost, even if you die.", "style": "info" }
+    { "type": "heading", "value": "Direct Block XP" },
+    { "type": "list", "value": "Coal ore: 5 World XP.\nIron or copper ore: 10 World XP.\nGold, redstone, or lapis ore: 15 World XP.\nDiamond or emerald ore: 50 World XP.\nNatural logs: 3 World XP.\nTagged crops: 2 World XP." },
+    { "type": "text", "value": "Creative and spectator players do not receive this direct gathering XP. Blocks recorded as player-placed are excluded to prevent farming the same ore, log, or crop block repeatedly." },
+    { "type": "heading", "value": "Redirected Vanilla XP" },
+    { "type": "text", "value": "Every positive vanilla XP award outside the mod's mob-kill context becomes World XP at 10 times its final amount. This captures ore orbs, furnace output, fishing, breeding, trading, crop-rune XP, and other ordinary XP sources." },
+    { "type": "heading", "value": "XP Bonus Attributes" },
+    { "type": "list", "value": "Experience Bonus increases an XP amount before combat/non-combat routing.\nMining Experience spawns extra ore/block XP equal to base orb size x bonus near the closest player within 8 blocks.\nBreeding Experience spawns floor(7 x bonus) extra XP for the loving player.\nFishing Experience spawns floor(catch result x 3 x bonus) extra XP." },
+    { "type": "note", "style": "info", "value": "Those bonus orbs are non-combat XP, so collecting them sends their final value to the World Tree at the normal 10x conversion." }
   ]
 }

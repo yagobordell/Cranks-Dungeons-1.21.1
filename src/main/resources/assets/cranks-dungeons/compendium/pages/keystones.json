@@ -1,0 +1,8 @@
+{
+  "title": "Keystones",
+  "content": [
+    { "type": "text", "value": "Keystones are build-changing passive flags. Their configured node tooltip should always be read before allocation. The combat engine currently recognizes the following effects." },
+    { "type": "list", "value": "Void Inoculation: incoming void damage is set to zero.\nAvatar of Fire: converts half of final physical, cold, and lightning damage into fire, then removes non-fire outgoing damage, including void.\nResolute Technique: attacks bypass the target's evasion and raised-shield block; the wielder's exact configured trade-off is shown on its node.\nElemental Overload: a critical activates its timed elemental effect for 8 seconds.\nCrimson Pact: disables maximum and current Energy Shield.\nIron Reflexes: adds evasion rating to armour for physical mitigation and prevents evading.\nZealot's Oath: life regeneration restores Energy Shield instead of health.\nGhost Reaver: disables normal Energy Shield recharge; use the node tooltip for its leech interaction.\nVaal Pact: disables life regeneration; use the node tooltip for its leech interaction.\nPoint Blank: modifies projectile damage according to travel distance." },
+    { "type": "note", "style": "warning", "value": "A keystone's drawback can disable an entire defensive or recovery layer. Confirm the node tooltip and your alternate recovery plan before applying it." }
+  ]
+}

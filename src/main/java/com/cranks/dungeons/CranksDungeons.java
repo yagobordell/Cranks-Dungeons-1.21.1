@@ -92,6 +92,8 @@ public class CranksDungeons implements ModInitializer {
 		PartyHealthSyncHandler.register();
 		PlayerInfoSyncHandler.register();
 		EntityTrackingSyncHandler.register();
+		com.cranks.dungeons.horse.HorseBreedingManager.register();
+		com.cranks.dungeons.mount.MountManager.register();
 		FortuneEventHandler.register();
 		LogFortuneHandler.register();
 		DigFortuneHandler.register();

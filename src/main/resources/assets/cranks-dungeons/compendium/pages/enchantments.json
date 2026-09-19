@@ -1,0 +1,12 @@
+{
+  "title": "Enchantments",
+  "content": [
+    { "type": "heading", "value": "Enchanting Table Rules" },
+    { "type": "text", "value": "Non-book equipment needs an open enchantment slot before the table offers anything. A book behaves as if it has one slot. The table offers independent level-1 enchantments: 1 option below 11 bookshelves, 2 options at 11–21, and 3 options at 22 or more. Options require character levels 10, 20, or 30 respectively, cost 1, 2, or 3 levels, and always consume 32 lapis." },
+    { "type": "heading", "value": "Mod Enchantment Families" },
+    { "type": "list", "value": "Adept / Greater / Perfect: +9 / +12 / +15 Dexterity.\nBody: weapons leech 1% / 2% / 3% physical as life; armour gains +45 / +60 / +75 maximum health.\nDesert: +20 / +30 / +40 fire damage on weapons or 14% / 18% / 22% fire resistance on armour.\nGlacial: +7 / +15 / +20 cold damage or 14% / 18% / 22% cold resistance.\nStorm: +13 / +20 / +30 lightning damage or 14% / 18% / 22% lightning resistance.\nInspiration: +10 / +20 / +30 mana on kill or 15% / 18% / 21% mana regeneration.\nIron: 16% / 18% / 20% physical damage or matching increased armour, evasion, and Energy Shield.\nStone: 15% / 20% / 30% knockback or 10% / 15% / 20% knockback resistance.\nVision: +90 / +120 / +150 flat armour penetration on martial weapons.\nVein Mining: breaks matching connected ores from one mined block." },
+    { "type": "heading", "value": "Control and Removal" },
+    { "type": "text", "value": "Press G while holding a tool with registered toggleable enchantments to cycle none disabled, each one disabled, and all disabled when several are present. This is useful for Silk Touch and Vein Mining behaviour. A grindstone refuses a damageable item below half durability; a successful grind adds damage equal to half maximum durability." },
+    { "type": "note", "style": "info", "value": "Enchantment Effectiveness scales modifiers created by enchantments only. It does not scale rune or native item modifiers." }
+  ]
+}

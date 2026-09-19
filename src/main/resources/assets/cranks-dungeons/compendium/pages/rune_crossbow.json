@@ -1,0 +1,4 @@
+{ "title": "Crossbow Runes", "content": [
+  { "type": "text", "value": "Crossbows count as two-handed ranged/projectile weapons. Their name contains bow, so ordinary random rolls are limited to T9–T10. Reload Speed controls charge time separately from attack damage. Targeted-only Extra Damage modifiers are not included below." },
+  { "type": "stat_catalog", "value": "CROSSBOW" }
+] }

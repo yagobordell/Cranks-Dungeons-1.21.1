@@ -6,11 +6,13 @@ import net.minecraft.registry.Registry;
 import net.minecraft.resource.featuretoggle.FeatureFlags;
 import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.util.Identifier;
+import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
 
 public class ModScreenHandlers {
     public static ScreenHandlerType<RunicEnhancementAltarScreenHandler> RUNIC_ENHANCEMENT_ALTAR;
     public static ScreenHandlerType<ArtificialEnhancementAltarScreenHandler> ARTIFICIAL_ENHANCEMENT_ALTAR;
     public static ScreenHandlerType<QualityStationScreenHandler> QUALITY_STATION_SCREEN_HANDLER;
+    public static ScreenHandlerType<MountCargoScreenHandler> MOUNT_CARGO;
 
     public static void register() {
         RUNIC_ENHANCEMENT_ALTAR = Registry.register(
@@ -29,6 +31,13 @@ public class ModScreenHandlers {
                 Registries.SCREEN_HANDLER,
                 Identifier.of(CranksDungeons.MOD_ID, "quality_station_gui"),
                 new ScreenHandlerType<>(QualityStationScreenHandler::new, FeatureFlags.VANILLA_FEATURES)
+        );
+
+        MOUNT_CARGO = Registry.register(
+                Registries.SCREEN_HANDLER,
+                Identifier.of(CranksDungeons.MOD_ID, "mount_cargo"),
+                new ExtendedScreenHandlerType<>(MountCargoScreenHandler::new,
+                        MountCargoScreenHandler.OpeningData.PACKET_CODEC)
         );
     }
 }

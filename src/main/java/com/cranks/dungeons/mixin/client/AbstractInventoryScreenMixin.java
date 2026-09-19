@@ -3,15 +3,13 @@ package com.cranks.dungeons.mixin.client;
 import com.cranks.dungeons.client.StatsPanelScrollHandler;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.AbstractInventoryScreen;
 import net.minecraft.client.gui.screen.ingame.InventoryScreen;
-import net.minecraft.text.Text;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Environment(EnvType.CLIENT)
@@ -25,17 +23,19 @@ public class AbstractInventoryScreenMixin {
         }
     }
 
-    @Redirect(
-        method = "drawStatusEffectDescriptions",
-        at = @At(
-            value = "INVOKE",
-            target = "Lnet/minecraft/client/gui/DrawContext;drawTextWithShadow(Lnet/minecraft/client/font/TextRenderer;Lnet/minecraft/text/Text;III)I"
-        )
+    /**
+     * Keep the inventory status-effect panel compact. Vanilla switches to a
+     * wide layout whenever there is room, which permanently renders the name
+     * and duration beside each icon. The compact layout keeps only the icons
+     * and uses the normal hover tooltip instead.
+     */
+    @ModifyVariable(
+        method = "drawStatusEffects",
+        at = @At("STORE"),
+        ordinal = 0,
+        require = 1
     )
-    private int hideInfinitySymbol(DrawContext instance, TextRenderer textRenderer, Text text, int x, int y, int color) {
-        if (text.getString().equals("∞") || text.getString().isEmpty()) {
-            return 0; // Skip drawing empty or infinity text
-        }
-        return instance.drawTextWithShadow(textRenderer, text, x, y, color);
+    private boolean forceCompactStatusEffectLayout(boolean wide) {
+        return false;
     }
 }

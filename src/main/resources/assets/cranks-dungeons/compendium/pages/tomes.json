@@ -1,0 +1,28 @@
+{
+  "title": "Random Runic Tomes",
+  "content": [
+    { "type": "text", "value": "These tomes add, remove, or reroll random affixes at the Runic Altar. Normal, Greater, and Perfect versions of a family perform the same rarity operation but use different minimum rune-level filters when selecting a new affix." },
+    { "type": "heading", "value": "Creating Magic Equipment" },
+    { "type": "subheading", "value": "Tome of Transmutation" },
+    { "type": "text", "value": "Requires a Normal item. It changes the item to Magic and adds one random compatible rune. The altar randomly tries prefix or suffix first and falls back to the other side if necessary." },
+    { "type": "subheading", "value": "Tome of Augmentation" },
+    { "type": "text", "value": "Requires a Magic item with room for a legal rune. It keeps the item Magic and adds one random compatible affix, normally filling the opposite side after Transmutation." },
+    { "type": "heading", "value": "Creating and Expanding Rare Equipment" },
+    { "type": "subheading", "value": "Regal Tome" },
+    { "type": "text", "value": "Requires a Magic item. It changes the item to Rare and adds one random compatible rune while preserving existing runes." },
+    { "type": "subheading", "value": "Tome of Alchemy" },
+    { "type": "text", "value": "Requires a Normal or Magic item. It removes every existing rune, changes the item to Rare, then separately attempts to add two random prefixes and two random suffixes. Duplicate-group or compatibility failures can leave fewer than four." },
+    { "type": "subheading", "value": "Exalted Tome" },
+    { "type": "text", "value": "Requires a Rare item with room for at least one legal random affix. It preserves existing runes and adds one new random rune." },
+    { "type": "heading", "value": "Changing Existing Runes" },
+    { "type": "subheading", "value": "Tome of Chaos" },
+    { "type": "text", "value": "Requires a Rare item with at least one rune. It removes one rune chosen from the entire current list, then attempts to add one new random rune. It does not preserve the removed rune's side, group, tier, or value." },
+    { "type": "subheading", "value": "Divine Tome" },
+    { "type": "text", "value": "Requires any non-Unique item with at least one rune. It rerolls the numeric values of every rune inside each rune's existing tier. Rune identities, affix sides, groups, and tiers do not change." },
+    { "type": "subheading", "value": "Tome of Annulment" },
+    { "type": "text", "value": "Requires any non-Unique item with at least one rune. It removes exactly one randomly selected rune and adds nothing." },
+    { "type": "heading", "value": "Normal, Greater, and Perfect" },
+    { "type": "text", "value": "For Transmutation, Augmentation, Regal, Exalted, and Chaos, the Normal version can select rune definitions marked level 1 or higher, Greater requires level 30 or higher, and Perfect requires level 60 or higher. This filter changes which rune families are eligible; it does not guarantee T30, T60, or a stronger numeric tier." },
+    { "type": "note", "style": "warning", "value": "Alchemy permanently clears the original runes before generating its new set. Chaos and Annulment choose the removed rune randomly. Always inspect the item and confirm that risk before pressing the altar button." }
+  ]
+}

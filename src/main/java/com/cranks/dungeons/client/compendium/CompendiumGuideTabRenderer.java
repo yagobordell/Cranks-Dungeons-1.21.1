@@ -1,5 +1,8 @@
 package com.cranks.dungeons.client.compendium;
 
+import com.cranks.dungeons.equipment.EquipmentType;
+import com.cranks.dungeons.stat.CustomStat;
+import com.cranks.dungeons.stat.StatRegistry;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -17,7 +20,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Renders the Compendium guide pages in a two-column layout inspired by Ars Elixirum.
@@ -37,7 +42,7 @@ public class CompendiumGuideTabRenderer implements CompendiumTabRenderer {
     private static final Gson GSON = new Gson();
 
     // Layout constants
-    private static final int NAV_WIDTH = 130;
+    private static final int NAV_WIDTH = 154;
     private static final int NAV_PADDING = 6;
     private static final int CONTENT_PADDING = 12;
     private static final int SECTION_HEIGHT = 18;
@@ -54,6 +59,7 @@ public class CompendiumGuideTabRenderer implements CompendiumTabRenderer {
     private static final int PAGE_LINK_SELECTED_COLOR = 0xFFFFAA00;
     private static final int CONTENT_TEXT_COLOR = 0xFFD4D4DC;
     private static final int HEADING_COLOR = 0xFFFFAA00;
+    private static final int SUBHEADING_COLOR = 0xFFFFD27A;
     private static final int NOTE_BG_COLOR = 0xFF1E1E26;
     private static final int NOTE_BORDER_COLOR = 0xFFFFAA00;
     private static final int NOTE_TEXT_COLOR = 0xFFE0E0E8;
@@ -67,6 +73,7 @@ public class CompendiumGuideTabRenderer implements CompendiumTabRenderer {
     private String selectedPageId = null;
     private PageContent currentPage = null;
     private int navScrollOffset = 0;
+    private int maxNavScroll = 0;
     private int contentScrollOffset = 0;
     private int maxContentScroll = 0;
     private boolean isDraggingScrollbar = false;
@@ -159,6 +166,9 @@ public class CompendiumGuideTabRenderer implements CompendiumTabRenderer {
         // Inset sunken stone well for navigation
         ShapeRenderer.drawInsetPanel(context, navX, navY, navW, navH);
 
+        maxNavScroll = Math.max(0, getNavigationContentHeight() - (navH - NAV_PADDING * 2));
+        navScrollOffset = Math.max(0, Math.min(maxNavScroll, navScrollOffset));
+
         context.enableScissor(navX + 2, navY + 2, navX + navW - 2, navY + navH - 2);
 
         int curY = navY + NAV_PADDING - navScrollOffset;
@@ -205,6 +215,30 @@ public class CompendiumGuideTabRenderer implements CompendiumTabRenderer {
         }
 
         context.disableScissor();
+
+        if (maxNavScroll > 0) {
+            int trackX = navX + navW - 6;
+            int trackY = navY + 3;
+            int trackW = 4;
+            int trackH = navH - 6;
+            int thumbH = Math.max(18, (int) ((float) (navH - NAV_PADDING * 2)
+                    / getNavigationContentHeight() * trackH));
+            int thumbY = trackY + (int) ((float) navScrollOffset / maxNavScroll * (trackH - thumbH));
+            context.fill(trackX, trackY, trackX + trackW, trackY + trackH, 0xFF0C0C10);
+            context.fill(trackX, thumbY, trackX + trackW, thumbY + thumbH, 0xFF686878);
+            context.fill(trackX, thumbY, trackX + 1, thumbY + thumbH, 0xFFFFAA00);
+        }
+    }
+
+    private int getNavigationContentHeight() {
+        int height = NAV_PADDING * 2;
+        for (Section section : sections) {
+            height += SECTION_HEIGHT + SECTION_GAP;
+            if (!section.collapsed) {
+                height += section.pages.size() * PAGE_LINK_HEIGHT;
+            }
+        }
+        return height;
     }
 
     private void renderPageContent(DrawContext context, TextRenderer tr, int pageX, int pageY,
@@ -248,9 +282,25 @@ public class CompendiumGuideTabRenderer implements CompendiumTabRenderer {
                             pageX + CONTENT_PADDING, curY, HEADING_COLOR, false);
                     curY += 14;
                 }
+                case "subheading" -> {
+                    curY += 3;
+                    context.drawText(tr, Text.literal(element.value),
+                            pageX + CONTENT_PADDING + 2, curY, SUBHEADING_COLOR, false);
+                    curY += 12;
+                }
                 case "text" -> {
                     curY = drawWrappedText(context, tr, element.value,
                             pageX + CONTENT_PADDING, curY, maxTextWidth, CONTENT_TEXT_COLOR);
+                    curY += 6;
+                }
+                case "list" -> {
+                    curY = drawList(context, tr, element.value, element.style,
+                            pageX + CONTENT_PADDING, curY, maxTextWidth);
+                    curY += 5;
+                }
+                case "stat_catalog" -> {
+                    curY = drawStatCatalog(context, tr, element.value,
+                            pageX + CONTENT_PADDING, curY, maxTextWidth);
                     curY += 6;
                 }
                 case "note" -> {
@@ -322,6 +372,97 @@ public class CompendiumGuideTabRenderer implements CompendiumTabRenderer {
             }
         }
         return curY;
+    }
+
+    private int drawList(DrawContext context, TextRenderer tr, String text, String style,
+                         int x, int y, int maxWidth) {
+        String[] entries = text.split("\\\\n|\\n");
+        int curY = y;
+        boolean numbered = "numbered".equalsIgnoreCase(style);
+        int number = 1;
+        for (String raw : entries) {
+            String entry = raw.trim();
+            if (entry.isEmpty()) continue;
+            String marker = numbered ? (number++) + "." : "-";
+            context.drawText(tr, Text.literal(marker), x + 2, curY, HEADING_COLOR, false);
+            curY = drawWrappedText(context, tr, entry, x + 15, curY,
+                    Math.max(20, maxWidth - 15), CONTENT_TEXT_COLOR);
+            curY += 2;
+        }
+        return curY;
+    }
+
+    /** Draw the live random-affix pool so guide values stay in sync with StatRegistry. */
+    private int drawStatCatalog(DrawContext context, TextRenderer tr, String value,
+                                int x, int y, int maxWidth) {
+        EquipmentType type;
+        try {
+            type = EquipmentType.valueOf(value.trim().toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException exception) {
+            return drawWrappedText(context, tr, "Unknown equipment catalog: " + value,
+                    x, y, maxWidth, 0xFFFF6666);
+        }
+
+        List<CustomStat> stats = new ArrayList<>(StatRegistry.getStatsByEquipmentType(type));
+        stats.removeIf(stat -> !StatRegistry.isRandomlyRollable(stat));
+        stats.sort(Comparator
+                .comparing(CustomStat::getAffixType)
+                .thenComparing(CustomStat::getDisplayName, String.CASE_INSENSITIVE_ORDER)
+                .thenComparing(CustomStat::getId));
+
+        int curY = y;
+        CustomStat.AffixType lastAffix = null;
+        for (CustomStat stat : stats) {
+            if (lastAffix != stat.getAffixType()) {
+                curY += lastAffix == null ? 1 : 6;
+                String groupTitle = stat.getAffixType() == CustomStat.AffixType.PREFIX
+                        ? "Prefixes" : "Suffixes";
+                context.drawText(tr, Text.literal(groupTitle), x, curY, SUBHEADING_COLOR, false);
+                curY += 13;
+                lastAffix = stat.getAffixType();
+            }
+
+            Integer rgb = stat.getColor().getColorValue();
+            context.drawText(tr, Text.literal(stat.getDisplayName()), x + 2, curY,
+                    rgb != null ? 0xFF000000 | rgb : CONTENT_TEXT_COLOR, false);
+            curY += 10;
+
+            String metadata = "Rune level " + stat.getLevel()
+                    + "  |  Weight " + stat.getWeight()
+                    + "  |  Affinity " + formatAffinity(stat.getArmorBaseType().name());
+            curY = drawWrappedText(context, tr, metadata, x + 8, curY,
+                    Math.max(20, maxWidth - 8), 0xFF9E9EAA);
+
+            for (CustomStat.StatComponent component : stat.getComponents()) {
+                StringBuilder ranges = new StringBuilder(component.getDisplayName()).append(": ");
+                for (int tier = 10; tier >= 1; tier--) {
+                    if (tier < 10) ranges.append("  ");
+                    ranges.append('T').append(tier).append(' ').append(component.getFormattedMinMax(tier));
+                }
+                curY = drawWrappedText(context, tr, ranges.toString(), x + 8, curY,
+                        Math.max(20, maxWidth - 8), CONTENT_TEXT_COLOR);
+            }
+            curY += 5;
+        }
+
+        if (stats.isEmpty()) {
+            curY = drawWrappedText(context, tr,
+                    "This equipment type has no random rune pool.", x, curY, maxWidth, CONTENT_TEXT_COLOR);
+        }
+        return curY;
+    }
+
+    private String formatAffinity(String affinity) {
+        return switch (affinity) {
+            case "STR" -> "Strength";
+            case "DEX" -> "Dexterity";
+            case "INT" -> "Intelligence";
+            case "STR_DEX" -> "Strength + Dexterity";
+            case "STR_INT" -> "Strength + Intelligence";
+            case "DEX_INT" -> "Dexterity + Intelligence";
+            case "ALL" -> "all defenses";
+            default -> "any base";
+        };
     }
 
     private int drawNoteBlock(DrawContext context, TextRenderer tr, String text, String style,
@@ -433,12 +574,15 @@ public class CompendiumGuideTabRenderer implements CompendiumTabRenderer {
             }
         }
 
-        int navX = boxX;
+        int navX = boxX + 4;
+        int navY = boxY + 4;
         int navW = NAV_WIDTH;
+        int navH = boxH - 8;
 
         // Check nav column clicks
-        if (mouseX >= navX && mouseX < navX + navW) {
-            int curY = boxY + NAV_PADDING - navScrollOffset;
+        if (mouseX >= navX && mouseX < navX + navW
+                && mouseY >= navY && mouseY < navY + navH) {
+            int curY = navY + NAV_PADDING - navScrollOffset;
 
             for (int si = 0; si < sections.size(); si++) {
                 Section section = sections.get(si);
@@ -500,12 +644,16 @@ public class CompendiumGuideTabRenderer implements CompendiumTabRenderer {
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
-        int navX = boxX;
+        int navX = boxX + 4;
+        int navY = boxY + 4;
         int navW = NAV_WIDTH;
+        int navH = boxH - 8;
 
-        if (mouseX >= navX && mouseX < navX + navW) {
+        if (mouseX >= navX && mouseX < navX + navW
+                && mouseY >= navY && mouseY < navY + navH) {
             // Scroll navigation
-            navScrollOffset = Math.max(0, navScrollOffset - (int) (verticalAmount * 10));
+            navScrollOffset = Math.max(0, Math.min(maxNavScroll,
+                    navScrollOffset - (int) (verticalAmount * 10)));
             return true;
         } else if (mouseX >= navX + navW && mouseX < boxX + boxW && mouseY >= boxY && mouseY < boxY + boxH) {
             // Scroll content (only if hovering over content area)
@@ -606,17 +754,71 @@ public class CompendiumGuideTabRenderer implements CompendiumTabRenderer {
     private void createDefaultSections() {
         sections.add(new Section("Getting Started", false, List.of(
                 new PageLink("introduction", "Introduction"),
+                new PageLink("first_steps", "First Steps"),
+                new PageLink("controls_hud", "Controls & HUD")
+        )));
+        sections.add(new Section("Character Progression", false, List.of(
                 new PageLink("classes", "Choosing a Class"),
-                new PageLink("passive_tree", "The Passive Tree")
+                new PageLink("xp_progression", "Levels & XP"),
+                new PageLink("passive_tree", "Passive Skill Tree"),
+                new PageLink("primary_attributes", "Primary Attributes"),
+                new PageLink("keystones", "Keystones")
         )));
-        sections.add(new Section("Combat", false, List.of(
-                new PageLink("stats", "Stats & Attributes"),
-                new PageLink("runes", "Rune System"),
-                new PageLink("ailments", "Ailments")
+        sections.add(new Section("Combat Systems", true, List.of(
+                new PageLink("stats", "Reading Your Stats"),
+                new PageLink("damage", "Damage & Criticals"),
+                new PageLink("defences", "Defences"),
+                new PageLink("enemies", "Enemies & Threats"),
+                new PageLink("mob_equipment", "Mob Equipment"),
+                new PageLink("ailments", "Ailments"),
+                new PageLink("recovery", "Recovery & Mana"),
+                new PageLink("food_effects", "Food & Effects")
         )));
-        sections.add(new Section("Gathering", true, List.of(
+        sections.add(new Section("Equipment Fundamentals", true, List.of(
+                new PageLink("equipment", "Equipment Bases"),
+                new PageLink("item_rarity", "Item Rarity"),
+                new PageLink("rarity_requirements", "Item Requirements"),
+                new PageLink("runes", "Understanding Runes"),
+                new PageLink("rune_tiers", "Tiers, Levels & Weights"),
+                new PageLink("unique_equipment", "Unique Equipment")
+        )));
+        sections.add(new Section("Crafting & Upgrades", true, List.of(
+                new PageLink("runic_altar", "Using the Runic Altar"),
+                new PageLink("tomes", "Random Runic Tomes"),
+                new PageLink("targeted_tomes", "Targeted Tomes"),
+                new PageLink("artificial_tome", "Artificial Runes"),
+                new PageLink("quality", "Quality Station"),
+                new PageLink("enchantments", "Enchantments")
+        )));
+        sections.add(new Section("Rune Pools: Weapons", true, List.of(
+                new PageLink("rune_sword", "Swords"),
+                new PageLink("rune_spear", "Spears"),
+                new PageLink("rune_bow", "Bows"),
+                new PageLink("rune_crossbow", "Crossbows"),
+                new PageLink("rune_shield", "Shields")
+        )));
+        sections.add(new Section("Rune Pools: Armour", true, List.of(
+                new PageLink("rune_helmet", "Helmets"),
+                new PageLink("rune_chestplate", "Chestplates"),
+                new PageLink("rune_leggings", "Leggings"),
+                new PageLink("rune_boots", "Boots")
+        )));
+        sections.add(new Section("World & Gathering", true, List.of(
                 new PageLink("world_tree", "The World Tree"),
-                new PageLink("gathering", "Gathering XP")
+                new PageLink("gathering", "Gathering XP"),
+                new PageLink("gathering_stats", "Yield & Fortune"),
+                new PageLink("loot", "Tome & Material Loot"),
+                new PageLink("parties", "Parties")
+        )));
+        sections.add(new Section("Horse Mastery", true, List.of(
+                new PageLink("horses", "Horse Statistics"),
+                new PageLink("breeding", "Breeding & Genetics"),
+                new PageLink("horse_training", "Training & Stamina"),
+                new PageLink("horse_traits", "Traits & Mutations"),
+                new PageLink("animal_armor", "Animal Armour")
+        )));
+        sections.add(new Section("Reference", true, List.of(
+                new PageLink("vanilla_changes", "Changed Vanilla Rules")
         )));
     }
 }

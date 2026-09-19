@@ -1,0 +1,14 @@
+{
+  "title": "Damage & Criticals",
+  "content": [
+    { "type": "heading", "value": "Five Damage Elements" },
+    { "type": "list", "value": "Physical: reduced by armour and can cause Bleed or Poison.\nFire: reduced by fire resistance and builds Flammability toward Burn.\nCold: reduced by cold resistance and builds Freeze.\nLightning: reduced by lightning resistance and can Shock or build Electrocute.\nVoid: reduced by void resistance, contributes to Poison, and costs twice its health damage when absorbed by Energy Shield." },
+    { "type": "heading", "value": "Attack Scaling" },
+    { "type": "text", "value": "Weapon base and flat rune damage are assembled first. Local physical percentage scales the weapon itself. Character bonuses then apply according to element, melee/ranged/projectile category, one-handed/dual-wield/two-handed state, weapon type, afflicted conditions, conversions, and extra-damage effects." },
+    { "type": "heading", "value": "Critical Strikes" },
+    { "type": "text", "value": "The base RPG critical chance is 5% and base multiplier is 150%. Vanilla jump criticals are disabled: jumping does not guarantee a critical. A successful critical uses the mod's chance and multiplier, can guarantee chance-based Poison, Bleed, or Shock checks, and can activate recent-critical conditions." },
+    { "type": "heading", "value": "Weapon States" },
+    { "type": "list", "value": "Spears, bows, crossbows, and tridents count as two-handed.\nA non-two-handed weapon counts as one-handed.\nDual wielding requires the main-hand and off-hand equipment to resolve to the same one-handed weapon type.\nA thrown trident preserves the statistics of the thrown item, but its total compatible attribute value is multiplied by about 0.6667 for the throw." },
+    { "type": "note", "style": "info", "value": "Damage floaters show the final elemental breakdown after conversion and resistance processing, which makes them useful for testing a build." }
+  ]
+}

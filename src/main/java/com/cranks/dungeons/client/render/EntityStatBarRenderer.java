@@ -1,25 +1,22 @@
 package com.cranks.dungeons.client.render;
 
 import com.cranks.dungeons.CranksDungeons;
-import com.cranks.dungeons.EnergyShieldProvider;
-import com.cranks.dungeons.registry.ModAttributes;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.render.*;
-import net.minecraft.client.render.RenderLayers;
+import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.render.Camera;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.RotationAxis;
-import org.joml.Matrix4f;
+import net.minecraft.util.math.Vec3d;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.cranks.dungeons.config.HealthBarDisplayMode;
@@ -151,17 +148,21 @@ public class EntityStatBarRenderer {
         return HEALTH_FILL;
     }
 
-    public static void render(WorldRenderContext context, VertexConsumerProvider consumers) {
+    private static final double MAX_RENDER_DISTANCE_SQ = 32.0 * 32.0;
+    private static final float WORLD_UI_SCALE = 0.025f;
+    private static final int SCREEN_MARGIN = 64;
+
+    /**
+     * Draws projected entity plates in the GUI pass. Keeping the actual draw calls
+     * out of the world render pipeline prevents shader packs from replacing their
+     * shader, depth test, blend mode, or framebuffer.
+     */
+    public static void renderHud(DrawContext context) {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.world == null || client.player == null) return;
 
-        MatrixStack matrices = context.matrixStack();
         float tickDelta = client.getRenderTickCounter().getTickDelta(true);
         Camera camera = client.gameRenderer.getCamera();
-        
-        double cameraX = camera.getPos().x;
-        double cameraY = camera.getPos().y;
-        double cameraZ = camera.getPos().z;
 
         // Cleanup caches
         if (client.world.getTime() % 100 == 0) {
@@ -169,47 +170,104 @@ public class EntityStatBarRenderer {
             ENTITY_SHIELD_CACHE.keySet().removeIf(id -> client.world.getEntityById(id) == null);
         }
 
-        com.mojang.blaze3d.systems.RenderSystem.disableDepthTest();
-
-        java.util.List<Entity> nearbyEntities = client.world.getOtherEntities(
+        List<Entity> nearbyEntities = new ArrayList<>(client.world.getOtherEntities(
                 null,
                 client.player.getBoundingBox().expand(32.0),
-                entity -> entity instanceof LivingEntity);
+                entity -> entity instanceof LivingEntity));
+        // getOtherEntities is allowed to omit the client player. Add the
+        // local player explicitly so self nameplate/bar settings work in
+        // third person, without duplicating it when it is already present.
+        if (!nearbyEntities.contains(client.player)) {
+            nearbyEntities.add(client.player);
+        }
+
+        List<ProjectedEntity> projectedEntities = new ArrayList<>();
         for (Entity entity : nearbyEntities) {
             if (entity instanceof LivingEntity living && living.isAlive() && !living.isInvisibleTo(client.player)) {
+                // The mounted HUD already represents the local rider's horse. Keeping its
+                // world plate would place the name and bars directly in the rider's view.
+                if (living == client.player.getVehicle()) continue;
+
                 // Hide local player nameplate in first person
                 if (living == client.player && client.options.getPerspective().isFirstPerson()) continue;
                 
                 boolean isPlayer = living instanceof PlayerEntity;
-                if (isPlayer && !CranksDungeons.CONFIG.showPlayerInfoAboveHead()) continue;
+                if (isPlayer && living != client.player && !CranksDungeons.CONFIG.showPlayerInfoAboveHead()) continue;
                 
-                double dist = living.squaredDistanceTo(client.player);
-                if (dist > 32 * 32) continue;
+                if (living.squaredDistanceTo(client.player) > MAX_RENDER_DISTANCE_SQ) continue;
                 
                 // Only show nameplate if the entity itself is visible
                 if (!canSeeEntity(client.player, living)) continue;
 
-                matrices.push();
-                
                 // Position above head
-                double wx = MathHelper.lerp(tickDelta, living.lastRenderX, living.getX()) - cameraX;
-                double wy = MathHelper.lerp(tickDelta, living.lastRenderY, living.getY()) - cameraY + living.getHeight() + 0.1;
-                double wz = MathHelper.lerp(tickDelta, living.lastRenderZ, living.getZ()) - cameraZ;
-
-                matrices.translate(wx, wy, wz);
-                
-                // Billboard
-                matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(-camera.getYaw()));
-                matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(camera.getPitch()));
-
-                renderEntityStats(matrices, living, consumers, client);
-
-                matrices.pop();
+                double worldX = MathHelper.lerp(tickDelta, living.lastRenderX, living.getX());
+                double worldY = MathHelper.lerp(tickDelta, living.lastRenderY, living.getY()) + living.getHeight() + 0.1;
+                double worldZ = MathHelper.lerp(tickDelta, living.lastRenderZ, living.getZ());
+                ScreenPosition screenPosition = projectToScreen(client, camera, worldX, worldY, worldZ);
+                if (screenPosition != null) {
+                    projectedEntities.add(new ProjectedEntity(living, screenPosition));
+                }
             }
         }
 
-        com.mojang.blaze3d.systems.RenderSystem.enableDepthTest();
+        // Match natural world ordering: distant plates first, nearby plates last.
+        projectedEntities.sort(Comparator.comparingDouble(value -> -value.position.depth));
+        for (ProjectedEntity projected : projectedEntities) {
+            MatrixStack matrices = context.getMatrices();
+            matrices.push();
+            matrices.translate(projected.position.x, projected.position.y, 0.0f);
+            matrices.scale(projected.position.scale, projected.position.scale, 1.0f);
+            renderEntityStats(context, projected.entity, client);
+            matrices.pop();
+        }
     }
+
+    private static ScreenPosition projectToScreen(MinecraftClient client, Camera camera,
+                                                   double worldX, double worldY, double worldZ) {
+        int screenWidth = client.getWindow().getScaledWidth();
+        int screenHeight = client.getWindow().getScaledHeight();
+        if (screenWidth <= 0 || screenHeight <= 0) return null;
+
+        Vec3d cameraPos = camera.getPos();
+        double dx = worldX - cameraPos.x;
+        double dy = worldY - cameraPos.y;
+        double dz = worldZ - cameraPos.z;
+
+        double yaw = Math.toRadians(camera.getYaw() + 180.0f);
+        double pitch = Math.toRadians(camera.getPitch());
+        double cosYaw = Math.cos(yaw);
+        double sinYaw = Math.sin(yaw);
+        double rotatedX = dx * cosYaw + dz * sinYaw;
+        double rotatedZ = -dx * sinYaw + dz * cosYaw;
+
+        double cosPitch = Math.cos(pitch);
+        double sinPitch = Math.sin(pitch);
+        double viewY = dy * cosPitch - rotatedZ * sinPitch;
+        double viewZ = dy * sinPitch + rotatedZ * cosPitch;
+        if (viewZ >= -0.05) return null;
+
+        double depth = -viewZ;
+        double projectedDepth = Math.max(depth, 0.5);
+        double halfHeight = Math.tan(Math.toRadians(client.options.getFov().getValue()) / 2.0);
+        double halfWidth = halfHeight * ((double) screenWidth / screenHeight);
+        if (halfHeight <= 0.0 || halfWidth <= 0.0) return null;
+
+        double normalizedX = rotatedX / (halfWidth * projectedDepth);
+        double normalizedY = viewY / (halfHeight * projectedDepth);
+        float screenX = (float) ((normalizedX + 1.0) * 0.5 * screenWidth);
+        float screenY = (float) ((1.0 - normalizedY) * 0.5 * screenHeight);
+        if (screenX < -SCREEN_MARGIN || screenX > screenWidth + SCREEN_MARGIN
+                || screenY < -SCREEN_MARGIN || screenY > screenHeight + SCREEN_MARGIN) {
+            return null;
+        }
+
+        float scale = (float) (WORLD_UI_SCALE * screenHeight / (2.0 * halfHeight * projectedDepth));
+        return new ScreenPosition(screenX, screenY, scale, depth);
+    }
+
+    private record ScreenPosition(float x, float y, float scale, double depth) {}
+
+    private record ProjectedEntity(LivingEntity entity, ScreenPosition position) {}
 
     private static int lastAttackedEntityId = -1;
     private static long lastAttackedTime = 0;
@@ -282,7 +340,7 @@ public class EntityStatBarRenderer {
         return false;
     }
 
-    private static void renderEntityStats(MatrixStack matrices, LivingEntity entity, VertexConsumerProvider consumers, MinecraftClient client) {
+    private static void renderEntityStats(DrawContext context, LivingEntity entity, MinecraftClient client) {
         boolean isSelf = entity == client.player;
         boolean isPlayer = entity instanceof PlayerEntity;
         
@@ -311,7 +369,7 @@ public class EntityStatBarRenderer {
             };
 
             boolean isDamaged = entity.getHealth() < entity.getMaxHealth() || entity.getAbsorptionAmount() > 0;
-            ShieldInfo sInfo = ENTITY_SHIELD_CACHE.get(entity.getId());
+            ShieldInfo sInfo = getShieldInfo(entity, client);
             if (sInfo != null && sInfo.current < sInfo.max) {
                 isDamaged = true;
             }
@@ -336,9 +394,6 @@ public class EntityStatBarRenderer {
 
         if (!showName && !showLevel && !showBars && !showParty) return;
 
-        float scale = 0.025f;
-        matrices.scale(-scale, -scale, scale); // Standard vanilla nametag scaling logic
-
         PlayerInfo info = isPlayer ? PLAYER_INFO_CACHE.get(entity.getId()) : null;
         PlayerInfo mobInfo = !isPlayer && showLevel ? PLAYER_INFO_CACHE.get(entity.getId()) : null;
 
@@ -357,7 +412,7 @@ public class EntityStatBarRenderer {
         }
 
         if (showBars) {
-            ShieldInfo sInfo = ENTITY_SHIELD_CACHE.get(entity.getId());
+            ShieldInfo sInfo = getShieldInfo(entity, client);
             if (sInfo != null && sInfo.max > 0) {
                 totalHeight += 3.5f;
             }
@@ -378,14 +433,13 @@ public class EntityStatBarRenderer {
             for (int i = 0; i < count; i++) {
                 com.cranks.dungeons.network.AilmentSyncPayload.AilmentEntry entry = activeAilments.get(i);
                 float iconX = startX + i * spacing;
-                
-                drawBar(matrices, consumers, entry.texture(), iconX, yOffset, iconSize, iconSize, 1.0f, 0, 0, 1.0f);
-                flush(consumers);
+
+                drawTexture(context, entry.texture(), iconX, yOffset, iconSize, iconSize, 18, 18, 1.0f);
 
                 if (entry.texture().getPath().contains("buildup")) {
-                    drawSmallText(matrices, textRenderer, entry.stacks() + "%", iconX + iconSize / 2f, yOffset + iconSize - 2.5f, 0xFFFFFFFF, consumers);
+                    drawSmallText(context, textRenderer, entry.stacks() + "%", iconX + iconSize / 2f, yOffset + iconSize - 2.5f, 0xFFFFFFFF);
                 } else if (entry.stacks() > 1) {
-                    drawSmallText(matrices, textRenderer, "x" + entry.stacks(), iconX + iconSize / 2f, yOffset + iconSize - 2.5f, 0xFFFFFFFF, consumers);
+                    drawSmallText(context, textRenderer, "x" + entry.stacks(), iconX + iconSize / 2f, yOffset + iconSize - 2.5f, 0xFFFFFFFF);
                 }
             }
             yOffset += 9.5f;
@@ -395,8 +449,7 @@ public class EntityStatBarRenderer {
         if (showName) {
             String name = entity.getName().getString();
             int nameWidth = textRenderer.getWidth(name);
-            drawText(matrices, textRenderer, name, -nameWidth / 2f, yOffset, 0xFFFFFFFF, consumers);
-            flush(consumers);
+            drawText(context, textRenderer, name, -nameWidth / 2f, yOffset, 0xFFFFFFFF);
             yOffset += 10.0f;
         }
 
@@ -405,23 +458,20 @@ public class EntityStatBarRenderer {
             if (showLevel) {
                 String topText = "Lv." + info.level + " " + (info.className.isEmpty() ? "Novice" : capitalize(info.className));
                 int textWidth = textRenderer.getWidth(topText);
-                drawText(matrices, textRenderer, topText, -textWidth / 2f, yOffset, 0xFFCCCCCC, consumers);
-                flush(consumers);
+                drawText(context, textRenderer, topText, -textWidth / 2f, yOffset, 0xFFCCCCCC);
                 yOffset += 10.0f;
             }
 
             if (showParty && !info.partyLeaderName.isEmpty()) {
                 String partyText = info.partyLeaderName + "'s Party";
                 int pWidth = textRenderer.getWidth(partyText);
-                drawText(matrices, textRenderer, partyText, -pWidth / 2f, yOffset, 0xFF55FFFF, consumers);
-                flush(consumers);
+                drawText(context, textRenderer, partyText, -pWidth / 2f, yOffset, 0xFF55FFFF);
                 yOffset += 10.0f;
             }
         } else if (showLevel && mobInfo != null) {
             String topText = "Lv." + mobInfo.level;
             int textWidth = textRenderer.getWidth(topText);
-            drawText(matrices, textRenderer, topText, -textWidth / 2f, yOffset, 0xFFCCCCCC, consumers);
-            flush(consumers);
+            drawText(context, textRenderer, topText, -textWidth / 2f, yOffset, 0xFFCCCCCC);
             yOffset += 10.0f;
         }
 
@@ -431,7 +481,7 @@ public class EntityStatBarRenderer {
         float xStart = -barWidth / 2f;
 
         // --- 4. Shield Bar ---
-        ShieldInfo sInfo = ENTITY_SHIELD_CACHE.get(entity.getId());
+        ShieldInfo sInfo = getShieldInfo(entity, client);
         if (sInfo != null && sInfo.max > 0) {
             // Client-side interpolation for smooth recharge/damage
             float delta = (System.currentTimeMillis() - sInfo.lastUpdateTime) / 1000f;
@@ -449,12 +499,10 @@ public class EntityStatBarRenderer {
 
             float shieldPercent = MathHelper.clamp(sInfo.displayed / sInfo.max, 0, 1);
             float sHeight = 2.66f;
-            drawBar(matrices, consumers, EMPTY_SHIELD_BAR, xStart, yOffset, barWidth, sHeight, 1.0f, 0, 0, 1.0f);
-            flush(consumers);
+            drawTexture(context, EMPTY_SHIELD_BAR, xStart, yOffset, barWidth, sHeight, 81, 6, 1.0f);
             if (shieldPercent > 0) {
                 float fillWidth = barWidth * shieldPercent;
-                drawBar(matrices, consumers, SHIELD_FILL, xStart, yOffset, fillWidth, sHeight, 1.0f, -0.1f, 0, shieldPercent);
-                flush(consumers);
+                drawTexture(context, SHIELD_FILL, xStart, yOffset, fillWidth, sHeight, 81, 6, shieldPercent);
             }
             yOffset += 3.5f;
         }
@@ -467,159 +515,65 @@ public class EntityStatBarRenderer {
         float barHeight = 4.0f;
 
         // Background
-        drawBar(matrices, consumers, EMPTY_BAR, xStart, yOffset, barWidth, barHeight, 1.0f, 0, 0, 1.0f);
-        flush(consumers);
+        drawTexture(context, EMPTY_BAR, xStart, yOffset, barWidth, barHeight, 81, 9, 1.0f);
         
         // HP Fill - Left-Aligned
         if (hpPercent > 0) {
             float fillWidth = barWidth * hpPercent;
             Identifier entityHealthTexture = getEntityHealthFillTexture(entity);
-            drawBar(matrices, consumers, entityHealthTexture, xStart, yOffset, fillWidth, barHeight, 1.0f, -0.1f, 0, hpPercent);
-            flush(consumers);
+            drawTexture(context, entityHealthTexture, xStart, yOffset, fillWidth, barHeight, 81, 9, hpPercent);
         }
 
-        // Absorption Fill (Z = -0.20)
+        // Absorption overlay is drawn last so it remains on top of the health fill.
         if (absorption > 0) {
             float absPercent = MathHelper.clamp(absorption / maxHealth, 0, 1);
             float absWidth = barWidth * absPercent;
-            drawBar(matrices, consumers, ABSORPTION_FILL, xStart, yOffset, absWidth, barHeight, 1.0f, -0.2f, 0, absPercent);
-            flush(consumers);
+            drawTexture(context, ABSORPTION_FILL, xStart, yOffset, absWidth, barHeight, 81, 9, absPercent);
         }
-        
-        yOffset += 5;
     }
 
-    private static void drawSmallText(MatrixStack matrices, TextRenderer textRenderer, String text, float centerX, float y, int color, VertexConsumerProvider consumers) {
+    private static void drawSmallText(DrawContext context, TextRenderer textRenderer, String text, float centerX, float y, int color) {
+        MatrixStack matrices = context.getMatrices();
         matrices.push();
-        matrices.translate(centerX, y, -0.05f);
+        matrices.translate(centerX, y, 0.0f);
         matrices.scale(0.5f, 0.5f, 1.0f);
         int textWidth = textRenderer.getWidth(text);
-        drawText(matrices, textRenderer, text, -textWidth / 2f, 0, color, consumers);
+        context.drawText(textRenderer, text, -textWidth / 2, 0, color, false);
         matrices.pop();
     }
 
-    private static void flush(VertexConsumerProvider consumers) {
-        if (consumers instanceof VertexConsumerProvider.Immediate immediate) {
-            immediate.draw();
-        }
-    }
+    private static ShieldInfo getShieldInfo(LivingEntity entity, MinecraftClient client) {
+        ShieldInfo cached = ENTITY_SHIELD_CACHE.get(entity.getId());
 
-    private static void drawBar(MatrixStack matrices, VertexConsumerProvider consumers, Identifier texture, float x, float y, float width, float height, float alpha, float zOffset, float uStart, float uEnd) {
-        VertexConsumer buffer = consumers.getBuffer(RenderLayer.getTextSeeThrough(texture));
-        Matrix4f model = matrices.peek().getPositionMatrix();
-        
-        buffer.vertex(model, x, y, zOffset).color(1f, 1f, 1f, alpha).texture(uStart, 0).light(LightmapTextureManager.MAX_LIGHT_COORDINATE);
-        buffer.vertex(model, x, y + height, zOffset).color(1f, 1f, 1f, alpha).texture(uStart, 1).light(LightmapTextureManager.MAX_LIGHT_COORDINATE);
-        buffer.vertex(model, x + width, y + height, zOffset).color(1f, 1f, 1f, alpha).texture(uEnd, 1).light(LightmapTextureManager.MAX_LIGHT_COORDINATE);
-        buffer.vertex(model, x + width, y, zOffset).color(1f, 1f, 1f, alpha).texture(uEnd, 0).light(LightmapTextureManager.MAX_LIGHT_COORDINATE);
-    }
-
-    private static class FullAlphaVertexConsumerProvider implements VertexConsumerProvider {
-        private final VertexConsumerProvider delegate;
-
-        public FullAlphaVertexConsumerProvider(VertexConsumerProvider delegate) {
-            this.delegate = delegate;
-        }
-
-        @Override
-        public VertexConsumer getBuffer(RenderLayer layer) {
-            VertexConsumer buffer = delegate.getBuffer(layer);
-            return new FullAlphaVertexConsumer(buffer);
-        }
-    }
-
-    private static class FullAlphaVertexConsumer implements VertexConsumer {
-        private final VertexConsumer delegate;
-
-        public FullAlphaVertexConsumer(VertexConsumer delegate) {
-            this.delegate = delegate;
-        }
-
-        @Override
-        public VertexConsumer vertex(float x, float y, float z) {
-            delegate.vertex(x, y, z);
-            return this;
-        }
-
-        @Override
-        public VertexConsumer vertex(Matrix4f matrix, float x, float y, float z) {
-            delegate.vertex(matrix, x, y, z);
-            return this;
-        }
-
-        @Override
-        public VertexConsumer color(int red, int green, int blue, int alpha) {
-            // Restore full alpha on colored text glyphs (RGB > 0), never turn background box into solid black
-            if (red > 0 || green > 0 || blue > 0) {
-                delegate.color(red, green, blue, 255);
-            } else {
-                delegate.color(red, green, blue, alpha);
+        // The local player receives an owner-only shield packet, which updates
+        // EnergyShieldProvider rather than the tracker cache used by other
+        // entities. Read that authoritative local value as a fallback.
+        if (entity == client.player && entity instanceof com.cranks.dungeons.EnergyShieldProvider provider) {
+            float max = (float) entity.getAttributeValue(com.cranks.dungeons.registry.ModAttributes.ENERGY_SHIELD);
+            if (max > 0.0f) {
+                float current = MathHelper.clamp(provider.cranksdungeons$getCurrentEnergyShield(), 0.0f, max);
+                if (cached == null || Math.abs(cached.current - current) > 0.01f || Math.abs(cached.max - max) > 0.01f) {
+                    updateEntityShield(entity.getId(), current, max);
+                }
+                return ENTITY_SHIELD_CACHE.get(entity.getId());
             }
-            return this;
         }
 
-        @Override
-        public VertexConsumer color(float red, float green, float blue, float alpha) {
-            if (red > 0.01f || green > 0.01f || blue > 0.01f) {
-                delegate.color(red, green, blue, 1.0f);
-            } else {
-                delegate.color(red, green, blue, alpha);
-            }
-            return this;
-        }
-
-        @Override
-        public VertexConsumer color(int argb) {
-            int a = (argb >> 24) & 0xFF;
-            int r = (argb >> 16) & 0xFF;
-            int g = (argb >> 8) & 0xFF;
-            int b = argb & 0xFF;
-            if (r > 0 || g > 0 || b > 0) {
-                a = 255;
-            }
-            delegate.color((a << 24) | (r << 16) | (g << 8) | b);
-            return this;
-        }
-
-        @Override
-        public VertexConsumer texture(float u, float v) {
-            delegate.texture(u, v);
-            return this;
-        }
-
-        @Override
-        public VertexConsumer overlay(int u, int v) {
-            delegate.overlay(u, v);
-            return this;
-        }
-
-        @Override
-        public VertexConsumer light(int u, int v) {
-            delegate.light(u, v);
-            return this;
-        }
-
-        @Override
-        public VertexConsumer normal(float x, float y, float z) {
-            delegate.normal(x, y, z);
-            return this;
-        }
-
-        @Override
-        public VertexConsumer normal(MatrixStack.Entry entry, float x, float y, float z) {
-            delegate.normal(entry, x, y, z);
-            return this;
-        }
+        return cached;
     }
 
-    private static void drawText(MatrixStack matrices, TextRenderer textRenderer, String text, float x, float y, int color, VertexConsumerProvider consumers) {
-        Matrix4f matrix = matrices.peek().getPositionMatrix();
-        FullAlphaVertexConsumerProvider fullAlphaConsumers = new FullAlphaVertexConsumerProvider(consumers);
+    private static void drawTexture(DrawContext context, Identifier texture, float x, float y,
+                                    float width, float height, int textureWidth, int textureHeight,
+                                    float visibleFraction) {
+        int drawWidth = Math.max(1, Math.round(width));
+        int drawHeight = Math.max(1, Math.round(height));
+        int sourceWidth = Math.max(1, Math.round(textureWidth * visibleFraction));
+        context.drawTexture(texture, Math.round(x), Math.round(y), drawWidth, drawHeight,
+                0.0f, 0.0f, sourceWidth, textureHeight, textureWidth, textureHeight);
+    }
 
-        // Render exclusively using SEE_THROUGH (ALWAYS_DEPTH_TEST) with 100% full alpha
-        // This guarantees text is ALWAYS drawn in front of any ceiling block or obstacle
-        textRenderer.draw(text, x, y, color, false, matrix, fullAlphaConsumers, TextRenderer.TextLayerType.SEE_THROUGH, 0, LightmapTextureManager.MAX_LIGHT_COORDINATE);
-        flush(consumers);
+    private static void drawText(DrawContext context, TextRenderer textRenderer, String text, float x, float y, int color) {
+        context.drawText(textRenderer, text, Math.round(x), Math.round(y), color, false);
     }
 
     private static String capitalize(String s) {

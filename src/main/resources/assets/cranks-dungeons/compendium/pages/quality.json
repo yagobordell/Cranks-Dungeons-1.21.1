@@ -1,0 +1,13 @@
+{
+  "title": "Quality Station",
+  "content": [
+    { "type": "text", "value": "Every Smithing Table is repurposed as a Quality Station. Place and open an ordinary crafted Smithing Table; vanilla smithing, template, and armour-trim recipes are disabled." },
+    { "type": "heading", "value": "Improving Quality" },
+    { "type": "text", "value": "Use Armourer's Scrap for helmets, chestplates, leggings, boots, shields, or elytra. Use a Blacksmith's Whetstone for swords, spears, maces, tridents, bows, or crossbows. One material processes for 600 ticks (30 seconds) and grants +1 quality, with a 33% chance to grant +2 instead. Quality is capped at +20%." },
+    { "type": "text", "value": "Quality scales native item values before flat runes and local percentages. On weapons it improves the base attack value; on armour it improves the native defence values rebuilt by the equipment pipeline. The tooltip shows current quality." },
+    { "type": "heading", "value": "Adding Enchantment Slots" },
+    { "type": "text", "value": "A Deepslate Sigil processes for 1,200 ticks (60 seconds) and adds one enchantment slot until that item's type cap is reached." },
+    { "type": "list", "value": "1 slot maximum: helmet, boots, shield, sword, mace.\n2 slots maximum: chestplate, leggings, elytra, spear, bow, crossbow, axe, pickaxe, shovel, hoe.\n3 slots maximum: trident." },
+    { "type": "note", "style": "warning", "value": "Removing either input interrupts processing and resets its progress. Quality material must match armour or martial-weapon category." }
+  ]
+}

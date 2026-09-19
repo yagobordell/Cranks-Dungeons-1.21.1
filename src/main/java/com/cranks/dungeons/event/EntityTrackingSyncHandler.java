@@ -7,6 +7,7 @@ import net.fabricmc.fabric.api.networking.v1.EntityTrackingEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.entity.passive.HorseEntity;
 
 public class EntityTrackingSyncHandler {
 
@@ -14,6 +15,19 @@ public class EntityTrackingSyncHandler {
         EntityTrackingEvents.START_TRACKING.register((trackedEntity, player) -> {
             // Initial sync for Energy Shield
             if (trackedEntity instanceof LivingEntity living) {
+                if (living instanceof com.cranks.dungeons.mount.MountDataProvider
+                        && com.cranks.dungeons.mount.MountKind.of(living)
+                        != com.cranks.dungeons.mount.MountKind.HORSE) {
+                    com.cranks.dungeons.mount.MountManager.ensureInitialized(living);
+                    ServerPlayNetworking.send(player,
+                            com.cranks.dungeons.network.MountDataSyncPacket.from(living));
+                }
+                if (living instanceof HorseEntity horse) {
+                    com.cranks.dungeons.horse.HorseBreedingManager.ensureInitialized(horse);
+                    ServerPlayNetworking.send(player,
+                            com.cranks.dungeons.network.HorseGeneticsSyncPacket.from(horse));
+                }
+
                 if (living instanceof EnergyShieldProvider provider) {
                     float currentShield = provider.cranksdungeons$getCurrentEnergyShield();
                     float maxShield = (float) living.getAttributeValue(com.cranks.dungeons.registry.ModAttributes.ENERGY_SHIELD);

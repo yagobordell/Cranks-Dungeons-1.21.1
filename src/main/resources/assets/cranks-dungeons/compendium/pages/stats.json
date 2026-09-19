@@ -1,21 +1,14 @@
 {
-  "title": "Stats & Attributes",
+  "title": "Reading Your Stats",
   "content": [
-    { "type": "text", "value": "Cranks Dungeons introduces a comprehensive stat system that governs all aspects of combat. Understanding these stats is essential for building an effective character." },
-    { "type": "spacer" },
-    { "type": "heading", "value": "Primary Attributes" },
-    { "type": "text", "value": "There are three primary attributes that define your character's archetype:" },
-    { "type": "text", "value": "• Strength — Every 10 Strength grants +5 Max Health. Required for heavy armor and melee weapons.\n• Dexterity — Every 10 Dexterity grants +20 Evasion Rating. Required for light armor and ranged weapons.\n• Intelligence — Every 10 Intelligence grants +5 Maximum Mana. Required for energy shield gear." },
-    { "type": "spacer" },
-    { "type": "heading", "value": "Defensive Stats" },
-    { "type": "text", "value": "• Armor — Reduces physical damage taken. Higher armor means less damage from each hit.\n• Evasion Rating — Chance to completely avoid an attack. Does not reduce damage, but prevents it entirely.\n• Energy Shield — An additional health pool that absorbs damage before your actual health. Recharges after not taking damage.\n• Resistances — Fire, Cold, Lightning, and Void resistances reduce elemental damage taken (capped at 75%)." },
-    { "type": "note", "value": "Equipment requirements are based on primary attributes. If you don't meet the STR/DEX/INT requirements, the item's stats are reduced by 50%!", "style": "warning" },
-    { "type": "spacer" },
-    { "type": "heading", "value": "Offensive Stats" },
-    { "type": "text", "value": "• Attack Damage — Base physical damage per hit.\n• Attack Speed — Number of attacks per second.\n• Critical Strike Chance — Chance to deal critical damage on each hit.\n• Critical Strike Multiplier — Damage multiplier applied on critical hits (default 150%).\n• Elemental Damage — Bonus Fire, Cold, Lightning, or Void damage added to attacks." },
-    { "type": "spacer" },
-    { "type": "heading", "value": "How Stats Are Applied" },
-    { "type": "text", "value": "Stats come from multiple sources and stack additively unless stated otherwise. Equipment rune stats are baked directly into items, while passive tree bonuses are applied as persistent modifiers to your character. Local percentage modifiers on equipment (like +% Armor) only scale the base stat of that specific item." },
-    { "type": "note", "value": "Open the Stats Panel in your inventory (click the chart icon in the top-right corner) to see a full breakdown of all your current stats.", "style": "tip" }
+    { "type": "text", "value": "Open the stats panel from the inventory to see calculated character values. It includes passive, equipment, enchantment, status-effect, requirement-penalty, and conditional contributions that are active at that moment." },
+    { "type": "heading", "value": "Flat, Increased, and Extra" },
+    { "type": "list", "value": "Flat values add units, such as +40 armour, +8 fire damage, or +20 maximum health.\nIncreased values are percentages added to the relevant multiplier, such as 15% increased fire damage.\nExtra damage creates another damage component from a source amount; it is not the same as conversion.\nConversion moves a share of physical damage into another element.\nPenetration reduces the target's effective defence for the matching hit; it is not a permanent debuff." },
+    { "type": "heading", "value": "Local vs Global" },
+    { "type": "text", "value": "A local rune changes the item it is printed on. Local increased physical damage scales that weapon's base damage plus its flat physical rune damage. Local armour, evasion, and Energy Shield percentages scale that armour piece's matching base plus flat rune value. Quality is applied to the base before flat runes and local percentages." },
+    { "type": "text", "value": "A global stat is granted to the wearer or wielder and modifies the character total or combat calculation. Resistances, maximum health, global critical chance, elemental damage, leech, regeneration, and ailment stats are common global examples." },
+    { "type": "note", "style": "tip", "value": "The wording matters. 'Increased Armour' on an armour-piece local rune changes that one base. A global armour modifier from the passive tree scales the entity's overall armour attribute." },
+    { "type": "heading", "value": "Percent Display" },
+    { "type": "text", "value": "Internally, 0.15 means 15%. The guide catalog and item tooltips display the converted percentage. Flat entries are rounded to whole values when rolled; percentage rolls retain three decimal places internally." }
   ]
 }

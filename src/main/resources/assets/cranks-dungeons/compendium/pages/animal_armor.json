@@ -1,0 +1,10 @@
+{
+  "title": "Animal Armour",
+  "content": [
+    { "type": "text", "value": "Horse and wolf armour use fixed base stats equivalent to strong player sets. They cannot receive random, targeted, or Artificial runes. Every modifier uses the animal body slot, so holding the item or riding the animal never grants its statistics to the player." },
+    { "type": "list", "value": "Leather Horse Armour: +60 evasion and +15% base movement speed.\nGolden Horse Armour: +55 armour and +35 Energy Shield. It has no extra item rarity.\nIron Horse Armour: +120 armour and +20% knockback resistance.\nDiamond Horse Armour: +300 armour, +10 maximum health, and +0.75 health regeneration per second.\nWolf Armour: +120 armour and +20% knockback resistance, matching iron." },
+    { "type": "heading", "value": "Animal-Only Behaviour" },
+    { "type": "text", "value": "The equipped animal receives the matching armour, evasion, Energy Shield, life regeneration, health, speed, and knockback values through its BODY equipment slot. Energy Shield follows normal recharge and damage rules; Diamond regeneration heals the wearer continuously." },
+    { "type": "note", "style": "important", "value": "Diamond animal armour is supposed to regenerate the equipped animal. If an unarmoured animal regenerates, inspect its traits, status effects, or another mod; this armour does not apply from inventory, hand, or rider state." }
+  ]
+}

@@ -21,6 +21,18 @@ public abstract class InGameHudMixin {
 
     @Shadow @Final private MinecraftClient client;
 
+    /** Keep action-bar progression messages above the mounted health/stamina bars. */
+    @ModifyArg(
+        method = "renderOverlayMessage",
+        at = @At(value = "INVOKE",
+                target = "Lnet/minecraft/client/util/math/MatrixStack;translate(FFF)V"),
+        index = 1
+    )
+    private float raiseMountedOverlayMessage(float y) {
+        return com.cranks.dungeons.client.MountHealthHudRenderer.shouldRaiseOverlayMessage(client)
+                ? y - 14 : y;
+    }
+
     @Inject(method = "renderStatusEffectOverlay", at = @At("HEAD"), cancellable = true)
     private void customStatusEffectOverlay(DrawContext context, net.minecraft.client.render.RenderTickCounter tickCounter, CallbackInfo ci) {
         if (CranksDungeons.CONFIG.customStatusEffectOverlay()) {

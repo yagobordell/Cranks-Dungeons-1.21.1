@@ -1,0 +1,17 @@
+{
+  "title": "Defences",
+  "content": [
+    { "type": "subheading", "value": "Armour" },
+    { "type": "text", "value": "Physical damage reduction is Armour / (Armour + 12 x incoming physical damage), capped at 90%. Flat armour penetration is multiplied by increased armour penetration, then subtracted before this formula. Armour is therefore more efficient against many small hits than one huge hit." },
+    { "type": "text", "value": "Every complete 100 armour also imposes a 3% total movement-speed penalty. Armour Speed Penalty Reduction scales that penalty down. Configured low-armour bonuses can apply below 150 armour." },
+    { "type": "subheading", "value": "Evasion" },
+    { "type": "text", "value": "Dodge chance is Evasion / (Evasion + 8 x incoming damage), capped at 95%. Evasion uses entropy: after a random combat seed, chance accumulates so outcomes are distributed rather than independently rerolled forever. Entropy resets after 6 seconds without a hit. It only applies to entity-sourced attack hits, not fall, drowning, fire, freezing, armour-bypassing, or invulnerability-bypassing damage." },
+    { "type": "subheading", "value": "Energy Shield" },
+    { "type": "text", "value": "Energy Shield absorbs damage before health. Poison and Bleed bypass it; drowning and starvation also bypass it. Void consumes 2 Shield per 1 point of void damage. After 4 seconds without damage it recharges at 12.5% of maximum per second. Faster Start divides the delay by 1 + its value, while Recharge Rate multiplies the refill speed." },
+    { "type": "subheading", "value": "Elemental Resistances" },
+    { "type": "text", "value": "Fire, cold, lightning, and void resistance each reduce their matching damage. Effective resistance is clamped from -100% to 75% after penetration. For positive resistance, penetration scales it down; against negative resistance, penetration pushes it farther negative." },
+    { "type": "subheading", "value": "Raised Shields" },
+    { "type": "text", "value": "A raised shield blocks attacks from the front and subtracts Block Value x (1 + increased Block Value) from the hit. The base shield contributes 8 Block Value. Damage above the block value continues through. Hits of at least 3 damage wear shield durability." },
+    { "type": "note", "style": "warning", "value": "Resolute Technique prevents both evasion and raised-shield blocking for attacks made by its user. Iron Reflexes prevents evasion by converting that rating into armour." }
+  ]
+}

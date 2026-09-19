@@ -1,30 +1,52 @@
 {
   "sections": [
-    {
-      "title": "Getting Started",
-      "collapsed": false,
-      "pages": [
-        { "id": "introduction", "title": "Introduction" },
-        { "id": "classes", "title": "Choosing a Class" },
-        { "id": "passive_tree", "title": "The Passive Tree" }
-      ]
-    },
-    {
-      "title": "Combat",
-      "collapsed": false,
-      "pages": [
-        { "id": "stats", "title": "Stats & Attributes" },
-        { "id": "runes", "title": "Rune System" },
-        { "id": "ailments", "title": "Ailments" }
-      ]
-    },
-    {
-      "title": "Gathering",
-      "collapsed": false,
-      "pages": [
-        { "id": "world_tree", "title": "The World Tree" },
-        { "id": "gathering", "title": "Gathering XP" }
-      ]
-    }
+    { "title": "Getting Started", "collapsed": false, "pages": [
+      { "id": "introduction", "title": "Introduction" }, { "id": "first_steps", "title": "First Steps" },
+      { "id": "controls_hud", "title": "Controls & HUD" }
+    ] },
+    { "title": "Character Progression", "collapsed": false, "pages": [
+      { "id": "classes", "title": "Choosing a Class" }, { "id": "xp_progression", "title": "Levels & XP" },
+      { "id": "passive_tree", "title": "Passive Skill Tree" },
+      { "id": "primary_attributes", "title": "Primary Attributes" }, { "id": "keystones", "title": "Keystones" }
+    ] },
+    { "title": "Combat Systems", "collapsed": true, "pages": [
+      { "id": "stats", "title": "Reading Your Stats" }, { "id": "damage", "title": "Damage & Criticals" },
+      { "id": "defences", "title": "Defences" }, { "id": "enemies", "title": "Enemies & Threats" },
+      { "id": "mob_equipment", "title": "Mob Equipment" },
+      { "id": "ailments", "title": "Ailments" },
+      { "id": "recovery", "title": "Recovery & Mana" }, { "id": "food_effects", "title": "Food & Effects" }
+    ] },
+    { "title": "Equipment Fundamentals", "collapsed": true, "pages": [
+      { "id": "equipment", "title": "Equipment Bases" }, { "id": "item_rarity", "title": "Item Rarity" },
+      { "id": "rarity_requirements", "title": "Item Requirements" }, { "id": "runes", "title": "Understanding Runes" },
+      { "id": "rune_tiers", "title": "Tiers, Levels & Weights" }, { "id": "unique_equipment", "title": "Unique Equipment" }
+    ] },
+    { "title": "Crafting & Upgrades", "collapsed": true, "pages": [
+      { "id": "runic_altar", "title": "Using the Runic Altar" }, { "id": "tomes", "title": "Random Runic Tomes" },
+      { "id": "targeted_tomes", "title": "Targeted Tomes" }, { "id": "artificial_tome", "title": "Artificial Runes" },
+      { "id": "quality", "title": "Quality Station" }, { "id": "enchantments", "title": "Enchantments" }
+    ] },
+    { "title": "Rune Pools: Weapons", "collapsed": true, "pages": [
+      { "id": "rune_sword", "title": "Swords" }, { "id": "rune_spear", "title": "Spears" },
+      { "id": "rune_bow", "title": "Bows" }, { "id": "rune_crossbow", "title": "Crossbows" },
+      { "id": "rune_shield", "title": "Shields" }
+    ] },
+    { "title": "Rune Pools: Armour", "collapsed": true, "pages": [
+      { "id": "rune_helmet", "title": "Helmets" }, { "id": "rune_chestplate", "title": "Chestplates" },
+      { "id": "rune_leggings", "title": "Leggings" }, { "id": "rune_boots", "title": "Boots" }
+    ] },
+    { "title": "World & Gathering", "collapsed": true, "pages": [
+      { "id": "world_tree", "title": "World Tree" }, { "id": "gathering", "title": "Gathering XP" },
+      { "id": "gathering_stats", "title": "Yield & Fortune" }, { "id": "loot", "title": "Tome & Material Loot" },
+      { "id": "parties", "title": "Parties" }
+    ] },
+    { "title": "Mounts & Breeding", "collapsed": true, "pages": [
+      { "id": "mounts", "title": "Mounts & Cargo" }, { "id": "horses", "title": "Horse Statistics" }, { "id": "breeding", "title": "Horse Breeding & Genetics" },
+      { "id": "horse_training", "title": "Training & Stamina" }, { "id": "horse_traits", "title": "Traits & Mutations" },
+      { "id": "animal_armor", "title": "Animal Armour" }
+    ] },
+    { "title": "Reference", "collapsed": true, "pages": [
+      { "id": "vanilla_changes", "title": "Changed Vanilla Rules" }
+    ] }
   ]
 }

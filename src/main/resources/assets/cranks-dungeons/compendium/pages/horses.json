@@ -1,0 +1,18 @@
+{
+  "title": "Horse Statistics",
+  "content": [
+    { "type": "text", "value": "Every vanilla Horse receives persistent genetics the first time the system encounters it. Horses are the mod's sustained ground-mobility option: ordinary travel is free, trained horses handle difficult terrain better, and exceptional bloodlines can compete with Elytra travel on usable ground." },
+    { "type": "text", "value": "Open a horse inventory to see separate panels for current statistics and training perks, inheritable genes and breeding focus, and family or imprint information. Zero-value combat defences remain hidden, while health and movement speed are always shown." },
+    { "type": "heading", "value": "Five Inheritable Genes" },
+    { "type": "list", "value": "Health: 50–90 genetic maximum-health base.\nSpeed: 0.1125–0.42 genetic movement-speed base.\nJump: 0.4–1.2 genetic jump-strength base.\nEvasion: 0–200 genetic evasion rating.\nEndurance: 50–200 genetic stamina base." },
+    { "type": "heading", "value": "Wild Horses" },
+    { "type": "text", "value": "A wild horse's generated vanilla health quality is mapped into 50–75 system health, leaving 76–90 for improved bloodlines. Its generated speed and jump are preserved within their gene limits. It receives random 0–40 evasion, random 70–110 endurance, an even male/female roll, three breeding attempts, and a 40% chance to begin with one random trait." },
+    { "type": "heading", "value": "Overall Grade" },
+    { "type": "text", "value": "Each gene is normalized between its minimum and maximum; the five normalized values are averaged. Grades are E below 25%, D at 25%, C at 40%, B at 55%, A at 70%, and S at 85% or more." },
+    { "type": "text", "value": "The Genetics panel also shows Mobility Grade from Speed, Jump, and Endurance, plus Survival Grade from Health and Evasion. These use the same letter thresholds and make specialized horses easy to recognize even when their Overall Grade is modest." },
+    { "type": "note", "style": "info", "value": "Grade measures only the five inheritable genetic bases. Training, equipment, traits, roads, Gallop, and the active rider's imprint bonus can make a lower-grade horse outperform its raw grade." },
+    { "type": "heading", "value": "Horse-Only Statistics" },
+    { "type": "text", "value": "Genetics, traits, training, Gallop, road bonuses, and horse armour modify the horse entity. They do not add movement, armour, evasion, health, regeneration, or other attributes to the rider or to a player holding horse armour." },
+    { "type": "note", "style": "info", "value": "Mounted horse hearts use the same scale as player hearts in this mod: one full heart represents 5 health. This changes only the HUD representation, not the horse's real maximum health or damage taken." }
+  ]
+}

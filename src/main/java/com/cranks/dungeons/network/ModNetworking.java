@@ -143,6 +143,12 @@ public class ModNetworking {
         PayloadTypeRegistry.playS2C().register(PlayerInfoSyncPacket.ID, PlayerInfoSyncPacket.CODEC);
         PayloadTypeRegistry.playS2C().register(EntityShieldSyncPacket.ID, EntityShieldSyncPacket.CODEC);
         PayloadTypeRegistry.playS2C().register(ManaSyncPacket.ID, ManaSyncPacket.CODEC);
+        PayloadTypeRegistry.playS2C().register(HorseGeneticsSyncPacket.ID, HorseGeneticsSyncPacket.CODEC);
+        PayloadTypeRegistry.playS2C().register(MountDataSyncPacket.ID, MountDataSyncPacket.CODEC);
+        PayloadTypeRegistry.playC2S().register(HorseGallopPayload.ID, HorseGallopPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(OpenMountCargoPayload.ID, OpenMountCargoPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(SetHorseBreedingFocusPayload.ID, SetHorseBreedingFocusPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(SetMountSpecializationPayload.ID, SetMountSpecializationPayload.CODEC);
         
         PayloadTypeRegistry.playS2C().register(SyncWorldTreePayload.ID, SyncWorldTreePayload.CODEC);
         PayloadTypeRegistry.playC2S().register(UnlockWorldNodePayload.ID, UnlockWorldNodePayload.CODEC);
@@ -212,6 +218,53 @@ public class ModNetworking {
     }
 
     public static void registerServerReceivers() {
+        ServerPlayNetworking.registerGlobalReceiver(OpenMountCargoPayload.ID, (payload, context) ->
+                context.server().execute(() -> {
+                    var player = context.player();
+                    if (!(player.getVehicle() instanceof net.minecraft.entity.LivingEntity mount)
+                            || mount.getId() != payload.entityId()
+                            || !com.cranks.dungeons.mount.MountManager.usesCustomCargoScreen(mount)) {
+                        return;
+                    }
+                    com.cranks.dungeons.mount.MountManager.openCargo(player, mount);
+                }));
+
+        ServerPlayNetworking.registerGlobalReceiver(HorseGallopPayload.ID, (payload, context) ->
+                context.server().execute(() -> {
+                    var player = context.player();
+                    if (player.getVehicle() instanceof net.minecraft.entity.passive.HorseEntity horse) {
+                        com.cranks.dungeons.horse.HorseBreedingManager.setGallopRequested(
+                                horse, player, payload.active());
+                    } else if (player.getVehicle() instanceof net.minecraft.entity.LivingEntity mount
+                            && mount instanceof com.cranks.dungeons.mount.MountDataProvider) {
+                        com.cranks.dungeons.mount.MountManager.setAbilityRequested(
+                                mount, player, payload.active());
+                    }
+                }));
+
+        ServerPlayNetworking.registerGlobalReceiver(SetHorseBreedingFocusPayload.ID, (payload, context) ->
+                context.server().execute(() -> {
+                    var player = context.player();
+                    if (!(player.currentScreenHandler instanceof net.minecraft.screen.HorseScreenHandler)) return;
+                    net.minecraft.entity.Entity entity = player.getEntityWorld().getEntityById(payload.entityId());
+                    if (entity instanceof net.minecraft.entity.passive.HorseEntity horse) {
+                        com.cranks.dungeons.horse.HorseBreedingManager.setBreedingFocus(
+                                horse, player,
+                                com.cranks.dungeons.horse.HorseBreedingFocus.fromId(payload.focus()));
+                    }
+                }));
+
+        ServerPlayNetworking.registerGlobalReceiver(SetMountSpecializationPayload.ID, (payload, context) ->
+                context.server().execute(() -> {
+                    var player = context.player();
+                    if (!(player.currentScreenHandler instanceof net.minecraft.screen.HorseScreenHandler)) return;
+                    net.minecraft.entity.Entity entity = player.getEntityWorld().getEntityById(payload.entityId());
+                    if (entity instanceof net.minecraft.entity.mob.SkeletonHorseEntity skeleton) {
+                        com.cranks.dungeons.mount.MountManager.chooseSkeletonSpecialization(
+                                skeleton, player, payload.specialization());
+                    }
+                }));
+
         ServerPlayNetworking.registerGlobalReceiver(
                 ToggleEnchantmentDisablePayload.ID,
                 (payload, context) -> {

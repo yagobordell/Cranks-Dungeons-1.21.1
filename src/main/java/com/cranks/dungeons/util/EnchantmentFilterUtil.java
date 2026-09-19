@@ -103,6 +103,7 @@ public class EnchantmentFilterUtil {
 
     public static boolean isArmor(ItemStack stack) {
         if (stack.isEmpty()) return false;
+        if (com.cranks.dungeons.equipment.AnimalArmorHelper.isSupported(stack)) return true;
         var typeOpt = com.cranks.dungeons.equipment.EquipmentType.getTypeForItem(stack);
         if (typeOpt.isEmpty()) return false;
         var type = typeOpt.get();

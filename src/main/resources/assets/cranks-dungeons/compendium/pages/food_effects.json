@@ -1,0 +1,12 @@
+{
+  "title": "Food & Status Effects",
+  "content": [
+    { "type": "heading", "value": "Hunger" },
+    { "type": "list", "value": "Saturation is always cleared and vanilla natural regeneration is disabled.\nAt 16 hunger or more, Well Fed grants 10% increased movement and attack speed.\nAt 6 hunger or less, Starving applies 10% reduced movement and attack speed.\nStarvation damage equals 5% of maximum health per damage event.\nFood tooltips show exactly how many hunger points they restore." },
+    { "type": "heading", "value": "Reworked Vanilla Effects" },
+    { "type": "list", "value": "Fire Resistance: +15% fire resistance per normal tier.\nResistance: +150 armour per tier.\nRegeneration: +3 health per second per tier.\nStrength / Weakness: +20% / -20% physical damage per tier.\nSpeed / Slowness: +15% / -15% movement speed per tier.\nHaste: +20% mining speed per tier; Mining Fatigue: -30%.\nAbsorption: +20 absorption health per tier, added and removed with the effect.\nLuck / Unluck: +15% / -15% rarity of items found per tier.\nInstant Health: 25 flat healing per tier and damages undead. Instant Damage: 15 void damage per tier and heals undead." },
+    { "type": "heading", "value": "Environmental Damage" },
+    { "type": "text", "value": "Player drowning deals the larger of 12% maximum health or 2 damage per drowning tick and bypasses Energy Shield. Lava and ordinary fire are converted into the Burn ailment; magma blocks deal 3 direct fire damage." },
+    { "type": "note", "style": "info", "value": "Effect tooltips are rewritten to show their actual stat-driven meaning rather than vanilla descriptions." }
+  ]
+}

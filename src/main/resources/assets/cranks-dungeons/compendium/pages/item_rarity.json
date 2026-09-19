@@ -1,0 +1,15 @@
+{
+  "title": "Item Rarity",
+  "content": [
+    { "type": "text", "value": "Rarity controls how many rune affixes an item may hold and which crafting operations accept it. Rarity does not directly multiply damage or defense, does not improve a rune's tier, and is separate from quality and enchantment slots." },
+    { "type": "subheading", "value": "Normal - White" },
+    { "type": "text", "value": "A Normal item has no prefix or suffix capacity by itself. Most ordinary unprocessed equipment begins Normal. Use a Tome of Transmutation to turn it Magic with one random rune, or a Tome of Alchemy to replace its rune state with a Rare four-rune attempt." },
+    { "type": "subheading", "value": "Magic - Aqua" },
+    { "type": "text", "value": "A Magic item can hold at most one prefix and one suffix. Transmutation creates Magic equipment with one rune. Augmentation can add the missing side. Regal and every compatible targeted tome use a Magic item as input and produce a Rare item." },
+    { "type": "subheading", "value": "Rare - Yellow" },
+    { "type": "text", "value": "A Rare item can hold up to three prefixes and three suffixes. Exalted adds a random rune when a legal slot and group remain. Chaos replaces one random rune, Annulment removes one, Divine rerolls values, and the Artificial Tome begins Artificial crafting. A Rare item is not necessarily full." },
+    { "type": "subheading", "value": "Unique - Gold" },
+    { "type": "text", "value": "The mace, trident, turtle helmet, and Elytra are forced Unique by item identity. They use preset special statistics and reject all Runic Altar crafting. Their gold name does not mean six craftable prefixes and six craftable suffixes." },
+    { "type": "note", "style": "important", "value": "Rarity is affix capacity, not an overall power score. A well-rolled Magic item can be better than a poorly rolled or unfinished Rare item, and upgrading rarity never raises the tiers of runes already present." }
+  ]
+}

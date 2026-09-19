@@ -1,0 +1,12 @@
+{
+  "title": "Controls & HUD",
+  "content": [
+    { "type": "heading", "value": "Default Keys" },
+    { "type": "list", "value": "C: open the Compendium.\nP: open the Passive Skill Tree.\nO: open the World Tree.\nG: cycle disabled toggleable enchantments on the held tool.\nW/S while riding: move forward or backward.\nA/D on a Horse: steer with gradual, speed-sensitive turning while the camera looks freely.\nSprint + Forward: Horse Gallop, Donkey/Mule Pack Trot, or Strider Lava Rush.\nJump on a Horse: immediately perform its full jump; Camels retain their dash control.\nInventory key while riding a Pig, Strider, or Camel: open its shared mount inventory.\nSneak + empty-hand Use on a Pig, Strider, or Camel: open its shared mount inventory. Vanilla-inventory mounts keep their normal horse inventory controls.\nMouse wheel: zoom a tree, scroll guide pages, horse panels, and the inventory stats list.\nLeft-drag: pan around a tree." },
+    { "type": "note", "style": "info", "value": "All key assignments can be changed in Minecraft Controls. If another mod uses the same key, rebind one of them." },
+    { "type": "heading", "value": "Stat Displays" },
+    { "type": "list", "value": "The inventory stats panel shows calculated player totals. Scroll it when the list is longer than the panel.\nEntity overhead bars can show health, Energy Shield, ailments, armour, and evasion according to client settings.\nDamage numbers are colour-coded by physical, fire, cold, lightning, void, drowning, and healing.\nThe party HUD tracks connected party members.\nThe mount resource bar shows Horse Stamina, Donkey/Mule/Camel Endurance, or Strider Heat and can be repositioned in the Mod Menu HUD layout editor." },
+    { "type": "heading", "value": "Client Configuration" },
+    { "type": "text", "value": "Mod Menu exposes HUD visibility, scale, placement, entity-bar behaviour, and related client presentation options. These settings do not change server-side combat values." }
+  ]
+}

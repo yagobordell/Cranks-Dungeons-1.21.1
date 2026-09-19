@@ -1,0 +1,13 @@
+{
+  "title": "Using the Runic Altar",
+  "content": [
+    { "type": "text", "value": "The Runic Altar is where consumable tomes modify eligible equipment. It has an equipment slot at the upper left, a tome slot below it, an activation button in the center, and a result slot on the right." },
+    { "type": "subheading", "value": "Crafting the Altar" },
+    { "type": "text", "value": "Craft it with one Book in the top-center crafting slot and two complete rows of Stone beneath it, for a total of one Book and six Stone." },
+    { "type": "heading", "value": "Applying a Tome" },
+    { "type": "list", "style": "numbered", "value": "Read the tome tooltip and confirm the item's current rarity. Different tomes require Normal, Magic, or Rare input.\nPlace one eligible equipment item in the upper-left slot.\nPlace the tome in the lower-left slot.\nPress the center altar button. If the operation is legal, the original item and one tome are consumed immediately and the modified copy appears in the result slot.\nTake the result from the right slot. Inspect its rarity, affix side, tier, and rolled value before performing another operation." },
+    { "type": "heading", "value": "Why No Result Appears" },
+    { "type": "list", "value": "The input rarity does not match that tome.\nThe required prefix or suffix side is full.\nThe item already has a rune from the same duplicate group.\nThe tome has no definition for that equipment type.\nNo rune at the tome's minimum rune level is compatible with the item.\nThe item is a Unique, animal armour, or a tool that cannot accept affixes.\nThe result slot is still occupied." },
+    { "type": "note", "style": "warning", "value": "A successful button press spends the inputs immediately. Taking the result only retrieves the already-created item. Alchemy, Chaos, Annulment, and a full-item Artificial craft can destroy or replace an existing rune, so read their chapters first." }
+  ]
+}

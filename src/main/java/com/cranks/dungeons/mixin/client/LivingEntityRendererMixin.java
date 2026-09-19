@@ -23,6 +23,11 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
 
     @Inject(method = "hasLabel", at = @At("HEAD"), cancellable = true)
     private void hideNametag(T entity, CallbackInfoReturnable<Boolean> cir) {
+        PlayerEntity localPlayer = MinecraftClient.getInstance().player;
+        if (localPlayer != null && entity == localPlayer.getVehicle()) {
+            cir.setReturnValue(false);
+            return;
+        }
         if ((entity instanceof PlayerEntity || entity.hasCustomName()) && com.cranks.dungeons.CranksDungeons.CONFIG.showPlayerInfoAboveHead()) {
             cir.setReturnValue(false);
         }
@@ -45,6 +50,14 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
             );
             this.model.render(matrices, consumer, 15728880, OverlayTexture.DEFAULT_UV);
         }
+    }
+
+    /** Render mount panniers while the renderer still has the entity transform pushed. */
+    @Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/math/MatrixStack;pop()V"))
+    private void renderMountPanniers(T entity, float yaw, float tickDelta, MatrixStack matrices,
+                                     VertexConsumerProvider vertexConsumers, int light, CallbackInfo ci) {
+        com.cranks.dungeons.client.render.MountChestFeatureRenderer.renderPanniers(
+                matrices, vertexConsumers, light, entity);
     }
 
     @Inject(method = "render", at = @At("TAIL"))

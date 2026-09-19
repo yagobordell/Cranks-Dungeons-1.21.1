@@ -1236,7 +1236,7 @@ public class StatRegistry {
                 List<CustomStat> stats = getStatsByEquipmentType(equipmentType).stream()
                                 .filter(stat -> stat.getLevel() >= minLevel && stat.getLevel() <= maxLevel)
                                 .filter(stat -> armorBase.canRoll(stat.getArmorBaseType()))
-                                .filter(stat -> !stat.getId().contains("experience_bonus") && !stat.getId().contains("physical_taken_as_void"))
+                                .filter(StatRegistry::isRandomlyRollable)
                                 .collect(Collectors.toList());
                 return getRandomWeightedStatAndTier(stats, bestAllowedTier);
         }
@@ -1252,9 +1252,19 @@ public class StatRegistry {
                                 .filter(stat -> stat.getAffixType() == affixType)
                                 .filter(stat -> stat.getLevel() >= minLevel && stat.getLevel() <= maxLevel)
                                 .filter(stat -> armorBase.canRoll(stat.getArmorBaseType()))
-                                .filter(stat -> !stat.getId().contains("experience_bonus") && !stat.getId().contains("physical_taken_as_void"))
+                                .filter(StatRegistry::isRandomlyRollable)
                                 .collect(Collectors.toList());
                 return getRandomWeightedStatAndTier(stats, bestAllowedTier);
+        }
+
+        /**
+         * Whether an affix belongs to the ordinary random-tome and mob-equipment pool.
+         * Zero-weight definitions are reserved for targeted or fixed Unique behavior.
+         */
+        public static boolean isRandomlyRollable(CustomStat stat) {
+                if (stat == null || stat.getWeight() <= 0) return false;
+                String id = stat.getId();
+                return !id.contains("experience_bonus") && !id.contains("physical_taken_as_void");
         }
 
         private static StatAndTier getRandomWeightedStatAndTier(List<CustomStat> stats, int bestAllowedTier) {

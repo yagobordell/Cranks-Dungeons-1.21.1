@@ -34,6 +34,13 @@ public record EnergyShieldSyncPacket(float currentShield, float maxShield) imple
                 float now = packet.currentShield();
 
                 provider.cranksdungeons$setCurrentEnergyShield(now);
+                // Keep the owner-only sync path in the cache used by the
+                // overhead renderer, alongside the health bar.
+                float max = packet.maxShield();
+                if (max > 0.0f) {
+                    com.cranks.dungeons.client.render.EntityStatBarRenderer.updateEntityShield(
+                            client.player.getId(), now, max);
+                }
 
                 // Trigger camera shake only when shield actually loses value (hit/break), not regen
                 if (now < old - 0.05f) { // small epsilon

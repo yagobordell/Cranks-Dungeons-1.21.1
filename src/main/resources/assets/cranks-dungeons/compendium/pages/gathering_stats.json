@@ -1,0 +1,13 @@
+{
+  "title": "Yield, Fortune & Tool Utility",
+  "content": [
+    { "type": "heading", "value": "Yield" },
+    { "type": "text", "value": "Yield duplicates each affected original stack proportionally. The whole-number part grants guaranteed extra copies; the fractional part is the chance for one more copy. For example, 1.25 yield adds one guaranteed copy of the stack and has a 25% chance to add another. Final stack count is capped by that item's maximum stack size." },
+    { "type": "list", "value": "Log Yield affects logs. Sapling Yield affects saplings and apples from leaves.\nOre Yield affects standard ores and quartz; Overworld/Nether Ore Yield is added in its matching dimension. Gem Yield additionally affects diamond, emerald, and lapis ores. Flint Yield affects flint from gravel.\nCrop Yield affects mature crop food; Seed Yield affects recognized seed drops.\nMonster Drop Yield affects hostile-monster loot. Rare Mob Drop Chance is added as another monster-loot duplication value, with a Nether-specific addition.\nAnimal Drop Yield affects animal loot. Meat Yield adds again for beef, pork, chicken, mutton, and rabbit food drops." },
+    { "type": "heading", "value": "Fortune Chances" },
+    { "type": "list", "value": "Ore Fortune can duplicate normal ore drops when Silk Touch is not active.\nLog Fortune has a chance to drop one extra natural log.\nCrop Fortune, when harvesting a mature supported crop with a hoe, replaces the ordinary drop with twice the full original drop on success.\nDig Fortune can add flint from gravel, another full clay-ball drop from clay, or duplicate non-block drops from configured dig blocks." },
+    { "type": "heading", "value": "Tool Utility" },
+    { "type": "list", "value": "Mining Efficiency changes gathering speed.\nPrecision Mining is a capped 0–100% chance for a gathering tool not to lose durability.\nRepair Chance is a capped 0–100% chance for any applicable gear durability event to be cancelled.\nBreaking Range extends block reach.\nVein Mining searches direct connected neighbours in the same ore tag, breaks up to 31 additional blocks, consumes one durability per extra block, and stops before the tool breaks." },
+    { "type": "note", "style": "warning", "value": "Several yield bonuses can add together on the same loot stack. Stack-size caps can waste part of a very large combined bonus." }
+  ]
+}

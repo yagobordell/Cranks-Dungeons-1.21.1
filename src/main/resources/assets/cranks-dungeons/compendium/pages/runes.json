@@ -1,16 +1,19 @@
 {
-  "title": "Rune System",
+  "title": "Understanding Runes",
   "content": [
-    { "type": "text", "value": "Runes are the random stat modifiers that appear on equipment. Each piece of gear can roll multiple rune stats that provide various bonuses, from flat attributes to percentage-based multipliers." },
-    { "type": "spacer" },
-    { "type": "heading", "value": "How Runes Work" },
-    { "type": "text", "value": "When a piece of equipment drops, it rolls a random set of rune stats from a pool determined by its equipment type. For example, a chestplate might roll Armor, Evasion Rating, or Energy Shield runes, while a weapon might roll Attack Damage or Attack Speed." },
-    { "type": "spacer" },
-    { "type": "heading", "value": "Rune Types" },
-    { "type": "text", "value": "• Flat Runes — Add a fixed value to a stat (e.g., +15 Armor).\n• Local Percent Runes — Multiply the item's base stat (e.g., +20% Armor applies ONLY to that item's base armor).\n• Global Percent Runes — Add a percentage bonus to your total stat (e.g., +5% Fire Resistance).\n• Hybrid Runes — Provide two different bonuses at once (e.g., +5 Dexterity and +10 Evasion Rating)." },
-    { "type": "spacer" },
-    { "type": "heading", "value": "Enhancing Equipment" },
-    { "type": "text", "value": "You can modify rune stats using special stations found in the world:\n• Runic Enhancement Altar — Reroll all rune stats on an item.\n• Quality Station — Increase an item's quality, which scales its base stats.\n• Artificial Enhancement Altar — Choose specific stat options to apply." },
-    { "type": "note", "value": "Local percent runes are very powerful because they multiply the item's entire base value plus any flat runes. Always look for items with high base stats AND local percent runes!", "style": "tip" }
+    { "type": "text", "value": "Runes are equipment modifiers created through the Runic Altar or generated on mob equipment. A rune has a prefix or suffix position, a tier, a rolled value, a rune-level requirement for random crafting, a selection weight, and a compatibility group." },
+    { "type": "heading", "value": "Three Ways to Obtain a Rune" },
+    { "type": "list", "value": "Random rune: ordinary Runic Tomes choose from the item's compatible random pool. The weapon and armour catalog pages list only these genuinely random-rollable affixes.\nTargeted rune: Elemental, Haste, and Body tomes guarantee one named family instead of selecting randomly. Some targeted results also exist in the random pool, while special Extra Damage and Physical Taken as Void modifiers are targeted-only.\nArtificial rune: an Artificial Tome reserves one prefix or suffix on a Rare item, then the Artificial Altar lets you choose from up to three compatible options." },
+    { "type": "heading", "value": "Prefixes and Suffixes" },
+    { "type": "text", "value": "Prefix and suffix capacity is separate. Magic equipment can hold one prefix and one suffix; Rare equipment can hold three of each. A random tome tries a random side first and then the other side if the first cannot accept a legal result. A rune consumes one slot even when it grants several component values." },
+    { "type": "heading", "value": "Duplicate Groups" },
+    { "type": "text", "value": "Related versions of a stat share a group ID. An item cannot hold two runes from the same group even when their internal IDs differ. Hybrid runes roll several components together but consume only their own single affix position." },
+    { "type": "heading", "value": "Local Runes" },
+    { "type": "text", "value": "Local flat physical damage, armour, evasion, and Energy Shield are merged with the item's base. Local percentage then scales base + flat. These values are baked into the item's attribute component so they are not added a second time as global stats." },
+    { "type": "heading", "value": "Global and Conditional Runes" },
+    { "type": "text", "value": "Global runes contribute to the character or attack calculation: attributes, life, mana, resistance, global critical chance, elemental damage, ailment chance/magnitude, leech, projectile behaviour, regeneration, and similar bonuses. Conditional wording only applies while its named condition is true." },
+    { "type": "heading", "value": "What Cannot Be Runed" },
+    { "type": "text", "value": "The mace, trident, turtle helmet, and Elytra are Unique and reject every Runic Altar operation. Horse armour, wolf armour, axes, pickaxes, shovels, and hoes also cannot receive affixes. Unique-only internal modifiers are intentionally omitted from the rune catalogs." },
+    { "type": "note", "style": "info", "value": "Read Using the Runic Altar before spending a tome. Item rarity, open prefix/suffix capacity, duplicate groups, equipment compatibility, and the tome's own input-rarity rule must all allow the operation." }
   ]
 }

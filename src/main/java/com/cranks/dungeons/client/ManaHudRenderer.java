@@ -67,13 +67,7 @@ public class ManaHudRenderer implements HudRenderCallback {
 
         // Position above hunger / mount health
         LivingEntity vehicle = player.getVehicle() instanceof LivingEntity living ? living : null;
-        int vehicleRows = 0;
-        if (vehicle != null && vehicle.isAlive()) {
-            int maxHearts = MathHelper.ceil(vehicle.getMaxHealth() / 2.0f);
-            if (maxHearts > 0) {
-                vehicleRows = (int) Math.ceil(maxHearts / 10.0f);
-            }
-        }
+        int vehicleRows = HorseMountHudLayout.visibleHeartRows(vehicle);
 
         int hungerBaseY = screenHeight - 39;
         int manaBaseY = vehicleRows > 0 ? (hungerBaseY - (vehicleRows - 1) * 10 - 10) : (hungerBaseY - 10);

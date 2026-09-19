@@ -1,0 +1,13 @@
+{
+  "title": "Tome & Material Loot",
+  "content": [
+    { "type": "text", "value": "Runic tomes, quality materials, targeted tomes, and Deepslate Sigils are injected into built-in entity and chest loot tables. Mob tiers choose the primary tome pool; separate pools handle quality materials, sigils, and thematic tomes." },
+    { "type": "heading", "value": "Mob Tiers" },
+    { "type": "list", "value": "Tier 1: common surface threats such as zombies, skeletons, spiders, creepers, drowned, slimes, and related variants. Primary tome pool is about 12.5%.\nTier 2: stronger or specialized threats such as pillagers, witches, blazes, ghasts, endermen, breezes, piglins, guardians, and phantoms. Primary pool is about 20%.\nTier 3: apex enemies such as ravagers, evokers, piglin brutes, wither skeletons, shulkers, wardens, elder guardians, and iron golems. Primary pool is about 35%." },
+    { "type": "heading", "value": "Thematic Drops" },
+    { "type": "text", "value": "Matching creatures can independently drop elemental or utility tomes: hot mobs drop Flames, cold mobs Ice, guardians/breezes Electricity, magical/end enemies Ruin, heavy physical mobs Abrasion, fast arthropods Haste, and husks/zoglins Body. The normal thematic chance is 0.8%; where a Greater version exists it has a separate 0.1% entry in that pool." },
+    { "type": "heading", "value": "Materials and Sigils" },
+    { "type": "text", "value": "Armoured mobs favour Armourer's Scrap and weapon wielders favour Whetstones; higher mob tiers multiply those weights. Cave, trial, and elite mobs can drop Deepslate Sigils at 3.5%, 6%, or 12% according to tier. Selected village, mineshaft, dungeon, structure, Nether, End, trial, and ancient-city chests have tiered loot pools." },
+    { "type": "note", "style": "info", "value": "These additions only modify built-in loot tables. A data pack or mod that replaces a table instead of extending it can change the observed results." }
+  ]
+}

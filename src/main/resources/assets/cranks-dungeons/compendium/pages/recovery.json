@@ -1,0 +1,14 @@
+{
+  "title": "Recovery & Mana",
+  "content": [
+    { "type": "subheading", "value": "Life Regeneration" },
+    { "type": "text", "value": "Life regeneration is calculated per second as flat regeneration + maximum health x percent regeneration. It is applied continuously in twentieths each tick. Regeneration Rate While Moving multiplies it while horizontal movement is detected. Natural hunger regeneration is disabled." },
+    { "type": "subheading", "value": "Life Leech" },
+    { "type": "text", "value": "Physical Damage Leeched as Life takes a portion of final physical hit damage and scales it by increased life leech. A single hit cannot create more than 10% of maximum health as leech. Leech is then recovered over time by the leech manager." },
+    { "type": "subheading", "value": "Mana" },
+    { "type": "text", "value": "Intelligence grants +2 maximum mana per point and each character level grants +4. Mana regeneration restores maximum mana x Mana Regeneration Percent per second, multiplied by Mana Regeneration Rate, Mana Recovery Rate, and movement recovery where applicable." },
+    { "type": "subheading", "value": "Mana Leech and On Kill" },
+    { "type": "text", "value": "Physical Damage Leeched as Mana is immediate, scales with increased mana leech and Mana Recovery Rate, and is capped to 10% of maximum mana per hit. Health on Kill, percent health on kill, and Mana on Kill trigger when the build receives kill credit." },
+    { "type": "note", "style": "warning", "value": "Vaal Pact disables life regeneration. Zealot's Oath sends life regeneration to Energy Shield. Ghost Reaver disables normal Energy Shield recharge. These keystones require a deliberate alternate recovery plan." }
+  ]
+}

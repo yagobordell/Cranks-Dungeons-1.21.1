@@ -1,6 +1,7 @@
 package com.cranks.dungeons.mixin;
 
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
+import net.minecraft.screen.ScreenHandler;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
@@ -20,4 +21,7 @@ public interface HandledScreenAccessor {
 
     @Accessor("backgroundHeight")
     int getBackgroundHeight();
+
+    @Accessor("handler")
+    ScreenHandler getHandler();
 }

@@ -37,10 +37,13 @@ public class StatBarHudRenderer implements HudRenderCallback {
     // Default dimensions for the bar (scaled to match a vanilla heart row: 81x9)
     public static final int BAR_WIDTH = 81;
     public static final int BAR_HEIGHT = 9;
+    public static final int SHIELD_HEIGHT = 6;
     public static final int FILL_OFFSET_X = 0;
     public static final int FILL_OFFSET_Y = 0;
     public static final int MAX_FILL_WIDTH = 81;
     public static final int FILL_HEIGHT = 9;
+    // The vanilla font is 9px tall; scale bar labels to approximately 8px.
+    private static final float BAR_TEXT_SCALE = 0.9f;
 
     private float displayedHealth = -1;
     private long lastHealthChangeTime = 0;
@@ -185,13 +188,10 @@ public class StatBarHudRenderer implements HudRenderCallback {
             hColor = 0xFFFFAA00;
         }
 
-        int hTextWidth = textRenderer.getWidth(hText);
-        context.drawTextWithShadow(textRenderer, hText, x + (BAR_WIDTH / 2) - (hTextWidth / 2),
-                y + (BAR_HEIGHT / 2) - (textRenderer.fontHeight / 2), hColor);
+        drawCenteredBarText(context, textRenderer, hText, x, y, BAR_WIDTH, BAR_HEIGHT, hColor);
     }
 
     public static void renderShieldBarDirect(DrawContext context, MinecraftClient client, int x, int y, float shield, float maxShield, float displayedShield) {
-        int SHIELD_HEIGHT = 6;
         context.drawGuiTexture(EMPTY_SHIELD_BAR, x, y, BAR_WIDTH, SHIELD_HEIGHT);
 
         float shieldPercent = MathHelper.clamp(shield / maxShield, 0, 1);
@@ -212,13 +212,7 @@ public class StatBarHudRenderer implements HudRenderCallback {
 
         String sText = (int) shield + " / " + (int) maxShield;
         TextRenderer tr = client.textRenderer;
-        int sTextWidth = tr.getWidth(sText);
-
-        context.getMatrices().push();
-        context.getMatrices().translate(x + (BAR_WIDTH / 2f), y + (SHIELD_HEIGHT / 2f), 0.0f);
-        context.getMatrices().scale(0.8f, 0.8f, 1.0f);
-        context.drawTextWithShadow(tr, sText, -(sTextWidth / 2), -(tr.fontHeight / 2), 0xFFFFFFFF);
-        context.getMatrices().pop();
+        drawCenteredBarText(context, tr, sText, x, y, BAR_WIDTH, SHIELD_HEIGHT, 0xFFFFFFFF);
     }
 
     public static void renderManaBarDirect(DrawContext context, MinecraftClient client, int x, int y, float mana, float maxMana, float displayedMana) {
@@ -243,10 +237,7 @@ public class StatBarHudRenderer implements HudRenderCallback {
 
         String mText = (int) mana + " / " + (int) maxMana;
         TextRenderer tr = client.textRenderer;
-        int mTextWidth = tr.getWidth(mText);
-
-        context.drawTextWithShadow(tr, mText, x + (BAR_WIDTH / 2) - (mTextWidth / 2),
-                y + (MANA_HEIGHT / 2) - (tr.fontHeight / 2), 0xFFFFFFFF);
+        drawCenteredBarText(context, tr, mText, x, y, BAR_WIDTH, MANA_HEIGHT, 0xFFFFFFFF);
     }
 
     public static void renderHungerBarDirect(DrawContext context, MinecraftClient client, int x, int y, int hunger) {
@@ -267,9 +258,18 @@ public class StatBarHudRenderer implements HudRenderCallback {
 
         TextRenderer textRenderer = client.textRenderer;
         String text = hunger + " / 20";
+        drawCenteredBarText(context, textRenderer, text, x, y, BAR_WIDTH, BAR_HEIGHT, 0xFFFFFFFF);
+    }
+
+    private static void drawCenteredBarText(DrawContext context, TextRenderer textRenderer, String text,
+                                            int x, int y, int width, int height, int color) {
         int textWidth = textRenderer.getWidth(text);
-        context.drawTextWithShadow(textRenderer, text, x + (BAR_WIDTH / 2) - (textWidth / 2),
-                y + (BAR_HEIGHT / 2) - (textRenderer.fontHeight / 2), 0xFFFFFFFF);
+
+        context.getMatrices().push();
+        context.getMatrices().translate(x + width / 2.0f, y + height / 2.0f, 0.0f);
+        context.getMatrices().scale(BAR_TEXT_SCALE, BAR_TEXT_SCALE, 1.0f);
+        context.drawTextWithShadow(textRenderer, text, -(textWidth / 2), -(textRenderer.fontHeight / 2), color);
+        context.getMatrices().pop();
     }
 
     private void updateTrails(float health, float shield, float absorption, float mana) {

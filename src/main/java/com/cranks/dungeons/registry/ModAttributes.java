@@ -206,6 +206,7 @@ public class ModAttributes {
     public static final RegistryEntry<EntityAttribute> PRECISION_MINING = register("precision_mining", 0.0, 0.0, 1.0);
     public static final RegistryEntry<EntityAttribute> BREAKING_RANGE = register("breaking_range", 0.0, 0.0, 5.0);
     public static final RegistryEntry<EntityAttribute> MOVEMENT_SPEED = register("movement_speed", 0.0, 0.0, 10.0);
+    public static final RegistryEntry<EntityAttribute> HORSE_ENDURANCE = register("horse_endurance", 0.0, 0.0, 1000.0);
     public static final RegistryEntry<EntityAttribute> REPAIR_CHANCE = register("repair_chance", 0.0, 0.0, 1.0);
 
     // Core Base Attributes

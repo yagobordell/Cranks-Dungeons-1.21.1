@@ -120,6 +120,8 @@ public class ItemStatManager {
     }
 
     public static boolean canAddStat(ItemStack stack, CustomStat.AffixType type) {
+        if (AnimalArmorHelper.isSupported(stack)) return false;
+
         // Tools cannot have stats
         if (isTool(stack)) return false;
 
@@ -390,6 +392,8 @@ public class ItemStatManager {
 
     public static boolean addCrypticStat(ItemStack stack, CustomStat.AffixType type) {
         if (stack.isEmpty()) return false;
+        if (AnimalArmorHelper.isSupported(stack)) return false;
+        if (isTool(stack)) return false;
         NbtCompound nbt = stack.getOrDefault(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,
                 net.minecraft.component.type.NbtComponent.DEFAULT).copyNbt();
         nbt.putBoolean(ARTIFICIAL_KEY, true);
@@ -412,6 +416,8 @@ public class ItemStatManager {
 
     public static boolean revealCrypticStat(ItemStack stack, String statId, int tier, double[] values) {
         if (!hasCrypticStat(stack)) return false;
+        if (AnimalArmorHelper.isSupported(stack)) return false;
+        if (isTool(stack)) return false;
 
         CustomStat stat = StatRegistry.getStat(statId);
         if (stat == null) return false;

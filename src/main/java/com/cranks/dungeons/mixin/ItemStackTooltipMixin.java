@@ -3,6 +3,7 @@ package com.cranks.dungeons.mixin;
 import com.cranks.dungeons.equipment.EquipmentStatApplier;
 import com.cranks.dungeons.equipment.EquipmentType;
 import com.cranks.dungeons.equipment.ItemStatManager;
+import com.cranks.dungeons.equipment.AnimalArmorHelper;
 import com.cranks.dungeons.item.CustomRarity;
 import com.cranks.dungeons.registry.ModAttributes;
 import com.cranks.dungeons.stat.CustomStat;
@@ -49,9 +50,10 @@ public abstract class ItemStackTooltipMixin {
 
         Optional<EquipmentType> equipType = EquipmentType.getTypeForItem(stack);
         List<ItemStatManager.ItemStat> customStats = ItemStatManager.getStats(stack);
+        boolean isAnimalArmor = AnimalArmorHelper.isSupported(stack);
 
         // Only process items that are part of our RPG system
-        if (customStats.isEmpty() && equipType.isEmpty()) {
+        if (customStats.isEmpty() && equipType.isEmpty() && !isAnimalArmor) {
 
             return;
         }
@@ -74,7 +76,10 @@ public abstract class ItemStackTooltipMixin {
         newTooltip.add(modifyItemNameWithRarity(stack, tooltip.get(0)));
 
         // Item Type (Centered-ish subtitle)
-        if (equipType.isPresent()) {
+        if (isAnimalArmor) {
+            newTooltip.add(Text.literal("Animal Armor").formatted(Formatting.DARK_GRAY));
+            addDivider(newTooltip);
+        } else if (equipType.isPresent()) {
             EquipmentType typeEnum = equipType.get();
             
             boolean isTool = typeEnum == EquipmentType.PICKAXE || typeEnum == EquipmentType.SHOVEL || typeEnum == EquipmentType.HOE || typeEnum == EquipmentType.AXE;
@@ -117,7 +122,11 @@ public abstract class ItemStackTooltipMixin {
         }
 
         // 2. Base Stats Section
-        if (equipType.isPresent()) {
+        if (isAnimalArmor) {
+            // Animal armor deliberately stays outside EquipmentType so it cannot receive runes.
+            // CHESTPLATE is used only to reuse the defensive-stat display formatting.
+            addBaseStatsSection(stack, newTooltip, EquipmentType.CHESTPLATE);
+        } else if (equipType.isPresent()) {
             addBaseStatsSection(stack, newTooltip, equipType.get());
         }
 
@@ -212,6 +221,18 @@ public abstract class ItemStackTooltipMixin {
                         .append(Text.literal(pctFmt.format(moveSpeed) + "%")
                                 .formatted(getValueColor(stack, ModAttributes.MOVEMENT_SPEED))));
                 addedAny = true;
+            }
+
+            if (AnimalArmorHelper.isSupported(stack)) {
+                double animalMovementSpeed = getModifierTotal(stack,
+                        EntityAttributes.GENERIC_MOVEMENT_SPEED,
+                        net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE);
+                if (animalMovementSpeed != 0.0) {
+                    tooltip.add(Text.literal("Movement Speed: ").formatted(Formatting.GRAY)
+                            .append(Text.literal(pctFmt.format(animalMovementSpeed * 100) + "%")
+                                    .formatted(Formatting.WHITE)));
+                    addedAny = true;
+                }
             }
 
             String speedKey = EntityAttributes.GENERIC_ATTACK_SPEED.value().getTranslationKey();
@@ -777,6 +798,21 @@ public abstract class ItemStackTooltipMixin {
         String itemName = stack.getItem().toString().toLowerCase();
         return itemName.endsWith("pickaxe") || itemName.endsWith("axe") ||
                 itemName.endsWith("shovel") || itemName.endsWith("hoe");
+    }
+
+    @Unique
+    private double getModifierTotal(ItemStack stack, RegistryEntry<EntityAttribute> attribute,
+            net.minecraft.entity.attribute.EntityAttributeModifier.Operation operation) {
+        double total = 0.0;
+        AttributeModifiersComponent modifiers = stack.getOrDefault(
+                DataComponentTypes.ATTRIBUTE_MODIFIERS,
+                AttributeModifiersComponent.DEFAULT);
+        for (var entry : modifiers.modifiers()) {
+            if (attributesMatch(entry.attribute(), attribute) && entry.modifier().operation() == operation) {
+                total += entry.modifier().value();
+            }
+        }
+        return total;
     }
 
 

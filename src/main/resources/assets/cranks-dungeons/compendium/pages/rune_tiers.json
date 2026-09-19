@@ -1,0 +1,16 @@
+{
+  "title": "Rune Tiers, Levels & Weights",
+  "content": [
+    { "type": "heading", "value": "Tier Direction" },
+    { "type": "text", "value": "T1 is the strongest tier and T10 is the weakest. A value is rolled uniformly between that tier's displayed minimum and maximum. Flat values are rounded to a whole number; percentages retain three decimal places internally." },
+    { "type": "heading", "value": "Material Tier Floor" },
+    { "type": "list", "value": "Wood, stone, and leather bases: random T10 only.\nIron, chainmail, gold, shields, and any item name containing bow: random T9–T10. This means bows and crossbows match the bow rule regardless of material name.\nDiamond: random T8–T10.\nNetherite: random T7–T10.\nOther supported bases: random T1–T10." },
+    { "type": "note", "style": "important", "value": "A targeted tome directly adds its specified tier and bypasses the material's normal random tier floor. This is how a guaranteed T4 or T1–T3 rune can appear on a base whose random rolls are limited to worse tiers." },
+    { "type": "heading", "value": "Rune Level" },
+    { "type": "text", "value": "Rune level is an affix-pool gate, not the player's level and not the material tier. Ordinary tomes accept definitions marked level 1 or higher. Greater random tomes restrict selection to definitions marked level 30 or higher; Perfect random tomes restrict it to level 60 or higher." },
+    { "type": "heading", "value": "Selection Weight" },
+    { "type": "text", "value": "Base weight controls how often one rune family is considered relative to another. Each allowed tier then multiplies that weight by the tier curve below. The altar selects from all compatible stat-and-tier combinations." },
+    { "type": "list", "value": "T10: 40% of base weight. T9: 65%. T8: 85%. T7: 100%. T6: 85%.\nT5: 65%. T4: 45%. T3: 25%. T2: 10%. T1: 2%." },
+    { "type": "text", "value": "Because the curve peaks at T7, the best eligible tier is not automatically the most common. T1 is intentionally extremely rare when it is allowed. Definitions with base weight 0 are reserved for targeted or fixed behavior and are excluded from ordinary random selection and from the random-rune catalogs. The Artificial Altar also excludes weight-0 definitions." }
+  ]
+}

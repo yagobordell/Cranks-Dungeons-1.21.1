@@ -79,6 +79,15 @@ public class CranksDungeonsClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
+        com.cranks.dungeons.client.HorseStaminaHudRenderer.register();
+        com.cranks.dungeons.client.MountHealthHudRenderer.register();
+        com.cranks.dungeons.client.HorseGallopInputHandler.register();
+        net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents.DISCONNECT.register(
+                (handler, client) -> {
+                    com.cranks.dungeons.client.HorseGeneticsClientData.clear();
+                    com.cranks.dungeons.client.MountClientData.clear();
+                    com.cranks.dungeons.client.HorseGallopInputHandler.reset();
+                });
         // Register default HUD component (stamina/energy overlay);
 
         ClientConfigCommand.register();
@@ -97,6 +106,7 @@ public class CranksDungeonsClient implements ClientModInitializer {
         HandledScreens.register(ModScreenHandlers.RUNIC_ENHANCEMENT_ALTAR, RunicEnhancementAltarScreen::new);
         HandledScreens.register(ModScreenHandlers.ARTIFICIAL_ENHANCEMENT_ALTAR, ArtificialEnhancementAltarScreen::new);
         HandledScreens.register(ModScreenHandlers.QUALITY_STATION_SCREEN_HANDLER, com.cranks.dungeons.client.screen.QualityStationScreen::new);
+        HandledScreens.register(ModScreenHandlers.MOUNT_CARGO, com.cranks.dungeons.client.screen.MountCargoScreen::new);
         ModKeybinds.register();
         EnchantmentToggleHandler.register();
         com.cranks.dungeons.client.PassiveTreeKeybindHandler.register();
@@ -263,13 +273,13 @@ public class CranksDungeonsClient implements ClientModInitializer {
         });
 
         HudRenderCallback.EVENT.register((context, tickCounter) -> {
+            com.cranks.dungeons.client.render.EntityStatBarRenderer.renderHud(context);
             DamageNumberRenderer.renderHud(context, 0f);
         });
 
         net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents.LAST.register(context -> {
             net.minecraft.client.render.VertexConsumerProvider.Immediate consumers = MinecraftClient.getInstance().getBufferBuilders().getEntityVertexConsumers();
             com.cranks.dungeons.client.render.LightningArcRenderer.render(context, consumers);
-            com.cranks.dungeons.client.render.EntityStatBarRenderer.render(context, consumers);
             consumers.draw();
         });
         
@@ -360,6 +370,16 @@ public class CranksDungeonsClient implements ClientModInitializer {
                 com.cranks.dungeons.network.ManaSyncPacket.handle(payload, context.client());
             });
         });
+
+        ClientPlayNetworking.registerGlobalReceiver(
+                com.cranks.dungeons.network.HorseGeneticsSyncPacket.ID,
+                (payload, context) -> context.client().execute(() ->
+                        com.cranks.dungeons.client.HorseGeneticsClientData.update(payload)));
+
+        ClientPlayNetworking.registerGlobalReceiver(
+                com.cranks.dungeons.network.MountDataSyncPacket.ID,
+                (payload, context) -> context.client().execute(() ->
+                        com.cranks.dungeons.client.MountClientData.update(payload)));
 
         ClientPlayNetworking.registerGlobalReceiver(com.cranks.dungeons.network.SyncPassiveTreePayload.ID, (payload, context) -> {
             context.client().execute(() -> {

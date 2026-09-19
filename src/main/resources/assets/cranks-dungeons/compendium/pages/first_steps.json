@@ -1,0 +1,9 @@
+{
+  "title": "First Steps",
+  "content": [
+    { "type": "list", "style": "numbered", "value": "Press C to open the Compendium.\nOpen the Passive Tree and choose a class. Your class is permanent and unlocks its starting node for free.\nFight mobs for combat XP. Each gained player level gives one Passive Tree point.\nSpend points along connected paths, then apply the drafted route.\nGather ores, logs, and mature crops, or collect non-combat XP, to level the World Tree.\nInspect equipment tooltips for rarity, prefix/suffix runes, tier, quality, enchantment slots, and attribute requirements.\nUse the inventory stats panel to judge the character total rather than adding tooltip numbers by hand." },
+    { "type": "heading", "value": "Early Survival Advice" },
+    { "type": "list", "value": "Strength is immediately valuable because every point grants 2 maximum health. Dexterity grants 2 evasion rating per point. Intelligence grants 2 maximum mana per point.\nArmour is strongest against smaller physical hits; large hits penetrate its formula more effectively. Mix in life, regeneration, evasion, Energy Shield, and resistances instead of relying on one number.\nElemental resistances can fall as low as -100% and are capped at 75%. Negative resistance makes that element deal extra damage.\nNatural hunger regeneration is disabled, so plan an actual recovery source." },
+    { "type": "note", "style": "warning", "value": "If an item requirement is shown in red, its granted stats are reduced by 50% while equipped or used. Tools have no attribute requirements." }
+  ]
+}
