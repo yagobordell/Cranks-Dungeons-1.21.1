@@ -2,9 +2,11 @@ package com.cranks.dungeons.client.compendium;
 
 import com.cranks.dungeons.client.ModKeybinds;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ClickableWidget;
+import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
@@ -12,45 +14,37 @@ import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedHashMap;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Main Compendium screen with a narrow vertical icon sidebar on the left
- * and a content area on the right. The active tab's renderer handles all
- * content within the content area bounds.
- *
- * <p>Inspired by the Ars Elixirum compendium UI — dark Minecraft-style
- * pixelated theme with icon strip navigation.</p>
- */
+/** Main Compendium screen with a vanilla-style header and shared content area. */
 public class CompendiumScreen extends Screen {
 
-    /** Sidebar dimensions */
-    private static final int SIDEBAR_WIDTH = 32;
-    private static final int ICON_SIZE = 24;
-    private static final int ICON_PADDING = 4;
-    private static final int ICON_TOP_MARGIN = 8;
-    private static final int ICON_SLOT_HEIGHT = ICON_SIZE + ICON_PADDING;
+    private static final int HEADER_HEIGHT = 32;
+    private static final int HEADER_X = 4;
+    private static final int HEADER_Y = 4;
+    private static final int TAB_START_X = 10;
+    private static final int COMPACT_TAB_START_X = 8;
+    private static final int TAB_HEIGHT = 32;
+    // Keep the tabs attached to the header while giving the frame a little
+    // more breathing room above the content seam.
+    private static final int TAB_Y = HEADER_Y + HEADER_HEIGHT - TAB_HEIGHT + 3;
+    private static final int TAB_GAP = 3;
 
-    /** Colors */
-    private static final int SIDEBAR_BG_COLOR = 0xFF141418;
-    private static final int SIDEBAR_BORDER_COLOR = 0xFF2A2A32;
-    private static final int TAB_SELECTED_BG = 0xFF24242C;
-    private static final int TAB_HOVER_BG = 0xFF1C1C22;
-    private static final int CONTENT_BG_COLOR = 0xFF18181E;
-
-    /** Content area bounds (set during init) */
+    /** Content bounds passed to the active tab renderer. */
     private int contentX, contentY, contentW, contentH;
+    private int windowX, windowY, windowW, windowH;
 
-    /** Tab state */
     private Identifier activeTabId;
     private CompendiumTabRenderer activeRenderer;
     private final Map<Identifier, CompendiumTabRenderer> renderers = new LinkedHashMap<>();
     private List<CompendiumTab> tabList;
+    private final List<ClickableWidget> backgroundWidgets = new ArrayList<>();
 
     /**
      * Opens the Compendium with a specific tab pre-selected.
-     * @param initialTabId the tab to show first, or null for the default (first) tab
+     * @param initialTabId the tab to show first, or null for the default tab
      */
     public CompendiumScreen(@Nullable Identifier initialTabId) {
         super(Text.literal("Compendium"));
@@ -60,15 +54,20 @@ public class CompendiumScreen extends Screen {
     @Override
     protected void init() {
         this.clearChildren();
+        this.backgroundWidgets.clear();
         super.init();
 
-        // Calculate content area bounds
-        contentX = SIDEBAR_WIDTH;
-        contentY = 0;
-        contentW = this.width - SIDEBAR_WIDTH;
-        contentH = this.height;
+        // The renderer receives the inside of one Advancements-style window;
+        // the title strip and border stay owned by this screen.
+        windowX = 8;
+        windowY = HEADER_HEIGHT + 4;
+        windowW = Math.max(1, this.width - 16);
+        windowH = Math.max(1, this.height - windowY - 8);
+        contentX = windowX + 9;
+        contentY = windowY + 24;
+        contentW = Math.max(1, windowW - 18);
+        contentH = Math.max(1, windowH - 33);
 
-        // Load tabs on first init
         if (tabList == null) {
             tabList = CompendiumTabRegistry.getTabs();
             for (CompendiumTab tab : tabList) {
@@ -76,37 +75,43 @@ public class CompendiumScreen extends Screen {
             }
         }
 
-        // Default to first tab if none selected
         if (activeTabId == null && !tabList.isEmpty()) {
             activeTabId = tabList.get(0).id();
         }
 
-        // Activate the current tab renderer
         activeRenderer = renderers.get(activeTabId);
         if (activeRenderer != null) {
             activeRenderer.init(this, contentX, contentY, contentW, contentH);
         }
 
-        // Global Close Button (Top Right of the screen)
-        this.addDrawableChild(CompendiumButtonWidget.builder(Text.literal("✕"), b -> this.close())
-                .dimensions(this.width - 25, 5, 20, 20).build());
+        this.addDrawableChild(CompendiumButtonWidget.builder(Text.literal("Close"), b -> this.close())
+                .crossButton().dimensions(this.width - 28, 8, 20, 20).build());
     }
 
-    /**
-     * Add a widget to the screen on behalf of a tab renderer.
-     * Tab renderers should use this instead of directly accessing Screen methods.
-     */
+    /** Add a widget to the screen on behalf of a tab renderer. */
     public <T extends ClickableWidget> T addTabWidget(T widget) {
         return this.addDrawableChild(widget);
     }
 
     /**
-     * Switch to a different tab by ID.
+     * Adds a widget that belongs behind the active renderer's content. These
+     * widgets are rendered by the renderer at the appropriate layer instead
+     * of by Screen's normal foreground widget pass.
      */
+    public <T extends ClickableWidget> T addBackgroundTabWidget(T widget) {
+        this.backgroundWidgets.add(widget);
+        return widget;
+    }
+
+    public void renderBackgroundTabWidgets(DrawContext context, int mouseX, int mouseY, float delta) {
+        for (ClickableWidget widget : this.backgroundWidgets) {
+            widget.render(context, mouseX, mouseY, delta);
+        }
+    }
+
     public void switchToTab(Identifier tabId) {
         if (tabId.equals(activeTabId)) return;
 
-        // Deactivate current
         if (activeRenderer != null) {
             activeRenderer.onDeactivated();
         }
@@ -115,124 +120,125 @@ public class CompendiumScreen extends Screen {
         MinecraftClient.getInstance().getSoundManager().play(
                 PositionedSoundInstance.master(SoundEvents.UI_BUTTON_CLICK.value(), 1.0F));
 
-        // Re-init the screen to add/remove widgets for the new tab
         this.init();
 
-        // Activate new
         if (activeRenderer != null) {
             activeRenderer.onActivated();
         }
     }
 
-    /**
-     * Force the screen to re-initialize widgets for the current tab.
-     * Useful when a tab's internal state changes and it needs different buttons.
-     */
     public void refreshTab() {
         this.init();
     }
 
     @Override
     public void renderBackground(DrawContext context, int mouseX, int mouseY, float delta) {
-        // Prevent default 1.21 screen blur
+        // The background is rendered explicitly at the start of render().
+        // Keeping this hook empty prevents super.render() from blurring the
+        // Compendium UI a second time before it draws the widgets.
     }
+
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        // Dim the world instead of solid background
-        context.fill(0, 0, this.width, this.height, 0xAA000000);
+        // Blur and darken the world first, then keep every Compendium element
+        // crisp. Calling super.render() at the end is safe because the
+        // override above prevents a second background pass.
+        super.renderBackground(context, mouseX, mouseY, delta);
 
-        // Render sidebar
-        renderSidebar(context, mouseX, mouseY);
+        // Draw the tabs before the panel so the panel's top frame covers their
+        // lower edge. This makes them read as tabs emerging from behind it.
+        renderHeader(context, mouseX, mouseY);
+        CompendiumStyle.drawAdvancementWindow(context, windowX, windowY, windowW, windowH);
 
-        // Render active tab content
+        TextRenderer textRenderer = MinecraftClient.getInstance().textRenderer;
+        Text windowTitle = activeTabId == null ? Text.literal("Compendium") : getActiveTabTitle();
+        context.drawText(textRenderer, windowTitle, windowX + 8, windowY + 6,
+                CompendiumStyle.TEXT_DARK, false);
+
         if (activeRenderer != null) {
             activeRenderer.render(context, mouseX, mouseY, delta);
         }
 
-        // Render widgets (buttons from tab renderers)
         super.render(context, mouseX, mouseY, delta);
-
-        // Render sidebar tooltips AFTER everything else (on top)
-        renderSidebarTooltips(context, mouseX, mouseY);
     }
 
-    private int getSidebarStartY() {
-        if (tabList == null) return 0;
-        int totalHeight = tabList.size() * ICON_SLOT_HEIGHT;
-        return (this.height - totalHeight) / 2;
-    }
-
-    private void renderSidebar(DrawContext context, int mouseX, int mouseY) {
-        // Sidebar background
-        context.fill(0, 0, SIDEBAR_WIDTH, this.height, SIDEBAR_BG_COLOR);
-
-        // Right border line
-        context.fill(SIDEBAR_WIDTH - 1, 0, SIDEBAR_WIDTH, this.height, SIDEBAR_BORDER_COLOR);
-
-        // Render each tab icon
-        if (tabList == null) return;
-        int startY = getSidebarStartY();
-        for (int i = 0; i < tabList.size(); i++) {
-            CompendiumTab tab = tabList.get(i);
-            int iconX = (SIDEBAR_WIDTH - ICON_SIZE) / 2;
-            int iconY = startY + i * ICON_SLOT_HEIGHT;
-
-            boolean isActive = tab.id().equals(activeTabId);
-            boolean isHovered = mouseX >= 0 && mouseX < SIDEBAR_WIDTH
-                    && mouseY >= iconY && mouseY < iconY + ICON_SIZE;
-
-            // Tab background highlight
-            if (isActive) {
-                context.fill(0, iconY - 2, SIDEBAR_WIDTH - 1, iconY + ICON_SIZE + 2, TAB_SELECTED_BG);
-                // Active indicator: Vanilla Gold line on the left edge
-                context.fill(0, iconY - 2, 2, iconY + ICON_SIZE + 2, 0xFFFFAA00);
-            } else if (isHovered) {
-                context.fill(0, iconY - 2, SIDEBAR_WIDTH - 1, iconY + ICON_SIZE + 2, TAB_HOVER_BG);
+    private Text getActiveTabTitle() {
+        if (tabList != null) {
+            for (CompendiumTab tab : tabList) {
+                if (tab.id().equals(activeTabId)) return tab.tooltip();
             }
-
-            // Draw icon
-            context.drawGuiTexture(tab.iconTexture(), iconX, iconY, ICON_SIZE, ICON_SIZE);
         }
+        return Text.literal("Compendium");
     }
 
-    private void renderSidebarTooltips(DrawContext context, int mouseX, int mouseY) {
+    private int getTabStartX() {
+        return this.width < 520 ? COMPACT_TAB_START_X : TAB_START_X;
+    }
+
+    private int getTabWidth(CompendiumTab tab, TextRenderer textRenderer) {
+        int minimumWidth = this.width < 520 ? 44 : 58;
+        int idealWidth = textRenderer.getWidth(tab.tooltip()) + 20;
+        int available = Math.max(minimumWidth, this.width - getTabStartX() - 34);
+        int maxWidth = tabList == null || tabList.isEmpty()
+                ? 130
+                : Math.max(minimumWidth, (available - TAB_GAP * (tabList.size() - 1)) / tabList.size());
+        // Creative inventory tabs are 26x32 natively. Their center is a flat
+        // pixel surface, so the Minecraft-style tab can safely widen for a
+        // text label without changing its border height or proportions.
+        return Math.max(minimumWidth, Math.min(130, Math.min(idealWidth, maxWidth)));
+    }
+
+    private void renderHeader(DrawContext context, int mouseX, int mouseY) {
+        TextRenderer textRenderer = MinecraftClient.getInstance().textRenderer;
+
         if (tabList == null) return;
-        int startY = getSidebarStartY();
-        for (int i = 0; i < tabList.size(); i++) {
-            int iconY = startY + i * ICON_SLOT_HEIGHT;
-            if (mouseX >= 0 && mouseX < SIDEBAR_WIDTH && mouseY >= iconY && mouseY < iconY + ICON_SIZE) {
-                context.drawTooltip(MinecraftClient.getInstance().textRenderer, tabList.get(i).tooltip(), mouseX, mouseY);
-                break;
-            }
+        int tabX = getTabStartX();
+        for (int tabIndex = 0; tabIndex < tabList.size(); tabIndex++) {
+            CompendiumTab tab = tabList.get(tabIndex);
+            int tabWidth = getTabWidth(tab, textRenderer);
+            boolean hovered = mouseX >= tabX && mouseX < tabX + tabWidth
+                    && mouseY >= TAB_Y && mouseY < TAB_Y + TAB_HEIGHT;
+            boolean selected = tab.id().equals(activeTabId);
+            CompendiumStyle.drawCreativeTab(context, tabX, TAB_Y, tabWidth, TAB_HEIGHT,
+                    hovered, selected);
+            String label = textRenderer.trimToWidth(tab.tooltip().getString(), Math.max(10, tabWidth - 12));
+            context.drawCenteredTextWithShadow(textRenderer, label, tabX + tabWidth / 2,
+                    TAB_Y + 12, CompendiumStyle.TEXT);
+            tabX += tabWidth + TAB_GAP;
         }
     }
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        // Check sidebar clicks first
-        if (mouseX >= 0 && mouseX < SIDEBAR_WIDTH && tabList != null) {
-            int startY = getSidebarStartY();
-            for (int i = 0; i < tabList.size(); i++) {
-                CompendiumTab tab = tabList.get(i);
-                int iconY = startY + i * ICON_SLOT_HEIGHT;
-
-                if (mouseY >= iconY && mouseY < iconY + ICON_SIZE) {
+        if (tabList != null && mouseY >= TAB_Y && mouseY < TAB_Y + TAB_HEIGHT) {
+            TextRenderer textRenderer = MinecraftClient.getInstance().textRenderer;
+            int tabX = getTabStartX();
+            for (CompendiumTab tab : tabList) {
+                int tabWidth = getTabWidth(tab, textRenderer);
+                if (mouseX >= tabX && mouseX < tabX + tabWidth) {
                     switchToTab(tab.id());
                     return true;
                 }
+                tabX += tabWidth + TAB_GAP;
             }
         }
 
-        // Let widgets handle clicks
+        // Background tabs are not regular Screen children because they must
+        // render behind the overview panel, so route their clicks explicitly.
+        for (int i = this.backgroundWidgets.size() - 1; i >= 0; i--) {
+            if (this.backgroundWidgets.get(i).mouseClicked(mouseX, mouseY, button)) {
+                return true;
+            }
+        }
+
         if (super.mouseClicked(mouseX, mouseY, button)) {
             return true;
         }
 
-        // Delegate to active tab renderer (for content area)
-        if (activeRenderer != null && mouseX >= contentX) {
+        if (activeRenderer != null && mouseX >= contentX && mouseX < contentX + contentW
+                && mouseY >= contentY && mouseY < contentY + contentH) {
             return activeRenderer.mouseClicked(mouseX, mouseY, button);
         }
-
         return false;
     }
 
@@ -252,7 +258,8 @@ public class CompendiumScreen extends Screen {
         if (super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount)) {
             return true;
         }
-        if (activeRenderer != null && mouseX >= contentX) {
+        if (activeRenderer != null && mouseX >= contentX && mouseX < contentX + contentW
+                && mouseY >= contentY && mouseY < contentY + contentH) {
             return activeRenderer.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
         }
         return false;
@@ -271,10 +278,15 @@ public class CompendiumScreen extends Screen {
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        // Handle tab-switching keybinds
+        // Let focused text inputs consume their own keystrokes before checking
+        // global Compendium shortcuts such as inventory and tab keybinds.
+        if (this.getFocused() instanceof TextFieldWidget) {
+            return super.keyPressed(keyCode, scanCode, modifiers);
+        }
+
         if (ModKeybinds.OPEN_PASSIVE_TREE.matchesKey(keyCode, scanCode)) {
             if (CompendiumTabRegistry.PASSIVE_TREE_TAB_ID.equals(activeTabId)) {
-                this.close(); // Already on passive tree → close
+                this.close();
             } else {
                 switchToTab(CompendiumTabRegistry.PASSIVE_TREE_TAB_ID);
             }
@@ -283,7 +295,7 @@ public class CompendiumScreen extends Screen {
 
         if (ModKeybinds.OPEN_WORLD_TREE.matchesKey(keyCode, scanCode)) {
             if (CompendiumTabRegistry.WORLD_TREE_TAB_ID.equals(activeTabId)) {
-                this.close(); // Already on world tree → close
+                this.close();
             } else {
                 switchToTab(CompendiumTabRegistry.WORLD_TREE_TAB_ID);
             }
@@ -299,8 +311,11 @@ public class CompendiumScreen extends Screen {
             this.close();
             MinecraftClient client = MinecraftClient.getInstance();
             if (client.player != null) {
-                if (client.interactionManager != null && client.interactionManager.getCurrentGameMode() == net.minecraft.world.GameMode.CREATIVE) {
-                    client.setScreen(new net.minecraft.client.gui.screen.ingame.CreativeInventoryScreen(client.player, client.player.networkHandler.getEnabledFeatures(), client.options.getOperatorItemsTab().getValue()));
+                if (client.interactionManager != null
+                        && client.interactionManager.getCurrentGameMode() == net.minecraft.world.GameMode.CREATIVE) {
+                    client.setScreen(new net.minecraft.client.gui.screen.ingame.CreativeInventoryScreen(
+                            client.player, client.player.networkHandler.getEnabledFeatures(),
+                            client.options.getOperatorItemsTab().getValue()));
                 } else {
                     client.setScreen(new net.minecraft.client.gui.screen.ingame.InventoryScreen(client.player));
                 }
@@ -308,11 +323,9 @@ public class CompendiumScreen extends Screen {
             return true;
         }
 
-        // Delegate to active tab renderer
         if (activeRenderer != null && activeRenderer.keyPressed(keyCode, scanCode, modifiers)) {
             return true;
         }
-
         return super.keyPressed(keyCode, scanCode, modifiers);
     }
 

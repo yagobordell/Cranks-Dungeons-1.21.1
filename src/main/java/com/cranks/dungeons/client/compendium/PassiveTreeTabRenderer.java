@@ -8,6 +8,7 @@ import com.cranks.dungeons.stat.passive.PassiveNode;
 import com.cranks.dungeons.stat.passive.PassiveNodeRegistry;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.font.TextRenderer;
 
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.widget.ButtonWidget;
@@ -22,10 +23,24 @@ import org.lwjgl.glfw.GLFW;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.HashMap;
 import java.util.HashSet;
 
 public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
+    // Extend only the top of the tree viewport; the side and bottom bounds
+    // remain aligned with the existing inner panel.
+    private static final int TREE_TOP_MARGIN = -6;
+    private static final int CLASS_TAB_HEIGHT = 32;
+    private static final int CLASS_TAB_GAP = 5;
+    private static final int CLASS_TAB_MIN_WIDTH = 52;
+    private static final int CLASS_TAB_MAX_WIDTH = 100;
+    private static final int CLASS_TAB_SIDE_MARGIN = 10;
+    private static final int CLASS_TAB_TOP_OFFSET = 16;
+    private static final int CLASS_TAB_VERTICAL_NUDGE = 3;
+    private static final int CLASS_TAB_FRAME_BALANCE = 4;
+    private static final int CLASS_PANEL_MAX_WIDTH = 620;
     private CompendiumScreen parent;
     private int contentX, contentY, contentW, contentH;
     
@@ -66,6 +81,9 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
     private String classPendingConfirmation = null;
     private CompendiumButtonWidget confirmBtn;
     private CompendiumButtonWidget cancelBtn;
+    private int classTabRows = 1;
+    private int classTabAreaHeight = CLASS_TAB_HEIGHT;
+    private int classLoreWidth = 320;
 
     // designer MODE fields
     private boolean editMode = false;
@@ -97,51 +115,102 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
         if (data.getPlayerClass() == null || data.getPlayerClass().isEmpty()) {
             choosingClass = true;
 
-            int navHeight = 30;
-            int loreWidth = 320;
-            
             // Close Button removed (handled by CompendiumScreen)
 
-            // Horizontal Top Tabs
-            int currentTabX = contentX + 10;
-            
-            CompendiumButtonWidget overviewBtn = CompendiumButtonWidget.builder(Text.literal("Overview"), b -> {
-                selectedClassTab = 0;
-                cacheDirty = true;
-                int previewCenterX = contentX + contentW / 2;
-                int previewCenterY = contentY + contentH / 2;
-                panX = previewCenterX;
-                panY = previewCenterY;
-                parent.refreshTab();
-            }).dimensions(currentTabX, contentY + 5, 80, 20).build();
-            overviewBtn.active = !showingConfirmPopup;
-            parent.addTabWidget(overviewBtn);
-            currentTabX += 85;
-
             var classes = com.cranks.dungeons.config.PassiveTreeConfig.getClasses();
-            for (int i = 0; i < classes.size(); i++) {
-                int index = i + 1;
-                var def = classes.get(i);
-                int tabWidth = 80;
-                CompendiumButtonWidget classBtn = CompendiumButtonWidget.builder(Text.literal(def.name()), b -> {
-                    selectedClassTab = index;
-                    cacheDirty = true;
-                    
-                    // Pan to this class's starting node for preview
-                    PassiveNode startNode = PassiveNodeRegistry.getNode(def.startNode());
-                    if (startNode != null) {
-                        // Center right half of the screen
-                        int previewCenterX = contentX + 320 + (contentW - 320) / 2;
+            classLoreWidth = calculateClassLoreWidth(classes);
+            int loreWidth = classLoreWidth;
+            int tabCount = classes.size() + 1;
+            int availableTabWidth = Math.max(1, loreWidth - CLASS_TAB_SIDE_MARGIN * 2);
+            TextRenderer textRenderer = MinecraftClient.getInstance().textRenderer;
+            List<Integer> tabWidths = new ArrayList<>();
+            tabWidths.add(getPreferredClassTabWidth(textRenderer, "Overview"));
+            for (var def : classes) {
+                tabWidths.add(getPreferredClassTabWidth(textRenderer, def.name()));
+            }
+
+            List<List<Integer>> tabRows = new ArrayList<>();
+            List<Integer> currentRow = new ArrayList<>();
+            int currentRowWidth = 0;
+            for (int tabIndex = 0; tabIndex < tabCount; tabIndex++) {
+                int width = Math.min(availableTabWidth, tabWidths.get(tabIndex));
+                int nextWidth = currentRow.isEmpty() ? width
+                        : currentRowWidth + CLASS_TAB_GAP + width;
+                if (!currentRow.isEmpty() && nextWidth > availableTabWidth) {
+                    tabRows.add(currentRow);
+                    currentRow = new ArrayList<>();
+                    currentRowWidth = 0;
+                }
+                currentRow.add(tabIndex);
+                currentRowWidth += currentRow.size() == 1 ? width : CLASS_TAB_GAP + width;
+            }
+            if (!currentRow.isEmpty()) {
+                tabRows.add(currentRow);
+            }
+
+            classTabRows = Math.max(1, tabRows.size());
+            classTabAreaHeight = classTabRows * CLASS_TAB_HEIGHT;
+
+            // Render the upper rows first so the rows directly below them
+            // naturally sit on top where their tab edges meet.
+            for (int row = tabRows.size() - 1; row >= 0; row--) {
+                List<Integer> rowTabs = tabRows.get(row);
+                int rowWidth = 0;
+                for (int tabIndex : rowTabs) {
+                    rowWidth += Math.min(availableTabWidth, tabWidths.get(tabIndex));
+                }
+                rowWidth += CLASS_TAB_GAP * Math.max(0, rowTabs.size() - 1);
+                // Center shorter rows inside the same tab area so the first and
+                // last tabs keep matching margins around the overview panel.
+                int currentX = contentX + CLASS_TAB_SIDE_MARGIN
+                        + Math.max(0, (availableTabWidth - rowWidth) / 2);
+                // Keep the first row attached to the panel. Additional rows
+                // grow upward so newly added tabs never hang below it.
+                int visualRow = tabRows.size() - 1 - row;
+                int tabY = contentY + CLASS_TAB_TOP_OFFSET + CLASS_TAB_VERTICAL_NUDGE
+                        + visualRow * CLASS_TAB_HEIGHT;
+
+                for (int tabIndex : rowTabs) {
+                    int tabWidth = Math.min(availableTabWidth, tabWidths.get(tabIndex));
+                    int tabX = currentX;
+                    currentX += tabWidth + CLASS_TAB_GAP;
+
+                    if (tabIndex == 0) {
+                    CompendiumButtonWidget overviewBtn = CompendiumButtonWidget.builder(Text.literal("Overview"), b -> {
+                        selectedClassTab = 0;
+                        cacheDirty = true;
+                        int previewCenterX = contentX + contentW / 2;
                         int previewCenterY = contentY + contentH / 2;
-                        panX = previewCenterX - (startNode.gridX() * BASE_GRID_SCALE * zoom);
-                        panY = previewCenterY - (startNode.gridY() * BASE_GRID_SCALE * zoom);
+                        panX = previewCenterX;
+                        panY = previewCenterY;
+                        parent.refreshTab();
+                    }).tab().selected(selectedClassTab == 0).selectedColor(CompendiumStyle.TEXT)
+                            .dimensions(tabX, tabY, tabWidth, CLASS_TAB_HEIGHT).build();
+                    overviewBtn.active = !showingConfirmPopup;
+                    parent.addBackgroundTabWidget(overviewBtn);
+                    } else {
+                        int index = tabIndex;
+                        var def = classes.get(index - 1);
+                        CompendiumButtonWidget classBtn = CompendiumButtonWidget.builder(Text.literal(def.name()), b -> {
+                        selectedClassTab = index;
+                        cacheDirty = true;
+
+                        // Pan to this class's starting node for preview
+                        PassiveNode startNode = PassiveNodeRegistry.getNode(def.startNode());
+                        if (startNode != null) {
+                            int previewCenterX = contentX + loreWidth + (contentW - loreWidth) / 2;
+                            int previewCenterY = contentY + contentH / 2;
+                            panX = previewCenterX - (startNode.gridX() * BASE_GRID_SCALE * zoom);
+                            panY = previewCenterY - (startNode.gridY() * BASE_GRID_SCALE * zoom);
+                        }
+
+                        parent.refreshTab();
+                    }).tab().selected(selectedClassTab == index).selectedColor(CompendiumStyle.TEXT)
+                            .dimensions(tabX, tabY, tabWidth, CLASS_TAB_HEIGHT).build();
+                        classBtn.active = !showingConfirmPopup;
+                        parent.addBackgroundTabWidget(classBtn);
                     }
-                    
-                    parent.refreshTab();
-                }).dimensions(currentTabX, contentY + 5, tabWidth, 20).build();
-                classBtn.active = !showingConfirmPopup;
-                parent.addTabWidget(classBtn);
-                currentTabX += tabWidth + 5;
+                }
             }
 
             // Selection Button (only on class tabs)
@@ -151,7 +220,7 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
                     showingConfirmPopup = true;
                     classPendingConfirmation = currentDef.id();
                     parent.refreshTab();
-                }).dimensions(contentX + 20, contentY + contentH - 40, loreWidth - 40, 25).build();
+                }).dimensions(contentX + 20, contentY + contentH - 46, loreWidth - 40, 25).build();
                 selectBtn.active = !showingConfirmPopup;
                 parent.addTabWidget(selectBtn);
             }
@@ -190,7 +259,7 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
                                 showStatsPanel = !showStatsPanel;
                                 parent.refreshTab(); // Refresh button text
                             })
-                            .dimensions(contentX + contentW - 135, contentY + 5, 100, 20).build());
+                            .dimensions(contentX + contentW - 105, contentY + 5, 100, 20).build());
 
             // Close Button removed (handled by CompendiumScreen)
 
@@ -376,6 +445,9 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
         int screenW = contentX + contentW;
         int screenH = contentY + contentH;
         int margin = (int) (currentNodeSize * 2.0);
+        int treeTop = contentY + TREE_TOP_MARGIN;
+        boolean mouseInTree = mouseX >= contentX && mouseX < screenW
+                && mouseY >= treeTop && mouseY < screenH;
 
         if (cacheDirty) {
             refreshCaches(data);
@@ -387,14 +459,17 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
         Map<String, PassiveNode> allNodesMap = PassiveNodeRegistry.getNodes();
 
         // Prevent hover interactions when a choice popup is active or when hovering the class tablet panel / top tabs / confirm popup
-        boolean hoveringClassPanel = choosingClass && (mouseX < contentX + 320 || mouseY < contentY + 30 || showingConfirmPopup);
-        if (activeChoiceNodeId == null && !hoveringClassPanel) {
+        boolean hoveringClassPanel = choosingClass
+                && (mouseX < contentX + getClassLoreWidth()
+                || mouseY < contentY + CLASS_TAB_TOP_OFFSET + classTabAreaHeight
+                || showingConfirmPopup);
+        if (activeChoiceNodeId == null && !hoveringClassPanel && mouseInTree) {
             for (PassiveNode node : allNodesMap.values()) {
                 double nx = panX + node.gridX() * currentGridScale;
                 double ny = panY + node.gridY() * currentGridScale;
 
                 // Culling for mouse check
-                if (nx < contentX - margin || nx > screenW + margin || ny < contentY - margin || ny > screenH + margin) {
+                if (nx < contentX - margin || nx > screenW + margin || ny < treeTop - margin || ny > screenH + margin) {
                     continue;
                 }
 
@@ -425,12 +500,9 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
         // Scissor for tree rendering so it doesn't bleed outside the compendium content area
         int scissorX = contentX;
         context.draw();
-        context.enableScissor(scissorX, contentY, contentX + contentW, contentY + contentH);
+        context.enableScissor(scissorX, treeTop, contentX + contentW, contentY + contentH);
 
-        // --- BATCH RENDER CONNECTIONS & NODES IN 1 GPU CALL ---
-        ShapeRenderer.beginBatch(context);
-
-        // --- DRAW CONNECTIONS ---
+        // --- DRAW TEXTURED CONNECTIONS ---
         for (Edge edge : edgeCache) {
             float x1 = (float) (panX + edge.n1.gridX() * currentGridScale);
             float y1 = (float) (panY + edge.n1.gridY() * currentGridScale);
@@ -439,15 +511,11 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
 
             // Spatial Culling
             if ((x1 < contentX - margin && x2 < contentX - margin) || (x1 > screenW + margin && x2 > screenW + margin) ||
-                    (y1 < contentY - margin && y2 < contentY - margin) || (y1 > screenH + margin && y2 > screenH + margin)) {
+                    (y1 < treeTop - margin && y2 < treeTop - margin) || (y1 > screenH + margin && y2 > screenH + margin)) {
                 continue;
             }
 
-            // Determine State
-            int innerColor = 0xFF18181C; // Deepslate inert core
-            int outerColor = 0xFF424248; // Deepslate chiseled border
-            float baseWidth = 0.75f;
-            boolean isNeon = false;
+            String connectionState = "locked";
 
             boolean n1Unlocked = unlocked.contains(edge.n1.id());
             boolean n2Unlocked = unlocked.contains(edge.n2.id());
@@ -458,61 +526,52 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
             boolean n2Active = n2Unlocked || n2Drafted;
 
             if (n1Unlocked && n2Unlocked) {
-                innerColor = 0xFFFFFDE7; // Radiant white-gold
-                outerColor = 0xFFFFAA00; // Vanilla gold aura
-                baseWidth = 0.85f;
-                isNeon = true;
+                connectionState = "unlocked";
             } else if (n1Active && n2Active) {
-                innerColor = 0xFFFFB74D; // Forge ember
-                outerColor = 0xFF8C3B12; // Raw copper
-                baseWidth = 0.75f;
-                isNeon = true;
+                connectionState = "drafted";
             } else if ((n1Active && canUnlockCache.contains(edge.n2.id()))
                     || (n2Active && canUnlockCache.contains(edge.n1.id()))) {
-                innerColor = 0xFF4CAF50; // Muted Emerald core
-                outerColor = 0xFF1B381E; // Deep Moss glow
-                baseWidth = 0.75f;
-                isNeon = true;
+                connectionState = "available";
             }
 
             // Full-Path Hover logic
             boolean n1OnPath = nodesOnHoverPath.contains(edge.n1.id());
             boolean n2OnPath = nodesOnHoverPath.contains(edge.n2.id());
+            boolean connectionHovered = false;
 
             if (n1OnPath && n2OnPath) {
                 int d1 = distanceMap.getOrDefault(edge.n1.id(), -1);
                 int d2 = distanceMap.getOrDefault(edge.n2.id(), -1);
                 if (Math.abs(d1 - d2) == 1) {
-                    innerColor = 0xFF7DD3FC; // Beacon sparkle
-                    outerColor = 0xFF0369A1; // Lapis glow
-                    baseWidth = 0.75f;
-                    isNeon = true;
+                    connectionHovered = true;
                 }
             }
 
-            // Apply zoom scaling to width so lines don't vanish at distance
-            float finalWidth = (float) (baseWidth * Math.sqrt(zoom));
-
-            if (isNeon) {
-                ShapeRenderer.drawBatchedLine(x1, y1, x2, y2, finalWidth * 2.5f,
-                        (outerColor & 0x00FFFFFF) | 0xDD000000);
-                ShapeRenderer.drawBatchedLine(x1, y1, x2, y2, finalWidth,
-                        innerColor);
-            } else {
-                ShapeRenderer.drawBatchedLine(x1, y1, x2, y2, finalWidth + 1.2f,
-                        outerColor);
-                ShapeRenderer.drawBatchedLine(x1, y1, x2, y2, finalWidth,
-                        innerColor);
+            boolean connectionSelected = selectedNodeIds.contains(edge.n1.id())
+                    || selectedNodeIds.contains(edge.n2.id());
+            // Node sprites have transparent padding around their opaque art;
+            // trim to the visible edge rather than the full sprite radius.
+            float startInset = (float) (currentNodeSize * getNodeSizeMultiplier(edge.n1.shape()) * 0.38);
+            float endInset = (float) (currentNodeSize * getNodeSizeMultiplier(edge.n2.shape()) * 0.38);
+            CompendiumStyle.drawTreeConnectionTexture(context,
+                    CompendiumStyle.treeConnectionTexture(connectionState), x1, y1, x2, y2, zoom,
+                    startInset, endInset);
+            if (connectionHovered || connectionSelected) {
+                // A dedicated connection_selection.png is not present yet;
+                // use the hovered overlay until that optional asset is added.
+                CompendiumStyle.drawTreeConnectionTexture(context,
+                        CompendiumStyle.treeConnectionTexture("hovered"), x1, y1, x2, y2, zoom,
+                        startInset, endInset);
             }
         }
 
-        // --- DRAW NODE SHAPES (BATCHED) ---
+        // --- DRAW TEXTURED NODES ---
         for (PassiveNode node : allNodesMap.values()) {
             double nx = panX + node.gridX() * currentGridScale;
             double ny = panY + node.gridY() * currentGridScale;
 
             // Spatial Culling
-            if (nx < contentX - margin || nx > screenW + margin || ny < contentY - margin || ny > screenH + margin) {
+            if (nx < contentX - margin || nx > screenW + margin || ny < treeTop - margin || ny > screenH + margin) {
                 continue;
             }
 
@@ -532,72 +591,45 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
             boolean isHovered = (hovered != null && node.id().equals(hovered.id()));
 
             if (node.shape() != null && !node.shape().isEmpty()) {
-                int nodeInner = 0xFF18181C;
-                int nodeOuter = 0xFF424248;
-                boolean nodeNeon = false;
-
-                if (isHovered) {
-                    nodeInner = 0xFF7DD3FC;
-                    nodeOuter = 0xFF0369A1;
-                    nodeNeon = true;
-                } else if (isDraft) {
-                    nodeInner = 0xFFFFB74D;
-                    nodeOuter = 0xFF8C3B12;
-                    nodeNeon = true;
+                String nodeState = "locked";
+                if (isDraft) {
+                    nodeState = "drafted";
                 } else if (unlocked.contains(node.id())) {
-                    nodeInner = 0xFFFFFDE7;
-                    nodeOuter = 0xFFFFAA00;
-                    nodeNeon = true;
+                    nodeState = "unlocked";
                 } else if (canUnlock) {
-                    nodeInner = 0xFF4CAF50; // Muted Emerald
-                    nodeOuter = 0xFF1B381E; // Deep Moss
-                    nodeNeon = true;
+                    nodeState = "available";
                 }
 
-                if (nodeNeon) {
-                    // Subtle soft alpha-gradient radial bloom/glow
-                    double glowSpread = isHovered ? 2.8 : 1.6;
-                    int glowAlpha = isHovered ? 0x99000000 : 0x77000000;
-                    ShapeRenderer.drawBatchedShapeGlow(nx, ny, actualNodeSize, glowSpread, node.shape(), (nodeOuter & 0x00FFFFFF) | glowAlpha);
-
-                    // Outer 1px frame
-                    ShapeRenderer.drawBatchedShape(nx, ny, actualNodeSize, node.shape(), 0xFF101014);
-                    // Proportional state outer rim
-                    ShapeRenderer.drawBatchedShape(nx, ny, actualNodeSize * 0.90, node.shape(), nodeOuter);
-                    // Proportional inner luminous core
-                    ShapeRenderer.drawBatchedShape(nx, ny, actualNodeSize * 0.76, node.shape(), nodeInner);
-                    // Dark center socket for icon
-                    ShapeRenderer.drawBatchedShape(nx, ny, actualNodeSize * 0.58, node.shape(), 0xFF141418);
-                } else {
-                    // Locked: 1:1 match with 3D tactile stone button bevels
-                    ShapeRenderer.drawBatchedShape(nx, ny, actualNodeSize, node.shape(), 0xFF101014);
-                    ShapeRenderer.drawBatchedShape(nx, ny, actualNodeSize * 0.90, node.shape(), 0xFF585864);
-                    ShapeRenderer.drawBatchedShape(nx + 0.3, ny + 0.3, actualNodeSize * 0.82, node.shape(), 0xFF18181E);
-                    ShapeRenderer.drawBatchedShape(nx, ny, actualNodeSize * 0.76, node.shape(), 0xFF24242C);
-                    ShapeRenderer.drawBatchedShape(nx, ny, actualNodeSize * 0.58, node.shape(), 0xFF141418);
+                CompendiumStyle.drawTreeNodeTexture(context,
+                        CompendiumStyle.treeNodeTexture(node.shape(), nodeState), nx, ny, actualNodeSize);
+                if (isHovered) {
+                    CompendiumStyle.drawTreeNodeTexture(context,
+                            CompendiumStyle.treeNodeTexture(node.shape(), "hovered"), nx, ny, actualNodeSize);
                 }
-
-                // Draw selection highlight with subtle soft bloom
                 if (selectedNodeIds.contains(node.id())) {
-                    ShapeRenderer.drawBatchedShapeGlow(nx, ny, actualNodeSize, 3.0, node.shape(), 0xAAFFAA00);
+                    CompendiumStyle.drawTreeNodeTexture(context,
+                            CompendiumStyle.treeNodeSelectionTexture(node.shape()), nx, ny, actualNodeSize);
                 }
             }
         }
-
-        // Flush all lines and shapes to GPU in ONE single draw call
-        ShapeRenderer.endBatch();
 
         // --- DRAW NODE ICONS (ALL ZOOM LEVELS) ---
         for (PassiveNode node : allNodesMap.values()) {
             double nx = panX + node.gridX() * currentGridScale;
             double ny = panY + node.gridY() * currentGridScale;
 
-            if (nx < contentX - margin || nx > screenW + margin || ny < contentY - margin || ny > screenH + margin) {
+            if (nx < contentX - margin || nx > screenW + margin || ny < treeTop - margin || ny > screenH + margin) {
                 continue;
             }
 
             double multiplier = getNodeSizeMultiplier(node.shape());
             double actualNodeSize = currentNodeSize * multiplier;
+
+            // Icons below this size are not readable and their draw calls are
+            // disproportionately expensive when thousands of nodes are visible.
+            if (zoom < 0.5 && actualNodeSize < 7.0) {
+                continue;
+            }
 
             Identifier iconToDraw = node.icon();
             if (node.isAttributeSelection()) {
@@ -619,7 +651,7 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
                         !iconPath.equals("passive/diamond") && !iconPath.equals("passive/hexagon") &&
                         !iconPath.equals("passive/generic")) {
 
-                    double iconSize = actualNodeSize * 0.56;
+                    double iconSize = actualNodeSize * 0.90;
                     drawPrecisionTexture(context, iconToDraw, nx, ny, iconSize, 0xFFFFFFFF);
                 }
             }
@@ -681,8 +713,8 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
                             : draftUnlocked.getOrDefault(activeChoiceNodeId, "");
                 }
 
-                // Draw Deepslate 3D beveled container for buttons
-                ShapeRenderer.drawBeveledPanel(context, cx - 4, cy - 4, 118, 72);
+                // Use the shared vanilla-style panel around the choice buttons.
+                CompendiumStyle.drawInsetPanel(context, cx - 4, cy - 4, 118, 72);
 
                 // Button STR
                 boolean hoverStr = mouseX >= cx && mouseX <= cx + 110 && mouseY >= cy && mouseY <= cy + 20;
@@ -702,57 +734,70 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
         }
 
         if (choosingClass) {
-            int navHeight = 30;
-            int loreWidth = 320;
+            // Class tabs must sit behind the overview panel, while still
+            // appearing above the tree that fills the surrounding space.
+            parent.renderBackgroundTabWidgets(context, mouseX, mouseY, delta);
 
-            // Draw Top Nav Bar background
-            context.fill(contentX, contentY, contentX + contentW, contentY + navHeight, 0xFF141418);
-            context.fill(contentX, contentY + navHeight - 1, contentX + contentW, contentY + navHeight, 0xFF2E2E36);
-
-            // Draw 3D Beveled Stone Lore Tablet on the left
-            ShapeRenderer.drawBeveledPanel(context, contentX + 6, contentY + navHeight + 6, loreWidth - 12, contentH - navHeight - 12);
-
+            int loreWidth = getClassLoreWidth();
             var classes = com.cranks.dungeons.config.PassiveTreeConfig.getClasses();
-            
+
+            int loreX = contentX + 6;
+            int loreY = contentY + CLASS_TAB_TOP_OFFSET + classTabAreaHeight;
+            int loreW = loreWidth - 12;
+            int loreH = Math.max(1, contentH - classTabAreaHeight - CLASS_TAB_TOP_OFFSET - 6);
+            int loreTextX = loreX + 14;
+            int loreTextW = loreW - 28;
+            int loreTitleX = loreX + 8;
+            int loreTitleY = loreY + 6;
+            int loreBottom = loreY + loreH - 14;
+            CompendiumStyle.drawAdvancementWindow(context, loreX, loreY, loreW, loreH);
+
             if (selectedClassTab == 0) {
                 Text title = Text.literal("Path Selection").formatted(Formatting.GOLD, Formatting.BOLD);
-                context.drawText(textRenderer, title, contentX + 20, contentY + navHeight + 20, 0xFFFFAA00, false);
+                context.drawText(textRenderer, title, loreTitleX, loreTitleY, 0xFFFFAA00, false);
 
                 String intro = "Choose a starting class to begin your journey.\n\nEach class provides a unique starting point on the passive tree and specialized early attributes.\n\nYour choice is permanent!";
-                drawWrappedText(context, Text.literal(intro), contentX + 20, contentY + navHeight + 50, loreWidth - 40, 0xFFD4D4DC, false);
+                drawWrappedText(context, Text.literal(intro), loreTextX, loreY + 30, loreTextW,
+                        CompendiumStyle.TEXT_DARK, false, loreBottom);
             } else if (selectedClassTab > 0 && selectedClassTab <= classes.size()) {
                 var def = classes.get(selectedClassTab - 1);
                 int classColor = parseHexColor(def.color());
 
                 // Title
                 Text title = Text.literal(def.name()).formatted(Formatting.BOLD);
-                context.drawText(textRenderer, title, contentX + 20, contentY + navHeight + 20, classColor, false);
+                context.drawText(textRenderer, title, loreTitleX, loreTitleY, classColor, false);
 
                 // Subtitle
-                drawWrappedText(context, Text.literal(def.subtitle()).formatted(Formatting.GRAY, Formatting.ITALIC),
-                        contentX + 20, contentY + navHeight + 35, loreWidth - 40, 0xFFAAAAAA, false);
+                int subtitleY = loreY + 24;
+                int subtitleBottom = drawWrappedText(
+                        context, Text.literal(def.subtitle()).formatted(Formatting.GRAY, Formatting.ITALIC),
+                        loreTextX, subtitleY, loreTextW, CompendiumStyle.TEXT_DISABLED, false, loreBottom);
 
                 // Detail Description
-                drawWrappedText(context, Text.literal(def.description()), contentX + 20, contentY + navHeight + 60, loreWidth - 40,
-                        0xFFD4D4DC, false);
+                int recommendedReserve = 40;
+                int descriptionY = subtitleBottom + 6;
+                int descriptionBottom = drawWrappedText(context, Text.literal(def.description()), loreTextX,
+                        descriptionY, loreTextW, CompendiumStyle.TEXT_DARK, false,
+                        Math.max(descriptionY, loreBottom - recommendedReserve));
 
                 // Recommended Stats Section
-                int recY = contentY + navHeight + 130;
-                context.drawText(textRenderer, Text.literal("Recommended Stats:").formatted(Formatting.BOLD), contentX + 20, recY, classColor, false);
-                drawWrappedText(context, Text.literal(def.recommendedStats()), contentX + 20, recY + 15, loreWidth - 40,
-                        0xFFAAAAAA, false);
+                int recY = Math.min(descriptionBottom + 8, loreBottom - 28);
+                context.drawText(textRenderer, Text.literal("Recommended Stats:").formatted(Formatting.BOLD),
+                        loreTextX, recY, classColor, false);
+                drawWrappedText(context, Text.literal(def.recommendedStats()), loreTextX, recY + 15, loreTextW,
+                        CompendiumStyle.TEXT_DISABLED, false, loreBottom);
             }
 
             if (showingConfirmPopup) {
                 context.fill(contentX, contentY, contentX + contentW, contentY + contentH, 0xAA000000); // Darken background
 
-                // Draw 3D Beveled Stone popup panel
+                // Use the same vanilla window frame for the confirmation modal.
                 int popupW = 240;
                 int popupH = 120;
                 int ppx = contentX + (contentW - popupW) / 2;
                 int ppy = contentY + (contentH - popupH) / 2;
                 
-                ShapeRenderer.drawBeveledPanel(context, ppx, ppy, popupW, popupH);
+                CompendiumStyle.drawAdvancementWindow(context, ppx, ppy, popupW, popupH);
 
                 int centerX = contentX + contentW / 2;
                 String classTitle = (classPendingConfirmation != null ? classPendingConfirmation.substring(0, 1).toUpperCase() + classPendingConfirmation.substring(1) : "Path");
@@ -760,7 +805,8 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
                 context.drawText(textRenderer, popupTitle, centerX - textRenderer.getWidth(popupTitle) / 2, ppy + 15, 0xFFFFAA00, false);
 
                 String msg = "Are you sure? This decision is PERMANENT!";
-                drawWrappedText(context, Text.literal(msg), centerX, ppy + 40, popupW - 20, 0xFFD4D4DC, true);
+                drawWrappedText(context, Text.literal(msg), centerX, ppy + 40, popupW - 20,
+                        CompendiumStyle.TEXT_DARK, true);
             }
         }
 
@@ -786,15 +832,50 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
         }
     }
 
-    private void drawWrappedText(DrawContext context, Text text, int x, int y, int maxWidth, int color, boolean centered) {
+    private int drawWrappedText(DrawContext context, Text text, int x, int y, int maxWidth, int color,
+                                boolean centered) {
+        return drawWrappedText(context, text, x, y, maxWidth, color, centered, Integer.MAX_VALUE);
+    }
+
+    private int drawWrappedText(DrawContext context, Text text, int x, int y, int maxWidth, int color,
+                                boolean centered, int maxY) {
         var textRenderer = MinecraftClient.getInstance().textRenderer;
         var lines = textRenderer.wrapLines(text, maxWidth);
         int currentY = y;
         for (var line : lines) {
+            if (currentY + 9 > maxY) {
+                break;
+            }
             int drawX = centered ? x - textRenderer.getWidth(line) / 2 : x;
             context.drawText(textRenderer, line, drawX, currentY, color, false);
             currentY += 10;
         }
+        return currentY;
+    }
+
+    private int getClassLoreWidth() {
+        return Math.min(Math.max(1, contentW - 24), classLoreWidth);
+    }
+
+    private int getPreferredClassTabWidth(TextRenderer textRenderer, String label) {
+        return Math.max(CLASS_TAB_MIN_WIDTH,
+                Math.min(CLASS_TAB_MAX_WIDTH, textRenderer.getWidth(label) + 20));
+    }
+
+    private int calculateClassLoreWidth(
+            List<com.cranks.dungeons.config.PassiveTreeConfig.ClassDefinition> classes) {
+        TextRenderer textRenderer = MinecraftClient.getInstance().textRenderer;
+        int tabTotalWidth = getPreferredClassTabWidth(textRenderer, "Overview");
+        for (var def : classes) {
+            tabTotalWidth += CLASS_TAB_GAP + getPreferredClassTabWidth(textRenderer, def.name());
+        }
+
+        // Leave the same amount of space on both sides of the complete tab
+        // strip. If the strip becomes too wide, the panel cap forces rows.
+        int desiredWidth = tabTotalWidth + CLASS_TAB_SIDE_MARGIN * 2 + CLASS_TAB_FRAME_BALANCE;
+        int availableWidth = Math.max(1, contentW - 24);
+        return Math.min(availableWidth,
+                Math.min(CLASS_PANEL_MAX_WIDTH, Math.max(320, desiredWidth)));
     }
 
     private int parseHexColor(String hex) {
@@ -812,20 +893,19 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
         int panelX = contentX + contentW - panelWidth - 10;
         int panelY = contentY + (contentH - panelHeight) / 2;
 
-        // Draw 3D Beveled Stone Panel
-        ShapeRenderer.drawBeveledPanel(context, panelX, panelY, panelWidth, panelHeight);
+        // Use vanilla widget textures for the non-interactive stats menu.
+        CompendiumStyle.drawVanillaMenuPanel(context, panelX, panelY, panelWidth, panelHeight);
 
         int ty = panelY + 10;
         context.drawCenteredTextWithShadow(textRenderer, "§6Tree Summary", panelX + panelWidth / 2, ty, 0xFFFFAA00);
-        // Gold underline
-        context.fill(panelX + 10, ty + 10, panelX + panelWidth - 10, ty + 11, 0xFFFFAA00);
         ty += 18;
 
         var stats = PassiveStatHelper.getDisplayableSummary(MinecraftClient.getInstance().player, draftUnlocked);
         var baseStats = PassiveStatHelper.getDisplayableSummary(MinecraftClient.getInstance().player, null);
 
         if (stats.isEmpty()) {
-            context.drawCenteredTextWithShadow(textRenderer, "No stats unlocked", panelX + panelWidth / 2, ty + 20, 0xFF555566);
+            context.drawCenteredTextWithShadow(textRenderer, "No stats unlocked", panelX + panelWidth / 2,
+                    ty + 20, CompendiumStyle.TEXT_DISABLED);
         } else {
             for (Map.Entry<String, Double> entry : stats.entrySet()) {
                 String key = entry.getKey();
@@ -837,8 +917,8 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
                 boolean isDrafted = (total != baseTotal);
                 
                 // Aesthetic Compendium Colors
-                int valColor = isDrafted ? 0xFF66FF66 : 0xFFFFFFFF;
-                int keyColor = isDrafted ? 0xFF88FF88 : 0xFFAAAAFF;
+                int valColor = isDrafted ? CompendiumStyle.TEXT_SUCCESS : CompendiumStyle.TEXT;
+                int keyColor = isDrafted ? CompendiumStyle.TEXT_SUCCESS : CompendiumStyle.TEXT_MUTED;
 
                 double displayVal = total;
                 boolean isPercent = key.toLowerCase().contains("percent") ||
@@ -1045,7 +1125,8 @@ public class PassiveTreeTabRenderer implements CompendiumTabRenderer {
         }
         if (choosingClass) {
             // If drag is on the left class panel or top tab bar, don't drag the tree
-            if (mouseX < contentX + 320 || mouseY < contentY + 30) {
+            if (mouseX < contentX + getClassLoreWidth()
+                    || mouseY < contentY + CLASS_TAB_TOP_OFFSET + classTabAreaHeight) {
                 return false;
             }
         } else if (editMode) {

@@ -320,10 +320,10 @@ public class ShapeRenderer {
     }
 
     /**
-     * Draws an outset 3D beveled stone panel (chiseled stone plate/dialog).
+     * Draws the shared flat vanilla-style panel used by tree overlays.
      */
     public static void drawBeveledPanel(DrawContext context, int x, int y, int width, int height) {
-        drawBeveledPanel(context, x, y, width, height, 0xFF24242C, 0xFF585864, 0xFF141418, 0xFF0E0E12);
+        CompendiumStyle.drawPanel(context, x, y, width, height);
     }
 
     public static void drawBeveledPanel(DrawContext context, int x, int y, int width, int height, int centerColor, int lightBevel, int darkBevel, int outerBorder) {
@@ -340,10 +340,10 @@ public class ShapeRenderer {
     }
 
     /**
-     * Draws an inset 3D sunken well (container cavity for scroll lists / content).
+     * Draws the shared inset panel used by scroll lists and content.
      */
     public static void drawInsetPanel(DrawContext context, int x, int y, int width, int height) {
-        drawInsetPanel(context, x, y, width, height, 0xFF141418, 0xFF0E0E12, 0xFF383842, 0xFF0A0A0E);
+        CompendiumStyle.drawInsetPanel(context, x, y, width, height);
     }
 
     public static void drawInsetPanel(DrawContext context, int x, int y, int width, int height, int centerColor, int topShadow, int bottomHighlight, int outerBorder) {

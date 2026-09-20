@@ -11,6 +11,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.widget.ClickableWidget;
+import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
@@ -21,8 +22,10 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 /**
  * Renders the Compendium guide pages in a two-column layout inspired by Ars Elixirum.
@@ -42,41 +45,47 @@ public class CompendiumGuideTabRenderer implements CompendiumTabRenderer {
     private static final Gson GSON = new Gson();
 
     // Layout constants
-    private static final int NAV_WIDTH = 154;
+    private static final int MIN_NAV_WIDTH = 138;
+    private static final int MAX_NAV_WIDTH = 190;
     private static final int NAV_PADDING = 6;
     private static final int CONTENT_PADDING = 12;
     private static final int SECTION_HEIGHT = 18;
     private static final int PAGE_LINK_HEIGHT = 14;
     private static final int SECTION_GAP = 4;
+    private static final int NAV_SEARCH_HEIGHT = 20;
+    private static final int NAV_CONTENT_TOP_OFFSET = 28;
 
     // Colors
-    private static final int NAV_BG_COLOR = 0xFF141418;
-    private static final int NAV_BORDER_COLOR = 0xFF2E2E36;
-    private static final int CONTENT_BG_COLOR = 0xFF18181E;
-    private static final int SECTION_HEADER_COLOR = 0xFFE2E2EA;
-    private static final int PAGE_LINK_COLOR = 0xFF9E9EAA;
-    private static final int PAGE_LINK_HOVER_COLOR = 0xFFFFFFFF;
-    private static final int PAGE_LINK_SELECTED_COLOR = 0xFFFFAA00;
-    private static final int CONTENT_TEXT_COLOR = 0xFFD4D4DC;
-    private static final int HEADING_COLOR = 0xFFFFAA00;
-    private static final int SUBHEADING_COLOR = 0xFFFFD27A;
-    private static final int NOTE_BG_COLOR = 0xFF1E1E26;
-    private static final int NOTE_BORDER_COLOR = 0xFFFFAA00;
-    private static final int NOTE_TEXT_COLOR = 0xFFE0E0E8;
-    private static final int ARROW_COLOR = 0xFF888894;
+    private static final int SECTION_HEADER_COLOR = CompendiumStyle.TEXT_DARK;
+    private static final int PAGE_LINK_COLOR = 0xFF555555;
+    private static final int PAGE_LINK_HOVER_COLOR = 0xFF202020;
+    private static final int PAGE_LINK_SELECTED_COLOR = CompendiumStyle.TEXT_GOLD;
+    private static final int CONTENT_TEXT_COLOR = CompendiumStyle.TEXT_DARK;
+    private static final int HEADING_COLOR = CompendiumStyle.TEXT_DARK;
+    private static final int SUBHEADING_COLOR = 0xFF6B4E00;
+    private static final int NOTE_BG_COLOR = 0xFF686868;
+    private static final int NOTE_BORDER_COLOR = CompendiumStyle.TEXT_GOLD;
+    private static final int NOTE_TEXT_COLOR = CompendiumStyle.TEXT;
+    private static final int SEARCH_HIGHLIGHT_COLOR = 0xFFFFFF55;
 
     // State
     private CompendiumScreen parent;
     private int contentX, contentY, contentW, contentH;
     private int boxX, boxY, boxW, boxH;
+    private int navWidth;
     private final List<Section> sections = new ArrayList<>();
+    private final Map<String, PageContent> pageCache = new HashMap<>();
+    private TextFieldWidget searchField;
+    private String searchQuery = "";
     private String selectedPageId = null;
     private PageContent currentPage = null;
     private int navScrollOffset = 0;
     private int maxNavScroll = 0;
     private int contentScrollOffset = 0;
     private int maxContentScroll = 0;
+    private boolean isDraggingNavigationScrollbar = false;
     private boolean isDraggingScrollbar = false;
+    private int navigationDragClickOffsetY = 0;
     private int dragClickOffsetY = 0;
     private boolean loaded = false;
 
@@ -97,12 +106,15 @@ public class CompendiumGuideTabRenderer implements CompendiumTabRenderer {
         this.contentY = contentY;
         this.contentW = contentW;
         this.contentH = contentH;
+        this.isDraggingNavigationScrollbar = false;
         this.isDraggingScrollbar = false;
         
-        this.boxW = Math.min(600, contentW - 40);
-        this.boxH = Math.min(320, contentH - 40);
-        this.boxX = contentX + (contentW - boxW) / 2;
-        this.boxY = contentY + (contentH - boxH) / 2;
+        this.boxW = Math.max(1, contentW);
+        this.boxH = Math.max(1, contentH);
+        this.boxX = contentX;
+        this.boxY = contentY;
+        this.navWidth = Math.min(MAX_NAV_WIDTH, Math.max(MIN_NAV_WIDTH, contentW / 4));
+        this.navWidth = Math.min(this.navWidth, Math.max(1, boxW - 130));
 
         if (!loaded) {
             loadIndex();
@@ -113,10 +125,22 @@ public class CompendiumGuideTabRenderer implements CompendiumTabRenderer {
                 loadPage(selectedPageId);
             }
         }
+
+        int searchX = boxX + 5 + NAV_PADDING;
+        int searchY = boxY + 5 + 2;
+        this.searchField = new TextFieldWidget(MinecraftClient.getInstance().textRenderer,
+                searchX, searchY, Math.max(20, navWidth - NAV_PADDING * 2), NAV_SEARCH_HEIGHT,
+                Text.literal("Search topics"));
+        this.searchField.setMaxLength(80);
+        this.searchField.setPlaceholder(Text.literal("Search topics..."));
+        this.searchField.setChangedListener(this::updateSearchQuery);
+        this.searchField.setText(searchQuery);
+        parent.addTabWidget(this.searchField);
     }
 
     @Override
     public void onActivated() {
+        this.isDraggingNavigationScrollbar = false;
         this.isDraggingScrollbar = false;
         if (selectedPageId == null && !sections.isEmpty()) {
             for (Section section : sections) {
@@ -131,6 +155,7 @@ public class CompendiumGuideTabRenderer implements CompendiumTabRenderer {
 
     @Override
     public void onDeactivated() {
+        this.isDraggingNavigationScrollbar = false;
         this.isDraggingScrollbar = false;
     }
 
@@ -138,53 +163,60 @@ public class CompendiumGuideTabRenderer implements CompendiumTabRenderer {
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         TextRenderer tr = MinecraftClient.getInstance().textRenderer;
 
-        // Draw title floating above the box
-        String titleText = "§6Compendium Guide";
-        int titleW = tr.getWidth(titleText);
-        context.drawTextWithShadow(tr, titleText, boxX + (boxW - titleW) / 2, boxY - 16, 0xFFFFAA00);
+        // The screen header owns the tab title; page titles are rendered in
+        // the content column below.
 
-        // Main Outset Beveled Stone Frame
-        ShapeRenderer.drawBeveledPanel(context, boxX, boxY, boxW, boxH);
-
-        // Render navigation column inside an Inset Stone Well
-        int navX = boxX + 4;
-        int navY = boxY + 4;
-        int navW = NAV_WIDTH;
-        int navH = boxH - 8;
+        // Render the navigation column inside a restrained vanilla-style well.
+        int navX = boxX + 5;
+        int navY = boxY + 5;
+        int navW = navWidth;
+        int navH = boxH - 10;
         renderNavigation(context, tr, navX, navY, navW, navH, mouseX, mouseY);
 
-        // Render content column inside an Inset Stone Well
-        int pageX = boxX + NAV_WIDTH + 6;
-        int pageY = boxY + 4;
-        int pageW = boxW - NAV_WIDTH - 10;
-        int pageH = boxH - 8;
+        // Render the page column inside the same shared container.
+        int pageX = boxX + navWidth + 10;
+        int pageY = boxY + 5;
+        int pageW = boxW - navWidth - 15;
+        int pageH = boxH - 10;
         renderPageContent(context, tr, pageX, pageY, pageW, pageH, mouseX, mouseY);
     }
 
     private void renderNavigation(DrawContext context, TextRenderer tr, int navX, int navY,
                                    int navW, int navH, int mouseX, int mouseY) {
-        // Inset sunken stone well for navigation
-        ShapeRenderer.drawInsetPanel(context, navX, navY, navW, navH);
+        int navContentTop = navY + NAV_CONTENT_TOP_OFFSET;
+        context.fill(navX + 6, navContentTop - 4, navX + navW - 6, navContentTop - 3,
+                0x99FFFFFF);
 
-        maxNavScroll = Math.max(0, getNavigationContentHeight() - (navH - NAV_PADDING * 2));
+        // Navigation and content are separated by a quiet divider instead of
+        // another solid rectangle, matching the visual economy of Advancements.
+        int dividerX = boxX + navWidth + 4;
+        context.fill(dividerX, boxY + 8, dividerX + 1, boxY + boxH - 8,
+                0x80555555);
+        context.fill(dividerX + 1, boxY + 8, dividerX + 2, boxY + boxH - 8,
+                0x40555555);
+
+        maxNavScroll = Math.max(0, getNavigationContentHeight()
+                - (navH - NAV_CONTENT_TOP_OFFSET - NAV_PADDING));
         navScrollOffset = Math.max(0, Math.min(maxNavScroll, navScrollOffset));
 
-        context.enableScissor(navX + 2, navY + 2, navX + navW - 2, navY + navH - 2);
+        context.enableScissor(navX + 2, navContentTop, navX + navW - 2, navY + navH - 2);
 
-        int curY = navY + NAV_PADDING - navScrollOffset;
+        int curY = navContentTop - navScrollOffset;
 
-        for (int si = 0; si < sections.size(); si++) {
-            Section section = sections.get(si);
+        List<Section> visibleSections = getVisibleSections();
+        for (Section section : visibleSections) {
 
-            // Section header with collapse arrow
-            String arrow = section.collapsed ? "▶" : "▼";
-            String headerText = arrow + " " + section.title;
+            // Section header. The selected section and page carry the
+            // interaction feedback, keeping the list visually quiet.
+            String sectionPrefix = section.collapsed ? "> " : "v ";
 
             boolean headerHovered = mouseX >= navX && mouseX < navX + navW
                     && mouseY >= curY && mouseY < curY + SECTION_HEIGHT;
 
-            int headerColor = headerHovered ? 0xFFFFFFFF : SECTION_HEADER_COLOR;
-            context.drawText(tr, Text.literal(headerText), navX + NAV_PADDING, curY + 4, headerColor, false);
+            int headerColor = headerHovered ? 0xFF000000 : SECTION_HEADER_COLOR;
+            context.drawText(tr, Text.literal(sectionPrefix), navX + NAV_PADDING, curY + 4, headerColor, false);
+            drawSearchHighlightedText(context, tr, section.title,
+                    navX + NAV_PADDING + tr.getWidth(sectionPrefix), curY + 4, headerColor);
             curY += SECTION_HEIGHT;
 
             // Page links (if section is expanded)
@@ -205,8 +237,8 @@ public class CompendiumGuideTabRenderer implements CompendiumTabRenderer {
                         linkColor = PAGE_LINK_COLOR;
                     }
 
-                    context.drawText(tr, Text.literal("  " + page.title),
-                            navX + NAV_PADDING + 4, curY + 2, linkColor, false);
+                    drawSearchHighlightedText(context, tr, "  " + page.title,
+                            navX + NAV_PADDING + 4, curY + 2, linkColor);
                     curY += PAGE_LINK_HEIGHT;
                 }
             }
@@ -217,22 +249,15 @@ public class CompendiumGuideTabRenderer implements CompendiumTabRenderer {
         context.disableScissor();
 
         if (maxNavScroll > 0) {
-            int trackX = navX + navW - 6;
-            int trackY = navY + 3;
-            int trackW = 4;
-            int trackH = navH - 6;
-            int thumbH = Math.max(18, (int) ((float) (navH - NAV_PADDING * 2)
-                    / getNavigationContentHeight() * trackH));
-            int thumbY = trackY + (int) ((float) navScrollOffset / maxNavScroll * (trackH - thumbH));
-            context.fill(trackX, trackY, trackX + trackW, trackY + trackH, 0xFF0C0C10);
-            context.fill(trackX, thumbY, trackX + trackW, thumbY + thumbH, 0xFF686878);
-            context.fill(trackX, thumbY, trackX + 1, thumbY + thumbH, 0xFFFFAA00);
+            ScrollbarMetrics scrollbar = getNavigationScrollbarMetrics();
+            CompendiumStyle.drawVanillaScrollbar(context, scrollbar.trackX, scrollbar.trackY,
+                    scrollbar.trackW, scrollbar.trackH, scrollbar.thumbY, scrollbar.thumbH);
         }
     }
 
     private int getNavigationContentHeight() {
         int height = NAV_PADDING * 2;
-        for (Section section : sections) {
+        for (Section section : getVisibleSections()) {
             height += SECTION_HEIGHT + SECTION_GAP;
             if (!section.collapsed) {
                 height += section.pages.size() * PAGE_LINK_HEIGHT;
@@ -243,9 +268,6 @@ public class CompendiumGuideTabRenderer implements CompendiumTabRenderer {
 
     private void renderPageContent(DrawContext context, TextRenderer tr, int pageX, int pageY,
                                     int pageW, int pageH, int mouseX, int mouseY) {
-        // Inset sunken stone well for page content
-        ShapeRenderer.drawInsetPanel(context, pageX, pageY, pageW, pageH);
-
         if (currentPage == null) {
             // No page selected — show welcome text
             String welcome = "Select a topic from the menu.";
@@ -264,13 +286,14 @@ public class CompendiumGuideTabRenderer implements CompendiumTabRenderer {
 
         // Page title
         Text titleText = Text.literal(currentPage.title);
-        context.drawText(tr, titleText, pageX + CONTENT_PADDING, curY, HEADING_COLOR, false);
+        drawSearchHighlightedText(context, tr, currentPage.title,
+                pageX + CONTENT_PADDING, curY, HEADING_COLOR);
         curY += 16;
 
         // Separator line under title
         context.fill(pageX + CONTENT_PADDING, curY,
                 pageX + CONTENT_PADDING + Math.min(maxTextWidth, tr.getWidth(titleText) + 20),
-                curY + 1, NAV_BORDER_COLOR);
+                curY + 1, CompendiumStyle.PANEL_HIGHLIGHT);
         curY += 8;
 
         // Render content elements
@@ -278,14 +301,14 @@ public class CompendiumGuideTabRenderer implements CompendiumTabRenderer {
             switch (element.type) {
                 case "heading" -> {
                     curY += 6;
-                    context.drawText(tr, Text.literal(element.value),
-                            pageX + CONTENT_PADDING, curY, HEADING_COLOR, false);
+                    drawSearchHighlightedText(context, tr, element.value,
+                            pageX + CONTENT_PADDING, curY, HEADING_COLOR);
                     curY += 14;
                 }
                 case "subheading" -> {
                     curY += 3;
-                    context.drawText(tr, Text.literal(element.value),
-                            pageX + CONTENT_PADDING + 2, curY, SUBHEADING_COLOR, false);
+                    drawSearchHighlightedText(context, tr, element.value,
+                            pageX + CONTENT_PADDING + 2, curY, SUBHEADING_COLOR);
                     curY += 12;
                 }
                 case "text" -> {
@@ -319,27 +342,83 @@ public class CompendiumGuideTabRenderer implements CompendiumTabRenderer {
 
         context.disableScissor();
 
-        // 3D Beveled Stone Scrollbar
+        // Use the same vanilla scrollbar sprites as the rest of Minecraft's
+        // scrollable screens; resource packs can replace them directly.
         if (maxContentScroll > 0) {
-            int trackW = 6;
-            int trackX = pageX + pageW - trackW - 2;
-            int trackY = pageY + 2;
-            int trackH = pageH - 4;
-            int thumbH = Math.max(22, (int) ((float) pageH / (pageH + maxContentScroll) * trackH));
-            int thumbY = trackY + (int) ((float) contentScrollOffset / maxContentScroll * (trackH - thumbH));
+            ScrollbarMetrics scrollbar = getContentScrollbarMetrics(pageX, pageY, pageW, pageH);
+            CompendiumStyle.drawVanillaScrollbar(context, scrollbar.trackX, scrollbar.trackY,
+                    scrollbar.trackW, scrollbar.trackH, scrollbar.thumbY, scrollbar.thumbH);
+        }
+    }
 
-            // Inset sunken stone track
-            ShapeRenderer.drawInsetPanel(context, trackX, trackY, trackW, trackH, 0xFF101014, 0xFF0A0A0E, 0xFF2A2A32, 0xFF08080C);
+    private record ScrollbarMetrics(int trackX, int trackY, int trackW, int trackH,
+                                    int thumbY, int thumbH) {
+    }
 
-            // 3D Beveled Stone Thumb
-            ShapeRenderer.drawBeveledPanel(context, trackX, thumbY, trackW, thumbH, 0xFF383842, 0xFF686878, 0xFF18181E, 0xFF101014);
+    private ScrollbarMetrics getNavigationScrollbarMetrics() {
+        int navX = boxX + 5;
+        int navY = boxY + 5;
+        int navW = navWidth;
+        int navH = boxH - 10;
+        int trackX = navX + navW - 7;
+        int trackY = navY + NAV_CONTENT_TOP_OFFSET;
+        int trackW = 6;
+        int trackH = navH - NAV_CONTENT_TOP_OFFSET - 2;
+        int thumbH = Math.max(18, (int) ((float) (navH - NAV_CONTENT_TOP_OFFSET - NAV_PADDING)
+                / getNavigationContentHeight() * trackH));
+        int thumbY = trackY + (int) ((float) navScrollOffset / maxNavScroll * (trackH - thumbH));
+        return new ScrollbarMetrics(trackX, trackY, trackW, trackH, thumbY, thumbH);
+    }
 
-            // Center gold ridge detail
-            if (thumbH >= 12) {
-                int midY = thumbY + thumbH / 2;
-                context.fill(trackX + 2, midY - 1, trackX + trackW - 2, midY, 0xFFFFAA00);
-                context.fill(trackX + 2, midY + 1, trackX + trackW - 2, midY + 2, 0xFFFFAA00);
+    private ScrollbarMetrics getContentScrollbarMetrics(int pageX, int pageY, int pageW, int pageH) {
+        int trackW = 6;
+        int trackX = pageX + pageW - trackW - 2;
+        int trackY = pageY + 2;
+        int trackH = pageH - 4;
+        int thumbH = Math.max(22, (int) ((float) pageH / (pageH + maxContentScroll) * trackH));
+        int thumbY = trackY + (int) ((float) contentScrollOffset / maxContentScroll * (trackH - thumbH));
+        return new ScrollbarMetrics(trackX, trackY, trackW, trackH, thumbY, thumbH);
+    }
+
+    private boolean isScrollbarTrackHovered(ScrollbarMetrics scrollbar, double mouseX, double mouseY) {
+        return mouseX >= scrollbar.trackX - 4 && mouseX <= scrollbar.trackX + scrollbar.trackW + 4
+                && mouseY >= scrollbar.trackY && mouseY <= scrollbar.trackY + scrollbar.trackH;
+    }
+
+    private void drawSearchHighlightedText(DrawContext context, TextRenderer tr,
+                                           String text, int x, int y, int color) {
+        String query = searchQuery.trim();
+        if (query.isEmpty()) {
+            context.drawText(tr, Text.literal(text), x, y, color, false);
+            return;
+        }
+
+        String lowerText = text.toLowerCase(Locale.ROOT);
+        String lowerQuery = query.toLowerCase(Locale.ROOT);
+        int cursor = 0;
+        int drawX = x;
+
+        while (cursor < text.length()) {
+            int matchStart = lowerText.indexOf(lowerQuery, cursor);
+            if (matchStart < 0) {
+                String remaining = text.substring(cursor);
+                context.drawText(tr, Text.literal(remaining), drawX, y, color, false);
+                break;
             }
+
+            if (matchStart > cursor) {
+                String before = text.substring(cursor, matchStart);
+                context.drawText(tr, Text.literal(before), drawX, y, color, false);
+                drawX += tr.getWidth(before);
+            }
+
+            int matchEnd = matchStart + lowerQuery.length();
+            String match = text.substring(matchStart, matchEnd);
+            int matchWidth = tr.getWidth(match);
+            context.fill(drawX, y - 1, drawX + matchWidth, y + 10, SEARCH_HIGHLIGHT_COLOR);
+            context.drawText(tr, Text.literal(match), drawX, y, CompendiumStyle.TEXT_DARK, false);
+            drawX += matchWidth;
+            cursor = matchEnd;
         }
     }
 
@@ -359,7 +438,7 @@ public class CompendiumGuideTabRenderer implements CompendiumTabRenderer {
             for (String word : words) {
                 String test = line.isEmpty() ? word : line + " " + word;
                 if (tr.getWidth(test) > maxWidth && !line.isEmpty()) {
-                    context.drawText(tr, Text.literal(line.toString()), x, curY, color, false);
+                    drawSearchHighlightedText(context, tr, line.toString(), x, curY, color);
                     curY += 10;
                     line = new StringBuilder(word);
                 } else {
@@ -367,7 +446,7 @@ public class CompendiumGuideTabRenderer implements CompendiumTabRenderer {
                 }
             }
             if (!line.isEmpty()) {
-                context.drawText(tr, Text.literal(line.toString()), x, curY, color, false);
+                drawSearchHighlightedText(context, tr, line.toString(), x, curY, color);
                 curY += 10;
             }
         }
@@ -417,21 +496,21 @@ public class CompendiumGuideTabRenderer implements CompendiumTabRenderer {
                 curY += lastAffix == null ? 1 : 6;
                 String groupTitle = stat.getAffixType() == CustomStat.AffixType.PREFIX
                         ? "Prefixes" : "Suffixes";
-                context.drawText(tr, Text.literal(groupTitle), x, curY, SUBHEADING_COLOR, false);
+                drawSearchHighlightedText(context, tr, groupTitle, x, curY, SUBHEADING_COLOR);
                 curY += 13;
                 lastAffix = stat.getAffixType();
             }
 
             Integer rgb = stat.getColor().getColorValue();
-            context.drawText(tr, Text.literal(stat.getDisplayName()), x + 2, curY,
-                    rgb != null ? 0xFF000000 | rgb : CONTENT_TEXT_COLOR, false);
+            drawSearchHighlightedText(context, tr, stat.getDisplayName(), x + 2, curY,
+                    rgb != null ? 0xFF000000 | rgb : CONTENT_TEXT_COLOR);
             curY += 10;
 
             String metadata = "Rune level " + stat.getLevel()
                     + "  |  Weight " + stat.getWeight()
                     + "  |  Affinity " + formatAffinity(stat.getArmorBaseType().name());
             curY = drawWrappedText(context, tr, metadata, x + 8, curY,
-                    Math.max(20, maxWidth - 8), 0xFF9E9EAA);
+                    Math.max(20, maxWidth - 8), CompendiumStyle.TEXT_MUTED);
 
             for (CustomStat.StatComponent component : stat.getComponents()) {
                 StringBuilder ranges = new StringBuilder(component.getDisplayName()).append(": ");
@@ -472,18 +551,18 @@ public class CompendiumGuideTabRenderer implements CompendiumTabRenderer {
         String prefix;
         switch (style != null ? style : "info") {
             case "warning" -> {
-                noteColor = 0xFF2A2A10;
-                noteBorder = 0xFFAAAA40;
+                noteColor = 0xFF6A5A2A;
+                noteBorder = CompendiumStyle.TEXT_GOLD_LIGHT;
                 prefix = "⚠ Warning";
             }
             case "tip" -> {
-                noteColor = 0xFF102A10;
-                noteBorder = 0xFF40AA40;
+                noteColor = 0xFF35633D;
+                noteBorder = CompendiumStyle.TEXT_SUCCESS;
                 prefix = "💡 Tip";
             }
             case "important" -> {
-                noteColor = 0xFF2A1010;
-                noteBorder = 0xFFAA4040;
+                noteColor = 0xFF633737;
+                noteBorder = CompendiumStyle.TEXT_WARNING;
                 prefix = "❗ Important";
             }
             default -> {
@@ -517,7 +596,7 @@ public class CompendiumGuideTabRenderer implements CompendiumTabRenderer {
         context.fill(noteX, y, noteX + 2, y + noteHeight, noteBorder); // Left border
 
         // Draw prefix
-        context.drawText(tr, Text.literal(prefix), noteX + 6, y + 4, noteBorder, false);
+        drawSearchHighlightedText(context, tr, prefix, noteX + 6, y + 4, noteBorder);
 
         // Draw text
         int textY = y + 18;
@@ -525,7 +604,7 @@ public class CompendiumGuideTabRenderer implements CompendiumTabRenderer {
         for (String word : words) {
             String test = line.isEmpty() ? word : line + " " + word;
             if (tr.getWidth(test) > noteWidth - 12 && !line.isEmpty()) {
-                context.drawText(tr, Text.literal(line.toString()), noteX + 6, textY, NOTE_TEXT_COLOR, false);
+                drawSearchHighlightedText(context, tr, line.toString(), noteX + 6, textY, NOTE_TEXT_COLOR);
                 textY += 10;
                 line = new StringBuilder(word);
             } else {
@@ -533,7 +612,7 @@ public class CompendiumGuideTabRenderer implements CompendiumTabRenderer {
             }
         }
         if (!line.isEmpty()) {
-            context.drawText(tr, Text.literal(line.toString()), noteX + 6, textY, NOTE_TEXT_COLOR, false);
+            drawSearchHighlightedText(context, tr, line.toString(), noteX + 6, textY, NOTE_TEXT_COLOR);
             textY += 10;
         }
 
@@ -544,28 +623,43 @@ public class CompendiumGuideTabRenderer implements CompendiumTabRenderer {
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (button != 0) return false;
 
+        // Check the Topics navigation scrollbar before the page scrollbar.
+        if (maxNavScroll > 0) {
+            ScrollbarMetrics scrollbar = getNavigationScrollbarMetrics();
+            if (isScrollbarTrackHovered(scrollbar, mouseX, mouseY)) {
+                isDraggingNavigationScrollbar = true;
+                if (mouseY >= scrollbar.thumbY && mouseY <= scrollbar.thumbY + scrollbar.thumbH) {
+                    navigationDragClickOffsetY = (int) (mouseY - scrollbar.thumbY);
+                } else {
+                    navigationDragClickOffsetY = scrollbar.thumbH / 2;
+                    int availableTrack = scrollbar.trackH - scrollbar.thumbH;
+                    if (availableTrack > 0) {
+                        float relativeY = (float) (mouseY - scrollbar.trackY - navigationDragClickOffsetY);
+                        float ratio = Math.max(0.0f, Math.min(1.0f, relativeY / availableTrack));
+                        navScrollOffset = Math.round(ratio * maxNavScroll);
+                    }
+                }
+                return true;
+            }
+        }
+
         // Check content scrollbar click & drag start
         if (maxContentScroll > 0) {
-            int pageX = boxX + NAV_WIDTH + 6;
-            int pageY = boxY + 4;
-            int pageW = boxW - NAV_WIDTH - 10;
-            int pageH = boxH - 8;
-            int trackW = 6;
-            int trackX = pageX + pageW - trackW - 2;
-            int trackY = pageY + 2;
-            int trackH = pageH - 4;
-            int thumbH = Math.max(22, (int) ((float) pageH / (pageH + maxContentScroll) * trackH));
-            int thumbY = trackY + (int) ((float) contentScrollOffset / maxContentScroll * (trackH - thumbH));
+            int pageX = boxX + navWidth + 10;
+            int pageY = boxY + 5;
+            int pageW = boxW - navWidth - 15;
+            int pageH = boxH - 10;
+            ScrollbarMetrics scrollbar = getContentScrollbarMetrics(pageX, pageY, pageW, pageH);
 
-            if (mouseX >= trackX - 4 && mouseX <= trackX + trackW + 4 && mouseY >= trackY && mouseY <= trackY + trackH) {
+            if (isScrollbarTrackHovered(scrollbar, mouseX, mouseY)) {
                 isDraggingScrollbar = true;
-                if (mouseY >= thumbY && mouseY <= thumbY + thumbH) {
-                    dragClickOffsetY = (int) (mouseY - thumbY);
+                if (mouseY >= scrollbar.thumbY && mouseY <= scrollbar.thumbY + scrollbar.thumbH) {
+                    dragClickOffsetY = (int) (mouseY - scrollbar.thumbY);
                 } else {
-                    dragClickOffsetY = thumbH / 2;
-                    int availableTrack = trackH - thumbH;
+                    dragClickOffsetY = scrollbar.thumbH / 2;
+                    int availableTrack = scrollbar.trackH - scrollbar.thumbH;
                     if (availableTrack > 0) {
-                        float relativeY = (float) (mouseY - trackY - dragClickOffsetY);
+                        float relativeY = (float) (mouseY - scrollbar.trackY - dragClickOffsetY);
                         float ratio = Math.max(0.0f, Math.min(1.0f, relativeY / availableTrack));
                         contentScrollOffset = Math.round(ratio * maxContentScroll);
                     }
@@ -574,22 +668,27 @@ public class CompendiumGuideTabRenderer implements CompendiumTabRenderer {
             }
         }
 
-        int navX = boxX + 4;
-        int navY = boxY + 4;
-        int navW = NAV_WIDTH;
-        int navH = boxH - 8;
+        int navX = boxX + 5;
+        int navY = boxY + 5;
+        int navW = navWidth;
+        int navH = boxH - 10;
 
         // Check nav column clicks
         if (mouseX >= navX && mouseX < navX + navW
                 && mouseY >= navY && mouseY < navY + navH) {
-            int curY = navY + NAV_PADDING - navScrollOffset;
+            int curY = navY + NAV_CONTENT_TOP_OFFSET - navScrollOffset;
 
-            for (int si = 0; si < sections.size(); si++) {
-                Section section = sections.get(si);
+            List<Section> visibleSections = getVisibleSections();
+            for (Section section : visibleSections) {
 
                 // Section header click → toggle collapse
                 if (mouseY >= curY && mouseY < curY + SECTION_HEIGHT) {
-                    sections.set(si, section.withCollapsed(!section.collapsed));
+                    if (searchQuery.isBlank()) {
+                        int sectionIndex = sections.indexOf(section);
+                        if (sectionIndex >= 0) {
+                            sections.set(sectionIndex, section.withCollapsed(!section.collapsed));
+                        }
+                    }
                     return true;
                 }
                 curY += SECTION_HEIGHT;
@@ -615,16 +714,28 @@ public class CompendiumGuideTabRenderer implements CompendiumTabRenderer {
 
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
-        if (isDraggingScrollbar && maxContentScroll > 0) {
-            int pageY = boxY + 4;
-            int pageH = boxH - 8;
-            int trackY = pageY + 2;
-            int trackH = pageH - 4;
-            int thumbH = Math.max(22, (int) ((float) pageH / (pageH + maxContentScroll) * trackH));
-            int availableTrack = trackH - thumbH;
+        if (isDraggingNavigationScrollbar && maxNavScroll > 0) {
+            ScrollbarMetrics scrollbar = getNavigationScrollbarMetrics();
+            int availableTrack = scrollbar.trackH - scrollbar.thumbH;
 
             if (availableTrack > 0) {
-                float relativeY = (float) (mouseY - trackY - dragClickOffsetY);
+                float relativeY = (float) (mouseY - scrollbar.trackY - navigationDragClickOffsetY);
+                float ratio = Math.max(0.0f, Math.min(1.0f, relativeY / availableTrack));
+                navScrollOffset = Math.round(ratio * maxNavScroll);
+            }
+            return true;
+        }
+
+        if (isDraggingScrollbar && maxContentScroll > 0) {
+            int pageY = boxY + 5;
+            int pageH = boxH - 10;
+            int pageX = boxX + navWidth + 10;
+            int pageW = boxW - navWidth - 15;
+            ScrollbarMetrics scrollbar = getContentScrollbarMetrics(pageX, pageY, pageW, pageH);
+            int availableTrack = scrollbar.trackH - scrollbar.thumbH;
+
+            if (availableTrack > 0) {
+                float relativeY = (float) (mouseY - scrollbar.trackY - dragClickOffsetY);
                 float ratio = Math.max(0.0f, Math.min(1.0f, relativeY / availableTrack));
                 contentScrollOffset = Math.round(ratio * maxContentScroll);
             }
@@ -635,7 +746,8 @@ public class CompendiumGuideTabRenderer implements CompendiumTabRenderer {
 
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
-        if (button == 0 && isDraggingScrollbar) {
+        if (button == 0 && (isDraggingNavigationScrollbar || isDraggingScrollbar)) {
+            isDraggingNavigationScrollbar = false;
             isDraggingScrollbar = false;
             return true;
         }
@@ -644,10 +756,10 @@ public class CompendiumGuideTabRenderer implements CompendiumTabRenderer {
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
-        int navX = boxX + 4;
-        int navY = boxY + 4;
-        int navW = NAV_WIDTH;
-        int navH = boxH - 8;
+        int navX = boxX + 5;
+        int navY = boxY + 5;
+        int navW = navWidth;
+        int navH = boxH - 10;
 
         if (mouseX >= navX && mouseX < navX + navW
                 && mouseY >= navY && mouseY < navY + navH) {
@@ -670,10 +782,92 @@ public class CompendiumGuideTabRenderer implements CompendiumTabRenderer {
         return false;
     }
 
+    private void updateSearchQuery(String value) {
+        String nextQuery = value == null ? "" : value.trim();
+        if (nextQuery.equals(searchQuery)) {
+            return;
+        }
+
+        searchQuery = nextQuery;
+        navScrollOffset = 0;
+
+        if (!searchQuery.isBlank()) {
+            PageLink firstMatch = findFirstSearchMatch();
+            if (firstMatch != null
+                    && (currentPage == null || !pageContains(currentPage, searchQuery))) {
+                selectedPageId = firstMatch.id;
+                contentScrollOffset = 0;
+                loadPage(selectedPageId);
+            }
+        }
+    }
+
+    private List<Section> getVisibleSections() {
+        if (searchQuery.isBlank()) {
+            return sections;
+        }
+
+        List<Section> visibleSections = new ArrayList<>();
+        for (Section section : sections) {
+            boolean sectionMatches = textContains(section.title, searchQuery);
+            List<PageLink> visiblePages = new ArrayList<>();
+            for (PageLink page : section.pages) {
+                if (sectionMatches || pageMatches(page, searchQuery)) {
+                    visiblePages.add(page);
+                }
+            }
+
+            if (!visiblePages.isEmpty()) {
+                // Search results are always expanded so matching topics are
+                // immediately visible even when their original section was collapsed.
+                visibleSections.add(new Section(section.title, false, visiblePages));
+            }
+        }
+        return visibleSections;
+    }
+
+    private PageLink findFirstSearchMatch() {
+        for (Section section : sections) {
+            for (PageLink page : section.pages) {
+                if (pageMatches(page, searchQuery)) {
+                    return page;
+                }
+            }
+        }
+        return null;
+    }
+
+    private boolean pageMatches(PageLink page, String query) {
+        if (textContains(page.title, query)) {
+            return true;
+        }
+
+        return pageContains(pageCache.computeIfAbsent(page.id, this::readPage), query);
+    }
+
+    private boolean pageContains(PageContent page, String query) {
+        if (page == null || textContains(page.title, query)) {
+            return page != null && textContains(page.title, query);
+        }
+
+        for (ContentElement element : page.elements) {
+            if (textContains(element.value, query)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean textContains(String value, String query) {
+        return value != null && query != null
+                && value.toLowerCase(Locale.ROOT).contains(query.toLowerCase(Locale.ROOT));
+    }
+
     // --- Data Loading ---
 
     private void loadIndex() {
         sections.clear();
+        pageCache.clear();
         try {
             var resource = MinecraftClient.getInstance().getResourceManager()
                     .getResource(Identifier.of("cranks-dungeons", "compendium/compendium_index.json"));
@@ -716,15 +910,18 @@ public class CompendiumGuideTabRenderer implements CompendiumTabRenderer {
     }
 
     private void loadPage(String pageId) {
+        currentPage = pageCache.computeIfAbsent(pageId, this::readPage);
+    }
+
+    private PageContent readPage(String pageId) {
         try {
             var resource = MinecraftClient.getInstance().getResourceManager()
                     .getResource(Identifier.of("cranks-dungeons", "compendium/pages/" + pageId + ".json"));
 
             if (resource.isEmpty()) {
                 LOGGER.warn("Compendium page '{}' not found", pageId);
-                currentPage = new PageContent("Page Not Found",
+                return new PageContent("Page Not Found",
                         List.of(new ContentElement("text", "This page has not been written yet.", null)));
-                return;
             }
 
             try (InputStream is = resource.get().getInputStream();
@@ -742,11 +939,11 @@ public class CompendiumGuideTabRenderer implements CompendiumTabRenderer {
                     elements.add(new ContentElement(type, value, style));
                 }
 
-                currentPage = new PageContent(title, elements);
+                return new PageContent(title, elements);
             }
         } catch (Exception e) {
             LOGGER.error("Failed to load compendium page: {}", pageId, e);
-            currentPage = new PageContent("Error",
+            return new PageContent("Error",
                     List.of(new ContentElement("text", "Failed to load page: " + e.getMessage(), null)));
         }
     }

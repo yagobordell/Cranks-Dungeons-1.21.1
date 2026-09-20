@@ -11,10 +11,24 @@ public class CompendiumButtonWidget extends ClickableWidget {
     }
 
     private final PressAction onPress;
+    private final boolean crossButton;
+    private final boolean tabStyle;
+    private final boolean selected;
+    private final int selectedColor;
 
     public CompendiumButtonWidget(int x, int y, int width, int height, Text message, PressAction onPress) {
+        this(x, y, width, height, message, onPress, false, false, false, CompendiumStyle.TEXT_GOLD_LIGHT);
+    }
+
+    private CompendiumButtonWidget(int x, int y, int width, int height, Text message,
+                                   PressAction onPress, boolean crossButton, boolean tabStyle,
+                                   boolean selected, int selectedColor) {
         super(x, y, width, height, message);
         this.onPress = onPress;
+        this.crossButton = crossButton;
+        this.tabStyle = tabStyle;
+        this.selected = selected;
+        this.selectedColor = selectedColor;
     }
 
     public static Builder builder(Text message, PressAction onPress) {
@@ -25,6 +39,10 @@ public class CompendiumButtonWidget extends ClickableWidget {
         private final Text message;
         private final PressAction onPress;
         private int x, y, width = 150, height = 20;
+        private boolean crossButton;
+        private boolean tabStyle;
+        private boolean selected;
+        private int selectedColor = CompendiumStyle.TEXT_GOLD_LIGHT;
 
         public Builder(Text message, PressAction onPress) {
             this.message = message;
@@ -39,8 +57,29 @@ public class CompendiumButtonWidget extends ClickableWidget {
             return this;
         }
 
+        public Builder crossButton() {
+            this.crossButton = true;
+            return this;
+        }
+
+        public Builder tab() {
+            this.tabStyle = true;
+            return this;
+        }
+
+        public Builder selected(boolean selected) {
+            this.selected = selected;
+            return this;
+        }
+
+        public Builder selectedColor(int selectedColor) {
+            this.selectedColor = selectedColor;
+            return this;
+        }
+
         public CompendiumButtonWidget build() {
-            return new CompendiumButtonWidget(x, y, width, height, message, onPress);
+            return new CompendiumButtonWidget(x, y, width, height, message, onPress, crossButton,
+                    tabStyle, selected, selectedColor);
         }
     }
 
@@ -65,7 +104,28 @@ public class CompendiumButtonWidget extends ClickableWidget {
 
     @Override
     protected void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
-        drawButton(context, this.getX(), this.getY(), this.getWidth(), this.getHeight(), this.isHovered(), this.active, this.getMessage().getString());
+        if (crossButton) {
+            CompendiumStyle.drawVanillaCrossButton(context, this.getX(), this.getY(), this.getWidth(),
+                    this.isHovered(), this.active);
+            return;
+        }
+        if (tabStyle) {
+            CompendiumStyle.drawCreativeTab(context, this.getX(), this.getY(), this.getWidth(), this.getHeight(),
+                    this.isHovered(), this.selected);
+            String label = MinecraftClient.getInstance().textRenderer.trimToWidth(
+                    this.getMessage().getString(), Math.max(10, this.getWidth() - 12));
+            int textColor = this.selected ? this.selectedColor : CompendiumStyle.TEXT;
+            if (this.selected) {
+                context.fill(this.getX() + 5, this.getY() + this.getHeight() - 2,
+                        this.getX() + this.getWidth() - 5, this.getY() + this.getHeight(),
+                        this.selectedColor);
+            }
+            context.drawCenteredTextWithShadow(MinecraftClient.getInstance().textRenderer, label,
+                    this.getX() + this.getWidth() / 2, this.getY() + 12, textColor);
+            return;
+        }
+        drawButton(context, this.getX(), this.getY(), this.getWidth(), this.getHeight(), this.isHovered(),
+                this.active, this.selected, this.getMessage().getString());
     }
 
     public static void drawButton(DrawContext context, int x, int y, int width, int height, boolean hovered, boolean active, String text) {
@@ -74,39 +134,12 @@ public class CompendiumButtonWidget extends ClickableWidget {
 
     public static void drawButton(DrawContext context, int x, int y, int width, int height,
                                   boolean hovered, boolean active, boolean selected, String text) {
-        int centerColor = hovered ? 0xFF3C3C46 : 0xFF2B2B33;
-        int lightBevel = hovered ? 0xFF707080 : 0xFF585864;
-        int darkBevel = hovered ? 0xFF22222A : 0xFF18181E;
-        int outerBorder = 0xFF101014;
+        // Use the actual vanilla widget sprites instead of reproducing their
+        // bevels in code. Resource packs can therefore restyle every button.
+        CompendiumStyle.drawVanillaButton(context, x, y, width, height, hovered || selected, active);
 
-        if (selected) {
-            centerColor = hovered ? 0xFF70531D : 0xFF543D14;
-            lightBevel = hovered ? 0xFFFFD166 : 0xFFD6A83D;
-            darkBevel = 0xFF2C1D08;
-            outerBorder = 0xFFB7790B;
-        } else if (!active) {
-            centerColor = 0xFF1A1A20;
-            lightBevel = 0xFF2E2E36;
-            darkBevel = 0xFF121216;
-            outerBorder = 0xFF0E0E12;
-        }
-
-        // Outer 1px frame
-        context.fill(x, y, x + width, y + height, outerBorder);
-
-        // Inner beveled stone
-        context.fill(x + 1, y + 1, x + width - 1, y + height - 1, centerColor);
-
-        // Light bevel on Top & Left
-        context.fill(x + 1, y + 1, x + width - 1, y + 2, lightBevel);
-        context.fill(x + 1, y + 1, x + 2, y + height - 1, lightBevel);
-
-        // Dark bevel on Bottom & Right
-        context.fill(x + 1, y + height - 2, x + width - 1, y + height - 1, darkBevel);
-        context.fill(x + width - 2, y + 1, x + width - 1, y + height - 1, darkBevel);
-
-        int textColor = selected ? 0xFFFFF3C4
-                : active ? (hovered ? 0xFFFFFFFF : 0xFFE0E0E6) : 0xFF6C6C78;
+        int textColor = selected ? CompendiumStyle.TEXT_GOLD_LIGHT
+                : active ? (hovered ? 0xFFFFFFFF : CompendiumStyle.TEXT) : CompendiumStyle.TEXT_DISABLED;
         context.drawCenteredTextWithShadow(
                 MinecraftClient.getInstance().textRenderer,
                 text,
