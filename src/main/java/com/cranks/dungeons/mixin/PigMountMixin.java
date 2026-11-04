@@ -38,8 +38,13 @@ public abstract class PigMountMixin implements MountDataProvider, MountSaddleAcc
         return ((PigEntity) (Object) this).getDataTracker().get(CRANKS_CHEST);
     }
     @Override public void cranksdungeons$setMountChest(boolean equipped) {
+        PigEntity self = (PigEntity) (Object) this;
+        if (cranksdungeons$hasMountChest() && !equipped) {
+            com.cranks.dungeons.mount.MountManager.ejectCargo(self, null);
+        }
         cranks$mountData.chestEquipped = equipped;
-        ((PigEntity) (Object) this).getDataTracker().set(CRANKS_CHEST, equipped);
+        self.getDataTracker().set(CRANKS_CHEST, equipped);
+        com.cranks.dungeons.mount.MountManager.refreshCargoCapacity(self);
     }
 
     @Inject(method = "initDataTracker", at = @At("TAIL"))

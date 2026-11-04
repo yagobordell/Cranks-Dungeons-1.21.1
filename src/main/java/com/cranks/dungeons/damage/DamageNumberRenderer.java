@@ -61,10 +61,7 @@ public class DamageNumberRenderer {
             if (isSelf && client.options.getPerspective().isFirstPerson()) {
                 float progress = number.getProgress();
                 sX = screenWidth / 2 + (number.isHeal ? 60 : -60);
-
-                // Fix: Apply rowIndex stacking to the first-person Y coordinate
-                int rowSpacing = (int) ((textRenderer.fontHeight + 2) * 1.5); // Slightly more spacing for UI
-                sY = (int) (screenHeight / 2 + 30 - progress * 40 + (number.rowIndex * rowSpacing));
+                sY = (int) (screenHeight / 2 + 30 - progress * 40);
             } else {
                 // Standard world-space projection for Mobs and other players
                 double worldX = number.position.x + number.offsetX;
@@ -152,6 +149,11 @@ public class DamageNumberRenderer {
                 // Normal hits get a smaller pop
                 scale *= 1.15f;
             }
+
+            // Use a fixed screen-space row gap so numbers remain readable at every
+            // camera distance and share the same stacking behavior for hits and heals.
+            int stackSpacing = Math.round((textRenderer.fontHeight + 2) * 2.2f);
+            sY += number.rowIndex * stackSpacing;
 
             int sX_final = sX;
             int sY_final = sY;

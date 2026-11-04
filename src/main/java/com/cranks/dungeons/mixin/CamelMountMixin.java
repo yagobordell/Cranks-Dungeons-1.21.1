@@ -31,8 +31,11 @@ public abstract class CamelMountMixin implements MountDataProvider {
     }
 
     @Override public void cranksdungeons$setMountChest(boolean equipped) {
+        CamelEntity self = (CamelEntity) (Object) this;
+        if (cranksdungeons$hasMountChest() && !equipped) MountManager.ejectCargo(self, null);
         cranks$mountData.chestEquipped = equipped;
-        ((CamelEntity) (Object) this).getDataTracker().set(CRANKS_CHEST, equipped);
+        self.getDataTracker().set(CRANKS_CHEST, equipped);
+        MountManager.refreshCargoCapacity(self);
     }
 
     @Inject(method = "initDataTracker", at = @At("TAIL"))

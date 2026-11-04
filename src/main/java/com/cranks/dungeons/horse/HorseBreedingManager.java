@@ -1,6 +1,9 @@
 package com.cranks.dungeons.horse;
 
 import com.cranks.dungeons.CranksDungeons;
+import com.cranks.dungeons.mount.MountGeneticRatings;
+import com.cranks.dungeons.mount.MountDurabilityProfile;
+import com.cranks.dungeons.mount.MountKind;
 import com.cranks.dungeons.network.HorseGeneticsSyncPacket;
 import com.cranks.dungeons.registry.ModAttributes;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
@@ -31,7 +34,7 @@ import java.util.Set;
 import java.util.UUID;
 
 public final class HorseBreedingManager {
-    private static final int CURRENT_DATA_VERSION = 2;
+    private static final int CURRENT_DATA_VERSION = 4;
     public static final int MAX_LEVEL = 30;
     public static final int MAX_BREEDS = 3;
     public static final long BREEDING_COOLDOWN_TICKS = 36_000L;
@@ -41,8 +44,10 @@ public final class HorseBreedingManager {
     private static final double MAX_HEALTH = HorseBreedingRules.MAX_HEALTH;
     private static final double WILD_VANILLA_MIN_HEALTH = 15.0;
     private static final double WILD_VANILLA_MAX_HEALTH = 30.0;
-    private static final double WILD_SYSTEM_MAX_HEALTH = 75.0;
     private static final double LEGACY_MAX_HEALTH = 45.0;
+    private static final double PRE_DURABILITY_MIN_HEALTH = 50.0;
+    private static final double PRE_DURABILITY_MAX_HEALTH = 90.0;
+    private static final double PRE_GENE_EXPANSION_MAX_HEALTH = 40.0;
     private static final double MIN_SPEED = HorseBreedingRules.MIN_SPEED;
     private static final double MAX_SPEED = HorseBreedingRules.MAX_SPEED;
     private static final double MIN_JUMP = HorseBreedingRules.MIN_JUMP;
@@ -72,6 +77,8 @@ public final class HorseBreedingManager {
     private static final Identifier TRAIT_EVASION = id("horse_trait_evasion");
     private static final Identifier TRAIT_KNOCKBACK = id("horse_trait_knockback");
     private static final Identifier IMPRINT_HEALTH = id("horse_imprint_health");
+    private static final Identifier BASE_ARMOR = id("horse_base_armor");
+    private static final Identifier GENETIC_ARMOR = id("horse_genetic_armor");
     private static final Identifier IMPRINT_SPEED = id("horse_imprint_speed");
     private static final Identifier IMPRINT_JUMP = id("horse_imprint_jump");
     private static final Identifier MOBILITY_SPEED = id("horse_mobility_speed");
@@ -176,13 +183,20 @@ public final class HorseBreedingManager {
         double wildHealthQuality = normalized(
                 vanillaHealth, WILD_VANILLA_MIN_HEALTH, WILD_VANILLA_MAX_HEALTH);
         data.geneticHealth = MIN_HEALTH
-                + (WILD_SYSTEM_MAX_HEALTH - MIN_HEALTH) * wildHealthQuality;
+                + (MountGeneticRatings.naturalMaximum(MountKind.HORSE, 0) - MIN_HEALTH)
+                * wildHealthQuality;
         data.geneticSpeed = clamp(horse.getAttributeBaseValue(EntityAttributes.GENERIC_MOVEMENT_SPEED),
                 MIN_SPEED, MAX_SPEED);
         data.geneticJump = clamp(horse.getAttributeBaseValue(EntityAttributes.GENERIC_JUMP_STRENGTH),
                 MIN_JUMP, MAX_JUMP);
-        data.geneticEvasion = horse.getRandom().nextDouble() * 40.0;
-        data.geneticEndurance = 70.0 + horse.getRandom().nextDouble() * 40.0;
+        data.geneticEvasion = horse.getRandom().nextDouble()
+                * MountGeneticRatings.naturalMaximum(MountKind.HORSE, 3);
+        data.geneticEndurance = MountGeneticRatings.minimum(MountKind.HORSE, 4)
+                + horse.getRandom().nextDouble() * (MountGeneticRatings.naturalMaximum(MountKind.HORSE, 4)
+                - MountGeneticRatings.minimum(MountKind.HORSE, 4));
+        data.geneticArmor = MountGeneticRatings.minimum(MountKind.HORSE, 5)
+                + horse.getRandom().nextDouble() * (MountGeneticRatings.naturalMaximum(MountKind.HORSE, 5)
+                - MountGeneticRatings.minimum(MountKind.HORSE, 5));
         data.breedsRemaining = MAX_BREEDS;
         data.trait = rollWildTrait(horse);
         data.currentStamina = getMaxStamina(data);
@@ -207,13 +221,15 @@ public final class HorseBreedingManager {
         inherited.breedsRemaining = MAX_BREEDS;
 
         double[] firstGenes = {first.geneticHealth, first.geneticSpeed, first.geneticJump,
-                first.geneticEvasion, first.geneticEndurance};
+                first.geneticEvasion, first.geneticEndurance, first.geneticArmor};
         double[] secondGenes = {second.geneticHealth, second.geneticSpeed, second.geneticJump,
-                second.geneticEvasion, second.geneticEndurance};
-        double[] minimums = {MIN_HEALTH, MIN_SPEED, MIN_JUMP, MIN_EVASION, MIN_ENDURANCE};
-        double[] maximums = {MAX_HEALTH, MAX_SPEED, MAX_JUMP, MAX_EVASION, MAX_ENDURANCE};
+                second.geneticEvasion, second.geneticEndurance, second.geneticArmor};
+        double[] minimums = {MIN_HEALTH, MIN_SPEED, MIN_JUMP, MIN_EVASION, MIN_ENDURANCE,
+                HorseBreedingRules.MIN_ARMOR};
+        double[] maximums = {MAX_HEALTH, MAX_SPEED, MAX_JUMP, MAX_EVASION, MAX_ENDURANCE,
+                HorseBreedingRules.MAX_ARMOR};
         boolean[] betterParent = rollInheritanceSources(child, first.breedingFocus, second.breedingFocus);
-        MutationResult[] genes = new MutationResult[5];
+        MutationResult[] genes = new MutationResult[6];
         for (int i = 0; i < genes.length; i++) {
             genes[i] = inheritStat(child, firstGenes[i], secondGenes[i], minimums[i], maximums[i],
                     betterParent[i], inherited.generation);
@@ -237,6 +253,7 @@ public final class HorseBreedingManager {
         inherited.geneticJump = genes[2].value;
         inherited.geneticEvasion = genes[3].value;
         inherited.geneticEndurance = genes[4].value;
+        inherited.geneticArmor = genes[5].value;
         inherited.personalGeneMutationMask = mutationMask(genes);
         inherited.personalPositiveMutationMask = positiveMutationMask(genes);
         inherited.healthMutation = genes[0].delta;
@@ -244,10 +261,11 @@ public final class HorseBreedingManager {
         inherited.jumpMutation = genes[2].delta;
         inherited.evasionMutation = genes[3].delta;
         inherited.enduranceMutation = genes[4].delta;
+        inherited.armorMutation = genes[5].delta;
         TraitResult trait = inheritTrait(child, first.trait, second.trait);
         inherited.mutations = first.mutations + second.mutations
                 + genes[0].mutations + genes[1].mutations + genes[2].mutations
-                + genes[3].mutations + genes[4].mutations
+                + genes[3].mutations + genes[4].mutations + genes[5].mutations
                 + trait.mutations;
         inherited.trait = trait.value;
         inherited.traitMutated = trait.mutations > 0;
@@ -365,7 +383,6 @@ public final class HorseBreedingManager {
                 addExperience(horse, HorseBreedingRules.travelExperience(data.galloping));
             }
             if (data.wasOnGround && !horse.isOnGround() && horse.getVelocity().y > 0.1) {
-                spendStamina(data, jumpStaminaCost(data));
                 addExperience(horse, 3);
                 data.trackingLongJump = true;
                 data.longJumpDistance = 0.0;
@@ -385,8 +402,10 @@ public final class HorseBreedingManager {
                 data.galloping = false;
                 data.modifiersDirty = true;
             }
-        } else {
+        } else if (horse.isOnGround()) {
             regenerateStamina(data, ridden);
+        } else if (data.staminaRegenDelay > 0) {
+            data.staminaRegenDelay--;
         }
         data.wasOnGround = horse.isOnGround();
 
@@ -398,6 +417,15 @@ public final class HorseBreedingManager {
             data.modifiersDirty = true;
         }
         if (data.modifiersDirty) applyModifiers(horse, data);
+
+        UUID ownerUuid = horse.isTame() ? horse.getOwnerUuid() : null;
+        boolean ownershipChanged = data.ownershipSyncInitialized
+                && (data.lastSyncedTamed != horse.isTame()
+                || !java.util.Objects.equals(data.lastSyncedOwnerUuid, ownerUuid));
+        data.ownershipSyncInitialized = true;
+        data.lastSyncedTamed = horse.isTame();
+        data.lastSyncedOwnerUuid = ownerUuid;
+        if (ownershipChanged) sync(horse);
 
         data.syncTicker++;
         int syncInterval = ridden || horse.isBaby() ? 10 : 100;
@@ -462,6 +490,15 @@ public final class HorseBreedingManager {
         return Math.max(4.0, cost);
     }
 
+    /** Spends horse jump stamina at the jump itself, independent of movement distance. */
+    public static void spendJumpStamina(HorseEntity horse) {
+        if (horse.getEntityWorld().isClient()
+                || !(horse.getControllingPassenger() instanceof PlayerEntity)) return;
+        HorseGeneticsData data = ensureInitialized(horse);
+        spendStamina(data, jumpStaminaCost(data));
+        sync(horse);
+    }
+
     public static double gallopSpeedBonus(HorseGeneticsData data) {
         double bonus = BASE_GALLOP_BONUS;
         if (data.level >= 30) bonus += 0.05;
@@ -490,34 +527,9 @@ public final class HorseBreedingManager {
     }
 
     public static String grade(HorseGeneticsData data) {
-        double score = (normalized(data.geneticHealth, MIN_HEALTH, MAX_HEALTH)
-                + normalized(data.geneticSpeed, MIN_SPEED, MAX_SPEED)
-                + normalized(data.geneticJump, MIN_JUMP, MAX_JUMP)
-                + normalized(data.geneticEvasion, MIN_EVASION, MAX_EVASION)
-                + normalized(data.geneticEndurance, MIN_ENDURANCE, MAX_ENDURANCE)) / 5.0;
-        return gradeForScore(score);
-    }
-
-    public static String mobilityGrade(HorseGeneticsData data) {
-        double score = (normalized(data.geneticSpeed, MIN_SPEED, MAX_SPEED)
-                + normalized(data.geneticJump, MIN_JUMP, MAX_JUMP)
-                + normalized(data.geneticEndurance, MIN_ENDURANCE, MAX_ENDURANCE)) / 3.0;
-        return gradeForScore(score);
-    }
-
-    public static String survivalGrade(HorseGeneticsData data) {
-        double score = (normalized(data.geneticHealth, MIN_HEALTH, MAX_HEALTH)
-                + normalized(data.geneticEvasion, MIN_EVASION, MAX_EVASION)) / 2.0;
-        return gradeForScore(score);
-    }
-
-    private static String gradeForScore(double score) {
-        if (score >= 0.85) return "S";
-        if (score >= 0.70) return "A";
-        if (score >= 0.55) return "B";
-        if (score >= 0.40) return "C";
-        if (score >= 0.25) return "D";
-        return "E";
+        return MountGeneticRatings.overall(MountKind.HORSE,
+                new double[]{data.geneticHealth, data.geneticSpeed, data.geneticJump,
+                        data.geneticEvasion, data.geneticEndurance, data.geneticArmor}, data.generation);
     }
 
     public static void sync(HorseEntity horse) {
@@ -550,19 +562,39 @@ public final class HorseBreedingManager {
         float healthRatio = previousMaximum > 0.0f
                 ? MathHelper.clamp(horse.getHealth() / previousMaximum, 0.0f, 1.0f)
                 : 1.0f;
-        double legacyQuality = normalized(
-                data.geneticHealth, WILD_VANILLA_MIN_HEALTH, LEGACY_MAX_HEALTH);
-        data.geneticHealth = MIN_HEALTH + (MAX_HEALTH - MIN_HEALTH) * legacyQuality;
-        data.dataVersion = CURRENT_DATA_VERSION;
+        if (data.dataVersion < 2) {
+            double legacyQuality = normalized(
+                    data.geneticHealth, WILD_VANILLA_MIN_HEALTH, LEGACY_MAX_HEALTH);
+            data.geneticHealth = PRE_DURABILITY_MIN_HEALTH
+                    + (PRE_DURABILITY_MAX_HEALTH - PRE_DURABILITY_MIN_HEALTH) * legacyQuality;
+            data.dataVersion = 2;
+        }
+        if (data.dataVersion < 3) {
+            double healthQuality = normalized(data.geneticHealth,
+                    PRE_DURABILITY_MIN_HEALTH, PRE_DURABILITY_MAX_HEALTH);
+            data.geneticHealth = MIN_HEALTH
+                    + (PRE_GENE_EXPANSION_MAX_HEALTH - MIN_HEALTH) * healthQuality;
+            data.geneticArmor = 0.0;
+            data.dataVersion = 3;
+        }
+        if (data.dataVersion < 4) {
+            data.geneticHealth = MathHelper.clamp(data.geneticHealth * 1.25, MIN_HEALTH, MAX_HEALTH);
+            data.geneticArmor = MathHelper.clamp(data.geneticArmor * 3.0,
+                    HorseBreedingRules.MIN_ARMOR, HorseBreedingRules.MAX_ARMOR);
+            data.dataVersion = 4;
+        }
         data.modifiersDirty = true;
 
         applyGeneticBases(horse, data);
+        applyModifiers(horse, data);
         horse.setHealth(horse.getMaxHealth() * healthRatio);
         sync(horse);
     }
 
     private static void applyGeneticBases(HorseEntity horse, HorseGeneticsData data) {
-        setBase(horse, EntityAttributes.GENERIC_MAX_HEALTH, data.geneticHealth);
+        MountDurabilityProfile durability = MountDurabilityProfile.forKind(MountKind.HORSE);
+        setBase(horse, EntityAttributes.GENERIC_MAX_HEALTH,
+                durability.baseHealth() + data.geneticHealth);
         setBase(horse, EntityAttributes.GENERIC_MOVEMENT_SPEED, data.geneticSpeed);
         setBase(horse, EntityAttributes.GENERIC_JUMP_STRENGTH, data.geneticJump);
         setBase(horse, ModAttributes.EVASION_RATING, data.geneticEvasion);
@@ -573,7 +605,8 @@ public final class HorseBreedingManager {
         data.modifiersDirty = false;
         int trainedLevels = Math.max(0, data.level - 1);
         setModifier(horse, EntityAttributes.GENERIC_MAX_HEALTH, TRAINING_HEALTH,
-                trainedLevels * 0.5, EntityAttributeModifier.Operation.ADD_VALUE);
+                trainedLevels * MountDurabilityProfile.HEALTH_PER_LEVEL,
+                EntityAttributeModifier.Operation.ADD_VALUE);
         setModifier(horse, EntityAttributes.GENERIC_MOVEMENT_SPEED, TRAINING_SPEED,
                 trainedLevels * 0.005, EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE);
         setModifier(horse, EntityAttributes.GENERIC_JUMP_STRENGTH, TRAINING_JUMP,
@@ -593,9 +626,14 @@ public final class HorseBreedingManager {
         setModifier(horse, ModAttributes.KNOCKBACK_RESISTANCE, TRAIT_KNOCKBACK,
                 data.trait == HorseTrait.SURE_FOOTED ? 0.15 : data.trait == HorseTrait.WARHORSE ? 0.20 : 0.0,
                 EntityAttributeModifier.Operation.ADD_VALUE);
+        MountDurabilityProfile durability = MountDurabilityProfile.forKind(MountKind.HORSE);
         setModifier(horse, EntityAttributes.GENERIC_ARMOR, TRAIT_ARMOR,
-                data.trait == HorseTrait.WARHORSE ? 30.0 : 0.0,
+                data.trait == HorseTrait.WARHORSE ? durability.baseArmor() * 0.30 : 0.0,
                 EntityAttributeModifier.Operation.ADD_VALUE);
+        setModifier(horse, EntityAttributes.GENERIC_ARMOR, BASE_ARMOR,
+                durability.baseArmor(), EntityAttributeModifier.Operation.ADD_VALUE);
+        setModifier(horse, EntityAttributes.GENERIC_ARMOR, GENETIC_ARMOR,
+                data.geneticArmor, EntityAttributeModifier.Operation.ADD_VALUE);
         setModifier(horse, ModAttributes.EVASION_RATING, TRAIT_EVASION,
                 data.trait == HorseTrait.WARHORSE ? 20.0 : 0.0,
                 EntityAttributeModifier.Operation.ADD_VALUE);
@@ -702,7 +740,7 @@ public final class HorseBreedingManager {
 
     private static boolean[] rollInheritanceSources(HorseEntity child, HorseBreedingFocus firstFocus,
                                                     HorseBreedingFocus secondFocus) {
-        boolean[] better = new boolean[5];
+        boolean[] better = new boolean[6];
         int firstIndex = focusIndex(firstFocus);
         int secondIndex = focusIndex(secondFocus);
         int count = 0;
@@ -730,7 +768,7 @@ public final class HorseBreedingManager {
         }
         if (firstIndex >= 0) return firstIndex;
         if (secondIndex >= 0) return secondIndex;
-        return child.getRandom().nextInt(5);
+        return child.getRandom().nextInt(6);
     }
 
     private static int focusIndex(HorseBreedingFocus focus) {
@@ -741,6 +779,7 @@ public final class HorseBreedingManager {
             case JUMP -> 2;
             case EVASION -> 3;
             case ENDURANCE -> 4;
+            case ARMOR -> 5;
             case NONE -> -1;
         };
     }

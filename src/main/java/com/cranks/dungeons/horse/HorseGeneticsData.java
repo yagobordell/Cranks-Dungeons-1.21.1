@@ -1,6 +1,7 @@
 package com.cranks.dungeons.horse;
 
 import net.minecraft.nbt.NbtCompound;
+import com.cranks.dungeons.mount.MountAccessMode;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -15,6 +16,7 @@ public final class HorseGeneticsData {
     public double geneticJump;
     public double geneticEvasion;
     public double geneticEndurance;
+    public double geneticArmor;
     public int level = 1;
     public int experience;
     public int generation;
@@ -26,6 +28,7 @@ public final class HorseGeneticsData {
     public double jumpMutation;
     public double evasionMutation;
     public double enduranceMutation;
+    public double armorMutation;
     public boolean traitMutated;
     public HorseTrait traitMutationFrom = HorseTrait.NONE;
     public HorseTrait traitMutationTo = HorseTrait.NONE;
@@ -33,6 +36,7 @@ public final class HorseGeneticsData {
     public int breedsRemaining = 3;
     public HorseTrait trait = HorseTrait.NONE;
     public HorseBreedingFocus breedingFocus = HorseBreedingFocus.NONE;
+    public MountAccessMode accessMode = MountAccessMode.OWNER_ONLY;
     public UUID sireId;
     public UUID damId;
     public String sireName = "Wild";
@@ -51,6 +55,9 @@ public final class HorseGeneticsData {
     public double distanceAccumulator;
     public boolean wasOnGround = true;
     public int syncTicker;
+    public boolean ownershipSyncInitialized;
+    public boolean lastSyncedTamed;
+    public UUID lastSyncedOwnerUuid;
     public boolean modifiersDirty = true;
     public boolean exhausted;
     public boolean gallopRequested;
@@ -71,6 +78,7 @@ public final class HorseGeneticsData {
         nbt.putDouble("GeneticJump", geneticJump);
         nbt.putDouble("GeneticEvasion", geneticEvasion);
         nbt.putDouble("GeneticEndurance", geneticEndurance);
+        nbt.putDouble("GeneticArmor", geneticArmor);
         nbt.putInt("Level", level);
         nbt.putInt("Experience", experience);
         nbt.putInt("Generation", generation);
@@ -82,6 +90,7 @@ public final class HorseGeneticsData {
         nbt.putDouble("JumpMutation", jumpMutation);
         nbt.putDouble("EvasionMutation", evasionMutation);
         nbt.putDouble("EnduranceMutation", enduranceMutation);
+        nbt.putDouble("ArmorMutation", armorMutation);
         nbt.putBoolean("TraitMutated", traitMutated);
         nbt.putString("TraitMutationFrom", traitMutationFrom.name());
         nbt.putString("TraitMutationTo", traitMutationTo.name());
@@ -89,6 +98,7 @@ public final class HorseGeneticsData {
         nbt.putInt("BreedsRemaining", breedsRemaining);
         nbt.putString("Trait", trait.name());
         nbt.putString("BreedingFocus", breedingFocus.name());
+        nbt.putString("MountAccess", accessMode.name());
         putUuid(nbt, "SireId", sireId);
         putUuid(nbt, "DamId", damId);
         nbt.putString("SireName", sireName);
@@ -113,6 +123,7 @@ public final class HorseGeneticsData {
         geneticJump = nbt.getDouble("GeneticJump");
         geneticEvasion = nbt.getDouble("GeneticEvasion");
         geneticEndurance = nbt.getDouble("GeneticEndurance");
+        geneticArmor = nbt.getDouble("GeneticArmor");
         level = Math.max(1, nbt.getInt("Level"));
         experience = Math.max(0, nbt.getInt("Experience"));
         generation = Math.max(0, nbt.getInt("Generation"));
@@ -124,6 +135,7 @@ public final class HorseGeneticsData {
         jumpMutation = nbt.getDouble("JumpMutation");
         evasionMutation = nbt.getDouble("EvasionMutation");
         enduranceMutation = nbt.getDouble("EnduranceMutation");
+        armorMutation = nbt.getDouble("ArmorMutation");
         traitMutated = nbt.getBoolean("TraitMutated");
         traitMutationFrom = HorseTrait.fromId(nbt.getString("TraitMutationFrom"));
         traitMutationTo = HorseTrait.fromId(nbt.getString("TraitMutationTo"));
@@ -132,6 +144,7 @@ public final class HorseGeneticsData {
                 ? Math.max(0, nbt.getInt("BreedsRemaining")) : 3;
         trait = HorseTrait.fromId(nbt.getString("Trait"));
         breedingFocus = HorseBreedingFocus.fromId(nbt.getString("BreedingFocus"));
+        accessMode = MountAccessMode.fromId(nbt.getString("MountAccess"));
         sireId = getUuid(nbt, "SireId");
         damId = getUuid(nbt, "DamId");
         sireName = getStringOr(nbt, "SireName", "Wild");

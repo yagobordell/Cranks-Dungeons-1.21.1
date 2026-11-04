@@ -8,6 +8,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.entity.passive.HorseEntity;
+import net.minecraft.entity.passive.CamelEntity;
 import net.minecraft.entity.LivingEntity;
 import com.cranks.dungeons.mount.MountKind;
 import net.minecraft.util.Identifier;
@@ -59,8 +60,13 @@ public final class HorseStaminaHudRenderer implements HudRenderCallback {
             exhausted = current <= 0.001;
             label = switch (MountKind.of(mount)) {
                 case DONKEY, MULE -> active ? "Pack Trot" : "Endurance";
-                case CAMEL -> active ? "Dash" : "Endurance";
+                case CAMEL -> {
+                    boolean dashing = mount instanceof CamelEntity camel && camel.isDashing();
+                    active |= dashing;
+                    yield dashing ? "Dash" : active ? "Canter" : "Endurance";
+                }
                 case STRIDER -> active ? "Lava Rush" : "Heat";
+                case LLAMA -> "Pack Speed";
                 default -> "Mount";
             };
         }

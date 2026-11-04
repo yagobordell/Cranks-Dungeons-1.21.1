@@ -18,7 +18,7 @@ public final class HorseGallopInputHandler {
                     && client.player.getVehicle() instanceof net.minecraft.entity.LivingEntity mount
                     && mount.getControllingPassenger() == client.player
                     && switch (MountKind.of(mount)) {
-                        case HORSE, DONKEY, MULE, STRIDER -> true;
+                        case HORSE, DONKEY, MULE, CAMEL, STRIDER -> true;
                         default -> false;
                     }
                     && client.options.sprintKey.isPressed()

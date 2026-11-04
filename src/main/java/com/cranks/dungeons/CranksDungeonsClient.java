@@ -23,6 +23,7 @@ import com.cranks.dungeons.network.EnergyShieldSyncPacket;
 import com.cranks.dungeons.network.DamageNumberPayload;
 import com.cranks.dungeons.network.StatOptionsSyncPacket;
 import com.cranks.dungeons.network.ShockArcPayload;
+import com.cranks.dungeons.network.OpenNameTagScreenPayload;
 import com.cranks.dungeons.screen.ArtificialEnhancementAltarScreen;
 import com.cranks.dungeons.screen.ArtificialEnhancementAltarScreenHandler;
 import net.minecraft.client.MinecraftClient;
@@ -80,6 +81,7 @@ public class CranksDungeonsClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         com.cranks.dungeons.client.HorseStaminaHudRenderer.register();
+        com.cranks.dungeons.client.SpyglassMountScoutHudRenderer.register();
         com.cranks.dungeons.client.MountHealthHudRenderer.register();
         com.cranks.dungeons.client.HorseGallopInputHandler.register();
         net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents.DISCONNECT.register(
@@ -110,6 +112,11 @@ public class CranksDungeonsClient implements ClientModInitializer {
         ModKeybinds.register();
         EnchantmentToggleHandler.register();
         com.cranks.dungeons.client.PassiveTreeKeybindHandler.register();
+
+        ClientPlayNetworking.registerGlobalReceiver(OpenNameTagScreenPayload.ID, (payload, context) ->
+                context.client().execute(() -> context.client().setScreen(
+                        new com.cranks.dungeons.client.screen.NameTagScreen(
+                                payload.entityId(), payload.currentName(), payload.offHand()))));
 
         // Register built-in Compendium tabs
         registerCompendiumTabs();
@@ -221,28 +228,15 @@ public class CranksDungeonsClient implements ClientModInitializer {
                         }
                     }
 
-                    double offsetX = 0;
-                    double offsetZ = 0;
-                    if (count > 1) {
-                        // Multi-element hits: still use slight spiral spread + vertical stacking (handled by rowIndex)
-                        double angle = (2.0 * Math.PI * i) / count;
-                        double spread = 0.15; // smaller horizontal spread since we have vertical stacking now
-                        offsetX = Math.cos(angle) * spread;
-                        offsetZ = Math.sin(angle) * spread;
-                    }
-
-                    offsetX += (Math.random() - 0.5) * 0.1;
-                    offsetZ += (Math.random() - 0.5) * 0.1;
-
                     String formattedDamageText = (entry.isHeal() ? "+" : "") + DamageNumberFormatter.formatDamage(entry.damage());
                     int formattedDamageWidth = context.client().textRenderer.getWidth(formattedDamageText);
                     DamageNumber damageNumber = new DamageNumber(
                             entry.damage(),
                             entry.color(),
                             pos,
-                            offsetX,
-                            offsetZ,
-                            i,
+                            0,
+                            0,
+                            0,
                             formattedDamageText,
                             formattedDamageWidth,
                             payload.forceDisplay(),
@@ -252,7 +246,7 @@ public class CranksDungeonsClient implements ClientModInitializer {
                             element,
                             entry.isCrit(),
                             entry.isHeal(),
-                            System.currentTimeMillis() - (i * 120) // Increased stagger for better layout
+                            System.currentTimeMillis()
                     );
                     DamageNumberManager.addDamageNumber(damageNumber);
                 }

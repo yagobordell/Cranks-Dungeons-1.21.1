@@ -268,6 +268,8 @@
   "text.config.cranks-dungeons.option.manaBarY": "Mana Bar Y",
   "text.config.cranks-dungeons.option.hungerBarX": "Hunger Bar X",
   "text.config.cranks-dungeons.option.hungerBarY": "Hunger Bar Y",
+  "text.config.cranks-dungeons.option.experienceBarX": "Experience Bar X",
+  "text.config.cranks-dungeons.option.experienceBarY": "Experience Bar Y",
   "attribute.name.cranks-dungeons.fire_resistance": "Fire Resistance",
   "attribute.name.cranks-dungeons.cold_resistance": "Cold Resistance",
   "attribute.name.cranks-dungeons.lightning_resistance": "Lightning Resistance",

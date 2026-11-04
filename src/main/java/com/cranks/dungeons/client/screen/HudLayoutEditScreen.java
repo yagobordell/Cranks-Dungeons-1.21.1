@@ -145,6 +145,9 @@ public class HudLayoutEditScreen extends Screen {
         elements.clear();
         var config = CranksDungeons.CONFIG;
         MinecraftClient mc = MinecraftClient.getInstance();
+        StatBarHudRenderer.ensurePositionReference(this.width, this.height);
+        int referenceWidth = config.statBarLayoutReferenceWidth();
+        int referenceHeight = config.statBarLayoutReferenceHeight();
 
         // 1. Party HUD
         int partyMaxRows = config.partyHudMaxRows();
@@ -221,11 +224,47 @@ public class HudLayoutEditScreen extends Screen {
                 }
         ));
 
-        // 3. Health Bar
+        // 3. Experience Bar
+        int defaultExperienceX = this.width / 2 - StatBarHudRenderer.EXPERIENCE_BAR_WIDTH / 2;
+        int defaultExperienceY = this.height - 29;
+        int experienceX = config.experienceBarX() >= 0
+                ? StatBarHudRenderer.resolveConfiguredX(config.experienceBarX(), this.width,
+                        StatBarHudRenderer.EXPERIENCE_BAR_WIDTH,
+                        referenceWidth / 2 - StatBarHudRenderer.EXPERIENCE_BAR_WIDTH / 2, defaultExperienceX)
+                : defaultExperienceX;
+        int experienceY = config.experienceBarY() >= 0
+                ? StatBarHudRenderer.resolveConfiguredY(config.experienceBarY(), this.height,
+                        StatBarHudRenderer.EXPERIENCE_BAR_HEIGHT, referenceHeight - 29, defaultExperienceY)
+                : defaultExperienceY;
+        elements.add(new DraggableElement(
+                "experience_bar",
+                Text.literal("Experience Bar"),
+                experienceX, experienceY,
+                StatBarHudRenderer.EXPERIENCE_BAR_WIDTH, StatBarHudRenderer.EXPERIENCE_BAR_HEIGHT,
+                defaultExperienceX, defaultExperienceY,
+                config.experienceBarX() >= 0 || config.experienceBarY() >= 0,
+                ctx -> StatBarHudRenderer.renderExperienceBarDirect(ctx, mc, 0, 0, 25, 50, 0.5f),
+                (nx, ny) -> {
+                    config.experienceBarX(nx);
+                    config.experienceBarY(ny);
+                },
+                () -> {
+                    config.experienceBarX(-1);
+                    config.experienceBarY(-1);
+                }
+        ));
+
+        // 4. Health Bar
         int defaultHealthX = this.width / 2 - 91;
         int defaultHealthY = this.height - 39;
-        int healthX = config.healthBarX() >= 0 ? config.healthBarX() : defaultHealthX;
-        int healthY = config.healthBarY() >= 0 ? config.healthBarY() : defaultHealthY;
+        int healthX = config.healthBarX() >= 0
+                ? StatBarHudRenderer.resolveConfiguredX(config.healthBarX(), this.width,
+                        StatBarHudRenderer.BAR_WIDTH, referenceWidth / 2 - 91, defaultHealthX)
+                : defaultHealthX;
+        int healthY = config.healthBarY() >= 0
+                ? StatBarHudRenderer.resolveConfiguredY(config.healthBarY(), this.height,
+                        StatBarHudRenderer.BAR_HEIGHT, referenceHeight - 39, defaultHealthY)
+                : defaultHealthY;
         elements.add(new DraggableElement(
                 "health_bar",
                 Text.literal("Health Bar"),
@@ -246,8 +285,16 @@ public class HudLayoutEditScreen extends Screen {
         // 4. Shield Bar
         int defaultShieldX = healthX;
         int defaultShieldY = healthY - 7;
-        int shieldX = config.shieldBarX() >= 0 ? config.shieldBarX() : defaultShieldX;
-        int shieldY = config.shieldBarY() >= 0 ? config.shieldBarY() : defaultShieldY;
+        int referenceShieldX = config.healthBarX() >= 0 ? config.healthBarX() : referenceWidth / 2 - 91;
+        int referenceShieldY = (config.healthBarY() >= 0 ? config.healthBarY() : referenceHeight - 39) - 7;
+        int shieldX = config.shieldBarX() >= 0
+                ? StatBarHudRenderer.resolveConfiguredX(config.shieldBarX(), this.width,
+                        StatBarHudRenderer.BAR_WIDTH, referenceShieldX, defaultShieldX)
+                : defaultShieldX;
+        int shieldY = config.shieldBarY() >= 0
+                ? StatBarHudRenderer.resolveConfiguredY(config.shieldBarY(), this.height,
+                        StatBarHudRenderer.SHIELD_HEIGHT, referenceShieldY, defaultShieldY)
+                : defaultShieldY;
         elements.add(new DraggableElement(
                 "shield_bar",
                 Text.literal("Energy Shield Bar"),
@@ -316,10 +363,30 @@ public class HudLayoutEditScreen extends Screen {
         ));
 
         // 7. Mana Bar
-        int defaultManaX = this.width / 2 + 10;
-        int defaultManaY = this.height - 49;
-        int manaX = config.manaBarX() >= 0 ? config.manaBarX() : defaultManaX;
-        int manaY = config.manaBarY() >= 0 ? config.manaBarY() : defaultManaY;
+        int defaultHungerX = this.width / 2 + 10;
+        int defaultHungerY = this.height - 39;
+        int referenceHungerX = referenceWidth / 2 + 10;
+        int referenceHungerY = referenceHeight - 39;
+        int hungerX = config.hungerBarX() >= 0
+                ? StatBarHudRenderer.resolveConfiguredX(config.hungerBarX(), this.width,
+                        StatBarHudRenderer.BAR_WIDTH, referenceHungerX, defaultHungerX)
+                : defaultHungerX;
+        int hungerY = config.hungerBarY() >= 0
+                ? StatBarHudRenderer.resolveConfiguredY(config.hungerBarY(), this.height,
+                        StatBarHudRenderer.BAR_HEIGHT, referenceHungerY, defaultHungerY)
+                : defaultHungerY;
+        int defaultManaX = hungerX;
+        int defaultManaY = hungerY - 10;
+        int referenceManaX = config.hungerBarX() >= 0 ? config.hungerBarX() : referenceHungerX;
+        int referenceManaY = (config.hungerBarY() >= 0 ? config.hungerBarY() : referenceHungerY) - 10;
+        int manaX = config.manaBarX() >= 0
+                ? StatBarHudRenderer.resolveConfiguredX(config.manaBarX(), this.width,
+                        StatBarHudRenderer.BAR_WIDTH, referenceManaX, defaultManaX)
+                : defaultManaX;
+        int manaY = config.manaBarY() >= 0
+                ? StatBarHudRenderer.resolveConfiguredY(config.manaBarY(), this.height,
+                        StatBarHudRenderer.BAR_HEIGHT, referenceManaY, defaultManaY)
+                : defaultManaY;
         elements.add(new DraggableElement(
                 "mana_bar",
                 Text.literal("Mana Bar"),
@@ -338,10 +405,6 @@ public class HudLayoutEditScreen extends Screen {
         ));
 
         // 8. Hunger Bar
-        int defaultHungerX = this.width / 2 + 10;
-        int defaultHungerY = this.height - 39;
-        int hungerX = config.hungerBarX() >= 0 ? config.hungerBarX() : defaultHungerX;
-        int hungerY = config.hungerBarY() >= 0 ? config.hungerBarY() : defaultHungerY;
         elements.add(new DraggableElement(
                 "hunger_bar",
                 Text.literal("Hunger Bar"),
@@ -378,6 +441,8 @@ public class HudLayoutEditScreen extends Screen {
                 elem.positionResetter.run();
             }
         }
+        CranksDungeons.CONFIG.statBarLayoutReferenceWidth(this.width);
+        CranksDungeons.CONFIG.statBarLayoutReferenceHeight(this.height);
         CranksDungeons.CONFIG.save();
     }
 

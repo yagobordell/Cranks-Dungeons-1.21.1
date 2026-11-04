@@ -13,6 +13,7 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.attribute.DefaultAttributeContainer;
 import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.world.ServerWorld;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -52,6 +53,12 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
     private float cranks$accumulatedHeal = 0;
     @Unique
     private int cranks$healTimer = 0;
+    @Unique
+    private float cranks$pendingLoadHealth = -1.0f;
+    @Unique
+    private float cranks$lastObservedLoadHealth = -1.0f;
+    @Unique
+    private int cranks$loadHealthGraceTicks = 0;
 
     @Unique
     private final Set<UUID> cranks$recentBurnChains = new HashSet<>();
@@ -215,6 +222,22 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
         cranks$accumulatedHeal += actualHeal;
     }
 
+    @Inject(method = "readCustomDataFromNbt", at = @At("TAIL"))
+    private void rememberHealthWhenLoading(NbtCompound nbt, CallbackInfo ci) {
+        LivingEntity entity = (LivingEntity) (Object) this;
+        if (entity instanceof PlayerEntity || !nbt.contains("Health")) return;
+
+        float savedHealth = nbt.getFloat("Health");
+        if (!Float.isFinite(savedHealth) || savedHealth <= 0) return;
+
+        // A living entity can read Health before MobEntity restores its equipment
+        // modifiers. Keep the saved value briefly so a temporary lower max-health
+        // value does not turn into real regeneration after the world is reopened.
+        cranks$pendingLoadHealth = savedHealth;
+        cranks$lastObservedLoadHealth = entity.getHealth();
+        cranks$loadHealthGraceTicks = 20;
+    }
+
     @Inject(method = "createLivingAttributes", at = @At("RETURN"), cancellable = true)
     private static void addCustomAttributesToAllEntities(
             CallbackInfoReturnable<DefaultAttributeContainer.Builder> cir) {
@@ -341,9 +364,9 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
     /**
      * Applies attribute bonuses derived from the player's core stats (Strength, Dexterity, Intelligence).
      * <ul>
-     *   <li>Strength: +5 Max Health per 10 points</li>
-     *   <li>Dexterity: +20 Evasion Rating per 10 points</li>
-     *   <li>Intelligence: Reserved for future Mana system</li>
+     *   <li>Strength: +2 Max Health per point</li>
+     *   <li>Dexterity: +2 Evasion Rating per point</li>
+     *   <li>Intelligence: +2 Max Mana per point</li>
      * </ul>
      * <p>Only recalculates when the stat value actually changes to avoid unnecessary work.</p>
      */
@@ -355,14 +378,9 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
         double intel = entity.getAttributeValue(ModAttributes.INTELLIGENCE);
 
         if (str != cranks$lastStrength) {
-            double oldStr = cranks$lastStrength;
             cranks$lastStrength = str;
             double hpBonus = str * 2.0;
             updateModifier(entity, net.minecraft.entity.attribute.EntityAttributes.GENERIC_MAX_HEALTH, INTRINSIC_HEALTH_MOD_ID, hpBonus, net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_VALUE);
-            if (!Double.isNaN(oldStr) && oldStr >= 0 && str > oldStr) {
-                double gainedHealth = (str - oldStr) * 2.0;
-                entity.setHealth(Math.min(entity.getMaxHealth(), entity.getHealth() + (float) gainedHealth));
-            }
         }
 
         if (dex != cranks$lastDexterity) {
@@ -372,14 +390,14 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
         }
 
         if (intel != cranks$lastIntelligence) {
-            double oldIntel = cranks$lastIntelligence;
             cranks$lastIntelligence = intel;
             double manaBonus = intel * 2.0;
             updateModifier(entity, ModAttributes.MAX_MANA, INTRINSIC_MANA_MOD_ID, manaBonus, net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_VALUE);
-            if (!Double.isNaN(oldIntel) && oldIntel >= 0 && intel > oldIntel && entity instanceof com.cranks.dungeons.ManaProvider mp) {
-                double gainedMana = (intel - oldIntel) * 2.0;
+            if (entity instanceof com.cranks.dungeons.ManaProvider mp) {
                 float maxMana = (float) entity.getAttributeValue(ModAttributes.MAX_MANA);
-                mp.cranksdungeons$setCurrentMana(Math.min(maxMana, mp.cranksdungeons$getCurrentMana() + (float) gainedMana));
+                if (mp.cranksdungeons$getCurrentMana() > maxMana) {
+                    mp.cranksdungeons$setCurrentMana(maxMana);
+                }
             }
         }
 
@@ -501,6 +519,8 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
         LivingEntity entity = (LivingEntity) (Object) this;
         if (entity.getEntityWorld().isClient()) return;
 
+        restoreHealthAfterLoading(entity);
+
         // Flight thrust is movement logic and remains per-tick. Equipment/status
         // modifiers are substantially more expensive and do not need 20 Hz polling.
         updateElytraSpeed(entity);
@@ -509,6 +529,44 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
         updateIntrinsicAttributes(entity);
         updateRequirementPenalties(entity);
         com.cranks.dungeons.util.StatusEffectStatManager.updateEntityStatusEffectModifiers(entity);
+    }
+
+    @Unique
+    private void restoreHealthAfterLoading(LivingEntity entity) {
+        if (cranks$pendingLoadHealth <= 0) return;
+        if (!entity.isAlive()) {
+            cranks$clearPendingLoadHealth();
+            return;
+        }
+
+        float currentHealth = entity.getHealth();
+        if (cranks$lastObservedLoadHealth > 0 && currentHealth < cranks$lastObservedLoadHealth) {
+            // Account for damage taken during the brief load window instead of
+            // restoring health that the entity has already lost.
+            cranks$pendingLoadHealth = Math.max(0, cranks$pendingLoadHealth -
+                    (cranks$lastObservedLoadHealth - currentHealth));
+        }
+        cranks$lastObservedLoadHealth = currentHealth;
+
+        double maxHealth = entity.getMaxHealth();
+        if (cranks$pendingLoadHealth <= maxHealth) {
+            float restoredHealth = (float) Math.min(cranks$pendingLoadHealth, maxHealth);
+            if (currentHealth < restoredHealth) {
+                entity.setHealth(restoredHealth);
+            }
+            cranks$clearPendingLoadHealth();
+        } else if (--cranks$loadHealthGraceTicks <= 0) {
+            // The saved maximum-health equipment did not return. Let the entity
+            // keep its current health rather than healing it to a lower cap.
+            cranks$clearPendingLoadHealth();
+        }
+    }
+
+    @Unique
+    private void cranks$clearPendingLoadHealth() {
+        cranks$pendingLoadHealth = -1.0f;
+        cranks$lastObservedLoadHealth = -1.0f;
+        cranks$loadHealthGraceTicks = 0;
     }
 
     @Unique
@@ -535,17 +593,19 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
         AilmentManager.tickAilments(entity);
         com.cranks.dungeons.util.LeechManager.tick(entity);
 
-        // Show accumulated healing
+        // Coalesce small regeneration ticks into one readable healing number.
         if (cranks$accumulatedHeal > 0) {
             cranks$healTimer++;
-            double healAmount = (double) Math.round(cranks$accumulatedHeal * 10.0) / 10.0;
-            if (healAmount > 0) {
-                if (!entity.getWorld().isClient() && entity.getWorld() instanceof net.minecraft.server.world.ServerWorld serverWorld) {
-                    DamageNumberSender.broadcastHeal(serverWorld, entity, healAmount);
+            if (cranks$healTimer >= 10) {
+                double healAmount = (double) Math.round(cranks$accumulatedHeal * 10.0) / 10.0;
+                if (healAmount > 0) {
+                    if (entity.getWorld() instanceof net.minecraft.server.world.ServerWorld serverWorld) {
+                        DamageNumberSender.broadcastHeal(serverWorld, entity, healAmount);
+                    }
                 }
+                cranks$accumulatedHeal = 0;
+                cranks$healTimer = 0;
             }
-            cranks$accumulatedHeal = 0;
-            cranks$healTimer = 0;
         }
     }
 

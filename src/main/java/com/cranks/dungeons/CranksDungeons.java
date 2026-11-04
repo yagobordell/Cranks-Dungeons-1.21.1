@@ -93,6 +93,7 @@ public class CranksDungeons implements ModInitializer {
 		PlayerInfoSyncHandler.register();
 		EntityTrackingSyncHandler.register();
 		com.cranks.dungeons.horse.HorseBreedingManager.register();
+		com.cranks.dungeons.name.NameTagManager.register();
 		com.cranks.dungeons.mount.MountManager.register();
 		FortuneEventHandler.register();
 		LogFortuneHandler.register();
@@ -126,8 +127,7 @@ public class CranksDungeons implements ModInitializer {
             com.cranks.dungeons.network.ModNetworking.syncPassiveTreeToPlayer(player);
             com.cranks.dungeons.network.ModNetworking.syncWorldTreeToPlayer(player);
             
-            // Re-apply max health and attributes
-            player.setHealth(player.getMaxHealth());
+			// MaxHealthMixin restores saved health after the player's modifiers settle.
 			com.cranks.dungeons.component.PassiveTreePersistentState worldState = com.cranks.dungeons.component.PassiveTreePersistentState
 					.get(server);
 			if ((data.getPlayerClass() == null || data.getPlayerClass().isEmpty()) && data.getUnspentPoints() == 0 && data.getUnlockedNodes().isEmpty()) {

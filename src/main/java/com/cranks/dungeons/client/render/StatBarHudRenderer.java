@@ -33,10 +33,14 @@ public class StatBarHudRenderer implements HudRenderCallback {
     public static final Identifier OXYGEN_FILL = Identifier.of(CranksDungeons.MOD_ID, "hud/stat_bar/oxygen");
     public static final Identifier MANA_FILL = Identifier.of(CranksDungeons.MOD_ID, "hud/stat_bar/mana");
     public static final Identifier MANA_TRAIL = Identifier.of(CranksDungeons.MOD_ID, "hud/stat_bar/mana_trail");
+    public static final Identifier EMPTY_EXPERIENCE_BAR = Identifier.of(CranksDungeons.MOD_ID, "hud/stat_bar/empty_experience");
+    public static final Identifier EXPERIENCE_FILL = Identifier.of(CranksDungeons.MOD_ID, "hud/stat_bar/experience");
 
     // Default dimensions for the bar (scaled to match a vanilla heart row: 81x9)
     public static final int BAR_WIDTH = 81;
     public static final int BAR_HEIGHT = 9;
+    public static final int EXPERIENCE_BAR_WIDTH = 182;
+    public static final int EXPERIENCE_BAR_HEIGHT = 5;
     public static final int SHIELD_HEIGHT = 6;
     public static final int FILL_OFFSET_X = 0;
     public static final int FILL_OFFSET_Y = 0;
@@ -76,27 +80,65 @@ public class StatBarHudRenderer implements HudRenderCallback {
         PlayerEntity player = client.player;
         int screenWidth = client.getWindow().getScaledWidth();
         int screenHeight = client.getWindow().getScaledHeight();
+        ensurePositionReference(screenWidth, screenHeight);
 
         var config = CranksDungeons.CONFIG;
+        int referenceWidth = config.statBarLayoutReferenceWidth();
+        int referenceHeight = config.statBarLayoutReferenceHeight();
         int defaultHealthX = screenWidth / 2 - 91;
         int defaultHealthY = screenHeight - 39;
-        int healthX = config.healthBarX() >= 0 ? config.healthBarX() : defaultHealthX;
-        int healthY = config.healthBarY() >= 0 ? config.healthBarY() : defaultHealthY;
+        int referenceHealthX = referenceWidth / 2 - 91;
+        int referenceHealthY = referenceHeight - 39;
+        int healthX = config.healthBarX() >= 0
+                ? resolveConfiguredX(config.healthBarX(), screenWidth, BAR_WIDTH, referenceHealthX, defaultHealthX)
+                : defaultHealthX;
+        int healthY = config.healthBarY() >= 0
+                ? resolveConfiguredY(config.healthBarY(), screenHeight, BAR_HEIGHT, referenceHealthY, defaultHealthY)
+                : defaultHealthY;
 
         int defaultShieldX = healthX;
         int defaultShieldY = healthY - 7;
-        int shieldX = config.shieldBarX() >= 0 ? config.shieldBarX() : defaultShieldX;
-        int shieldY = config.shieldBarY() >= 0 ? config.shieldBarY() : defaultShieldY;
+        int referenceShieldX = config.healthBarX() >= 0 ? config.healthBarX() : referenceHealthX;
+        int referenceShieldY = (config.healthBarY() >= 0 ? config.healthBarY() : referenceHealthY) - 7;
+        int shieldX = config.shieldBarX() >= 0
+                ? resolveConfiguredX(config.shieldBarX(), screenWidth, BAR_WIDTH, referenceShieldX, defaultShieldX)
+                : defaultShieldX;
+        int shieldY = config.shieldBarY() >= 0
+                ? resolveConfiguredY(config.shieldBarY(), screenHeight, SHIELD_HEIGHT, referenceShieldY, defaultShieldY)
+                : defaultShieldY;
 
         int defaultHungerX = screenWidth / 2 + 10;
         int defaultHungerY = screenHeight - 39;
-        int hungerX = config.hungerBarX() >= 0 ? config.hungerBarX() : defaultHungerX;
-        int hungerY = config.hungerBarY() >= 0 ? config.hungerBarY() : defaultHungerY;
+        int referenceHungerX = referenceWidth / 2 + 10;
+        int referenceHungerY = referenceHeight - 39;
+        int hungerX = config.hungerBarX() >= 0
+                ? resolveConfiguredX(config.hungerBarX(), screenWidth, BAR_WIDTH, referenceHungerX, defaultHungerX)
+                : defaultHungerX;
+        int hungerY = config.hungerBarY() >= 0
+                ? resolveConfiguredY(config.hungerBarY(), screenHeight, BAR_HEIGHT, referenceHungerY, defaultHungerY)
+                : defaultHungerY;
 
         int defaultManaX = hungerX;
         int defaultManaY = hungerY - 10;
-        int manaX = config.manaBarX() >= 0 ? config.manaBarX() : defaultManaX;
-        int manaY = config.manaBarY() >= 0 ? config.manaBarY() : defaultManaY;
+        int referenceManaX = config.hungerBarX() >= 0 ? config.hungerBarX() : referenceHungerX;
+        int referenceManaY = (config.hungerBarY() >= 0 ? config.hungerBarY() : referenceHungerY) - 10;
+        int manaX = config.manaBarX() >= 0
+                ? resolveConfiguredX(config.manaBarX(), screenWidth, BAR_WIDTH, referenceManaX, defaultManaX)
+                : defaultManaX;
+        int manaY = config.manaBarY() >= 0
+                ? resolveConfiguredY(config.manaBarY(), screenHeight, BAR_HEIGHT, referenceManaY, defaultManaY)
+                : defaultManaY;
+
+        int defaultExperienceX = screenWidth / 2 - EXPERIENCE_BAR_WIDTH / 2;
+        int defaultExperienceY = screenHeight - 29;
+        int referenceExperienceX = referenceWidth / 2 - EXPERIENCE_BAR_WIDTH / 2;
+        int referenceExperienceY = referenceHeight - 29;
+        int experienceX = config.experienceBarX() >= 0
+                ? resolveConfiguredX(config.experienceBarX(), screenWidth, EXPERIENCE_BAR_WIDTH, referenceExperienceX, defaultExperienceX)
+                : defaultExperienceX;
+        int experienceY = config.experienceBarY() >= 0
+                ? resolveConfiguredY(config.experienceBarY(), screenHeight, EXPERIENCE_BAR_HEIGHT, referenceExperienceY, defaultExperienceY)
+                : defaultExperienceY;
 
         float health = player.getHealth();
         float maxHealth = player.getMaxHealth();
@@ -126,6 +168,15 @@ public class StatBarHudRenderer implements HudRenderCallback {
             renderManaBarDirect(context, client, manaX, manaY, mana, maxMana, displayedMana);
         }
         renderHungerBarDirect(context, client, hungerX, hungerY, player.getHungerManager().getFoodLevel());
+
+        int nextLevelExperience = Math.max(1, player.getNextLevelExperience());
+        int currentExperience = MathHelper.clamp(
+                MathHelper.floor(player.experienceProgress * nextLevelExperience),
+                0,
+                nextLevelExperience
+        );
+        renderExperienceBarDirect(context, client, experienceX, experienceY,
+                currentExperience, nextLevelExperience, player.experienceProgress);
     }
 
     public static void renderHealthBarDirect(DrawContext context, MinecraftClient client, PlayerEntity player, int x, int y, float health, float maxHealth, float absorption, float displayedHealth) {
@@ -261,6 +312,25 @@ public class StatBarHudRenderer implements HudRenderCallback {
         drawCenteredBarText(context, textRenderer, text, x, y, BAR_WIDTH, BAR_HEIGHT, 0xFFFFFFFF);
     }
 
+    public static void renderExperienceBarDirect(DrawContext context, MinecraftClient client,
+                                                  int x, int y, int currentExperience,
+                                                  int nextLevelExperience, float progress) {
+        context.drawGuiTexture(EMPTY_EXPERIENCE_BAR, x, y,
+                EXPERIENCE_BAR_WIDTH, EXPERIENCE_BAR_HEIGHT);
+
+        float experienceProgress = MathHelper.clamp(progress, 0.0f, 1.0f);
+        int experienceWidth = (int) (experienceProgress * EXPERIENCE_BAR_WIDTH);
+        if (experienceWidth > 0) {
+            context.drawGuiTexture(EXPERIENCE_FILL, EXPERIENCE_BAR_WIDTH, EXPERIENCE_BAR_HEIGHT,
+                    0, 0, x, y, experienceWidth, EXPERIENCE_BAR_HEIGHT);
+        }
+
+        String text = MathHelper.clamp(currentExperience, 0, Math.max(1, nextLevelExperience))
+                + "/" + Math.max(1, nextLevelExperience);
+        drawCenteredBarText(context, client.textRenderer, text, x, y,
+                EXPERIENCE_BAR_WIDTH, EXPERIENCE_BAR_HEIGHT, 0xFFFFFFFF);
+    }
+
     private static void drawCenteredBarText(DrawContext context, TextRenderer textRenderer, String text,
                                             int x, int y, int width, int height, int color) {
         int textWidth = textRenderer.getWidth(text);
@@ -270,6 +340,37 @@ public class StatBarHudRenderer implements HudRenderCallback {
         context.getMatrices().scale(BAR_TEXT_SCALE, BAR_TEXT_SCALE, 1.0f);
         context.drawTextWithShadow(textRenderer, text, -(textWidth / 2), -(textRenderer.fontHeight / 2), color);
         context.getMatrices().pop();
+    }
+
+    /** Initialize the coordinate baseline for configs created before responsive positions. */
+    public static void ensurePositionReference(int screenWidth, int screenHeight) {
+        var config = CranksDungeons.CONFIG;
+        if (config.statBarLayoutReferenceWidth() > 0 && config.statBarLayoutReferenceHeight() > 0) {
+            return;
+        }
+
+        config.statBarLayoutReferenceWidth(screenWidth);
+        config.statBarLayoutReferenceHeight(screenHeight);
+        config.save();
+    }
+
+    public static int resolveConfiguredX(int x, int screenWidth, int elementWidth,
+                                         int referenceAnchorX, int currentAnchorX) {
+        return resolveConfiguredPosition(x, screenWidth, elementWidth, referenceAnchorX, currentAnchorX);
+    }
+
+    public static int resolveConfiguredY(int y, int screenHeight, int elementHeight,
+                                         int referenceAnchorY, int currentAnchorY) {
+        return resolveConfiguredPosition(y, screenHeight, elementHeight, referenceAnchorY, currentAnchorY);
+    }
+
+    private static int resolveConfiguredPosition(int position, int screenExtent, int elementExtent,
+                                                 int referenceAnchor, int currentAnchor) {
+        int maxPosition = Math.max(0, screenExtent - elementExtent);
+        // Keep the user's logical offset from the vanilla HUD anchor. The GUI
+        // matrix scales this offset together with the bar, just like vanilla.
+        int resolved = currentAnchor + position - referenceAnchor;
+        return MathHelper.clamp(resolved, 0, maxPosition);
     }
 
     private void updateTrails(float health, float shield, float absorption, float mana) {

@@ -28,14 +28,8 @@ public final class MountChestInventory extends SimpleInventory {
 
     @Override
     public ItemStack removeStack(int slot) {
-        if (slot != 0 || !((MountDataProvider) mount).cranksdungeons$hasMountChest()
-                || !MountManager.cargoIsEmpty(mount)) return ItemStack.EMPTY;
-        ((MountDataProvider) mount).cranksdungeons$setMountChest(false);
-        if (mount instanceof net.minecraft.entity.passive.AbstractHorseEntity horse) {
-            AbstractHorseInventoryAccess.of(horse).cranksdungeons$resizeHorseInventory();
-        }
-        markDirty();
-        return new ItemStack(Items.CHEST);
+        return slot == 0 && ((MountDataProvider) mount).cranksdungeons$hasMountChest()
+                ? new ItemStack(Items.CHEST) : ItemStack.EMPTY;
     }
 
     @Override
@@ -43,14 +37,12 @@ public final class MountChestInventory extends SimpleInventory {
         if (slot != 0) return;
         boolean equipped = ((MountDataProvider) mount).cranksdungeons$hasMountChest();
         if (stack.isEmpty()) {
-            if (equipped && MountManager.cargoIsEmpty(mount)) {
-                ((MountDataProvider) mount).cranksdungeons$setMountChest(false);
-                if (mount instanceof net.minecraft.entity.passive.AbstractHorseEntity horse) {
-                    AbstractHorseInventoryAccess.of(horse).cranksdungeons$resizeHorseInventory();
-                }
+            if (equipped && !mount.getEntityWorld().isClient()) {
+                MountManager.removeChestWithoutPlayer(mount);
             }
         } else if (stack.isOf(Items.CHEST) && !equipped) {
             ((MountDataProvider) mount).cranksdungeons$setMountChest(true);
+            MountManager.refreshCargoCapacity(mount);
             if (mount instanceof net.minecraft.entity.passive.AbstractHorseEntity horse) {
                 AbstractHorseInventoryAccess.of(horse).cranksdungeons$resizeHorseInventory();
             }

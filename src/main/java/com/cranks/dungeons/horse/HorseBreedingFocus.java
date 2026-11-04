@@ -8,7 +8,8 @@ public enum HorseBreedingFocus {
     SPEED("Speed"),
     JUMP("Jump"),
     EVASION("Evasion"),
-    ENDURANCE("Endurance");
+    ENDURANCE("Endurance"),
+    ARMOR("Armor");
 
     private final String displayName;
 

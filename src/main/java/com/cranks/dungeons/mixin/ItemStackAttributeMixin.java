@@ -1,12 +1,14 @@
 package com.cranks.dungeons.mixin;
 
 import com.cranks.dungeons.util.EnchantmentFilterUtil;
+import com.cranks.dungeons.equipment.EquipmentType;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.entry.RegistryEntry;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import java.util.function.BiConsumer;
@@ -34,6 +36,10 @@ public class ItemStackAttributeMixin {
             
             boolean isWeapon = EnchantmentFilterUtil.isWeapon(stack);
             boolean isArmor = EnchantmentFilterUtil.isArmor(stack);
+
+            // Armor item modifiers, including enchantment effects, belong to the slot
+            // that equips that item. Do not grant them while the piece is held in hand.
+            if (isArmor && !isEquippedInArmorSlot(stack, slot)) return;
 
             if (isWeaponAttr && (!isWeapon || slot != EquipmentSlot.MAINHAND)) return;
             if (isArmorAttr && !isArmor) return;
@@ -72,6 +78,25 @@ public class ItemStackAttributeMixin {
             } else {
                 original.accept(attr, modifier);
             }
+        };
+    }
+
+    @Unique
+    private static boolean isEquippedInArmorSlot(ItemStack stack, EquipmentSlot slot) {
+        if (com.cranks.dungeons.equipment.AnimalArmorHelper.isSupported(stack)) {
+            return slot == EquipmentSlot.BODY;
+        }
+
+        EquipmentType type = EquipmentType.getTypeForItem(stack).orElse(null);
+        if (type == null) return false;
+
+        return switch (type) {
+            case HELMET -> slot == EquipmentSlot.HEAD;
+            case CHESTPLATE, ELYTRA -> slot == EquipmentSlot.CHEST;
+            case LEGGINGS -> slot == EquipmentSlot.LEGS;
+            case BOOTS -> slot == EquipmentSlot.FEET;
+            case SHIELD -> slot == EquipmentSlot.MAINHAND || slot == EquipmentSlot.OFFHAND;
+            default -> false;
         };
     }
 }

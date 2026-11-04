@@ -345,12 +345,6 @@ public abstract class ItemStackTooltipMixin {
                         .append(Text.literal(pctFmt.format(1.0 + bonusMining))
                                 .formatted(getValueColor(stack, ModAttributes.MINING_EFFICIENCY))));
 
-                String breakRangeKey = ModAttributes.BREAKING_RANGE.value().getTranslationKey();
-                double bonusBreakRange = attributeTotals.getOrDefault(breakRangeKey, 0.0);
-                tooltip.add(Text.literal("Breaking Range: ").formatted(Formatting.GRAY)
-                        .append(Text.literal(pctFmt.format(4.5 + bonusBreakRange))
-                                .formatted(getValueColor(stack, ModAttributes.BREAKING_RANGE))));
-
                 addedAny = true;
             }
 

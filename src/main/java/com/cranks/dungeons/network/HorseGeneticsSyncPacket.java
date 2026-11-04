@@ -3,6 +3,7 @@ package com.cranks.dungeons.network;
 import com.cranks.dungeons.CranksDungeons;
 import com.cranks.dungeons.horse.HorseBreedingManager;
 import com.cranks.dungeons.horse.HorseGeneticsData;
+import com.cranks.dungeons.mount.MountOwnership;
 import net.minecraft.entity.passive.HorseEntity;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
@@ -21,6 +22,7 @@ public record HorseGeneticsSyncPacket(
         double geneticJump,
         double geneticEvasion,
         double geneticEndurance,
+        double geneticArmor,
         int level,
         int experience,
         int experienceRequired,
@@ -33,14 +35,13 @@ public record HorseGeneticsSyncPacket(
         double jumpMutation,
         double evasionMutation,
         double enduranceMutation,
+        double armorMutation,
         boolean traitMutated,
         String traitMutationFrom,
         String traitMutationTo,
         boolean coatMutated,
         int breedsRemaining,
         String grade,
-        String mobilityGrade,
-        String survivalGrade,
         String trait,
         String breedingFocus,
         String sireName,
@@ -58,7 +59,11 @@ public record HorseGeneticsSyncPacket(
         boolean exhausted,
         boolean onRoad,
         long breedingCooldownTicks,
-        long careCooldownTicks
+        long careCooldownTicks,
+        boolean tamed,
+        UUID ownerUuid,
+        String ownerName,
+        String accessMode
 ) implements CustomPayload {
     public static final Id<HorseGeneticsSyncPacket> ID =
             new Id<>(Identifier.of(CranksDungeons.MOD_ID, "horse_genetics_sync"));
@@ -67,18 +72,18 @@ public record HorseGeneticsSyncPacket(
 
     public static HorseGeneticsSyncPacket from(HorseEntity horse) {
         HorseGeneticsData data = HorseBreedingManager.data(horse);
+        MountOwnership ownership = MountOwnership.from(horse);
         long worldTime = horse.getEntityWorld().getTime();
         return new HorseGeneticsSyncPacket(
                 horse.getId(), data.male, data.geneticHealth, data.geneticSpeed, data.geneticJump,
-                data.geneticEvasion, data.geneticEndurance, data.level, data.experience,
+                data.geneticEvasion, data.geneticEndurance, data.geneticArmor, data.level, data.experience,
                 HorseBreedingManager.experienceForNextLevel(data.level), data.generation,
                 data.mutations, data.personalGeneMutationMask, data.personalPositiveMutationMask,
                 data.healthMutation, data.speedMutation, data.jumpMutation,
-                data.evasionMutation, data.enduranceMutation,
+                data.evasionMutation, data.enduranceMutation, data.armorMutation,
                 data.traitMutated, data.traitMutationFrom.displayName(),
                 data.traitMutationTo.displayName(), data.coatMutated,
                 data.breedsRemaining, HorseBreedingManager.grade(data),
-                HorseBreedingManager.mobilityGrade(data), HorseBreedingManager.survivalGrade(data),
                 data.trait.displayName(), data.breedingFocus.displayName(),
                 data.sireName, data.damName, List.copyOf(data.ancestry), data.imprintOwnerName,
                 data.imprintProgress, data.currentStamina, HorseBreedingManager.getMaxStamina(data),
@@ -88,7 +93,8 @@ public record HorseGeneticsSyncPacket(
                 HorseBreedingManager.gallopSpeedBonus(data),
                 data.galloping, data.exhausted, data.onRoad,
                 Math.max(0L, data.nextBreedTime - worldTime),
-                Math.max(0L, data.nextCareTime - worldTime));
+                Math.max(0L, data.nextCareTime - worldTime), ownership.tamed(),
+                ownership.ownerUuid(), ownership.ownerName(), data.accessMode.name());
     }
 
     private void write(RegistryByteBuf buf) {
@@ -99,6 +105,7 @@ public record HorseGeneticsSyncPacket(
         buf.writeDouble(geneticJump);
         buf.writeDouble(geneticEvasion);
         buf.writeDouble(geneticEndurance);
+        buf.writeDouble(geneticArmor);
         buf.writeVarInt(level);
         buf.writeVarInt(experience);
         buf.writeVarInt(experienceRequired);
@@ -111,14 +118,13 @@ public record HorseGeneticsSyncPacket(
         buf.writeDouble(jumpMutation);
         buf.writeDouble(evasionMutation);
         buf.writeDouble(enduranceMutation);
+        buf.writeDouble(armorMutation);
         buf.writeBoolean(traitMutated);
         buf.writeString(traitMutationFrom, 32);
         buf.writeString(traitMutationTo, 32);
         buf.writeBoolean(coatMutated);
         buf.writeVarInt(breedsRemaining);
         buf.writeString(grade, 4);
-        buf.writeString(mobilityGrade, 4);
-        buf.writeString(survivalGrade, 4);
         buf.writeString(trait, 32);
         buf.writeString(breedingFocus, 16);
         buf.writeString(sireName, 64);
@@ -138,6 +144,11 @@ public record HorseGeneticsSyncPacket(
         buf.writeBoolean(onRoad);
         buf.writeLong(breedingCooldownTicks);
         buf.writeLong(careCooldownTicks);
+        buf.writeBoolean(tamed);
+        buf.writeBoolean(ownerUuid != null);
+        if (ownerUuid != null) buf.writeUuid(ownerUuid);
+        buf.writeString(ownerName, 64);
+        buf.writeString(accessMode, 16);
     }
 
     private static HorseGeneticsSyncPacket read(RegistryByteBuf buf) {
@@ -148,6 +159,7 @@ public record HorseGeneticsSyncPacket(
         double geneticJump = buf.readDouble();
         double geneticEvasion = buf.readDouble();
         double geneticEndurance = buf.readDouble();
+        double geneticArmor = buf.readDouble();
         int level = buf.readVarInt();
         int experience = buf.readVarInt();
         int experienceRequired = buf.readVarInt();
@@ -160,14 +172,13 @@ public record HorseGeneticsSyncPacket(
         double jumpMutation = buf.readDouble();
         double evasionMutation = buf.readDouble();
         double enduranceMutation = buf.readDouble();
+        double armorMutation = buf.readDouble();
         boolean traitMutated = buf.readBoolean();
         String traitMutationFrom = buf.readString(32);
         String traitMutationTo = buf.readString(32);
         boolean coatMutated = buf.readBoolean();
         int breedsRemaining = buf.readVarInt();
         String grade = buf.readString(4);
-        String mobilityGrade = buf.readString(4);
-        String survivalGrade = buf.readString(4);
         String trait = buf.readString(32);
         String breedingFocus = buf.readString(16);
         String sireName = buf.readString(64);
@@ -177,15 +188,16 @@ public record HorseGeneticsSyncPacket(
         for (int i = 0; i < ancestrySize; i++) ancestry.add(buf.readUuid());
         return new HorseGeneticsSyncPacket(
                 entityId, male, geneticHealth, geneticSpeed, geneticJump, geneticEvasion,
-                geneticEndurance, level, experience, experienceRequired, generation, mutations,
+                geneticEndurance, geneticArmor, level, experience, experienceRequired, generation, mutations,
                 personalGeneMutationMask, personalPositiveMutationMask, healthMutation,
-                speedMutation, jumpMutation, evasionMutation, enduranceMutation,
+                speedMutation, jumpMutation, evasionMutation, enduranceMutation, armorMutation,
                 traitMutated, traitMutationFrom, traitMutationTo, coatMutated,
-                breedsRemaining, grade, mobilityGrade, survivalGrade, trait, breedingFocus,
+                breedsRemaining, grade, trait, breedingFocus,
                 sireName, damName, List.copyOf(ancestry), buf.readString(64), buf.readFloat(),
                 buf.readDouble(), buf.readDouble(), buf.readDouble(), buf.readDouble(),
                 buf.readDouble(), buf.readDouble(), buf.readBoolean(), buf.readBoolean(),
-                buf.readBoolean(), buf.readLong(), buf.readLong());
+                buf.readBoolean(), buf.readLong(), buf.readLong(), buf.readBoolean(),
+                buf.readBoolean() ? buf.readUuid() : null, buf.readString(64), buf.readString(16));
     }
 
     @Override

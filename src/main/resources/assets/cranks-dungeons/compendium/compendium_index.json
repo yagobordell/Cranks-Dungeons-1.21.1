@@ -41,7 +41,7 @@
       { "id": "parties", "title": "Parties" }
     ] },
     { "title": "Mounts & Breeding", "collapsed": true, "pages": [
-      { "id": "mounts", "title": "Mounts & Cargo" }, { "id": "horses", "title": "Horse Statistics" }, { "id": "breeding", "title": "Horse Breeding & Genetics" },
+      { "id": "mounts", "title": "Mounts & Cargo" }, { "id": "horses", "title": "Horse Statistics" }, { "id": "breeding", "title": "Mount Breeding & Genetics" },
       { "id": "horse_training", "title": "Training & Stamina" }, { "id": "horse_traits", "title": "Traits & Mutations" },
       { "id": "animal_armor", "title": "Animal Armour" }
     ] },

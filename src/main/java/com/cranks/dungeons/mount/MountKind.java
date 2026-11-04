@@ -5,17 +5,19 @@ import net.minecraft.entity.mob.SkeletonHorseEntity;
 import net.minecraft.entity.passive.CamelEntity;
 import net.minecraft.entity.passive.DonkeyEntity;
 import net.minecraft.entity.passive.HorseEntity;
+import net.minecraft.entity.passive.LlamaEntity;
 import net.minecraft.entity.passive.MuleEntity;
 import net.minecraft.entity.passive.PigEntity;
 import net.minecraft.entity.passive.StriderEntity;
 
-/** Gameplay identity and cargo limits for every supported rideable animal. */
+/** Gameplay identity and cargo limits for every supported mount species. */
 public enum MountKind {
     HORSE("Horse", 6),
     DONKEY("Donkey", 33),
     MULE("Mule", 24),
     CAMEL("Camel", 12),
     STRIDER("Strider", 6),
+    LLAMA("Llama", 15),
     SKELETON_HORSE("Skeleton Horse", 6),
     PIG("Pig", 3),
     UNSUPPORTED("Mount", 0);
@@ -37,13 +39,24 @@ public enum MountKind {
     }
 
     public boolean hasGenetics() {
-        return this == DONKEY || this == MULE || this == CAMEL || this == STRIDER;
+        return this == DONKEY || this == MULE || this == CAMEL || this == STRIDER
+                || this == LLAMA;
+    }
+
+    public boolean hasArmorGene() {
+        return this == HORSE || this == DONKEY || this == MULE || this == CAMEL
+                || this == STRIDER || this == LLAMA;
+    }
+
+    public boolean hasDurabilityProfile() {
+        return MountDurabilityProfile.forKind(this) != null;
     }
 
     public static MountKind of(Entity entity) {
         if (entity instanceof HorseEntity) return HORSE;
         if (entity instanceof DonkeyEntity) return DONKEY;
         if (entity instanceof MuleEntity) return MULE;
+        if (entity instanceof LlamaEntity) return LLAMA;
         if (entity instanceof CamelEntity) return CAMEL;
         if (entity instanceof StriderEntity) return STRIDER;
         if (entity instanceof SkeletonHorseEntity) return SKELETON_HORSE;

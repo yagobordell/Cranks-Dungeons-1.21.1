@@ -9,3 +9,6 @@ accessible method net/minecraft/client/gui/hud/InGameHud renderStatusBars (Lnet/
 # Make Particle fields accessible for custom physics
 accessible field net/minecraft/client/particle/Particle gravityStrength F
 accessible field net/minecraft/client/particle/Particle maxAge I
+
+# Let inherited llama load strength be applied to bred offspring
+accessible method net/minecraft/entity/passive/LlamaEntity setStrength (I)V

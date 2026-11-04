@@ -60,6 +60,9 @@ import java.util.*;
 public class EquipmentStatApplier {
 
     private static final Map<UUID, Map<Identifier, RegistryEntry<EntityAttribute>>> appliedModifiers = new HashMap<>();
+    private static final Object UPDATE_LOCK = new Object();
+    private static final Set<UUID> updatingPlayers = new HashSet<>();
+    private static final Set<UUID> pendingPlayerUpdates = new HashSet<>();
 
     private static final EquipmentSlot[] ARMOR_SLOTS = {
             EquipmentSlot.HEAD,
@@ -69,21 +72,58 @@ public class EquipmentStatApplier {
     };
 
     /**
-     * Updates player stats from equipped armor.
-     * FIXED: Now ignores items that already have these stats applied via updateItemAttributes
-     * to prevent doubling.
+     * Re-applies item-backed modifiers from equipped armor when native attribute syncing
+     * misses custom registry entries. Rune stats stay on the item and use its equipment slot.
      */
     public static void updatePlayerStats(PlayerEntity player) {
+        UUID playerUuid = player.getUuid();
+        synchronized (UPDATE_LOCK) {
+            if (!updatingPlayers.add(playerUuid)) {
+                // Attribute changes can trigger another equipment refresh. Defer
+                // that refresh until this one has finished so cleanup/reapply
+                // never runs recursively over the same modifier state.
+                pendingPlayerUpdates.add(playerUuid);
+                return;
+            }
+        }
+
+        boolean ownsUpdate = true;
+        try {
+            while (true) {
+                updatePlayerStatsOnce(player);
+                synchronized (UPDATE_LOCK) {
+                    if (pendingPlayerUpdates.remove(playerUuid)) continue;
+                    updatingPlayers.remove(playerUuid);
+                    ownsUpdate = false;
+                    return;
+                }
+            }
+        } finally {
+            if (ownsUpdate) {
+                synchronized (UPDATE_LOCK) {
+                    updatingPlayers.remove(playerUuid);
+                    pendingPlayerUpdates.remove(playerUuid);
+                }
+            }
+        }
+    }
+
+    private static void updatePlayerStatsOnce(PlayerEntity player) {
         float healthBefore = player.getHealth();
         float manaBefore = (player instanceof com.cranks.dungeons.ManaProvider mp) ? mp.cranksdungeons$getCurrentMana() : -1.0f;
 
         removeAllModifiers(player);
 
-        List<ItemStack> armorItems = new ArrayList<>();
         for (EquipmentSlot slot : ARMOR_SLOTS) {
             ItemStack stack = player.getEquippedStack(slot);
             if (!stack.isEmpty()) {
-                if (stack.contains(net.minecraft.component.DataComponentTypes.ATTRIBUTE_MODIFIERS)) {
+                if (!stack.contains(DataComponentTypes.ATTRIBUTE_MODIFIERS)) {
+                    // Older or custom armor may have stats in NBT but no baked component yet.
+                    // Bake them onto the item so holding it cannot grant player-wide modifiers.
+                    updateItemAttributes(stack);
+                }
+
+                if (stack.contains(DataComponentTypes.ATTRIBUTE_MODIFIERS)) {
                     // Minecraft's native AttributeContainer relies on strict RegistryEntry matching (.equals).
                     // Because Fabric can generate duplicate Reference instances for custom attributes loaded from NBT,
                     // Minecraft natively fails to apply them and silently drops the modifiers.
@@ -107,35 +147,7 @@ public class EquipmentStatApplier {
                             }
                         }
                     }
-                } else {
-                    // Legacy items without component
-                    armorItems.add(stack);
                 }
-            }
-        }
-
-        Map<String, double[]> totalArmorStats = new HashMap<>();
-
-        for (ItemStack stack : armorItems) {
-            List<ItemStatManager.ItemStat> stats = ItemStatManager.getStats(stack);
-            for (ItemStatManager.ItemStat itemStat : stats) {
-                totalArmorStats.compute(itemStat.statId, (key, oldVal) -> {
-                    if (oldVal == null) return itemStat.values.clone();
-                    for (int i = 0; i < oldVal.length && i < itemStat.values.length; i++) {
-                        oldVal[i] += itemStat.values[i];
-                    }
-                    return oldVal;
-                });
-            }
-        }
-
-        for (Map.Entry<String, double[]> entry : totalArmorStats.entrySet()) {
-            String statId = entry.getKey();
-            double[] totalValues = entry.getValue();
-
-            CustomStat stat = StatRegistry.getStat(statId);
-            if (stat != null) {
-                applyStatModifier(player, stat, totalValues);
             }
         }
 
@@ -432,45 +444,18 @@ public class EquipmentStatApplier {
         return 0.0;
     }
 
-    private static void applyStatModifier(PlayerEntity player, CustomStat stat, double[] values) {
-        for (int i = 0; i < stat.getComponents().size(); i++) {
-            CustomStat.StatComponent comp = stat.getComponents().get(i);
-            double val = values != null && i < values.length ? values[i] : 0;
-            if (val == 0) continue;
-
-            for (int attrIndex = 0; attrIndex < comp.getAttributes().size(); attrIndex++) {
-                RegistryEntry<EntityAttribute> attribute = comp.getAttributes().get(attrIndex);
-
-                // For armor stats, we generally skip everything EXCEPT standard player attributes
-                if (isAttribute(attribute, ModAttributes.DURABILITY_BONUS)) continue;
-                
-
-                Identifier id = Identifier.of(CranksDungeons.MOD_ID, "runic_" + stat.getId() + "_" + i + "_" + attrIndex);
-                EntityAttributeModifier modifier = new EntityAttributeModifier(
-                        id,
-                        val,
-                        comp.isPercentage() ? EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE : EntityAttributeModifier.Operation.ADD_VALUE
-                );
-
-                try {
-                    player.getAttributes().getCustomInstance(attribute).addPersistentModifier(modifier);
-
-                    Map<Identifier, RegistryEntry<EntityAttribute>> applied = appliedModifiers.computeIfAbsent(player.getUuid(), k -> new HashMap<>());
-                    applied.put(id, attribute);
-                } catch (Exception e) {
-                    CranksDungeons.LOGGER.error("Failed to apply stat modifier {} to player {}", id, player.getName().getString(), e);
-                }
-            }
-        }
-    }
-
     private static void removeAllModifiers(PlayerEntity player) {
-        Map<Identifier, RegistryEntry<EntityAttribute>> modifiers = appliedModifiers.get(player.getUuid());
+        // Detach this generation before mutating attribute instances. Removing
+        // an attribute modifier may synchronously cause another stat update,
+        // which must see a fresh tracking map instead of this one being iterated.
+        Map<Identifier, RegistryEntry<EntityAttribute>> modifiers =
+                appliedModifiers.remove(player.getUuid());
         if (modifiers == null || modifiers.isEmpty()) {
             return;
         }
 
-        for (Map.Entry<Identifier, RegistryEntry<EntityAttribute>> entry : modifiers.entrySet()) {
+        for (Map.Entry<Identifier, RegistryEntry<EntityAttribute>> entry
+                : new HashMap<>(modifiers).entrySet()) {
             Identifier modifierId = entry.getKey();
             RegistryEntry<EntityAttribute> attribute = entry.getValue();
             var attributeInstance = player.getAttributeInstance(attribute);
@@ -478,10 +463,13 @@ public class EquipmentStatApplier {
                 attributeInstance.removeModifier(modifierId);
             }
         }
-        modifiers.clear();
     }
 
     public static void onPlayerDisconnect(PlayerEntity player) {
-        appliedModifiers.remove(player.getUuid());
+        UUID playerUuid = player.getUuid();
+        appliedModifiers.remove(playerUuid);
+        synchronized (UPDATE_LOCK) {
+            pendingPlayerUpdates.remove(playerUuid);
+        }
     }
 }

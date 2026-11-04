@@ -52,7 +52,7 @@ public final class MountChestFeatureRenderer<T extends LivingEntity, M extends E
 
         MountKind kind = MountKind.of(entity);
         if (kind == MountKind.DONKEY || kind == MountKind.MULE
-                || kind == MountKind.UNSUPPORTED) return;
+                || kind == MountKind.LLAMA || kind == MountKind.UNSUPPORTED) return;
 
         Placement placement = placement(kind);
         matrices.push();

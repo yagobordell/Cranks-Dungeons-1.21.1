@@ -10,6 +10,7 @@ import java.util.UUID;
 /** Persistent progression and cargo state used by mounts other than normal horses. */
 public final class MountData {
     public static final int MAX_CARGO_SLOTS = 33;
+    public int dataVersion;
 
     public boolean initialized;
     public boolean chestEquipped;
@@ -24,16 +25,22 @@ public final class MountData {
     public UUID damId;
     public String sireName = "Wild";
     public String damName = "Wild";
+    /** Custom ownership used by mounts that vanilla does not tame. */
+    public UUID ownerUuid;
+    public String ownerName = "";
     public final Set<UUID> ancestry = new LinkedHashSet<>();
 
-    // The labels and ranges of these five genes depend on MountKind.
+    // The labels and ranges of these genes depend on MountKind. Health and armor
+    // are bonuses above the species baseline for primary mounts.
     public double health;
     public double speed;
     public double power;
     public double endurance;
     public double utility;
+    public double armor;
     public String trait = "None";
     public String specialization = "None";
+    public MountAccessMode accessMode = MountAccessMode.OWNER_ONLY;
     public int soulBond;
     public double currentResource;
 
@@ -45,12 +52,16 @@ public final class MountData {
     public boolean abilityActive;
     public int resourceRegenDelay;
     public int syncTicker;
+    public boolean ownershipSyncInitialized;
+    public boolean lastSyncedTamed;
+    public UUID lastSyncedOwnerUuid;
 
     // Pig and strider cargo lives here. Horse-family cargo uses the vanilla horse inventory.
     public final SimpleInventory cargo = new SimpleInventory(MAX_CARGO_SLOTS);
 
     public NbtCompound toNbt(RegistryWrapper.WrapperLookup registries, boolean includeCargo) {
         NbtCompound nbt = new NbtCompound();
+        nbt.putInt("DataVersion", dataVersion);
         nbt.putBoolean("Initialized", initialized);
         nbt.putBoolean("ChestEquipped", chestEquipped);
         nbt.putBoolean("Male", male);
@@ -64,6 +75,8 @@ public final class MountData {
         putUuid(nbt, "DamId", damId);
         nbt.putString("SireName", sireName);
         nbt.putString("DamName", damName);
+        putUuid(nbt, "OwnerUuid", ownerUuid);
+        nbt.putString("OwnerName", ownerName);
         nbt.putString("Ancestry", ancestry.stream().map(UUID::toString)
                 .collect(java.util.stream.Collectors.joining(",")));
         nbt.putDouble("Health", health);
@@ -71,8 +84,10 @@ public final class MountData {
         nbt.putDouble("Power", power);
         nbt.putDouble("Endurance", endurance);
         nbt.putDouble("Utility", utility);
+        nbt.putDouble("Armor", armor);
         nbt.putString("Trait", trait);
         nbt.putString("Specialization", specialization);
+        nbt.putString("MountAccess", accessMode.name());
         nbt.putInt("SoulBond", soulBond);
         nbt.putDouble("CurrentResource", currentResource);
         if (includeCargo && !cargo.isEmpty()) {
@@ -83,6 +98,7 @@ public final class MountData {
 
     public void readNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registries,
                         boolean includeCargo) {
+        dataVersion = Math.max(0, nbt.getInt("DataVersion"));
         initialized = nbt.getBoolean("Initialized");
         chestEquipped = nbt.getBoolean("ChestEquipped");
         male = nbt.getBoolean("Male");
@@ -97,6 +113,8 @@ public final class MountData {
         damId = getUuid(nbt, "DamId");
         sireName = textOr(nbt, "SireName", "Wild");
         damName = textOr(nbt, "DamName", "Wild");
+        ownerUuid = getUuid(nbt, "OwnerUuid");
+        ownerName = textOr(nbt, "OwnerName", "");
         ancestry.clear();
         String encodedAncestry = nbt.getString("Ancestry");
         if (!encodedAncestry.isBlank()) {
@@ -110,8 +128,10 @@ public final class MountData {
         power = nbt.getDouble("Power");
         endurance = nbt.getDouble("Endurance");
         utility = nbt.getDouble("Utility");
+        armor = nbt.getDouble("Armor");
         trait = textOr(nbt, "Trait", "None");
         specialization = textOr(nbt, "Specialization", "None");
+        accessMode = MountAccessMode.fromId(nbt.getString("MountAccess"));
         soulBond = Math.max(0, nbt.getInt("SoulBond"));
         currentResource = Math.max(0.0, nbt.getDouble("CurrentResource"));
         if (includeCargo && nbt.contains("Cargo")) {

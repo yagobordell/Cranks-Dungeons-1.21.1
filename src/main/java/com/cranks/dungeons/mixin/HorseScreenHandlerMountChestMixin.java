@@ -4,6 +4,7 @@ import com.cranks.dungeons.mount.MountChestSlot;
 import com.cranks.dungeons.mount.MountDataProvider;
 import com.cranks.dungeons.mount.MountKind;
 import com.cranks.dungeons.mount.MountManager;
+import com.cranks.dungeons.mount.HorseScreenHandlerMountAccess;
 import com.cranks.dungeons.horse.HorseBreedingManager;
 import net.minecraft.entity.passive.AbstractHorseEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -24,12 +25,28 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
 @Mixin(HorseScreenHandler.class)
-public abstract class HorseScreenHandlerMountChestMixin extends ScreenHandler {
+public abstract class HorseScreenHandlerMountChestMixin extends ScreenHandler
+        implements HorseScreenHandlerMountAccess {
     @Shadow @Final private AbstractHorseEntity entity;
     @Shadow @Final private Inventory inventory;
 
     protected HorseScreenHandlerMountChestMixin(ScreenHandlerType<?> type, int syncId) {
         super(type, syncId);
+    }
+
+    @Override
+    @org.spongepowered.asm.mixin.Unique
+    public AbstractHorseEntity cranks$getMountEntity() {
+        return entity;
+    }
+
+    @Inject(method = "canUse", at = @At("HEAD"), cancellable = true)
+    private void cranks$checkMountInventoryAccess(PlayerEntity player,
+            CallbackInfoReturnable<Boolean> cir) {
+        if (entity instanceof MountDataProvider
+                && !MountManager.canAccessMount(player, entity)) {
+            cir.setReturnValue(false);
+        }
     }
 
     @Inject(method = "<init>", at = @At("TAIL"))
@@ -73,7 +90,7 @@ public abstract class HorseScreenHandlerMountChestMixin extends ScreenHandler {
         int playerStart = Integer.MAX_VALUE;
         int playerEnd = -1;
         for (int slotIndex = 0; slotIndex < chestSlotIndex; slotIndex++) {
-            if (slots.get(slotIndex).inventory == inventory) {
+            if (slots.get(slotIndex).inventory == player.getInventory()) {
                 playerStart = Math.min(playerStart, slotIndex);
                 playerEnd = Math.max(playerEnd, slotIndex + 1);
             }
@@ -86,6 +103,7 @@ public abstract class HorseScreenHandlerMountChestMixin extends ScreenHandler {
                 cir.setReturnValue(ItemStack.EMPTY);
                 return;
             }
+            if (moving.isEmpty()) source.onTakeItem(player, original);
             if (moving.isEmpty()) source.setStack(ItemStack.EMPTY);
             else source.markDirty();
             cir.setReturnValue(original);

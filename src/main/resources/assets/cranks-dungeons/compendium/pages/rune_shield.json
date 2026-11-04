@@ -1,4 +1,4 @@
 { "title": "Shield Runes", "content": [
-  { "type": "text", "value": "Shields use Strength affinity. Their native 8 Block Value subtracts a fixed amount from frontal hits while raised; rune families can scale block value and other defensive statistics. Ordinary shield rolls are limited to T9–T10." },
+  { "type": "text", "value": "Shields have Strength requirements. Their native 8 Block Value subtracts a fixed amount from frontal hits while raised; rune families can scale block value and other defensive statistics. Ordinary shield rolls are limited to T9–T10." },
   { "type": "stat_catalog", "value": "SHIELD" }
 ] }

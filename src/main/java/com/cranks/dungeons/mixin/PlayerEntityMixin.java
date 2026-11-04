@@ -53,4 +53,5 @@ public abstract class PlayerEntityMixin extends LivingEntity {
         // Disable vanilla water breathing from turtle helmet
         ci.cancel();
     }
+
 }

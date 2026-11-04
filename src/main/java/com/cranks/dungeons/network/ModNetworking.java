@@ -149,6 +149,10 @@ public class ModNetworking {
         PayloadTypeRegistry.playC2S().register(OpenMountCargoPayload.ID, OpenMountCargoPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(SetHorseBreedingFocusPayload.ID, SetHorseBreedingFocusPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(SetMountSpecializationPayload.ID, SetMountSpecializationPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(SetMountAccessPayload.ID, SetMountAccessPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(ReleaseMountPayload.ID, ReleaseMountPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(OpenNameTagScreenPayload.ID, OpenNameTagScreenPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(ApplyNameTagPayload.ID, ApplyNameTagPayload.CODEC);
         
         PayloadTypeRegistry.playS2C().register(SyncWorldTreePayload.ID, SyncWorldTreePayload.CODEC);
         PayloadTypeRegistry.playC2S().register(UnlockWorldNodePayload.ID, UnlockWorldNodePayload.CODEC);
@@ -218,6 +222,10 @@ public class ModNetworking {
     }
 
     public static void registerServerReceivers() {
+        ServerPlayNetworking.registerGlobalReceiver(ApplyNameTagPayload.ID, (payload, context) ->
+                context.server().execute(() ->
+                        com.cranks.dungeons.name.NameTagManager.applyName(context.player(), payload)));
+
         ServerPlayNetworking.registerGlobalReceiver(OpenMountCargoPayload.ID, (payload, context) ->
                 context.server().execute(() -> {
                     var player = context.player();
@@ -262,6 +270,47 @@ public class ModNetworking {
                     if (entity instanceof net.minecraft.entity.mob.SkeletonHorseEntity skeleton) {
                         com.cranks.dungeons.mount.MountManager.chooseSkeletonSpecialization(
                                 skeleton, player, payload.specialization());
+                    }
+                }));
+
+        ServerPlayNetworking.registerGlobalReceiver(SetMountAccessPayload.ID, (payload, context) ->
+                context.server().execute(() -> {
+                    var player = context.player();
+                    net.minecraft.entity.LivingEntity mount = null;
+                    if (player.currentScreenHandler instanceof net.minecraft.screen.HorseScreenHandler horseHandler
+                            && horseHandler instanceof com.cranks.dungeons.mount.HorseScreenHandlerMountAccess access) {
+                        mount = access.cranks$getMountEntity();
+                    } else if (player.currentScreenHandler
+                            instanceof com.cranks.dungeons.screen.MountCargoScreenHandler cargoHandler) {
+                        mount = cargoHandler.mount();
+                    }
+                    if (mount == null || mount.getId() != payload.entityId()
+                            || !player.canInteractWithEntity(mount, 4.0)
+                            || !com.cranks.dungeons.mount.MountManager.canManageAccess(player, mount)) {
+                        return;
+                    }
+                    com.cranks.dungeons.mount.MountManager.setAccessMode(player, mount,
+                            com.cranks.dungeons.mount.MountAccessMode.fromId(payload.accessMode()));
+                }));
+
+        ServerPlayNetworking.registerGlobalReceiver(ReleaseMountPayload.ID, (payload, context) ->
+                context.server().execute(() -> {
+                    var player = context.player();
+                    net.minecraft.entity.LivingEntity mount = null;
+                    if (player.currentScreenHandler instanceof net.minecraft.screen.HorseScreenHandler horseHandler
+                            && horseHandler instanceof com.cranks.dungeons.mount.HorseScreenHandlerMountAccess access) {
+                        mount = access.cranks$getMountEntity();
+                    } else if (player.currentScreenHandler
+                            instanceof com.cranks.dungeons.screen.MountCargoScreenHandler cargoHandler) {
+                        mount = cargoHandler.mount();
+                    }
+                    if (mount == null || mount.getId() != payload.entityId()
+                            || !player.canInteractWithEntity(mount, 4.0)) {
+                        return;
+                    }
+                    if (com.cranks.dungeons.mount.MountManager.releaseOwnership(player, mount)) {
+                        player.sendMessage(Text.literal("You released ownership of "
+                                + mount.getName().getString() + "."), true);
                     }
                 }));
 

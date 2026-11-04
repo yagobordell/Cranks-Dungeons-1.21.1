@@ -14,7 +14,7 @@ public class LifeRegenerationMixin {
     private void applyLifeRegeneration(CallbackInfo ci) {
         LivingEntity entity = (LivingEntity) (Object) this;
 
-        if (!entity.isAlive()) {
+        if (entity.getWorld().isClient() || !entity.isAlive()) {
             return;
         }
 

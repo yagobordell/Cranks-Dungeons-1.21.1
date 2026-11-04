@@ -19,6 +19,15 @@ public final class MountChestSlot extends Slot {
     }
     @Override public int getMaxItemCount() { return 1; }
     @Override public boolean canTakeItems(PlayerEntity player) {
-        return MountManager.canManage(player, mount) && MountManager.cargoIsEmpty(mount);
+        return MountManager.canManage(player, mount);
+    }
+
+    @Override
+    public void onTakeItem(PlayerEntity player, ItemStack stack) {
+        if (!player.getEntityWorld().isClient()
+                && ((MountDataProvider) mount).cranksdungeons$hasMountChest()) {
+            MountManager.setChest(player, mount, false);
+        }
+        super.onTakeItem(player, stack);
     }
 }

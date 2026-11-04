@@ -76,12 +76,17 @@ public abstract class AbstractHorseMountMixin
 
     @Override
     public void cranksdungeons$setMountChest(boolean equipped) {
+        AbstractHorseEntity self = (AbstractHorseEntity) (Object) this;
+        if (cranksdungeons$hasMountChest() && !equipped) {
+            MountManager.ejectCargo(self, null);
+        }
         cranks$mountData.chestEquipped = equipped;
-        if ((Object) this instanceof AbstractDonkeyEntity donkey) {
+        if (self instanceof AbstractDonkeyEntity donkey) {
             donkey.setHasChest(equipped);
         } else {
-            ((AbstractHorseEntity) (Object) this).getDataTracker().set(CRANKS_MOUNT_CHEST, equipped);
+            self.getDataTracker().set(CRANKS_MOUNT_CHEST, equipped);
         }
+        MountManager.refreshCargoCapacity(self);
     }
 
     @Override public int cranksdungeons$getSyncedCargoCapacity() {
@@ -124,7 +129,8 @@ public abstract class AbstractHorseMountMixin
     @Inject(method = "onChestedStatusChanged", at = @At("HEAD"), cancellable = true)
     private void cranks$stableMountInventory(CallbackInfo ci) {
         AbstractHorseEntity self = (AbstractHorseEntity) (Object) this;
-        if (MountKind.of(self) == MountKind.UNSUPPORTED) return;
+        if (MountKind.of(self) == MountKind.UNSUPPORTED
+                || MountKind.of(self) == MountKind.LLAMA) return;
         int desiredSize = 1 + MountManager.maxHorseCargoCapacity(self);
         if (items == null || items.size() != desiredSize) {
             SimpleInventory replacement = new SimpleInventory(desiredSize);
@@ -154,7 +160,8 @@ public abstract class AbstractHorseMountMixin
     @Inject(method = "getInventoryColumns", at = @At("HEAD"), cancellable = true)
     private void cranks$customCargoColumns(CallbackInfoReturnable<Integer> cir) {
         if (cranks$mountData == null
-                || MountKind.of((AbstractHorseEntity) (Object) this) == MountKind.UNSUPPORTED) return;
+                || MountKind.of((AbstractHorseEntity) (Object) this) == MountKind.UNSUPPORTED
+                || MountKind.of((AbstractHorseEntity) (Object) this) == MountKind.LLAMA) return;
         int capacity = MountManager.maxHorseCargoCapacity((AbstractHorseEntity) (Object) this);
         cir.setReturnValue((capacity + 2) / 3);
     }

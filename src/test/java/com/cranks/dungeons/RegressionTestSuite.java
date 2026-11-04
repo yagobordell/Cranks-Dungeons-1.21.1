@@ -8,6 +8,8 @@ import com.cranks.dungeons.horse.HorseBreedingManager;
 import com.cranks.dungeons.horse.HorseBreedingRules;
 import com.cranks.dungeons.horse.HorseGeneticsData;
 import com.cranks.dungeons.horse.HorseTrait;
+import com.cranks.dungeons.mount.MountGeneticRatings;
+import com.cranks.dungeons.mount.MountKind;
 
 import java.util.Collection;
 import java.util.Map;
@@ -30,7 +32,7 @@ public final class RegressionTestSuite {
         horseBreedingFocusParsingIsSafe();
         horseBreedingCatchUpRewardsWeakGenes();
         horseTrainingCurveAndActivityRewardsAreBalanced();
-        horseRoleGradesSeparateMobilityAndSurvival();
+        mountGeneGradesReflectIndividualPotential();
         horsePersonalMutationRecordPersists();
     }
 
@@ -195,19 +197,26 @@ public final class RegressionTestSuite {
                 "long-jump XP thresholds were incorrect");
     }
 
-    private static void horseRoleGradesSeparateMobilityAndSurvival() {
+    private static void mountGeneGradesReflectIndividualPotential() {
         HorseGeneticsData data = new HorseGeneticsData();
-        data.geneticHealth = HorseBreedingRules.MIN_HEALTH;
-        data.geneticSpeed = HorseBreedingRules.MAX_SPEED;
-        data.geneticJump = HorseBreedingRules.MAX_JUMP;
+        data.geneticHealth = MountGeneticRatings.naturalMaximum(MountKind.HORSE, 0);
+        data.geneticSpeed = HorseBreedingRules.MIN_SPEED;
+        data.geneticJump = HorseBreedingRules.MIN_JUMP;
         data.geneticEvasion = HorseBreedingRules.MIN_EVASION;
-        data.geneticEndurance = HorseBreedingRules.MAX_ENDURANCE;
-        require("S".equals(HorseBreedingManager.mobilityGrade(data)),
-                "maximum mobility genes did not produce an S mobility grade");
-        require("E".equals(HorseBreedingManager.survivalGrade(data)),
-                "minimum survival genes did not produce an E survival grade");
-        require(!HorseBreedingManager.grade(data).equals(HorseBreedingManager.mobilityGrade(data)),
-                "overall grade did not remain distinct from a specialized mobility grade");
+        data.geneticEndurance = HorseBreedingRules.MIN_ENDURANCE;
+        data.geneticArmor = HorseBreedingRules.MIN_ARMOR;
+        require("S+".equals(MountGeneticRatings.grade(MountKind.HORSE, 0, data.geneticHealth, 0)),
+                "a top natural health gene was graded against the later-generation cap");
+        require("D-".equals(MountGeneticRatings.grade(MountKind.HORSE, 1, data.geneticSpeed, 0)),
+                "a minimum natural speed gene did not receive the bottom individual grade");
+        require(MountGeneticRatings.quality(MountKind.HORSE, 0, data.geneticHealth, 10) >= 0.60,
+                "a top wild gene lost its strong grade merely because breeding can improve it");
+        require("D+".equals(HorseBreedingManager.grade(data)),
+                "the overall grade did not summarize the six individual gene qualities");
+        require("S+".equals(MountGeneticRatings.grade(MountKind.DONKEY, 4, 21.0, 0)),
+                "a top natural utility gene did not receive its own high grade");
+        require("S+".equals(MountGeneticRatings.grade(MountKind.MULE, 4, 24.0, 1)),
+                "a mule's hybrid-only gene range was not used for its grade");
     }
 
     private static void horsePersonalMutationRecordPersists() {

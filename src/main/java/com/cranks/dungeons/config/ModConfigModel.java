@@ -133,4 +133,19 @@ public class ModConfigModel {
     @RangeConstraint(min = -1, max = 3000)
     @ExcludeFromScreen
     public int hungerBarY = -1;
+
+    @RangeConstraint(min = -1, max = 3000)
+    @ExcludeFromScreen
+    public int experienceBarX = -1;
+
+    @RangeConstraint(min = -1, max = 3000)
+    @ExcludeFromScreen
+    public int experienceBarY = -1;
+
+    // Viewport size used when saving the stat bar positions above.
+    @ExcludeFromScreen
+    public int statBarLayoutReferenceWidth = -1;
+
+    @ExcludeFromScreen
+    public int statBarLayoutReferenceHeight = -1;
 }

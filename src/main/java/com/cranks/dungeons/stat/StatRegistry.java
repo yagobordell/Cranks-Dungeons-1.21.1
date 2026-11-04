@@ -944,16 +944,14 @@ public class StatRegistry {
                                 true, true, Formatting.LIGHT_PURPLE, CustomStat.AffixType.SUFFIX,
                                 70, 1500,
                                 ALL_GEAR);
-                // --- Core Attributes (All Gear) ---
+                // --- Core Attributes (Armor only) ---
                 registerForTypes("strength", "Strength",
                                 ModAttributes.STRENGTH,
                                 r(5.0, 5.6, 7.5, 10.6, 14.9, 20.4, 27.2, 35.2, 44.5, 55.0),
                                 r(10.0, 10.6, 12.2, 15.0, 18.9, 23.9, 30.0, 37.2, 45.6, 55.0),
                                 false, Formatting.RED, CustomStat.AffixType.SUFFIX,
                                 30, 9000,
-                                EquipmentType.HELMET, EquipmentType.CHESTPLATE, EquipmentType.LEGGINGS, EquipmentType.BOOTS,
-                                EquipmentType.SWORD, EquipmentType.SPEAR, EquipmentType.MACE,
-                                EquipmentType.TRIDENT, EquipmentType.BOW, EquipmentType.CROSSBOW, EquipmentType.SHIELD)
+                                ALL_ARMOR)
                         .forEach(s -> s.setArmorBaseType(com.cranks.dungeons.equipment.ArmorBaseType.STR));
 
                 registerForTypes("dexterity", "Dexterity",
@@ -962,7 +960,7 @@ public class StatRegistry {
                                 r(10.0, 10.6, 12.2, 15.0, 18.9, 23.9, 30.0, 37.2, 45.6, 55.0),
                                 false, Formatting.GREEN, CustomStat.AffixType.SUFFIX,
                                 30, 9000,
-                                ALL_GEAR)
+                                ALL_ARMOR)
                         .forEach(s -> s.setArmorBaseType(com.cranks.dungeons.equipment.ArmorBaseType.DEX));
 
                 registerForTypes("intelligence", "Intelligence",
@@ -971,7 +969,7 @@ public class StatRegistry {
                                 r(10.0, 10.6, 12.2, 15.0, 18.9, 23.9, 30.0, 37.2, 45.6, 55.0),
                                 false, Formatting.BLUE, CustomStat.AffixType.SUFFIX,
                                 30, 9000,
-                                ALL_GEAR)
+                                ALL_ARMOR)
                         .forEach(s -> s.setArmorBaseType(com.cranks.dungeons.equipment.ArmorBaseType.INT));
 
                 // --- Shield Blocking Mechanics (Shield only) ---

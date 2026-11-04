@@ -2,8 +2,11 @@ package com.cranks.dungeons.horse;
 
 /** Pure breeding and training rules shared by server logic, client previews, and tests. */
 public final class HorseBreedingRules {
-    public static final double MIN_HEALTH = 50.0;
-    public static final double MAX_HEALTH = 90.0;
+    /** Health-gene bonus above the horse's species baseline. */
+    public static final double MIN_HEALTH = 0.0;
+    public static final double MAX_HEALTH = 50.0;
+    public static final double MIN_ARMOR = 0.0;
+    public static final double MAX_ARMOR = 72.0;
     public static final double MIN_SPEED = 0.1125;
     public static final double MAX_SPEED = 0.42;
     public static final double MIN_JUMP = 0.4;
@@ -17,6 +20,7 @@ public final class HorseBreedingRules {
     public static final int JUMP_MUTATION = 1 << 2;
     public static final int EVASION_MUTATION = 1 << 3;
     public static final int ENDURANCE_MUTATION = 1 << 4;
+    public static final int ARMOR_MUTATION = 1 << 5;
 
     private HorseBreedingRules() {
     }

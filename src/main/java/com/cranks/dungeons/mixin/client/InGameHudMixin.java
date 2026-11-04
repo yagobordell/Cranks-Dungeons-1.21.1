@@ -4,6 +4,7 @@ import com.cranks.dungeons.CranksDungeons;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.InGameHud;
+import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.MathHelper;
 import org.spongepowered.asm.mixin.Final;
@@ -50,6 +51,20 @@ public abstract class InGameHudMixin {
 
     @Inject(method = "renderStatusBars", at = @At("HEAD"), cancellable = true)
     private void cancelStatusBars(DrawContext context, CallbackInfo ci) {
+        if (CranksDungeons.CONFIG.useStatBars()) {
+            ci.cancel();
+        }
+    }
+
+    @Inject(method = "renderExperienceBar", at = @At("HEAD"), cancellable = true)
+    private void cancelVanillaExperienceBar(DrawContext context, int x, CallbackInfo ci) {
+        if (CranksDungeons.CONFIG.useStatBars()) {
+            ci.cancel();
+        }
+    }
+
+    @Inject(method = "renderExperienceLevel", at = @At("HEAD"), cancellable = true)
+    private void cancelVanillaExperienceLevel(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
         if (CranksDungeons.CONFIG.useStatBars()) {
             ci.cancel();
         }
