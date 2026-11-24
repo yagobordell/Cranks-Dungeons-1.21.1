@@ -22,6 +22,11 @@ public abstract class InGameHudMixin {
 
     @Shadow @Final private MinecraftClient client;
 
+    @Inject(method="renderMainHud",at=@At("HEAD"),cancellable=true)
+    private void hideGameplayHudInLayoutEditor(DrawContext context,RenderTickCounter tickCounter,CallbackInfo ci){
+        if(client.currentScreen instanceof com.cranks.dungeons.client.screen.HudLayoutEditScreen)ci.cancel();
+    }
+
     /** Keep action-bar progression messages above the mounted health/stamina bars. */
     @ModifyArg(
         method = "renderOverlayMessage",
@@ -36,6 +41,12 @@ public abstract class InGameHudMixin {
 
     @Inject(method = "renderStatusEffectOverlay", at = @At("HEAD"), cancellable = true)
     private void customStatusEffectOverlay(DrawContext context, net.minecraft.client.render.RenderTickCounter tickCounter, CallbackInfo ci) {
+        if (client.currentScreen instanceof com.cranks.dungeons.client.screen.HudLayoutEditScreen
+                || client.currentScreen instanceof com.cranks.dungeons.client.PlayerLoadoutScreen
+                || client.currentScreen instanceof net.minecraft.client.gui.screen.ingame.AbstractInventoryScreen<?>) {
+            ci.cancel();
+            return;
+        }
         if (CranksDungeons.CONFIG.customStatusEffectOverlay()) {
             ci.cancel();
             com.cranks.dungeons.client.render.StatusEffectHudRenderer.render(context, tickCounter, client);
@@ -44,7 +55,7 @@ public abstract class InGameHudMixin {
 
     @Redirect(method = "renderMainHud", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/hud/InGameHud;renderStatusBars(Lnet/minecraft/client/gui/DrawContext;)V"))
     private void redirectRenderStatusBars(InGameHud instance, DrawContext context) {
-        if (!CranksDungeons.CONFIG.useStatBars()) {
+        if (!(client.currentScreen instanceof com.cranks.dungeons.client.screen.HudLayoutEditScreen) && !CranksDungeons.CONFIG.useStatBars()) {
             instance.renderStatusBars(context);
         }
     }

@@ -24,6 +24,7 @@ public abstract class BonusArmorMixin {
     private double cranks$lastLeggingsBonus = Double.NaN;
     @Unique
     private double cranks$lastGlobalArmorPercentBonus = Double.NaN;
+    @Unique private double cranks$lastLeggingsArmour = Double.NaN;
 
     @Inject(method = "tick", at = @At("HEAD"))
     private void applyBonusArmor(CallbackInfo ci) {
@@ -66,24 +67,21 @@ public abstract class BonusArmorMixin {
 
         // Apply Leggings Armor Percent
         double leggingsPercent = player.getAttributeValue(ModAttributes.LEGGINGS_ARMOR_PERCENT);
+        double leggingsBaseArmor = 0;
+        ItemStack leggings = player.getEquippedStack(net.minecraft.entity.EquipmentSlot.LEGS);
+        var component = leggings.get(net.minecraft.component.DataComponentTypes.ATTRIBUTE_MODIFIERS);
+        if (component != null) for (var entry : component.modifiers()) {
+            if (CombatUtility.attributesMatch(entry.attribute(), EntityAttributes.GENERIC_ARMOR)
+                    && entry.slot().matches(net.minecraft.entity.EquipmentSlot.LEGS)
+                    && entry.modifier().operation() == EntityAttributeModifier.Operation.ADD_VALUE) leggingsBaseArmor += entry.modifier().value();
+        }
+        if (!com.cranks.dungeons.equipment.ItemRequirementManager.meetsRequirements(player, leggings)) leggingsBaseArmor *= 0.5;
         Identifier leggingsModifierId = Identifier.of(CranksDungeons.MOD_ID, "leggings_armor_percent");
-        if (Double.isNaN(cranks$lastLeggingsBonus) || leggingsPercent != cranks$lastLeggingsBonus) {
+        if (Double.isNaN(cranks$lastLeggingsBonus) || leggingsPercent != cranks$lastLeggingsBonus
+                || leggingsBaseArmor != cranks$lastLeggingsArmour) {
             armorAttr.removeModifier(leggingsModifierId);
             if (leggingsPercent > 0) {
                 // Leggings percent only applies to the armor provided by leggings
-                double leggingsBaseArmor = 0;
-                ItemStack leggings = player.getEquippedStack(net.minecraft.entity.EquipmentSlot.LEGS);
-                if (!leggings.isEmpty()) {
-                    var comp = leggings.get(net.minecraft.component.DataComponentTypes.ATTRIBUTE_MODIFIERS);
-                    if (comp != null) {
-                        for (var modEntry : comp.modifiers()) {
-                            if (CombatUtility.attributesMatch(modEntry.attribute(), EntityAttributes.GENERIC_ARMOR)) {
-                                leggingsBaseArmor += modEntry.modifier().value();
-                            }
-                        }
-                    }
-                }
-                
                 double bonusFromLeggings = leggingsBaseArmor * leggingsPercent;
                 
                 if (bonusFromLeggings > 0) {
@@ -95,6 +93,7 @@ public abstract class BonusArmorMixin {
                 }
             }
             cranks$lastLeggingsBonus = leggingsPercent;
+            cranks$lastLeggingsArmour = leggingsBaseArmor;
         }
     }
 }

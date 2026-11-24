@@ -1,13 +1,46 @@
 {
   "title": "Enemies & Threats",
   "content": [
-    { "type": "text", "value": "Many familiar creatures have custom RPG attributes and are substantially tougher than their vanilla versions. Do not judge an encounter from the vanilla heart count alone: enemies can carry Armor, Evasion, Energy Shield, elemental resistances, critical stats, damage conversion, penetration, leech, and ailment chances." },
-    { "type": "heading", "value": "Customized Creatures" },
-    { "type": "list", "value": "Undead: Zombie, Husk, Drowned, Zombie Villager, Skeleton, Stray, Bogged, and Wither Skeleton.\nArthropods: Spider, Cave Spider, Silverfish, and Endermite.\nRaiders and casters: Pillager, Vindicator, Witch, Evoker, Vex, and Ravager.\nNether threats: Blaze, Magma Cube, Ghast, Zombified Piglin, Piglin, Piglin Brute, Hoglin, Zoglin, and Strider.\nOther hostile threats: Creeper, Guardian, Phantom, Breeze, Enderman, Shulker, and Slime.\nDefensive or neutral creatures: Iron Golem, Snow Golem, Polar Bear, Wolf, and Armadillo." },
-    { "type": "heading", "value": "Reading an Encounter" },
-    { "type": "text", "value": "Use the overhead entity display to read current health and Energy Shield and to recognize ailments. Armor is strongest against small physical hits but less efficient against very large hits; high Evasion can avoid entity-sourced attacks; resistances specialize a creature against particular elements. Negative resistance is a vulnerability. Freeze and Electrocute prevent movement and pause supported mob attack cooldowns while active." },
-    { "type": "subheading", "value": "Examples" },
-    { "type": "list", "value": "Zombie: 60 maximum health, 12 attack damage, 30 Armor, -25% fire resistance, and 15% Chance to Bleed.\nSkeleton: 45 maximum health, 14 attack damage, 10 Armor, 40 Evasion, -25% fire resistance, faster projectiles, and enhanced critical stats.\nWolf: 60 maximum health, 16 attack damage, 20 Armor, 45 Evasion, Bleed chance, and enhanced critical stats before wolf armor is considered.\nArmadillo: 30 maximum health, 150 Armor, full knockback resistance, and 50% reduced critical damage taken." },
-    { "type": "note", "style": "warning", "value": "Equipment worn by an Act 1 zombie, skeleton, or piglin adds its own base stats and runes on top of the creature's built-in attributes. See Mob Equipment for generation and drop chances." }
+    {
+      "type": "text",
+      "value": "Many familiar creatures have custom RPG attributes and are substantially tougher than their vanilla versions. Do not judge an encounter from the vanilla heart count alone: enemies can carry Armor, Evasion, [[stat/cranks-dungeons:energy_shield|Energy Shield]], elemental resistances, critical stats, damage conversion, penetration, leech, and ailment chances."
+    },
+    {
+      "type": "heading",
+      "value": "Customized Creatures"
+    },
+    {
+      "type": "list",
+      "value": "Undead: [[mob/minecraft:zombie|Zombie]], [[mob/minecraft:husk|Husk]], [[mob/minecraft:drowned|Drowned]], [[mob/minecraft:zombie_villager|Zombie Villager]], [[mob/minecraft:skeleton|Skeleton]], [[mob/minecraft:stray|Stray]], [[mob/minecraft:bogged|Bogged]], and [[mob/minecraft:wither_skeleton|Wither Skeleton]].\nArthropods: [[mob/minecraft:spider|Spider]], [[mob/minecraft:cave_spider|Cave Spider]], [[mob/minecraft:silverfish|Silverfish]], and [[mob/minecraft:endermite|Endermite]].\nRaiders and casters: [[mob/minecraft:pillager|Pillager]], [[mob/minecraft:vindicator|Vindicator]], [[mob/minecraft:witch|Witch]], [[mob/minecraft:evoker|Evoker]], [[mob/minecraft:vex|Vex]], and [[mob/minecraft:ravager|Ravager]].\nNether threats: [[mob/minecraft:blaze|Blaze]], [[mob/minecraft:magma_cube|Magma Cube]], [[mob/minecraft:ghast|Ghast]], [[mob/minecraft:zombified_piglin|Zombified Piglin]], [[mob/minecraft:piglin|Piglin]], [[mob/minecraft:piglin_brute|Piglin Brute]], [[mob/minecraft:hoglin|Hoglin]], [[mob/minecraft:zoglin|Zoglin]], and [[mob/minecraft:strider|Strider]].\nOther hostile threats: [[mob/minecraft:creeper|Creeper]], [[mob/minecraft:guardian|Guardian]], [[mob/minecraft:phantom|Phantom]], [[mob/minecraft:breeze|Breeze]], [[mob/minecraft:enderman|Enderman]], [[mob/minecraft:shulker|Shulker]], and [[mob/minecraft:slime|Slime]].\nDefensive or neutral creatures: [[mob/minecraft:iron_golem|Iron Golem]], [[mob/minecraft:snow_golem|Snow Golem]], [[mob/minecraft:polar_bear|Polar Bear]], [[mob/minecraft:wolf|Wolf]], and [[mob/minecraft:armadillo|Armadillo]]."
+    },
+    {
+      "type": "heading",
+      "value": "Reading an Encounter"
+    },
+    {
+      "type": "text",
+      "value": "Use the overhead entity display to read current health and [[stat/cranks-dungeons:energy_shield|Energy Shield]] and to recognize ailments. Armor is strongest against small physical hits but less efficient against very large hits; high Evasion can avoid entity-sourced attacks; resistances specialize a creature against particular elements. Negative resistance is a vulnerability. [[article/ailments#freeze|Freeze]] and [[article/ailments#electrocute|Electrocute]] prevent movement and pause supported mob attack cooldowns while active."
+    },
+    {
+      "type": "subheading",
+      "value": "Examples"
+    },
+    {
+      "type": "list",
+      "value": "[[mob/minecraft:zombie|Zombie]]: 60 maximum health, 12 attack damage, 30 Armor, -25% [[stat/cranks-dungeons:fire_resistance|fire resistance]], and 15% Chance to [[article/ailments#bleed|Bleed]].\n[[mob/minecraft:skeleton|Skeleton]]: 45 maximum health, 14 attack damage, 10 Armor, 40 Evasion, -25% [[stat/cranks-dungeons:fire_resistance|fire resistance]], faster projectiles, and enhanced critical stats.\n[[mob/minecraft:wolf|Wolf]]: 60 maximum health, 16 attack damage, 20 Armor, 45 Evasion, [[article/ailments#bleed|Bleed]] chance, and enhanced critical stats before wolf armor is considered.\n[[mob/minecraft:armadillo|Armadillo]]: 30 maximum health, 150 Armor, full knockback resistance, and 50% reduced critical damage taken."
+    },
+    {
+      "type": "note",
+      "style": "warning",
+      "value": "Equipment worn by an Act 1 zombie, skeleton, or piglin adds its own base stats and runes on top of the creature's built-in attributes. See Mob Equipment for generation and drop chances."
+    },
+    {
+      "type": "heading",
+      "value": "Related articles"
+    },
+    {
+      "type": "text",
+      "value": "[[article/defences|Defences]] | [[article/ailments|Ailments]] | [[article/loot|Tome & Material Loot]]"
+    }
   ]
 }

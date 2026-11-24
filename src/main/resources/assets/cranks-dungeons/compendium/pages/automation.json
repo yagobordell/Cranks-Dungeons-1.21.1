@@ -1,0 +1,41 @@
+{
+  "title": "Crafter",
+  "content": [
+    {
+      "type": "item_image",
+      "value": "minecraft:crafter"
+    },
+    {
+      "type": "heading",
+      "value": "Program a discovered recipe"
+    },
+    {
+      "type": "text",
+      "value": "Select a supported recipe that you have discovered to program the [[item/minecraft:crafter|Crafter]]. It uses a material-based recipe selection instead of requiring a shaped crafting-grid layout."
+    },
+    {
+      "type": "text",
+      "value": "Once programmed, the recipe continues working independently of the player who selected it, including while that player is offline."
+    },
+    {
+      "type": "heading",
+      "value": "Redstone operation"
+    },
+    {
+      "type": "text",
+      "value": "Each valid redstone pulse requests one crafting operation. The [[item/minecraft:crafter|Crafter]] checks its own available materials and ejects the result through its normal world operation. It does not take materials from an absent player inventory."
+    },
+    {
+      "type": "text",
+      "value": "Programming a recipe does not share that recipe discovery with every other player. Your own station lists still use your individual discoveries."
+    },
+    {
+      "type": "heading",
+      "value": "Related articles"
+    },
+    {
+      "type": "text",
+      "value": "[[article/crafting_table|Crafting Table]] | [[article/gathering_stats|Gathering, Discovery & Survival]]"
+    }
+  ]
+}

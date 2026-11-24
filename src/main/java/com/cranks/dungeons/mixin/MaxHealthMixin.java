@@ -41,6 +41,12 @@ public abstract class MaxHealthMixin {
         this.cranks$loginGraceTicks = 20;
     }
 
+    @Inject(method="damage",at=@At("HEAD"))
+    private void stopLoginRestoreOnHit(net.minecraft.entity.damage.DamageSource source,float amount,
+                                      org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable<Boolean> cir) {
+        if(amount>0)cranks$loginGraceTicks=0;
+    }
+
     @Inject(method = "tick", at = @At("HEAD"))
     private void applyMaxHealthBonus(CallbackInfo ci) {
         PlayerEntity player = (PlayerEntity) (Object) this;
@@ -50,26 +56,8 @@ public abstract class MaxHealthMixin {
         var maxHealthAttr = player.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH);
         if (maxHealthAttr == null) return;
         
-        Identifier voidInoculationId = Identifier.of(CranksDungeons.MOD_ID, "void_inoculation");
-        if (player.getAttributeValue(ModAttributes.KEYSTONE_VOID_INOCULATION) > 0) {
-            // Remove existing void inoculation modifier to recalculate
-            maxHealthAttr.removeModifier(voidInoculationId);
-            double currentMax = maxHealthAttr.getValue();
-            if (currentMax > 1.0) {
-                maxHealthAttr.addTemporaryModifier(new EntityAttributeModifier(
-                        voidInoculationId,
-                        -(currentMax - 1.0),
-                        EntityAttributeModifier.Operation.ADD_VALUE
-                ));
-            }
-            // Clamp current health if it exceeds max
-            if (player.getHealth() > player.getMaxHealth()) {
-                player.setHealth(player.getMaxHealth());
-            }
-            return; // Void inoculation overrides all other max health calculations
-        } else {
-            maxHealthAttr.removeModifier(voidInoculationId);
-        }
+        Identifier voidInoculationId = Identifier.of(CranksDungeons.MOD_ID,"void_inoculation");
+        maxHealthAttr.removeModifier(voidInoculationId);
 
         double healthFlatBonus = player.getAttributeValue(ModAttributes.MAX_HEALTH_BONUS);
         double healthPercent = player.getAttributeValue(ModAttributes.MAX_HEALTH_PERCENT);
@@ -117,29 +105,21 @@ public abstract class MaxHealthMixin {
             }
         }
         
-        // Apply Percentage Bonus (calculated as flat value of current total minus previous bonus)
-        double currentTotal = maxHealthAttr.getValue();
-        double currentPercentModifier = 0;
-        var mod = maxHealthAttr.getModifier(percentModifierId);
-        if (mod != null) currentPercentModifier = mod.value();
-
-        double totalWithoutThis = currentTotal - currentPercentModifier;
-        double newPercentBonus = totalWithoutThis * healthPercent;
-
-        if (Math.abs(newPercentBonus - cranks$lastHealthPercentBonus) > 0.01) {
-            float healthBefore = player.getHealth();
+        // A true total multiplier stays correct when equipment or other health modifiers change.
+        var percentModifier=maxHealthAttr.getModifier(percentModifierId);
+        if(percentModifier==null || percentModifier.operation()!=EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
+                || Math.abs(percentModifier.value()-healthPercent)>0.000001) {
+            float before=player.getHealth();
             maxHealthAttr.removeModifier(percentModifierId);
-            if (newPercentBonus > 0) {
-                maxHealthAttr.addTemporaryModifier(new EntityAttributeModifier(
-                        percentModifierId,
-                        newPercentBonus,
-                        EntityAttributeModifier.Operation.ADD_VALUE
-                ));
-            }
-            if (healthBefore > 0 && healthBefore <= player.getMaxHealth()) {
-                player.setHealth(healthBefore);
-            }
-            cranks$lastHealthPercentBonus = newPercentBonus;
+            if(healthPercent>0)maxHealthAttr.addTemporaryModifier(new EntityAttributeModifier(percentModifierId,healthPercent,
+                    EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
+            if(before>0)player.setHealth(Math.min(before,player.getMaxHealth()));
+        }
+        if(player.getAttributeValue(ModAttributes.KEYSTONE_VOID_INOCULATION)>0) {
+            double current=maxHealthAttr.getValue();
+            if(current>1)maxHealthAttr.addTemporaryModifier(new EntityAttributeModifier(voidInoculationId,1/current-1,
+                    EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
+            if(player.getHealth()>player.getMaxHealth())player.setHealth(player.getMaxHealth());
         }
 
         // Restore saved health from NBT on world join / login across the initial grace ticks

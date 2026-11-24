@@ -51,7 +51,8 @@ public abstract class KnockbackProcessorMixin {
 
         // 2. Apply Target's Resistance to the NEW total
         double resistance = target.getAttributeValue(ModAttributes.KNOCKBACK_RESISTANCE);
-        if (target.getHealth() >= target.getMaxHealth() - 0.01f) {
+        var hit = com.cranks.dungeons.util.DamageHit.forTarget(target);
+        if (hit != null ? hit.fullHealthBeforeHit() : target.getHealth() >= target.getMaxHealth() - 0.01f) {
             resistance += target.getAttributeValue(ModAttributes.KNOCKBACK_RESISTANCE_WHEN_FULL_LIFE);
         }
 

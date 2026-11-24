@@ -1,6 +1,5 @@
 package com.cranks.dungeons.client;
 
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ingame.InventoryScreen;
 
 /**
@@ -34,9 +33,9 @@ public class StatsPanelScrollHandler {
 			int y = ((com.cranks.dungeons.mixin.HandledScreenAccessor) screen).getY();
 			int backgroundWidth = ((com.cranks.dungeons.mixin.HandledScreenAccessor) screen).getBackgroundWidth();
 			
-			int panelX = x + backgroundWidth + 2;
+			int panelX = x + backgroundWidth - 1;
 			int panelY = y;
-			int panelWidth = 147;
+			int panelWidth = 158;
 			int panelHeight = 166;
 			
 			// Check if mouse is within the stats panel bounds
@@ -48,9 +47,6 @@ public class StatsPanelScrollHandler {
 					// Update scroll offset (negative because scrolling down should show lower content)
 					scrollOffset -= (int) (verticalAmount * 10);
 					scrollOffset = Math.max(0, Math.min(scrollOffset, maxScrollOffset));
-					
-					System.out.println("[StatsPanelScrollHandler] Scrolled: verticalAmount=" + verticalAmount 
-						+ " scrollOffset=" + scrollOffset + " maxScrollOffset=" + maxScrollOffset);
 				}
 				
 				return true;

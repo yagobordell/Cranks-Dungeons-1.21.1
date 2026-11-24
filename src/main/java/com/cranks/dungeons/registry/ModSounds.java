@@ -8,6 +8,10 @@ import net.minecraft.util.Identifier;
 
 public class ModSounds {
 
+    public static final SoundEvent MOUNT_WHISTLE_COME = registerWhistle("mount_whistle_come");
+    public static final SoundEvent MOUNT_WHISTLE_FOLLOW = registerWhistle("mount_whistle_follow");
+    public static final SoundEvent MOUNT_WHISTLE_STAY = registerWhistle("mount_whistle_stay");
+
     public static final SoundEvent ARTIFICIAL_ALTAR_CLICK = register("artificial_altar_click");
     public static final SoundEvent RUNIC_ALTAR_CLICK = register("runic_altar_click");
 
@@ -52,6 +56,11 @@ public class ModSounds {
     private static SoundEvent register(String name) {
         Identifier id = Identifier.of(CranksDungeons.MOD_ID, name);
         return Registry.register(Registries.SOUND_EVENT, id, SoundEvent.of(id));
+    }
+
+    private static SoundEvent registerWhistle(String name) {
+        Identifier id = Identifier.of(CranksDungeons.MOD_ID, name);
+        return Registry.register(Registries.SOUND_EVENT, id, SoundEvent.of(id, 48));
     }
 
     public static void registerSounds() {

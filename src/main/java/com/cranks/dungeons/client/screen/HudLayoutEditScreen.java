@@ -4,16 +4,17 @@ import com.cranks.dungeons.CranksDungeons;
 import com.cranks.dungeons.client.party.PartyHudRenderer;
 import com.cranks.dungeons.client.HorseStaminaHudRenderer;
 import com.cranks.dungeons.client.MountHealthHudRenderer;
+import com.cranks.dungeons.client.render.HotbarHudRenderer;
 import com.cranks.dungeons.client.render.StatBarHudRenderer;
 import com.cranks.dungeons.client.render.StatusEffectHudRenderer;
 import com.cranks.dungeons.config.StatusEffectOrientation;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.ButtonWidget;
+import com.cranks.dungeons.client.compendium.CompendiumButtonWidget;
+import com.cranks.dungeons.client.compendium.CompendiumStyle;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,9 +26,12 @@ public class HudLayoutEditScreen extends Screen {
     private final Screen parent;
     private final List<DraggableElement> elements = new ArrayList<>();
     private DraggableElement draggingElement = null;
+    private DraggableElement selectedElement;
     private int dragOffsetX = 0;
     private int dragOffsetY = 0;
     private boolean snapToGrid = true;
+    private boolean controlsVisible = true;
+    private int layoutWidth,layoutHeight;
 
     public static class DraggableElement {
         public final String id;
@@ -86,59 +90,28 @@ public class HudLayoutEditScreen extends Screen {
 
     @Override
     protected void init() {
-        this.clearChildren();
-        super.init();
-
+        String selectedId=selectedElement==null?null:selectedElement.id;
+        if (!elements.isEmpty()) saveChanges();
+        clearChildren();
         initDraggableElements();
+        selectedElement=elements.stream().filter(element->element.id.equals(selectedId)).findFirst().orElse(null);
+        draggingElement=null;
+        layoutWidth=width;layoutHeight=height;
+        for(var element:elements)fit(element);
+        int start=(width-292)/2, toolbarY=10;
+        addDrawableChild(CompendiumButtonWidget.builder(Text.literal("Settings"),b->{saveChanges();client.setScreen(new CranksConfigScreen(parent));}).dimensions(start,toolbarY,62,20).build());
+        addDrawableChild(CompendiumButtonWidget.builder(Text.literal("HUD Layout"),b->{}).selected(true).dimensions(start+66,toolbarY,70,20).build());
+        addDrawableChild(CompendiumButtonWidget.builder(Text.literal("Snap: "+(snapToGrid?"On":"Off")),b->{snapToGrid=!snapToGrid;b.setMessage(Text.literal("Snap: "+(snapToGrid?"On":"Off")));}).dimensions(start+140,toolbarY,58,20).build());
+        addDrawableChild(CompendiumButtonWidget.builder(Text.literal("Reset"),b->resetAllPositions()).dimensions(start+202,toolbarY,44,20).build());
+        addDrawableChild(CompendiumButtonWidget.builder(Text.literal("Done"),b->close()).dimensions(start+250,toolbarY,42,20).build());
+        for(var child:children())if(child instanceof net.minecraft.client.gui.widget.ClickableWidget widget)widget.visible=controlsVisible;
+    }
 
-        int btnHeight = 20;
-        int tab1W = 95;
-        int tab2W = 90;
-        int snapW = 75;
-        int resetW = 70;
-        int doneW = 60;
-        int spacing = 4;
-        int totalW = tab1W + tab2W + snapW + resetW + doneW + (spacing * 4);
-        int startX = (this.width - totalW) / 2;
-        int topBarY = 4;
-
-        // Tab 1: Mod Settings
-        this.addDrawableChild(ButtonWidget.builder(Text.literal("⚙ Settings").formatted(Formatting.GRAY), b -> {
-            saveChanges();
-            if (this.client != null) {
-                this.client.setScreen(new CranksConfigScreen(this.parent));
-            }
-        }).dimensions(startX, topBarY, tab1W, btnHeight).build());
-
-        // Tab 2: HUD Layout (Active tab)
-        ButtonWidget editorTab = ButtonWidget.builder(Text.literal("📐 HUD Layout").formatted(Formatting.GOLD, Formatting.BOLD), b -> {})
-                .dimensions(startX + tab1W + spacing, topBarY, tab2W, btnHeight).build();
-        editorTab.active = false;
-        this.addDrawableChild(editorTab);
-
-        // Snap toggle
-        this.addDrawableChild(ButtonWidget.builder(
-                Text.literal("🧲 Snap: " + (snapToGrid ? "ON" : "OFF")),
-                b -> {
-                    snapToGrid = !snapToGrid;
-                    b.setMessage(Text.literal("🧲 Snap: " + (snapToGrid ? "ON" : "OFF")));
-                }
-        ).dimensions(startX + tab1W + tab2W + (spacing * 2), topBarY, snapW, btnHeight).build());
-
-        // Reset All Positions
-        this.addDrawableChild(ButtonWidget.builder(
-                Text.literal("↺ Reset"),
-                b -> resetAllPositions()
-        ).dimensions(startX + tab1W + tab2W + snapW + (spacing * 3), topBarY, resetW, btnHeight).build());
-
-        // Done / Save
-        this.addDrawableChild(ButtonWidget.builder(
-                Text.literal("💾 Done").formatted(Formatting.GREEN),
-                b -> {
-                    saveChanges();
-                    this.close();
-                }
-        ).dimensions(startX + tab1W + tab2W + snapW + resetW + (spacing * 4), topBarY, doneW, btnHeight).build());
+    private void fit(DraggableElement element){
+        int fittedX=Math.clamp(element.x,0,Math.max(0,width-element.width));
+        int fittedY=Math.clamp(element.y,0,Math.max(0,height-element.height));
+        if(fittedX!=element.x||fittedY!=element.y)element.isCustom=true;
+        element.x=fittedX;element.y=fittedY;
     }
 
     private void initDraggableElements() {
@@ -150,15 +123,14 @@ public class HudLayoutEditScreen extends Screen {
         int referenceHeight = config.statBarLayoutReferenceHeight();
 
         // 1. Party HUD
-        int partyMaxRows = config.partyHudMaxRows();
-        int partyMaxCols = config.partyHudMaxColumns();
-        float partyScale = config.partyHudSize();
-        int partyW = (int) (partyMaxCols * (PartyHudRenderer.BASE_MEMBER_WIDTH + 5) * partyScale);
-        int partyH = (int) (partyMaxRows * (PartyHudRenderer.BASE_MEMBER_HEIGHT + 2) * partyScale);
-        int defaultPartyX = 5;
-        int defaultPartyY = 190;
-        int partyX = config.partyHudX() >= 0 ? config.partyHudX() : defaultPartyX;
-        int partyY = config.partyHudY() >= 0 ? config.partyHudY() : defaultPartyY;
+        var partyLayout = com.cranks.dungeons.client.party.PartyHudLayout.fit(width, height,
+                config.partyHudX(), config.partyHudY(), config.partyHudMaxRows(), config.partyHudMaxColumns(),
+                config.partyHudMaxRows() * config.partyHudMaxColumns(), config.partyHudSize());
+        int partyMaxRows = partyLayout.rows(), partyMaxCols = partyLayout.columns();
+        float partyScale = partyLayout.scale();
+        int partyW = partyLayout.width(), partyH = partyLayout.height();
+        int defaultPartyX = 5, defaultPartyY = 190;
+        int partyX = partyLayout.x(), partyY = partyLayout.y();
         elements.add(new DraggableElement(
                 "party_hud",
                 Text.literal("Party HUD (Max " + (partyMaxRows * partyMaxCols) + ")"),
@@ -181,24 +153,16 @@ public class HudLayoutEditScreen extends Screen {
         float statusScale = config.statusEffectsScale();
         int statusMaxPerLine = config.statusEffectsMaxPerLine();
         int rawSpacing = config.statusEffectsSpacing();
-        int statusSpacing = (int) (rawSpacing * statusScale);
-        int statusBaseIcon = (int) (24 * statusScale);
         boolean statusDuration = config.statusEffectsShowDuration();
+        var statusBounds = StatusEffectHudRenderer.previewBounds(
+                statusOrientation, statusMaxPerLine, statusScale, rawSpacing, statusDuration);
 
-        int statusW, statusH;
-        int durationExtra = statusDuration ? (int) (9 * statusScale) : 0;
-        if (statusOrientation.isHorizontal()) {
-            statusW = statusMaxPerLine * statusSpacing;
-            statusH = statusBaseIcon + durationExtra;
-        } else {
-            statusW = statusBaseIcon;
-            statusH = statusMaxPerLine * (statusSpacing + durationExtra);
-        }
-
-        int defaultStatusX = (statusOrientation == StatusEffectOrientation.LEFT_TO_RIGHT) ? 5 : (this.width - statusW - 5);
-        int defaultStatusY = (statusOrientation == StatusEffectOrientation.BOTTOM_TO_TOP) ? (this.height - statusH - 60) : 1;
-        int statusX = config.statusEffectsX() >= 0 ? config.statusEffectsX() : defaultStatusX;
-        int statusY = config.statusEffectsY() >= 0 ? config.statusEffectsY() : defaultStatusY;
+        int defaultStatusX = statusOrientation == StatusEffectOrientation.LEFT_TO_RIGHT
+                ? 5 : this.width - statusBounds.width() - 5;
+        int defaultStatusY = statusOrientation == StatusEffectOrientation.BOTTOM_TO_TOP
+                ? this.height - 60 - statusBounds.anchorY() : 1;
+        int statusX = config.statusEffectsX() >= 0 ? config.statusEffectsX() - statusBounds.anchorX() : defaultStatusX;
+        int statusY = config.statusEffectsY() >= 0 ? config.statusEffectsY() - statusBounds.anchorY() : defaultStatusY;
 
         String directionName = switch (statusOrientation) {
             case LEFT_TO_RIGHT -> "Left to Right";
@@ -210,13 +174,13 @@ public class HudLayoutEditScreen extends Screen {
         elements.add(new DraggableElement(
                 "status_effects",
                 Text.literal("Status Effects (" + directionName + ")"),
-                statusX, statusY, statusW, statusH,
+                statusX, statusY, statusBounds.width(), statusBounds.height(),
                 defaultStatusX, defaultStatusY,
                 config.statusEffectsX() >= 0 || config.statusEffectsY() >= 0,
                 ctx -> StatusEffectHudRenderer.renderPreview(ctx, mc, 0, 0, statusOrientation, statusMaxPerLine, statusScale, rawSpacing, statusDuration),
                 (nx, ny) -> {
-                    config.statusEffectsX(nx);
-                    config.statusEffectsY(ny);
+                    config.statusEffectsX(nx + statusBounds.anchorX());
+                    config.statusEffectsY(ny + statusBounds.anchorY());
                 },
                 () -> {
                     config.statusEffectsX(-1);
@@ -226,7 +190,7 @@ public class HudLayoutEditScreen extends Screen {
 
         // 3. Experience Bar
         int defaultExperienceX = this.width / 2 - StatBarHudRenderer.EXPERIENCE_BAR_WIDTH / 2;
-        int defaultExperienceY = this.height - 29;
+        int defaultExperienceY = this.height - 29 - HotbarHudRenderer.DEFAULT_LIFT;
         int experienceX = config.experienceBarX() >= 0
                 ? StatBarHudRenderer.resolveConfiguredX(config.experienceBarX(), this.width,
                         StatBarHudRenderer.EXPERIENCE_BAR_WIDTH,
@@ -234,7 +198,7 @@ public class HudLayoutEditScreen extends Screen {
                 : defaultExperienceX;
         int experienceY = config.experienceBarY() >= 0
                 ? StatBarHudRenderer.resolveConfiguredY(config.experienceBarY(), this.height,
-                        StatBarHudRenderer.EXPERIENCE_BAR_HEIGHT, referenceHeight - 29, defaultExperienceY)
+                        StatBarHudRenderer.EXPERIENCE_BAR_HEIGHT, referenceHeight - 29 - HotbarHudRenderer.DEFAULT_LIFT, defaultExperienceY)
                 : defaultExperienceY;
         elements.add(new DraggableElement(
                 "experience_bar",
@@ -256,14 +220,14 @@ public class HudLayoutEditScreen extends Screen {
 
         // 4. Health Bar
         int defaultHealthX = this.width / 2 - 91;
-        int defaultHealthY = this.height - 39;
+        int defaultHealthY = this.height - 39 - HotbarHudRenderer.DEFAULT_LIFT;
         int healthX = config.healthBarX() >= 0
                 ? StatBarHudRenderer.resolveConfiguredX(config.healthBarX(), this.width,
                         StatBarHudRenderer.BAR_WIDTH, referenceWidth / 2 - 91, defaultHealthX)
                 : defaultHealthX;
         int healthY = config.healthBarY() >= 0
                 ? StatBarHudRenderer.resolveConfiguredY(config.healthBarY(), this.height,
-                        StatBarHudRenderer.BAR_HEIGHT, referenceHeight - 39, defaultHealthY)
+                        StatBarHudRenderer.BAR_HEIGHT, referenceHeight - 39 - HotbarHudRenderer.DEFAULT_LIFT, defaultHealthY)
                 : defaultHealthY;
         elements.add(new DraggableElement(
                 "health_bar",
@@ -286,7 +250,7 @@ public class HudLayoutEditScreen extends Screen {
         int defaultShieldX = healthX;
         int defaultShieldY = healthY - 7;
         int referenceShieldX = config.healthBarX() >= 0 ? config.healthBarX() : referenceWidth / 2 - 91;
-        int referenceShieldY = (config.healthBarY() >= 0 ? config.healthBarY() : referenceHeight - 39) - 7;
+        int referenceShieldY = (config.healthBarY() >= 0 ? config.healthBarY() : referenceHeight - 39 - HotbarHudRenderer.DEFAULT_LIFT) - 7;
         int shieldX = config.shieldBarX() >= 0
                 ? StatBarHudRenderer.resolveConfiguredX(config.shieldBarX(), this.width,
                         StatBarHudRenderer.BAR_WIDTH, referenceShieldX, defaultShieldX)
@@ -314,7 +278,7 @@ public class HudLayoutEditScreen extends Screen {
 
         // 5. Horse Stamina Bar
         int defaultHorseStaminaX = this.width / 2 - HorseStaminaHudRenderer.WIDTH / 2;
-        int defaultHorseStaminaY = this.height - 59;
+        int defaultHorseStaminaY = HorseStaminaHudRenderer.defaultY(this.height);
         int horseStaminaX = config.horseStaminaBarX() >= 0
                 ? config.horseStaminaBarX() : defaultHorseStaminaX;
         int horseStaminaY = config.horseStaminaBarY() >= 0
@@ -364,9 +328,9 @@ public class HudLayoutEditScreen extends Screen {
 
         // 7. Mana Bar
         int defaultHungerX = this.width / 2 + 10;
-        int defaultHungerY = this.height - 39;
+        int defaultHungerY = this.height - 39 - HotbarHudRenderer.DEFAULT_LIFT;
         int referenceHungerX = referenceWidth / 2 + 10;
-        int referenceHungerY = referenceHeight - 39;
+        int referenceHungerY = referenceHeight - 39 - HotbarHudRenderer.DEFAULT_LIFT;
         int hungerX = config.hungerBarX() >= 0
                 ? StatBarHudRenderer.resolveConfiguredX(config.hungerBarX(), this.width,
                         StatBarHudRenderer.BAR_WIDTH, referenceHungerX, defaultHungerX)
@@ -421,11 +385,30 @@ public class HudLayoutEditScreen extends Screen {
                     config.hungerBarY(-1);
                 }
         ));
+
+        elements.add(new DraggableElement(
+                "hotbar",
+                Text.translatable("hud.cranks-dungeons.hotbar"),
+                HotbarHudRenderer.resolveX(width), HotbarHudRenderer.resolveY(height),
+                HotbarHudRenderer.WIDTH, HotbarHudRenderer.HEIGHT,
+                HotbarHudRenderer.defaultX(width), HotbarHudRenderer.defaultY(height),
+                config.hotbarX() >= 0 || config.hotbarY() >= 0,
+                ctx -> HotbarHudRenderer.renderPreview(ctx, mc),
+                (nx, ny) -> {
+                    config.hotbarX(nx);
+                    config.hotbarY(ny);
+                },
+                () -> {
+                    config.hotbarX(-1);
+                    config.hotbarY(-1);
+                }
+        ));
     }
 
     private void resetAllPositions() {
         for (DraggableElement elem : elements) {
             elem.reset();
+            fit(elem);
         }
         if (client != null && client.player != null) {
             client.player.playSound(SoundEvents.UI_BUTTON_CLICK.value(), 1.0f, 1.0f);
@@ -441,8 +424,8 @@ public class HudLayoutEditScreen extends Screen {
                 elem.positionResetter.run();
             }
         }
-        CranksDungeons.CONFIG.statBarLayoutReferenceWidth(this.width);
-        CranksDungeons.CONFIG.statBarLayoutReferenceHeight(this.height);
+        CranksDungeons.CONFIG.statBarLayoutReferenceWidth(layoutWidth>0?layoutWidth:width);
+        CranksDungeons.CONFIG.statBarLayoutReferenceHeight(layoutHeight>0?layoutHeight:height);
         CranksDungeons.CONFIG.save();
     }
 
@@ -469,13 +452,17 @@ public class HudLayoutEditScreen extends Screen {
             if (elem.isHovered(mx, my)) {
                 if (button == 0) {
                     // Left click: Start dragging
+                    selectedElement=elem;
+                    setFocused(null);
                     draggingElement = elem;
                     dragOffsetX = mx - elem.x;
                     dragOffsetY = my - elem.y;
                     return true;
                 } else if (button == 1) {
                     // Right click: Reset element position
+                    selectedElement=elem;
                     elem.reset();
+                    fit(elem);
                     if (client != null && client.player != null) {
                         client.player.playSound(SoundEvents.UI_BUTTON_CLICK.value(), 1.0f, 1.2f);
                     }
@@ -484,6 +471,7 @@ public class HudLayoutEditScreen extends Screen {
             }
         }
 
+        selectedElement=null;
         return false;
     }
 
@@ -548,67 +536,53 @@ public class HudLayoutEditScreen extends Screen {
     }
 
     @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        // Very light darkening overlay (NO blur shader)
-        context.fill(0, 0, this.width, this.height, 0x44000000);
-
-        // Draw guidelines (Screen Center)
-        int centerX = this.width / 2;
-        int centerY = this.height / 2;
-        context.fill(centerX - 1, 30, centerX, this.height - 20, 0x25FFFFFF);
-        context.fill(0, centerY - 1, this.width, centerY, 0x25FFFFFF);
-
-        // Render each draggable HUD element
-        for (DraggableElement elem : elements) {
-            boolean isHovered = elem.isHovered(mouseX, mouseY);
-            boolean isDragging = (elem == draggingElement);
-
-            // Bounding box fill & border
-            int fillColor = isDragging ? 0x4055FF55 : (isHovered ? 0x3055FFFF : 0x10FFFFFF);
-            int borderColor = isDragging ? 0xFF55FF55 : (isHovered ? 0xFF55FFFF : 0x50FFFFFF);
-
-            context.fill(elem.x - 2, elem.y - 2, elem.x + elem.width + 2, elem.y + elem.height + 2, fillColor);
-            context.drawBorder(elem.x - 2, elem.y - 2, elem.width + 4, elem.height + 4, borderColor);
-
-            // Element Label Tag
-            String labelText = elem.displayName.getString();
-            int labelWidth = textRenderer.getWidth(labelText);
-            int tagY = elem.y - 12;
-            if (tagY < 4) tagY = elem.y + elem.height + 3;
-
-            context.fill(elem.x - 2, tagY - 1, elem.x + labelWidth + 4, tagY + 9, 0xCC000000);
-            context.drawTextWithShadow(textRenderer, labelText, elem.x + 1, tagY, isHovered || isDragging ? 0xFF55FFFF : 0xFFDDDDDD);
-
-            // Render live preview
-            context.getMatrices().push();
-            context.getMatrices().translate(elem.x, elem.y, 0);
-            elem.previewRenderer.accept(context);
-            context.getMatrices().pop();
+    public boolean keyPressed(int key,int scan,int modifiers){
+        if(key==72){controlsVisible=!controlsVisible;setFocused(null);for(var child:children())if(child instanceof net.minecraft.client.gui.widget.ClickableWidget widget)widget.visible=controlsVisible;return true;}
+        if(selectedElement!=null&&(key==262||key==263||key==264||key==265)){
+            int step=(modifiers&org.lwjgl.glfw.GLFW.GLFW_MOD_SHIFT)!=0?5:1;
+            selectedElement.x+=key==262?step:key==263?-step:0;
+            selectedElement.y+=key==264?step:key==265?-step:0;
+            selectedElement.isCustom=true;
+            fit(selectedElement);
+            draggingElement=null;
+            return true;
         }
+        return super.keyPressed(key,scan,modifiers);
+    }
 
-        // Render compact floating center pill background for toolbar
-        int tab1W = 95;
-        int tab2W = 90;
-        int snapW = 75;
-        int resetW = 70;
-        int doneW = 60;
-        int spacing = 4;
-        int totalW = tab1W + tab2W + snapW + resetW + doneW + (spacing * 4);
-        int startX = (this.width - totalW) / 2;
-
-        context.fill(startX - 6, 2, startX + totalW + 6, 26, 0xDD141418);
-        context.drawBorder(startX - 6, 2, totalW + 12, 24, 0xFF2A2A32);
-
-        // Bottom status & helper text
-        context.fill(0, this.height - 18, this.width, this.height, 0xEE141418);
-        context.fill(0, this.height - 19, this.width, this.height - 18, 0xFF2A2A32);
-
-        String infoText = (draggingElement != null)
-                ? ("Dragging: " + draggingElement.displayName.getString() + " | Position: X=" + draggingElement.x + ", Y=" + draggingElement.y)
-                : "💡 Drag elements to position them. Right-click any element to reset to default position.";
-        int infoWidth = textRenderer.getWidth(infoText);
-        context.drawTextWithShadow(textRenderer, infoText, (this.width - infoWidth) / 2, this.height - 14, 0xFFCCCCCC);
-
-        super.render(context, mouseX, mouseY, delta);
+    @Override
+    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+        context.fill(0,0,width,height,0x55000000);
+        context.fill(width/2,42,width/2+1,height-12,0x25808080);
+        context.fill(0,height/2,width,height/2+1,0x25808080);
+        DraggableElement hovered=null;
+        for(var element:elements){
+            boolean over=element.isHovered(mouseX,mouseY),moving=element==draggingElement;
+            if(over)hovered=element;
+            context.getMatrices().push();context.getMatrices().translate(element.x,element.y,0);
+            element.previewRenderer.accept(context);context.getMatrices().pop();
+            int color=moving||element==selectedElement?CompendiumStyle.TEXT:over?CompendiumStyle.TEXT_MUTED:0x55696969;
+            context.drawBorder(element.x-2,element.y-2,element.width+4,element.height+4,0xFF000000);
+            context.drawBorder(element.x-1,element.y-1,element.width+2,element.height+2,color);
+        }
+        var focused=draggingElement!=null?draggingElement:selectedElement!=null?selectedElement:hovered;
+        if(focused!=null){
+            String text=focused.displayName.getString()+"  ·  "+focused.x+", "+focused.y;
+            text=textRenderer.trimToWidth(text,width-24);int tagWidth=textRenderer.getWidth(text)+12;
+            int tagX=Math.clamp(focused.x,6,Math.max(6,width-tagWidth-6));
+            int tagY=focused.y>=60?focused.y-17:Math.min(height-22,focused.y+focused.height+4);
+            CompendiumStyle.drawInsetPanel(context,tagX,tagY,tagWidth,15);
+            context.drawText(textRenderer,text,tagX+6,tagY+4,CompendiumStyle.TEXT,false);
+        }
+        if(controlsVisible){
+            CompendiumStyle.drawPanel(context,(width-304)/2,5,304,31);
+            String help=draggingElement==null?(selectedElement==null?"Drag to move · Right-click resets · H hides tools":"Arrows: 1px · Shift: 5px · Right-click resets · H hides tools"):"Position: "+draggingElement.x+", "+draggingElement.y;
+            help=textRenderer.trimToWidth(help,width-30);int helpWidth=textRenderer.getWidth(help)+16;
+            CompendiumStyle.drawInsetPanel(context,(width-helpWidth)/2,42,helpWidth,17);
+            context.drawCenteredTextWithShadow(textRenderer,help,width/2,47,CompendiumStyle.TEXT_MUTED);
+        }else{
+            context.drawText(textRenderer,"H: Show tools",6,height-13,CompendiumStyle.TEXT_MUTED,true);
+        }
+        super.render(context,mouseX,mouseY,delta);
     }
 }

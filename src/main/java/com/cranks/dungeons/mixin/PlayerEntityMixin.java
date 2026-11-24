@@ -36,13 +36,15 @@ public abstract class PlayerEntityMixin extends LivingEntity {
         
         if (block.isIn(net.minecraft.registry.tag.BlockTags.LOGS)) {
             var attr = player.getAttributeInstance(com.cranks.dungeons.registry.ModAttributes.WOODCUTTING_SPEED_PERCENT);
-            if (attr != null) originalSpeed *= (1.0f + attr.getValue() / 100.0f); // Assuming it's a percentage stat 
+            if (attr != null) originalSpeed *= (1.0f + com.cranks.dungeons.gathering.GatheringRules.bounded(attr.getValue(),3));
         } else if (block.isIn(net.minecraft.registry.tag.BlockTags.PICKAXE_MINEABLE)) {
             var attr = player.getAttributeInstance(com.cranks.dungeons.registry.ModAttributes.MINING_SPEED_PERCENT);
-            if (attr != null) originalSpeed *= (1.0f + attr.getValue() / 100.0f);
+            if (attr != null) originalSpeed *= (1.0f + com.cranks.dungeons.gathering.GatheringRules.bounded(attr.getValue(),3));
+        } else if(block.isIn(net.minecraft.registry.tag.BlockTags.SHOVEL_MINEABLE)) {
+            originalSpeed *= com.cranks.dungeons.gathering.GatheringRules.speed(player.getAttributeValue(ModAttributes.DIGGING_SPEED_PERCENT));
         } else if (block.isIn(net.minecraft.registry.tag.BlockTags.CROPS) || block.isOf(net.minecraft.block.Blocks.DIRT)) {
             var attr = player.getAttributeInstance(com.cranks.dungeons.registry.ModAttributes.FARMING_SPEED_PERCENT);
-            if (attr != null) originalSpeed *= (1.0f + attr.getValue() / 100.0f);
+            if (attr != null) originalSpeed *= (1.0f + com.cranks.dungeons.gathering.GatheringRules.bounded(attr.getValue(),3));
         }
 
         cir.setReturnValue(originalSpeed);

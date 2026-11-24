@@ -18,38 +18,40 @@ public final class PlacedBlockTracker {
     public static final String DIG_BLOCKS_ID = "cranks_dungeons_placed_dig_blocks";
     public static final String LOGS_ID = "cranks_dungeons_placed_logs";
     public static final String ORES_ID = "cranks_dungeons_placed_ores";
-    public static final String GATHERING_BLOCKS_ID = "cranks_dungeons_placed_gathering_blocks";
 
-    public static void markPlaced(ServerWorld world, BlockPos pos, String trackerId) {
-        State state = State.get(world, trackerId);
-        if (state.markPlaced(pos)) {
-            state.markDirty();
+    public static boolean tracked(net.minecraft.block.BlockState state) {
+        return state.isIn(com.cranks.dungeons.registry.ModBlockTags.LOG_FORTUNE_LOGS)
+                ||state.isIn(net.minecraft.registry.tag.BlockTags.LEAVES)
+                ||state.isIn(com.cranks.dungeons.registry.ModBlockTags.ORE_FORTUNE_ORES)
+                ||state.isIn(com.cranks.dungeons.registry.ModBlockTags.DIG_FORTUNE_BLOCKS);
+    }
+    private static final java.util.List<String> LEGACY_IDS=java.util.List.of(LOGS_ID,ORES_ID,DIG_BLOCKS_ID);
+
+    public static void mark(ServerWorld world,BlockPos pos){
+        var chunk=world.getChunk(pos);
+        if(com.cranks.dungeons.gathering.GatheringChunkData.of(chunk).cranks$placedResources().add(pos.asLong()))chunk.setNeedsSaving(true);
+    }
+    public static void clear(ServerWorld world,BlockPos pos){
+        var chunk=world.getChunk(pos);
+        if(com.cranks.dungeons.gathering.GatheringChunkData.of(chunk).cranks$placedResources().remove(pos.asLong()))chunk.setNeedsSaving(true);
+        for(String id:LEGACY_IDS){
+            var legacy=State.get(world,id);if(legacy.removePlaced(pos))legacy.markDirty();
         }
     }
-
-    public static void removePlaced(ServerWorld world, BlockPos pos, String trackerId) {
-        State state = State.get(world, trackerId);
-        if (state.removePlaced(pos)) {
-            state.markDirty();
+    public static boolean isPlaced(ServerWorld world,BlockPos pos){
+        if(com.cranks.dungeons.gathering.GatheringChunkData.of(world.getChunk(pos)).cranks$placedResources().contains(pos.asLong()))return true;
+        // Read old saves without losing protection. New markers are written only into chunks.
+        for(String id:LEGACY_IDS){
+            var legacy=State.get(world,id);if(legacy.isPlaced(pos)){mark(world,pos);if(legacy.removePlaced(pos))legacy.markDirty();return true;}
         }
+        return false;
     }
-
-    public static boolean isPlacedByPlayer(ServerWorld world, BlockPos pos, String trackerId) {
-        State state = State.get(world, trackerId);
-        return state.isPlaced(pos);
-    }
-
     private static class State extends PersistentState {
 
-        private static final int MAX_TRACKED_PLACED_BLOCKS = 100_000;
         private final Set<Long> placed = new HashSet<>();
 
+        private static final PersistentState.Type<State> TYPE=new PersistentState.Type<>(State::new,State::fromNbt,null);
         State() {}
-
-        boolean markPlaced(BlockPos pos) {
-            if (placed.size() >= MAX_TRACKED_PLACED_BLOCKS) return false;
-            return placed.add(pos.asLong());
-        }
 
         boolean removePlaced(BlockPos pos) {
             return placed.remove(pos.asLong());
@@ -62,7 +64,7 @@ public final class PlacedBlockTracker {
         public static final Codec<State> CODEC = Codec.LONG.listOf().xmap(
                 list -> {
                     State s = new State();
-                    int limit = Math.min(list.size(), MAX_TRACKED_PLACED_BLOCKS);
+                    int limit = list.size();
                     for (int i = 0; i < limit; i++) {
                         s.placed.add(list.get(i));
                     }
@@ -91,12 +93,7 @@ public final class PlacedBlockTracker {
         }
 
         public static State get(ServerWorld world, String trackerId) {
-            PersistentState.Type<State> type = new PersistentState.Type<>(
-                    State::new,
-                    State::fromNbt,
-                    null
-            );
-            return world.getPersistentStateManager().getOrCreate(type, trackerId);
+            return world.getPersistentStateManager().getOrCreate(TYPE, trackerId);
         }
     }
 }

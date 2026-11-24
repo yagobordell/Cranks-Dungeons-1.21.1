@@ -37,10 +37,10 @@ public final class MountChestInventory extends SimpleInventory {
         if (slot != 0) return;
         boolean equipped = ((MountDataProvider) mount).cranksdungeons$hasMountChest();
         if (stack.isEmpty()) {
-            if (equipped && !mount.getEntityWorld().isClient()) {
+            if (equipped && MountManager.cargoIsEmpty(mount) && !mount.getEntityWorld().isClient()) {
                 MountManager.removeChestWithoutPlayer(mount);
             }
-        } else if (stack.isOf(Items.CHEST) && !equipped) {
+        } else if (stack.isOf(Items.CHEST) && !equipped && !mount.isBaby()) {
             ((MountDataProvider) mount).cranksdungeons$setMountChest(true);
             MountManager.refreshCargoCapacity(mount);
             if (mount instanceof net.minecraft.entity.passive.AbstractHorseEntity horse) {

@@ -1,11 +1,38 @@
 {
   "title": "Parties",
   "content": [
-    { "type": "text", "value": "Parties are persistent groups of up to 10 players. The party HUD shows member health information, same-party direct PvP damage is cancelled, and combat XP can be shared." },
-    { "type": "heading", "value": "Commands" },
-    { "type": "list", "value": "/party create — create a party and become leader.\n/party invite <player> — leader invites an online player; invite expires after 2 minutes.\n/party accept <leader> — accept that leader's pending invite.\n/party info — list members and leader.\n/party kick <player> — leader removes a member.\n/party leader <player> — transfer leadership to a member.\n/party leave — leave; if the leader leaves, leadership passes to the next member or the one-person party disbands.\n/party disband — leader removes the party." },
-    { "type": "heading", "value": "Shared Combat XP" },
-    { "type": "text", "value": "Damage contribution is grouped by party. The party with the highest combined contribution wins kill credit. Online members in the same dimension and within 100 blocks are eligible. With two or more eligible members, each receives ceil(base XP / eligible count x 1.2). The highest Combat Experience bonus among those members scales the pool first." },
-    { "type": "note", "style": "tip", "value": "The 20% party bonus applies only when at least two members are eligible near the kill. A distant or cross-dimensional member receives nothing and does not divide the share." }
+    {
+      "type": "text",
+      "value": "Parties are persistent groups of up to 10 players. The party HUD shows member health information, same-party direct PvP damage is cancelled, and combat XP can be shared."
+    },
+    {
+      "type": "heading",
+      "value": "Commands"
+    },
+    {
+      "type": "list",
+      "value": "/party create — create a party and become leader.\n/party invite <player> — leader invites an online player; invite expires after 2 minutes.\n/party accept <leader> — accept that leader's pending invite.\n/party info — list members and leader.\n/party kick <player> — leader removes a member.\n/party leader <player> — transfer leadership to a member.\n/party leave — leave; if the leader leaves, leadership passes to the next member or the one-person party disbands.\n/party disband — leader removes the party."
+    },
+    {
+      "type": "heading",
+      "value": "Shared Combat XP"
+    },
+    {
+      "type": "text",
+      "value": "Recent active fighters, tanks and support within 64 blocks can share combat XP. The party pool grows by 20% per additional eligible member, capped at 200%, and is split equally without rounding whole XP upward. Inactive, dead and spectator members do not qualify. Different groups share base XP proportionally to their recent damage; personal bonuses apply only to their own share."
+    },
+    {
+      "type": "note",
+      "style": "tip",
+      "value": "The 20% party bonus applies only when at least two members are eligible near the kill. A distant or cross-dimensional member receives nothing and does not divide the share."
+    },
+    {
+      "type": "heading",
+      "value": "Related articles"
+    },
+    {
+      "type": "text",
+      "value": "[[article/xp_progression|Levels and Experience]] | [[article/recovery|Recovery & Mana]] | [[article/enemies|Enemies & Threats]]"
+    }
   ]
 }

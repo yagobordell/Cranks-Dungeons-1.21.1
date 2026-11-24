@@ -1,0 +1,868 @@
+{
+  "minecraft:coal": {
+    "summary": "Coal is a mineral fuel and crafting ingredient.",
+    "obtaining": "Mine [[item/minecraft:coal_ore|Coal Ore]] with a pickaxe. Coal veins are common in exposed hills and mountains; caves also provide access to them.",
+    "uses": "Fuel heat stations and make torches. Coal and [[item/minecraft:charcoal|Charcoal]] are interchangeable as fuel in many recipes, but not in every material recipe.",
+    "creatures": [
+      "minecraft:wither_skeleton"
+    ]
+  },
+  "minecraft:charcoal": {
+    "summary": "Charcoal is a renewable fuel produced by processing wood.",
+    "obtaining": "Char logs in the Kiln. A tree farm can supply fuel without finding a coal vein.",
+    "uses": "Use it for fuel and torches. It is a practical early alternative to [[item/minecraft:coal|Coal]].",
+    "creatures": []
+  },
+  "minecraft:raw_iron": {
+    "summary": "Unrefined Iron obtained from ore.",
+    "obtaining": "Mine [[item/minecraft:iron_ore|Iron Ore]] or [[item/minecraft:deepslate_iron_ore|Deepslate Iron Ore]] with a stone pickaxe or better. Mountainous terrain and underground veins are useful places to search.",
+    "uses": "Process it in the Kiln to obtain [[item/minecraft:iron_ingot|Iron Ingots]]. Raw metal is not ready for forging equipment.",
+    "creatures": []
+  },
+  "minecraft:iron_ingot": {
+    "summary": "A versatile metal for equipment, tools, machinery and utility items.",
+    "obtaining": "Process [[item/minecraft:raw_iron|Raw Iron]] in the Kiln. [[mob/minecraft:iron_golem|Iron Golems]] also drop ingots; [[mob/minecraft:zombie|Zombies]] can rarely drop one after a player kill.",
+    "uses": "Take it to the [[item/minecraft:anvil|Anvil]] for metal equipment and components. Iron is also useful for repairing suitable equipment and making survival utilities.",
+    "creatures": [
+      "minecraft:zombie",
+      "minecraft:husk",
+      "minecraft:zombie_villager",
+      "minecraft:iron_golem"
+    ]
+  },
+  "minecraft:iron_nugget": {
+    "summary": "A small denomination of Iron.",
+    "obtaining": "Break down [[item/minecraft:iron_ingot|Iron Ingots]] through their available assembly recipe, or recover metal through salvage.",
+    "uses": "Combine nuggets into ingots or use them where a recipe needs small metal fittings. Check the Foundry before destroying valuable gear.",
+    "creatures": []
+  },
+  "minecraft:raw_copper": {
+    "summary": "Unrefined Copper mined from ore.",
+    "obtaining": "Mine [[item/minecraft:copper_ore|Copper Ore]] with a stone pickaxe or better. Copper is widespread underground, particularly around dripstone caves.",
+    "uses": "Process it in the Kiln for [[item/minecraft:copper_ingot|Copper Ingots]].",
+    "creatures": []
+  },
+  "minecraft:copper_ingot": {
+    "summary": "A workable metal used in building parts, mechanisms and alchemy.",
+    "obtaining": "Process [[item/minecraft:raw_copper|Raw Copper]] in the Kiln. [[mob/minecraft:drowned|Drowned]] can also drop ingots on player kills.",
+    "uses": "Use Copper in building and utility recipes, or prepare Copper Salt at the [[article/alchemy|Alchemy Stand]]. Shape matching building parts at the [[article/cutting_bench|Cutting Bench]].",
+    "creatures": [
+      "minecraft:drowned"
+    ]
+  },
+  "minecraft:raw_gold": {
+    "summary": "Unrefined Gold mined from ore.",
+    "obtaining": "Mine [[item/minecraft:gold_ore|Gold Ore]] with an iron pickaxe or better. Badlands offer extra Gold veins, including above the usual underground deposits.",
+    "uses": "Process it in the Kiln for [[item/minecraft:gold_ingot|Gold Ingots]].",
+    "creatures": []
+  },
+  "minecraft:gold_ingot": {
+    "summary": "A metal used for equipment, advanced components and special food.",
+    "obtaining": "Process [[item/minecraft:raw_gold|Raw Gold]] in the Kiln. Other sources include structure treasure and recovered Gold materials.",
+    "uses": "Gold equipment provides an Energy [[item/minecraft:shield|Shield]]-oriented base. Ingots also serve utility crafts and [[mob/minecraft:piglin|Piglin]] bartering; choose the station appropriate to the finished item.",
+    "creatures": [
+      "minecraft:zombified_piglin"
+    ]
+  },
+  "minecraft:gold_nugget": {
+    "summary": "A small amount of Gold suitable for fine components.",
+    "obtaining": "Obtain nuggets from [[item/minecraft:nether_gold_ore|Nether Gold Ore]], salvage or breaking down [[item/minecraft:gold_ingot|Gold Ingots]]. [[mob/minecraft:zombified_piglin|Zombified Piglins]] can drop nuggets.",
+    "uses": "Combine into ingots or use in recipes that need a smaller amount of Gold.",
+    "creatures": [
+      "minecraft:zombified_piglin"
+    ]
+  },
+  "minecraft:diamond": {
+    "summary": "A durable equipment and repair material.",
+    "obtaining": "Mine [[item/minecraft:diamond_ore|Diamond Ore]] deep underground with an iron pickaxe or better. Deeper cave layers offer more opportunities; structure treasure can also contain Diamonds.",
+    "uses": "Forge Diamond gear at the [[item/minecraft:anvil|Anvil]], repair compatible gear at the Repair Bench, and make advanced utilities. Diamond bases can roll runes as strong as T8.",
+    "creatures": []
+  },
+  "minecraft:emerald": {
+    "summary": "A gemstone strongly associated with trading.",
+    "obtaining": "Trade with [[mob/minecraft:villager|Villagers]] or mine [[item/minecraft:emerald_ore|Emerald Ore]] in mountain biomes with an iron pickaxe or better. Some Illagers drop Emeralds.",
+    "uses": "Use it for current trades and recipes that specifically request Emeralds. Coins are your separate wallet currency; Emeralds are still physical items.",
+    "creatures": [
+      "minecraft:vindicator",
+      "minecraft:evoker"
+    ]
+  },
+  "minecraft:lapis_lazuli": {
+    "summary": "The material spent when applying enchantments.",
+    "obtaining": "Mine [[item/minecraft:lapis_ore|Lapis Lazuli Ore]] with a stone pickaxe or better. The ore is found underground.",
+    "uses": "Use it at the [[item/minecraft:enchanting_table|Enchanting Table]] to add, replace or remove enchantments. The station displays the cost before you confirm.",
+    "creatures": []
+  },
+  "minecraft:redstone": {
+    "summary": "A dust used for powered mechanisms and control circuits.",
+    "obtaining": "Mine [[item/minecraft:redstone_ore|Redstone Ore]] with an iron pickaxe or better. Witches also drop Redstone.",
+    "uses": "Build circuits and automation components. The [[item/minecraft:crafter|Crafter]] uses redstone pulses to produce its programmed recipe.",
+    "creatures": [
+      "minecraft:witch"
+    ]
+  },
+  "minecraft:quartz": {
+    "summary": "A Nether mineral used for construction and mechanisms.",
+    "obtaining": "Mine [[item/minecraft:nether_quartz_ore|Nether Quartz Ore]] with a pickaxe. [[mob/minecraft:piglin|Piglin]] bartering can also supply Quartz.",
+    "uses": "Use it in mechanism recipes or turn it into building materials. Shape the Quartz building parts at the Cutting Bench.",
+    "creatures": []
+  },
+  "minecraft:amethyst_shard": {
+    "summary": "A renewable crystal from Amethyst Geodes.",
+    "obtaining": "Harvest fully grown Amethyst clusters. [[item/minecraft:budding_amethyst|Budding Amethyst]] grows new clusters and cannot be collected, even with Silk Touch.",
+    "uses": "Use shards in optical items and alchemical preparations. Preserve budding blocks if you want a renewable source.",
+    "creatures": []
+  },
+  "minecraft:netherite_scrap": {
+    "summary": "The direct mining reward from [[item/minecraft:ancient_debris|Ancient Debris]] in this mod.",
+    "obtaining": "Break [[item/minecraft:ancient_debris|Ancient Debris]] with a diamond-grade pickaxe or better, without Silk Touch. Silk Touch returns the block; break that block without Silk Touch to obtain Scrap.",
+    "uses": "Forge Netherite equipment directly from Scrap at the [[item/minecraft:anvil|Anvil]]. Equipment uses Scrap as its main material rather than upgrading a [[item/minecraft:diamond|Diamond]] item at the [[item/minecraft:smithing_table|Smithing Table]].",
+    "creatures": []
+  },
+  "minecraft:ancient_debris": {
+    "summary": "A rare Nether ore that yields [[item/minecraft:netherite_scrap|Netherite Scrap]] directly.",
+    "obtaining": "Search the Nether underground. Silk Touch is required if you want to keep the ore block itself.",
+    "uses": "Break it with a suitable pickaxe without Silk Touch to get Scrap. It is not a furnace input for Scrap in this mod.",
+    "creatures": []
+  },
+  "minecraft:netherite_ingot": {
+    "summary": "An alloy distinct from the Scrap used by current Netherite equipment recipes.",
+    "obtaining": "Use its available material recipe if you need an ingot; check the station recipe before processing your Scrap.",
+    "uses": "Current Netherite equipment is forged directly from Scrap. An ingot cannot replace Scrap in a recipe unless that recipe explicitly accepts it.",
+    "creatures": []
+  },
+  "minecraft:flint": {
+    "summary": "A sharp material used for ammunition and alchemy.",
+    "obtaining": "Break [[item/minecraft:gravel|Gravel]]. Flint Yield can improve manual harvesting; Silk Touch keeps the [[item/minecraft:gravel|Gravel]] block instead.",
+    "uses": "Make ammunition and tools, or prepare a Flint Suspension for alchemy.",
+    "creatures": []
+  },
+  "minecraft:gravel": {
+    "summary": "A loose building and gathering block that can yield [[item/minecraft:flint|Flint]].",
+    "obtaining": "Dig natural Gravel deposits. Gravel appears underground, on shores and in rivers.",
+    "uses": "Use it for building mixtures or harvest it for [[item/minecraft:flint|Flint]]. Placing and breaking the same material does not provide repeatable discovery XP.",
+    "creatures": []
+  },
+  "minecraft:sand": {
+    "summary": "A loose building material and the main source of [[item/minecraft:glass|Glass]].",
+    "obtaining": "Dig Sand in deserts, beaches and river margins.",
+    "uses": "Process it into [[item/minecraft:glass|Glass]] in the Kiln, or use it in building mixtures. [[item/minecraft:glass|Glass]] leads to bottles and other glassware.",
+    "creatures": []
+  },
+  "minecraft:glass": {
+    "summary": "A transparent building material and the basis of bottles.",
+    "obtaining": "Process [[item/minecraft:sand|Sand]] in the Kiln.",
+    "uses": "Make bottles, windows and other glass items. Use the Cutting Bench for building variants.",
+    "creatures": []
+  },
+  "minecraft:glass_bottle": {
+    "summary": "The regular drinking bottle used throughout the potion system.",
+    "obtaining": "Make bottles from [[item/minecraft:glass|Glass]]. This is the same bottle used by vanilla recipes and the mod's regular potions.",
+    "uses": "Fill it from a water source or water cauldron. Drinking a potion returns its bottle; thrown potion containers are consumed.",
+    "creatures": [
+      "minecraft:witch"
+    ]
+  },
+  "minecraft:clay_ball": {
+    "summary": "A soft mineral material from [[item/minecraft:clay|Clay]] blocks.",
+    "obtaining": "Break [[item/minecraft:clay|Clay]] found in shallow water, rivers and lush caves.",
+    "uses": "Process it into [[item/minecraft:brick|Brick]] or prepare [[item/minecraft:clay|Clay]] Suspension at the Alchemy Stand.",
+    "creatures": []
+  },
+  "minecraft:brick": {
+    "summary": "A fired construction material.",
+    "obtaining": "Process [[item/minecraft:clay_ball|Clay Balls]] in the Kiln.",
+    "uses": "Use the Cutting Bench for Brick building parts.",
+    "creatures": []
+  },
+  "minecraft:slime_ball": {
+    "summary": "An elastic creature material used in mechanisms and alchemy.",
+    "obtaining": "Defeat [[mob/minecraft:slime|Slimes]]. Swamps and suitable underground slime chunks offer renewable sources.",
+    "uses": "Use it in sticky components or prepare [[mob/minecraft:slime|Slime]] Suspension. Follow the [[mob/minecraft:slime|Slime]] article for spawning conditions.",
+    "creatures": [
+      "minecraft:slime"
+    ]
+  },
+  "minecraft:bone": {
+    "summary": "A skeletal material used for farming, animal care and alchemy.",
+    "obtaining": "Defeat [[mob/minecraft:skeleton|Skeletons]], [[mob/minecraft:stray|Strays]], [[mob/minecraft:bogged|Bogged]] or other skeleton variants. Fossils and structure loot offer other sources.",
+    "uses": "Turn it into [[item/minecraft:bone_meal|Bone Meal]], tame Wolves or prepare Bone Salts at the Alchemy Stand.",
+    "creatures": [
+      "minecraft:skeleton",
+      "minecraft:stray",
+      "minecraft:bogged",
+      "minecraft:wither_skeleton"
+    ]
+  },
+  "minecraft:bone_meal": {
+    "summary": "A farming material that accelerates many plants.",
+    "obtaining": "Process [[item/minecraft:bone|Bones]] through their recipe, or collect Bone Meal from a [[item/minecraft:composter|Composter]].",
+    "uses": "Fertilize suitable plants, grow vegetation and make dye or building recipes. Crop maturity still matters when harvesting for yield bonuses.",
+    "creatures": [
+      "minecraft:cod",
+      "minecraft:salmon",
+      "minecraft:tropical_fish",
+      "minecraft:pufferfish"
+    ]
+  },
+  "minecraft:string": {
+    "summary": "A flexible fibre used in ranged equipment, textiles and utility items.",
+    "obtaining": "Defeat [[mob/minecraft:spider|Spiders]] or [[mob/minecraft:cave_spider|Cave Spiders]], break [[item/minecraft:cobweb|Cobwebs]] with suitable tools, or search structure treasure.",
+    "uses": "Use it at the [[item/minecraft:fletching_table|Fletching Table]] for ranged equipment and at the Tailoring Bench for textile crafts.",
+    "creatures": [
+      "minecraft:spider",
+      "minecraft:cave_spider",
+      "minecraft:strider",
+      "minecraft:cat"
+    ]
+  },
+  "minecraft:leather": {
+    "summary": "A flexible material for light equipment and bags.",
+    "obtaining": "[[mob/minecraft:cow|Cows]], [[mob/minecraft:horse|Horses]] and several other large animals can supply Leather. Supported leather equipment can also be salvaged at the [[item/minecraft:crafting_table|Crafting Table]].",
+    "uses": "Make light armour, bags and other leather goods at the Tailoring Bench, or use it in utility recipes.",
+    "creatures": [
+      "minecraft:hoglin",
+      "minecraft:cow",
+      "minecraft:mooshroom",
+      "minecraft:horse",
+      "minecraft:donkey",
+      "minecraft:mule",
+      "minecraft:llama",
+      "minecraft:trader_llama"
+    ]
+  },
+  "minecraft:rabbit_hide": {
+    "summary": "A small hide useful in leatherworking.",
+    "obtaining": "Defeat [[mob/minecraft:rabbit|Rabbits]]. They inhabit several dry, snowy and meadow environments.",
+    "uses": "Convert hides into [[item/minecraft:leather|Leather]] where and use them in recipes that request a small hide.",
+    "creatures": [
+      "minecraft:rabbit"
+    ]
+  },
+  "minecraft:feather": {
+    "summary": "A light material used for stabilizing arrows.",
+    "obtaining": "[[mob/minecraft:chicken|Chickens]] can drop Feathers. [[mob/minecraft:parrot|Parrots]] also drop them, though [[mob/minecraft:chicken|Chickens]] are the practical renewable source.",
+    "uses": "Make arrows and other ranged crafts at the [[item/minecraft:fletching_table|Fletching Table]].",
+    "creatures": [
+      "minecraft:chicken",
+      "minecraft:parrot"
+    ]
+  },
+  "minecraft:rotten_flesh": {
+    "summary": "A common undead drop with alchemical uses.",
+    "obtaining": "Defeat [[mob/minecraft:zombie|Zombies]], [[mob/minecraft:husk|Husks]], [[mob/minecraft:drowned|Drowned]] and related undead.",
+    "uses": "Prepare Flesh Suspension at the Alchemy Stand. Eating Rotten Flesh carries its usual Hunger risk.",
+    "creatures": [
+      "minecraft:zombie",
+      "minecraft:husk",
+      "minecraft:drowned",
+      "minecraft:zombie_villager",
+      "minecraft:zombified_piglin",
+      "minecraft:zoglin"
+    ]
+  },
+  "minecraft:spider_eye": {
+    "summary": "A creature ingredient useful in hostile alchemy.",
+    "obtaining": "Defeat [[mob/minecraft:spider|Spiders]] or [[mob/minecraft:cave_spider|Cave Spiders]] on a player-attributed kill. Witches can also supply Spider Eyes.",
+    "uses": "Prepare an alchemical component or use it in recipes. It is harmful to eat.",
+    "creatures": [
+      "minecraft:spider",
+      "minecraft:cave_spider",
+      "minecraft:witch"
+    ]
+  },
+  "minecraft:gunpowder": {
+    "summary": "An explosive material used in projectiles and potion delivery.",
+    "obtaining": "Defeat [[mob/minecraft:creeper|Creepers]]; [[mob/minecraft:ghast|Ghasts]] and Witches are other sources. Some structure treasure contains it.",
+    "uses": "Use it for explosive utilities and the appropriate throwable potion preparations. Check the Alchemy Stand for bottle delivery recipes.",
+    "creatures": [
+      "minecraft:creeper",
+      "minecraft:witch",
+      "minecraft:ghast"
+    ]
+  },
+  "minecraft:ender_pearl": {
+    "summary": "A teleportation material obtained from Endermen.",
+    "obtaining": "Defeat Endermen or obtain Pearls through trades and [[mob/minecraft:piglin|Piglin]] bartering.",
+    "uses": "Throw it to teleport, accepting the associated damage, or use it in advanced recipes and alchemy.",
+    "creatures": [
+      "minecraft:enderman"
+    ]
+  },
+  "minecraft:blaze_rod": {
+    "summary": "A heat-associated creature material.",
+    "obtaining": "Defeat [[mob/minecraft:blaze|Blazes]] in Nether Fortresses on player kills.",
+    "uses": "Use it for advanced recipes or process it into [[item/minecraft:blaze_powder|Blaze Powder]]. It is not a requirement for every Overworld potion in the reworked alchemy system.",
+    "creatures": [
+      "minecraft:blaze"
+    ]
+  },
+  "minecraft:blaze_powder": {
+    "summary": "A processed [[mob/minecraft:blaze|Blaze]] material.",
+    "obtaining": "Prepare it from [[item/minecraft:blaze_rod|Blaze Rods]] through its available recipe.",
+    "uses": "Use it in advanced crafts and alchemical components. The Alchemy Stand uses explicit recipes rather than vanilla brewing fuel.",
+    "creatures": []
+  },
+  "minecraft:ghast_tear": {
+    "summary": "A rare material associated with [[mob/minecraft:ghast|Ghasts]].",
+    "obtaining": "Defeat [[mob/minecraft:ghast|Ghasts]] and collect their drops before they fall into lava.",
+    "uses": "Use it in advanced or restorative recipes. Current potion recipes have Overworld alternatives.",
+    "creatures": [
+      "minecraft:ghast"
+    ]
+  },
+  "minecraft:magma_cream": {
+    "summary": "A heat-resistant creature material.",
+    "obtaining": "Defeat [[mob/minecraft:magma_cube|Magma Cubes]] or use its material recipe.",
+    "uses": "Use it in heat-related crafts and alchemical preparations.",
+    "creatures": [
+      "minecraft:magma_cube"
+    ]
+  },
+  "minecraft:prismarine_shard": {
+    "summary": "A marine mineral dropped by monument defenders.",
+    "obtaining": "Defeat [[mob/minecraft:guardian|Guardians]] or [[mob/minecraft:elder_guardian|Elder Guardians]] around Ocean Monuments.",
+    "uses": "Make [[item/minecraft:prismarine|Prismarine]] building materials and other ocean-themed items.",
+    "creatures": [
+      "minecraft:guardian",
+      "minecraft:elder_guardian"
+    ]
+  },
+  "minecraft:prismarine_crystals": {
+    "summary": "Crystalline material from ocean defenders and [[item/minecraft:sea_lantern|Sea Lanterns]].",
+    "obtaining": "Defeat [[mob/minecraft:guardian|Guardians]] or [[mob/minecraft:elder_guardian|Elder Guardians]], or carefully harvest [[item/minecraft:sea_lantern|Sea Lanterns]].",
+    "uses": "Use it for light sources and marine crafts.",
+    "creatures": [
+      "minecraft:guardian",
+      "minecraft:elder_guardian"
+    ]
+  },
+  "minecraft:nautilus_shell": {
+    "summary": "A marine component used for [[item/minecraft:conduit|Conduits]].",
+    "obtaining": "Fish it as treasure or defeat a [[mob/minecraft:drowned|Drowned]] that carries a shell. [[mob/minecraft:wandering_trader|Wandering Traders]] may sell it.",
+    "uses": "Combine it with a [[item/minecraft:heart_of_the_sea|Heart of the Sea]] through the [[item/minecraft:conduit|Conduit]] recipe.",
+    "creatures": [
+      "minecraft:drowned"
+    ]
+  },
+  "minecraft:heart_of_the_sea": {
+    "summary": "A rare treasure component for underwater utilities.",
+    "obtaining": "Find Buried Treasure, often using maps recovered from Shipwrecks and Ocean Ruins.",
+    "uses": "Use it for a [[item/minecraft:conduit|Conduit]] and any recipes that explicitly request it.",
+    "creatures": []
+  },
+  "minecraft:phantom_membrane": {
+    "summary": "A material from airborne undead.",
+    "obtaining": "Defeat [[mob/minecraft:phantom|Phantoms]], which appear around players who have not rested for several nights.",
+    "uses": "Use it in compatible [[item/minecraft:elytra|Elytra]] repairs and recipes. Current alchemy also offers Overworld ingredient routes without requiring a membrane for every relevant effect.",
+    "creatures": [
+      "minecraft:phantom"
+    ]
+  },
+  "minecraft:shulker_shell": {
+    "summary": "A portable-storage component from [[mob/minecraft:shulker|Shulkers]].",
+    "obtaining": "Defeat [[mob/minecraft:shulker|Shulkers]] in End Cities.",
+    "uses": "Use it to create [[mob/minecraft:shulker|Shulker]] Boxes through their recipe.",
+    "creatures": [
+      "minecraft:shulker"
+    ]
+  },
+  "minecraft:echo_shard": {
+    "summary": "A rare Deep Dark treasure material.",
+    "obtaining": "Search Ancient City chests.",
+    "uses": "Use it in [[item/minecraft:recovery_compass|Recovery Compass]] and other recipes that explicitly request it.",
+    "creatures": []
+  },
+  "minecraft:disc_fragment_5": {
+    "summary": "A fragment of [[item/minecraft:music_disc_5|Music Disc]] 5.",
+    "obtaining": "Search Ancient City chests.",
+    "uses": "Combine fragments through the recipe to obtain the complete disc.",
+    "creatures": []
+  },
+  "minecraft:breeze_rod": {
+    "summary": "A movement-associated material from [[mob/minecraft:breeze|Breezes]].",
+    "obtaining": "Defeat [[mob/minecraft:breeze|Breezes]] in Trial Chambers.",
+    "uses": "Use it for [[item/minecraft:wind_charge|Wind Charges]], the [[item/minecraft:mace|Mace]] recipe and other crafts.",
+    "creatures": [
+      "minecraft:breeze"
+    ]
+  },
+  "minecraft:heavy_core": {
+    "summary": "A rare Trial Chamber treasure component.",
+    "obtaining": "Obtain it from Ominous [[item/minecraft:vault|Vault]] rewards.",
+    "uses": "Use it with a [[item/minecraft:breeze_rod|Breeze Rod]] in the [[item/minecraft:mace|Mace]] recipe.",
+    "creatures": []
+  },
+  "minecraft:nether_star": {
+    "summary": "A boss material from the [[mob/minecraft:wither|Wither]].",
+    "obtaining": "Summon and defeat the [[mob/minecraft:wither|Wither]].",
+    "uses": "Use it for a [[item/minecraft:beacon|Beacon]] or other recipes that specifically request this rare component.",
+    "creatures": []
+  },
+  "minecraft:turtle_scute": {
+    "summary": "A [[mob/minecraft:turtle|Turtle]] shell material obtained by raising young [[mob/minecraft:turtle|Turtles]].",
+    "obtaining": "Collect the Scute when a baby [[mob/minecraft:turtle|Turtle]] grows into an adult.",
+    "uses": "Use it for [[mob/minecraft:turtle|Turtle]] equipment and compatible repairs.",
+    "creatures": []
+  },
+  "minecraft:armadillo_scute": {
+    "summary": "A renewable protective material from [[mob/minecraft:armadillo|Armadillos]].",
+    "obtaining": "[[item/minecraft:brush|Brush]] an [[mob/minecraft:armadillo|Armadillo]] or collect the Scutes it sheds over time.",
+    "uses": "Make and repair [[item/minecraft:wolf_armor|Wolf Armour]] through the equipment systems.",
+    "creatures": []
+  },
+  "minecraft:wheat": {
+    "summary": "A renewable crop used for food and animal care.",
+    "obtaining": "Harvest mature Wheat grown from seeds.",
+    "uses": "Use it in food recipes, breed suitable livestock or prepare Wheat Suspension for alchemy.",
+    "creatures": []
+  },
+  "minecraft:wheat_seeds": {
+    "summary": "Seeds used to establish a [[item/minecraft:wheat|Wheat]] crop.",
+    "obtaining": "Break suitable grass or harvest mature [[item/minecraft:wheat|Wheat]].",
+    "uses": "Plant on prepared farmland or feed and breed [[mob/minecraft:chicken|Chickens]].",
+    "creatures": []
+  },
+  "minecraft:sugar_cane": {
+    "summary": "A waterside plant used for paper, sugar and alchemy.",
+    "obtaining": "Harvest Cane beside water and leave the lowest section to grow again.",
+    "uses": "Make [[item/minecraft:paper|Paper]] or [[item/minecraft:sugar|Sugar]], or prepare Cane Suspension.",
+    "creatures": []
+  },
+  "minecraft:paper": {
+    "summary": "A writing and utility material made from [[item/minecraft:sugar_cane|Sugar Cane]].",
+    "obtaining": "Craft it from [[item/minecraft:sugar_cane|Sugar Cane]] through its available recipe.",
+    "uses": "Make books, map-related items and other written materials.",
+    "creatures": []
+  },
+  "minecraft:sugar": {
+    "summary": "A processed plant ingredient for food and alchemy.",
+    "obtaining": "Process [[item/minecraft:sugar_cane|Sugar Cane]]; Witches are another source.",
+    "uses": "Use it in food recipes and alchemical preparations.",
+    "creatures": [
+      "minecraft:witch"
+    ]
+  },
+  "minecraft:melon_slice": {
+    "summary": "A crop ingredient used in food and alchemy.",
+    "obtaining": "Harvest [[item/minecraft:melon|Melon]] blocks, then preserve seeds if you want to start a farm.",
+    "uses": "Eat it, prepare medicinal extracts or use it in food recipes.",
+    "creatures": []
+  },
+  "minecraft:carrot": {
+    "summary": "A renewable crop and alchemical ingredient.",
+    "obtaining": "Harvest village crops or grow a Carrot obtained from treasure or a rare [[mob/minecraft:zombie|Zombie]]-family drop.",
+    "uses": "Eat it, breed suitable animals or prepare an alchemical extract.",
+    "creatures": [
+      "minecraft:zombie",
+      "minecraft:husk",
+      "minecraft:zombie_villager"
+    ]
+  },
+  "minecraft:potato": {
+    "summary": "A renewable crop that becomes useful food when cooked.",
+    "obtaining": "Harvest crops or obtain an initial Potato from village farms, treasure or a rare [[mob/minecraft:zombie|Zombie]]-family drop.",
+    "uses": "Grow more on farmland and cook them at a [[item/minecraft:campfire|Campfire]] or [[item/minecraft:smoker|Smoker]].",
+    "creatures": [
+      "minecraft:zombie",
+      "minecraft:husk",
+      "minecraft:zombie_villager"
+    ]
+  },
+  "minecraft:beetroot": {
+    "summary": "A renewable crop used in food and alchemy.",
+    "obtaining": "Grow Beetroot from seeds or find village crops.",
+    "uses": "Use it in food, animal care and alchemical extraction.",
+    "creatures": []
+  },
+  "minecraft:sweet_berries": {
+    "summary": "A renewable forest food and alchemical ingredient.",
+    "obtaining": "Harvest Sweet Berry bushes in taiga environments.",
+    "uses": "Eat them, plant bushes, breed Foxes or prepare a restorative extract.",
+    "creatures": []
+  },
+  "minecraft:glow_berries": {
+    "summary": "A renewable cave fruit with alchemical uses.",
+    "obtaining": "Find Cave [[item/minecraft:vine|Vines]] in lush caves or search suitable treasure.",
+    "uses": "Grow new vines, use the berries as food or prepare glowing alchemical materials.",
+    "creatures": []
+  },
+  "minecraft:dandelion": {
+    "summary": "A common flower with dye and alchemical uses.",
+    "obtaining": "Gather it from grassland vegetation or grow flowers where suitable.",
+    "uses": "Make dye or prepare Dandelion Suspension.",
+    "creatures": []
+  },
+  "minecraft:calcite": {
+    "summary": "A pale mineral associated with geodes and some mountain terrain.",
+    "obtaining": "Mine Calcite around Amethyst Geodes or in stony peaks.",
+    "uses": "Use it for building or prepare Calcite Suspension.",
+    "creatures": []
+  },
+  "minecraft:kelp": {
+    "summary": "An ocean plant useful for food, fuel and alchemy.",
+    "obtaining": "Harvest Kelp in oceans and replant to establish a farm.",
+    "uses": "Prepare food and alchemical components; [[item/minecraft:dried_kelp_block|Dried Kelp Blocks]] are a renewable fuel.",
+    "creatures": []
+  },
+  "minecraft:sea_pickle": {
+    "summary": "A marine organism that also acts as an underwater light source.",
+    "obtaining": "Find Sea Pickles in warm oceans, especially around coral reefs.",
+    "uses": "Use them for underwater lighting, dye processing or alchemical extraction.",
+    "creatures": []
+  },
+  "minecraft:pufferfish": {
+    "summary": "A dangerous fish used as an alchemical ingredient.",
+    "obtaining": "Catch it while fishing or collect it in warm and lukewarm ocean waters.",
+    "uses": "Use it in alchemical preparations. Eating it inflicts harmful effects.",
+    "creatures": [
+      "minecraft:guardian",
+      "minecraft:elder_guardian",
+      "minecraft:pufferfish"
+    ]
+  },
+  "minecraft:cocoa_beans": {
+    "summary": "A jungle crop used for food, dye and alchemy.",
+    "obtaining": "Harvest Cocoa pods from [[item/minecraft:jungle_log|Jungle Logs]]; leave or plant new pods for a renewable source.",
+    "uses": "Make food and dye, or prepare a Cocoa extract.",
+    "creatures": []
+  },
+  "minecraft:ink_sac": {
+    "summary": "A dark dye and alchemical ingredient.",
+    "obtaining": "Defeat [[mob/minecraft:squid|Squids]] in suitable waters.",
+    "uses": "Use it in dye recipes or alchemical extraction.",
+    "creatures": [
+      "minecraft:squid"
+    ]
+  },
+  "minecraft:glow_ink_sac": {
+    "summary": "A luminous writing material and alchemical ingredient.",
+    "obtaining": "Defeat [[mob/minecraft:glow_squid|Glow Squids]] in dark underground waters.",
+    "uses": "Make signs glow, craft display items or prepare glowing alchemical materials.",
+    "creatures": [
+      "minecraft:glow_squid"
+    ]
+  },
+  "minecraft:snowball": {
+    "summary": "A cold material for throwing and alchemy.",
+    "obtaining": "Dig [[item/minecraft:snow|Snow]] layers with a shovel, or collect [[item/minecraft:snow|Snow]] from a [[mob/minecraft:snow_golem|Snow Golem]] trail.",
+    "uses": "Prepare cold-related alchemical components or use it in recipes.",
+    "creatures": [
+      "minecraft:snow_golem"
+    ]
+  },
+  "minecraft:ice": {
+    "summary": "A cold building and crafting material.",
+    "obtaining": "Collect suitable Ice with Silk Touch. Freezing water in cold conditions can provide a renewable source.",
+    "uses": "Use it in construction and cold-related recipes.",
+    "creatures": []
+  },
+  "minecraft:honeycomb": {
+    "summary": "A bee product useful for waxed construction and alchemy.",
+    "obtaining": "Use [[item/minecraft:shears|Shears]] on a full [[item/minecraft:beehive|Beehive]] or [[item/minecraft:bee_nest|Bee Nest]]. Calm the bees with smoke where appropriate.",
+    "uses": "Wax suitable blocks, make candles and prepare alchemical components.",
+    "creatures": []
+  },
+  "minecraft:honey_bottle": {
+    "summary": "A bottled bee product with food and alchemical uses.",
+    "obtaining": "Use a [[item/minecraft:glass_bottle|Glass Bottle]] on a full hive or nest, taking precautions against angry bees.",
+    "uses": "Drink it, process it in recipes or prepare alchemical components.",
+    "creatures": []
+  },
+  "minecraft:stick": {
+    "summary": "A basic wooden component used throughout crafting.",
+    "obtaining": "Make it from Planks or [[item/minecraft:bamboo|Bamboo]]; leaves and some other sources can also provide Sticks.",
+    "uses": "Use it in tools, weapons, torches and utility recipes. Keep a supply when establishing your first stations.",
+    "creatures": [
+      "minecraft:witch"
+    ]
+  },
+  "minecraft:flint_and_steel": {
+    "summary": "A tool for starting fires.",
+    "obtaining": "Use its available assembly recipe.",
+    "uses": "[[item/minecraft:light|Light]] [[item/minecraft:campfire|Campfires]], ignite suitable blocks and activate a Nether Portal when dimension travel is available.",
+    "creatures": []
+  },
+  "minecraft:bundle": {
+    "summary": "The early six-slot bag in this mod.",
+    "obtaining": "Craft it through the Tailoring Bench's bag recipe.",
+    "uses": "Equip it in one of the five bag slots to unlock six dedicated storage slots. The Bundle itself cannot contain items; empty its corresponding storage before removing it. Bags remain equipped on death, while bag-inventory contents are dropped.",
+    "creatures": []
+  },
+  "minecraft:bookshelf": {
+    "summary": "A storage-themed building block used around study areas.",
+    "obtaining": "Use its building recipe at the appropriate station.",
+    "uses": "Decorate a room or use it where a recipe or station specifically asks for Bookshelves. Enchanting uses chosen enchantments and explicit material costs rather than vanilla random rolls.",
+    "creatures": []
+  },
+  "minecraft:book": {
+    "summary": "A writing material used in study and utility recipes.",
+    "obtaining": "Use its available recipe or obtain Books from structure loot.",
+    "uses": "Use it in recipes. [[item/minecraft:enchanted_book|Enchanted Books]] are not a substitute for paying the [[item/minecraft:enchanting_table|Enchanting Table]]'s displayed costs.",
+    "creatures": []
+  },
+  "minecraft:enchanted_book": {
+    "summary": "A book carrying enchantments.",
+    "obtaining": "Find it in treasure and trades.",
+    "uses": "Inspect its enchantments for their effects. [[item/minecraft:book|Books]] do not currently teach or directly apply enchantments; use the [[item/minecraft:enchanting_table|Enchanting Table]] to choose a compatible effect and pay its displayed cost.",
+    "creatures": []
+  },
+  "minecraft:name_tag": {
+    "summary": "A consumable used to name an animal or other creature.",
+    "obtaining": "Find one in treasure, fishing rewards or trades.",
+    "uses": "Use it to open the naming panel. A newly tamed animal receives a free naming prompt only at that moment; closing the prompt forfeits that free name.",
+    "creatures": []
+  },
+  "minecraft:saddle": {
+    "summary": "Equipment for riding compatible animals.",
+    "obtaining": "Craft it at the Tailoring Bench or obtain it from treasure and trades.",
+    "uses": "Equip it on an appropriate mount. Ownership and taming rules depend on the animal; see Mounts before trying to claim an unfamiliar species.",
+    "creatures": [
+      "minecraft:ravager"
+    ]
+  },
+  "minecraft:chest": {
+    "summary": "A basic storage block that can also serve as mount cargo.",
+    "obtaining": "Use its available assembly recipe.",
+    "uses": "Store items through the container interface or equip it as a Mount Attachment on a compatible owned mount.",
+    "creatures": []
+  },
+  "cranks-dungeons:armourers_scrap": {
+    "summary": "A consumable material for improving armour quality.",
+    "obtaining": "Earn it through the mod's creature and treasure loot pools.",
+    "uses": "Use it at the Upgrade Bench to improve compatible armour. The station shows the resulting quality and material cost before confirmation.",
+    "creatures": []
+  },
+  "cranks-dungeons:blacksmiths_whetstone": {
+    "summary": "A consumable material for improving weapon quality.",
+    "obtaining": "Earn it through the mod's creature and treasure loot pools.",
+    "uses": "Use it at the Upgrade Bench to improve compatible weapons. Quality improves the relevant base properties before their runes and other bonuses are evaluated.",
+    "creatures": []
+  },
+  "cranks-dungeons:deepslate_sigil": {
+    "summary": "An equipment-upgrade material used to expand enchantment capacity.",
+    "obtaining": "Find it among the mod's creature and treasure rewards.",
+    "uses": "Use it at the Upgrade Bench to add an available enchantment slot. The equipment's limits and current upgrade cost are shown at the bench.",
+    "creatures": []
+  },
+  "minecraft:totem_of_undying": {
+    "summary": "A consumable protection against a qualifying lethal hit.",
+    "obtaining": "Defeat an [[mob/minecraft:evoker|Evoker]].",
+    "uses": "Hold it in either hand when the fatal hit arrives. It is consumed when it saves you; keeping it elsewhere in the inventory does not activate it."
+  },
+  "minecraft:glowstone_dust": {
+    "summary": "A luminous material with both Nether and Overworld sources.",
+    "obtaining": "Break [[item/minecraft:glowstone|Glowstone]] or defeat Witches.",
+    "uses": "Make [[item/minecraft:glowstone|Glowstone]] and utilities. [[item/minecraft:potion|Potion]] strength now comes from Lesser or regular brewing, rather than an old vanilla [[item/minecraft:glowstone|Glowstone]] upgrade chain."
+  },
+  "minecraft:nether_wart": {
+    "summary": "A crop associated with Nether structures.",
+    "obtaining": "Find it around suitable Nether structures and grow it on [[item/minecraft:soul_sand|Soul Sand]].",
+    "uses": "Use it in recipes. The Alchemy Stand does not require an Awkward [[item/minecraft:potion|Potion]] sequence for every potion."
+  },
+  "minecraft:ender_eye": {
+    "summary": "A utility for finding and activating the route to the End.",
+    "obtaining": "Use its available recipe.",
+    "uses": "Throw it to locate a Stronghold and place it in empty [[item/minecraft:end_portal_frame|End Portal Frames]]. It is distinct from the teleporting [[item/minecraft:ender_pearl|Ender Pearl]]."
+  },
+  "minecraft:end_crystal": {
+    "summary": "An explosive crystal used in the Dragon respawn ritual.",
+    "obtaining": "Use its available recipe.",
+    "uses": "Place four at the midpoints around the [[item/minecraft:bedrock|Bedrock]] exit portal in the End to summon another Dragon. Crystals are explosive, not harmless decoration."
+  },
+  "minecraft:dragon_breath": {
+    "summary": "A bottled material collected during a Dragon encounter.",
+    "obtaining": "Use [[item/minecraft:glass_bottle|Glass Bottles]] on the Dragon's lingering breath cloud.",
+    "uses": "Use it in recipes. Current Overworld alchemy does not require Dragon Breath for every lingering potion."
+  },
+  "minecraft:compass": {
+    "summary": "A direction-finding utility.",
+    "obtaining": "Craft it or find it in treasure.",
+    "uses": "An ordinary Compass points toward world spawn in its applicable dimension. A [[item/minecraft:lodestone|Lodestone]]-bound Compass instead follows its bound [[item/minecraft:lodestone|Lodestone]]."
+  },
+  "minecraft:recovery_compass": {
+    "summary": "A utility for locating your last death.",
+    "obtaining": "Use its available recipe with a [[item/minecraft:compass|Compass]] and [[item/minecraft:echo_shard|Echo Shards]].",
+    "uses": "Follow it in the dimension of your last death. It does not recover items automatically."
+  },
+  "minecraft:clock": {
+    "summary": "A time-reading utility.",
+    "obtaining": "Use its available recipe.",
+    "uses": "Read the Overworld day/night cycle without seeing the sky. It behaves unreliably in dimensions without that cycle."
+  },
+  "minecraft:shears": {
+    "summary": "A tool for collecting certain resources without ordinary drops.",
+    "obtaining": "Use its available recipe.",
+    "uses": "Shear [[mob/minecraft:sheep|Sheep]], collect suitable foliage and use other shearable-creature interactions. Some rewards are renewable without killing the animal."
+  },
+  "minecraft:brush": {
+    "summary": "An archaeology and animal-care tool.",
+    "obtaining": "Use its available recipe.",
+    "uses": "Brush [[item/minecraft:suspicious_sand|Suspicious Sand]] or [[item/minecraft:gravel|Gravel]] to uncover items, or brush [[mob/minecraft:armadillo|Armadillos]] to collect Scutes."
+  },
+  "minecraft:lead": {
+    "summary": "A restraint for moving suitable animals.",
+    "obtaining": "Craft it or obtain it from sources.",
+    "uses": "Lead a compatible creature or tether it to a Fence. Mount ownership and whistle commands are separate from attaching a Lead."
+  },
+  "minecraft:fishing_rod": {
+    "summary": "A gathering tool for fishing.",
+    "obtaining": "Use its available recipe.",
+    "uses": "Cast into suitable water and retrieve a bite at the right moment for fish and occasional treasure. Repeat catches do not repeat a first-discovery World XP reward."
+  },
+  "minecraft:carrot_on_a_stick": {
+    "summary": "A riding-control item for [[mob/minecraft:pig|Pigs]].",
+    "obtaining": "Use its available recipe.",
+    "uses": "Hold it while riding a saddled [[mob/minecraft:pig|Pig]] to control movement. Naming and ownership use the mount system."
+  },
+  "minecraft:warped_fungus_on_a_stick": {
+    "summary": "A riding-control item for [[mob/minecraft:strider|Striders]].",
+    "obtaining": "Use its available recipe.",
+    "uses": "Hold it while riding a saddled [[mob/minecraft:strider|Strider]]. Keeping the [[mob/minecraft:strider|Strider]] warm also matters for its speed."
+  },
+  "minecraft:bucket": {
+    "summary": "A reusable container for fluids and certain creatures.",
+    "obtaining": "Use its available recipe.",
+    "uses": "Collect fluids, Milk livestock or move a living fish, [[mob/minecraft:axolotl|Axolotl]] or [[mob/minecraft:tadpole|Tadpole]] in water rather than just collecting its dropped item."
+  },
+  "minecraft:water_bucket": {
+    "summary": "A reusable container holding water.",
+    "obtaining": "Fill an empty [[item/minecraft:bucket|Bucket]] from a water source.",
+    "uses": "Place water for travel, farming and construction. The [[item/minecraft:bucket|Bucket]] remains after placement."
+  },
+  "minecraft:lava_bucket": {
+    "summary": "A reusable container holding lava.",
+    "obtaining": "Fill an empty [[item/minecraft:bucket|Bucket]] from a lava source.",
+    "uses": "Place lava or use it as suitable station fuel. The placed fluid is a serious environmental hazard."
+  },
+  "minecraft:milk_bucket": {
+    "summary": "A drink that clears status effects.",
+    "obtaining": "Use an empty [[item/minecraft:bucket|Bucket]] on a [[mob/minecraft:cow|Cow]] or [[mob/minecraft:mooshroom|Mooshroom]].",
+    "uses": "Drink it to clear effects, remembering that beneficial buffs can be removed too."
+  },
+  "minecraft:bowl": {
+    "summary": "A reusable food container.",
+    "obtaining": "Use its available recipe.",
+    "uses": "Prepare soups and stews, or collect stew from a suitable [[mob/minecraft:mooshroom|Mooshroom]]. Bowl-based foods return the container when eaten."
+  },
+  "minecraft:apple": {
+    "summary": "A food and advanced-food ingredient.",
+    "obtaining": "Harvest suitable tree leaves or obtain Apples through treasure and trades.",
+    "uses": "Eat it or prepare [[item/minecraft:golden_apple|Golden Apple]] recipes. Sapling Yield can help eligible manually harvested Apple drops."
+  },
+  "minecraft:golden_apple": {
+    "summary": "A restorative food with temporary beneficial effects.",
+    "obtaining": "Craft it or find it in suitable treasure.",
+    "uses": "Eat it for its listed effects, or use it with Weakness to cure a [[mob/minecraft:zombie_villager|Zombie Villager]]. Current effect tooltips show the mod's bonuses."
+  },
+  "minecraft:enchanted_golden_apple": {
+    "summary": "A rare restorative treasure food.",
+    "obtaining": "Find it in suitable generated treasure.",
+    "uses": "Use its listed effects as a scarce emergency resource rather than relying on a renewable crop supply."
+  },
+  "minecraft:golden_carrot": {
+    "summary": "A prepared food and alchemical ingredient.",
+    "obtaining": "Craft it or obtain it from trades.",
+    "uses": "Eat it or prepare Golden Carrot Extract at the Alchemy Stand."
+  },
+  "minecraft:rabbit_foot": {
+    "summary": "A rare [[mob/minecraft:rabbit|Rabbit]] material used in alchemy.",
+    "obtaining": "An occasional player-kill drop from [[mob/minecraft:rabbit|Rabbits]].",
+    "uses": "Prepare [[mob/minecraft:rabbit|Rabbit]] Foot Extract for experiments and mixtures."
+  },
+  "minecraft:fermented_spider_eye": {
+    "summary": "A processed creature-and-plant ingredient.",
+    "obtaining": "Use its available recipe.",
+    "uses": "Prepare Fermented Eye Extract at the Alchemy Stand."
+  },
+  "minecraft:brown_mushroom": {
+    "summary": "A fungus used for food and alchemy.",
+    "obtaining": "Gather it in suitable dark or mushroom-rich environments.",
+    "uses": "Prepare food or Mushroom Extract at the Alchemy Stand."
+  },
+  "minecraft:red_mushroom": {
+    "summary": "A fungus used for food and decoration.",
+    "obtaining": "Gather it in suitable dark or mushroom-rich environments.",
+    "uses": "Use it in recipes. Check extraction inputs before treating it as a substitute for [[item/minecraft:brown_mushroom|Brown Mushroom]]."
+  },
+  "minecraft:obsidian": {
+    "summary": "A hard construction and utility material.",
+    "obtaining": "Create it where water contacts suitable lava and mine it with a diamond-grade pickaxe or better.",
+    "uses": "Build a Nether Portal frame or make advanced stations and utilities."
+  },
+  "minecraft:crying_obsidian": {
+    "summary": "A luminous [[item/minecraft:obsidian|Obsidian]] variant.",
+    "obtaining": "Find it around Ruined Portals, in suitable treasure or through [[mob/minecraft:piglin|Piglin]] bartering.",
+    "uses": "Use it for utilities and decoration. It does not substitute for ordinary [[item/minecraft:obsidian|Obsidian]] in a portal frame."
+  },
+  "minecraft:soul_sand": {
+    "summary": "A terrain block with farming, water-column and ritual uses.",
+    "obtaining": "Gather it in suitable Nether locations.",
+    "uses": "Grow [[item/minecraft:nether_wart|Nether Wart]], form upward water bubble columns or build the [[mob/minecraft:wither|Wither]] ritual."
+  },
+  "minecraft:soul_soil": {
+    "summary": "A Nether terrain and ritual material.",
+    "obtaining": "Gather it in [[item/minecraft:soul_sand|Soul Sand]] Valley terrain.",
+    "uses": "Use it for Soul Fire-related crafts and the [[mob/minecraft:wither|Wither]] ritual. It does not replace [[item/minecraft:soul_sand|Soul Sand]] in every farming or water-column use."
+  },
+  "minecraft:wind_charge": {
+    "summary": "A consumable wind projectile.",
+    "obtaining": "Prepare it from [[mob/minecraft:breeze|Breeze]] materials through its recipe.",
+    "uses": "Use the burst for movement or knockback, planning the landing as well as the launch."
+  },
+  "minecraft:firework_rocket": {
+    "summary": "A consumable firework with travel and display uses.",
+    "obtaining": "Use its available recipe.",
+    "uses": "Use appropriate rockets for [[item/minecraft:elytra|Elytra]] travel or displays. Payload and flight properties depend on the rocket you make."
+  },
+  "minecraft:goat_horn": {
+    "summary": "A sound-producing item from a [[mob/minecraft:goat|Goat]] interaction.",
+    "obtaining": "Let a suitable [[mob/minecraft:goat|Goat]] ram an appropriate solid block so a Horn breaks off.",
+    "uses": "Play its Horn sound. Killing a [[mob/minecraft:goat|Goat]] is not the normal way to obtain one."
+  },
+  "minecraft:sniffer_egg": {
+    "summary": "An egg that hatches into a [[mob/minecraft:sniffer|Sniffer]].",
+    "obtaining": "Recover it through suitable warm Ocean Ruin archaeology.",
+    "uses": "Place it to hatch and raise the [[mob/minecraft:sniffer|Sniffer]] for its digging finds. Moss is a useful hatching surface."
+  },
+  "minecraft:torchflower_seeds": {
+    "summary": "Seeds found by a [[mob/minecraft:sniffer|Sniffer]].",
+    "obtaining": "Let a [[mob/minecraft:sniffer|Sniffer]] dig in suitable ground.",
+    "uses": "Grow [[item/minecraft:torchflower|Torchflowers]] for farming and decorative uses."
+  },
+  "minecraft:pitcher_pod": {
+    "summary": "A planting item found by a [[mob/minecraft:sniffer|Sniffer]].",
+    "obtaining": "Let a [[mob/minecraft:sniffer|Sniffer]] dig in suitable ground.",
+    "uses": "Grow a [[item/minecraft:pitcher_plant|Pitcher Plant]] for recipes."
+  },
+  "minecraft:torch": {
+    "summary": "A basic light source.",
+    "obtaining": "Use Hand Crafting with its required wooden component and fuel.",
+    "uses": "[[item/minecraft:light|Light]] paths and work areas for visibility and to reduce ordinary darkness-based monster spawning."
+  },
+  "minecraft:lantern": {
+    "summary": "A standing or hanging light source.",
+    "obtaining": "Use its available building recipe.",
+    "uses": "[[item/minecraft:light|Light]] and decorate work areas, following its hanging or standing placement rules."
+  },
+  "minecraft:stone": {
+    "summary": "A common mineral building material.",
+    "obtaining": "Mine it with Silk Touch or process [[item/minecraft:cobblestone|Cobblestone]] in the Kiln.",
+    "uses": "Use it directly or shape Stone building parts at the Cutting Bench."
+  },
+  "minecraft:cobblestone": {
+    "summary": "A basic mineral resource.",
+    "obtaining": "Mine [[item/minecraft:stone|Stone]] with a suitable pickaxe without Silk Touch.",
+    "uses": "Make early gear and stations, process it into [[item/minecraft:stone|Stone]] or shape building parts."
+  },
+  "minecraft:deepslate": {
+    "summary": "A deep underground construction material.",
+    "obtaining": "Mine Deepslate with Silk Touch.",
+    "uses": "Use it for construction and Cutting Bench conversions. Ordinary mining instead produces [[item/minecraft:cobbled_deepslate|Cobbled Deepslate]]."
+  },
+  "minecraft:cobbled_deepslate": {
+    "summary": "A deep-stone resource for construction.",
+    "obtaining": "Mine [[item/minecraft:deepslate|Deepslate]] with a suitable pickaxe without Silk Touch.",
+    "uses": "Shape its building family at the Cutting Bench or process it through recipes."
+  }
+}

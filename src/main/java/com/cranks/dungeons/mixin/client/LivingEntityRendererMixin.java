@@ -1,16 +1,12 @@
 package com.cranks.dungeons.mixin.client;
 
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.OverlayTexture;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.entity.LivingEntityRenderer;
 import net.minecraft.client.render.entity.model.EntityModel;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.Identifier;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -20,6 +16,15 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(LivingEntityRenderer.class)
 public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extends EntityModel<T>> {
+    @org.spongepowered.asm.mixin.Unique
+    private final java.util.Map<T,Float> cranks$frozenAnimation=new java.util.WeakHashMap<>();
+
+    @Inject(method="getAnimationProgress",at=@At("RETURN"),cancellable=true)
+    private void freezeAnimationClock(T entity,float tickDelta,CallbackInfoReturnable<Float> cir){
+        if(com.cranks.dungeons.util.ClientAilmentHelper.isStunned(entity))
+            cir.setReturnValue(cranks$frozenAnimation.computeIfAbsent(entity,key->cir.getReturnValue()));
+        else cranks$frozenAnimation.remove(entity);
+    }
 
     @Inject(method = "hasLabel", at = @At("HEAD"), cancellable = true)
     private void hideNametag(T entity, CallbackInfoReturnable<Boolean> cir) {
@@ -34,56 +39,30 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
     }
 
     @Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/math/MatrixStack;pop()V"))
-    private void renderElectrocuted(T entity, float yaw, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, CallbackInfo ci) {
-        java.util.List<com.cranks.dungeons.network.AilmentSyncPayload.AilmentEntry> ailments =
-                com.cranks.dungeons.client.render.AilmentIconRenderer.getAilments(entity.getId());
-        boolean isElectrocuted = ailments.stream().anyMatch(e -> e.texture().getPath().equals("textures/mob_effect/electrocute.png"));
-
-        if (isElectrocuted && this.model != null) {
-            float f = entity.age + tickDelta;
-            VertexConsumer consumer = vertexConsumers.getBuffer(
-                    net.minecraft.client.render.RenderLayer.getEnergySwirl(
-                            Identifier.of("minecraft", "textures/entity/creeper/creeper_armor.png"),
-                            f * 0.01F % 1.0F,
-                            f * 0.0001F % 1.0F
-                    )
-            );
-            this.model.render(matrices, consumer, 15728880, OverlayTexture.DEFAULT_UV);
-        }
+    private void renderAilmentModel(T entity, float yaw, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, CallbackInfo ci) {
+        com.cranks.dungeons.client.render.AilmentBodyRenderer.renderModelOverlay(entity,this.model,tickDelta,matrices,vertexConsumers,light);
     }
 
     /** Render mount panniers while the renderer still has the entity transform pushed. */
     @Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/math/MatrixStack;pop()V"))
     private void renderMountPanniers(T entity, float yaw, float tickDelta, MatrixStack matrices,
                                      VertexConsumerProvider vertexConsumers, int light, CallbackInfo ci) {
+        // Normal renderers use the registered feature; keep one fallback for
+        // renderers supplied without Fabric's feature-registration callback.
+        for (var feature:features) {
+            if(feature instanceof com.cranks.dungeons.client.render.MountChestFeatureRenderer)return;
+        }
         com.cranks.dungeons.client.render.MountChestFeatureRenderer.renderPanniers(
-                matrices, vertexConsumers, light, entity);
+                this.model, matrices, vertexConsumers, light, entity);
     }
 
     @Inject(method = "render", at = @At("TAIL"))
-    private void renderFrozen(T entity, float yaw, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, CallbackInfo ci) {
-        java.util.List<com.cranks.dungeons.network.AilmentSyncPayload.AilmentEntry> ailments =
-                com.cranks.dungeons.client.render.AilmentIconRenderer.getAilments(entity.getId());
-        boolean isFrozen = ailments.stream().anyMatch(e -> e.texture().getPath().equals("textures/mob_effect/freeze.png"));
-
-        if (isFrozen) {
-            matrices.push();
-            float width = entity.getWidth() + 1.2f;
-            float height = entity.getHeight() + 0.5f;
-            matrices.scale(width, height, width);
-            matrices.translate(-0.5f, 0.0f, -0.5f);
-
-            MinecraftClient.getInstance().getBlockRenderManager().renderBlockAsEntity(
-                    net.minecraft.block.Blocks.ICE.getDefaultState(),
-                    matrices,
-                    vertexConsumers,
-                    light,
-                    OverlayTexture.DEFAULT_UV
-            );
-            matrices.pop();
-        }
+    private void renderAilmentBody(T entity, float yaw, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, CallbackInfo ci) {
+        com.cranks.dungeons.client.render.AilmentBodyRenderer.render(entity,tickDelta,matrices,vertexConsumers,light);
     }
 
     @Shadow
     protected M model;
+    @Shadow @org.spongepowered.asm.mixin.Final
+    protected java.util.List<net.minecraft.client.render.entity.feature.FeatureRenderer<T,M>> features;
 }

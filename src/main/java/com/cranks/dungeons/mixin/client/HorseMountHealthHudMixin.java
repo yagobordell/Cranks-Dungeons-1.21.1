@@ -1,6 +1,7 @@
 package com.cranks.dungeons.mixin.client;
 
 import com.cranks.dungeons.client.HorseMountHudLayout;
+import com.cranks.dungeons.client.render.HotbarHudRenderer;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
@@ -25,12 +26,13 @@ public abstract class HorseMountHealthHudMixin {
 
     @Inject(method = "renderMountHealth", at = @At("HEAD"), cancellable = true)
     private void cranks$renderScaledHorseHealth(DrawContext context, CallbackInfo ci) {
+        if(client.currentScreen instanceof com.cranks.dungeons.client.screen.HudLayoutEditScreen){ci.cancel();return;}
         if (client.player == null || !(client.player.getVehicle() instanceof LivingEntity horse)
                 || MountKind.of(horse) == MountKind.UNSUPPORTED) return;
 
         int hearts = HorseMountHudLayout.visibleHeartCount(horse);
         int healthHalfUnits = HorseMountHudLayout.mountHealthHalfUnits(horse.getHealth());
-        int y = context.getScaledWindowHeight() - 39;
+        int y = context.getScaledWindowHeight() - 39 - HotbarHudRenderer.DEFAULT_LIFT;
         int right = context.getScaledWindowWidth() / 2 + 91;
         int healthOffset = 0;
 

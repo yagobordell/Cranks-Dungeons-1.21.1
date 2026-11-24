@@ -46,13 +46,8 @@ public class WitherResistanceReductionMixin {
     private void updateResistances(LivingEntity entity, int witherLevel) {
         // Wither I (level 1) = -35%, Wither II (level 2) = -50%
         double resistanceReduction;
-        if (witherLevel == 1) {
-            resistanceReduction = -0.35;
-        } else if (witherLevel >= 2) {
-            resistanceReduction = -0.50;
-        } else {
-            resistanceReduction = 0.0;
-        }
+        resistanceReduction = witherLevel <= 0 ? 0
+                : -com.cranks.dungeons.effect.StatusEffectRules.witherReduction(witherLevel - 1) / 100.0;
 
         // Apply to all elemental resistances
         applyResistanceModifier(entity, ModAttributes.FIRE_RESISTANCE, resistanceReduction);

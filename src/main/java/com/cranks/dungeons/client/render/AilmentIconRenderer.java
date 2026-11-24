@@ -1,186 +1,81 @@
 package com.cranks.dungeons.client.render;
-
-import com.cranks.dungeons.CranksDungeons;
-import com.cranks.dungeons.effect.ModEffects;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
-import net.minecraft.client.MinecraftClient;
 import com.cranks.dungeons.network.AilmentSyncPayload;
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.render.*;
-import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.world.ClientWorld;
+import net.minecraft.entity.effect.StatusEffectInstance;
+import net.minecraft.registry.Registries;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.RotationAxis;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-
-public class AilmentIconRenderer {
-
-    // Cache to store synced ailment data from the server
-    private static final Map<Integer, List<AilmentSyncPayload.AilmentEntry>> AILMENT_CACHE = new ConcurrentHashMap<>();
-
-    public static void updateAilments(int entityId, List<AilmentSyncPayload.AilmentEntry> ailments) {
-        if (ailments.isEmpty()) {
-            AILMENT_CACHE.remove(entityId);
-        } else {
-            AILMENT_CACHE.put(entityId, new ArrayList<>(ailments));
+/** World-scoped icon/detail cache. Rendering belongs to the projected nameplate pass. */
+public final class AilmentIconRenderer {
+    private record Snapshot(List<AilmentSyncPayload.AilmentEntry> entries, long receivedTick) {}
+    private record Resisted(UUID entityUuid, long expiresTick) {}
+    private static final Map<Integer,Snapshot> CACHE=new ConcurrentHashMap<>();
+    private static final Map<Integer,Resisted> RESISTED=new ConcurrentHashMap<>();
+    private static ClientWorld world;
+    private static long lastPrunedTick=Long.MIN_VALUE;
+    private AilmentIconRenderer() {
+    }
+    private static void checkWorld() {
+        ClientWorld current=MinecraftClient.getInstance().world;
+        if(current!=world) {
+            CACHE.clear();
+            RESISTED.clear();
+            lastPrunedTick=Long.MIN_VALUE;
+            world=current;
+        }
+        if(world!=null && world.getTime()!=lastPrunedTick) {
+            lastPrunedTick=world.getTime();
+            RESISTED.values().removeIf(value -> value.expiresTick()<=lastPrunedTick);
         }
     }
-
+    public static void clear() {
+        CACHE.clear();
+        RESISTED.clear();
+        lastPrunedTick=Long.MIN_VALUE;
+        world=null;
+    }
+    public static void remove(int entityId) {
+        CACHE.remove(entityId);
+        RESISTED.remove(entityId);
+    }
+    public static void updateAilments(int entityId,List<AilmentSyncPayload.AilmentEntry> ailments) {
+        checkWorld();
+        if(ailments.isEmpty())CACHE.remove(entityId);
+        else if(world!=null)CACHE.put(entityId,new Snapshot(List.copyOf(ailments),world.getTime()));
+    }
     public static List<AilmentSyncPayload.AilmentEntry> getAilments(int entityId) {
-        return AILMENT_CACHE.getOrDefault(entityId, List.of());
+        checkWorld();
+        var snapshot=CACHE.get(entityId);
+        return snapshot==null?List.of():snapshot.entries();
     }
-
-    public static java.util.Set<Integer> getTrackedEntityIds() {
-        return java.util.Set.copyOf(AILMENT_CACHE.keySet());
+    public static float remainingSeconds(int entityId,AilmentSyncPayload.AilmentEntry entry) {
+        checkWorld();
+        var snapshot=CACHE.get(entityId);
+        return snapshot==null || world==null ? entry.remainingSeconds()
+                : AilmentPresentation.remaining(entry.remainingSeconds(),snapshot.receivedTick(),world.getTime());
     }
-
-
-
-    public static void render(WorldRenderContext context, VertexConsumerProvider consumers) {
-        MinecraftClient client = MinecraftClient.getInstance();
-        if (client.world == null || client.player == null) return;
-
-        MatrixStack matrices = context.matrixStack();
-        float tickDelta = context.tickCounter().getTickDelta(true);
-        net.minecraft.client.render.Camera camera = client.gameRenderer.getCamera();
-        
-        double cameraX = camera.getPos().x;
-        double cameraY = camera.getPos().y;
-        double cameraZ = camera.getPos().z;
-
-        // Cleanup cache for entities no longer in the world
-        if (client.world.getTime() % 100 == 0) {
-            AILMENT_CACHE.keySet().removeIf(id -> client.world.getEntityById(id) == null);
-        }
-
-        for (int entityId : getTrackedEntityIds()) {
-            net.minecraft.entity.Entity entity = client.world.getEntityById(entityId);
-            if (entity == null) continue;
-            if (entity instanceof LivingEntity living && living.isAlive() && !living.isInvisibleTo(client.player)) {
-                // Skip the local player to prevent blocking their own view if they look up
-                if (living == client.player) continue;
-                
-                if (living.distanceTo(client.player) > 32) continue;
-                if (!EntityStatBarRenderer.canSeeEntity(client.player, living)) continue;
-
-                List<AilmentSyncPayload.AilmentEntry> activeAilments = AILMENT_CACHE.get(living.getId());
-                if (activeAilments == null || activeAilments.isEmpty()) continue;
-
-                matrices.push();
-                
-                // Position above head, exactly matching the stat bar base position
-                double wx = MathHelper.lerp(tickDelta, living.lastRenderX, living.getX()) - cameraX;
-                double wy = MathHelper.lerp(tickDelta, living.lastRenderY, living.getY()) - cameraY + living.getHeight() + 0.1;
-                double wz = MathHelper.lerp(tickDelta, living.lastRenderZ, living.getZ()) - cameraZ;
-
-                matrices.translate(wx, wy, wz);
-                
-                // Billboard rotation
-                matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(-camera.getYaw()));
-                matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(camera.getPitch()));
-
-                // Bobbing animation and local Y offset (so it stays relative to the health bar)
-                // We also pull it slightly forward in Z (-0.05f) so it doesn't z-fight with the stat bar
-                float time = (client.world.getTime() + tickDelta) * 0.1f;
-                float bob = MathHelper.sin(time) * 0.05f;
-                matrices.translate(0, bob + 1.2f, -0.05f);
-
-                float size = 0.4f;
-                float spacing = size * 1.1f;
-                float totalWidth = (activeAilments.size() - 1) * spacing;
-                matrices.translate(-totalWidth / 2f, 0, 0);
-
-                for (int i = 0; i < activeAilments.size(); i++) {
-                    AilmentSyncPayload.AilmentEntry info = activeAilments.get(i);
-                    matrices.push();
-                    matrices.translate(i * spacing, 0, 0);
-                    
-                    renderIcon(matrices, info.texture(), size, consumers);
-                    
-                    // Flush the icon so that the see-through text draws completely over it
-                    if (consumers instanceof net.minecraft.client.render.VertexConsumerProvider.Immediate immediate) {
-                        immediate.draw();
-                    }
-                    
-                    if (info.texture().getPath().contains("buildup")) {
-                        renderStacks(matrices, info.stacks() + "%", size, consumers);
-                    } else if (info.stacks() > 1) {
-                        renderStacks(matrices, "x" + info.stacks(), size, consumers);
-                    }
-                    
-                    // Flush the text
-                    if (consumers instanceof net.minecraft.client.render.VertexConsumerProvider.Immediate immediate) {
-                        immediate.draw();
-                    }
-                    
-                    matrices.pop();
-                }
-
-                matrices.pop();
-            }
-        }
+    public static void resisted(int entityId,UUID entityUuid) {
+        checkWorld();
+        var entity=world==null?null:world.getEntityById(entityId);
+        if(entity==null || !entity.getUuid().equals(entityUuid))return;
+        RESISTED.put(entityId,new Resisted(entityUuid,world.getTime()+AilmentPresentation.RESISTED_TICKS));
     }
-
-    private static void renderStacks(MatrixStack matrices, String text, float iconSize, VertexConsumerProvider consumers) {
-        TextRenderer textRenderer = MinecraftClient.getInstance().textRenderer;
-        
-        matrices.push();
-        
-        // Position vertically centered, and slightly pulled forward in text space
-        matrices.translate(0, 0, -0.05f);
-        
-        // Scale down from world space to text space
-        float textScale = iconSize * 0.035f;
-        matrices.scale(-textScale, -textScale, textScale);
-        
-        // Center the text
-        float textWidth = textRenderer.getWidth(text);
-        
-        textRenderer.draw(
-            text,
-            -textWidth / 2f,
-            0,
-            0xFFFFFFFF, // white with full alpha
-            true, // shadow for readability
-            matrices.peek().getPositionMatrix(),
-            consumers,
-            TextRenderer.TextLayerType.SEE_THROUGH,
-            0x40000000, // semi-transparent black background
-            LightmapTextureManager.MAX_LIGHT_COORDINATE
-        );
-        
-        matrices.pop();
+    public static int resistedTicks(LivingEntity entity) {
+        checkWorld();
+        var feedback=RESISTED.get(entity.getId());
+        return feedback==null || world==null || entity.getWorld()!=world || !feedback.entityUuid().equals(entity.getUuid())
+                ? 0 : (int)Math.max(0,feedback.expiresTick()-world.getTime());
     }
-
-    private static void renderIcon(MatrixStack matrices, Identifier texture, float size, VertexConsumerProvider consumers) {
-        VertexConsumer buffer = consumers.getBuffer(RenderLayer.getTextSeeThrough(texture));
-        MatrixStack.Entry entry = matrices.peek();
-        
-        float half = size / 2f;
-        // +X is left on screen, +Y is up. Trace CCW: Top-Left -> Bottom-Left -> Bottom-Right -> Top-Right
-        vertex(buffer, entry, half, half, 0, 0, 0, 255);      // Top-Left (U=0, V=0)
-        vertex(buffer, entry, half, -half, 0, 0, 1, 255);     // Bottom-Left (U=0, V=1)
-        vertex(buffer, entry, -half, -half, 0, 1, 1, 255);    // Bottom-Right (U=1, V=1)
-        vertex(buffer, entry, -half, half, 0, 1, 0, 255);     // Top-Right (U=1, V=0)
+    public static Set<Integer> getTrackedEntityIds() {
+        checkWorld();
+        return Set.copyOf(CACHE.keySet());
     }
-
-    private static void vertex(VertexConsumer buffer, MatrixStack.Entry entry, float x, float y, float z, float u, float v) {
-        vertex(buffer, entry, x, y, z, u, v, 255, 255, 255, 255);
-    }
-
-    private static void vertex(VertexConsumer buffer, MatrixStack.Entry entry, float x, float y, float z, float u, float v, int alpha) {
-        vertex(buffer, entry, x, y, z, u, v, alpha, 255, 255, 255);
-    }
-
-    private static void vertex(VertexConsumer buffer, MatrixStack.Entry entry, float x, float y, float z, float u, float v, int alpha, int r, int g, int b) {
-        buffer.vertex(entry, x, y, z)
-            .color(r, g, b, alpha)
-            .texture(u, v)
-            .light(LightmapTextureManager.MAX_LIGHT_COORDINATE);
+    public static AilmentSyncPayload.AilmentEntry details(int entityId,StatusEffectInstance effect) {
+        var id=Registries.STATUS_EFFECT.getId(effect.getEffectType().value());
+        if(!id.getNamespace().equals("cranks-dungeons"))return null;
+        String path="textures/mob_effect/"+id.getPath()+".png";
+        return getAilments(entityId).stream().filter(a->!a.buildup()&&a.texture().getPath().equals(path)).findFirst().orElse(null);
     }
 }

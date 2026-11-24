@@ -34,16 +34,30 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.UUID;
+
 public class QualityStationBlockEntity extends BlockEntity implements NamedScreenHandlerFactory, SidedInventory {
     private final DefaultedList<ItemStack> inventory = DefaultedList.ofSize(2, ItemStack.EMPTY);
 
     public static final int EQUIPMENT_SLOT = 0;
     public static final int MATERIAL_SLOT = 1;
+    public static final int QUALITY_CAP = 20;
+    public static final int BONUS_CHANCE = 33;
+    public static final int PROGRESS_PROPERTY = 0;
+    public static final int REMAINING_PROPERTY = 1;
+    public static final int COMPLETED_PROPERTY = 2;
+    public static final int JOB_PROPERTY = 3;
+    public static final int PROPERTY_COUNT = 4;
 
     private int processTick = 0;
     public static final int PROCESS_TIME = 600; // 30 seconds for quality
     public static final int SIGIL_PROCESS_TIME = 1200; // 60 seconds for sigils (double quality time)
-    private boolean isProcessing = false;
+    private int remainingUpgrades;
+    private int jobId;
+    @Nullable private UUID startedBy;
+    private ItemStack processingEquipment = ItemStack.EMPTY;
+    private ItemStack processingMaterial = ItemStack.EMPTY;
+    private ItemStack completedEquipment = ItemStack.EMPTY;
 
     protected final PropertyDelegate propertyDelegate;
 
@@ -53,36 +67,27 @@ public class QualityStationBlockEntity extends BlockEntity implements NamedScree
             @Override
             public int get(int index) {
                 return switch (index) {
-                    case 0 -> QualityStationBlockEntity.this.processTick;
-                    case 1 -> QualityStationBlockEntity.this.isProcessing ? 1 : 0;
-                    case 2 -> QualityStationBlockEntity.this.isSigilMode() ? SIGIL_PROCESS_TIME : PROCESS_TIME;
+                    case PROGRESS_PROPERTY -> processTick;
+                    case REMAINING_PROPERTY -> remainingUpgrades;
+                    case COMPLETED_PROPERTY -> hasCompletedEquipment() ? 1 : 0;
+                    case JOB_PROPERTY -> jobId;
                     default -> 0;
                 };
             }
 
             @Override
-            public void set(int index, int value) {
-                switch (index) {
-                    case 0 -> QualityStationBlockEntity.this.processTick = value;
-                    case 1 -> QualityStationBlockEntity.this.isProcessing = value == 1;
-                }
-            }
+            public void set(int index, int value) {}
 
             @Override
             public int size() {
-                return 3;
+                return PROPERTY_COUNT;
             }
         };
     }
 
-    public boolean isSigilMode() {
-        ItemStack material = getStack(MATERIAL_SLOT);
-        return !material.isEmpty() && material.getItem() instanceof DeepslateSigilItem;
-    }
-
     @Override
     public Text getDisplayName() {
-        return Text.literal("Quality Station");
+        return getCachedState().getBlock().getName();
     }
 
     @Nullable
@@ -117,15 +122,16 @@ public class QualityStationBlockEntity extends BlockEntity implements NamedScree
 
     @Override
     public ItemStack removeStack(int slot) {
-        return Inventories.removeStack(inventory, slot);
+        ItemStack removed = Inventories.removeStack(inventory, slot);
+        if (!removed.isEmpty()) markDirty();
+        return removed;
     }
 
     @Override
     public void setStack(int slot, ItemStack stack) {
         inventory.set(slot, stack);
-        if (stack.getCount() > getMaxCount(stack)) {
-            stack.setCount(getMaxCount(stack));
-        }
+        stack.capCount(slot == EQUIPMENT_SLOT ? 1 : getMaxCount(stack));
+        if (slot == EQUIPMENT_SLOT && !stack.isEmpty() && !hasCompletedEquipment()) completedEquipment = ItemStack.EMPTY;
         markDirty();
     }
 
@@ -138,6 +144,9 @@ public class QualityStationBlockEntity extends BlockEntity implements NamedScree
     @Override
     public void clear() {
         inventory.clear();
+        endJob();
+        completedEquipment = ItemStack.EMPTY;
+        markDirty();
     }
 
     @Override
@@ -145,15 +154,31 @@ public class QualityStationBlockEntity extends BlockEntity implements NamedScree
         super.writeNbt(nbt, registryLookup);
         Inventories.writeNbt(nbt, inventory, registryLookup);
         nbt.putInt("processTick", processTick);
-        nbt.putBoolean("isProcessing", isProcessing);
+        nbt.putInt("remainingUpgrades", remainingUpgrades);
+        nbt.putInt("jobId", jobId);
+        nbt.putBoolean("completed", hasCompletedEquipment());
+        if (remainingUpgrades > 0) {
+            if (startedBy != null) nbt.putUuid("startedBy", startedBy);
+            nbt.put("processEquipment", processingEquipment.encode(registryLookup));
+            nbt.put("processMaterial", processingMaterial.encode(registryLookup));
+        }
     }
 
     @Override
     public void readNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
         super.readNbt(nbt, registryLookup);
         Inventories.readNbt(nbt, inventory, registryLookup);
-        processTick = nbt.getInt("processTick");
-        isProcessing = nbt.getBoolean("isProcessing");
+        var equipment = getStack(EQUIPMENT_SLOT);
+        var material = getStack(MATERIAL_SLOT);
+        int cycles = nbt.contains("remainingUpgrades") ? nbt.getInt("remainingUpgrades") : nbt.getBoolean("isProcessing") ? 1 : 0;
+        jobId = Math.clamp(nbt.getInt("jobId"), 0, 30_000);
+        completedEquipment = nbt.getBoolean("completed") ? equipment.copy() : ItemStack.EMPTY;
+        processingEquipment = ItemStack.fromNbtOrEmpty(registryLookup, nbt.getCompound("processEquipment"));
+        processingMaterial = ItemStack.fromNbtOrEmpty(registryLookup, nbt.getCompound("processMaterial"));
+        remainingUpgrades = sameInputs(equipment, material) ? Math.clamp(cycles, 0, upgradeLimit(equipment, material)) : 0;
+        startedBy = remainingUpgrades > 0 && nbt.containsUuid("startedBy") ? nbt.getUuid("startedBy") : null;
+        processTick = remainingUpgrades > 0 ? Math.clamp(nbt.getInt("processTick"), 0, ticksPerUpgrade(material) - 1) : 0;
+        if (remainingUpgrades > 0 && jobId == 0) jobId = 1;
     }
 
     @Override
@@ -163,141 +188,149 @@ public class QualityStationBlockEntity extends BlockEntity implements NamedScree
 
     @Override
     public boolean canInsert(int slot, ItemStack stack, @Nullable Direction dir) {
-        return isValid(slot, stack);
+        return (slot != EQUIPMENT_SLOT || getStack(slot).isEmpty()) && isValid(slot, stack);
     }
 
     @Override
     public boolean isValid(int slot, ItemStack stack) {
+        return remainingUpgrades == 0 && accepts(slot, stack, getStack(EQUIPMENT_SLOT), getStack(MATERIAL_SLOT));
+    }
+
+    public static boolean accepts(int slot, ItemStack stack, ItemStack equipment, ItemStack material) {
         if (slot == EQUIPMENT_SLOT) {
-            if (EquipmentType.getTypeForItem(stack).isEmpty()) {
-                return false;
-            }
-            ItemStack material = getStack(MATERIAL_SLOT);
-            if (!material.isEmpty()) {
-                if (material.getItem() instanceof QualityMaterialItem) {
-                    return isValidMaterialForEquipment(stack, material) && getQuality(stack) < 20;
-                } else if (material.getItem() instanceof DeepslateSigilItem) {
-                    return EnchantmentSlotHelper.isValidForSigil(stack) && EnchantmentSlotHelper.canAddSlot(stack);
-                }
-                return false;
-            } else {
-                return canIncreaseQuality(stack) || canAddEnchantmentSlot(stack);
-            }
+            if (!material.isEmpty()) return upgradeLimit(stack, material) > 0;
+            return upgradeMaterial(stack) != null && getQuality(stack) < QUALITY_CAP
+                    || EnchantmentSlotHelper.canAddSlot(stack);
         }
-        if (slot == MATERIAL_SLOT) {
-            ItemStack equipment = getStack(EQUIPMENT_SLOT);
-            if (stack.getItem() instanceof QualityMaterialItem) {
-                if (!equipment.isEmpty()) {
-                    return isValidMaterialForEquipment(equipment, stack) && getQuality(equipment) < 20;
-                }
-                return true;
-            }
-            if (stack.getItem() instanceof DeepslateSigilItem) {
-                if (!equipment.isEmpty()) {
-                    return EnchantmentSlotHelper.isValidForSigil(equipment) && EnchantmentSlotHelper.canAddSlot(equipment);
-                }
-                return true;
-            }
-            return false;
-        }
-        return false;
+        if (slot != MATERIAL_SLOT) return false;
+        if (equipment.isEmpty()) return stack.getItem() instanceof QualityMaterialItem || isSigil(stack);
+        return upgradeLimit(equipment, stack) > 0;
     }
 
-    public boolean canIncreaseQuality(ItemStack equipment) {
-        if (equipment.isEmpty()) return false;
-        if (getQuality(equipment) >= 20) return false;
-        return EquipmentType.getTypeForItem(equipment).map(type -> {
-            boolean isWeapon = type == EquipmentType.SWORD || type == EquipmentType.SPEAR || 
-                               type == EquipmentType.MACE || type == EquipmentType.TRIDENT || 
-                               type == EquipmentType.BOW || type == EquipmentType.CROSSBOW;
-                               
-            boolean isArmor = type == EquipmentType.HELMET || type == EquipmentType.CHESTPLATE || 
-                              type == EquipmentType.LEGGINGS || type == EquipmentType.BOOTS || 
-                              type == EquipmentType.SHIELD || type == EquipmentType.ELYTRA;
-            return isWeapon || isArmor;
-        }).orElse(false);
+    public static boolean isSigil(ItemStack material) {
+        return material.getItem() instanceof DeepslateSigilItem;
     }
 
-    public boolean canAddEnchantmentSlot(ItemStack equipment) {
-        if (equipment.isEmpty()) return false;
-        return EnchantmentSlotHelper.isValidForSigil(equipment) && EnchantmentSlotHelper.canAddSlot(equipment);
+    public static int ticksPerUpgrade(ItemStack material) {
+        return isSigil(material) ? SIGIL_PROCESS_TIME : PROCESS_TIME;
+    }
+
+    public static int upgradeLimit(ItemStack equipment, ItemStack material) {
+        if (equipment.isEmpty() || material.isEmpty()) return 0;
+        int room;
+        if (isSigil(material)) {
+            room = EnchantmentSlotHelper.getMaxEnchantmentSlots(equipment) - EnchantmentSlotHelper.getEnchantmentSlots(equipment);
+        } else if (material.getItem() instanceof QualityMaterialItem quality
+                && quality.getMaterialType() == upgradeMaterial(equipment)) {
+            room = QUALITY_CAP - getQuality(equipment);
+        } else {
+            return 0;
+        }
+        return Math.clamp(room, 0, material.getCount());
     }
 
     @Override
     public boolean canExtract(int slot, ItemStack stack, Direction dir) {
+        return slot == EQUIPMENT_SLOT && remainingUpgrades == 0 && hasCompletedEquipment();
+    }
+
+    private boolean hasCompletedEquipment() {
+        return !completedEquipment.isEmpty() && ItemStack.areEqual(getStack(EQUIPMENT_SLOT), completedEquipment);
+    }
+
+    public boolean start(UUID player, int amount, ItemStack expectedGear, ItemStack expectedMaterial) {
+        var equipment = getStack(EQUIPMENT_SLOT);
+        var material = getStack(MATERIAL_SLOT);
+        if (remainingUpgrades != 0 || equipment.getCount() != 1 || amount < 1 || amount > upgradeLimit(equipment, material)
+                || !ItemStack.areEqual(equipment, expectedGear) || !ItemStack.areEqual(material, expectedMaterial)) return false;
+        remainingUpgrades = amount;
+        startedBy = player;
+        jobId = jobId % 30_000 + 1;
+        processTick = 0;
+        completedEquipment = ItemStack.EMPTY;
+        rememberInputs(equipment, material);
+        markDirty();
+        return true;
+    }
+
+    public boolean canCancel(UUID player) {
+        // Jobs saved before ownership was recorded can still be cancelled.
+        return remainingUpgrades > 0 && (startedBy == null || startedBy.equals(player));
+    }
+
+    public boolean cancel(UUID player, int expectedJob) {
+        if (jobId != expectedJob || !canCancel(player)) return false;
+        endJob();
+        markDirty();
         return true;
     }
 
     public void tick(World world, BlockPos pos, BlockState state) {
         if (world.isClient()) return;
-
         ItemStack equipment = getStack(EQUIPMENT_SLOT);
         ItemStack material = getStack(MATERIAL_SLOT);
-
-        boolean isSigil = !material.isEmpty() && material.getItem() instanceof DeepslateSigilItem;
-        boolean isQuality = !material.isEmpty() && material.getItem() instanceof QualityMaterialItem;
-
-        boolean canProcess = false;
-        int currentProcessTime = PROCESS_TIME;
-
-        if (!equipment.isEmpty() && !material.isEmpty()) {
-            if (isSigil) {
-                canProcess = EnchantmentSlotHelper.isValidForSigil(equipment) 
-                          && EnchantmentSlotHelper.canAddSlot(equipment);
-                currentProcessTime = SIGIL_PROCESS_TIME;
-            } else if (isQuality) {
-                canProcess = isValidMaterialForEquipment(equipment, material) 
-                          && getQuality(equipment) < 20;
-                currentProcessTime = PROCESS_TIME;
-            }
+        if (!completedEquipment.isEmpty() && !hasCompletedEquipment()) {
+            completedEquipment = ItemStack.EMPTY;
+            markDirty();
+        }
+        if (remainingUpgrades == 0) return;
+        if (!sameInputs(equipment, material) || upgradeLimit(equipment, material) == 0) {
+            endJob();
+            markDirty();
+            return;
         }
 
-        if (canProcess) {
-            if (!isProcessing) {
-                this.isProcessing = true;
-                markDirty();
-            }
-
-            processTick++;
-            
-            // Play looping sounds every 40 ticks (2 seconds) while processing
-            if (processTick % 40 == 1) {
-                if (isSigil) {
-                    world.playSound(null, pos, ModSounds.QUALITY_STATION_1, SoundCategory.BLOCKS, 0.4f, 1.0f);
-                    world.playSound(null, pos, ModSounds.QUALITY_STATION_2, SoundCategory.BLOCKS, 0.4f, 1.0f);
-                } else {
-                    world.playSound(null, pos, ModSounds.QUALITY_STATION_2, SoundCategory.BLOCKS, 0.4f, 1.0f);
-                    world.playSound(null, pos, ModSounds.QUALITY_STATION_3, SoundCategory.BLOCKS, 0.4f, 1.0f);
-                }
-            }
-
-            if (processTick >= currentProcessTime) {
-                processTick = 0;
-                material.decrement(1);
-                
-                if (isSigil) {
-                    int currentSlots = EnchantmentSlotHelper.getEnchantmentSlots(equipment);
-                    EnchantmentSlotHelper.setEnchantmentSlots(equipment, currentSlots + 1);
-                } else {
-                    int increase = (RandomUtil.nextInt(100) < 33) ? 2 : 1;
-                    int newQuality = Math.min(20, getQuality(equipment) + increase);
-                    setQuality(equipment, newQuality);
-                    EquipmentStatApplier.updateItemAttributes(equipment);
-                }
-                
-                markDirty();
-            }
+        boolean sigil = isSigil(material);
+        processTick++;
+        if (processTick % 40 == 1) {
+            world.playSound(null, pos, ModSounds.QUALITY_STATION_2, SoundCategory.BLOCKS, 0.4f, 1.0f);
+            world.playSound(null, pos, sigil ? ModSounds.QUALITY_STATION_1 : ModSounds.QUALITY_STATION_3,
+                    SoundCategory.BLOCKS, 0.4f, 1.0f);
+        }
+        if (processTick < ticksPerUpgrade(material)) {
+            if (processTick % 20 == 0) markDirty();
+            return;
+        }
+        if (sigil) {
+            EnchantmentSlotHelper.setEnchantmentSlots(equipment, EnchantmentSlotHelper.getEnchantmentSlots(equipment) + 1);
         } else {
-            if (isProcessing || processTick > 0) {
-                stopSounds();
-                markDirty();
-            }
+            int increase = RandomUtil.nextInt(100) < BONUS_CHANCE ? 2 : 1;
+            setQuality(equipment, Math.min(QUALITY_CAP, getQuality(equipment) + increase));
+            EquipmentStatApplier.updateItemAttributes(equipment);
         }
+        material.decrement(1);
+        remainingUpgrades--;
+        if (remainingUpgrades == 0 || upgradeLimit(equipment, material) == 0) {
+            completedEquipment = equipment.copy();
+            endJob();
+        } else {
+            processTick = 0;
+            rememberInputs(equipment, material);
+        }
+        markDirty();
+    }
+
+    private void rememberInputs(ItemStack equipment, ItemStack material) {
+        processingEquipment = equipment.copy();
+        processingMaterial = material.copyWithCount(1);
+    }
+
+    private void endJob() {
+        remainingUpgrades = 0;
+        startedBy = null;
+        processTick = 0;
+        processingEquipment = ItemStack.EMPTY;
+        processingMaterial = ItemStack.EMPTY;
+        stopSounds();
+    }
+
+    private boolean sameInputs(ItemStack equipment, ItemStack material) {
+        return !processingEquipment.isEmpty() && !processingMaterial.isEmpty()
+                && ItemStack.areItemsAndComponentsEqual(equipment, processingEquipment)
+                && ItemStack.areItemsAndComponentsEqual(material, processingMaterial);
     }
 
     public void stopSounds() {
-        this.isProcessing = false;
-        this.processTick = 0;
         if (this.world instanceof ServerWorld serverWorld) {
             for (ServerPlayerEntity p : serverWorld.getPlayers()) {
                 if (p.squaredDistanceTo(pos.toCenterPos()) < 144.0) {
@@ -324,22 +357,15 @@ public class QualityStationBlockEntity extends BlockEntity implements NamedScree
         super.markRemoved();
     }
 
-    public boolean isValidMaterialForEquipment(ItemStack equipment, ItemStack material) {
-        if (!(material.getItem() instanceof QualityMaterialItem qualityItem)) return false;
-        
-        return EquipmentType.getTypeForItem(equipment).map(type -> {
-            boolean isWeapon = type == EquipmentType.SWORD || type == EquipmentType.SPEAR || 
-                               type == EquipmentType.MACE || type == EquipmentType.TRIDENT || 
-                               type == EquipmentType.BOW || type == EquipmentType.CROSSBOW;
-                               
-            boolean isArmor = type == EquipmentType.HELMET || type == EquipmentType.CHESTPLATE || 
-                              type == EquipmentType.LEGGINGS || type == EquipmentType.BOOTS || 
-                              type == EquipmentType.SHIELD || type == EquipmentType.ELYTRA;
-                              
-            if (qualityItem.getMaterialType() == QualityMaterialItem.Type.WEAPON) return isWeapon;
-            if (qualityItem.getMaterialType() == QualityMaterialItem.Type.ARMOR) return isArmor;
-            return false;
-        }).orElse(false);
+    @Nullable
+    public static QualityMaterialItem.Type upgradeMaterial(ItemStack equipment) {
+        var type = EquipmentType.getTypeForItem(equipment).orElse(null);
+        if (type == null) return null;
+        return switch (type) {
+            case SWORD, SPEAR, MACE, TRIDENT, BOW, CROSSBOW -> QualityMaterialItem.Type.WEAPON;
+            case HELMET, CHESTPLATE, LEGGINGS, BOOTS, SHIELD, ELYTRA -> QualityMaterialItem.Type.ARMOR;
+            default -> null;
+        };
     }
 
     public static int getQuality(ItemStack stack) {

@@ -1,230 +1,168 @@
 package com.cranks.dungeons.damage;
 
+import com.cranks.dungeons.client.render.EntityStatBarRenderer;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.entity.Entity;
+import net.minecraft.text.Text;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
-
+import java.util.ArrayList;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 
-public class DamageNumberRenderer {
-
-    // Smoothing factor: lower = smoother, less jitter
-    private static final float SMOOTHING = 0.1f;
-
-    // Maximum render distance squared (32 blocks)
-    private static final double MAX_RENDER_DISTANCE_SQ = 32.0 * 32.0;
-
-    // Screen margin for culling
-    private static final int SCREEN_MARGIN = 50;
+/** Pixel outlined combat text, projected using the same camera matrix as entity plates. */
+public final class DamageNumberRenderer {
+    private record Glyph(Text text, int color, float scale, float x, float y, boolean critical) {}
+    private record Layout(int revision, float width, float height, List<Glyph> glyphs) {}
+    private record Rect(float x, float y, float w, float h) {
+        boolean overlaps(Rect r) { return x < r.x+r.w+4 && x+w+4 > r.x && y < r.y+r.h+4 && y+h+4 > r.y; }
+    }
+    private static final Map<DamageNumber, Layout> LAYOUTS = new IdentityHashMap<>();
+    private static int lastWidth, lastHeight;
+    private DamageNumberRenderer() {}
 
     public static void renderHud(DrawContext context, float tickDelta) {
-        MinecraftClient client = MinecraftClient.getInstance();
-        if (client.player == null || client.world == null)
-            return;
-
-        List<DamageNumber> numbers = DamageNumberManager.getActiveNumbers();
-        if (numbers.isEmpty())
-            return;
-
-        TextRenderer textRenderer = client.textRenderer;
-        int screenWidth = client.getWindow().getScaledWidth();
-        int screenHeight = client.getWindow().getScaledHeight();
-
-        net.minecraft.client.render.Camera camera = client.gameRenderer.getCamera();
-        net.minecraft.util.math.Vec3d camPos = camera.getPos();
-        double camX = camPos.x;
-        double camY = camPos.y;
-        double camZ = camPos.z;
-
-        float yawRad = (float) Math.toRadians(camera.getYaw() + 180);
-        float pitchRad = (float) Math.toRadians(camera.getPitch());
-
-        double fov = Math.toRadians(client.options.getFov().getValue());
-        double aspectRatio = (double) screenWidth / (double) screenHeight;
-        double halfHeight = Math.tan(fov / 2.0);
-        double halfWidth = halfHeight * aspectRatio;
-
-        for (DamageNumber number : numbers) {
-            if (number.isExpired())
-                continue;
-
-            // Update position to follow entity if it exists
-            updateNumberPosition(number, client);
-
-            boolean isSelf = number.victimUuid != null && number.victimUuid.equals(client.player.getUuid());
-            int sX, sY;
-
-            // SPECIAL CASE: Smooth UI rendering for local player in first person
-            if (isSelf && client.options.getPerspective().isFirstPerson()) {
-                float progress = number.getProgress();
-                sX = screenWidth / 2 + (number.isHeal ? 60 : -60);
-                sY = (int) (screenHeight / 2 + 30 - progress * 40);
+        var client = MinecraftClient.getInstance();
+        long now = DamageNumberManager.now();
+        var numbers = DamageNumberManager.getActiveNumbers();
+        LAYOUTS.keySet().removeIf(n -> !numbers.contains(n));
+        if (client.player == null || client.world == null || client.options.hudHidden) return;
+        int width = context.getScaledWindowWidth(), height = context.getScaledWindowHeight();
+        if (width != lastWidth || height != lastHeight) {
+            for (var n : numbers) { n.placed=false; n.nextPlacementTime=0; }
+            lastWidth=width; lastHeight=height;
+        }
+        var occupied = new ArrayList<Rect>();
+        // Reserve the reticle and the target's face/nameplate area.
+        occupied.add(new Rect(width/2f-14, height/2f-15, 28, 30));
+        occupied.add(new Rect(0, height-52, width, 52));
+        for (var number : numbers) {
+            if (number.expired(now)) continue;
+            var layout = LAYOUTS.get(number);
+            if (layout == null || layout.revision != number.revision) {
+                layout = layout(client, number); LAYOUTS.put(number, layout); number.nextPlacementTime=0;
+            }
+            boolean self = client.player.getUuid().equals(number.victimUuid);
+            float anchorX, anchorY;
+            if (self) {
+                // Consistent self feedback in both camera perspectives.
+                anchorX = width / 2f + (number.kind.healing() ? 78 : -78);
+                anchorY = height / 2f + 42;
             } else {
-                // Standard world-space projection for Mobs and other players
-                double worldX = number.position.x + number.offsetX;
-                double worldY = number.getCurrentY();
-                double worldZ = number.position.z + number.offsetZ;
-
-                double dx = worldX - camX;
-                double dy = worldY - camY;
-                double dz = worldZ - camZ;
-
-                // Early culling: skip if too far away, unless it's a forced display (direct
-                // source)
-                double distanceSq = dx * dx + dy * dy + dz * dz;
-                if (distanceSq > MAX_RENDER_DISTANCE_SQ && !number.forceDisplay)
-                    continue;
-
-                double cosYaw = Math.cos(yawRad);
-                double sinYaw = Math.sin(yawRad);
-                double rotX = dx * cosYaw + dz * sinYaw;
-                double rotZ = -dx * sinYaw + dz * cosYaw;
-                double rotY = dy;
-
-                double cosPitch = Math.cos(pitchRad);
-                double sinPitch = Math.sin(pitchRad);
-                double viewX = rotX;
-                double viewY = rotY * cosPitch - rotZ * sinPitch;
-                double viewZ = rotY * sinPitch + rotZ * cosPitch;
-
-                if (viewZ >= 0)
-                    continue; // behind camera (standard culling)
-
-                double depth = -viewZ;
-                double projDepth = Math.max(depth, 0.5);
-
-                double ndcX = viewX / (halfWidth * projDepth);
-                double ndcY = viewY / (halfHeight * projDepth);
-
-                float targetSX = (float) ((ndcX + 1.0) / 2.0 * screenWidth);
-                float targetSY = (float) ((1.0 - ndcY) / 2.0 * screenHeight);
-
-                // Screen-space smoothing
-                if (Float.isNaN(number.lastScreenX)) {
-                    number.lastScreenX = targetSX;
-                    number.lastScreenY = targetSY;
-                } else {
-                    number.lastScreenX = MathHelper.lerp(SMOOTHING, number.lastScreenX, targetSX);
-                    number.lastScreenY = MathHelper.lerp(SMOOTHING, number.lastScreenY, targetSY);
-                }
-
-                sX = Math.round(number.lastScreenX);
-                sY = Math.round(number.lastScreenY);
-
-                // Final screen-space culling with margin
-                if (sX < -SCREEN_MARGIN || sX > screenWidth + SCREEN_MARGIN
-                        || sY < -SCREEN_MARGIN || sY > screenHeight + SCREEN_MARGIN) {
-                    continue;
+                Entity entity = client.world.getEntityById(number.victimEntityId);
+                if (entity != null && !entity.getUuid().equals(number.victimUuid)) entity = null;
+                if (!number.detached && entity != null && entity.isAlive()) {
+                    number.position = new Vec3d(MathHelper.lerp(tickDelta, entity.lastRenderX, entity.getX()),
+                            MathHelper.lerp(tickDelta, entity.lastRenderY, entity.getY()) + entity.getHeight()*0.65,
+                            MathHelper.lerp(tickDelta, entity.lastRenderZ, entity.getZ()));
+                } else number.detached = true;
+                double range = number.important ? 128 : 32;
+                if (client.gameRenderer.getCamera().getPos().squaredDistanceTo(number.position) > range*range) continue;
+                var point = EntityStatBarRenderer.projectToScreen(client, number.position.x, number.position.y, number.position.z);
+                if (point == null) continue;
+                anchorX = point.x(); anchorY = point.y();
+                // Avoid covering the face, name and ailment indicators of this target.
+                if (entity != null) {
+                    var head = EntityStatBarRenderer.projectToScreen(client, number.position.x,
+                            entity.getY()+entity.getHeight()+0.28, number.position.z);
+                    if (head != null) occupied.add(new Rect(head.x()-65, head.y()-45, 130, 48));
                 }
             }
-
-            String text = number.formattedDamageText;
-            int textWidth = number.formattedDamageWidth;
-            int rowSpacing = (int) ((textRenderer.fontHeight + 2) * 1.2);
-
-            float progress = number.getProgress();
-
-            // 1. Calculate Dynamic Scale based on damage magnitude and Crit status
-            float baseScale = 1.0f + (float) Math.min(number.damage / 80.0, 0.6); // Scale up based on damage
-            if (number.isCritical)
-                baseScale *= 1.3f; // Crits are naturally larger
-            baseScale = Math.min(baseScale, 2.0f); // HARD CAP per user request
-
-            float scale = baseScale;
-            if (progress < 0.1f) {
-                scale *= progress / 0.1f; // Scale up at start
-            } else if (progress > 0.8f) {
-                scale *= 1.0f - (progress - 0.8f) / 0.2f; // Scale down at end
+            float drift = (float)(Math.sqrt(number.age(now) / 1000.0) * 16);
+            if (!number.placed) {
+                if (now < number.nextPlacementTime && Math.abs(anchorX-number.waitingX) < 2 && Math.abs(anchorY-number.waitingY) < 2) continue;
+                if (!place(number, layout, anchorX, anchorY, width, height, occupied, self)) {
+                    number.nextPlacementTime=now+150; number.waitingX=anchorX; number.waitingY=anchorY; continue;
+                }
             }
-
-            // 2. Critical "Heartbeat" Pulse
-            if (number.isCritical && progress < 0.25f) {
-                // Pulse up then back to baseScale
-                float pulse = (float) Math.sin(progress * Math.PI / 0.25f) * 0.25f;
-                scale += pulse;
-            } else if (progress < 0.2f) {
-                // Normal hits get a smaller pop
-                scale *= 1.15f;
+            float x = anchorX + number.offsetX, y = anchorY + number.offsetY - drift;
+            var rect = new Rect(x-layout.width/2, y-layout.height/2, layout.width, layout.height);
+            float travel = (float)(Math.sqrt(number.lifetime()/1000.0)*16);
+            // Reserve the complete travel corridor, so the float never rises into a plate or another hit.
+            occupied.add(new Rect(rect.x, anchorY+number.offsetY-layout.height/2-travel, rect.w, rect.h+travel));
+            if (rect.x+rect.w < 0 || rect.x > width || rect.y+rect.h < 0 || rect.y > height) continue;
+            float alpha = CombatNumberStyle.alpha(number.age(now), number.lifetime());
+            if (alpha <= 0.02f) continue;
+            float pop = CombatNumberStyle.entrance(number.age(now), number.critical);
+            var matrices = context.getMatrices();
+            matrices.push(); matrices.translate(Math.round(x), Math.round(y), 0); matrices.scale(pop,pop,1);
+            for (var glyph : layout.glyphs) {
+                matrices.push(); matrices.translate(glyph.x, glyph.y, 0); matrices.scale(glyph.scale,glyph.scale,1);
+                int a = Math.max(1, (int)(alpha*255));
+                int outline = (a << 24) | 0x08090A;
+                for (int ox=-1;ox<=1;ox++) for (int oy=-1;oy<=1;oy++) {
+                    if (ox != 0 || oy != 0) context.drawText(client.textRenderer, glyph.text, ox, oy, outline, false);
+                }
+                context.drawText(client.textRenderer,glyph.text,0,0,(a<<24)|glyph.color,false);
+                matrices.pop();
             }
-
-            // Use a fixed screen-space row gap so numbers remain readable at every
-            // camera distance and share the same stacking behavior for hits and heals.
-            int stackSpacing = Math.round((textRenderer.fontHeight + 2) * 2.2f);
-            sY += number.rowIndex * stackSpacing;
-
-            int sX_final = sX;
-            int sY_final = sY;
-
-            // Calculate color with alpha
-            int alphaValue = (int) (number.getAlpha() * 255);
-            int alpha = alphaValue << 24;
-            int colorWithAlpha = (number.color & 0x00FFFFFF) | alpha;
-
-            context.getMatrices().push();
-            context.getMatrices().translate((float) sX_final, (float) sY_final, 0);
-            context.getMatrices().scale(scale, scale, 1.0f);
-
-            // 4. Main Text render
-            context.drawText(
-                    textRenderer,
-                    text,
-                    -textWidth / 2,
-                    -textRenderer.fontHeight / 2,
-                    colorWithAlpha,
-                    true // Keep vanilla shadow for clarity
-            );
-            context.getMatrices().pop();
+            matrices.pop();
         }
     }
 
-    /**
-     * Updates the damage number's position to follow its entity smoothly.
-     * If the entity despawned, freezes at last known position.
-     */
-    private static void updateNumberPosition(DamageNumber number, MinecraftClient client) {
-        if (number.entityDespawned)
-            return;
-        if (number.victimUuid == null)
-            return;
-
-        Entity entity = client.world.getEntityById(number.victimEntityId);
-        if (entity != null && !entity.getUuid().equals(number.victimUuid)) entity = null;
-
-        if (entity != null && entity.isAlive()) {
-            // Entity exists - calculate target position with rotation
-            Vec3d entityPos = new Vec3d(entity.getX(), entity.getY() + entity.getHeight() / 2, entity.getZ());
-
-            // Apply entity rotation to hit offset
-            Vec3d rotatedOffset = rotateOffsetByEntity(number.hitOffset, entity);
-
-            // Target position is entity center + rotated hit offset
-            Vec3d targetPos = entityPos.add(rotatedOffset);
-
-            // Smoothly interpolate to target position
-            number.updatePositionToFollow(targetPos);
-        } else {
-            // Entity despawned - freeze at last known position
-            number.onEntityDespawned();
+    private static boolean place(DamageNumber number, Layout layout, float ax, float ay, int width, int height,
+                              List<Rect> occupied, boolean self) {
+        float bestX=0,bestY=0; int bestScore=Integer.MAX_VALUE;
+        float travel = (float)(Math.sqrt(number.lifetime()/1000.0)*16);
+        for (int i=0;i<32;i++) {
+            int side = i%2==0 ? 1 : -1;
+            int ring = i/8;
+            float dx = self ? (i%2==0 ? 0 : side*18) : side*(24+layout.width/2+ring*(layout.width+8));
+            float dy = switch (i/2%4) {
+                case 0 -> -12;
+                case 1 -> -layout.height-20;
+                case 2 -> layout.height+9;
+                default -> -2*layout.height-28;
+            };
+            float cx = MathHelper.clamp(ax+dx, layout.width/2+4, Math.max(layout.width/2+4,width-layout.width/2-4));
+            float cy = MathHelper.clamp(ay+dy, layout.height/2+travel+4, Math.max(layout.height/2+travel+4,height-layout.height/2-4));
+            Rect rect = new Rect(cx-layout.width/2,cy-layout.height/2-travel,layout.width,layout.height+travel);
+            int score=0; for (Rect other:occupied) if (rect.overlaps(other)) score++;
+            if (score<bestScore) { bestScore=score; bestX=cx-ax; bestY=cy-ay; }
+            if (score==0) break;
         }
+        // A saturated screen must not turn into overlapping unreadable digits.
+        if (bestScore != 0) return false;
+        number.offsetX=bestX; number.offsetY=bestY; number.placed=true;
+        return true;
     }
 
-    /**
-     * Rotates the hit offset based on the entity's current yaw rotation
-     */
-    private static Vec3d rotateOffsetByEntity(Vec3d offset, Entity entity) {
-        float yaw = entity.getYaw();
-        float yawRad = (float) Math.toRadians(yaw);
+    private static Layout layout(MinecraftClient client, DamageNumber number) {
+        var glyphs = new ArrayList<Glyph>();
+        float y=0,maxWidth=0;
+        var entries = number.entries();
+        int columns = entries.size() >= 4 ? 3 : 2;
+        for (int row=0;row<entries.size();row+=columns) {
+            float rowWidth=0,rowHeight=0;
+            var rowGlyphs = new ArrayList<Glyph>();
+            for (int i=row;i<Math.min(row+columns,entries.size());i++) {
+                var entry=entries.get(i);
+                Text text=Text.literal((entry.isHeal()?"+":"")+CombatNumberStyle.format(entry.damage()))
+                        .styled(style->style.withBold(entry.isCrit()));
+                float scale=CombatNumberStyle.scale(entry.damage(),entry.isCrit(),number.kind.periodic());
+                rowGlyphs.add(new Glyph(text,color(entry.color(),entry.elementId(),entry.isHeal()),scale,rowWidth,y,entry.isCrit()));
+                rowWidth+=(client.textRenderer.getWidth(text)+2)*scale+8;
+                rowHeight=Math.max(rowHeight,(client.textRenderer.fontHeight+2)*scale);
+            }
+            rowWidth-=8;
+            for (var g:rowGlyphs) glyphs.add(new Glyph(g.text,g.color,g.scale,g.x-rowWidth/2,g.y,g.critical));
+            maxWidth=Math.max(maxWidth,rowWidth); y+=rowHeight+3;
+        }
+        float height=Math.max(1,y-3);
+        var centered=new ArrayList<Glyph>();
+        for(var g:glyphs) centered.add(new Glyph(g.text,g.color,g.scale,g.x,g.y-height/2,g.critical));
+        return new Layout(number.revision,maxWidth+6,height+6,centered);
+    }
 
-        double cosYaw = Math.cos(yawRad);
-        double sinYaw = Math.sin(yawRad);
-
-        // Rotate the offset around Y axis
-        double newX = offset.x * cosYaw - offset.z * sinYaw;
-        double newZ = offset.x * sinYaw + offset.z * cosYaw;
-
-        return new Vec3d(newX, offset.y, newZ);
+    private static int color(int original, int element, boolean healing) {
+        if (healing) return 0x8EED9C;
+        // Preserve special event colors such as the red physical bleed burst.
+        if (element < 0 || element >= DamageElement.values().length || original != DamageElement.values()[element].color) return original & 0xFFFFFF;
+        return switch (DamageElement.values()[element]) {
+            case PHYSICAL -> 0xF5F5F5; case FIRE -> 0xF5655B; case COLD -> 0x72D5F5;
+            case LIGHTNING -> 0x4067D2; case VOID -> 0x9950D8; case POISON -> 0xACDD6E; case DROWN -> 0x75CFE5;
+        };
     }
 }

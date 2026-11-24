@@ -1,13 +1,49 @@
 {
-  "title": "Gathering Experience",
+  "title": "World Discoveries",
   "content": [
-    { "type": "heading", "value": "Direct Block XP" },
-    { "type": "list", "value": "Coal ore: 5 World XP.\nIron or copper ore: 10 World XP.\nGold, redstone, or lapis ore: 15 World XP.\nDiamond or emerald ore: 50 World XP.\nNatural logs: 3 World XP.\nTagged crops: 2 World XP." },
-    { "type": "text", "value": "Creative and spectator players do not receive this direct gathering XP. Blocks recorded as player-placed are excluded to prevent farming the same ore, log, or crop block repeatedly." },
-    { "type": "heading", "value": "Redirected Vanilla XP" },
-    { "type": "text", "value": "Every positive vanilla XP award outside the mod's mob-kill context becomes World XP at 10 times its final amount. This captures ore orbs, furnace output, fishing, breeding, trading, crop-rune XP, and other ordinary XP sources." },
-    { "type": "heading", "value": "XP Bonus Attributes" },
-    { "type": "list", "value": "Experience Bonus increases an XP amount before combat/non-combat routing.\nMining Experience spawns extra ore/block XP equal to base orb size x bonus near the closest player within 8 blocks.\nBreeding Experience spawns floor(7 x bonus) extra XP for the loving player.\nFishing Experience spawns floor(catch result x 3 x bonus) extra XP." },
-    { "type": "note", "style": "info", "value": "Those bonus orbs are non-combat XP, so collecting them sends their final value to the World Tree at the normal 10x conversion." }
+    {
+      "type": "heading",
+      "value": "Discover, Rather Than Repeat"
+    },
+    {
+      "type": "text",
+      "value": "Obtaining a meaningful material family for the first time rewards World XP. Ore, raw metal, ingot and nugget variants share their mineral discovery. Crops and seeds share a discovery, as do stripped and ordinary logs of one wood species. Moving, placing, breaking or receiving the same materials again does not repeat the reward."
+    },
+    {
+      "type": "heading",
+      "value": "Recipe Knowledge"
+    },
+    {
+      "type": "text",
+      "value": "Discovering every ingredient needed by a supported recipe can reward World XP once for that knowledge family. Alternate recipes, station duplicates, wood variants and colour variants do not multiply the reward. Alchemy formulas reward their first successful discovery; failed and repeated experiments do not."
+    },
+    {
+      "type": "heading",
+      "value": "Exploration & Animals"
+    },
+    {
+      "type": "text",
+      "value": "Each new biome rewards World XP once. Spend a few seconds inside a generated structure to discover that instance, with an additional first-type milestone. First taming, breeding and catching each eligible species are separate personal discoveries."
+    },
+    {
+      "type": "heading",
+      "value": "Experience Bonuses"
+    },
+    {
+      "type": "text",
+      "value": "World Discovery XP Bonus increases personal first-discovery rewards, up to 50% from that stat. Each player makes discoveries individually; repeating an already recorded discovery does not pay again."
+    },
+    {
+      "type": "text",
+      "value": "Discovery records survive death and reconnecting. Trading an already discovered material or repeatedly opening the same recipe does not create another discovery reward."
+    },
+    {
+      "type": "heading",
+      "value": "Related articles"
+    },
+    {
+      "type": "text",
+      "value": "[[article/gathering_stats|Gathering, Discovery & Survival]] | [[article/world_tree|World Tree]] | [[article/kiln|Kiln]]"
+    }
   ]
 }

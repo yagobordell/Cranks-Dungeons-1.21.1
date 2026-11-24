@@ -201,7 +201,21 @@ public class PassiveIconManager {
     public static final Identifier PLACEHOLDER_ICON = Identifier.of("cranks-dungeons", "passive/placeholder");
 
     static {
-        // Initial / future title-to-icon registrations can be added here or via registerTitleIcon()
+        registerTitleIcon("Path of the Warrior", "passive/strength");
+        registerTitleIcon("Path of the Ranger", "passive/dexterity");
+        registerTitleIcon("Path of the Mercenary", "passive/attack_speed");
+        registerTitleIcon("Physical Conditioning", "passive/attack_damage_percent");
+        registerTitleIcon("Vitality", "passive/life_steal");
+        registerTitleIcon("Warrior's Might", "passive/strength");
+        registerTitleIcon("Swiftness", "passive/movement_speed");
+        registerTitleIcon("Agility", "passive/dexterity");
+        registerTitleIcon("Deadly Aim", "passive/crit_chance");
+        registerTitleIcon("Opportunist", "passive/knockback");
+        registerTitleIcon("Dirty Tactics", "passive/life_steal");
+        registerTitleIcon("Ruthless", "passive/crit_multiplier");
+        registerTitleIcon("Roots of the World", "passive/world_root");
+        registerTitleIcon("Swift Hands", "passive/mining");
+        registerTitleIcon("Prospector", "passive/prospector");
     }
 
     /**
@@ -218,7 +232,7 @@ public class PassiveIconManager {
      * - Attribute selection nodes return passive/no.
      * - Nodes with no title (or blank/empty) return null (nothing drawn).
      * - Nodes with a title mapped in TITLE_ICONS return that icon.
-     * - Nodes with an unmapped title return PLACEHOLDER_ICON (black and purple square).
+     * - Nodes with an unmapped title use the generic emblem.
      */
     public static Identifier getIcon(String nodeId, String nodeTitle, boolean isAttributeChoice) {
         // Priority 1: Check attribute choice
@@ -245,7 +259,7 @@ public class PassiveIconManager {
         }
 
         // Priority 4: Fallback for nodes with a title but no mapped icon
-        return PLACEHOLDER_ICON;
+        return Identifier.of("cranks-dungeons", DEFAULT_ICON);
     }
 
     /**

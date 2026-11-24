@@ -15,6 +15,7 @@ public class EntityTrackingSyncHandler {
         EntityTrackingEvents.START_TRACKING.register((trackedEntity, player) -> {
             // Initial sync for Energy Shield
             if (trackedEntity instanceof LivingEntity living) {
+                com.cranks.dungeons.ailment.AilmentManager.syncTo(living, player);
                 if (living instanceof com.cranks.dungeons.mount.MountDataProvider
                         && com.cranks.dungeons.mount.MountKind.of(living)
                         != com.cranks.dungeons.mount.MountKind.HORSE) {

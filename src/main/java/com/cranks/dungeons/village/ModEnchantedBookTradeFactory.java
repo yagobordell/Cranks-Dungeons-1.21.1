@@ -18,9 +18,8 @@ import java.util.List;
 public class ModEnchantedBookTradeFactory implements TradeOffers.Factory {
     
     public enum Tier {
+        LESSER,
         STANDARD,
-        GREATER,
-        PERFECT,
         ANY
     }
 
@@ -40,19 +39,17 @@ public class ModEnchantedBookTradeFactory implements TradeOffers.Factory {
         
         List<RegistryEntry<Enchantment>> pool = new ArrayList<>();
         enchantmentRegistry.streamEntries().forEach(entry -> {
-            if (entry.isIn(EnchantmentTags.IN_ENCHANTING_TABLE) || entry.isIn(EnchantmentTags.ON_RANDOM_LOOT)) {
+            if (com.cranks.dungeons.util.EnchantmentFilterUtil.isApproved(entry)) {
                 String path = entry.getKey().map(k -> k.getValue().getPath()).orElse("");
                 boolean isGreater = path.startsWith("greater_");
                 boolean isPerfect = path.startsWith("perfect_");
                 boolean isStandard = !isGreater && !isPerfect;
                 
-                if (tier == Tier.PERFECT && isPerfect) {
+                if (tier == Tier.STANDARD && isGreater) {
                     pool.add(entry);
-                } else if (tier == Tier.GREATER && isGreater) {
+                } else if (tier == Tier.LESSER && isStandard) {
                     pool.add(entry);
-                } else if (tier == Tier.STANDARD && isStandard) {
-                    pool.add(entry);
-                } else if (tier == Tier.ANY) {
+                } else if (tier == Tier.ANY && !isPerfect) {
                     pool.add(entry);
                 }
             }

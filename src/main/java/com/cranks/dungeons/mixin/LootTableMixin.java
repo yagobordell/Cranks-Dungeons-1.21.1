@@ -30,30 +30,7 @@ public class LootTableMixin {
             argsOnly = true
     )
     private Consumer<ItemStack> cranksDungeons$filterLoot(Consumer<ItemStack> original) {
-        return stack -> {
-            if (stack == null || stack.isEmpty()) return;
-
-            if (stack.getItem() instanceof SmithingTemplateItem) {
-                return;
-            }
-
-            EnchantmentFilterUtil.filterStack(stack);
-
-            if (stack.isOf(Items.ENCHANTED_BOOK)) {
-                ItemEnchantmentsComponent stored = stack.getOrDefault(
-                        DataComponentTypes.STORED_ENCHANTMENTS,
-                        ItemEnchantmentsComponent.DEFAULT);
-                ItemEnchantmentsComponent regular = stack.getOrDefault(
-                        DataComponentTypes.ENCHANTMENTS,
-                        ItemEnchantmentsComponent.DEFAULT);
-
-                if (stored.isEmpty() && regular.isEmpty()) {
-                    return; // Drop nothing if the enchanted book has no valid enchantments
-                }
-            }
-
-            original.accept(stack);
-        };
+        return cranks$filteredLoot(original);
     }
 
     @ModifyVariable(
@@ -62,6 +39,11 @@ public class LootTableMixin {
             argsOnly = true
     )
     private Consumer<ItemStack> cranksDungeons$filterLootParameterSet(Consumer<ItemStack> original) {
+        return cranks$filteredLoot(original);
+    }
+
+    @org.spongepowered.asm.mixin.Unique
+    private static Consumer<ItemStack> cranks$filteredLoot(Consumer<ItemStack> original) {
         return stack -> {
             if (stack == null || stack.isEmpty()) return;
 

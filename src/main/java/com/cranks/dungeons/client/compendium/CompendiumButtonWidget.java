@@ -1,8 +1,10 @@
 package com.cranks.dungeons.client.compendium;
 
+import com.cranks.dungeons.client.InventoryStyle;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.widget.ClickableWidget;
+import net.minecraft.client.input.KeyCodes;
 import net.minecraft.text.Text;
 
 public class CompendiumButtonWidget extends ClickableWidget {
@@ -11,24 +13,20 @@ public class CompendiumButtonWidget extends ClickableWidget {
     }
 
     private final PressAction onPress;
-    private final boolean crossButton;
-    private final boolean tabStyle;
+    private enum Style { BUTTON, TOOLBAR, CLOSE, CLASP, ARMOR_SWAP }
+    private final Style style;
     private final boolean selected;
-    private final int selectedColor;
 
     public CompendiumButtonWidget(int x, int y, int width, int height, Text message, PressAction onPress) {
-        this(x, y, width, height, message, onPress, false, false, false, CompendiumStyle.TEXT_GOLD_LIGHT);
+        this(x, y, width, height, message, onPress, Style.BUTTON, false);
     }
 
     private CompendiumButtonWidget(int x, int y, int width, int height, Text message,
-                                   PressAction onPress, boolean crossButton, boolean tabStyle,
-                                   boolean selected, int selectedColor) {
+                                   PressAction onPress, Style style, boolean selected) {
         super(x, y, width, height, message);
         this.onPress = onPress;
-        this.crossButton = crossButton;
-        this.tabStyle = tabStyle;
+        this.style = style;
         this.selected = selected;
-        this.selectedColor = selectedColor;
     }
 
     public static Builder builder(Text message, PressAction onPress) {
@@ -39,10 +37,8 @@ public class CompendiumButtonWidget extends ClickableWidget {
         private final Text message;
         private final PressAction onPress;
         private int x, y, width = 150, height = 20;
-        private boolean crossButton;
-        private boolean tabStyle;
+        private Style style = Style.BUTTON;
         private boolean selected;
-        private int selectedColor = CompendiumStyle.TEXT_GOLD_LIGHT;
 
         public Builder(Text message, PressAction onPress) {
             this.message = message;
@@ -58,12 +54,22 @@ public class CompendiumButtonWidget extends ClickableWidget {
         }
 
         public Builder crossButton() {
-            this.crossButton = true;
+            this.style = Style.CLOSE;
             return this;
         }
 
-        public Builder tab() {
-            this.tabStyle = true;
+        public Builder clasp() {
+            this.style = Style.CLASP;
+            return this;
+        }
+
+        public Builder armorSwap() {
+            this.style = Style.ARMOR_SWAP;
+            return this;
+        }
+
+        Builder toolbar() {
+            this.style = Style.TOOLBAR;
             return this;
         }
 
@@ -72,14 +78,8 @@ public class CompendiumButtonWidget extends ClickableWidget {
             return this;
         }
 
-        public Builder selectedColor(int selectedColor) {
-            this.selectedColor = selectedColor;
-            return this;
-        }
-
         public CompendiumButtonWidget build() {
-            return new CompendiumButtonWidget(x, y, width, height, message, onPress, crossButton,
-                    tabStyle, selected, selectedColor);
+            return new CompendiumButtonWidget(x, y, width, height, message, onPress, style, selected);
         }
     }
 
@@ -98,33 +98,40 @@ public class CompendiumButtonWidget extends ClickableWidget {
     }
 
     @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (!this.active || !this.visible || !KeyCodes.isToggle(keyCode)) return false;
+        this.playDownSound(MinecraftClient.getInstance().getSoundManager());
+        this.onPress.onPress(this);
+        return true;
+    }
+
+    @Override
     protected void appendClickableNarrations(net.minecraft.client.gui.screen.narration.NarrationMessageBuilder builder) {
         this.appendDefaultNarrations(builder);
     }
 
     @Override
     protected void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
-        if (crossButton) {
-            CompendiumStyle.drawVanillaCrossButton(context, this.getX(), this.getY(), this.getWidth(),
-                    this.isHovered(), this.active);
-            return;
-        }
-        if (tabStyle) {
-            CompendiumStyle.drawCreativeTab(context, this.getX(), this.getY(), this.getWidth(), this.getHeight(),
-                    this.isHovered(), this.selected);
-            String label = MinecraftClient.getInstance().textRenderer.trimToWidth(
-                    this.getMessage().getString(), Math.max(10, this.getWidth() - 12));
-            int textColor = this.selected ? this.selectedColor : CompendiumStyle.TEXT;
-            if (this.selected) {
-                context.fill(this.getX() + 5, this.getY() + this.getHeight() - 2,
-                        this.getX() + this.getWidth() - 5, this.getY() + this.getHeight(),
-                        this.selectedColor);
+        if (style != Style.BUTTON) {
+            boolean highlighted = active && (isHovered() || isFocused());
+            if (style == Style.CLASP || style == Style.ARMOR_SWAP) {
+                InventoryStyle.drawSocket(context, getX(), getY(), getWidth(), getHeight(), highlighted);
+            } else {
+                CompendiumStyle.drawToolbarControl(context, getX(), getY(), getWidth(), getHeight(), highlighted);
             }
-            context.drawCenteredTextWithShadow(MinecraftClient.getInstance().textRenderer, label,
-                    this.getX() + this.getWidth() / 2, this.getY() + 12, textColor);
+            if (style == Style.CLOSE) {
+                CompendiumStyle.drawJournalIcon(context, 14, getX() + (getWidth() - 16) / 2,
+                        getY() + (getHeight() - 16) / 2);
+            } else if (style == Style.ARMOR_SWAP) {
+                InventoryStyle.drawSwapIcon(context, getX(), getY(), getWidth(), getHeight());
+            } else {
+                context.drawCenteredTextWithShadow(MinecraftClient.getInstance().textRenderer, getMessage(),
+                        getX() + getWidth() / 2, getY() + (getHeight() - 8) / 2,
+                        active ? CompendiumStyle.TEXT : CompendiumStyle.TEXT_DISABLED);
+            }
             return;
         }
-        drawButton(context, this.getX(), this.getY(), this.getWidth(), this.getHeight(), this.isHovered(),
+        drawButton(context, this.getX(), this.getY(), this.getWidth(), this.getHeight(), this.isHovered() || this.isFocused(),
                 this.active, this.selected, this.getMessage().getString());
     }
 
@@ -134,12 +141,9 @@ public class CompendiumButtonWidget extends ClickableWidget {
 
     public static void drawButton(DrawContext context, int x, int y, int width, int height,
                                   boolean hovered, boolean active, boolean selected, String text) {
-        // Use the actual vanilla widget sprites instead of reproducing their
-        // bevels in code. Resource packs can therefore restyle every button.
-        CompendiumStyle.drawVanillaButton(context, x, y, width, height, hovered || selected, active);
+        CompendiumStyle.drawRailPlaque(context, x, y, width, height, selected, hovered && active);
 
-        int textColor = selected ? CompendiumStyle.TEXT_GOLD_LIGHT
-                : active ? (hovered ? 0xFFFFFFFF : CompendiumStyle.TEXT) : CompendiumStyle.TEXT_DISABLED;
+        int textColor = !active ? CompendiumStyle.TEXT_DISABLED : CompendiumStyle.TEXT;
         context.drawCenteredTextWithShadow(
                 MinecraftClient.getInstance().textRenderer,
                 text,

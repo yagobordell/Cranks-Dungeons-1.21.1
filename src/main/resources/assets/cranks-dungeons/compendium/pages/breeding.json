@@ -1,26 +1,99 @@
 {
   "title": "Mount Breeding & Genetics",
   "content": [
-    { "type": "text", "value": "Horse, donkey, llama, camel, and strider breeding each produce a genetically tracked foal. Horse-donkey pairs can produce a sterile mule. Skeleton horses have no breeding system; pigs keep vanilla breeding without mount genes or mutations. Mounts & Cargo lists every species' stats, genes, and traits." },
-    { "type": "heading", "value": "Requirements & Breeding Limits" },
-    { "type": "text", "value": "Feed the species' valid breeding food to two eligible adults of opposite sexes. Both parents need an attempt remaining, must be off cooldown, and cannot share a recorded ancestor. Horse parents must also be tamed. A successful birth consumes one attempt from each parent and starts their cooldown." },
-    { "type": "list", "value": "Horse, Donkey, Llama, Camel: 3 attempts per parent and a 30-minute cooldown.\nStrider: 4 attempts per parent and a 20-minute cooldown.\nHorse + Donkey: can produce a Mule; the Mule is sterile.\nSkeleton Horse: cannot breed.\nPig: vanilla breeding remains available; no mount breeding or mutation system." },
-    { "type": "text", "value": "Camel and Strider foals from custom-owned parents start unowned. Use a Name Tag to claim each foal." },
-    { "type": "heading", "value": "Gene Inheritance" },
-    { "type": "text", "value": "Each gene is inherited separately from one parent; values are not averaged. Horse and same-species mount foals normally have a 70% chance per gene to take the better parental value, with at least three better values guaranteed. Their generation is one higher than the higher-generation parent. Grades compare genes with what is normally reachable at that generation, and the bar shows distance to the breeding cap." },
-    { "type": "text", "value": "For donkey, llama, camel, and strider foals, every gene also receives a lineage improvement of 0.5%–2% of its full breeding range before mutation. Each gene has an independent 5% mutation chance; 80% of mutations are positive and 20% negative. A mutation changes the value by 2%–6% of its full breeding range, then clamps it to the legal minimum or maximum." },
-    { "type": "text", "value": "Same-species mount foals usually inherit a parent's trait. Matching positive traits pass through; when parents differ, either parent's trait can be selected and a No Trait result is possible. If the parents do not share the same positive trait, a separate 3% trait-mutation roll can replace the normal result with a random trait for that species." },
-    { "type": "heading", "value": "Horse Breeding Focus & Mutations" },
-    { "type": "text", "value": "Set each horse's focus in its Breeding panel with the arrows beside Health, Armor, Speed, Jump, Evasion, Endurance, or None. A focused gene is guaranteed to take the better parental value. Focusing both parents on the same gene gives it the strongest lineage improvement. Two different focuses guarantee better inheritance for both genes." },
-    { "type": "text", "value": "Horse lineage improvement is larger for weaker genes and tapers near the cap: 3% of the gene range below 25% quality, 2.5% below 60%, 2% below 85%, and 1% at 85% or higher. A matching focus gets the full amount; one focus or two different focuses use 75% of that rate; no focus uses 50%. With two different focuses, one of the selected genes is randomly chosen for that improvement." },
-    { "type": "text", "value": "Each of the six horse genes has an independent 5% mutation chance. Mutations are positive 80% of the time and negative 20% of the time; they change a value by 2%–5% of its full legal range plus a generation bonus capped at another 2% of the range. A separate 3% roll can mutate the trait, and a 2% roll can change coat colour." },
-    { "type": "text", "value": "When another adult tamed horse is within eight blocks, its Breeding panel offers a Pairing Preview. Use the Mate arrows to inspect nearby horses; compatible candidates are listed first. The preview shows blockers, parental gene values, focus-guaranteed genes, possible lineage gain, and trait odds, but cannot predict random inheritance or mutations." },
-    { "type": "heading", "value": "Mules & Non-Breeding Mounts" },
-    { "type": "text", "value": "A Mule's health, Armor, speed, jump, Endurance, and Pack Capacity are derived from its horse and donkey parents. It has no separate mutation rolls or breeding line. Hybrid Vigor is a 20% trait roll; otherwise the Mule receives a trait from one parent." },
-    { "type": "text", "value": "Skeleton horses cannot breed and instead unlock one specialization at Soul Bond 10. Pigs can produce vanilla piglets, but those births do not use mount genes, traits, grades, or mutation rolls." },
-    { "type": "heading", "value": "Horse Foals & Imprinting" },
-    { "type": "text", "value": "A horse foal starts with three breeding attempts. The player who starts the breeding becomes its imprint owner. The first sugar care is available after 1 minute; later care is available every 2.5 minutes. Each successful care adds 25% imprint, up to 100%, and only the imprint owner can provide care." },
-    { "type": "note", "style": "info", "value": "A fully imprinted horse gains up to 20% base Health, Speed, and Jump while its imprint owner controls it. Imprint is not a gene and does not benefit other riders." },
-    { "type": "note", "style": "important", "value": "Mutation count records history, not quality. A negative mutation still counts. Choose breeding stock by its resulting genes, grade, trait, and effective stats." }
+    {
+      "type": "text",
+      "value": "[[mob/minecraft:horse|Horse]], donkey, llama, camel, and strider breeding each produce a genetically tracked foal. [[mob/minecraft:horse|Horse]]-donkey pairs can produce a sterile mule. [[mob/minecraft:skeleton_horse|Skeleton Horses]] have no breeding system; pigs keep vanilla breeding without mount genes or mutations. Mounts & Cargo lists every species' stats, genes, and traits."
+    },
+    {
+      "type": "heading",
+      "value": "Requirements & Breeding Limits"
+    },
+    {
+      "type": "text",
+      "value": "Feed the species' valid breeding food to two eligible adults of opposite sexes. Both parents need an attempt remaining, must be off cooldown, and cannot share a recorded ancestor. [[mob/minecraft:horse|Horse]]-family parents must also be tamed and fully healed. Breeding access is separate from riding and storage: owners choose Owner, Party, or Everyone in the Breeding tab. Each parent must be fed by an authorized player; permission is checked again at the birth. A successful birth consumes one attempt from each parent and starts their cooldown."
+    },
+    {
+      "type": "list",
+      "value": "[[mob/minecraft:horse|Horse]], [[mob/minecraft:donkey|Donkey]], [[mob/minecraft:llama|Llama]], [[mob/minecraft:camel|Camel]]: 3 attempts per parent and a 30-minute cooldown.\n[[mob/minecraft:strider|Strider]]: 4 attempts per parent and a 20-minute cooldown.\n[[mob/minecraft:horse|Horse]] + [[mob/minecraft:donkey|Donkey]]: can produce a [[mob/minecraft:mule|Mule]]; the [[mob/minecraft:mule|Mule]] is sterile.\n[[mob/minecraft:skeleton_horse|Skeleton Horse]]: cannot breed.\n[[mob/minecraft:pig|Pig]]: vanilla breeding remains available; no mount breeding or mutation system."
+    },
+    {
+      "type": "text",
+      "value": "[[mob/minecraft:camel|Camel]] and [[mob/minecraft:strider|Strider]] foals from custom-owned parents start unowned. Use a [[item/minecraft:name_tag|Name Tag]] to claim each foal."
+    },
+    {
+      "type": "heading",
+      "value": "Gene Inheritance"
+    },
+    {
+      "type": "text",
+      "value": "Each gene is inherited separately from one parent; values are not averaged. [[mob/minecraft:horse|Horse]] and same-species mount foals normally have a 70% chance per gene to take the better parental value, with at least three better values guaranteed. Their generation is one higher than the higher-generation parent. Grades compare genes with what is normally reachable at that generation, and the bar shows distance to the breeding cap."
+    },
+    {
+      "type": "text",
+      "value": "For donkey, llama, camel, and strider foals, every gene also receives a lineage improvement of 0.5%–2% of its full breeding range before mutation. Each gene has an independent 5% mutation chance; 80% of mutations are positive and 20% negative. A mutation changes the value by 2%–6% of its full breeding range, then clamps it to the legal minimum or maximum."
+    },
+    {
+      "type": "text",
+      "value": "Same-species mount foals usually inherit a parent's trait. Matching positive traits pass through; when parents differ, either parent's trait can be selected and a No Trait result is possible. If the parents do not share the same positive trait, a separate 3% trait-mutation roll can replace the normal result with a random trait for that species."
+    },
+    {
+      "type": "heading",
+      "value": "Horse Breeding Focus & Mutations"
+    },
+    {
+      "type": "text",
+      "value": "Open Breeding Focus in the mount's Genetics panel and choose Health, Armour, Speed, Jump, Evasion, Endurance, or None. A focused gene is guaranteed to take the better parental value. Focusing both parents on the same gene gives it the strongest lineage improvement. Two different focuses guarantee better inheritance for both genes."
+    },
+    {
+      "type": "text",
+      "value": "[[mob/minecraft:horse|Horse]] lineage improvement is larger for weaker genes and tapers near the cap: 3% of the gene range below 25% quality, 2.5% below 60%, 2% below 85%, and 1% at 85% or higher. A matching focus gets the full amount; one focus or two different focuses use 75% of that rate; no focus uses 50%. With two different focuses, one of the selected genes is randomly chosen for that improvement."
+    },
+    {
+      "type": "text",
+      "value": "Each of the six horse genes has an independent 5% mutation chance. Mutations are positive 80% of the time and negative 20% of the time; they change a value by 2%–5% of its full legal range plus a generation bonus capped at another 2% of the range. A separate 3% roll can mutate the trait, and a 2% roll can change coat colour."
+    },
+    {
+      "type": "text",
+      "value": "When another adult tamed horse is within eight blocks, its Breeding panel offers a Pairing Preview. Use the Mate selector to inspect nearby horses; compatible candidates are listed first. The preview separates compatibility from readiness, explaining healing, dismounting and feeding requirements. It also shows blockers, parental gene values, focus-guaranteed genes, possible lineage gain, and trait odds, but cannot predict random inheritance or mutations."
+    },
+    {
+      "type": "heading",
+      "value": "Mules & Non-Breeding Mounts"
+    },
+    {
+      "type": "text",
+      "value": "A [[mob/minecraft:mule|Mule]]'s health, Armor, speed, jump, Endurance, and Pack Capacity are derived from its horse and donkey parents. It has no separate mutation rolls or breeding line. Hybrid Vigor is a 20% trait roll; otherwise the [[mob/minecraft:mule|Mule]] receives a trait from one parent."
+    },
+    {
+      "type": "text",
+      "value": "[[mob/minecraft:skeleton_horse|Skeleton Horses]] cannot breed and instead unlock one specialization at Soul Bond 10. [[mob/minecraft:pig|Pigs]] can produce vanilla piglets, but those births do not use mount genes, traits, grades, or mutation rolls."
+    },
+    {
+      "type": "heading",
+      "value": "Horse Foals & Imprinting"
+    },
+    {
+      "type": "text",
+      "value": "A horse foal starts with three breeding attempts. The player who starts the breeding becomes its imprint owner. The first sugar care is available after 1 minute; later care is available every 2.5 minutes. Each successful care adds 25% imprint, up to 100%, and only the imprint owner can provide care."
+    },
+    {
+      "type": "note",
+      "style": "info",
+      "value": "A fully imprinted horse gains up to 20% base Health, Speed, and Jump while its imprint owner controls it. Imprint is not a gene and does not benefit other riders. Ownership transfers keep that imprint bound to its original breeder."
+    },
+    {
+      "type": "note",
+      "style": "important",
+      "value": "Mutation count records history, not quality. A negative mutation still counts. Choose breeding stock by its resulting genes, grade, trait, and effective stats. Select the Breeding Focus button in Genetics to choose a favored gene from the menu. Nearest ancestors from both parents are retained first for relatedness checks."
+    },
+    {
+      "type": "heading",
+      "value": "Related articles"
+    },
+    {
+      "type": "text",
+      "value": "[[article/horse_traits|Horse Traits & Mutations]] | [[article/horse_training|Horse Training & Stamina]] | [[article/mounts|Mounts & Cargo]]"
+    }
   ]
 }

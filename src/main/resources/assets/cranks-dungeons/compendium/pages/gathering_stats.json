@@ -1,13 +1,70 @@
 {
-  "title": "Yield, Fortune & Tool Utility",
+  "title": "Gathering, Discovery & Survival",
   "content": [
-    { "type": "heading", "value": "Yield" },
-    { "type": "text", "value": "Yield duplicates each affected original stack proportionally. The whole-number part grants guaranteed extra copies; the fractional part is the chance for one more copy. For example, 1.25 yield adds one guaranteed copy of the stack and has a 25% chance to add another. Final stack count is capped by that item's maximum stack size." },
-    { "type": "list", "value": "Log Yield affects logs. Sapling Yield affects saplings and apples from leaves.\nOre Yield affects standard ores and quartz; Overworld/Nether Ore Yield is added in its matching dimension. Gem Yield additionally affects diamond, emerald, and lapis ores. Flint Yield affects flint from gravel.\nCrop Yield affects mature crop food; Seed Yield affects recognized seed drops.\nMonster Drop Yield affects hostile-monster loot. Rare Mob Drop Chance is added as another monster-loot duplication value, with a Nether-specific addition.\nAnimal Drop Yield affects animal loot. Meat Yield adds again for beef, pork, chicken, mutton, and rabbit food drops." },
-    { "type": "heading", "value": "Fortune Chances" },
-    { "type": "list", "value": "Ore Fortune can duplicate normal ore drops when Silk Touch is not active.\nLog Fortune has a chance to drop one extra natural log.\nCrop Fortune, when harvesting a mature supported crop with a hoe, replaces the ordinary drop with twice the full original drop on success.\nDig Fortune can add flint from gravel, another full clay-ball drop from clay, or duplicate non-block drops from configured dig blocks." },
-    { "type": "heading", "value": "Tool Utility" },
-    { "type": "list", "value": "Tool tooltip: the modded stat line shows Gathering Speed only, calculated from Mining Efficiency.\nPrecision Mining is a capped 0–100% chance for a gathering tool not to lose durability.\nRepair Chance is a capped 0–100% chance for an applicable gear durability loss to be cancelled.\nBreaking Range increases how far away you can interact with blocks.\nVein Mining searches connected blocks of the same ore type, breaks up to 31 additional blocks, consumes one durability per extra block, and stops before the tool breaks." },
-    { "type": "note", "style": "warning", "value": "Several yield bonuses can add together on the same loot stack. Stack-size caps can waste part of a very large combined bonus." }
+    {
+      "type": "heading",
+      "value": "Gathering Speed"
+    },
+    {
+      "type": "text",
+      "value": "Gathering Speed is the effective tool multiplier. World-tree Gathering Speed increases scale the tool base. Mining, Woodcutting and Digging Speed are extra percentage bonuses for their matching blocks. Suitable tools, harvest requirements, Haste and Mining Fatigue still matter. Specialized speed bonuses are capped at 300%."
+    },
+    {
+      "type": "heading",
+      "value": "Resource Yield"
+    },
+    {
+      "type": "text",
+      "value": "Yield adds resources to the original loot result; it never rerolls the loot table. Bonuses add together before rounding. For example, 25% yield on four items adds one item; on one item it gives a 25% chance for an extra item. Combined yield is capped at 300%. Extra items split into legal stacks instead of disappearing above one stack."
+    },
+    {
+      "type": "list",
+      "value": "Ore Yield affects tagged ore resources, including [[item/minecraft:ancient_debris|ancient debris]] scrap; Gem Yield adds for diamond, emerald and lapis. Dimension-specific ore bonuses add in their matching dimension.\nLog Yield applies when chopping grown logs with an axe. Sapling Yield increases saplings and apples from manually harvested grown leaves.\nDigging Yield increases clay balls and flint already dropped from natural gravel. [[item/minecraft:flint|Flint]] Yield adds to the flint bonus. Silk Touch blocks are not multiplied.\nCrop and Seed Yield apply to mature crops harvested with a hoe, including cocoa and [[item/minecraft:nether_wart|Nether Wart]]. [[item/minecraft:carrot|Carrots]] and potatoes use Crop Yield.\nFortune-style yield bonuses add to the matching resource yield; they do not independently reroll the same loot."
+    },
+    {
+      "type": "note",
+      "value": "Placing and breaking resource blocks does not generate extra materials. Properly grown trees and mature farm crops still benefit.",
+      "style": "important"
+    },
+    {
+      "type": "heading",
+      "value": "Farming Utility"
+    },
+    {
+      "type": "text",
+      "value": "Crop Replant Chance can replant a mature crop after hoe harvesting. Each successful replant consumes one matching seed or planting item from the hotbar, regular inventory or an unlocked bag slot. It requires suitable soil, space and normal breaking permissions. No seed means no replant; locked bag slots and active trades are excluded. Sneak while harvesting to leave the space empty."
+    },
+    {
+      "type": "heading",
+      "value": "Hunting & Rare Loot"
+    },
+    {
+      "type": "list",
+      "value": "Item Rarity improves the chance of suitable higher-quality results in weighted loot, including eligible tome rewards. It does not directly upgrade equipment rarity or create an extra copy of every drop. A 25% bonus is not a guaranteed 25-percentage-point increase in drop chance."
+    },
+    {
+      "type": "heading",
+      "value": "Exploration & Tool Utility"
+    },
+    {
+      "type": "list",
+      "value": "World Discovery XP Bonus increases all personal first-discovery World XP rewards, up to 50% from this stat. Ordinary Experience Bonus still applies. Repeated discoveries do not pay again.\nTool Preservation combines with Durability Preservation to avoid durability loss, capped at 80% total. It does not repair an item.\nBonus Block Reach adds up to two metres of block interaction reach. It does not increase attack reach or bypass permissions or line of sight.\nSwimming Speed increases player water acceleration by up to 50%. Breath Efficiency prevents up to 75% of underwater air-loss ticks.\nTravel Efficiency reduces sprinting and swimming hunger costs by up to 50%; it does not alter combat, mining or mount stamina costs.\nVein Mining uses normal protected player breaks for at most 31 additional connected ores. Every block uses its own original loot result, durability cost and placement protection."
+    },
+    {
+      "type": "heading",
+      "value": "Riding Utility"
+    },
+    {
+      "type": "list",
+      "value": "Riding Speed increases controlled mount speed. Riding Agility improves acceleration and braking without changing turning rate.\nMount Endurance reduces sprint stamina or ability-resource drain; jumps and camel dashes keep their normal costs. Mount Recovery increases positive stamina or resource regeneration after the normal delay.\nSure Footing reduces the mount's fall damage, separately from passenger damage.\nOnly the controlling rider supplies these bonuses. They never change genes, inherited traits, unmounted recovery or a following animal's speed. Speed, recovery and agility are not capped to suggested balance targets; stamina-cost and fall-damage reductions cannot exceed 100%."
+    },
+    {
+      "type": "heading",
+      "value": "Related articles"
+    },
+    {
+      "type": "text",
+      "value": "[[article/world_tree|World Tree]] | [[article/gathering|World Discoveries]] | [[article/horse_training|Horse Training & Stamina]]"
+    }
   ]
 }

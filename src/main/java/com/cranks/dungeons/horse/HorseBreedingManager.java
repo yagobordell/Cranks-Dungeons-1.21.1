@@ -281,11 +281,10 @@ public final class HorseBreedingManager {
         inherited.damId = damHorse.getUuid();
         inherited.sireName = displayName(sireHorse);
         inherited.damName = displayName(damHorse);
-        inherited.ancestry.add(sireHorse.getUuid());
-        inherited.ancestry.add(damHorse.getUuid());
-        inherited.ancestry.addAll(sire.ancestry);
-        inherited.ancestry.addAll(dam.ancestry);
-        trimAncestry(inherited.ancestry, 16);
+        inherited.ancestryDepths.putAll(com.cranks.dungeons.mount.MountLineage.inherit(
+                sireHorse.getUuid(),com.cranks.dungeons.mount.MountManager.lineage(sireHorse),
+                damHorse.getUuid(),com.cranks.dungeons.mount.MountManager.lineage(damHorse)));
+        inherited.ancestry.addAll(inherited.ancestryDepths.keySet());
 
         ServerPlayerEntity breeder = firstParent.getLovingPlayer();
         if (breeder == null) breeder = secondParent.getLovingPlayer();
@@ -335,9 +334,11 @@ public final class HorseBreedingManager {
         UUID firstId = first.getUuid();
         UUID secondId = second.getUuid();
         if (firstId.equals(secondId)) return true;
-        if (firstData.ancestry.contains(secondId) || secondData.ancestry.contains(firstId)) return true;
-        for (UUID ancestor : firstData.ancestry) {
-            if (secondData.ancestry.contains(ancestor)) return true;
+        var firstFamily=com.cranks.dungeons.mount.MountLineage.known(firstData.sireId,firstData.damId,firstData.ancestry,firstData.ancestryDepths).keySet();
+        var secondFamily=com.cranks.dungeons.mount.MountLineage.known(secondData.sireId,secondData.damId,secondData.ancestry,secondData.ancestryDepths).keySet();
+        if (firstFamily.contains(secondId) || secondFamily.contains(firstId)) return true;
+        for (UUID ancestor : firstFamily) {
+            if (secondFamily.contains(ancestor)) return true;
         }
         return false;
     }
@@ -348,7 +349,14 @@ public final class HorseBreedingManager {
         applyGeneticBases(horse, data);
         data.currentStamina = Math.min(data.currentStamina, getMaxStamina(data));
 
+        com.cranks.dungeons.mount.MountManager.enforceRidingAccess(horse);
         Entity rider = horse.getControllingPassenger();
+        UUID abilityRider = rider instanceof PlayerEntity ? rider.getUuid() : null;
+        if (!java.util.Objects.equals(data.abilityRider, abilityRider)) {
+            data.gallopRequested = false;
+            data.galloping = false;
+            data.abilityRider = abilityRider;
+        }
         UUID imprintRider = rider instanceof PlayerEntity ? rider.getUuid() : null;
         if (!java.util.Objects.equals(data.activeImprintRider, imprintRider)) {
             data.activeImprintRider = imprintRider;
@@ -376,34 +384,37 @@ public final class HorseBreedingManager {
             data.modifiersDirty = true;
         }
 
-        if (ridden && distance < 8.0) {
+        boolean activeTravel=com.cranks.dungeons.mount.MountTraining.activeTravel(horse,distance);
+        if (activeTravel) {
             data.distanceAccumulator += distance;
             while (data.distanceAccumulator >= 10.0) {
                 data.distanceAccumulator -= 10.0;
                 addExperience(horse, HorseBreedingRules.travelExperience(data.galloping));
             }
-            if (data.wasOnGround && !horse.isOnGround() && horse.getVelocity().y > 0.1) {
-                addExperience(horse, 3);
+        }
+        if(ridden&&data.jumpIntentUntil>=horse.age&&data.wasOnGround&&!horse.isOnGround()&&horse.getVelocity().y>.1){
                 data.trackingLongJump = true;
                 data.longJumpDistance = 0.0;
-            }
+                data.jumpRider=rider.getUuid();data.jumpIntentUntil=-1;
         }
         if (data.trackingLongJump) {
-            if (distance < 8.0) data.longJumpDistance += distance;
-            if (horse.isOnGround()) {
-                addExperience(horse, HorseBreedingRules.longJumpExperience(data.longJumpDistance));
+            if(!ridden||!rider.getUuid().equals(data.jumpRider)||distance>=8||horse.hasVehicle()){
+                data.trackingLongJump=false;data.longJumpDistance=0;data.jumpRider=null;
+            }else if (horse.isOnGround()) {
+                if(data.longJumpDistance>=2)addExperience(horse,3+HorseBreedingRules.longJumpExperience(data.longJumpDistance));
                 data.trackingLongJump = false;
                 data.longJumpDistance = 0.0;
-            }
+                data.jumpRider=null;
+            }else if(activeTravel)data.longJumpDistance+=distance;
         }
         if (data.galloping) {
-            spendStamina(data, gallopDrainPerSecond(data) / 20.0);
+            spendStamina(data, com.cranks.dungeons.mount.RidingStats.sprintCost(horse, gallopDrainPerSecond(data)) / 20.0);
             if (data.currentStamina <= 0.01) {
                 data.galloping = false;
                 data.modifiersDirty = true;
             }
         } else if (horse.isOnGround()) {
-            regenerateStamina(data, ridden);
+            regenerateStamina(horse, data, ridden);
         } else if (data.staminaRegenDelay > 0) {
             data.staminaRegenDelay--;
         }
@@ -428,7 +439,8 @@ public final class HorseBreedingManager {
         if (ownershipChanged) sync(horse);
 
         data.syncTicker++;
-        int syncInterval = ridden || horse.isBaby() ? 10 : 100;
+        if(data.lastObservedLove!=horse.isInLove()){data.lastObservedLove=horse.isInLove();sync(horse);}
+        int syncInterval = ridden || horse.isBaby() || horse.isInLove() ? 10 : 100;
         if (data.syncTicker >= syncInterval) {
             data.syncTicker = 0;
             sync(horse);
@@ -495,6 +507,7 @@ public final class HorseBreedingManager {
         if (horse.getEntityWorld().isClient()
                 || !(horse.getControllingPassenger() instanceof PlayerEntity)) return;
         HorseGeneticsData data = ensureInitialized(horse);
+        data.jumpIntentUntil=horse.age+10;
         spendStamina(data, jumpStaminaCost(data));
         sync(horse);
     }
@@ -509,6 +522,7 @@ public final class HorseBreedingManager {
     public static void setGallopRequested(HorseEntity horse, PlayerEntity rider, boolean requested) {
         if (horse.getControllingPassenger() != rider || horse.isBaby()) return;
         HorseGeneticsData data = ensureInitialized(horse);
+        data.abilityRider = rider.getUuid();
         data.gallopRequested = requested;
         if (!requested && data.galloping) {
             data.galloping = false;
@@ -518,9 +532,7 @@ public final class HorseBreedingManager {
 
     public static void setBreedingFocus(HorseEntity horse, PlayerEntity player, HorseBreedingFocus focus) {
         HorseGeneticsData data = ensureInitialized(horse);
-        UUID owner = horse.getOwnerUuid();
-        boolean allowed = player.isCreative() || owner == null || owner.equals(player.getUuid())
-                || player.getUuid().equals(data.imprintOwnerId);
+        boolean allowed = com.cranks.dungeons.mount.MountManager.canManageAccess(player,horse);
         if (!horse.isTame() || !allowed || player.squaredDistanceTo(horse) > 64.0) return;
         data.breedingFocus = focus == null ? HorseBreedingFocus.NONE : focus;
         sync(horse);
@@ -789,12 +801,13 @@ public final class HorseBreedingManager {
         data.staminaRegenDelay = STAMINA_REGEN_DELAY_TICKS;
     }
 
-    private static void regenerateStamina(HorseGeneticsData data, boolean ridden) {
+    private static void regenerateStamina(HorseEntity horse, HorseGeneticsData data, boolean ridden) {
         if (data.staminaRegenDelay > 0) {
             data.staminaRegenDelay--;
             return;
         }
         double rate = ridden ? mountedStaminaRegenPerSecond(data) : unmountedStaminaRegenPerSecond(data);
+        if (ridden) rate = com.cranks.dungeons.mount.RidingStats.recovery(horse, rate);
         data.currentStamina = Math.min(getMaxStamina(data), data.currentStamina + rate / 20.0);
     }
 
@@ -833,15 +846,6 @@ public final class HorseBreedingManager {
 
     private static double clamp(double value, double min, double max) {
         return Math.max(min, Math.min(max, value));
-    }
-
-    private static void trimAncestry(Set<UUID> ancestry, int maxSize) {
-        while (ancestry.size() > maxSize) {
-            UUID last = null;
-            for (UUID ancestor : ancestry) last = ancestor;
-            if (last == null) return;
-            ancestry.remove(last);
-        }
     }
 
     private static Identifier id(String path) {

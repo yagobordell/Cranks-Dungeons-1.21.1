@@ -1,10 +1,34 @@
 {
   "title": "Animal Armour",
   "content": [
-    { "type": "text", "value": "Horse and wolf armour use fixed base stats equivalent to strong player sets. They cannot receive random, targeted, or Artificial runes. Every modifier uses the animal body slot, so holding the item or riding the animal never grants its statistics to the player." },
-    { "type": "list", "value": "Leather Horse Armour: +60 evasion and +15% base movement speed.\nGolden Horse Armour: +55 armour and +35 Energy Shield. It has no extra item rarity.\nIron Horse Armour: +120 armour and +20% knockback resistance.\nDiamond Horse Armour: +300 armour, +10 maximum health, and +0.75 health regeneration per second.\nWolf Armour: +120 armour and +20% knockback resistance, matching iron." },
-    { "type": "heading", "value": "Animal-Only Behaviour" },
-    { "type": "text", "value": "The equipped animal receives the matching armour, evasion, Energy Shield, life regeneration, health, speed, and knockback values through its BODY equipment slot. Energy Shield follows normal recharge and damage rules; Diamond regeneration heals the wearer continuously." },
-    { "type": "note", "style": "important", "value": "Diamond animal armour is supposed to regenerate the equipped animal. If an unarmoured animal regenerates, inspect its traits, status effects, or another mod; this armour does not apply from inventory, hand, or rider state." }
+    {
+      "type": "text",
+      "value": "[[mob/minecraft:horse|Horse]] and wolf armour use fixed base stats equivalent to strong player sets. They cannot receive random, targeted, or Artificial runes. Its bonuses protect the animal wearing it, not the rider or a player holding the item."
+    },
+    {
+      "type": "list",
+      "value": "[[item/minecraft:leather|Leather]] [[mob/minecraft:horse|Horse]] Armour: +60 evasion and +15% base movement speed.\nGolden [[mob/minecraft:horse|Horse]] Armour: +55 armour and +35 [[stat/cranks-dungeons:energy_shield|Energy Shield]]. It has no extra item rarity.\nIron [[mob/minecraft:horse|Horse]] Armour: +120 armour and +20% knockback resistance.\n[[item/minecraft:diamond|Diamond]] [[mob/minecraft:horse|Horse]] Armour: +300 armour, +10 maximum health, and +0.75 health regeneration per second.\n[[item/minecraft:wolf_armor|Wolf Armour]]: +120 armour and +20% knockback resistance, matching iron."
+    },
+    {
+      "type": "heading",
+      "value": "Animal-Only Behaviour"
+    },
+    {
+      "type": "text",
+      "value": "The equipped animal receives the matching armour, evasion, [[stat/cranks-dungeons:energy_shield|Energy Shield]], life regeneration, health, speed, and knockback values while wearing the armour. [[stat/cranks-dungeons:energy_shield|Energy Shield]] follows normal recharge and damage rules; [[item/minecraft:diamond|Diamond]] regeneration heals the wearer continuously."
+    },
+    {
+      "type": "note",
+      "style": "important",
+      "value": "Diamond animal armour restores Health to the animal wearing it. Carrying the armour in your own inventory does not heal you or your mount."
+    },
+    {
+      "type": "heading",
+      "value": "Related articles"
+    },
+    {
+      "type": "text",
+      "value": "[[article/tailoring|Tailoring Bench]] | [[article/repairing|Repair Bench]] | [[article/mounts|Mounts & Cargo]]"
+    }
   ]
 }

@@ -1,12 +1,42 @@
 {
   "title": "Controls & HUD",
   "content": [
-    { "type": "heading", "value": "Default Keys" },
-    { "type": "list", "value": "C: open the Compendium.\nP: open the Passive Skill Tree.\nO: open the World Tree.\nG: cycle disabled toggleable enchantments on the held tool.\nW/S while riding: move forward or backward.\nA/D while riding: steer every supported mount with gradual, speed-sensitive turning while the camera looks freely.\nSprint + Forward: Horse Gallop, Donkey/Mule Pack Trot, Camel Canter, or Strider Lava Rush.\nJump on a Horse: immediately perform its full jump without a charge-timing bar. Jump on a Camel to dash; it spends Endurance once per dash. The old vanilla mount jump bar is hidden while mounted, and the player XP bar remains available.\nInventory key while riding: open the mount's inventory, including the shared cargo screen for Llamas, Camels, Pigs, and Striders.\nSneak + empty-hand Use on a Llama, Camel, Pig, or Strider: open its shared cargo screen on foot. Other horse-family mounts open their normal inventory when used while sneaking.\nMouse wheel: zoom a tree, scroll guide pages, horse panels, llama cargo, and inventory stats.\nLeft-drag: pan around a tree." },
-    { "type": "note", "style": "info", "value": "All key assignments can be changed in Minecraft Controls. If another mod uses the same key, rebind one of them." },
-    { "type": "heading", "value": "Stat Displays" },
-    { "type": "list", "value": "The inventory stats panel shows calculated player totals. Scroll it when the list is longer than the panel.\nEntity overhead bars can show health, Energy Shield, ailments, armour, and evasion according to client settings.\nDamage numbers are colour-coded by physical, fire, cold, lightning, void, drowning, and healing.\nThe party HUD tracks connected party members.\nMounted HUD bars show the animal's Health and resource: Horse Stamina, Donkey/Mule/Camel Endurance, or Strider Heat. Both mounted bars can be repositioned in the Mod Menu HUD layout editor." },
-    { "type": "heading", "value": "Client Configuration" },
-    { "type": "text", "value": "Mod Menu exposes HUD visibility, scale, placement, entity-bar behaviour, and related client presentation options. These settings do not change server-side combat values." }
+    {
+      "type": "heading",
+      "value": "Default Keys"
+    },
+    {
+      "type": "list",
+      "value": "J: open the Compendium.\nP: open the Passive Skill Tree.\nO: open the World Tree.\nG: cycle disabled toggleable enchantments on the held tool.\nW/S while riding: move forward or backward.\nA/D while riding: steer every supported mount with gradual, speed-sensitive turning while the camera looks freely.\nSprint + Forward: [[mob/minecraft:horse|Horse]] Gallop, [[mob/minecraft:donkey|Donkey]]/[[mob/minecraft:mule|Mule]] Pack Trot, [[mob/minecraft:camel|Camel]] Canter, or [[mob/minecraft:strider|Strider]] Lava Rush.\nJump on a [[mob/minecraft:horse|Horse]]: immediately perform its full jump without a charge-timing bar. Jump on a [[mob/minecraft:camel|Camel]] to dash; it spends Endurance once per dash. The old vanilla mount jump bar is hidden while mounted, and the player XP bar remains available.\nInventory key while riding: open the mount's inventory, including the shared cargo screen for [[mob/minecraft:llama|Llamas]], [[mob/minecraft:camel|Camels]], [[mob/minecraft:pig|Pigs]], and [[mob/minecraft:strider|Striders]].\nSneak + empty-hand Use on a [[mob/minecraft:llama|Llama]], [[mob/minecraft:camel|Camel]], [[mob/minecraft:pig|Pig]], or [[mob/minecraft:strider|Strider]]: open its shared cargo screen on foot. Other horse-family mounts open their normal inventory when used while sneaking.\nMouse wheel: zoom a tree, scroll guide pages, horse panels, llama cargo, and inventory stats.\nLeft-drag: pan around a tree."
+    },
+    {
+      "type": "note",
+      "style": "info",
+      "value": "All key assignments can be changed in Minecraft Controls. If another mod uses the same key, rebind one of them."
+    },
+    {
+      "type": "heading",
+      "value": "Stat Displays"
+    },
+    {
+      "type": "list",
+      "value": "The inventory stats panel shows calculated player totals. Scroll it when the list is longer than the panel.\nEntity overhead bars can show health, [[stat/cranks-dungeons:energy_shield|Energy Shield]], ailments, armour, and evasion according to client settings.\nDamage numbers are colour-coded by physical, fire, cold, lightning, void, drowning, and healing.\nThe party HUD tracks connected party members.\nMounted HUD bars show the animal's Health and resource: [[mob/minecraft:horse|Horse]] Stamina, [[mob/minecraft:donkey|Donkey]]/[[mob/minecraft:mule|Mule]]/[[mob/minecraft:camel|Camel]] Endurance, or [[mob/minecraft:strider|Strider]] Heat. Both mounted bars can be repositioned in the Mod Menu HUD layout editor."
+    },
+    {
+      "type": "heading",
+      "value": "Client Configuration"
+    },
+    {
+      "type": "text",
+      "value": "Mod Menu exposes HUD visibility, scale, placement, entity-bar behaviour, and related client presentation options. These settings do not change server-side combat values."
+    },
+    {
+      "type": "heading",
+      "value": "Related articles"
+    },
+    {
+      "type": "text",
+      "value": "[[article/contextual_help|Contextual Guide Links]] | [[article/stats|Reading Your Stats]] | [[article/ranged_weapons|Bows and Crossbows]]"
+    }
   ]
 }

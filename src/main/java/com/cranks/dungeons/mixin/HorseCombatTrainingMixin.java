@@ -17,7 +17,10 @@ public abstract class HorseCombatTrainingMixin {
         if (source.getAttacker() instanceof PlayerEntity player
                 && player.getVehicle() instanceof HorseEntity horse) {
             LivingEntity defeated = (LivingEntity) (Object) this;
-            if (defeated != horse) {
+            if (defeated instanceof net.minecraft.entity.mob.Monster
+                    || defeated instanceof net.minecraft.entity.mob.MobEntity mob
+                    && !(mob instanceof net.minecraft.entity.passive.PassiveEntity)
+                    && mob.getTarget() == player) {
                 HorseBreedingManager.addCombatExperience(horse, defeated.getMaxHealth());
             }
         }

@@ -1,0 +1,49 @@
+{
+  "title": "Bows and Crossbows",
+  "content": [
+    {
+      "type": "heading",
+      "value": "Bow controls"
+    },
+    {
+      "type": "text",
+      "value": "Hold Use to draw. Press Attack while drawing to shoot; release Use to lower the bow without firing or consuming an arrow. Keeping Use held after a shot starts the next draw. Each Attack press fires once."
+    },
+    {
+      "type": "heading",
+      "value": "Crossbow controls"
+    },
+    {
+      "type": "text",
+      "value": "Hold Use to reload. Releasing before loading completes cancels the reload and resets its progress. Loading completes while Use is held."
+    },
+    {
+      "type": "text",
+      "value": "Once loaded, release Use and press it again to aim with a 20% field-of-view reduction. Finishing a reload does not zoom automatically. Press Attack to fire the loaded projectile; an unloaded Attack remains melee."
+    },
+    {
+      "type": "text",
+      "value": "Keeping Use held after firing starts the next reload. The firing animation is allowed to finish first. Holding Attack does not repeatedly fire."
+    },
+    {
+      "type": "heading",
+      "value": "Timing and damage"
+    },
+    {
+      "type": "text",
+      "value": "The arrow-shaped charge indicator follows the same draw or reload clock as gameplay. Attack-speed bonuses change that timing. Player arrow damage follows the weapon and bow draw strength, not random vanilla arrow-critical bonuses or impact speed."
+    },
+    {
+      "type": "text",
+      "value": "RPG [[article/damage#critical_strikes|critical strikes]], elemental damage and target defences still apply. Projectile Speed changes flight speed without secretly multiplying player bow or crossbow damage."
+    },
+    {
+      "type": "heading",
+      "value": "Related articles"
+    },
+    {
+      "type": "text",
+      "value": "[[article/fletching|Fletching Table]] | [[article/damage|Damage & Criticals]] | [[article/ailments|Ailments]]"
+    }
+  ]
+}

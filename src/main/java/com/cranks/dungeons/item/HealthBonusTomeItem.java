@@ -24,13 +24,9 @@ public class HealthBonusTomeItem extends AbstractTomeItem {
 
     @Override
     public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
-
         addTomeDescription(tooltip::add);
-
-        addStatRange(tooltip::add, EquipmentType.LEGGINGS, "Leggings");
-        addStatRange(tooltip::add, EquipmentType.HELMET, "Helmet");
-        addStatRange(tooltip::add, EquipmentType.CHESTPLATE, "Chest/Boots");
-
+        for(var summary:summaries())tooltip.add(Text.literal(summary.label()+": ").formatted(Formatting.GRAY)
+                .append(Text.literal(summary.stat().getDisplayName()).formatted(Formatting.WHITE)));
         super.appendTooltip(stack, context, tooltip, type);
     }
 }

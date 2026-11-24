@@ -1,4 +1,0 @@
-{ "title": "Bow Runes", "content": [
-  { "type": "text", "value": "Bows have Dexterity requirements and count as two-handed ranged/projectile weapons. Because the item name contains bow, ordinary random rolls are limited to T9–T10; targeted tomes can bypass that floor." },
-  { "type": "stat_catalog", "value": "BOW" }
-] }

@@ -1,5 +1,6 @@
 package com.cranks.dungeons.client;
 
+import com.cranks.dungeons.client.render.HudStyle;
 import com.cranks.dungeons.mount.MountDataProvider;
 import com.cranks.dungeons.mount.MountGeneticRatings;
 import com.cranks.dungeons.mount.MountKind;
@@ -19,7 +20,6 @@ import net.minecraft.item.Items;
 import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.RaycastContext;
@@ -31,7 +31,6 @@ import java.util.UUID;
 
 /** Displays potential ratings for genetic mounts while they are scouted through a spyglass. */
 public final class SpyglassMountScoutHudRenderer implements HudRenderCallback {
-    private static final Identifier PANEL = Identifier.ofVanilla("advancements/title_box");
     private static final int PANEL_WIDTH = 162;
     private static final double SCOUT_RANGE = 32.0;
     private static final double SPEED_TO_BLOCKS_PER_SECOND = 42.16;
@@ -191,7 +190,8 @@ public final class SpyglassMountScoutHudRenderer implements HudRenderCallback {
         int panelHeight = 28 + lines.size() * 8;
         int panelX = Math.max(4, client.getWindow().getScaledWidth() - PANEL_WIDTH - 4);
         int panelY = Math.max(4, (client.getWindow().getScaledHeight() - panelHeight) / 2);
-        context.drawGuiTexture(PANEL, panelX, panelY, PANEL_WIDTH, panelHeight);
+        HudStyle.plate(context, panelX, panelY, PANEL_WIDTH, panelHeight, false);
+        context.fill(panelX + 8, panelY + 20, panelX + PANEL_WIDTH - 8, panelY + 21, 0xFF636363);
         context.drawCenteredTextWithShadow(client.textRenderer, Text.literal(title),
                 panelX + PANEL_WIDTH / 2, panelY + 10, 0xFFFFD966);
         int lineY = panelY + 23;

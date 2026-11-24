@@ -1,0 +1,49 @@
+{
+  "title": "Hand Crafting",
+  "content": [
+    {
+      "type": "heading",
+      "value": "Craft without a station"
+    },
+    {
+      "type": "text",
+      "value": "The inventory panel lists material-based recipes that fit the vanilla 2 x 2 crafting grid. No arrangement of materials in a grid is required."
+    },
+    {
+      "type": "text",
+      "value": "Materials can come from your hotbar, regular inventory and unlocked bag storage. The [[article/crafting_table|Crafting Table]] also includes these hand-crafting recipes."
+    },
+    {
+      "type": "heading",
+      "value": "Discovering recipes"
+    },
+    {
+      "type": "text",
+      "value": "A recipe becomes visible after you have obtained at least one valid alternative for every required ingredient. Discovery belongs to each player, not the party or the whole server."
+    },
+    {
+      "type": "text",
+      "value": "Search by the output name, use the material-search mode to find uses for an ingredient, or enable Craftable to see recipes you currently have materials for. Category tabs narrow the list."
+    },
+    {
+      "type": "heading",
+      "value": "Crafting a batch"
+    },
+    {
+      "type": "text",
+      "value": "Type the number of recipe operations in the quantity field or use its buttons. Check the total output beside the quantity: one operation can produce several items. Batches can exceed one stack when materials and storage allow."
+    },
+    {
+      "type": "text",
+      "value": "Crafted output merges with matching unfinished stacks first. New stacks use hotbar, regular inventory, then unlocked bag storage. The station validates materials and output capacity before completing a craft."
+    },
+    {
+      "type": "heading",
+      "value": "Related articles"
+    },
+    {
+      "type": "text",
+      "value": "[[article/crafting_table|Crafting Table]] | [[article/campfire|Campfire]] | [[article/first_steps|First Steps]]"
+    }
+  ]
+}

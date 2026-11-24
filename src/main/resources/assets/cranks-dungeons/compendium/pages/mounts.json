@@ -1,48 +1,199 @@
 {
   "title": "Mounts & Cargo",
   "content": [
-    { "type": "text", "value": "Each mount has a different travel role. Use this guide to compare base durability, genes, traits, breeding, abilities, and cargo; Horse Training & Stamina and Mount Breeding & Genetics give the detailed rules." },
-    { "type": "heading", "value": "Base Stats & Progression" },
-    { "type": "list", "value": "Horse: 100 HP / 120 Armor.\nDonkey: 115 HP / 132 Armor.\nMule: 130 HP / 150 Armor.\nCamel: 160 HP / 180 Armor.\nStrider: 100 HP / 120 Armor.\nLlama: 100 HP / 120 Armor.\nSkeleton Horse: 250 HP / 350 Armor.\nPig: 40 HP / 0 Armor." },
-    { "type": "text", "value": "These are base values before genes, traits, equipment, and levels. Health and Armor genes add flat bonuses. Every mount except pigs gains 10 maximum HP per level up to level 30; no mount gains Armor from levels. Non-horse mounts gain 0.3% base speed per level. Horses gain 0.5% base speed, 0.35% jump, 2 Evasion, and 1.5 maximum stamina per level. Controlled travel gives 2 XP per 10 horizontal blocks, or 4 XP while a travel ability is active; horses also gain XP from jumps and mounted kills, and tamed llamas gain XP while travelling as a caravan. Wild horses, donkeys, mules, camels, striders, and llamas have a 40% chance to start with a trait. Armor bonuses from traits and skeleton specializations are percentages of base Armor." },
-    { "type": "heading", "value": "Horse" },
-    { "type": "text", "value": "Horses suit sustained ground travel. Ordinary movement costs no stamina; Gallop spends stamina for extra speed. A chested horse has 6 cargo slots and can equip horse armor." },
-    { "type": "list", "value": "Genes: Health Bonus 0–50; Armor Bonus 0–72; Speed 0.1125–0.42; Jump 0.4–1.2; Evasion 0–200; Endurance 50–200." },
-    { "type": "text", "value": "Traits: Swift gives +5% base movement speed, +5% Gallop speed, and +10% terrain movement efficiency. Hardy gives +10% base maximum health, +15% maximum stamina, and +25% stamina recovery. Sure-Footed gives +8% base jump, +15% knockback resistance, +0.15 step height, +2 safe-fall distance, 30% less remaining fall damage, and -2 jump stamina cost. Warhorse gives +30% base Armor, +20 Evasion, and +20% knockback resistance. See Horse Traits & Mutations for inheritance details." },
-    { "type": "text", "value": "Horses have 3 breeding attempts per parent and a 30-minute cooldown. Each of six genes has a separate 5% mutation chance; mutations are positive 80% of the time and change the gene by 2%–5% of its range plus a generation bonus capped at 2%. Horse Breeding Focus guides inheritance; trait mutations roll at 3% and coat mutations at 2%." },
-    { "type": "heading", "value": "Donkey" },
-    { "type": "text", "value": "Donkeys are solo cargo mounts. A chest gives 15–33 slots based on Pack Capacity; Packmaster adds 2, up to 33 slots. Hold Sprint and Forward while moving to Pack Trot for +10%–15% speed; Trail Skill also sets the road bonus, which adds +5%–15% speed on recognized roads." },
-    { "type": "list", "value": "Genes: Health Bonus 0–50; Armor Bonus 0–66; Travel Speed 0.15–0.30; Endurance 70–160; Trail Skill 0–100; Pack Capacity 15–33." },
-    { "type": "text", "value": "Traits: Packmaster adds 2 cargo slots. Tireless gives +15% maximum Endurance and lowers Pack Trot drain from 3 to 2.4 per second. Sure-Footed lowers jump cost from 8 to 6 and gives +0.25 step height, +2 safe-fall distance, and +20% knockback resistance. Sturdy gives +15% base Armor." },
-    { "type": "text", "value": "Donkeys have 3 breeding attempts per parent and a 30-minute cooldown. Each gene has a 70% chance to take the better parent, with at least three better genes guaranteed; 0.5%–2% lineage improvement is followed by a 5% mutation chance per gene. Mutations are positive 80% of the time and change the value by 2%–6% of its range; the trait-mutation chance is 3%." },
-    { "type": "heading", "value": "Mule" },
-    { "type": "text", "value": "Mules combine horse movement and jumping with donkey Endurance and cargo. Their genes use both parents: Travel Speed averages the parents' genes, Jump starts from the horse's gene, Pack Capacity is set to 75% of the donkey's gene, and Health, Armor, and Endurance combine values from both. Pack Trot trades Endurance for speed; a chest gives 15–24 slots based on Pack Capacity." },
-    { "type": "list", "value": "Genes: Health Bonus 0–56.25; Armor Bonus 0–90; Travel Speed 0.18–0.34; Jump 0.45–1.05; Endurance 75–155; Pack Capacity 15–24." },
-    { "type": "text", "value": "Hybrid Vigor gives +8% base health, +8% base Armor, +10% maximum Endurance, and +3% Pack Trot speed. Mules can inherit Tireless (15% more maximum Endurance and Pack Trot drain reduced from 3.2 to 2.56 per second), Sure-Footed (jump cost reduced from 8 to 6, +0.25 step height, +2 safe-fall distance, and +20% knockback resistance), Sturdy (+15% base Armor), Swift (+5% base speed), Hardy (+10% base health), Packmaster, or Warhorse. Packmaster does not add mule cargo slots, and Warhorse's horse-only bonuses do not apply. Mules are sterile; their genes are derived from the horse and donkey parents rather than from a separate breeding line." },
-    { "type": "heading", "value": "Camel" },
-    { "type": "text", "value": "Camels carry two riders and 12 cargo slots. Sprint and Forward while moving to Canter for +15% speed; it spends 3 Endurance per second, or 2.4 with Efficient. Jump to dash forward, spending up to 25% of maximum Endurance once per dash; Dash Efficiency and Efficient can reduce the cost to 12%." },
-    { "type": "list", "value": "Genes: Health Bonus 0–68.75; Armor Bonus 0–120; Cruise Speed 0.14–0.28; Dash Power 0.45–0.90; Endurance 75–170; Dash Efficiency 0–100." },
-    { "type": "text", "value": "Traits: Long-Haul gives +15% maximum Endurance. Powerful gives +10% dash strength. Efficient reduces dash Endurance cost by 20%. Stalwart gives +10% base health and +12% base Armor." },
-    { "type": "text", "value": "Camels have 3 breeding attempts per parent and a 30-minute cooldown. Each gene has a 70% chance to take the better parent, with at least three better genes guaranteed; 0.5%–2% lineage improvement is followed by a 5% mutation chance per gene. Mutations are positive 80% of the time and change the value by 2%–6% of its range; the trait-mutation chance is 3%." },
-    { "type": "heading", "value": "Strider" },
-    { "type": "text", "value": "Striders travel over lava. Heat recovers by 6 per second in lava and 0.5 per second outside it; a cold strider loses Heat outside lava. Heat Capacity sets its maximum Heat, and Heat Retention slows heat loss while cold. Sprint while moving in lava to use Lava Rush, which spends 4 Heat per second." },
-    { "type": "list", "value": "Genes: Health Bonus 0–50; Armor Bonus 0–72; Lava Speed 0.18–0.38; Heat Capacity 75–170; Heat Retention 0–100; Stability 0–100." },
-    { "type": "text", "value": "Lava Rush starts at +20% speed; Stability adds up to 5%. Traits: Lava-Born gives +10% maximum Heat. Heatkeeper lowers Lava Rush drain from 4 to 3.2 Heat per second. Steady gives +20% knockback resistance. Blazing gives +5% Lava Rush speed. Striders have 4 breeding attempts per parent and a 20-minute cooldown. Their genes have a 70% better-parent inheritance chance with at least three better values guaranteed, 0.5%–2% lineage improvement, and a 5% mutation chance each; mutations are positive 80% of the time and change values by 2%–6% of the range. Trait mutation chance is 3%." },
-    { "type": "heading", "value": "Llama" },
-    { "type": "text", "value": "Llamas work as a cargo-sharing pack. Compatible llamas within 16 blocks of another pack member join the same connected pack when they share an owner or their owners are in the same party; unowned llamas can pack with other unowned llamas. Pack members share chest cargo and gain speed from companions, up to a 50% pack-speed bonus." },
-    { "type": "list", "value": "Genes: Health Bonus 0–50; Armor Bonus 0–72; Pack Speed 0.15–0.30; Pack Instinct 2%–12% speed per companion; Load Strength 1–5." },
-    { "type": "text", "value": "Each point of Load Strength gives that chested llama 3 cargo slots, up to 15. Each companion adds +4% pack speed plus the llama's Pack Instinct; Pack Leader adds another +5%, with total pack speed capped at +50%. Swift gives +5% base speed. Sturdy gives +15% base Armor. Sure-Footed gives +0.25 step height, +2 safe-fall distance, and +20% knockback resistance. You need access to every chested llama in a pack to open its shared cargo." },
-    { "type": "text", "value": "Llamas have 3 breeding attempts per parent and a 30-minute cooldown. Each gene has a 70% chance to take the better parent, with at least three better genes guaranteed; 0.5%–2% lineage improvement is followed by a 5% mutation chance per gene. Mutations are positive 80% of the time and change the value by 2%–6% of its range; the trait-mutation chance is 3%. Tamed llamas gain training XP while travelling as a caravan." },
-    { "type": "heading", "value": "Skeleton Horse" },
-    { "type": "text", "value": "Skeleton horses have 6 cargo slots, no genes, and no breeding system. Riding builds Soul Bond by 1 for every 10 blocks travelled, up to 100. At Bond 10, choose one permanent specialization." },
-    { "type": "list", "value": "Tidebound gives +75% water movement efficiency and Water Breathing to the controlling rider. Graveguard gives +20% base health and +50% base Armor. Stormrunner gives +15% base speed and +40% lightning resistance." },
-    { "type": "heading", "value": "Pig" },
-    { "type": "text", "value": "Pigs have 3 cargo slots with a chest, no mount genes or traits, and gain speed but no HP or Armor from levels. Normal vanilla pig breeding remains available; pigs do not use the mount breeding or mutation system." },
-    { "type": "heading", "value": "Inventory, Chests & Access" },
-    { "type": "text", "value": "Press the Inventory key while riding to open a mount's inventory. Llamas, camels, pigs, and striders use the shared cargo screen; sneak-use one with an empty hand to open it on foot. Other horse-family mounts use their normal horse inventory. Horse, donkey, mule, camel, strider, and llama inventories include Genetics and Breeding panels; skeleton horses show Soul Bond and specialization controls, while pigs have no genetics panel." },
-    { "type": "text", "value": "Use a normal Chest on an adult mount to attach it; the chest is consumed outside Creative mode. Adding or removing a chest updates the open inventory. Cargo returns to your inventory, and anything that does not fit drops beside the mount. If a chest is removed without a player present, its cargo drops. A mount's chest and cargo also drop when it dies." },
-    { "type": "text", "value": "Horses, donkeys, mules, llamas, and skeleton horses use their tame owner. A custom-named camel, pig, or strider becomes owned by the player who names it with a Name Tag. Owners can set access to Owner Only, Party, or Everyone for riding and cargo. Releasing a mount makes it public while keeping its name, cargo, equipment, and progression." },
-    { "type": "note", "style": "info", "value": "Mounted health hearts use a scale of 5 health per full heart; the display scale does not change maximum health or damage." },
-    { "type": "note", "style": "tip", "value": "Mounted health and resource bars can be repositioned in Mod Menu's HUD Layout screen." }
+    {
+      "type": "heading",
+      "value": "Ownership Transfers"
+    },
+    {
+      "type": "text",
+      "value": "The owner can choose Transfer in a mount inventory and select a player within eight blocks. That player must accept within 30 seconds while both players stay nearby. Gear, cargo, genes, training and breeding attempts remain with the mount. Riding, storage and breeding access reset to Owner. [[mob/minecraft:horse|Horse]] imprint still belongs to its original breeder."
+    },
+    {
+      "type": "text",
+      "value": "Each mount has a different travel role. Use this guide to compare base durability, genes, traits, breeding, abilities, and cargo; [[mob/minecraft:horse|Horse]] Training & Stamina and Mount Breeding & Genetics give the detailed rules."
+    },
+    {
+      "type": "heading",
+      "value": "Riding & Terrain"
+    },
+    {
+      "type": "text",
+      "value": "Hold Forward to move and release it to brake smoothly. Back brakes before reversing at a slower pace. Left and Right steer the mount while your camera stays free. Turns become wider at speed, with limited steering in the air. Different species accelerate, stop, and turn differently; genes, training and abilities still determine their speed."
+    },
+    {
+      "type": "text",
+      "value": "Ridden mounts follow ordinary descending blocks, slabs and stairs. Two-block ledges use normal gravity. Mounts slow before larger drops, but holding Forward still lets you go over the edge and take normal fall damage. A deliberate Jump bypasses the slowdown; camels use their dash. Assistance does not pull jumps down or replace normal water and lava movement. Optional Smooth Mount Camera in Mod Settings eases vertical viewpoint changes."
+    },
+    {
+      "type": "heading",
+      "value": "Whistle Commands"
+    },
+    {
+      "type": "text",
+      "value": "Hold Mount Whistle (V by default; rebind it in Controls) to open the command wheel. Select one of your owned mounts within 48 blocks, move onto a command and release the key. Clicking a command also works; Escape cancels. The selected animal is outlined to help distinguish mounts with the same name."
+    },
+    {
+      "type": "list",
+      "value": "Come here: walk to the spot where you whistled, then stay nearby.\nFollow: follow you through normal paths; pause when you are offline, in another dimension or too far away.\nStay: remain near this spot, while still reacting to danger. Riding or leading the mount moves its parking spot."
+    },
+    {
+      "type": "text",
+      "value": "Commands never teleport animals. Riders and leashes take precedence, and other players cannot command or rename your owned mounts. Clear obstructions or move closer if an animal cannot find a path. Dismounting looks for nearby safe footing, crouches for low headroom when necessary, and prefers dry shore over water. If no safe landing exists nearby, it warns you and retains the normal dismount fallback."
+    },
+    {
+      "type": "heading",
+      "value": "Base Stats & Progression"
+    },
+    {
+      "type": "list",
+      "value": "[[mob/minecraft:horse|Horse]]: 100 HP / 120 Armor.\n[[mob/minecraft:donkey|Donkey]]: 115 HP / 132 Armor.\n[[mob/minecraft:mule|Mule]]: 130 HP / 150 Armor.\n[[mob/minecraft:camel|Camel]]: 160 HP / 180 Armor.\n[[mob/minecraft:strider|Strider]]: 100 HP / 120 Armor.\n[[mob/minecraft:llama|Llama]]: 100 HP / 120 Armor.\n[[mob/minecraft:skeleton_horse|Skeleton Horse]]: 250 HP / 350 Armor.\n[[mob/minecraft:pig|Pig]]: 40 HP / 0 Armor."
+    },
+    {
+      "type": "text",
+      "value": "These are base values before genes, traits, equipment, and levels. Health and Armor genes add flat bonuses. Every mount except pigs gains 10 maximum HP per level up to level 30; no mount gains Armor from levels. Non-horse mounts gain 0.3% base speed per level. [[mob/minecraft:horse|Horses]] gain 0.5% base speed, 0.35% jump, 2 Evasion, and 1.5 maximum stamina per level. Controlled travel gives 2 XP per 10 horizontal blocks, or 4 XP while a travel ability is active; horses also gain XP from jumps and mounted kills, and tamed llamas gain XP while travelling as a caravan. Wild horses, donkeys, mules, camels, striders, and llamas have a 40% chance to start with a trait. Armor bonuses from traits and skeleton specializations are percentages of base Armor."
+    },
+    {
+      "type": "heading",
+      "value": "Horse"
+    },
+    {
+      "type": "text",
+      "value": "[[mob/minecraft:horse|Horses]] suit sustained ground travel. Ordinary movement costs no stamina; Gallop spends stamina for extra speed. A chested horse has 6 cargo slots and can equip horse armor."
+    },
+    {
+      "type": "text",
+      "value": "Traits: Swift gives +5% base movement speed, +5% Gallop speed, and +10% terrain movement efficiency. Hardy gives +10% base maximum health, +15% maximum stamina, and +25% stamina recovery. Sure-Footed gives +8% base jump, +15% knockback resistance, +0.15 step height, +2 safe-fall distance, 30% less remaining fall damage, and -2 jump stamina cost. Warhorse gives +30% base Armor, +20 Evasion, and +20% knockback resistance. See [[mob/minecraft:horse|Horse]] Traits & Mutations for inheritance details."
+    },
+    {
+      "type": "text",
+      "value": "[[mob/minecraft:horse|Horses]] have 3 breeding attempts per parent and a 30-minute cooldown. Each of six genes has a separate 5% mutation chance; mutations are positive 80% of the time and change the gene by 2%–5% of its range plus a generation bonus capped at 2%. [[mob/minecraft:horse|Horse]] Breeding Focus guides inheritance; trait mutations roll at 3% and coat mutations at 2%."
+    },
+    {
+      "type": "heading",
+      "value": "Donkey"
+    },
+    {
+      "type": "text",
+      "value": "[[mob/minecraft:donkey|Donkeys]] are solo cargo mounts. A chest gives 15–33 slots based on Pack Capacity; Packmaster adds 2, up to 33 slots. Hold Sprint and Forward while moving to Pack Trot for +10%–15% speed; Trail Skill also sets the road bonus, which adds +5%–15% speed on recognized roads."
+    },
+    {
+      "type": "text",
+      "value": "Traits: Packmaster adds 2 cargo slots. Tireless gives +15% maximum Endurance and lowers Pack Trot drain from 3 to 2.4 per second. Sure-Footed lowers jump cost from 8 to 6 and gives +0.25 step height, +2 safe-fall distance, and +20% knockback resistance. Sturdy gives +15% base Armor."
+    },
+    {
+      "type": "text",
+      "value": "[[mob/minecraft:donkey|Donkeys]] have 3 breeding attempts per parent and a 30-minute cooldown. Each gene has a 70% chance to take the better parent, with at least three better genes guaranteed; 0.5%–2% lineage improvement is followed by a 5% mutation chance per gene. Mutations are positive 80% of the time and change the value by 2%–6% of its range; the trait-mutation chance is 3%."
+    },
+    {
+      "type": "heading",
+      "value": "Mule"
+    },
+    {
+      "type": "text",
+      "value": "[[mob/minecraft:mule|Mules]] combine horse movement and jumping with donkey Endurance and cargo. Their genes use both parents: Travel Speed averages the parents' genes, Jump starts from the horse's gene, Pack Capacity is set to 75% of the donkey's gene, and Health, Armor, and Endurance combine values from both. Pack Trot trades Endurance for speed; a chest gives 15–24 slots based on Pack Capacity."
+    },
+    {
+      "type": "text",
+      "value": "Hybrid Vigor gives +8% base health, +8% base Armor, +10% maximum Endurance, and +3% Pack Trot speed. [[mob/minecraft:mule|Mules]] can inherit Tireless (15% more maximum Endurance and Pack Trot drain reduced from 3.2 to 2.56 per second), Sure-Footed (jump cost reduced from 8 to 6, +0.25 step height, +2 safe-fall distance, and +20% knockback resistance), Sturdy (+15% base Armor), Swift (+5% base speed), Hardy (+10% base health), Packmaster, or Warhorse. Packmaster does not add mule cargo slots, and Warhorse's horse-only bonuses do not apply. [[mob/minecraft:mule|Mules]] are sterile; their genes are derived from the horse and donkey parents rather than from a separate breeding line."
+    },
+    {
+      "type": "heading",
+      "value": "Camel"
+    },
+    {
+      "type": "text",
+      "value": "[[mob/minecraft:camel|Camels]] carry two riders and 12 cargo slots. Sprint and Forward while moving to Canter for +15% speed; it spends 3 Endurance per second, or 2.4 with Efficient. Jump to dash forward, spending up to 25% of maximum Endurance once per dash; Dash Efficiency and Efficient can reduce the cost to 12%."
+    },
+    {
+      "type": "text",
+      "value": "Traits: Long-Haul gives +15% maximum Endurance. Powerful gives +10% dash strength. Efficient reduces dash Endurance cost by 20%. Stalwart gives +10% base health and +12% base Armor."
+    },
+    {
+      "type": "text",
+      "value": "[[mob/minecraft:camel|Camels]] have 3 breeding attempts per parent and a 30-minute cooldown. Each gene has a 70% chance to take the better parent, with at least three better genes guaranteed; 0.5%–2% lineage improvement is followed by a 5% mutation chance per gene. Mutations are positive 80% of the time and change the value by 2%–6% of its range; the trait-mutation chance is 3%."
+    },
+    {
+      "type": "heading",
+      "value": "Strider"
+    },
+    {
+      "type": "text",
+      "value": "[[mob/minecraft:strider|Striders]] travel over lava. Heat recovers by 6 per second in lava and 0.5 per second outside it; a cold strider loses Heat outside lava. Heat Capacity sets its maximum Heat, and Heat Retention slows heat loss while cold. Sprint while moving in lava to use Lava Rush, which spends 4 Heat per second."
+    },
+    {
+      "type": "text",
+      "value": "Lava Rush starts at +20% speed; Stability adds up to 5%. Traits: Lava-Born gives +10% maximum Heat. Heatkeeper lowers Lava Rush drain from 4 to 3.2 Heat per second. Steady gives +20% knockback resistance. Blazing gives +5% Lava Rush speed. [[mob/minecraft:strider|Striders]] have 4 breeding attempts per parent and a 20-minute cooldown. Their genes have a 70% better-parent inheritance chance with at least three better values guaranteed, 0.5%–2% lineage improvement, and a 5% mutation chance each; mutations are positive 80% of the time and change values by 2%–6% of the range. Trait mutation chance is 3%."
+    },
+    {
+      "type": "heading",
+      "value": "Llama"
+    },
+    {
+      "type": "text",
+      "value": "[[mob/minecraft:llama|Llamas]] work as a cargo-sharing pack. Compatible llamas within 16 blocks of another pack member join the same connected pack when they share an owner or their owners are in the same party; unowned llamas can pack with other unowned llamas. Pack members share chest cargo and gain speed from companions, up to a 50% pack-speed bonus."
+    },
+    {
+      "type": "text",
+      "value": "Each point of Load Strength gives that chested llama 3 cargo slots, up to 15. Each companion adds +4% pack speed plus the llama's Pack Instinct; Pack Leader adds another +5%, with total pack speed capped at +50%. Swift gives +5% base speed. Sturdy gives +15% base Armor. Sure-Footed gives +0.25 step height, +2 safe-fall distance, and +20% knockback resistance. You need access to every chested llama in a pack to open its shared cargo."
+    },
+    {
+      "type": "text",
+      "value": "[[mob/minecraft:llama|Llamas]] have 3 breeding attempts per parent and a 30-minute cooldown. Each gene has a 70% chance to take the better parent, with at least three better genes guaranteed; 0.5%–2% lineage improvement is followed by a 5% mutation chance per gene. Mutations are positive 80% of the time and change the value by 2%–6% of its range; the trait-mutation chance is 3%. Tamed llamas gain training XP while travelling as a caravan."
+    },
+    {
+      "type": "heading",
+      "value": "Skeleton Horse"
+    },
+    {
+      "type": "text",
+      "value": "[[mob/minecraft:skeleton_horse|Skeleton Horses]] have 6 cargo slots, no genes, and no breeding system. Riding builds Soul Bond by 1 for every 10 blocks travelled, up to 100. At Bond 10, choose one permanent specialization."
+    },
+    {
+      "type": "list",
+      "value": "Tidebound gives +75% water movement efficiency and Water Breathing to the controlling rider. Graveguard gives +20% base health and +50% base Armor. Stormrunner gives +15% base speed and +40% [[stat/cranks-dungeons:lightning_resistance|lightning resistance]]."
+    },
+    {
+      "type": "heading",
+      "value": "Pig"
+    },
+    {
+      "type": "text",
+      "value": "[[mob/minecraft:pig|Pigs]] have 3 cargo slots with a chest, no mount genes or traits, and gain speed but no HP or Armor from levels. Normal vanilla pig breeding remains available; pigs do not use the mount breeding or mutation system."
+    },
+    {
+      "type": "heading",
+      "value": "Inventory, Chests & Access"
+    },
+    {
+      "type": "text",
+      "value": "Press Inventory while riding to open the shared player and mount inventory. Sneak-use camels, pigs, striders or llamas with an empty hand to open it on foot. Training explains progression and traits; breedable mounts have Genetics and partner previews. [[mob/minecraft:mule|Mules]] are sterile, pigs have no genetics, and skeleton horses have Soul Bond and specialization controls."
+    },
+    {
+      "type": "text",
+      "value": "Use a normal [[item/minecraft:chest|Chest]] on an adult mount to attach it; the chest is consumed outside Creative mode. Only the owner can change mount equipment. Empty that attachment's cargo before removing it; an attempted removal highlights occupied slots. Other llamas' cargo does not block an empty attachment. A mount's chest and cargo still drop when it dies."
+    },
+    {
+      "type": "text",
+      "value": "[[mob/minecraft:horse|Horses]], donkeys, mules, llamas, and skeleton horses use their tame owner. A custom-named camel, pig, or strider becomes owned by the player who names it with a [[item/minecraft:name_tag|Name Tag]]. Owners set riding and storage access independently to Only You, Party, or Everyone. Storage starts owner-only. Releasing a mount keeps its name, cargo, equipment, and progression while removing ownership."
+    },
+    {
+      "type": "note",
+      "style": "info",
+      "value": "Mounted health hearts use a scale of 5 health per full heart; the display scale does not change maximum health or damage."
+    },
+    {
+      "type": "note",
+      "style": "tip",
+      "value": "Mounted health and resource bars can be repositioned in Mod Menu's HUD Layout screen."
+    },
+    {
+      "type": "heading",
+      "value": "Related articles"
+    },
+    {
+      "type": "text",
+      "value": "[[article/horses|Horse Statistics]] | [[article/breeding|Mount Breeding & Genetics]] | [[article/horse_training|Horse Training & Stamina]]"
+    }
   ]
 }

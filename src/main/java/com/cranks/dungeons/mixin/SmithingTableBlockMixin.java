@@ -47,6 +47,10 @@ public class SmithingTableBlockMixin implements net.minecraft.block.BlockEntityP
         }
 
         BlockEntity blockEntity = world.getBlockEntity(pos);
+        if (blockEntity == null) {
+            blockEntity = createBlockEntity(pos, state);
+            world.addBlockEntity(blockEntity);
+        }
         if (blockEntity instanceof QualityStationBlockEntity) {
             NamedScreenHandlerFactory screenHandlerFactory = (NamedScreenHandlerFactory) blockEntity;
             player.openHandledScreen(screenHandlerFactory);

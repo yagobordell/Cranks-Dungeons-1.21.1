@@ -129,7 +129,7 @@ public class RuneCommand {
 
             context.getSource().sendMessage(Text.literal("Tier: ")
                     .formatted(Formatting.GRAY)
-                    .append(Text.literal("T" + tier).formatted(getTierColor(tier))));
+                    .append(Text.literal("T" + (ItemStatManager.isUnique(heldItem)?tier:com.cranks.dungeons.equipment.RuneTiers.clamp(heldItem,tier))).formatted(getTierColor(ItemStatManager.isUnique(heldItem)?tier:com.cranks.dungeons.equipment.RuneTiers.clamp(heldItem,tier)))));
 
             return 1;
         } else {

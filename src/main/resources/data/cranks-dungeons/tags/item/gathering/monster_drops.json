@@ -1,0 +1,21 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:rotten_flesh",
+    "minecraft:bone",
+    "minecraft:arrow",
+    "minecraft:string",
+    "minecraft:spider_eye",
+    "minecraft:gunpowder",
+    "minecraft:slime_ball",
+    "minecraft:magma_cream",
+    "minecraft:blaze_rod",
+    "minecraft:ghast_tear",
+    "minecraft:ender_pearl",
+    "minecraft:prismarine_shard",
+    "minecraft:prismarine_crystals",
+    "minecraft:phantom_membrane",
+    "minecraft:breeze_rod",
+    "#minecraft:fishes"
+  ]
+}

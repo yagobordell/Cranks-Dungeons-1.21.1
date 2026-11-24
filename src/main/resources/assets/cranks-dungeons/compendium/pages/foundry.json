@@ -1,0 +1,37 @@
+{
+  "title": "Foundry",
+  "content": [
+    {
+      "type": "item_image",
+      "value": "minecraft:blast_furnace"
+    },
+    {
+      "type": "heading",
+      "value": "Metal salvage"
+    },
+    {
+      "type": "text",
+      "value": "The vanilla [[item/minecraft:blast_furnace|Blast Furnace]] serves as the [[article/foundry|Foundry]]. Its current role is salvaging eligible metal equipment. It has no unique material-production recipes yet."
+    },
+    {
+      "type": "text",
+      "value": "Select eligible equipment to inspect its actual material return before committing. Gear with valuable upgrades can require confirmation; shift-click behavior is retained."
+    },
+    {
+      "type": "text",
+      "value": "[[item/minecraft:diamond|Diamond]], Netherite and leather equipment are not metal-smelting inputs. Use the supported recycling operations at the [[article/crafting_table|Crafting Table]] instead."
+    },
+    {
+      "type": "text",
+      "value": "Future [[article/foundry|Foundry]] material recipes will be separate from the [[article/kiln|Kiln]] and cooking stations."
+    },
+    {
+      "type": "heading",
+      "value": "Related articles"
+    },
+    {
+      "type": "text",
+      "value": "[[article/crafting_table|Crafting Table]] | [[article/repairing|Repair Bench]] | [[article/anvil|Anvil]]"
+    }
+  ]
+}

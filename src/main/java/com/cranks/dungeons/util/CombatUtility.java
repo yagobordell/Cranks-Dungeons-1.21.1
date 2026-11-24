@@ -133,7 +133,11 @@ public class CombatUtility {
         }
 
         // 3. Apply the global trident throw nerf (8/12 = 0.66x) to the WHOLE value
-        if (isTridentThrow(source)) {
+        if (isTridentThrow(source) && (attributesMatch(attribute, ModAttributes.BONUS_ATTACK_DAMAGE)
+                || attributesMatch(attribute, ModAttributes.FIRE_DAMAGE)
+                || attributesMatch(attribute, ModAttributes.COLD_DAMAGE)
+                || attributesMatch(attribute, ModAttributes.LIGHTNING_DAMAGE)
+                || attributesMatch(attribute, ModAttributes.VOID_DAMAGE))) {
             currentTotal *= 0.6667;
         }
 
@@ -207,6 +211,8 @@ public class CombatUtility {
     }
 
     private static final java.util.Map<java.util.UUID, Long> LAST_CRIT_TIME = new java.util.concurrent.ConcurrentHashMap<>();
+    public static void clearCombatHistory(java.util.UUID id) { LAST_CRIT_TIME.remove(id); ELEMENTAL_OVERLOAD_LAST_CRIT.remove(id); }
+    public static void clearCombatHistory() { LAST_CRIT_TIME.clear(); ELEMENTAL_OVERLOAD_LAST_CRIT.clear(); lastCritEvictionTick=0; }
     private static long lastCritEvictionTick = 0;
 
     /**
@@ -231,7 +237,7 @@ public class CombatUtility {
         if (entity == null) return false;
         Long lastTime = LAST_CRIT_TIME.get(entity.getUuid());
         if (lastTime == null) return false;
-        return (currentGameTime - lastTime) <= 160L;
+        return currentGameTime >= lastTime && (currentGameTime - lastTime) <= 160L;
     }
 
     /**

@@ -27,13 +27,21 @@
       {
         "id": "minecraft:enchantment.body.life_steal",
         "attribute": "cranks-dungeons:physical_damage_leeched_as_life",
-        "amount": 0.01,
+        "amount": {
+          "type": "minecraft:linear",
+          "base": 0.01,
+          "per_level_above_first": 0.01
+        },
         "operation": "add_value"
       },
       {
         "id": "minecraft:enchantment.body_armor.max_health",
         "attribute": "minecraft:generic.max_health",
-        "amount": 45.0,
+        "amount": {
+          "type": "minecraft:linear",
+          "base": 45.0,
+          "per_level_above_first": 45.0
+        },
         "operation": "add_value"
       }
     ]

@@ -1,42 +1,36 @@
 package com.cranks.dungeons.mixin;
 
-import com.cranks.dungeons.registry.ModAttributes;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.attribute.EntityAttributeInstance;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.CrossbowItem;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.Hand;
+import net.minecraft.util.TypedActionResult;
+import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(CrossbowItem.class)
 public class CrossbowItemMixin {
-
-    @Inject(method = "getPullTime", at = @At("RETURN"), cancellable = true)
-    private static void cranks$applyReloadSpeedToCrossbow(ItemStack stack, LivingEntity user, CallbackInfoReturnable<Integer> cir) {
-        if (user != null) {
-            double genericAttackSpeedMultiplier = 1.0;
-            if (user.getAttributes().hasAttribute(net.minecraft.entity.attribute.EntityAttributes.GENERIC_ATTACK_SPEED)) {
-                genericAttackSpeedMultiplier = user.getAttributeValue(net.minecraft.entity.attribute.EntityAttributes.GENERIC_ATTACK_SPEED) / 4.0;
-            }
-            
-            double customAttackSpeedBonus = 0.0;
-            if (user.getAttributes().hasAttribute(ModAttributes.ATTACK_SPEED)) {
-                customAttackSpeedBonus = user.getAttributeValue(ModAttributes.ATTACK_SPEED);
-            }
-            
-            double speed = genericAttackSpeedMultiplier * (1.0 + customAttackSpeedBonus);
-            
-            if (user.getActiveHand() == net.minecraft.util.Hand.OFF_HAND) {
-                speed += com.cranks.dungeons.equipment.ItemStatManager.getTotalStatValue(stack, "attack_speed");
-            }
-
-            if (speed > 0 && speed != 1.0) {
-                int originalTime = cir.getReturnValue();
-                // If speed is 0.5, it takes twice as long (originalTime / 0.5)
-                cir.setReturnValue((int) (originalTime / speed));
-            }
+    @Inject(method="use",at=@At("HEAD"),cancellable=true)
+    private void cranks$aimLoadedCrossbow(World world, PlayerEntity player, Hand hand, CallbackInfoReturnable<TypedActionResult<ItemStack>> cir) {
+        var stack=player.getStackInHand(hand);
+        if(CrossbowItem.isCharged(stack)) {
+            player.setCurrentHand(hand);
+            cir.setReturnValue(TypedActionResult.consume(stack));
+        }
+    }
+    @Inject(method="usageTick",at=@At("HEAD"),cancellable=true)
+    private void cranks$finishReloadOnTime(World world, LivingEntity user, ItemStack stack, int remaining, CallbackInfo ci) {
+        if(!(user instanceof PlayerEntity))return;
+        if(CrossbowItem.isCharged(stack)){ci.cancel();return;}
+        int used=stack.getMaxUseTime(user)-remaining;
+        if(!world.isClient()&&used>=CrossbowItem.getPullTime(stack,user)) {
+            ((CrossbowItem)(Object)this).onStoppedUsing(stack,world,user,remaining);
+            ci.cancel();
         }
     }
 }

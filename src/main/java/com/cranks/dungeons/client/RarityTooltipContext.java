@@ -3,9 +3,8 @@ package com.cranks.dungeons.client;
 import com.cranks.dungeons.item.CustomRarity;
 
 /**
- * Thread-local context that stores the rarity of the item whose tooltip is
- * currently being rendered. Set by HoveredItemTooltipMixin before the tooltip
- * background draws, read by TooltipBackgroundMixin to pick the right texture.
+ * Render-thread context for the tooltip currently being drawn. The scoped
+ * DrawContext wrappers restore the previous rarity after nested tooltip draws.
  */
 public final class RarityTooltipContext {
 

@@ -1,13 +1,61 @@
 {
-  "title": "Tome & Material Loot",
+  "title": "Tomes, Materials and Hunting",
   "content": [
-    { "type": "text", "value": "Runic tomes, quality materials, targeted tomes, and Deepslate Sigils are injected into built-in entity and chest loot tables. Mob tiers choose the primary tome pool; separate pools handle quality materials, sigils, and thematic tomes." },
-    { "type": "heading", "value": "Mob Tiers" },
-    { "type": "list", "value": "Tier 1: common surface threats such as zombies, skeletons, spiders, creepers, drowned, slimes, and related variants. Primary tome pool is about 12.5%.\nTier 2: stronger or specialized threats such as pillagers, witches, blazes, ghasts, endermen, breezes, piglins, guardians, and phantoms. Primary pool is about 20%.\nTier 3: apex enemies such as ravagers, evokers, piglin brutes, wither skeletons, shulkers, wardens, elder guardians, and iron golems. Primary pool is about 35%." },
-    { "type": "heading", "value": "Thematic Drops" },
-    { "type": "text", "value": "Matching creatures can independently drop elemental or utility tomes: hot mobs drop Flames, cold mobs Ice, guardians/breezes Electricity, magical/end enemies Ruin, heavy physical mobs Abrasion, fast arthropods Haste, and husks/zoglins Body. The normal thematic chance is 0.8%; where a Greater version exists it has a separate 0.1% entry in that pool." },
-    { "type": "heading", "value": "Materials and Sigils" },
-    { "type": "text", "value": "Armoured mobs favour Armourer's Scrap and weapon wielders favour Whetstones; higher mob tiers multiply those weights. Cave, trial, and elite mobs can drop Deepslate Sigils at 3.5%, 6%, or 12% according to tier. Selected village, mineshaft, dungeon, structure, Nether, End, trial, and ancient-city chests have tiered loot pools." },
-    { "type": "note", "style": "info", "value": "These additions only modify built-in loot tables. A data pack or mod that replaces a table instead of extending it can change the observed results." }
+    {
+      "type": "text",
+      "value": "Creature combat and generated treasure supply Runic Tomes and equipment-upgrade materials. Choose a source for the reward you need instead of assuming every creature shares the same drops."
+    },
+    {
+      "type": "heading",
+      "value": "Ordinary Runic Tomes"
+    },
+    {
+      "type": "text",
+      "value": "Common hostile creatures such as [[mob/minecraft:zombie|Zombies]], [[mob/minecraft:skeleton|Skeletons]] and [[mob/minecraft:spider|Spiders]] use an early reward pool. Stronger threats such as Witches, [[mob/minecraft:breeze|Breezes]] and [[mob/minecraft:guardian|Guardians]] use a richer pool. Apex enemies such as [[mob/minecraft:ravager|Ravagers]], [[mob/minecraft:evoker|Evokers]], [[mob/minecraft:warden|Wardens]] and [[mob/minecraft:elder_guardian|Elder Guardians]] use another. Tome rewards require player combat kills; passive livestock are not a source of ordinary combat tomes."
+    },
+    {
+      "type": "heading",
+      "value": "Specialized tome hunting"
+    },
+    {
+      "type": "text",
+      "value": "Open a specialized tome article to see its actual creature sources. Themes are not a substitute for checking the source: a cold-looking animal is not automatically eligible to drop an [[item/cranks-dungeons:cold_tome|Ice]] tome."
+    },
+    {
+      "type": "text",
+      "value": "Examples include [[mob/minecraft:stray|Strays]] for [[item/cranks-dungeons:cold_tome|Ice]], [[mob/minecraft:spider|Spiders]] for Haste, [[mob/minecraft:husk|Husks]] for Body, and [[mob/minecraft:guardian|Guardians]] or [[mob/minecraft:breeze|Breezes]] for Electricity. The relevant creature and tome articles link in both directions."
+    },
+    {
+      "type": "heading",
+      "value": "Upgrade materials"
+    },
+    {
+      "type": "text",
+      "value": "[[item/cranks-dungeons:armourers_scrap|Armourer's Scrap]] improves supported armour quality. [[item/cranks-dungeons:blacksmiths_whetstone|Blacksmith's Whetstone]] improves supported weapon quality. Armoured and weapon-wielding creatures favour the corresponding material. [[item/cranks-dungeons:deepslate_sigil|Deepslate Sigils]] come from suitable cave, trial and elite rewards and expand supported enchantment capacity."
+    },
+    {
+      "type": "heading",
+      "value": "Treasure expeditions"
+    },
+    {
+      "type": "text",
+      "value": "Mineshafts, dungeons, temples, shipwrecks, buried treasure, Trial Chambers and other generated structures offer different treasure opportunities. A Mineshaft chest cart is a useful early source of a Transmutation tome. Prepare food, carrying space and recovery before a long expedition."
+    },
+    {
+      "type": "heading",
+      "value": "Yield versus rarity"
+    },
+    {
+      "type": "text",
+      "value": "Material Yield increases eligible ordinary materials. Item Rarity favours suitable higher-quality weighted results. Neither means that every listed reward is guaranteed, and neither removes the conditions for a player-kill drop. A reliable, reachable source can be more useful than a dangerous source with a richer pool."
+    },
+    {
+      "type": "heading",
+      "value": "Related articles"
+    },
+    {
+      "type": "text",
+      "value": "[[article/targeted_tomes|Specialized Tomes]] | [[article/gathering_stats|Gathering Stats]] | [[article/mob_equipment|Dropped Equipment]]"
+    }
   ]
 }

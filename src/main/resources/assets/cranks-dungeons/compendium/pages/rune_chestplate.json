@@ -1,4 +1,0 @@
-{ "title": "Chestplate Runes", "content": [
-  { "type": "text", "value": "Chestplates use the largest armour-piece pool and can carry local defence, global combat, recovery, and conditional families subject to their base affinity. Tome of Haste can guarantee its chestplate attack-speed rune." },
-  { "type": "stat_catalog", "value": "CHESTPLATE" }
-] }

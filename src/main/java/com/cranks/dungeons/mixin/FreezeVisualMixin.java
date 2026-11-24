@@ -15,7 +15,8 @@ public class FreezeVisualMixin {
     private void applyFreezeVisuals(CallbackInfoReturnable<Float> cir) {
         if ((Object) this instanceof LivingEntity living) {
             if (living.hasStatusEffect(ModEffects.FREEZE)) {
-                cir.setReturnValue(1.0f);
+                // A light edge frost leaves the first-person combat view clear.
+                cir.setReturnValue(0.2f);
             }
         }
     }

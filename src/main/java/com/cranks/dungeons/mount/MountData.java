@@ -29,6 +29,8 @@ public final class MountData {
     public UUID ownerUuid;
     public String ownerName = "";
     public final Set<UUID> ancestry = new LinkedHashSet<>();
+    public final java.util.Map<UUID,Integer> ancestryDepths=new java.util.LinkedHashMap<>();
+    public MountAccessMode breedingAccessMode=MountAccessMode.OWNER_ONLY;
 
     // The labels and ranges of these genes depend on MountKind. Health and armor
     // are bonuses above the species baseline for primary mounts.
@@ -41,6 +43,7 @@ public final class MountData {
     public String trait = "None";
     public String specialization = "None";
     public MountAccessMode accessMode = MountAccessMode.OWNER_ONLY;
+    public MountAccessMode storageAccessMode = MountAccessMode.OWNER_ONLY;
     public int soulBond;
     public double currentResource;
 
@@ -50,6 +53,7 @@ public final class MountData {
     public double distanceAccumulator;
     public boolean abilityRequested;
     public boolean abilityActive;
+    public UUID abilityRider;
     public int resourceRegenDelay;
     public int syncTicker;
     public boolean ownershipSyncInitialized;
@@ -88,6 +92,9 @@ public final class MountData {
         nbt.putString("Trait", trait);
         nbt.putString("Specialization", specialization);
         nbt.putString("MountAccess", accessMode.name());
+        nbt.putString("StorageAccess", storageAccessMode.name());
+        nbt.putString("BreedingAccess",breedingAccessMode.name());
+        MountLineage.write(nbt,ancestryDepths);
         nbt.putInt("SoulBond", soulBond);
         nbt.putDouble("CurrentResource", currentResource);
         if (includeCargo && !cargo.isEmpty()) {
@@ -132,6 +139,9 @@ public final class MountData {
         trait = textOr(nbt, "Trait", "None");
         specialization = textOr(nbt, "Specialization", "None");
         accessMode = MountAccessMode.fromId(nbt.getString("MountAccess"));
+        storageAccessMode = MountAccessMode.fromId(nbt.getString("StorageAccess"));
+        breedingAccessMode=MountAccessMode.fromId(nbt.getString("BreedingAccess"));
+        MountLineage.read(nbt,ancestryDepths);
         soulBond = Math.max(0, nbt.getInt("SoulBond"));
         currentResource = Math.max(0.0, nbt.getDouble("CurrentResource"));
         if (includeCargo && nbt.contains("Cargo")) {

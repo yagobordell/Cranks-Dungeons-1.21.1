@@ -1,0 +1,46 @@
+{
+  "type": "cranks-dungeons:fletching_assembly",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "category": "equipment",
+    "ingredients": [
+      {
+        "item": "minecraft:arrow"
+      },
+      {
+        "item": "minecraft:arrow"
+      },
+      {
+        "item": "minecraft:arrow"
+      },
+      {
+        "item": "minecraft:arrow"
+      },
+      {
+        "item": "minecraft:arrow"
+      },
+      {
+        "item": "minecraft:arrow"
+      },
+      {
+        "item": "minecraft:arrow"
+      },
+      {
+        "item": "minecraft:arrow"
+      },
+      {
+        "item": "cranks-dungeons:spider_eye_extract"
+      }
+    ],
+    "result": {
+      "id": "minecraft:tipped_arrow",
+      "count": 8,
+      "components": {
+        "minecraft:potion_contents": {
+          "potion": "cranks-dungeons:arrow_poison",
+          "custom_color": 6457906
+        }
+      }
+    }
+  }
+}

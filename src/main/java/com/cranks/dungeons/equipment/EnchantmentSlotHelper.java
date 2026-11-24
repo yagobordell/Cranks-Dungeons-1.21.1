@@ -1,10 +1,15 @@
 package com.cranks.dungeons.equipment;
 
+import com.cranks.dungeons.registry.ModEnchantments;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
+import net.minecraft.enchantment.Enchantment;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.text.MutableText;
+import net.minecraft.text.Text;
 
 import java.util.Optional;
 
@@ -12,6 +17,28 @@ public final class EnchantmentSlotHelper {
     public static final String NBT_KEY = "EnchantmentSlots";
 
     private EnchantmentSlotHelper() {}
+
+    public static boolean isStackable(RegistryEntry<Enchantment> enchantment) {
+        return enchantment.isIn(ModEnchantments.STACKABLE);
+    }
+
+    /** Repeatable enchantments store their copy count in the regular enchantment component. */
+    public static int copyCount(RegistryEntry<Enchantment> enchantment, int level) {
+        return isStackable(enchantment) ? level : Math.min(level, 1);
+    }
+
+    public static int usedSlots(ItemStack stack) {
+        int slots = 0;
+        for (var entry : stack.getEnchantments().getEnchantmentEntries()) {
+            slots += copyCount(entry.getKey(), entry.getIntValue());
+        }
+        return slots;
+    }
+
+    public static MutableText displayName(RegistryEntry<Enchantment> enchantment, int copies) {
+        Text name = enchantment.value().description();
+        return copies > 1 ? Text.translatable("enchantment.cranks-dungeons.copies", name, copies) : name.copy();
+    }
 
     /**
      * Returns the current number of enchantment slots on the item.

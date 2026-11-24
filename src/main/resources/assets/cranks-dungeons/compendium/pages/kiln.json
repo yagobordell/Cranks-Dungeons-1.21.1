@@ -1,0 +1,41 @@
+{
+  "title": "Kiln",
+  "content": [
+    {
+      "type": "item_image",
+      "value": "minecraft:furnace"
+    },
+    {
+      "type": "heading",
+      "value": "Heating raw materials"
+    },
+    {
+      "type": "text",
+      "value": "The vanilla [[item/minecraft:furnace|Furnace]] serves as the [[article/kiln|Kiln]]. It handles its assigned non-food heating and material-processing recipes. Cooking food belongs to the [[article/smoker|Smoker]] or [[article/campfire|Campfire]]."
+    },
+    {
+      "type": "text",
+      "value": "Select a discovered recipe, set a quantity, and load compatible input and fuel. Quantity controls loading a batch; the machine still processes its contents over time. [[item/minecraft:hopper|Hoppers]] and existing furnace automation continue to use the underlying inventory."
+    },
+    {
+      "type": "text",
+      "value": "A recipe must have discovered ingredients before it appears in your list. Craftable and material search use your current player storage."
+    },
+    {
+      "type": "heading",
+      "value": "Ancient Debris"
+    },
+    {
+      "type": "text",
+      "value": "[[item/minecraft:ancient_debris|Ancient Debris]] drops [[item/minecraft:netherite_scrap|Netherite Scrap]] when mined with the correct tool without Silk Touch. Silk Touch preserves the block; break that block without Silk Touch to obtain scrap. It is not a smelting recipe."
+    },
+    {
+      "type": "heading",
+      "value": "Related articles"
+    },
+    {
+      "type": "text",
+      "value": "[[article/foundry|Foundry]] | [[article/smoker|Smoker]] | [[article/cutting_bench|Cutting Bench]]"
+    }
+  ]
+}

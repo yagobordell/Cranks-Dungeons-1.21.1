@@ -1,0 +1,45 @@
+{
+  "title": "Contextual Guide Links",
+  "content": [
+    {
+      "type": "heading",
+      "value": "Read where the question appears"
+    },
+    {
+      "type": "text",
+      "value": "Hold your Show Details key (Shift by default), then move from an item, stat or tree node into its tooltip. While the key is held, the tooltip stays anchored so you can hover a linked term and click it. Hovered links receive a subtle underline. Release the key to return to normal hovering."
+    },
+    {
+      "type": "text",
+      "value": "Click a rune, stat name, item name, enchantment or linked description to open its reference. Station titles open the station article."
+    },
+    {
+      "type": "heading",
+      "value": "Keep your place"
+    },
+    {
+      "type": "text",
+      "value": "The guide opens over the current interface. It does not close a station or change its inputs, selected recipe, inventory, tree draft or zoom. Escape or X closes the guide and returns you to that same interface."
+    },
+    {
+      "type": "text",
+      "value": "Back and Forward preserve article scroll and search state. Alt + Left and Alt + Right navigate history. Ctrl + F focuses search. Tab and Enter navigate visible links."
+    },
+    {
+      "type": "heading",
+      "value": "Details and discovery"
+    },
+    {
+      "type": "text",
+      "value": "Shift still reveals equipment tiers and exact per-component ranges. Long equipment tooltips can be scrolled. Recipe references use your personal discoveries and do not reveal undiscovered recipe results or materials."
+    },
+    {
+      "type": "heading",
+      "value": "Related articles"
+    },
+    {
+      "type": "text",
+      "value": "[[article/stats|Reading Your Stats]] | [[article/runes|Understanding Runes]] | [[article/equipment|Equipment Bases]]"
+    }
+  ]
+}

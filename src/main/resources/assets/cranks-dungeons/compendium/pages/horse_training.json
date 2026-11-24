@@ -1,21 +1,79 @@
 {
   "title": "Horse Training & Stamina",
   "content": [
-    { "type": "heading", "value": "Training Levels" },
-    { "type": "text", "value": "Horses begin at level 1 and cap at 30. Each level after 1 grants +10 maximum HP, +0.5% base speed, +0.35% base jump, +2 evasion, and +1.5 maximum stamina." },
-    { "type": "list", "value": "Normal ridden travel: 2 XP for every accumulated 10 horizontal blocks.\nGalloping travel: 4 XP for every accumulated 10 horizontal blocks.\nPerfect ridden jump: 3 XP when the horse leaves the ground upward.\nLong jump: +2 XP at four horizontal blocks, then +2 per additional two blocks, capped at +10 at twelve blocks.\nMounted kill: XP equal to the defeated target's maximum health, rounded and clamped between 5 and 50." },
-    { "type": "heading", "value": "Galloping" },
-    { "type": "text", "value": "Hold Sprint and Forward while riding to gallop. Ordinary movement does not use stamina. Gallop begins with +15% total horse speed and consumes 4 stamina per second. Level 30 adds another +5% gallop speed, Swift adds +5%, and road surfaces add a separate +10%. Mobility bonuses stop increasing at the horse's movement-speed cap." },
-    { "type": "text", "value": "At zero stamina the horse becomes exhausted and cannot gallop. Ordinary movement and perfect jumps remain available. Exhaustion ends at 20% stamina, so continuing to hold Sprint automatically resumes gallop after sufficient recovery." },
-    { "type": "heading", "value": "Stamina & Recovery" },
-    { "type": "text", "value": "Maximum stamina is genetic Endurance + 1.5 per trained level after level 1, then Hardy's bonus if present. A jump normally costs 8 stamina. Stamina starts recovering two seconds after the last gallop or jump: 2 per second while mounted and 4 per second while unmounted. Recovery pauses while the horse is airborne." },
-    { "type": "note", "style": "important", "value": "Stamina never prevents jumping. At zero stamina, pressing Jump still performs that horse's full genetic jump; only Gallop is locked." },
-    { "type": "heading", "value": "Training Milestones" },
-    { "type": "list", "value": "Level 5 — Trail Training: +20% terrain movement efficiency.\nLevel 10 — Second Wind: +0.5 mounted stamina recovery per second.\nLevel 15 — Efficient Jumper: jump cost falls from 8 to 6.\nLevel 20 — Sure Stride: +0.25 step height, +2 safe-fall distance, 20% less remaining fall damage, and improved water movement.\nLevel 25 — Endurance Training: gallop cost falls from 4 to 3 per second.\nLevel 30 — Mastered Gallop: +5% gallop speed." },
-    { "type": "heading", "value": "Perfect Jumps & Roads" },
-    { "type": "text", "value": "Horse jumps have no charge timing. Pressing Jump immediately performs a full-strength jump, and the normal player XP bar stays visible instead of the vanilla mount-charge bar. The actual height still depends on the horse's Jump gene, training, imprint, and trait." },
-    { "type": "text", "value": "Ridden horses preserve their horizontal momentum throughout jumps and terrain-following ledge drops while the rider continues moving. Small drops pull the horse toward the nearby surface instead of launching it into a long glide, so descending rough terrain remains controlled. Releasing Forward, colliding with a wall, moving backward, or entering water allows the horse to slow normally." },
-    { "type": "text", "value": "Recognized roads give horses +10% speed. Paths, gravel, packed mud, stone and brick, planks, slabs, and stairs count as roads." },
-    { "type": "note", "style": "tip", "value": "The mounted stamina HUD can be moved and scaled in Mod Menu's HUD Layout screen. It displays Gallop or Recovering when those states are active." }
+    {
+      "type": "heading",
+      "value": "Training Levels"
+    },
+    {
+      "type": "text",
+      "value": "[[mob/minecraft:horse|Horses]] begin at level 1 and cap at 30. Each level after 1 grants +10 maximum HP, +0.5% base speed, +0.35% base jump, +2 evasion, and +1.5 maximum stamina."
+    },
+    {
+      "type": "list",
+      "value": "Actively ridden travel: 2 XP for every accumulated 10 horizontal blocks.\nGalloping travel: 4 XP for every accumulated 10 horizontal blocks.\nRider-requested jump: 3 XP after landing, if it travels at least two horizontal blocks; stationary hops give no XP.\nLong jump: +2 XP at four horizontal blocks, then +2 per additional two blocks, capped at +10 at twelve blocks.\nPassive transport and teleports give no travel XP.\nMounted enemy kill (passive animals and players give none): XP equal to the defeated target's maximum health, rounded and clamped between 5 and 50."
+    },
+    {
+      "type": "heading",
+      "value": "Galloping"
+    },
+    {
+      "type": "text",
+      "value": "Hold Sprint and Forward while riding to gallop. Ordinary movement does not use stamina. Gallop begins with +15% total horse speed and consumes 4 stamina per second. Level 30 adds another +5% gallop speed, Swift adds +5%, and road surfaces add a separate +10%. Mobility bonuses stop increasing at the horse's movement-speed cap."
+    },
+    {
+      "type": "text",
+      "value": "At zero stamina the horse becomes exhausted and cannot gallop. Ordinary movement and perfect jumps remain available. Exhaustion ends at 20% stamina, so continuing to hold Sprint automatically resumes gallop after sufficient recovery."
+    },
+    {
+      "type": "heading",
+      "value": "Stamina & Recovery"
+    },
+    {
+      "type": "text",
+      "value": "Maximum stamina is genetic Endurance + 1.5 per trained level after level 1, then Hardy's bonus if present. A jump normally costs 8 stamina. Stamina starts recovering two seconds after the last gallop or jump: 2 per second while mounted and 4 per second while unmounted. Recovery pauses while the horse is airborne."
+    },
+    {
+      "type": "note",
+      "style": "important",
+      "value": "Stamina never prevents jumping. At zero stamina, pressing Jump still performs that horse's full genetic jump; only Gallop is locked."
+    },
+    {
+      "type": "heading",
+      "value": "Training Milestones"
+    },
+    {
+      "type": "list",
+      "value": "Level 5 — Trail Training: +20% terrain movement efficiency.\nLevel 10 — Second Wind: +0.5 mounted stamina recovery per second.\nLevel 15 — Efficient Jumper: jump cost falls from 8 to 6.\nLevel 20 — Sure Stride: +0.25 step height, +2 safe-fall distance, 20% less remaining fall damage, and improved water movement.\nLevel 25 — Endurance Training: gallop cost falls from 4 to 3 per second.\nLevel 30 — Mastered Gallop: +5% gallop speed."
+    },
+    {
+      "type": "heading",
+      "value": "Perfect Jumps & Roads"
+    },
+    {
+      "type": "text",
+      "value": "[[mob/minecraft:horse|Horse]] jumps have no charge timing. Pressing Jump immediately performs a full-strength jump, and the normal player XP bar stays visible instead of the vanilla mount-charge bar. The actual height still depends on the horse's Jump gene, training, imprint, and trait."
+    },
+    {
+      "type": "text",
+      "value": "Ridden horses preserve their horizontal momentum throughout jumps and terrain-following ledge drops while the rider continues moving. Small drops pull the horse toward the nearby surface instead of launching it into a long glide, so descending rough terrain remains controlled. Releasing Forward, colliding with a wall, moving backward, or entering water allows the horse to slow normally."
+    },
+    {
+      "type": "text",
+      "value": "Recognized roads give horses +10% speed. Paths, gravel, packed mud, stone and brick, planks, slabs, and stairs count as roads."
+    },
+    {
+      "type": "note",
+      "style": "tip",
+      "value": "The mounted stamina HUD can be moved and scaled in Mod Menu's HUD Layout screen. It displays Gallop or Recovering when those states are active."
+    },
+    {
+      "type": "heading",
+      "value": "Related articles"
+    },
+    {
+      "type": "text",
+      "value": "[[article/breeding|Mount Breeding & Genetics]] | [[article/world_tree|World Tree]] | [[article/mounts|Mounts & Cargo]]"
+    }
   ]
 }

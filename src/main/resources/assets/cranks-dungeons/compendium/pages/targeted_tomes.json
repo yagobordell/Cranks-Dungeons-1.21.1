@@ -1,16 +1,77 @@
 {
-  "title": "Targeted Tomes",
+  "title": "Specialized Tomes",
   "content": [
-    { "type": "text", "value": "A targeted tome replaces random family selection with one guaranteed compatible family. Every targeted tome requires a Magic, non-Unique item, changes it to Rare, and consumes an available prefix or suffix slot. The craft fails if the item already has that duplicate group or the tome has no result for that equipment type." },
-    { "type": "heading", "value": "Normal Elemental Tomes - Fixed T4" },
-    { "type": "list", "value": "Tome of Abrasion: adds flat physical Attack Damage to swords, spears, bows, or crossbows; adds flat Armor to helmets, chestplates, leggings, or boots.\nTome of Flames: adds local flat Fire Damage to those weapons; adds Fire Resistance to those armour pieces.\nTome of Ice: adds local flat Cold Damage to those weapons; adds Cold Resistance to those armour pieces.\nTome of Electricity: adds local flat Lightning Damage to those weapons; adds Lightning Resistance to those armour pieces.\nTome of Ruin: has no weapon result; it adds Void Resistance to those armour pieces." },
-    { "type": "text", "value": "All five Normal elemental tomes add their result at exactly T4. These flat damage, Armor, and resistance families can also exist in ordinary random pools; the targeted tome guarantees the named family and bypasses the base item's normal random tier floor." },
-    { "type": "heading", "value": "Greater Elemental Tomes - Random T1 to T3" },
-    { "type": "list", "value": "Greater Tome of Abrasion: weapons gain 15-20% of total basic damage as extra Physical Damage when one-handed, or 25-33% when two-handed. Armour receives its ordinary flat Armor family at a random T1-T3.\nGreater Tome of Flames: weapons gain the same one-handed or two-handed percentage as extra Fire Damage. Armour receives Fire Resistance at a random T1-T3.\nGreater Tome of Ice: weapons gain that percentage as extra Cold Damage. Armour receives Cold Resistance at a random T1-T3.\nGreater Tome of Electricity: weapons gain that percentage as extra Lightning Damage. Armour receives Lightning Resistance at a random T1-T3.\nGreater Tome of Ruin: has no weapon result. Armour gains 10-15% of physical hit damage taken as Void Damage." },
-    { "type": "note", "style": "important", "value": "Damage as Extra Physical, Fire, Cold, or Lightning cannot be rolled by ordinary random tomes. It is obtained from the matching Greater elemental tome. Physical Damage Taken as Void is likewise a special Greater Tome of Ruin armour result." },
-    { "type": "heading", "value": "Haste and Body - Fixed T4" },
-    { "type": "list", "value": "Tome of Haste: adds Attack Speed to swords, spears, bows, crossbows, or chestplates; adds Movement Speed to boots.\nTome of the Body: adds Maximum Health to helmets, chestplates, leggings, or boots." },
-    { "type": "text", "value": "Haste and Body always add T4. Their result families are also part of the compatible ordinary pool; these tomes are valuable because they guarantee the family while upgrading Magic to Rare." },
-    { "type": "note", "style": "info", "value": "Only Normal and Greater elemental tomes are currently registered. There are no obtainable Perfect elemental tomes. No targeted tome currently works on shields, tools, animal armour, the mace, trident, turtle helmet, or Elytra." }
+    {
+      "type": "heading",
+      "value": "What they guarantee"
+    },
+    {
+      "type": "text",
+      "value": "Specialized tomes add a known compatible rune rather than choosing a random family. They work on Magic or Rare equipment; Magic equipment becomes Rare when the proposal is accepted. A matching family cannot be duplicated on the same item."
+    },
+    {
+      "type": "heading",
+      "value": "Finding the exact result"
+    },
+    {
+      "type": "text",
+      "value": "Hold Show Details and click the tome's name to open its article. Select a listed rune for its effect, tier values, equipment categories and other sources."
+    },
+    {
+      "type": "heading",
+      "value": "Damage and defence families"
+    },
+    {
+      "type": "text",
+      "value": "Abrasion supplies flat Physical Damage on compatible weapons or flat Armour on compatible armour. Flames, [[item/cranks-dungeons:cold_tome|Ice]] and Electricity supply local flat damage on compatible weapons or matching resistance on armour."
+    },
+    {
+      "type": "text",
+      "value": "Ruin supplies Void Resistance on compatible armour and has no weapon result. Greater Ruin supplies Physical Damage taken as Void on compatible armour."
+    },
+    {
+      "type": "text",
+      "value": "Greater damage tomes provide their supported extra-damage family on compatible weapons. Greater Flames, Ice and Electricity apply only to weapons. Greater Abrasion and Greater Ruin retain their separate armour effects. Inspect the tome's equipment categories."
+    },
+    {
+      "type": "heading",
+      "value": "Haste and Body"
+    },
+    {
+      "type": "text",
+      "value": "Haste supplies Attack Speed on compatible weapons and Chestplates, or Movement Speed on Boots. Body supplies maximum Health on compatible armour. Armour affinity can restrict which material bases accept the result; the linked rune article lists those bases."
+    },
+    {
+      "type": "heading",
+      "value": "Equipment determines the rune tier"
+    },
+    {
+      "type": "text",
+      "value": "A specialized tome supplies its rune at the equipment's material tier: a T9 base receives a T9 rune. Ordinary and Greater specialized tomes use the same equipment-tier rule; their rune families can differ. [[article/rune_tiers|Material tier caps]] explains progression between bases."
+    },
+    {
+      "type": "heading",
+      "value": "Adding or replacing"
+    },
+    {
+      "type": "text",
+      "value": "Adding needs a free slot on the rune's prefix or suffix side. If that side is full, choose a rune on that same side to replace. A paid replacement shows old and new results; keeping the old rune still consumes the rolled tome."
+    },
+    {
+      "type": "heading",
+      "value": "Hunting a family"
+    },
+    {
+      "type": "text",
+      "value": "Specialized tomes are rare thematic combat rewards. Open an individual tome article for the creature sources that can actually award it. Stronger loot-search bonuses can help eligible weighted drops, but never guarantee a tome."
+    },
+    {
+      "type": "heading",
+      "value": "Related articles"
+    },
+    {
+      "type": "text",
+      "value": "[[article/runes|Understanding Runes]] | [[article/runic_altar|Using the Runic Altar]] | [[article/loot|Tome & Material Loot]]"
+    }
   ]
 }

@@ -63,7 +63,11 @@ public record HorseGeneticsSyncPacket(
         boolean tamed,
         UUID ownerUuid,
         String ownerName,
-        String accessMode
+        String accessMode,
+        String storageAccessMode,
+        String breedingAccessMode,
+        boolean inLove,
+        int vanillaBreedingCooldown
 ) implements CustomPayload {
     public static final Id<HorseGeneticsSyncPacket> ID =
             new Id<>(Identifier.of(CranksDungeons.MOD_ID, "horse_genetics_sync"));
@@ -85,7 +89,7 @@ public record HorseGeneticsSyncPacket(
                 data.traitMutationTo.displayName(), data.coatMutated,
                 data.breedsRemaining, HorseBreedingManager.grade(data),
                 data.trait.displayName(), data.breedingFocus.displayName(),
-                data.sireName, data.damName, List.copyOf(data.ancestry), data.imprintOwnerName,
+                data.sireName, data.damName, List.copyOf(com.cranks.dungeons.mount.MountManager.lineage(horse).keySet()), data.imprintOwnerName,
                 data.imprintProgress, data.currentStamina, HorseBreedingManager.getMaxStamina(data),
                 HorseBreedingManager.mountedStaminaRegenPerSecond(data),
                 HorseBreedingManager.gallopDrainPerSecond(data),
@@ -94,7 +98,7 @@ public record HorseGeneticsSyncPacket(
                 data.galloping, data.exhausted, data.onRoad,
                 Math.max(0L, data.nextBreedTime - worldTime),
                 Math.max(0L, data.nextCareTime - worldTime), ownership.tamed(),
-                ownership.ownerUuid(), ownership.ownerName(), data.accessMode.name());
+                ownership.ownerUuid(), ownership.ownerName(), data.accessMode.name(), data.storageAccessMode.name(),data.breedingAccessMode.name(),horse.isInLove(),Math.max(0,horse.getBreedingAge()));
     }
 
     private void write(RegistryByteBuf buf) {
@@ -149,6 +153,9 @@ public record HorseGeneticsSyncPacket(
         if (ownerUuid != null) buf.writeUuid(ownerUuid);
         buf.writeString(ownerName, 64);
         buf.writeString(accessMode, 16);
+        buf.writeString(storageAccessMode, 16);
+        buf.writeString(breedingAccessMode,16);
+        buf.writeBoolean(inLove);buf.writeVarInt(vanillaBreedingCooldown);
     }
 
     private static HorseGeneticsSyncPacket read(RegistryByteBuf buf) {
@@ -197,7 +204,7 @@ public record HorseGeneticsSyncPacket(
                 buf.readDouble(), buf.readDouble(), buf.readDouble(), buf.readDouble(),
                 buf.readDouble(), buf.readDouble(), buf.readBoolean(), buf.readBoolean(),
                 buf.readBoolean(), buf.readLong(), buf.readLong(), buf.readBoolean(),
-                buf.readBoolean() ? buf.readUuid() : null, buf.readString(64), buf.readString(16));
+                buf.readBoolean() ? buf.readUuid() : null, buf.readString(64), buf.readString(16), buf.readString(16),buf.readString(16),buf.readBoolean(),buf.readVarInt());
     }
 
     @Override

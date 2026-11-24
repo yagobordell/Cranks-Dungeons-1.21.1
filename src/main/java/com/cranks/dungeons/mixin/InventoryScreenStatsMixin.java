@@ -106,10 +106,6 @@ public abstract class InventoryScreenStatsMixin {
                 }
         }
 
-        // Debug: log once per second so we don't spam
-        @Unique
-        private static long lastLogTime = 0;
-
         @Inject(method = "init", at = @At("HEAD"))
         private void onInitStatsScreen(CallbackInfo ci) {
                 var rm = MinecraftClient.getInstance().getResourceManager();
@@ -223,7 +219,6 @@ public abstract class InventoryScreenStatsMixin {
 
                         hoveredStat = null;
 
-                        int visibleHeight = panelHeight - 16;
                         int scrollOffset = StatsPanelScrollHandler.getScrollOffset();
 
                         context.enableScissor(panelX + 4, panelY + 8, panelX + panelWidth - 14,
@@ -387,17 +382,6 @@ public abstract class InventoryScreenStatsMixin {
                         StatsPanelScrollHandler
                                         .setMaxScrollOffset(Math.max(0, totalContentHeight - (panelHeight - 16)));
 
-                        // Debug log once per second
-                        long now = System.currentTimeMillis();
-                        if (now - lastLogTime > 1000) {
-                                lastLogTime = now;
-                                System.out.println("[StatsPanel] panelY=" + panelY + " panelHeight=" + panelHeight
-                                                + " curY=" + curY + " scrollOffset="
-                                                + StatsPanelScrollHandler.getScrollOffset()
-                                                + " totalContentHeight=" + totalContentHeight
-                                                + " maxScrollOffset=" + StatsPanelScrollHandler.getMaxScrollOffset());
-                        }
-
                         context.disableScissor();
 
                         if (StatsPanelScrollHandler.getMaxScrollOffset() > 0) {
@@ -422,8 +406,10 @@ public abstract class InventoryScreenStatsMixin {
                 if (description == null)
                         return;
 
+                int width = context.getScaledWindowWidth();
+                int height = context.getScaledWindowHeight();
                 List<OrderedText> lines = new ArrayList<>();
-                int maxWrapWidth = 220; // Max width before wrapping
+                int maxWrapWidth = Math.max(1, Math.min(220, width - 12));
 
                 for (String part : description.split("\n")) {
                         lines.addAll(tr.wrapLines(Text.literal(part).formatted(Formatting.GRAY), maxWrapWidth));
@@ -467,10 +453,12 @@ public abstract class InventoryScreenStatsMixin {
                         maxWidth = Math.max(maxWidth, tr.getWidth(line));
                 }
 
-                int tx = x + 12;
-                int ty = y - 12;
                 int w = maxWidth;
                 int h = (lines.size() * 10);
+                int tx = x + 12;
+                if (tx + w + 5 > width) tx = x - w - 12;
+                tx = Math.clamp(tx, 5, Math.max(5, width - w - 5));
+                int ty = Math.clamp(y - 12, 5, Math.max(5, height - h - 5));
 
                 // Render PoE-style tooltip background
                 context.fill(tx - 3, ty - 5, tx + w + 3, ty + h + 5, 0xFF000000);
@@ -534,9 +522,7 @@ public abstract class InventoryScreenStatsMixin {
         @Unique
         private double calculateEvasionChance(double evasion) {
                 if (evasion <= 0) return 0;
-                double estimatedHit = 50.0; // Reference hit size
-                double effectiveAccuracy = 8.0 * estimatedHit;
-                return Math.min(0.95, evasion / (evasion + effectiveAccuracy));
+                return com.cranks.dungeons.stat.CombatStatRules.evasionChance(evasion,50);
         }
 
         @Unique
@@ -551,9 +537,7 @@ public abstract class InventoryScreenStatsMixin {
         @Unique
         private double calculateArmorReduction(double armor) {
                 if (armor <= 0) return 0;
-                double estimatedHit = 50.0; // Reference hit size
-                double pdr = armor / (armor + 12.0 * estimatedHit);
-                return Math.min(0.90, pdr);
+                return com.cranks.dungeons.stat.CombatStatRules.armourReduction(armor,50);
         }
 
         @Unique
@@ -588,7 +572,9 @@ public abstract class InventoryScreenStatsMixin {
                 String text = String.format(java.util.Locale.US, "%s: %.0f%% (%.0f%%)", name, capped, uncapped);
                 
                 int statX = panelX + 12;
-                if (mouseX >= statX && mouseX <= statX + tr.getWidth(text) && mouseY >= y && mouseY <= y + 9) {
+                if (context.scissorContains(mouseX, mouseY)
+                        && mouseX >= statX && mouseX < statX + tr.getWidth(text)
+                        && mouseY >= y && mouseY < y + tr.fontHeight) {
                         hoveredStat = name;
                         tooltipX = mouseX;
                         tooltipY = mouseY;
@@ -702,7 +688,9 @@ public abstract class InventoryScreenStatsMixin {
                 String text = name + ": " + totalStr;
                 int statX = x + 12;
                 
-                if (mouseX >= statX && mouseX <= statX + tr.getWidth(text) && mouseY >= y && mouseY <= y + 9) {
+                if (context.scissorContains(mouseX, mouseY)
+                        && mouseX >= statX && mouseX < statX + tr.getWidth(text)
+                        && mouseY >= y && mouseY < y + tr.fontHeight) {
                         hoveredStat = name;
                         tooltipX = mouseX;
                         tooltipY = mouseY;

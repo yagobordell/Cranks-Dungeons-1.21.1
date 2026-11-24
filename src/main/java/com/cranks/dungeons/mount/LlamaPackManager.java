@@ -15,6 +15,25 @@ import java.util.UUID;
 
 /** Finds the connected group of nearby, owner-compatible llamas. */
 public final class LlamaPackManager {
+    private static final java.util.Map<net.minecraft.world.World, PackCache> CACHES =
+            java.util.Collections.synchronizedMap(new java.util.WeakHashMap<>());
+    private static final class PackCache {
+        long tick = Long.MIN_VALUE;
+        final java.util.Map<UUID,List<java.lang.ref.WeakReference<LlamaEntity>>> groups = new java.util.HashMap<>();
+    }
+    public static void invalidate() { CACHES.clear(); }
+
+    /** Recheck membership at interaction boundaries; slot reads reuse the resulting snapshot. */
+    public static List<LlamaEntity> freshMembers(LlamaEntity anchor) {
+        CACHES.remove(anchor.getWorld());
+        return members(anchor);
+    }
+    // In 1.21.1 the carpet is BODY equipment, outside the horse-items inventory.
+    public static final int CARGO_START = 1;
+    public static int memberCapacity(LlamaEntity llama) {
+        int slots=AbstractHorseInventoryAccess.of(llama).cranksdungeons$getHorseItems().size()-CARGO_START;
+        return Math.max(0,Math.min(slots,llama.getStrength()*3));
+    }
     public static final double PACK_RADIUS = 16.0;
     private static final double PACK_RADIUS_SQUARED = PACK_RADIUS * PACK_RADIUS;
     private static final double MAX_PACK_SPEED_BONUS = 0.50;
@@ -22,6 +41,16 @@ public final class LlamaPackManager {
     private LlamaPackManager() { }
 
     public static List<LlamaEntity> members(LlamaEntity anchor) {
+        var world=anchor.getWorld();
+        var cache=CACHES.computeIfAbsent(world, ignored->new PackCache());
+        long tick=world.getTime();
+        if(cache.tick!=tick){cache.tick=tick;cache.groups.clear();}
+        var saved=cache.groups.get(anchor.getUuid());
+        if(saved!=null){
+            var live=saved.stream().map(java.lang.ref.WeakReference::get).toList();
+            if(live.stream().allMatch(e->e!=null&&e.isAlive()&&e.getWorld()==world))return live;
+            cache.groups.clear();
+        }
         ArrayDeque<LlamaEntity> pending = new ArrayDeque<>();
         Set<UUID> visited = new HashSet<>();
         List<LlamaEntity> result = new ArrayList<>();
@@ -41,15 +70,17 @@ public final class LlamaPackManager {
             }
         }
         result.sort(Comparator.comparing(llama -> llama.getUuid().toString()));
-        return result;
+        var snapshot=List.copyOf(result);
+        var weak=snapshot.stream().map(java.lang.ref.WeakReference::new).toList();
+        for(var member:snapshot)cache.groups.put(member.getUuid(),weak);
+        return snapshot;
     }
 
     public static int cargoCapacity(LlamaEntity anchor) {
         int capacity = 0;
         for (LlamaEntity llama : members(anchor)) {
             if (!((MountDataProvider) llama).cranksdungeons$hasMountChest()) continue;
-            int nativeSlots = AbstractHorseInventoryAccess.of(llama).cranksdungeons$getHorseItems().size() - 2;
-            capacity += Math.max(0, Math.min(nativeSlots, llama.getStrength() * 3));
+            capacity += memberCapacity(llama);
         }
         return capacity;
     }
@@ -78,14 +109,14 @@ public final class LlamaPackManager {
     }
 
     public static boolean samePack(LlamaEntity anchor, List<UUID> expectedMembers) {
-        List<UUID> current = members(anchor).stream().map(LlamaEntity::getUuid).toList();
+        List<UUID> current = freshMembers(anchor).stream().map(LlamaEntity::getUuid).toList();
         return current.equals(expectedMembers);
     }
 
     public static boolean canPlayerAccessPack(PlayerEntity player, LlamaEntity anchor) {
         for (LlamaEntity llama : members(anchor)) {
             if (!((MountDataProvider) llama).cranksdungeons$hasMountChest()) continue;
-            if (!MountManager.canAccessMount(player, llama)) return false;
+            if (!MountManager.canAccessStorage(player, llama)) return false;
         }
         return true;
     }

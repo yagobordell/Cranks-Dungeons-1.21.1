@@ -23,8 +23,9 @@ public class FeatherFallingMixin {
             double featherFalling = entity.getAttributeValue(ModAttributes.FEATHER_FALLING);
 
             if (featherFalling > 0) {
-                return amount * (float) (1.0 - featherFalling);
+                amount *= (float) (1.0 - featherFalling);
             }
+            return com.cranks.dungeons.mount.RidingStats.fallDamage(entity, amount);
         }
 
         return amount;

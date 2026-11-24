@@ -1,0 +1,37 @@
+{
+  "title": "Tailoring Bench",
+  "content": [
+    {
+      "type": "item_image",
+      "value": "minecraft:loom"
+    },
+    {
+      "type": "heading",
+      "value": "Leather and textile work"
+    },
+    {
+      "type": "text",
+      "value": "The vanilla [[item/minecraft:loom|Loom]] serves as the [[article/tailoring|Tailoring Bench]]. It makes assigned bags, leather and textile equipment, saddles, and banner-related crafts. Banner recipes describe their actual pattern operations."
+    },
+    {
+      "type": "text",
+      "value": "[[item/minecraft:bundle|Bundles]] are equipped as bags. Each [[item/minecraft:bundle|Bundle]] unlocks six player-storage slots; it no longer stores items inside the item itself."
+    },
+    {
+      "type": "text",
+      "value": "The six corresponding bag-storage slots must be empty before a bag can be removed. Hovering an equipped bag highlights its storage slots. Bags stay with the player on death; their stored contents follow the bag-storage death rule."
+    },
+    {
+      "type": "text",
+      "value": "[[item/minecraft:leather|Leather]] equipment salvage remains at the [[article/crafting_table|Crafting Table]]."
+    },
+    {
+      "type": "heading",
+      "value": "Related articles"
+    },
+    {
+      "type": "text",
+      "value": "[[article/equipment|Equipment Bases]] | [[article/animal_armor|Animal Armour]] | [[article/mounts|Mounts & Cargo]]"
+    }
+  ]
+}

@@ -1,15 +1,53 @@
 {
-  "title": "Levels & Experience",
+  "title": "Levels and Experience",
   "content": [
-    { "type": "heading", "value": "Combat Levels" },
-    { "type": "text", "value": "Mob kills award ordinary player XP through the mod's combat distributor. The XP needed for the next level is 50 + 5 x current level + 0.2 x current level squared, rounded down. At level 90 the next requirement becomes 9,999,999, making 90 the practical cap." },
-    { "type": "list", "value": "Each positive level gained awards the same number of unspent Passive Tree points.\nEach character level grants +12 maximum health and +4 maximum mana independently of passive nodes.\nThe Experience Bonus attribute increases any XP before it is classified. Combat Experience is also applied to kill awards." },
-    { "type": "heading", "value": "Kill Credit and Parties" },
-    { "type": "text", "value": "The solo player or party that contributed the most tracked damage wins the mob's XP. Eligible recipients must be in the same dimension and within 100 blocks. With two or more eligible party members, XP is divided by their count and each share receives a 20% party bonus, rounded up. The highest Combat Experience bonus among eligible members boosts the pool." },
-    { "type": "heading", "value": "Non-Combat XP" },
-    { "type": "text", "value": "XP not explicitly awarded by the combat-kill system is redirected into World Tree gathering XP at 10 World XP per vanilla XP. This includes ordinary furnace, trading, breeding, fishing, crop-rune, block, and loose-orb XP." },
-    { "type": "heading", "value": "Death" },
-    { "type": "text", "value": "Without keepInventory, death preserves your current level but subtracts 30 percentage points from the progress bar toward the next level, never below zero. With keepInventory, XP is retained exactly. Passive and World Tree data persist through death." },
-    { "type": "note", "style": "warning", "value": "The death penalty is not 30% of your current progress. A bar at 80% becomes 50%; a bar at 20% becomes 0%." }
+    {
+      "type": "heading",
+      "value": "Player experience"
+    },
+    {
+      "type": "text",
+      "value": "Combat grants Player XP. Active fighters, tanks and party support can qualify for eligible hostile-enemy rewards. Passive animals, players, automated kills and creatures from ordinary or trial spawners do not grant combat XP."
+    },
+    {
+      "type": "heading",
+      "value": "Levels and points"
+    },
+    {
+      "type": "text",
+      "value": "Each new highest Player Level grants one Passive Tree point. The default next-level requirement is floor(50 + 5 × current level + 0.2 × current level²), with a level cap of 90. The inventory stats panel shows your current progress."
+    },
+    {
+      "type": "heading",
+      "value": "Fighting in a party"
+    },
+    {
+      "type": "text",
+      "value": "Eligible nearby members share 120% of the solo XP pool with two participants and 140% with three, increasing to 200% with six or more. Each individual receives less than a solo kill, while the group earns more in total. Contribute to the encounter rather than simply standing nearby."
+    },
+    {
+      "type": "heading",
+      "value": "World experience"
+    },
+    {
+      "type": "text",
+      "value": "First discoveries of meaningful resources, recipes, biomes and generated structures reward World XP. First taming, breeding and fish-catching discoveries also contribute. Each discovery belongs to the player and pays once. Repeating the same harvest, craft or failed experiment does not produce another discovery reward."
+    },
+    {
+      "type": "heading",
+      "value": "On death"
+    },
+    {
+      "type": "text",
+      "value": "Both levels, discovery records and earned tree points remain. Without keepInventory, death removes 30 percentage points from the current combat XP bar, down to a minimum of zero. World XP remains. With keepInventory, combat XP is retained too."
+    },
+    {
+      "type": "heading",
+      "value": "Related articles"
+    },
+    {
+      "type": "text",
+      "value": "[[article/parties|Parties]] | [[article/passive_tree|Passive Skill Tree]] | [[article/world_tree|World Tree]]"
+    }
   ]
 }

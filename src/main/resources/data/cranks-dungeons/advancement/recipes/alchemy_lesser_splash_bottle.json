@@ -1,0 +1,42 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_cranks_dungeons_lesser_bottle": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "cranks-dungeons:lesser_bottle"
+            ]
+          }
+        ]
+      }
+    },
+    "has_minecraft_gunpowder": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "minecraft:gunpowder"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_cranks_dungeons_lesser_bottle"
+    ],
+    [
+      "has_minecraft_gunpowder"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "cranks-dungeons:lesser_splash_bottle"
+    ]
+  }
+}

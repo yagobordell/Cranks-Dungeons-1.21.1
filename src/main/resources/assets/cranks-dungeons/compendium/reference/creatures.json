@@ -1,0 +1,2031 @@
+{
+  "minecraft:zombie": {
+    "summary": "An undead melee enemy and a useful early source of crafting drops.",
+    "encounter": "Appears at night on the surface and in unlit underground areas. Ordinary Zombies burn in sunlight unless protected.",
+    "advice": "Their carried equipment can make two Zombies very different threats.",
+    "biomes": [
+      "minecraft:badlands",
+      "minecraft:bamboo_jungle",
+      "minecraft:beach",
+      "minecraft:birch_forest",
+      "minecraft:cherry_grove",
+      "minecraft:cold_ocean",
+      "minecraft:dark_forest",
+      "minecraft:deep_cold_ocean",
+      "minecraft:deep_frozen_ocean",
+      "minecraft:deep_lukewarm_ocean",
+      "minecraft:deep_ocean",
+      "minecraft:desert",
+      "minecraft:dripstone_caves",
+      "minecraft:eroded_badlands",
+      "minecraft:flower_forest",
+      "minecraft:forest",
+      "minecraft:frozen_ocean",
+      "minecraft:frozen_peaks",
+      "minecraft:frozen_river",
+      "minecraft:grove",
+      "minecraft:ice_spikes",
+      "minecraft:jagged_peaks",
+      "minecraft:jungle",
+      "minecraft:lukewarm_ocean",
+      "minecraft:lush_caves",
+      "minecraft:mangrove_swamp",
+      "minecraft:meadow",
+      "minecraft:ocean",
+      "minecraft:old_growth_birch_forest",
+      "minecraft:old_growth_pine_taiga",
+      "minecraft:old_growth_spruce_taiga",
+      "minecraft:plains",
+      "minecraft:river",
+      "minecraft:savanna",
+      "minecraft:savanna_plateau",
+      "minecraft:snowy_beach",
+      "minecraft:snowy_plains",
+      "minecraft:snowy_slopes",
+      "minecraft:snowy_taiga",
+      "minecraft:sparse_jungle",
+      "minecraft:stony_peaks",
+      "minecraft:stony_shore",
+      "minecraft:sunflower_plains",
+      "minecraft:swamp",
+      "minecraft:taiga",
+      "minecraft:warm_ocean",
+      "minecraft:windswept_forest",
+      "minecraft:windswept_gravelly_hills",
+      "minecraft:windswept_hills",
+      "minecraft:windswept_savanna",
+      "minecraft:wooded_badlands"
+    ],
+    "drops": [
+      {
+        "item": "minecraft:carrot",
+        "conditions": [
+          "player",
+          "rare"
+        ]
+      },
+      {
+        "item": "minecraft:iron_ingot",
+        "conditions": [
+          "player",
+          "rare"
+        ]
+      },
+      {
+        "item": "minecraft:potato",
+        "conditions": [
+          "player",
+          "rare"
+        ]
+      },
+      {
+        "item": "minecraft:rotten_flesh",
+        "conditions": []
+      }
+    ],
+    "group": "monster"
+  },
+  "minecraft:skeleton": {
+    "summary": "A ranged undead enemy that pressures exposed players.",
+    "encounter": "Appears at night and in dark caves. Ordinary Skeletons burn in sunlight unless protected.",
+    "advice": "[[item/minecraft:bone|Bones]] and arrows make them useful gathering targets.",
+    "biomes": [
+      "minecraft:badlands",
+      "minecraft:bamboo_jungle",
+      "minecraft:beach",
+      "minecraft:birch_forest",
+      "minecraft:cherry_grove",
+      "minecraft:cold_ocean",
+      "minecraft:dark_forest",
+      "minecraft:deep_cold_ocean",
+      "minecraft:deep_frozen_ocean",
+      "minecraft:deep_lukewarm_ocean",
+      "minecraft:deep_ocean",
+      "minecraft:desert",
+      "minecraft:dripstone_caves",
+      "minecraft:eroded_badlands",
+      "minecraft:flower_forest",
+      "minecraft:forest",
+      "minecraft:frozen_ocean",
+      "minecraft:frozen_peaks",
+      "minecraft:frozen_river",
+      "minecraft:grove",
+      "minecraft:ice_spikes",
+      "minecraft:jagged_peaks",
+      "minecraft:jungle",
+      "minecraft:lukewarm_ocean",
+      "minecraft:lush_caves",
+      "minecraft:mangrove_swamp",
+      "minecraft:meadow",
+      "minecraft:ocean",
+      "minecraft:old_growth_birch_forest",
+      "minecraft:old_growth_pine_taiga",
+      "minecraft:old_growth_spruce_taiga",
+      "minecraft:plains",
+      "minecraft:river",
+      "minecraft:savanna",
+      "minecraft:savanna_plateau",
+      "minecraft:snowy_beach",
+      "minecraft:snowy_plains",
+      "minecraft:snowy_slopes",
+      "minecraft:snowy_taiga",
+      "minecraft:soul_sand_valley",
+      "minecraft:sparse_jungle",
+      "minecraft:stony_peaks",
+      "minecraft:stony_shore",
+      "minecraft:sunflower_plains",
+      "minecraft:swamp",
+      "minecraft:taiga",
+      "minecraft:warm_ocean",
+      "minecraft:windswept_forest",
+      "minecraft:windswept_gravelly_hills",
+      "minecraft:windswept_hills",
+      "minecraft:windswept_savanna",
+      "minecraft:wooded_badlands"
+    ],
+    "drops": [
+      {
+        "item": "minecraft:arrow",
+        "conditions": []
+      },
+      {
+        "item": "minecraft:bone",
+        "conditions": []
+      }
+    ],
+    "group": "monster"
+  },
+  "minecraft:creeper": {
+    "summary": "A silent explosive enemy that punishes careless approaches.",
+    "encounter": "Appears in dark Overworld locations, including the surface at night.",
+    "advice": "A [[mob/minecraft:skeleton|Skeleton]] or [[mob/minecraft:stray|Stray]] kill can produce a [[item/minecraft:music_disc_5|Music Disc]].",
+    "biomes": [
+      "minecraft:badlands",
+      "minecraft:bamboo_jungle",
+      "minecraft:beach",
+      "minecraft:birch_forest",
+      "minecraft:cherry_grove",
+      "minecraft:cold_ocean",
+      "minecraft:dark_forest",
+      "minecraft:deep_cold_ocean",
+      "minecraft:deep_frozen_ocean",
+      "minecraft:deep_lukewarm_ocean",
+      "minecraft:deep_ocean",
+      "minecraft:desert",
+      "minecraft:dripstone_caves",
+      "minecraft:eroded_badlands",
+      "minecraft:flower_forest",
+      "minecraft:forest",
+      "minecraft:frozen_ocean",
+      "minecraft:frozen_peaks",
+      "minecraft:frozen_river",
+      "minecraft:grove",
+      "minecraft:ice_spikes",
+      "minecraft:jagged_peaks",
+      "minecraft:jungle",
+      "minecraft:lukewarm_ocean",
+      "minecraft:lush_caves",
+      "minecraft:mangrove_swamp",
+      "minecraft:meadow",
+      "minecraft:ocean",
+      "minecraft:old_growth_birch_forest",
+      "minecraft:old_growth_pine_taiga",
+      "minecraft:old_growth_spruce_taiga",
+      "minecraft:plains",
+      "minecraft:river",
+      "minecraft:savanna",
+      "minecraft:savanna_plateau",
+      "minecraft:snowy_beach",
+      "minecraft:snowy_plains",
+      "minecraft:snowy_slopes",
+      "minecraft:snowy_taiga",
+      "minecraft:sparse_jungle",
+      "minecraft:stony_peaks",
+      "minecraft:stony_shore",
+      "minecraft:sunflower_plains",
+      "minecraft:swamp",
+      "minecraft:taiga",
+      "minecraft:warm_ocean",
+      "minecraft:windswept_forest",
+      "minecraft:windswept_gravelly_hills",
+      "minecraft:windswept_hills",
+      "minecraft:windswept_savanna",
+      "minecraft:wooded_badlands"
+    ],
+    "drops": [
+      {
+        "item": "minecraft:gunpowder",
+        "conditions": []
+      }
+    ],
+    "group": "monster"
+  },
+  "minecraft:spider": {
+    "summary": "A climbing enemy that is dangerous in darkness.",
+    "encounter": "Appears in dark Overworld locations. In bright conditions, an unprovoked Spider is normally neutral.",
+    "advice": "Walls alone are poor protection because it can climb. [[item/minecraft:string|String]] is a useful reward for ranged and textile crafts.",
+    "biomes": [
+      "minecraft:badlands",
+      "minecraft:bamboo_jungle",
+      "minecraft:beach",
+      "minecraft:birch_forest",
+      "minecraft:cherry_grove",
+      "minecraft:cold_ocean",
+      "minecraft:dark_forest",
+      "minecraft:deep_cold_ocean",
+      "minecraft:deep_frozen_ocean",
+      "minecraft:deep_lukewarm_ocean",
+      "minecraft:deep_ocean",
+      "minecraft:desert",
+      "minecraft:dripstone_caves",
+      "minecraft:eroded_badlands",
+      "minecraft:flower_forest",
+      "minecraft:forest",
+      "minecraft:frozen_ocean",
+      "minecraft:frozen_peaks",
+      "minecraft:frozen_river",
+      "minecraft:grove",
+      "minecraft:ice_spikes",
+      "minecraft:jagged_peaks",
+      "minecraft:jungle",
+      "minecraft:lukewarm_ocean",
+      "minecraft:lush_caves",
+      "minecraft:mangrove_swamp",
+      "minecraft:meadow",
+      "minecraft:ocean",
+      "minecraft:old_growth_birch_forest",
+      "minecraft:old_growth_pine_taiga",
+      "minecraft:old_growth_spruce_taiga",
+      "minecraft:plains",
+      "minecraft:river",
+      "minecraft:savanna",
+      "minecraft:savanna_plateau",
+      "minecraft:snowy_beach",
+      "minecraft:snowy_plains",
+      "minecraft:snowy_slopes",
+      "minecraft:snowy_taiga",
+      "minecraft:sparse_jungle",
+      "minecraft:stony_peaks",
+      "minecraft:stony_shore",
+      "minecraft:sunflower_plains",
+      "minecraft:swamp",
+      "minecraft:taiga",
+      "minecraft:warm_ocean",
+      "minecraft:windswept_forest",
+      "minecraft:windswept_gravelly_hills",
+      "minecraft:windswept_hills",
+      "minecraft:windswept_savanna",
+      "minecraft:wooded_badlands"
+    ],
+    "drops": [
+      {
+        "item": "minecraft:spider_eye",
+        "conditions": [
+          "player"
+        ]
+      },
+      {
+        "item": "minecraft:string",
+        "conditions": []
+      }
+    ],
+    "group": "monster"
+  },
+  "minecraft:cave_spider": {
+    "summary": "A small venomous [[mob/minecraft:spider|Spider]] associated with abandoned mine workings.",
+    "encounter": "Usually encountered around Cave Spider spawners in Mineshafts, rather than ordinary surface spawning.",
+    "advice": "Clear webs and make room to retreat. A small opening may not keep it out.",
+    "biomes": [],
+    "drops": [
+      {
+        "item": "minecraft:spider_eye",
+        "conditions": [
+          "player"
+        ]
+      },
+      {
+        "item": "minecraft:string",
+        "conditions": []
+      }
+    ]
+  },
+  "minecraft:husk": {
+    "summary": "A desert [[mob/minecraft:zombie|Zombie]] variant.",
+    "encounter": "Appears on desert surfaces in darkness. Unlike ordinary [[mob/minecraft:zombie|Zombies]], Husks do not burn in sunlight.",
+    "advice": "",
+    "biomes": [
+      "minecraft:desert"
+    ],
+    "drops": [
+      {
+        "item": "minecraft:carrot",
+        "conditions": [
+          "player",
+          "rare"
+        ]
+      },
+      {
+        "item": "minecraft:iron_ingot",
+        "conditions": [
+          "player",
+          "rare"
+        ]
+      },
+      {
+        "item": "minecraft:potato",
+        "conditions": [
+          "player",
+          "rare"
+        ]
+      },
+      {
+        "item": "minecraft:rotten_flesh",
+        "conditions": []
+      }
+    ],
+    "group": "monster"
+  },
+  "minecraft:stray": {
+    "summary": "A cold-biome [[mob/minecraft:skeleton|Skeleton]] variant.",
+    "encounter": "Appears in snowy environments in darkness. [[mob/minecraft:skeleton|Skeletons]] can also become Strays through prolonged Powder [[item/minecraft:snow|Snow]] exposure.",
+    "advice": "",
+    "biomes": [
+      "minecraft:ice_spikes",
+      "minecraft:snowy_plains"
+    ],
+    "drops": [
+      {
+        "item": "minecraft:arrow",
+        "conditions": []
+      },
+      {
+        "item": "minecraft:bone",
+        "conditions": []
+      },
+      {
+        "item": "minecraft:tipped_arrow",
+        "conditions": [
+          "player"
+        ]
+      }
+    ],
+    "group": "monster"
+  },
+  "minecraft:bogged": {
+    "summary": "A swamp-associated [[mob/minecraft:skeleton|Skeleton]] variant.",
+    "encounter": "Appears in swamps and mangrove swamps in darkness, and can be selected by Trial Chamber spawners.",
+    "advice": "Its poison arrows reward cover and quick engagements. Shearing a Bogged can yield mushrooms.",
+    "biomes": [
+      "minecraft:mangrove_swamp",
+      "minecraft:swamp"
+    ],
+    "drops": [
+      {
+        "item": "minecraft:arrow",
+        "conditions": []
+      },
+      {
+        "item": "minecraft:bone",
+        "conditions": []
+      },
+      {
+        "item": "minecraft:tipped_arrow",
+        "conditions": [
+          "player"
+        ]
+      }
+    ],
+    "group": "monster"
+  },
+  "minecraft:drowned": {
+    "summary": "An aquatic [[mob/minecraft:zombie|Zombie]] variant.",
+    "encounter": "Appears in rivers and oceans; submerged [[mob/minecraft:zombie|Zombies]] can also convert into Drowned.",
+    "advice": "Fight from a position with reliable air and room to move. Only a Drowned carrying a [[item/minecraft:trident|Trident]] can drop that weapon; a carried [[item/minecraft:nautilus_shell|Nautilus Shell]] is another notable reward.",
+    "biomes": [
+      "minecraft:cold_ocean",
+      "minecraft:deep_cold_ocean",
+      "minecraft:deep_frozen_ocean",
+      "minecraft:deep_lukewarm_ocean",
+      "minecraft:deep_ocean",
+      "minecraft:dripstone_caves",
+      "minecraft:frozen_ocean",
+      "minecraft:frozen_river",
+      "minecraft:lukewarm_ocean",
+      "minecraft:ocean",
+      "minecraft:river",
+      "minecraft:warm_ocean"
+    ],
+    "drops": [
+      {
+        "item": "minecraft:copper_ingot",
+        "conditions": [
+          "player",
+          "rare"
+        ]
+      },
+      {
+        "item": "minecraft:nautilus_shell",
+        "conditions": [
+          "carried"
+        ]
+      },
+      {
+        "item": "minecraft:rotten_flesh",
+        "conditions": []
+      },
+      {
+        "item": "minecraft:trident",
+        "conditions": [
+          "carried"
+        ]
+      }
+    ],
+    "group": "monster"
+  },
+  "minecraft:zombie_villager": {
+    "summary": "An infected [[mob/minecraft:villager|Villager]] that can potentially be cured.",
+    "encounter": "Can appear among [[mob/minecraft:zombie|Zombie]] spawns or result from a [[mob/minecraft:villager|Villager]] being killed by a [[mob/minecraft:zombie|Zombie]], depending on difficulty.",
+    "advice": "If you want to cure it, protect it from sunlight and other damage, then use Weakness and a [[item/minecraft:golden_apple|Golden Apple]].",
+    "biomes": [
+      "minecraft:badlands",
+      "minecraft:bamboo_jungle",
+      "minecraft:beach",
+      "minecraft:birch_forest",
+      "minecraft:cherry_grove",
+      "minecraft:cold_ocean",
+      "minecraft:dark_forest",
+      "minecraft:deep_cold_ocean",
+      "minecraft:deep_frozen_ocean",
+      "minecraft:deep_lukewarm_ocean",
+      "minecraft:deep_ocean",
+      "minecraft:desert",
+      "minecraft:dripstone_caves",
+      "minecraft:eroded_badlands",
+      "minecraft:flower_forest",
+      "minecraft:forest",
+      "minecraft:frozen_ocean",
+      "minecraft:frozen_peaks",
+      "minecraft:frozen_river",
+      "minecraft:grove",
+      "minecraft:ice_spikes",
+      "minecraft:jagged_peaks",
+      "minecraft:jungle",
+      "minecraft:lukewarm_ocean",
+      "minecraft:lush_caves",
+      "minecraft:mangrove_swamp",
+      "minecraft:meadow",
+      "minecraft:ocean",
+      "minecraft:old_growth_birch_forest",
+      "minecraft:old_growth_pine_taiga",
+      "minecraft:old_growth_spruce_taiga",
+      "minecraft:plains",
+      "minecraft:river",
+      "minecraft:savanna",
+      "minecraft:savanna_plateau",
+      "minecraft:snowy_beach",
+      "minecraft:snowy_plains",
+      "minecraft:snowy_slopes",
+      "minecraft:snowy_taiga",
+      "minecraft:sparse_jungle",
+      "minecraft:stony_peaks",
+      "minecraft:stony_shore",
+      "minecraft:sunflower_plains",
+      "minecraft:swamp",
+      "minecraft:taiga",
+      "minecraft:warm_ocean",
+      "minecraft:windswept_forest",
+      "minecraft:windswept_gravelly_hills",
+      "minecraft:windswept_hills",
+      "minecraft:windswept_savanna",
+      "minecraft:wooded_badlands"
+    ],
+    "drops": [
+      {
+        "item": "minecraft:carrot",
+        "conditions": [
+          "player",
+          "rare"
+        ]
+      },
+      {
+        "item": "minecraft:iron_ingot",
+        "conditions": [
+          "player",
+          "rare"
+        ]
+      },
+      {
+        "item": "minecraft:potato",
+        "conditions": [
+          "player",
+          "rare"
+        ]
+      },
+      {
+        "item": "minecraft:rotten_flesh",
+        "conditions": []
+      }
+    ],
+    "group": "monster"
+  },
+  "minecraft:enderman": {
+    "summary": "A neutral teleporting enemy with a valuable Pearl drop.",
+    "encounter": "Appears in several dimensions. Overworld encounters favour dark conditions; the End has especially many Endermen.",
+    "advice": "Looking directly at its face or attacking provokes it. Water and low shelter can help control the fight.",
+    "biomes": [
+      "minecraft:badlands",
+      "minecraft:bamboo_jungle",
+      "minecraft:beach",
+      "minecraft:birch_forest",
+      "minecraft:cherry_grove",
+      "minecraft:cold_ocean",
+      "minecraft:dark_forest",
+      "minecraft:deep_cold_ocean",
+      "minecraft:deep_frozen_ocean",
+      "minecraft:deep_lukewarm_ocean",
+      "minecraft:deep_ocean",
+      "minecraft:desert",
+      "minecraft:dripstone_caves",
+      "minecraft:end_barrens",
+      "minecraft:end_highlands",
+      "minecraft:end_midlands",
+      "minecraft:eroded_badlands",
+      "minecraft:flower_forest",
+      "minecraft:forest",
+      "minecraft:frozen_ocean",
+      "minecraft:frozen_peaks",
+      "minecraft:frozen_river",
+      "minecraft:grove",
+      "minecraft:ice_spikes",
+      "minecraft:jagged_peaks",
+      "minecraft:jungle",
+      "minecraft:lukewarm_ocean",
+      "minecraft:lush_caves",
+      "minecraft:mangrove_swamp",
+      "minecraft:meadow",
+      "minecraft:nether_wastes",
+      "minecraft:ocean",
+      "minecraft:old_growth_birch_forest",
+      "minecraft:old_growth_pine_taiga",
+      "minecraft:old_growth_spruce_taiga",
+      "minecraft:plains",
+      "minecraft:river",
+      "minecraft:savanna",
+      "minecraft:savanna_plateau",
+      "minecraft:small_end_islands",
+      "minecraft:snowy_beach",
+      "minecraft:snowy_plains",
+      "minecraft:snowy_slopes",
+      "minecraft:snowy_taiga",
+      "minecraft:soul_sand_valley",
+      "minecraft:sparse_jungle",
+      "minecraft:stony_peaks",
+      "minecraft:stony_shore",
+      "minecraft:sunflower_plains",
+      "minecraft:swamp",
+      "minecraft:taiga",
+      "minecraft:the_end",
+      "minecraft:warm_ocean",
+      "minecraft:warped_forest",
+      "minecraft:windswept_forest",
+      "minecraft:windswept_gravelly_hills",
+      "minecraft:windswept_hills",
+      "minecraft:windswept_savanna",
+      "minecraft:wooded_badlands"
+    ],
+    "drops": [
+      {
+        "item": "minecraft:ender_pearl",
+        "conditions": []
+      }
+    ],
+    "group": "monster"
+  },
+  "minecraft:slime": {
+    "summary": "A splitting enemy and the main renewable source of Slime Balls.",
+    "encounter": "Spawns in suitable slime chunks below Y40 regardless of light, and in swamps under suitable night, moon and light conditions.",
+    "advice": "Larger Slimes split into smaller ones. A surface swamp hunt is more affected by the moon than a suitable underground chunk.",
+    "biomes": [
+      "minecraft:badlands",
+      "minecraft:bamboo_jungle",
+      "minecraft:beach",
+      "minecraft:birch_forest",
+      "minecraft:cherry_grove",
+      "minecraft:cold_ocean",
+      "minecraft:dark_forest",
+      "minecraft:deep_cold_ocean",
+      "minecraft:deep_frozen_ocean",
+      "minecraft:deep_lukewarm_ocean",
+      "minecraft:deep_ocean",
+      "minecraft:desert",
+      "minecraft:dripstone_caves",
+      "minecraft:eroded_badlands",
+      "minecraft:flower_forest",
+      "minecraft:forest",
+      "minecraft:frozen_ocean",
+      "minecraft:frozen_peaks",
+      "minecraft:frozen_river",
+      "minecraft:grove",
+      "minecraft:ice_spikes",
+      "minecraft:jagged_peaks",
+      "minecraft:jungle",
+      "minecraft:lukewarm_ocean",
+      "minecraft:lush_caves",
+      "minecraft:mangrove_swamp",
+      "minecraft:meadow",
+      "minecraft:ocean",
+      "minecraft:old_growth_birch_forest",
+      "minecraft:old_growth_pine_taiga",
+      "minecraft:old_growth_spruce_taiga",
+      "minecraft:plains",
+      "minecraft:river",
+      "minecraft:savanna",
+      "minecraft:savanna_plateau",
+      "minecraft:snowy_beach",
+      "minecraft:snowy_plains",
+      "minecraft:snowy_slopes",
+      "minecraft:snowy_taiga",
+      "minecraft:sparse_jungle",
+      "minecraft:stony_peaks",
+      "minecraft:stony_shore",
+      "minecraft:sunflower_plains",
+      "minecraft:swamp",
+      "minecraft:taiga",
+      "minecraft:warm_ocean",
+      "minecraft:windswept_forest",
+      "minecraft:windswept_gravelly_hills",
+      "minecraft:windswept_hills",
+      "minecraft:windswept_savanna",
+      "minecraft:wooded_badlands"
+    ],
+    "drops": [
+      {
+        "item": "minecraft:slime_ball",
+        "conditions": []
+      }
+    ],
+    "group": "monster"
+  },
+  "minecraft:witch": {
+    "summary": "A hostile potion user and source of varied ingredients.",
+    "encounter": "Appears in dark Overworld locations, around Swamp Huts and in raids. Lightning can transform a [[mob/minecraft:villager|Villager]] into a Witch.",
+    "advice": "Expect varied effects rather than a simple melee exchange. Interrupt the fight with cover when you need to recover.",
+    "biomes": [
+      "minecraft:badlands",
+      "minecraft:bamboo_jungle",
+      "minecraft:beach",
+      "minecraft:birch_forest",
+      "minecraft:cherry_grove",
+      "minecraft:cold_ocean",
+      "minecraft:dark_forest",
+      "minecraft:deep_cold_ocean",
+      "minecraft:deep_frozen_ocean",
+      "minecraft:deep_lukewarm_ocean",
+      "minecraft:deep_ocean",
+      "minecraft:desert",
+      "minecraft:dripstone_caves",
+      "minecraft:eroded_badlands",
+      "minecraft:flower_forest",
+      "minecraft:forest",
+      "minecraft:frozen_ocean",
+      "minecraft:frozen_peaks",
+      "minecraft:frozen_river",
+      "minecraft:grove",
+      "minecraft:ice_spikes",
+      "minecraft:jagged_peaks",
+      "minecraft:jungle",
+      "minecraft:lukewarm_ocean",
+      "minecraft:lush_caves",
+      "minecraft:mangrove_swamp",
+      "minecraft:meadow",
+      "minecraft:ocean",
+      "minecraft:old_growth_birch_forest",
+      "minecraft:old_growth_pine_taiga",
+      "minecraft:old_growth_spruce_taiga",
+      "minecraft:plains",
+      "minecraft:river",
+      "minecraft:savanna",
+      "minecraft:savanna_plateau",
+      "minecraft:snowy_beach",
+      "minecraft:snowy_plains",
+      "minecraft:snowy_slopes",
+      "minecraft:snowy_taiga",
+      "minecraft:sparse_jungle",
+      "minecraft:stony_peaks",
+      "minecraft:stony_shore",
+      "minecraft:sunflower_plains",
+      "minecraft:swamp",
+      "minecraft:taiga",
+      "minecraft:warm_ocean",
+      "minecraft:windswept_forest",
+      "minecraft:windswept_gravelly_hills",
+      "minecraft:windswept_hills",
+      "minecraft:windswept_savanna",
+      "minecraft:wooded_badlands"
+    ],
+    "drops": [
+      {
+        "item": "minecraft:glass_bottle",
+        "conditions": []
+      },
+      {
+        "item": "minecraft:glowstone_dust",
+        "conditions": []
+      },
+      {
+        "item": "minecraft:gunpowder",
+        "conditions": []
+      },
+      {
+        "item": "minecraft:redstone",
+        "conditions": []
+      },
+      {
+        "item": "minecraft:spider_eye",
+        "conditions": []
+      },
+      {
+        "item": "minecraft:stick",
+        "conditions": []
+      },
+      {
+        "item": "minecraft:sugar",
+        "conditions": []
+      }
+    ],
+    "group": "monster"
+  },
+  "minecraft:phantom": {
+    "summary": "An airborne undead enemy linked to missed sleep.",
+    "encounter": "Can appear at night near players who have not rested for several nights, provided the local conditions allow it.",
+    "advice": "Sleeping prevents the usual insomnia-driven encounters.",
+    "biomes": [],
+    "drops": [
+      {
+        "item": "minecraft:phantom_membrane",
+        "conditions": [
+          "player"
+        ]
+      }
+    ]
+  },
+  "minecraft:silverfish": {
+    "summary": "A small enemy that can emerge from infested blocks.",
+    "encounter": "Found around Strongholds and infested blocks, including suitable mountain terrain.",
+    "advice": "Additional Silverfish can turn a small encounter into a swarm.",
+    "biomes": [],
+    "drops": []
+  },
+  "minecraft:endermite": {
+    "summary": "A short-lived hostile creature associated with [[item/minecraft:ender_pearl|Ender Pearls]].",
+    "encounter": "Can occasionally appear when a player uses an [[item/minecraft:ender_pearl|Ender Pearl]].",
+    "advice": "It is small and short-lived; do not confuse it with a naturally recurring underground population.",
+    "biomes": [],
+    "drops": []
+  },
+  "minecraft:pillager": {
+    "summary": "A ranged Illager that uses a [[item/minecraft:crossbow|Crossbow]].",
+    "encounter": "Found around Pillager Outposts, in patrols and in raids.",
+    "advice": "Captains and ordinary Pillagers have different implications for Ominous activities.",
+    "biomes": [],
+    "drops": [
+      {
+        "item": "minecraft:ominous_bottle",
+        "conditions": []
+      }
+    ]
+  },
+  "minecraft:vindicator": {
+    "summary": "A hard-hitting melee Illager.",
+    "encounter": "Encountered in Woodland Mansions and raids.",
+    "advice": "Its melee threat is different from a [[mob/minecraft:pillager|Pillager]]'s ranged pressure.",
+    "biomes": [],
+    "drops": [
+      {
+        "item": "minecraft:emerald",
+        "conditions": [
+          "player"
+        ]
+      }
+    ]
+  },
+  "minecraft:evoker": {
+    "summary": "An Illager caster with summoned attackers and ground attacks.",
+    "encounter": "Encountered in Woodland Mansions and raids.",
+    "advice": "A [[item/minecraft:totem_of_undying|Totem of Undying]] is its distinctive reward.",
+    "biomes": [],
+    "drops": [
+      {
+        "item": "minecraft:emerald",
+        "conditions": [
+          "player"
+        ]
+      },
+      {
+        "item": "minecraft:totem_of_undying",
+        "conditions": []
+      }
+    ]
+  },
+  "minecraft:vex": {
+    "summary": "A flying summoned attacker.",
+    "encounter": "Usually summoned by [[mob/minecraft:evoker|Evokers]] rather than naturally spawning as a population.",
+    "advice": "It can pass through blocks, so ordinary walls do not provide the same safety as they do against ground enemies.",
+    "biomes": [],
+    "drops": []
+  },
+  "minecraft:ravager": {
+    "summary": "A large raid enemy with heavy close-range pressure.",
+    "encounter": "Appears during raids.",
+    "advice": "Give yourself room to evade and avoid being pinned against terrain.",
+    "biomes": [],
+    "drops": [
+      {
+        "item": "minecraft:saddle",
+        "conditions": []
+      }
+    ]
+  },
+  "minecraft:guardian": {
+    "summary": "An aquatic ranged enemy that protects Ocean Monuments.",
+    "encounter": "Spawns in water around Ocean Monuments, by day as well as at night.",
+    "advice": "Break its line of sight during its beam attack and prepare reliable underwater breathing. [[item/minecraft:prismarine|Prismarine]] materials are its main ordinary rewards.",
+    "biomes": [],
+    "drops": [
+      {
+        "item": "minecraft:cod",
+        "conditions": [
+          "player",
+          "rare"
+        ]
+      },
+      {
+        "item": "minecraft:prismarine_crystals",
+        "conditions": []
+      },
+      {
+        "item": "minecraft:prismarine_shard",
+        "conditions": []
+      },
+      {
+        "item": "minecraft:pufferfish",
+        "conditions": [
+          "player",
+          "rare"
+        ]
+      },
+      {
+        "item": "minecraft:salmon",
+        "conditions": [
+          "player",
+          "rare"
+        ]
+      },
+      {
+        "item": "minecraft:tropical_fish",
+        "conditions": [
+          "player",
+          "rare"
+        ]
+      }
+    ]
+  },
+  "minecraft:elder_guardian": {
+    "summary": "A large monument defender that inflicts Mining Fatigue.",
+    "encounter": "A limited number generate with each Ocean Monument; they do not form an ordinary renewable spawning population.",
+    "advice": "Defeating the monument's Elders makes exploration and harvesting easier.",
+    "biomes": [],
+    "drops": [
+      {
+        "item": "minecraft:cod",
+        "conditions": [
+          "player",
+          "rare"
+        ]
+      },
+      {
+        "item": "minecraft:prismarine_crystals",
+        "conditions": []
+      },
+      {
+        "item": "minecraft:prismarine_shard",
+        "conditions": []
+      },
+      {
+        "item": "minecraft:pufferfish",
+        "conditions": [
+          "player",
+          "rare"
+        ]
+      },
+      {
+        "item": "minecraft:salmon",
+        "conditions": [
+          "player",
+          "rare"
+        ]
+      },
+      {
+        "item": "minecraft:tide_armor_trim_smithing_template",
+        "conditions": []
+      },
+      {
+        "item": "minecraft:tropical_fish",
+        "conditions": [
+          "player",
+          "rare"
+        ]
+      },
+      {
+        "item": "minecraft:wet_sponge",
+        "conditions": [
+          "player"
+        ]
+      }
+    ]
+  },
+  "minecraft:breeze": {
+    "summary": "A mobile Trial Chamber enemy that attacks with wind.",
+    "encounter": "Comes from suitable Trial Chamber spawners.",
+    "advice": "[[item/minecraft:breeze_rod|Breeze Rods]] support movement-related crafts.",
+    "biomes": [],
+    "drops": [
+      {
+        "item": "minecraft:breeze_rod",
+        "conditions": [
+          "player"
+        ]
+      }
+    ]
+  },
+  "minecraft:warden": {
+    "summary": "A powerful Deep Dark threat that responds to sound and vibration.",
+    "encounter": "Can emerge after repeated warnings from naturally generated [[item/minecraft:sculk_shrieker|Sculk Shriekers]] under suitable conditions. It is not an ordinary dark-room spawn.",
+    "advice": "Avoidance is often safer than combat.",
+    "biomes": [],
+    "drops": [
+      {
+        "item": "minecraft:sculk_catalyst",
+        "conditions": []
+      }
+    ]
+  },
+  "minecraft:blaze": {
+    "summary": "A flying, fire-associated Nether Fortress enemy.",
+    "encounter": "Found in Nether Fortresses, including around Blaze spawners.",
+    "advice": "[[item/minecraft:blaze_rod|Blaze Rods]] require a player-attributed kill.",
+    "biomes": [],
+    "drops": [
+      {
+        "item": "minecraft:blaze_rod",
+        "conditions": [
+          "player"
+        ]
+      }
+    ]
+  },
+  "minecraft:wither_skeleton": {
+    "summary": "A tall Nether Fortress melee enemy.",
+    "encounter": "Spawns in Nether Fortresses under suitable conditions.",
+    "advice": "Leave room to retreat and account for [[mob/minecraft:wither|Wither]] on contact. Its Skull is a rare player-kill drop used to summon the [[mob/minecraft:wither|Wither]].",
+    "biomes": [],
+    "drops": [
+      {
+        "item": "minecraft:bone",
+        "conditions": []
+      },
+      {
+        "item": "minecraft:coal",
+        "conditions": []
+      },
+      {
+        "item": "minecraft:wither_skeleton_skull",
+        "conditions": [
+          "player",
+          "rare"
+        ]
+      }
+    ]
+  },
+  "minecraft:ghast": {
+    "summary": "A large flying Nether enemy that launches explosive fireballs.",
+    "encounter": "Appears in suitable open Nether environments.",
+    "advice": "Fight from safe footing and plan how to retrieve drops over lava. Fireballs can be deflected.",
+    "biomes": [
+      "minecraft:basalt_deltas",
+      "minecraft:nether_wastes",
+      "minecraft:soul_sand_valley"
+    ],
+    "drops": [
+      {
+        "item": "minecraft:ghast_tear",
+        "conditions": []
+      },
+      {
+        "item": "minecraft:gunpowder",
+        "conditions": []
+      }
+    ],
+    "group": "monster"
+  },
+  "minecraft:magma_cube": {
+    "summary": "A heat-associated splitting enemy.",
+    "encounter": "Appears in suitable Nether environments and some Bastion areas.",
+    "advice": "Large cubes split into smaller ones.",
+    "biomes": [
+      "minecraft:basalt_deltas",
+      "minecraft:nether_wastes"
+    ],
+    "drops": [
+      {
+        "item": "minecraft:magma_cream",
+        "conditions": []
+      },
+      {
+        "item": "minecraft:ochre_froglight",
+        "conditions": []
+      },
+      {
+        "item": "minecraft:pearlescent_froglight",
+        "conditions": []
+      },
+      {
+        "item": "minecraft:verdant_froglight",
+        "conditions": []
+      }
+    ],
+    "group": "monster"
+  },
+  "minecraft:piglin": {
+    "summary": "A neutral Nether inhabitant that reacts to Gold and aggression.",
+    "encounter": "Appears in suitable Nether biomes and Bastion Remnants.",
+    "advice": "Wearing Gold can prevent ordinary unprovoked aggression, but opening containers or attacking can still provoke it. Adult Piglins barter with [[item/minecraft:gold_ingot|Gold Ingots]].",
+    "biomes": [
+      "minecraft:crimson_forest",
+      "minecraft:nether_wastes"
+    ],
+    "drops": [],
+    "group": "monster"
+  },
+  "minecraft:piglin_brute": {
+    "summary": "An aggressive Bastion defender.",
+    "encounter": "Generates in Bastion Remnants and does not respawn as an ordinary population.",
+    "advice": "Gold clothing does not pacify it.",
+    "biomes": [],
+    "drops": []
+  },
+  "minecraft:zombified_piglin": {
+    "summary": "A neutral undead Nether inhabitant.",
+    "encounter": "Appears in suitable Nether environments and can result from [[mob/minecraft:piglin|Piglin]] conversion or lightning striking a [[mob/minecraft:pig|Pig]].",
+    "advice": "Unprovoked groups are normally neutral. Attacking one can bring nearby allies into the fight.",
+    "biomes": [
+      "minecraft:crimson_forest",
+      "minecraft:nether_wastes"
+    ],
+    "drops": [
+      {
+        "item": "minecraft:gold_ingot",
+        "conditions": [
+          "player",
+          "rare"
+        ]
+      },
+      {
+        "item": "minecraft:gold_nugget",
+        "conditions": []
+      },
+      {
+        "item": "minecraft:rotten_flesh",
+        "conditions": []
+      }
+    ],
+    "group": "monster"
+  },
+  "minecraft:hoglin": {
+    "summary": "A large hostile animal and a Nether food source.",
+    "encounter": "Appears in Crimson Forests and some Bastion areas.",
+    "advice": "Manage its knockback near lava and ledges. Adults can provide Pork and [[item/minecraft:leather|Leather]].",
+    "biomes": [
+      "minecraft:crimson_forest"
+    ],
+    "drops": [
+      {
+        "item": "minecraft:leather",
+        "conditions": []
+      },
+      {
+        "item": "minecraft:porkchop",
+        "conditions": []
+      }
+    ],
+    "group": "monster"
+  },
+  "minecraft:zoglin": {
+    "summary": "An aggressive transformed [[mob/minecraft:hoglin|Hoglin]].",
+    "encounter": "Forms when a [[mob/minecraft:hoglin|Hoglin]] remains outside the Nether long enough to convert.",
+    "advice": "It attacks many nearby creatures and cannot be treated as ordinary breedable livestock.",
+    "biomes": [],
+    "drops": [
+      {
+        "item": "minecraft:rotten_flesh",
+        "conditions": []
+      }
+    ]
+  },
+  "minecraft:strider": {
+    "summary": "A passive lava-walking mount.",
+    "encounter": "Appears on Nether lava under suitable conditions.",
+    "advice": "It becomes slow when cold, away from lava.",
+    "biomes": [
+      "minecraft:basalt_deltas",
+      "minecraft:crimson_forest",
+      "minecraft:nether_wastes",
+      "minecraft:soul_sand_valley",
+      "minecraft:warped_forest"
+    ],
+    "drops": [
+      {
+        "item": "minecraft:string",
+        "conditions": []
+      }
+    ],
+    "group": "creature"
+  },
+  "minecraft:shulker": {
+    "summary": "An armoured End City defender.",
+    "encounter": "Generates in End Cities; special projectile interactions can create additional Shulkers under suitable conditions.",
+    "advice": "Its projectiles can inflict Levitation.",
+    "biomes": [],
+    "drops": [
+      {
+        "item": "minecraft:shulker_shell",
+        "conditions": [
+          "rare"
+        ]
+      }
+    ]
+  },
+  "minecraft:ender_dragon": {
+    "summary": "The End's central flying boss.",
+    "encounter": "The first Dragon is on the central End island. To summon another, place four [[item/minecraft:end_crystal|End Crystals]] at the middle of the four sides of the [[item/minecraft:bedrock|Bedrock]] exit portal.",
+    "advice": "Plan for flight, knockback, healing crystals and safe movement around the island. Its rewards include access to further End exploration. The first defeat also creates the [[item/minecraft:dragon_egg|Dragon Egg]]. Collect Dragon Breath from its lingering breath with [[item/minecraft:glass_bottle|Glass Bottles]].",
+    "biomes": [],
+    "drops": []
+  },
+  "minecraft:wither": {
+    "summary": "A summoned flying boss.",
+    "encounter": "Build a horizontal T of four [[item/minecraft:soul_sand|Soul Sand]] or [[item/minecraft:soul_soil|Soul Soil]] blocks, then place three [[item/minecraft:wither_skeleton_skull|Wither Skeleton Skulls]] across the top. Place a skull last to complete the ritual, and prepare the arena before doing so.",
+    "advice": "Choose the arena before summoning it. Its attacks and explosions make an accidental fight near your base especially destructive.",
+    "biomes": [],
+    "drops": [
+      {
+        "item": "minecraft:nether_star",
+        "conditions": []
+      }
+    ]
+  },
+  "minecraft:cow": {
+    "summary": "A passive livestock animal and renewable [[item/minecraft:leather|Leather]] source.",
+    "encounter": "Found in suitable grassy Overworld biomes.",
+    "advice": "Breed with [[item/minecraft:wheat|Wheat]]. A [[item/minecraft:bucket|Bucket]] can collect Milk; killing a Cow supplies Beef and potentially [[item/minecraft:leather|Leather]].",
+    "biomes": [
+      "minecraft:bamboo_jungle",
+      "minecraft:birch_forest",
+      "minecraft:dark_forest",
+      "minecraft:flower_forest",
+      "minecraft:forest",
+      "minecraft:jungle",
+      "minecraft:old_growth_birch_forest",
+      "minecraft:old_growth_pine_taiga",
+      "minecraft:old_growth_spruce_taiga",
+      "minecraft:plains",
+      "minecraft:savanna",
+      "minecraft:savanna_plateau",
+      "minecraft:snowy_taiga",
+      "minecraft:sparse_jungle",
+      "minecraft:sunflower_plains",
+      "minecraft:swamp",
+      "minecraft:taiga",
+      "minecraft:windswept_forest",
+      "minecraft:windswept_gravelly_hills",
+      "minecraft:windswept_hills",
+      "minecraft:windswept_savanna"
+    ],
+    "drops": [
+      {
+        "item": "minecraft:beef",
+        "conditions": []
+      },
+      {
+        "item": "minecraft:leather",
+        "conditions": []
+      }
+    ],
+    "group": "creature"
+  },
+  "minecraft:pig": {
+    "summary": "A passive livestock animal and a supported mount.",
+    "encounter": "Found in suitable grassy Overworld biomes.",
+    "advice": "Breed with suitable root crops. Naming currently claims it for the mount system; use a [[item/minecraft:saddle|Saddle]] and [[item/minecraft:carrot_on_a_stick|Carrot on a Stick]] to ride it.",
+    "biomes": [
+      "minecraft:bamboo_jungle",
+      "minecraft:birch_forest",
+      "minecraft:cherry_grove",
+      "minecraft:dark_forest",
+      "minecraft:flower_forest",
+      "minecraft:forest",
+      "minecraft:jungle",
+      "minecraft:old_growth_birch_forest",
+      "minecraft:old_growth_pine_taiga",
+      "minecraft:old_growth_spruce_taiga",
+      "minecraft:plains",
+      "minecraft:savanna",
+      "minecraft:savanna_plateau",
+      "minecraft:snowy_taiga",
+      "minecraft:sparse_jungle",
+      "minecraft:sunflower_plains",
+      "minecraft:swamp",
+      "minecraft:taiga",
+      "minecraft:windswept_forest",
+      "minecraft:windswept_gravelly_hills",
+      "minecraft:windswept_hills",
+      "minecraft:windswept_savanna"
+    ],
+    "drops": [
+      {
+        "item": "minecraft:porkchop",
+        "conditions": []
+      }
+    ],
+    "group": "creature"
+  },
+  "minecraft:sheep": {
+    "summary": "A passive livestock animal useful for renewable Wool.",
+    "encounter": "Found in suitable grassy Overworld biomes.",
+    "advice": "Breed with [[item/minecraft:wheat|Wheat]]. Shear it for Wool without killing it; it can regrow Wool by eating grass.",
+    "biomes": [
+      "minecraft:bamboo_jungle",
+      "minecraft:birch_forest",
+      "minecraft:cherry_grove",
+      "minecraft:dark_forest",
+      "minecraft:flower_forest",
+      "minecraft:forest",
+      "minecraft:jungle",
+      "minecraft:meadow",
+      "minecraft:old_growth_birch_forest",
+      "minecraft:old_growth_pine_taiga",
+      "minecraft:old_growth_spruce_taiga",
+      "minecraft:plains",
+      "minecraft:savanna",
+      "minecraft:savanna_plateau",
+      "minecraft:snowy_taiga",
+      "minecraft:sparse_jungle",
+      "minecraft:sunflower_plains",
+      "minecraft:swamp",
+      "minecraft:taiga",
+      "minecraft:windswept_forest",
+      "minecraft:windswept_gravelly_hills",
+      "minecraft:windswept_hills",
+      "minecraft:windswept_savanna"
+    ],
+    "drops": [
+      {
+        "item": "minecraft:mutton",
+        "conditions": []
+      },
+      {
+        "item": "minecraft:white_wool",
+        "conditions": []
+      }
+    ],
+    "group": "creature"
+  },
+  "minecraft:chicken": {
+    "summary": "A passive animal useful for [[item/minecraft:feather|Feathers]], [[item/minecraft:egg|Eggs]] and food.",
+    "encounter": "Found in many suitable Overworld biomes.",
+    "advice": "Breed with suitable seeds. Adult Chickens lay [[item/minecraft:egg|Eggs]], providing a renewable interaction reward beyond their death drops.",
+    "biomes": [
+      "minecraft:bamboo_jungle",
+      "minecraft:birch_forest",
+      "minecraft:dark_forest",
+      "minecraft:flower_forest",
+      "minecraft:forest",
+      "minecraft:jungle",
+      "minecraft:old_growth_birch_forest",
+      "minecraft:old_growth_pine_taiga",
+      "minecraft:old_growth_spruce_taiga",
+      "minecraft:plains",
+      "minecraft:savanna",
+      "minecraft:savanna_plateau",
+      "minecraft:snowy_taiga",
+      "minecraft:sparse_jungle",
+      "minecraft:sunflower_plains",
+      "minecraft:swamp",
+      "minecraft:taiga",
+      "minecraft:windswept_forest",
+      "minecraft:windswept_gravelly_hills",
+      "minecraft:windswept_hills",
+      "minecraft:windswept_savanna"
+    ],
+    "drops": [
+      {
+        "item": "minecraft:chicken",
+        "conditions": []
+      },
+      {
+        "item": "minecraft:feather",
+        "conditions": []
+      }
+    ],
+    "group": "creature"
+  },
+  "minecraft:rabbit": {
+    "summary": "A small animal found in several dry, snowy and meadow environments.",
+    "encounter": "Look in the listed suitable biomes rather than assuming all grasslands contain Rabbits.",
+    "advice": "Breed with suitable vegetables. [[item/minecraft:rabbit_hide|Rabbit Hide]] and a rare [[item/minecraft:rabbit_foot|Rabbit's Foot]] are notable materials.",
+    "biomes": [
+      "minecraft:cherry_grove",
+      "minecraft:desert",
+      "minecraft:flower_forest",
+      "minecraft:grove",
+      "minecraft:ice_spikes",
+      "minecraft:meadow",
+      "minecraft:old_growth_pine_taiga",
+      "minecraft:old_growth_spruce_taiga",
+      "minecraft:snowy_plains",
+      "minecraft:snowy_slopes",
+      "minecraft:snowy_taiga",
+      "minecraft:taiga"
+    ],
+    "drops": [
+      {
+        "item": "minecraft:rabbit",
+        "conditions": []
+      },
+      {
+        "item": "minecraft:rabbit_foot",
+        "conditions": [
+          "player",
+          "rare"
+        ]
+      },
+      {
+        "item": "minecraft:rabbit_hide",
+        "conditions": []
+      }
+    ],
+    "group": "creature"
+  },
+  "minecraft:mooshroom": {
+    "summary": "A Mushroom Fields livestock animal.",
+    "encounter": "Naturally associated with Mushroom Fields.",
+    "advice": "Other interactions depend on its variant; shearing converts it into a [[mob/minecraft:cow|Cow]].",
+    "biomes": [
+      "minecraft:mushroom_fields"
+    ],
+    "drops": [
+      {
+        "item": "minecraft:beef",
+        "conditions": []
+      },
+      {
+        "item": "minecraft:leather",
+        "conditions": []
+      }
+    ],
+    "group": "creature"
+  },
+  "minecraft:horse": {
+    "summary": "A rideable animal with inherited movement and survival traits.",
+    "encounter": "Found naturally in Plains and Savannas.",
+    "advice": "Tame it through repeated riding, then use its inventory for equipment, ownership and breeding focus. See the mount guides before choosing breeding stock.",
+    "biomes": [
+      "minecraft:plains",
+      "minecraft:savanna",
+      "minecraft:savanna_plateau",
+      "minecraft:sunflower_plains",
+      "minecraft:windswept_savanna"
+    ],
+    "drops": [
+      {
+        "item": "minecraft:leather",
+        "conditions": []
+      }
+    ],
+    "group": "creature"
+  },
+  "minecraft:donkey": {
+    "summary": "A rideable pack animal.",
+    "encounter": "Found in suitable Plains, Meadow and Savanna environments.",
+    "advice": "Tame it through riding. It supports cargo and can breed with a [[mob/minecraft:horse|Horse]] to produce a [[mob/minecraft:mule|Mule]].",
+    "biomes": [
+      "minecraft:meadow",
+      "minecraft:plains",
+      "minecraft:savanna",
+      "minecraft:savanna_plateau",
+      "minecraft:sunflower_plains",
+      "minecraft:windswept_savanna"
+    ],
+    "drops": [
+      {
+        "item": "minecraft:leather",
+        "conditions": []
+      }
+    ],
+    "group": "creature"
+  },
+  "minecraft:mule": {
+    "summary": "A pack animal produced by crossbreeding.",
+    "encounter": "Breed a [[mob/minecraft:horse|Horse]] with a [[mob/minecraft:donkey|Donkey]]; Mules do not form ordinary wild herds.",
+    "advice": "Mules are sterile.",
+    "biomes": [],
+    "drops": [
+      {
+        "item": "minecraft:leather",
+        "conditions": []
+      }
+    ]
+  },
+  "minecraft:camel": {
+    "summary": "A two-seat mount associated with desert settlements.",
+    "encounter": "Generates in Desert Villages rather than an ordinary renewable wild spawning population.",
+    "advice": "Name it with a [[item/minecraft:name_tag|Name Tag]] to claim it in the current mount system. It breeds with [[item/minecraft:cactus|Cactus]] and has a dash rather than a [[mob/minecraft:horse|Horse]]'s jump.",
+    "biomes": [],
+    "drops": []
+  },
+  "minecraft:llama": {
+    "summary": "A pack animal with variant cargo capacity.",
+    "encounter": "Found in suitable mountain and Savanna environments.",
+    "advice": "Tame it through riding. It uses carpet decoration and cargo; breeding and transport rules are described in the mount guides.",
+    "biomes": [
+      "minecraft:savanna_plateau",
+      "minecraft:windswept_forest",
+      "minecraft:windswept_gravelly_hills",
+      "minecraft:windswept_hills"
+    ],
+    "drops": [
+      {
+        "item": "minecraft:leather",
+        "conditions": []
+      }
+    ],
+    "group": "creature"
+  },
+  "minecraft:trader_llama": {
+    "summary": "A [[mob/minecraft:llama|Llama]] accompanying a [[mob/minecraft:wandering_trader|Wandering Trader]].",
+    "encounter": "Appears with a [[mob/minecraft:wandering_trader|Wandering Trader]] rather than ordinary wild herds.",
+    "advice": "Its initial trader relationship differs from a wild [[mob/minecraft:llama|Llama]].",
+    "biomes": [],
+    "drops": [
+      {
+        "item": "minecraft:leather",
+        "conditions": []
+      }
+    ]
+  },
+  "minecraft:wolf": {
+    "summary": "A tameable companion with biome-dependent variants.",
+    "encounter": "Found in suitable forest, taiga, grove and other variant-specific biomes.",
+    "advice": "Tame with [[item/minecraft:bone|Bones]].",
+    "biomes": [
+      "minecraft:forest",
+      "minecraft:grove",
+      "minecraft:old_growth_pine_taiga",
+      "minecraft:old_growth_spruce_taiga",
+      "minecraft:savanna_plateau",
+      "minecraft:snowy_taiga",
+      "minecraft:sparse_jungle",
+      "minecraft:taiga",
+      "minecraft:wooded_badlands"
+    ],
+    "drops": [],
+    "group": "creature"
+  },
+  "minecraft:cat": {
+    "summary": "A tameable companion associated with settlements.",
+    "encounter": "Appears around suitable Villages and Swamp Huts.",
+    "advice": "Tame with raw fish. A tamed Cat can help deter nearby [[mob/minecraft:creeper|Creepers]] and [[mob/minecraft:phantom|Phantoms]].",
+    "biomes": [],
+    "drops": [
+      {
+        "item": "minecraft:string",
+        "conditions": []
+      }
+    ]
+  },
+  "minecraft:ocelot": {
+    "summary": "A shy jungle animal.",
+    "encounter": "Found in suitable Jungle environments.",
+    "advice": "Build trust using raw fish. An Ocelot does not become a [[mob/minecraft:cat|Cat]] through taming.",
+    "biomes": [
+      "minecraft:bamboo_jungle",
+      "minecraft:jungle"
+    ],
+    "drops": [],
+    "group": "monster"
+  },
+  "minecraft:fox": {
+    "summary": "A shy animal that can carry items.",
+    "encounter": "Found in suitable taiga and grove environments.",
+    "advice": "Breed with suitable Berries. A trusted offspring behaves differently from a wild Fox.",
+    "biomes": [
+      "minecraft:grove",
+      "minecraft:old_growth_pine_taiga",
+      "minecraft:old_growth_spruce_taiga",
+      "minecraft:snowy_taiga",
+      "minecraft:taiga"
+    ],
+    "drops": [],
+    "group": "creature"
+  },
+  "minecraft:parrot": {
+    "summary": "A tameable flying companion.",
+    "encounter": "Found in Jungle environments.",
+    "advice": "Tame with suitable seeds. [[item/minecraft:cookie|Cookies]] are poisonous to Parrots.",
+    "biomes": [
+      "minecraft:bamboo_jungle",
+      "minecraft:jungle"
+    ],
+    "drops": [
+      {
+        "item": "minecraft:feather",
+        "conditions": []
+      }
+    ],
+    "group": "creature"
+  },
+  "minecraft:polar_bear": {
+    "summary": "A large neutral cold-region animal.",
+    "encounter": "Found in suitable snowy and frozen environments.",
+    "advice": "Adults can defend nearby cubs.",
+    "biomes": [
+      "minecraft:deep_frozen_ocean",
+      "minecraft:frozen_ocean",
+      "minecraft:ice_spikes",
+      "minecraft:snowy_plains"
+    ],
+    "drops": [
+      {
+        "item": "minecraft:cod",
+        "conditions": []
+      },
+      {
+        "item": "minecraft:salmon",
+        "conditions": []
+      }
+    ],
+    "group": "creature"
+  },
+  "minecraft:panda": {
+    "summary": "A jungle animal with inherited personalities.",
+    "encounter": "Found in Jungle and [[item/minecraft:bamboo|Bamboo]] Jungle environments.",
+    "advice": "[[item/minecraft:bamboo|Bamboo]] is central to its care and breeding. Different personalities affect its behaviour.",
+    "biomes": [
+      "minecraft:bamboo_jungle",
+      "minecraft:jungle"
+    ],
+    "drops": [
+      {
+        "item": "minecraft:bamboo",
+        "conditions": []
+      }
+    ],
+    "group": "creature"
+  },
+  "minecraft:bee": {
+    "summary": "A neutral pollinator with hive-based products.",
+    "encounter": "Found through [[item/minecraft:bee_nest|Bee Nests]] and [[item/minecraft:beehive|Beehives]]; nests can generate with suitable trees and be produced by some tree-growth conditions.",
+    "advice": "Flowers and a safe hive area support honey production. Disturbing a hive can provoke the bees; smoke can make harvesting safer.",
+    "biomes": [],
+    "drops": []
+  },
+  "minecraft:goat": {
+    "summary": "A mountain animal that can ram targets.",
+    "encounter": "Found on suitable mountain slopes and peaks.",
+    "advice": "Careful positioning can let a ram break a Horn against an appropriate solid block. Horns are an interaction reward, not a normal kill drop.",
+    "biomes": [
+      "minecraft:frozen_peaks",
+      "minecraft:jagged_peaks",
+      "minecraft:snowy_slopes"
+    ],
+    "drops": [],
+    "group": "creature"
+  },
+  "minecraft:frog": {
+    "summary": "A small amphibian with biome-dependent variants.",
+    "encounter": "Found in Swamps and Mangrove Swamps. The temperature where a [[mob/minecraft:tadpole|Tadpole]] grows determines its Frog variant.",
+    "advice": "Frogs eat small [[mob/minecraft:slime|Slimes]] and [[mob/minecraft:magma_cube|Magma Cubes]]. Eating a small [[mob/minecraft:magma_cube|Magma Cube]] produces a Froglight, with colour determined by the Frog variant.",
+    "biomes": [
+      "minecraft:mangrove_swamp",
+      "minecraft:swamp"
+    ],
+    "drops": [],
+    "group": "creature"
+  },
+  "minecraft:tadpole": {
+    "summary": "The juvenile stage that grows into a [[mob/minecraft:frog|Frog]].",
+    "encounter": "Produced from [[item/minecraft:frogspawn|Frogspawn]] after [[mob/minecraft:frog|Frogs]] breed.",
+    "advice": "Move it in a water [[item/minecraft:bucket|Bucket]] if you want to choose the temperature where it grows into a particular [[mob/minecraft:frog|Frog]] variant.",
+    "biomes": [],
+    "drops": []
+  },
+  "minecraft:turtle": {
+    "summary": "A coastal animal with useful non-lethal shell rewards.",
+    "encounter": "Found on suitable sandy beaches.",
+    "advice": "Breed with [[item/minecraft:seagrass|Seagrass]]. Protect eggs and young Turtles; a Scute is dropped when a baby grows up, not by routinely killing adults.",
+    "biomes": [
+      "minecraft:beach"
+    ],
+    "drops": [
+      {
+        "item": "minecraft:bowl",
+        "conditions": []
+      },
+      {
+        "item": "minecraft:seagrass",
+        "conditions": []
+      }
+    ],
+    "group": "creature"
+  },
+  "minecraft:armadillo": {
+    "summary": "A passive source of protective Scutes.",
+    "encounter": "Found in suitable Savanna and Badlands environments.",
+    "advice": "[[item/minecraft:brush|Brush]] it for Scutes or collect naturally shed ones. Scutes are useful for [[item/minecraft:wolf_armor|Wolf Armour]] without killing the Armadillo.",
+    "biomes": [
+      "minecraft:badlands",
+      "minecraft:eroded_badlands",
+      "minecraft:savanna",
+      "minecraft:savanna_plateau",
+      "minecraft:windswept_savanna",
+      "minecraft:wooded_badlands"
+    ],
+    "drops": [],
+    "group": "creature"
+  },
+  "minecraft:sniffer": {
+    "summary": "An ancient animal that finds special seeds.",
+    "encounter": "Hatch a [[item/minecraft:sniffer_egg|Sniffer Egg]] recovered from appropriate warm Ocean Ruin archaeology.",
+    "advice": "Provide suitable ground and space for digging. Its special plant finds are interaction rewards rather than ordinary death drops.",
+    "biomes": [],
+    "drops": []
+  },
+  "minecraft:iron_golem": {
+    "summary": "A powerful protector associated with Villages.",
+    "encounter": "Can form through Village conditions or be built by the player using Iron Blocks and a carved [[item/minecraft:pumpkin|Pumpkin]].",
+    "advice": "It can defend a settlement, but provoking one is dangerous. [[item/minecraft:iron_ingot|Iron Ingots]] and Poppies are its ordinary drops.",
+    "biomes": [],
+    "drops": [
+      {
+        "item": "minecraft:iron_ingot",
+        "conditions": []
+      },
+      {
+        "item": "minecraft:poppy",
+        "conditions": []
+      }
+    ]
+  },
+  "minecraft:snow_golem": {
+    "summary": "A constructed snow-throwing creature.",
+    "encounter": "Build it from [[item/minecraft:snow_block|Snow Blocks]] and a carved [[item/minecraft:pumpkin|Pumpkin]].",
+    "advice": "It can leave a harvestable [[item/minecraft:snow|Snow]] trail in suitable conditions. Hot environments and water can harm it.",
+    "biomes": [],
+    "drops": [
+      {
+        "item": "minecraft:snowball",
+        "conditions": []
+      }
+    ]
+  },
+  "minecraft:allay": {
+    "summary": "A friendly flying helper that collects matching items.",
+    "encounter": "Find trapped Allays in suitable [[mob/minecraft:pillager|Pillager]] Outposts or Woodland Mansion rooms.",
+    "advice": "Give it an item to indicate what to collect. Its utility is collection, not kill loot.",
+    "biomes": [],
+    "drops": []
+  },
+  "minecraft:villager": {
+    "summary": "A settlement inhabitant with trades and workstation behaviour.",
+    "encounter": "Found in Villages, produced through breeding or obtained by curing a [[mob/minecraft:zombie_villager|Zombie Villager]].",
+    "advice": "Trades and workstation behaviour depend on the Villager's current profession. Protect useful trading partners from hostile creatures, and check their offers before spending rare materials.",
+    "biomes": [],
+    "drops": []
+  },
+  "minecraft:wandering_trader": {
+    "summary": "A travelling merchant with rotating offers.",
+    "encounter": "Appears near players under suitable Overworld conditions.",
+    "advice": "It can provide otherwise distant natural materials. Offers are limited; it is not a permanent workstation-bound [[mob/minecraft:villager|Villager]].",
+    "biomes": [],
+    "drops": []
+  },
+  "minecraft:squid": {
+    "summary": "An aquatic source of [[item/minecraft:ink_sac|Ink Sacs]].",
+    "encounter": "Found in suitable river and ocean waters.",
+    "advice": "It needs water to survive. Ink is useful for dyes and alchemical preparation.",
+    "biomes": [
+      "minecraft:cold_ocean",
+      "minecraft:deep_cold_ocean",
+      "minecraft:deep_frozen_ocean",
+      "minecraft:deep_lukewarm_ocean",
+      "minecraft:deep_ocean",
+      "minecraft:frozen_ocean",
+      "minecraft:frozen_river",
+      "minecraft:lukewarm_ocean",
+      "minecraft:ocean",
+      "minecraft:river",
+      "minecraft:warm_ocean"
+    ],
+    "drops": [
+      {
+        "item": "minecraft:ink_sac",
+        "conditions": []
+      }
+    ],
+    "group": "water_creature"
+  },
+  "minecraft:glow_squid": {
+    "summary": "An underground aquatic source of [[item/minecraft:glow_ink_sac|Glow Ink Sacs]].",
+    "encounter": "Found in suitable dark underground waters.",
+    "advice": "Glow Ink is useful for illuminated text and glowing alchemical materials; its glow is not a general source of block light.",
+    "biomes": [
+      "minecraft:badlands",
+      "minecraft:bamboo_jungle",
+      "minecraft:beach",
+      "minecraft:birch_forest",
+      "minecraft:cherry_grove",
+      "minecraft:cold_ocean",
+      "minecraft:dark_forest",
+      "minecraft:deep_cold_ocean",
+      "minecraft:deep_frozen_ocean",
+      "minecraft:deep_lukewarm_ocean",
+      "minecraft:deep_ocean",
+      "minecraft:desert",
+      "minecraft:dripstone_caves",
+      "minecraft:eroded_badlands",
+      "minecraft:flower_forest",
+      "minecraft:forest",
+      "minecraft:frozen_ocean",
+      "minecraft:frozen_peaks",
+      "minecraft:frozen_river",
+      "minecraft:grove",
+      "minecraft:ice_spikes",
+      "minecraft:jagged_peaks",
+      "minecraft:jungle",
+      "minecraft:lukewarm_ocean",
+      "minecraft:lush_caves",
+      "minecraft:mangrove_swamp",
+      "minecraft:meadow",
+      "minecraft:mushroom_fields",
+      "minecraft:ocean",
+      "minecraft:old_growth_birch_forest",
+      "minecraft:old_growth_pine_taiga",
+      "minecraft:old_growth_spruce_taiga",
+      "minecraft:plains",
+      "minecraft:river",
+      "minecraft:savanna",
+      "minecraft:savanna_plateau",
+      "minecraft:snowy_beach",
+      "minecraft:snowy_plains",
+      "minecraft:snowy_slopes",
+      "minecraft:snowy_taiga",
+      "minecraft:sparse_jungle",
+      "minecraft:stony_peaks",
+      "minecraft:stony_shore",
+      "minecraft:sunflower_plains",
+      "minecraft:swamp",
+      "minecraft:taiga",
+      "minecraft:warm_ocean",
+      "minecraft:windswept_forest",
+      "minecraft:windswept_gravelly_hills",
+      "minecraft:windswept_hills",
+      "minecraft:windswept_savanna",
+      "minecraft:wooded_badlands"
+    ],
+    "drops": [
+      {
+        "item": "minecraft:glow_ink_sac",
+        "conditions": []
+      }
+    ],
+    "group": "underground_water_creature"
+  },
+  "minecraft:cod": {
+    "summary": "An edible fish.",
+    "encounter": "Found in suitable ocean waters and through fishing.",
+    "advice": "Collect it for cooking or move a living fish using a water [[item/minecraft:bucket|Bucket]]. [[item/minecraft:campfire|Campfires]] and [[item/minecraft:smoker|Smokers]] both cook Cod.",
+    "biomes": [
+      "minecraft:cold_ocean",
+      "minecraft:deep_cold_ocean",
+      "minecraft:deep_lukewarm_ocean",
+      "minecraft:deep_ocean",
+      "minecraft:lukewarm_ocean",
+      "minecraft:ocean"
+    ],
+    "drops": [
+      {
+        "item": "minecraft:bone_meal",
+        "conditions": [
+          "rare"
+        ]
+      },
+      {
+        "item": "minecraft:cod",
+        "conditions": []
+      }
+    ],
+    "group": "water_ambient"
+  },
+  "minecraft:salmon": {
+    "summary": "An edible fish associated with cold waters and rivers.",
+    "encounter": "Found in suitable rivers and oceans and through fishing.",
+    "advice": "Cook it at a [[item/minecraft:campfire|Campfire]] or [[item/minecraft:smoker|Smoker]], or move a living fish with a water [[item/minecraft:bucket|Bucket]].",
+    "biomes": [
+      "minecraft:cold_ocean",
+      "minecraft:deep_cold_ocean",
+      "minecraft:deep_frozen_ocean",
+      "minecraft:frozen_ocean",
+      "minecraft:frozen_river",
+      "minecraft:river"
+    ],
+    "drops": [
+      {
+        "item": "minecraft:bone_meal",
+        "conditions": [
+          "rare"
+        ]
+      },
+      {
+        "item": "minecraft:salmon",
+        "conditions": []
+      }
+    ],
+    "group": "water_ambient"
+  },
+  "minecraft:tropical_fish": {
+    "summary": "A colourful warm-water fish.",
+    "encounter": "Found in warm ocean and suitable lush-cave waters, and through fishing.",
+    "advice": "A [[item/minecraft:tropical_fish_bucket|Bucket of Tropical Fish]] is useful for [[mob/minecraft:axolotl|Axolotl]] care and breeding. Its live form has uses beyond eating the item.",
+    "biomes": [
+      "minecraft:deep_lukewarm_ocean",
+      "minecraft:lukewarm_ocean",
+      "minecraft:lush_caves",
+      "minecraft:mangrove_swamp",
+      "minecraft:warm_ocean"
+    ],
+    "drops": [
+      {
+        "item": "minecraft:bone_meal",
+        "conditions": [
+          "rare"
+        ]
+      },
+      {
+        "item": "minecraft:tropical_fish",
+        "conditions": []
+      }
+    ],
+    "group": "water_ambient"
+  },
+  "minecraft:pufferfish": {
+    "summary": "A poisonous warm-water fish.",
+    "encounter": "Found in suitable warm and lukewarm ocean waters and through fishing.",
+    "advice": "It inflates when threatened.",
+    "biomes": [
+      "minecraft:deep_lukewarm_ocean",
+      "minecraft:lukewarm_ocean",
+      "minecraft:warm_ocean"
+    ],
+    "drops": [
+      {
+        "item": "minecraft:bone_meal",
+        "conditions": [
+          "rare"
+        ]
+      },
+      {
+        "item": "minecraft:pufferfish",
+        "conditions": []
+      }
+    ],
+    "group": "water_ambient"
+  },
+  "minecraft:dolphin": {
+    "summary": "A neutral ocean animal with travel utility.",
+    "encounter": "Found in suitable non-frozen ocean waters.",
+    "advice": "Swimming nearby can help with water travel. Feeding raw fish can lead it toward certain underwater treasure structures.",
+    "biomes": [
+      "minecraft:deep_lukewarm_ocean",
+      "minecraft:deep_ocean",
+      "minecraft:lukewarm_ocean",
+      "minecraft:ocean",
+      "minecraft:warm_ocean"
+    ],
+    "drops": [
+      {
+        "item": "minecraft:cod",
+        "conditions": []
+      }
+    ],
+    "group": "water_creature"
+  },
+  "minecraft:axolotl": {
+    "summary": "An aquatic companion that hunts other water creatures.",
+    "encounter": "Found in suitable water within Lush Caves, near [[item/minecraft:clay|Clay]].",
+    "advice": "Collect it in a water [[item/minecraft:bucket|Bucket]]. [[item/minecraft:bucket|Buckets]] of [[item/minecraft:tropical_fish|Tropical Fish]] are used for breeding; ordinary fish items are not the same thing.",
+    "biomes": [
+      "minecraft:lush_caves"
+    ],
+    "drops": [],
+    "group": "axolotls"
+  },
+  "minecraft:bat": {
+    "summary": "An ambient cave animal.",
+    "encounter": "Found in suitable dark underground spaces.",
+    "advice": "Usually encountered as ambient cave wildlife rather than a combat threat.",
+    "biomes": [
+      "minecraft:badlands",
+      "minecraft:bamboo_jungle",
+      "minecraft:beach",
+      "minecraft:birch_forest",
+      "minecraft:cherry_grove",
+      "minecraft:cold_ocean",
+      "minecraft:dark_forest",
+      "minecraft:deep_cold_ocean",
+      "minecraft:deep_frozen_ocean",
+      "minecraft:deep_lukewarm_ocean",
+      "minecraft:deep_ocean",
+      "minecraft:desert",
+      "minecraft:dripstone_caves",
+      "minecraft:eroded_badlands",
+      "minecraft:flower_forest",
+      "minecraft:forest",
+      "minecraft:frozen_ocean",
+      "minecraft:frozen_peaks",
+      "minecraft:frozen_river",
+      "minecraft:grove",
+      "minecraft:ice_spikes",
+      "minecraft:jagged_peaks",
+      "minecraft:jungle",
+      "minecraft:lukewarm_ocean",
+      "minecraft:lush_caves",
+      "minecraft:mangrove_swamp",
+      "minecraft:meadow",
+      "minecraft:mushroom_fields",
+      "minecraft:ocean",
+      "minecraft:old_growth_birch_forest",
+      "minecraft:old_growth_pine_taiga",
+      "minecraft:old_growth_spruce_taiga",
+      "minecraft:plains",
+      "minecraft:river",
+      "minecraft:savanna",
+      "minecraft:savanna_plateau",
+      "minecraft:snowy_beach",
+      "minecraft:snowy_plains",
+      "minecraft:snowy_slopes",
+      "minecraft:snowy_taiga",
+      "minecraft:sparse_jungle",
+      "minecraft:stony_peaks",
+      "minecraft:stony_shore",
+      "minecraft:sunflower_plains",
+      "minecraft:swamp",
+      "minecraft:taiga",
+      "minecraft:warm_ocean",
+      "minecraft:windswept_forest",
+      "minecraft:windswept_gravelly_hills",
+      "minecraft:windswept_hills",
+      "minecraft:windswept_savanna",
+      "minecraft:wooded_badlands"
+    ],
+    "drops": [],
+    "group": "ambient"
+  },
+  "minecraft:skeleton_horse": {
+    "summary": "An undead rideable [[mob/minecraft:horse|Horse]].",
+    "encounter": "A rare thunderstorm trap can create Skeleton Horses and armed riders. Triggering a trap begins a dangerous encounter.",
+    "advice": "Deal with the riders and check the surviving [[mob/minecraft:horse|Horse]]'s mount panel. It is not an ordinary breedable [[mob/minecraft:horse|Horse]] population.",
+    "biomes": [],
+    "drops": []
+  },
+  "minecraft:zombie_horse": {
+    "summary": "An undead [[mob/minecraft:horse|Horse]] variant.",
+    "encounter": "Has no ordinary natural survival spawn in this version; it is normally introduced through Creative or commands.",
+    "advice": "If one is present, use its supported mount-management interface rather than assuming the living [[mob/minecraft:horse|Horse]]'s breeding rules apply.",
+    "biomes": [],
+    "drops": []
+  },
+  "minecraft:illusioner": {
+    "summary": "An Illager spellcaster with illusion abilities.",
+    "encounter": "Has no ordinary natural survival spawn in this version; it is normally introduced through Creative or commands.",
+    "advice": "Its illusions and ranged attacks require attention to the real attacker rather than attacking every visible copy.",
+    "biomes": [],
+    "drops": []
+  },
+  "minecraft:giant": {
+    "summary": "An oversized [[mob/minecraft:zombie|Zombie]] variant.",
+    "encounter": "Has no ordinary natural survival spawn in this version; it is normally introduced through Creative or commands.",
+    "advice": "Its existence in Creative does not make it a normal resource-hunting target.",
+    "biomes": [],
+    "drops": []
+  }
+}

@@ -6,7 +6,7 @@ import com.cranks.dungeons.registry.ModAttributes;
 import com.cranks.dungeons.registry.ModSounds;
 import com.cranks.dungeons.util.CombatUtility;
 import com.cranks.dungeons.util.CritEntropyProvider;
-import com.cranks.dungeons.util.CriticalHitState;
+import com.cranks.dungeons.util.DamageHit;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
@@ -24,9 +24,8 @@ public class BonusAttackDamageMixin {
 
     @ModifyVariable(method = "damage", at = @At("HEAD"), ordinal = 0, argsOnly = true)
     private float applyBonusAttackDamage(float amount, DamageSource source) {
-        // Reset crit state for fresh attack
-        CriticalHitState.reset();
-
+        if (com.cranks.dungeons.effect.PotionRules.isPotionDamage(source)) return amount;
+        if (AilmentManager.isSecondaryDamage((LivingEntity) (Object) this)) return amount;
         if (source.getAttacker() instanceof LivingEntity attacker) {
             LivingEntity target = (LivingEntity) (Object) this;
             ItemStack weapon = CombatUtility.getCombatWeapon(source, attacker);
@@ -90,11 +89,8 @@ public class BonusAttackDamageMixin {
             double baseCrit = attacker.getAttributeValue(ModAttributes.CRIT_CHANCE);
             double localCrit = EquipmentStatApplier.getItemStatValue(weapon, "local_crit_chance");
             double globalCrit = attacker.getAttributeValue(ModAttributes.GLOBAL_CRIT_CHANCE_PERCENT);
-            double critChance = (baseCrit * (1.0 + localCrit)) * (1.0 + globalCrit);
-
-            if (AilmentManager.isAfflicted(target)) {
-                critChance += attacker.getAttributeValue(ModAttributes.CRIT_CHANCE_AGAINST_AFFLICTED);
-            }
+            double critChance = com.cranks.dungeons.ailment.AilmentRules.criticalChance(baseCrit,localCrit,globalCrit,
+                    AilmentManager.isAfflicted(target)?attacker.getAttributeValue(ModAttributes.CRIT_CHANCE_AGAINST_AFFLICTED):0);
 
             if (attacker.getAttributeValue(ModAttributes.KEYSTONE_RESOLUTE_TECHNIQUE) > 0) {
                 critChance = 0;
@@ -115,33 +111,24 @@ public class BonusAttackDamageMixin {
                 // Elemental Overload check
                 if (attacker.getAttributeValue(ModAttributes.KEYSTONE_ELEMENTAL_OVERLOAD) > 0) {
                     critMult = 1.0;
-                    CombatUtility.triggerElementalOverload(attacker);
                 }
 
                 // Armor Crit Mitigation & Reduced Critical Damage Taken
                 float extraDamageMult = (float) (critMult - 1.0);
-                double mitigationMultiplier = target.getAttributeValue(ModAttributes.ARMOR_CRIT_MITIGATION);
-                if (mitigationMultiplier > 0) {
-                    double armor = target.getAttributeValue(net.minecraft.entity.attribute.EntityAttributes.GENERIC_ARMOR);
-                    double mitigation = Math.min(1.0, armor * mitigationMultiplier);
-                    extraDamageMult *= (float) (1.0 - mitigation);
-                }
-
-                double reducedCritBonus = target.getAttributeValue(ModAttributes.REDUCED_CRIT_DAMAGE_TAKEN_PERCENT);
-                if (reducedCritBonus > 0) {
-                    extraDamageMult *= (float) Math.max(0.0, 1.0 - reducedCritBonus);
-                }
+                double protection = com.cranks.dungeons.stat.CombatStatRules.criticalProtection(
+                        target.getAttributeValue(net.minecraft.entity.attribute.EntityAttributes.GENERIC_ARMOR)
+                                +(target.getAttributeValue(ModAttributes.KEYSTONE_IRON_REFLEXES)>0?target.getAttributeValue(ModAttributes.EVASION_RATING):0),
+                        target.getAttributeValue(ModAttributes.ARMOR_CRIT_MITIGATION),
+                        target.getAttributeValue(ModAttributes.REDUCED_CRIT_DAMAGE_TAKEN_PERCENT));
+                extraDamageMult *= (float) (1 - protection);
 
                 float effectiveCritMultiplier = 1.0f + extraDamageMult;
                 finalDamage *= effectiveCritMultiplier;
 
-                CriticalHitState.setCriticalHit(true);
-                CriticalHitState.setCritMultiplier(effectiveCritMultiplier);
-                CombatUtility.recordRecentCrit(attacker, target.getWorld().getTime());
+                DamageHit hit = DamageHit.current();
+                if (hit != null) hit.critical(effectiveCritMultiplier);
 
-                if (!target.getWorld().isClient() && target.getWorld() instanceof ServerWorld serverWorld) {
-                    spawnCriticalEffects(serverWorld, target, attacker);
-                }
+
             }
 
             return finalDamage;
@@ -150,30 +137,4 @@ public class BonusAttackDamageMixin {
         return amount;
     }
 
-    @Unique
-    private void spawnCriticalEffects(ServerWorld world, LivingEntity target, LivingEntity attacker) {
-        world.spawnParticles(
-                net.minecraft.particle.ParticleTypes.ENCHANTED_HIT,
-                target.getX(), target.getY() + target.getHeight() * 0.75, target.getZ(),
-                15, 0.2, 0.2, 0.2, 0.2
-        );
-        world.spawnParticles(
-                net.minecraft.particle.ParticleTypes.CRIT,
-                target.getX(), target.getY() + target.getHeight() * 0.5, target.getZ(),
-                10, 0.3, 0.3, 0.3, 0.15
-        );
-        world.spawnParticles(
-                net.minecraft.particle.ParticleTypes.GLOW,
-                target.getX(), target.getY() + target.getHeight() * 0.5, target.getZ(),
-                12, 0.4, 0.4, 0.4, 0.05
-        );
-        world.playSound(
-                null,
-                target.getBlockPos(),
-                ModSounds.CRITICAL_HIT,
-                attacker instanceof PlayerEntity ? SoundCategory.PLAYERS : SoundCategory.HOSTILE,
-                1.0f,
-                1.0f
-        );
-    }
 }

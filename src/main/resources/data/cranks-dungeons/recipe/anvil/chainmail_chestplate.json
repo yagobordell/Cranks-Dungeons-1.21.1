@@ -1,0 +1,24 @@
+{
+  "type": "cranks-dungeons:anvil_assembly",
+  "recipe": {
+    "type": "minecraft:crafting_shaped",
+    "category": "equipment",
+    "pattern": [
+      "C C",
+      "NCN",
+      "NNN"
+    ],
+    "key": {
+      "C": {
+        "item": "minecraft:chain"
+      },
+      "N": {
+        "item": "minecraft:iron_nugget"
+      }
+    },
+    "result": {
+      "id": "minecraft:chainmail_chestplate",
+      "count": 1
+    }
+  }
+}

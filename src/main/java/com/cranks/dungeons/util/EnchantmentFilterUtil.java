@@ -1,5 +1,6 @@
 package com.cranks.dungeons.util;
 
+import com.cranks.dungeons.registry.ModAttributes;
 import net.minecraft.component.ComponentType;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.ItemEnchantmentsComponent;
@@ -57,14 +58,16 @@ public class EnchantmentFilterUtil {
     }
 
     /**
-     * Checks if an enchantment is approved based on the custom tags.
+     * Checks the fixed supported catalogue; tags cannot approve an unsupported definition.
      */
     public static boolean isApproved(RegistryEntry<Enchantment> enchantment) {
-        return enchantment.isIn(EnchantmentTags.IN_ENCHANTING_TABLE) || 
-               enchantment.isIn(EnchantmentTags.ON_RANDOM_LOOT);
+        return com.cranks.dungeons.CranksDungeons.isSupportedEnchantment(enchantment);
     }
 
-    public static boolean isArmorAttribute(RegistryEntry<net.minecraft.entity.attribute.EntityAttribute> attr) {
+    public static boolean isArmorAttribute(RegistryEntry<net.minecraft.entity.attribute.EntityAttribute> attr,
+                                           boolean appliedByWeaponEnchantment) {
+        // Adept's Dexterity is shared by armor and weapons, rather than being armor-only.
+        if (appliedByWeaponEnchantment && CombatUtility.attributesMatch(attr, ModAttributes.DEXTERITY)) return false;
         String key = attr.value().getTranslationKey();
         return (key.contains("resistance") || key.contains("armor") || key.contains("health") || 
                key.contains("shield") || key.contains("evasion") || key.contains("regeneration") ||
@@ -73,8 +76,11 @@ public class EnchantmentFilterUtil {
                && !key.contains("penetration");
     }
 
-    public static boolean isWeaponAttribute(RegistryEntry<net.minecraft.entity.attribute.EntityAttribute> attr) {
+    public static boolean isWeaponAttribute(RegistryEntry<net.minecraft.entity.attribute.EntityAttribute> attr,
+                                            boolean appliedByArmorEnchantment) {
         String key = attr.value().getTranslationKey();
+        // Adept grants Dexterity on both worn armor and held weapons.
+        if (appliedByArmorEnchantment && CombatUtility.attributesMatch(attr, ModAttributes.DEXTERITY)) return false;
         return (key.contains("damage") || key.contains("chance_to") || key.contains("duration") ||
                key.contains("penetration") || key.contains("steal") || key.contains("attack") ||
                key.contains("knockback") || key.contains("breaking_range") || key.contains("precision_mining") ||

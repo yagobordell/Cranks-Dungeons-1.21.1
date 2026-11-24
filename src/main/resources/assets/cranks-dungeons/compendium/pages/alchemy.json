@@ -1,0 +1,42 @@
+{
+  "title": "Alchemy",
+  "content": [
+    {
+      "type": "item_image",
+      "value": "minecraft:brewing_stand"
+    },
+    {
+      "type": "heading",
+      "value": "Extract, Experiment, Brew"
+    },
+    {
+      "type": "text",
+      "value": "Craft an Alchemy Stand from three copper ingots, one [[item/minecraft:iron_ingot|iron ingot]], and three cobblestone. Extraction processes raw Overworld ingredients into extracts, salts, suspensions, and catalysts. Hover ingredients for clues."
+    },
+    {
+      "type": "text",
+      "value": "In Experiment, click Main to choose an extract from your inventory. Extra accepts an optional second extract. Choose a Support family, then click the bottle panel and select a water-filled bottle. Thin bottles make Lesser potions; regular bottles make regular potions and also need one Glowing Catalyst. Items stay in your inventory until you press Mix one potion. Missing materials are listed above the button."
+    },
+    {
+      "type": "text",
+      "value": "Successful formulas enter your personal Recipes list. Lesser and regular formulas are learned separately. Other players must experiment for themselves. Learned recipes support material search, Craftable filtering, and typed quantities up to 10,000."
+    },
+    {
+      "type": "text",
+      "value": "Thin bottles make Lesser potions. Regular bottles make regular potions. Drinking, throwable, and lingering forms each have their own empty bottle. Fill them from water before brewing. Matching potions stack to 16. Drinking returns one matching bottle; thrown bottles break."
+    },
+    {
+      "type": "note",
+      "style": "info",
+      "value": "Failed mixtures have mild temporary penalties and stable names. Previously failed combinations are remembered. Check your materials and free storage before mixing; unsuccessful inventory transactions consume nothing."
+    },
+    {
+      "type": "heading",
+      "value": "Related articles"
+    },
+    {
+      "type": "text",
+      "value": "[[article/food_effects|Food, Potions and Active Effects]] | [[article/gathering|World Discoveries]] | [[article/fletching|Fletching Table]]"
+    }
+  ]
+}

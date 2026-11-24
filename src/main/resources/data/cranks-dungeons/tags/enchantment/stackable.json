@@ -1,0 +1,22 @@
+{
+  "values": [
+    "minecraft:adept",
+    "minecraft:body",
+    "minecraft:desert",
+    "minecraft:glacial",
+    "minecraft:greater_adept",
+    "minecraft:greater_body",
+    "minecraft:greater_desert",
+    "minecraft:greater_glacial",
+    "minecraft:greater_inspiration",
+    "minecraft:greater_iron",
+    "minecraft:greater_stone",
+    "minecraft:greater_storm",
+    "minecraft:greater_vision",
+    "minecraft:inspiration",
+    "minecraft:iron",
+    "minecraft:stone",
+    "minecraft:storm",
+    "minecraft:vision"
+  ]
+}

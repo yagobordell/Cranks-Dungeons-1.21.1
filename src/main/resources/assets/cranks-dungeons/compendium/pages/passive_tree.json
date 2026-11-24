@@ -1,14 +1,60 @@
 {
   "title": "Passive Skill Tree",
   "content": [
-    { "type": "text", "value": "The Passive Tree is your permanent combat build. Its graph, node text, icons, and modifiers are loaded from server configuration, but allocation rules are server-validated." },
-    { "type": "heading", "value": "Allocating a Route" },
-    { "type": "list", "style": "numbered", "value": "Choose a class to unlock its configured start node.\nClick a connected available node to draft it.\nContinue drafting through nodes connected to the start or another drafted/unlocked node.\nChoose Strength, Dexterity, or Intelligence when a drafted attribute-choice node requests it.\nReview the point total and press Apply Changes. The server checks the full route, choices, connectivity, duplicates, and cost before committing." },
-    { "type": "note", "style": "tip", "value": "Drafting is only a preview. Click a drafted node again to remove it before applying. Applied points and nodes are persistent." },
-    { "type": "heading", "value": "Node Presentation" },
-    { "type": "text", "value": "Shapes and icons communicate importance and category, but the exact modifier list in a node tooltip is what it actually grants. Attribute-choice nodes grant their configured amount to the selected primary attribute." },
-    { "type": "heading", "value": "Navigation" },
-    { "type": "list", "value": "Press P for direct access or enter through the Compendium.\nDrag to pan and use the wheel to zoom.\nHover a node to read all modifiers and requirements.\nAvailable, drafted, unlocked, and unreachable nodes use distinct visual states." },
-    { "type": "note", "style": "important", "value": "Do not rely on a screenshot from another server. Passive Tree content is configurable and is synchronized from the server you joined." }
+    {
+      "type": "text",
+      "value": "The Passive Tree is your permanent combat build. Its connected routes determine which bonuses you can reach from your chosen class."
+    },
+    {
+      "type": "heading",
+      "value": "Allocating a Route"
+    },
+    {
+      "type": "list",
+      "style": "numbered",
+      "value": "Choose a class to unlock its configured start node.\nClick a connected available node to draft it.\nContinue drafting through nodes connected to the start or another drafted/unlocked node.\nChoose [[stat/cranks-dungeons:strength|Strength]], [[stat/cranks-dungeons:dexterity|Dexterity]], or [[stat/cranks-dungeons:intelligence|Intelligence]] when a drafted attribute-choice node requests it.\nReview the point total and press Apply Changes. Apply commits the route and spends its points."
+    },
+    {
+      "type": "note",
+      "style": "tip",
+      "value": "Drafting is only a preview. Click a drafted node again to remove it before applying. Applied points and nodes are persistent."
+    },
+    {
+      "type": "heading",
+      "value": "Node Presentation"
+    },
+    {
+      "type": "text",
+      "value": "Shapes and icons communicate importance and category, but the exact modifier list in a node tooltip is what it actually grants. Attribute-choice nodes grant their configured amount to the selected primary attribute."
+    },
+    {
+      "type": "heading",
+      "value": "Navigation"
+    },
+    {
+      "type": "list",
+      "value": "Press P for direct access or enter through the Compendium.\nDrag to pan and use the wheel to zoom.\nHover a node to read all modifiers and requirements.\nAvailable, drafted, unlocked, and unreachable nodes use distinct visual states."
+    },
+    {
+      "type": "note",
+      "style": "important",
+      "value": "Do not rely on a screenshot from another server. Passive Tree content is configurable and is synchronized from the server you joined."
+    },
+    {
+      "type": "heading",
+      "value": "Reading node bonuses"
+    },
+    {
+      "type": "text",
+      "value": "Node bonus descriptions are generated from the stats the node actually grants, including their values and units. Choice nodes list alternatives: choose one bonus, rather than gaining every listed option. Hold Show Details (Shift by default) to enter the tooltip and click a bonus for its explanation in the Compendium."
+    },
+    {
+      "type": "heading",
+      "value": "Related articles"
+    },
+    {
+      "type": "text",
+      "value": "[[article/classes|Choosing a Class]] | [[article/primary_attributes|Primary Attributes]] | [[article/keystones|Keystones and Build Trade-offs]]"
+    }
   ]
 }

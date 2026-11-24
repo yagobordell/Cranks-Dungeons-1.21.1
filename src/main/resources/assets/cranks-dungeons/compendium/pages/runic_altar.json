@@ -1,13 +1,65 @@
 {
   "title": "Using the Runic Altar",
   "content": [
-    { "type": "text", "value": "The Runic Altar is where consumable tomes modify eligible equipment. It has an equipment slot at the upper left, a tome slot below it, an activation button in the center, and a result slot on the right." },
-    { "type": "subheading", "value": "Crafting the Altar" },
-    { "type": "text", "value": "Craft it with one Book in the top-center crafting slot and two complete rows of Stone beneath it, for a total of one Book and six Stone." },
-    { "type": "heading", "value": "Applying a Tome" },
-    { "type": "list", "style": "numbered", "value": "Read the tome tooltip and confirm the item's current rarity. Different tomes require Normal, Magic, or Rare input.\nPlace one eligible equipment item in the upper-left slot.\nPlace the tome in the lower-left slot.\nPress the center altar button. If the operation is legal, the original item and one tome are consumed immediately and the modified copy appears in the result slot.\nTake the result from the right slot. Inspect its rarity, affix side, tier, and rolled value before performing another operation." },
-    { "type": "heading", "value": "Why No Result Appears" },
-    { "type": "list", "value": "The input rarity does not match that tome.\nThe required prefix or suffix side is full.\nThe item already has a rune from the same duplicate group.\nThe tome has no definition for that equipment type.\nNo rune at the tome's minimum rune level is compatible with the item.\nThe item is a Unique, animal armour, or a tool that cannot accept affixes.\nThe result slot is still occupied." },
-    { "type": "note", "style": "warning", "value": "A successful button press spends the inputs immediately. Taking the result only retrieves the already-created item. Alchemy, Chaos, Annulment, and a full-item Artificial craft can destroy or replace an existing rune, so read their chapters first." }
+    {
+      "type": "text",
+      "value": "Place one equipment item in the [[article/runic_altar|Runic Altar]]. Your hotbar, inventory, unlocked bags and stored altar tomes supply the carried tome list. The item stays in its equipment slot for repeated crafting."
+    },
+    {
+      "type": "heading",
+      "value": "Choose a tome"
+    },
+    {
+      "type": "list",
+      "value": "Transmutation: Normal to Magic with one rune. Augmentation: add a rune to Magic. Regal: Magic to Rare with one rune. Exalted: add a rune to Rare.\nAlchemy: reforge editable runes into up to two prefixes and two suffixes; also works on Rare equipment.\nChaos: replace a chosen rune with a weighted random rune on the same affix side.\nAnnulment: remove a chosen rune. Divine: reroll one chosen rune's numeric values.\nTargeted tomes: add the specified family, or select a rune to replace, on Magic or Rare gear. Magic becomes Rare.\nArtificial Tome: reserve a rune for the [[article/artificial_tome|Artificial Runic Altar]]. Select a rune to replace if the equipment is full."
+    },
+    {
+      "type": "heading",
+      "value": "Choose a rune"
+    },
+    {
+      "type": "text",
+      "value": "For a replacement, removal or value reroll, select the existing rune in the tome details. Scroll this list if necessary. Targeted and artificial tomes also offer Add to free slot when capacity allows. Protected runes cannot be selected."
+    },
+    {
+      "type": "heading",
+      "value": "Paid comparisons"
+    },
+    {
+      "type": "text",
+      "value": "Roll & compare spends one tome to generate exactly one proposal. Compare the current and proposed rune lists, then choose Keep current or Use new. Both choices consume the paid attempt. The proposal is saved on the equipment, including across closing the screen, moving the item or restarting the server. Resolve it before another rune craft. Browsing a tome or Possible Runes never generates a proposal."
+    },
+    {
+      "type": "heading",
+      "value": "Preserved equipment"
+    },
+    {
+      "type": "text",
+      "value": "Quality, enchantments, damage, names and unrelated data survive rune crafting. Protected signature runes survive reforging and cannot be replaced or rerolled. Existing fixed Unique items remain locked to tome crafting; their preset properties are unchanged. New and rerolled outcomes obey the equipment cap."
+    },
+    {
+      "type": "heading",
+      "value": "Capacity and possible runes"
+    },
+    {
+      "type": "text",
+      "value": "Magic equipment holds one prefix and one suffix; Rare holds three of each. An artificial marker reserves a slot. Possible Runes shows compatible families, sources, allowed tiers and value ranges using the same equipment caps as actual crafting. [[item/minecraft:bow|Bows]] and shields cap at T10, crossbows at T9, diamond at T8 and netherite at T7."
+    },
+    {
+      "type": "heading",
+      "value": "Altar storage"
+    },
+    {
+      "type": "text",
+      "value": "The altar retains its equipment and stored tomes when you close it. You can return to the same equipment for further crafting."
+    },
+    {
+      "type": "heading",
+      "value": "Related articles"
+    },
+    {
+      "type": "text",
+      "value": "[[article/tomes|Runic Tomes]] | [[article/targeted_tomes|Specialized Tomes]] | [[article/artificial_tome|Artificial Tome & Altar]]"
+    }
   ]
 }

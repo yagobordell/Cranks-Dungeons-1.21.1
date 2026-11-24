@@ -12,6 +12,7 @@ import com.cranks.dungeons.client.ShieldNumberSprites;
 import com.cranks.dungeons.client.party.PartyClientData;
 import com.cranks.dungeons.client.party.PartyHudRenderer;
 import com.cranks.dungeons.client.NotificationHudOverlay;
+import com.cranks.dungeons.client.PlayerLoadoutScreen;
 import com.cranks.dungeons.damage.DamageElement;
 import com.cranks.dungeons.network.PartyHealthPacket;
 import com.cranks.dungeons.network.PartyInvitePacket;
@@ -21,14 +22,11 @@ import com.cranks.dungeons.damage.DamageNumberManager;
 import com.cranks.dungeons.damage.DamageNumberRenderer;
 import com.cranks.dungeons.network.EnergyShieldSyncPacket;
 import com.cranks.dungeons.network.DamageNumberPayload;
-import com.cranks.dungeons.network.StatOptionsSyncPacket;
 import com.cranks.dungeons.network.ShockArcPayload;
 import com.cranks.dungeons.network.OpenNameTagScreenPayload;
-import com.cranks.dungeons.screen.ArtificialEnhancementAltarScreen;
-import com.cranks.dungeons.screen.ArtificialEnhancementAltarScreenHandler;
+import com.cranks.dungeons.network.CraftMaterialsResultPayload;
 import net.minecraft.client.MinecraftClient;
 import com.cranks.dungeons.screen.ModScreenHandlers;
-import com.cranks.dungeons.screen.RunicEnhancementAltarScreen;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -37,27 +35,11 @@ import net.minecraft.client.gui.screen.ingame.HandledScreens;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.screen.ScreenHandler;
 
 import java.util.UUID;
 
 public class CranksDungeonsClient implements ClientModInitializer {
-
-    static class DamageNumberFormatter {
-        public static String formatDamage(double damage) {
-            if (damage >= 1000) {
-                double k = damage / 1000.0;
-                if (Math.abs(k - Math.round(k)) < 0.05) {
-                    return Math.round(k) + "k";
-                }
-                return String.format(java.util.Locale.US, "%.1f", k).replace(".0", "") + "k";
-            }
-            if (Math.abs(damage - Math.round(damage)) < 0.05) {
-                return String.valueOf(Math.round(damage));
-            }
-            return String.format(java.util.Locale.US, "%.1f", damage).replace(".0", "");
-        }
-    }
 
     private static java.lang.reflect.Method cinematicActiveMethod = null;
     private static boolean cinematicMethodLookedUp = false;
@@ -80,19 +62,61 @@ public class CranksDungeonsClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
+        com.cranks.dungeons.client.render.MountChestRenderRegistration.register();
+        net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback.EVENT.register((stack, context, type, lines) -> {
+            if (!stack.contains(net.minecraft.component.DataComponentTypes.POTION_CONTENTS)) return;
+            if (stack.isOf(net.minecraft.item.Items.SPLASH_POTION) || stack.getItem() instanceof com.cranks.dungeons.alchemy.AlchemyItems.Brew brew
+                    && brew.delivery == com.cranks.dungeons.alchemy.AlchemyItems.Delivery.SPLASH) {
+                lines.add(net.minecraft.text.Text.translatable("potion.cranks-dungeons.splash_delivery")
+                        .formatted(net.minecraft.util.Formatting.GRAY));
+            } else if (stack.isOf(net.minecraft.item.Items.LINGERING_POTION) || stack.getItem() instanceof com.cranks.dungeons.alchemy.AlchemyItems.Brew brew
+                    && brew.delivery == com.cranks.dungeons.alchemy.AlchemyItems.Delivery.LINGERING) {
+                lines.add(net.minecraft.text.Text.translatable("potion.cranks-dungeons.cloud_delivery",
+                        com.cranks.dungeons.effect.PotionRules.CLOUD_DURATION / 20)
+                        .formatted(net.minecraft.util.Formatting.GRAY));
+            }
+            var client = MinecraftClient.getInstance();
+            int width = Math.max(80, Math.min(240, client.getWindow().getScaledWidth() - 24));
+            var wrapped = new java.util.ArrayList<net.minecraft.text.Text>();
+            for (var line : lines) {
+                for (var fragment : client.textRenderer.getTextHandler().wrapLines(line, width, net.minecraft.text.Style.EMPTY)) {
+                    var text = net.minecraft.text.Text.empty();
+                    fragment.visit((style, content) -> {
+                        text.append(net.minecraft.text.Text.literal(content).setStyle(style));
+                        return java.util.Optional.empty();
+                    }, net.minecraft.text.Style.EMPTY);
+                    wrapped.add(text);
+                }
+            }
+            lines.clear();
+            lines.addAll(wrapped);
+        });
         com.cranks.dungeons.client.HorseStaminaHudRenderer.register();
         com.cranks.dungeons.client.SpyglassMountScoutHudRenderer.register();
         com.cranks.dungeons.client.MountHealthHudRenderer.register();
         com.cranks.dungeons.client.HorseGallopInputHandler.register();
         net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents.DISCONNECT.register(
                 (handler, client) -> {
+                    com.cranks.dungeons.client.render.AilmentIconRenderer.clear();
+                    com.cranks.dungeons.client.CreativeCatalogPanel.clearSession();
+                    com.cranks.dungeons.client.TradeClient.clear();
+                    NotificationHudOverlay.clearNotifications();
                     com.cranks.dungeons.client.HorseGeneticsClientData.clear();
                     com.cranks.dungeons.client.MountClientData.clear();
                     com.cranks.dungeons.client.HorseGallopInputHandler.reset();
+                    com.cranks.dungeons.client.render.EntityStatBarRenderer.clearProjection();
+                    DamageNumberManager.clear();
+                    com.cranks.dungeons.client.RangedClient.reset();
+                    com.cranks.dungeons.client.guide.GuideInteraction.reset();
                 });
+        net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientEntityEvents.ENTITY_UNLOAD.register(
+                (entity, world) -> com.cranks.dungeons.client.render.AilmentIconRenderer.remove(entity.getId()));
         // Register default HUD component (stamina/energy overlay);
 
         ClientConfigCommand.register();
+        ClientTickEvents.END_CLIENT_TICK.register(com.cranks.dungeons.client.RangedClient::tick);
+        com.cranks.dungeons.client.RangedClient.registerTooltips();
+        com.cranks.dungeons.client.guide.GuideInteraction.register();
 
         net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap.INSTANCE.putBlocks(
             net.minecraft.client.render.RenderLayer.getCutout(),
@@ -105,34 +129,73 @@ public class CranksDungeonsClient implements ClientModInitializer {
             com.cranks.dungeons.client.render.entity.LevelUpVfxEntityRenderer::new
         );
 
-        HandledScreens.register(ModScreenHandlers.RUNIC_ENHANCEMENT_ALTAR, RunicEnhancementAltarScreen::new);
-        HandledScreens.register(ModScreenHandlers.ARTIFICIAL_ENHANCEMENT_ALTAR, ArtificialEnhancementAltarScreen::new);
-        HandledScreens.register(ModScreenHandlers.QUALITY_STATION_SCREEN_HANDLER, com.cranks.dungeons.client.screen.QualityStationScreen::new);
-        HandledScreens.register(ModScreenHandlers.MOUNT_CARGO, com.cranks.dungeons.client.screen.MountCargoScreen::new);
+        HandledScreens.<ScreenHandler, PlayerLoadoutScreen>register(ModScreenHandlers.RUNIC_ENHANCEMENT_ALTAR, PlayerLoadoutScreen::new);
+        HandledScreens.<ScreenHandler, PlayerLoadoutScreen>register(ModScreenHandlers.ARTIFICIAL_ENHANCEMENT_ALTAR, PlayerLoadoutScreen::new);
+        HandledScreens.<ScreenHandler, PlayerLoadoutScreen>register(
+                ModScreenHandlers.QUALITY_STATION_SCREEN_HANDLER, PlayerLoadoutScreen::new);
+        HandledScreens.<ScreenHandler, PlayerLoadoutScreen>register(ModScreenHandlers.LOADOUT_FLETCHING, PlayerLoadoutScreen::new);
+        HandledScreens.<ScreenHandler, PlayerLoadoutScreen>register(ModScreenHandlers.LOADOUT_TAILORING, PlayerLoadoutScreen::new);
+        HandledScreens.<ScreenHandler, PlayerLoadoutScreen>register(ModScreenHandlers.LOADOUT_CARTOGRAPHY, PlayerLoadoutScreen::new);
+        HandledScreens.<ScreenHandler,PlayerLoadoutScreen>register(ModScreenHandlers.MOUNT_CARGO,PlayerLoadoutScreen::new);
+        HandledScreens.<ScreenHandler, PlayerLoadoutScreen>register(
+                ModScreenHandlers.LOADOUT_CRAFTING_TABLE, PlayerLoadoutScreen::new);
+        HandledScreens.<ScreenHandler, PlayerLoadoutScreen>register(
+                ModScreenHandlers.LOADOUT_CUTTING_BENCH, PlayerLoadoutScreen::new);
+        HandledScreens.<ScreenHandler, PlayerLoadoutScreen>register(
+                ModScreenHandlers.LOADOUT_ANVIL, PlayerLoadoutScreen::new);
+        HandledScreens.<ScreenHandler, PlayerLoadoutScreen>register(
+                ModScreenHandlers.LOADOUT_GRINDSTONE, PlayerLoadoutScreen::new);
+        HandledScreens.<ScreenHandler, PlayerLoadoutScreen>register(
+                ModScreenHandlers.LOADOUT_ENCHANTING, PlayerLoadoutScreen::new);
+        HandledScreens.<ScreenHandler, PlayerLoadoutScreen>register(
+                ModScreenHandlers.LOADOUT_FURNACE, PlayerLoadoutScreen::new);
+        HandledScreens.<ScreenHandler, PlayerLoadoutScreen>register(
+                ModScreenHandlers.LOADOUT_BLAST_FURNACE, PlayerLoadoutScreen::new);
+        HandledScreens.<ScreenHandler, PlayerLoadoutScreen>register(
+                ModScreenHandlers.LOADOUT_SMOKER, PlayerLoadoutScreen::new);
+        HandledScreens.<ScreenHandler, PlayerLoadoutScreen>register(ModScreenHandlers.LOADOUT_ALCHEMY, PlayerLoadoutScreen::new);
+        for (var delivery : com.cranks.dungeons.alchemy.AlchemyItems.Delivery.values()) {
+            for (boolean lesser : new boolean[]{true, false}) {
+                net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry.ITEM.register((stack, tint) -> tint == 0
+                        ? stack.getOrDefault(net.minecraft.component.DataComponentTypes.POTION_CONTENTS, net.minecraft.component.type.PotionContentsComponent.DEFAULT).getColor() : -1,
+                        com.cranks.dungeons.alchemy.AlchemyItems.filled(lesser, delivery));
+            }
+        }
         ModKeybinds.register();
+        com.cranks.dungeons.client.MountWhistleClient.register();
+        HandledScreens.<ScreenHandler, PlayerLoadoutScreen>register(ModScreenHandlers.LOADOUT_STORAGE_3,PlayerLoadoutScreen::new);
+        HandledScreens.<ScreenHandler, PlayerLoadoutScreen>register(ModScreenHandlers.LOADOUT_STORAGE_6,PlayerLoadoutScreen::new);
+        HandledScreens.<ScreenHandler, PlayerLoadoutScreen>register(ModScreenHandlers.LOADOUT_SHULKER,PlayerLoadoutScreen::new);
+        HandledScreens.<ScreenHandler, PlayerLoadoutScreen>register(ModScreenHandlers.LOADOUT_HOPPER,PlayerLoadoutScreen::new);
+        HandledScreens.<ScreenHandler, PlayerLoadoutScreen>register(ModScreenHandlers.LOADOUT_CRAFTER,PlayerLoadoutScreen::new);
+        HandledScreens.<ScreenHandler, PlayerLoadoutScreen>register(ModScreenHandlers.LOADOUT_DISPENSER,PlayerLoadoutScreen::new);
+        com.cranks.dungeons.client.RecipeDiscoveryNotifications.register();
+        ClientTickEvents.END_CLIENT_TICK.register(client -> {
+            if (client.currentScreen != null || client.player == null || client.player.isSpectator()) return;
+            while (ModKeybinds.TENTH_HOTBAR.wasPressed()) {
+                client.player.getInventory().selectedSlot = com.cranks.dungeons.inventory.PlayerLoadout.EXTRA_HOTBAR;
+            }
+            while (ModKeybinds.SWAP_ARMOR.wasPressed()) {
+                client.interactionManager.clickButton(client.player.playerScreenHandler.syncId,
+                        com.cranks.dungeons.inventory.PlayerLoadout.SWAP_BUTTON);
+            }
+        });
         EnchantmentToggleHandler.register();
         com.cranks.dungeons.client.PassiveTreeKeybindHandler.register();
 
-        ClientPlayNetworking.registerGlobalReceiver(OpenNameTagScreenPayload.ID, (payload, context) ->
-                context.client().execute(() -> context.client().setScreen(
-                        new com.cranks.dungeons.client.screen.NameTagScreen(
-                                payload.entityId(), payload.currentName(), payload.offHand()))));
+        com.cranks.dungeons.client.NameTagClient.register();
+        ClientPlayNetworking.registerGlobalReceiver(CraftMaterialsResultPayload.ID, (payload, context) ->
+                context.client().execute(() -> {
+                    com.cranks.dungeons.client.CreativeHotbarPresets.receiveResult(payload);
+                    if (context.client().currentScreen instanceof PlayerLoadoutScreen screen) screen.receiveCraftingResult(payload);
+                }));
+        ClientPlayNetworking.registerGlobalReceiver(com.cranks.dungeons.network.TradeStatePayload.ID,(payload,context)->context.client().execute(()->com.cranks.dungeons.client.TradeClient.receive(payload)));
+        ClientPlayNetworking.registerGlobalReceiver(com.cranks.dungeons.network.CoinGainPayload.ID,(payload,context)->context.client().execute(()->NotificationHudOverlay.addCoinGain(payload.coins())));
 
         // Register built-in Compendium tabs
         registerCompendiumTabs();
         
-        ClientPlayNetworking.registerGlobalReceiver(StatOptionsSyncPacket.ID, (payload, context) -> {
-            context.client().execute(() -> {
-                if (context.client().player != null && context.client().player.currentScreenHandler instanceof ArtificialEnhancementAltarScreenHandler handler) {
-                    if (handler.syncId == payload.syncId()) {
-                        handler.setClientStatOptions(
-                                new String[]{payload.stat0(), payload.stat1(), payload.stat2()},
-                                new int[]{payload.tier0(), payload.tier1(), payload.tier2()}
-                        );
-                    }
-                }
-            });
-        });
+
         
         ClientShieldEffects.init();
         
@@ -178,78 +241,29 @@ public class CranksDungeonsClient implements ClientModInitializer {
                 boolean isReceived = payload.victimUuid() != null && payload.victimUuid().equals(myUuid);
                 boolean isOther = !isDealt && !isReceived;
 
-                Vec3d pos = new Vec3d(payload.x(), payload.y(), payload.z());
-
-                // Calculate hit offset from entity center
-                Vec3d hitOffset = Vec3d.ZERO;
-                if (payload.victimUuid() != null && context.client().world != null) {
-                    net.minecraft.entity.Entity entity = context.client().world.getEntityById(payload.victimEntityId());
-                    if (entity != null && !entity.getUuid().equals(payload.victimUuid())) entity = null;
-                    if (entity != null) {
-                        if (isDealt) {
-                            com.cranks.dungeons.client.render.EntityStatBarRenderer.onEntityAttacked(entity.getId());
-                        }
-                        // Blood splash effect on hit if they are bleeding
-                        if (entity instanceof LivingEntity living && !payload.entries().isEmpty() && !payload.entries().get(0).isHeal()) {
-                            com.cranks.dungeons.client.render.AilmentParticleManager.onEntityHit(living);
-                        }
-                        // Calculate offset from entity center to hit position
-                        Vec3d entityCenter = new Vec3d(entity.getX(), entity.getY() + entity.getHeight() / 2, entity.getZ());
-                        hitOffset = pos.subtract(entityCenter);
-                    }
-                }
-
-                boolean playedCritSound = false;
-
-                int count = payload.entries().size();
-                for (int i = 0; i < count; i++) {
-                    DamageNumberPayload.DamageEntry entry = payload.entries().get(i);
-                    DamageElement element = DamageElement.values()[Math.min(entry.elementId(), DamageElement.values().length - 1)];
-
-                    // Filter based on config
+                var kind = payload.kind();
+                if (!Double.isFinite(payload.x()) || !Double.isFinite(payload.y()) || !Double.isFinite(payload.z())) return;
+                var entries = new java.util.ArrayList<DamageNumberPayload.DamageEntry>();
+                for (var entry : payload.entries()) {
+                    if (!com.cranks.dungeons.damage.CombatNumberStyle.valid(entry.damage())
+                            || entry.elementId() < 0 || entry.elementId() >= DamageElement.values().length
+                            || entry.isHeal() != kind.healing()) continue;
                     if (entry.isHeal()) {
-                        if (isReceived && !config.showMyReceivedHealing()) continue;
-                        if (!isReceived && !config.showOtherPlayerHealing()) continue;
+                        if (isReceived ? !config.showMyReceivedHealing() : !config.showOtherPlayerHealing()) continue;
                     } else {
-                        if (isDealt && !config.showMyDealtDamage()) continue;
-                        if (isReceived && !config.showMyReceivedDamage()) continue;
-                        if (isOther && !config.showOtherPlayerDamage()) continue;
+                        if (isDealt && !config.showMyDealtDamage() || isReceived && !config.showMyReceivedDamage()
+                                || isOther && !config.showOtherPlayerDamage()) continue;
                     }
-
-                    // Play combat sound for this element ONLY if we dealt the damage AND it's a direct hit
-                    if (!entry.isHeal() && isDealt && payload.forceDisplay()) {
-                        if (entry.isCrit()) {
-                            if (!playedCritSound) {
-                                com.cranks.dungeons.client.CombatAudioHelper.playCombatSound(element, entry.damage(), true);
-                                playedCritSound = true;
-                            }
-                        } else {
-                            com.cranks.dungeons.client.CombatAudioHelper.playCombatSound(element, entry.damage(), false);
-                        }
-                    }
-
-                    String formattedDamageText = (entry.isHeal() ? "+" : "") + DamageNumberFormatter.formatDamage(entry.damage());
-                    int formattedDamageWidth = context.client().textRenderer.getWidth(formattedDamageText);
-                    DamageNumber damageNumber = new DamageNumber(
-                            entry.damage(),
-                            entry.color(),
-                            pos,
-                            0,
-                            0,
-                            0,
-                            formattedDamageText,
-                            formattedDamageWidth,
-                            payload.forceDisplay(),
-                            payload.victimEntityId(),
-                            payload.victimUuid(),
-                            hitOffset,
-                            element,
-                            entry.isCrit(),
-                            entry.isHeal(),
-                            System.currentTimeMillis()
-                    );
-                    DamageNumberManager.addDamageNumber(damageNumber);
+                    entries.add(entry);
                 }
+                if (entries.isEmpty()) return;
+                if (isDealt && !kind.healing()) {
+                    var entity = context.client().world == null ? null : context.client().world.getEntityById(payload.victimEntityId());
+                    if (entity != null && entity.getUuid().equals(payload.victimUuid()))
+                        com.cranks.dungeons.client.render.EntityStatBarRenderer.onEntityAttacked(entity.getId());
+                }
+                DamageNumberManager.addDamageNumber(new DamageNumber(payload, entries, isDealt || isReceived, DamageNumberManager.now()));
+
             });
         });
 
@@ -266,9 +280,12 @@ public class CranksDungeonsClient implements ClientModInitializer {
             com.cranks.dungeons.client.render.AilmentParticleManager.tick(client);
         });
 
+        net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents.START.register(
+                com.cranks.dungeons.client.render.EntityStatBarRenderer::captureProjection);
         HudRenderCallback.EVENT.register((context, tickCounter) -> {
+            com.cranks.dungeons.client.render.AilmentParticleManager.renderHud(context);
             com.cranks.dungeons.client.render.EntityStatBarRenderer.renderHud(context);
-            DamageNumberRenderer.renderHud(context, 0f);
+            DamageNumberRenderer.renderHud(context, tickCounter.getTickDelta(true));
         });
 
         net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents.LAST.register(context -> {
@@ -328,6 +345,8 @@ public class CranksDungeonsClient implements ClientModInitializer {
             });
         });
 
+        com.cranks.dungeons.client.MountTransferOfferScreen.register();
+
         ClientPlayNetworking.registerGlobalReceiver(ShockArcPayload.ID, (payload, context) -> {
             context.client().execute(() -> {
                 com.cranks.dungeons.client.render.LightningArcManager.addArc(payload.start(), payload.end(), payload.color());
@@ -336,7 +355,13 @@ public class CranksDungeonsClient implements ClientModInitializer {
 
         ClientPlayNetworking.registerGlobalReceiver(com.cranks.dungeons.network.SyncWorldTreePayload.ID, (payload, context) -> {
             context.client().execute(() -> {
-                com.cranks.dungeons.config.WorldTreeConfig.setNodes(payload.nodes());
+                if (!context.client().isIntegratedServerRunning()) {
+                    com.cranks.dungeons.config.WorldTreeConfig.setNodes(payload.nodes());
+                    com.cranks.dungeons.stat.passive.WorldNodeRegistry.loadFromConfig();
+                }
+                if (context.client().currentScreen instanceof com.cranks.dungeons.client.compendium.CompendiumScreen screen) {
+                    screen.refreshTab();
+                }
                 com.cranks.dungeons.CranksDungeons.LOGGER.info("[WorldTreeClient] Synced {} nodes from server.", payload.nodes().size());
             });
         });
@@ -345,6 +370,13 @@ public class CranksDungeonsClient implements ClientModInitializer {
             context.client().execute(() -> {
                 com.cranks.dungeons.client.render.AilmentIconRenderer.updateAilments(payload.entityId(), payload.ailments());
             });
+        });
+        ClientPlayNetworking.registerGlobalReceiver(com.cranks.dungeons.network.AilmentResistedPayload.ID, (payload, context) -> {
+            context.client().execute(() -> com.cranks.dungeons.client.render.AilmentIconRenderer.resisted(
+                    payload.entityId(), payload.entityUuid()));
+        });
+        ClientPlayNetworking.registerGlobalReceiver(com.cranks.dungeons.network.BleedVisualPayload.ID, (payload, context) -> {
+            context.client().execute(() -> com.cranks.dungeons.client.render.AilmentParticleManager.bleedEvent(payload));
         });
 
         ClientPlayNetworking.registerGlobalReceiver(com.cranks.dungeons.network.PlayerInfoSyncPacket.ID, (payload, context) -> {
@@ -377,8 +409,13 @@ public class CranksDungeonsClient implements ClientModInitializer {
 
         ClientPlayNetworking.registerGlobalReceiver(com.cranks.dungeons.network.SyncPassiveTreePayload.ID, (payload, context) -> {
             context.client().execute(() -> {
-                com.cranks.dungeons.config.PassiveTreeConfig.setNodesAndClasses(payload.nodes(), payload.classes());
-                com.cranks.dungeons.stat.passive.PassiveNodeRegistry.loadFromConfig();
+                if (!context.client().isIntegratedServerRunning()) {
+                    com.cranks.dungeons.config.PassiveTreeConfig.setNodesAndClasses(payload.nodes(), payload.classes());
+                    com.cranks.dungeons.stat.passive.PassiveNodeRegistry.loadFromConfig();
+                }
+                if (context.client().currentScreen instanceof com.cranks.dungeons.client.compendium.CompendiumScreen screen) {
+                    screen.refreshTab();
+                }
             });
         });
     }

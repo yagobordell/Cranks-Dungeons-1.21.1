@@ -122,7 +122,7 @@ public class EnergyShieldRegenMixin {
         boolean ghostReaver = self.getAttributeValue(ModAttributes.KEYSTONE_GHOST_REAVER) > 0;
         
         double fasterStartPercent = self.getAttributeValue(ModAttributes.FASTER_START_OF_ENERGY_SHIELD_RECHARGE);
-        int actualRegenDelayTicks = (int) (REGEN_DELAY_TICKS / (1.0 + fasterStartPercent));
+        int actualRegenDelayTicks = (int)Math.ceil(20*com.cranks.dungeons.stat.CombatStatRules.shieldRechargeDelay(fasterStartPercent));
 
         // Check if we should be regenerating
         if (!ghostReaver && timeSinceLastDamage >= actualRegenDelayTicks && currentShield < maxShield) {
@@ -140,7 +140,7 @@ public class EnergyShieldRegenMixin {
 
             // Regenerate shield
             double rechargeMultiplier = 1.0 + self.getAttributeValue(ModAttributes.ENERGY_SHIELD_RECHARGE_RATE_PERCENT);
-            float regenPerTick = (float) (maxShield * REGEN_PERCENT_PER_TICK * rechargeMultiplier);
+            float regenPerTick = (float) (maxShield * com.cranks.dungeons.stat.CombatStatRules.shieldRechargeFraction(rechargeMultiplier-1)/20);
             float newShield = Math.min(currentShield + regenPerTick, (float) maxShield);
 
             provider.cranksdungeons$setCurrentEnergyShield(newShield);

@@ -22,7 +22,11 @@
       {
         "id": "minecraft:enchantment.vision.armor_penetration",
         "attribute": "cranks-dungeons:flat_armor_penetration",
-        "amount": 90.0,
+        "amount": {
+          "type": "minecraft:linear",
+          "base": 90.0,
+          "per_level_above_first": 90.0
+        },
         "operation": "add_value"
       }
     ]

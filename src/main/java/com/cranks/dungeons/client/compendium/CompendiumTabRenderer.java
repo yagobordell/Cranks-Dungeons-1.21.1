@@ -33,6 +33,14 @@ public interface CompendiumTabRenderer {
      */
     void render(DrawContext context, int mouseX, int mouseY, float delta);
 
+    /** Render an overlay after the screen and its regular widgets. */
+    default void renderOverlay(DrawContext context, int mouseX, int mouseY, float delta) {}
+
+    /** Give an open overlay first refusal on keys used by the tree or screen. */
+    default boolean overlayKeyPressed(int keyCode) {
+        return false;
+    }
+
     /**
      * Handle mouse click events within the content area.
      * @return true if the event was consumed

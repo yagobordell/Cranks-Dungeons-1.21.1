@@ -27,25 +27,41 @@
       {
         "id": "minecraft:enchantment.iron.physical_damage_percent",
         "attribute": "cranks-dungeons:physical_damage_percent",
-        "amount": 0.16,
+        "amount": {
+          "type": "minecraft:linear",
+          "base": 0.16,
+          "per_level_above_first": 0.16
+        },
         "operation": "add_value"
       },
       {
         "id": "minecraft:enchantment.iron_armor.armor_percent",
         "attribute": "cranks-dungeons:armor_percent",
-        "amount": 0.16,
+        "amount": {
+          "type": "minecraft:linear",
+          "base": 0.16,
+          "per_level_above_first": 0.16
+        },
         "operation": "add_value"
       },
       {
         "id": "minecraft:enchantment.iron_armor.evasion_rating_percent",
         "attribute": "cranks-dungeons:evasion_rating_percent",
-        "amount": 0.16,
+        "amount": {
+          "type": "minecraft:linear",
+          "base": 0.16,
+          "per_level_above_first": 0.16
+        },
         "operation": "add_value"
       },
       {
         "id": "minecraft:enchantment.iron_armor.energy_shield_percent",
         "attribute": "cranks-dungeons:energy_shield_percent",
-        "amount": 0.16,
+        "amount": {
+          "type": "minecraft:linear",
+          "base": 0.16,
+          "per_level_above_first": 0.16
+        },
         "operation": "add_value"
       }
     ]

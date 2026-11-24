@@ -2,7 +2,8 @@ package com.cranks.dungeons.screen;
 
 import com.cranks.dungeons.block.entity.ArtificialEnhancementAltarBlockEntity;
 import com.cranks.dungeons.equipment.EquipmentType;
-import com.cranks.dungeons.equipment.ItemStatManager;
+import com.cranks.dungeons.inventory.PlayerLoadout;
+import com.cranks.dungeons.network.CraftMaterialsResultPayload;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
@@ -10,214 +11,48 @@ import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.screen.ArrayPropertyDelegate;
 import net.minecraft.screen.PropertyDelegate;
-import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
 
-import java.util.HashMap;
-import java.util.Map;
-
-public class ArtificialEnhancementAltarScreenHandler extends ScreenHandler {
-    private final Inventory inventory;
-    private final ArtificialEnhancementAltarBlockEntity blockEntity;
-    private final PropertyDelegate propertyDelegate;
-
-    private String[] clientStatIds = new String[]{"", "", ""};
-    private int[] clientTiers = new int[]{0, 0, 0};
-    private boolean clientOptionsReceived = false;
-
-    private final Map<Integer, Integer> sourceSlots = new HashMap<>();
-
-    private static final int PLAYER_INV_START = 1;
-    private static final int PLAYER_INV_END = 37;
-
-    // Client constructor
-    public ArtificialEnhancementAltarScreenHandler(int syncId, PlayerInventory playerInventory) {
-        this(syncId, playerInventory, new SimpleInventory(1), new ArrayPropertyDelegate(4));
-    }
-
-    // Server constructor
-    public ArtificialEnhancementAltarScreenHandler(int syncId, PlayerInventory playerInventory,
-                                                   ArtificialEnhancementAltarBlockEntity blockEntity,
-                                                   PropertyDelegate propertyDelegate) {
-        this(syncId, playerInventory, (Inventory) blockEntity, propertyDelegate);
-    }
-
-    private ArtificialEnhancementAltarScreenHandler(int syncId, PlayerInventory playerInventory,
-                                                    Inventory inventory, PropertyDelegate propertyDelegate) {
-        super(ModScreenHandlers.ARTIFICIAL_ENHANCEMENT_ALTAR, syncId);
-        this.inventory = inventory;
-        this.blockEntity = inventory instanceof ArtificialEnhancementAltarBlockEntity be ? be : null;
-        this.propertyDelegate = propertyDelegate;
-
-        checkSize(inventory, 1);
-        inventory.onOpen(playerInventory.player);
-        this.addProperties(propertyDelegate);
-
-        // Equipment slot - closer to top
-        this.addSlot(new Slot(inventory, ArtificialEnhancementAltarBlockEntity.EQUIPMENT_SLOT, 80, 15) {
-            @Override
-            public boolean canInsert(ItemStack stack) {
-                return EquipmentType.getTypeForItem(stack).isPresent();
-            }
+public final class ArtificialEnhancementAltarScreenHandler extends LoadoutStationHandler {
+    public static final int EQUIPMENT = PLAYER_SLOT_END, CONFIRM_REQUIRED = -3;
+    private final Inventory station;
+    private final PropertyDelegate revision;
+    public ArtificialEnhancementAltarScreenHandler(int id, PlayerInventory inventory) { this(id, inventory, new SimpleInventory(1)); }
+    public ArtificialEnhancementAltarScreenHandler(int id, PlayerInventory inventory, Inventory station) {
+        super(ModScreenHandlers.ARTIFICIAL_ENHANCEMENT_ALTAR, id, inventory);
+        checkSize(station, 1); this.station = station; station.onOpen(inventory.player);
+        addSlot(new Slot(station, 0, 0, 0) {
+            @Override public boolean canInsert(ItemStack stack) { return EquipmentType.getTypeForItem(stack).isPresent(); }
+            @Override public int getMaxItemCount() { return 1; }
         });
-
-// Player inventory
-        int inventoryX = 8;
-        for (int i = 0; i < 3; ++i) {
-            for (int j = 0; j < 9; ++j) {
-                this.addSlot(new Slot(playerInventory, j + i * 9 + 9, inventoryX + j * 18, 104 + i * 18));
-            }
-        }
-
-// Player hotbar
-        for (int i = 0; i < 9; ++i) {
-            this.addSlot(new Slot(playerInventory, i, inventoryX + i * 18, 162));
-        }
+        if (station instanceof ArtificialEnhancementAltarBlockEntity altar) altar.prepareOptions();
+        revision = station instanceof ArtificialEnhancementAltarBlockEntity altar ? new PropertyDelegate() {
+            @Override public int get(int index) { return index == 0 ? altar.revision() & 0xffff : altar.revision() >>> 16; }
+            @Override public void set(int index, int value) {}
+            @Override public int size() { return 2; }
+        } : new ArrayPropertyDelegate(2);
+        addProperties(revision);
     }
-
-    @Override
-    public boolean canUse(PlayerEntity player) {
-        return this.inventory.canPlayerUse(player);
+    public int revision() { return revision.get(0) & 0xffff | (revision.get(1) & 0xffff) << 16; }
+    public ItemStack equipment() { return station.getStack(0); }
+    @Override public boolean canUse(PlayerEntity player) { return station.canPlayerUse(player); }
+    @Override public void onClosed(PlayerEntity player) { super.onClosed(player); station.onClose(player); }
+    public int apply(PlayerEntity player, int expectedRevision, ItemStack expectedGear, int option, boolean confirmed) {
+        if (!(station instanceof ArtificialEnhancementAltarBlockEntity altar) || player.currentScreenHandler != this
+                || !player.isAlive() || player.isSpectator() || !canUse(player) || option < 0 || option > 2) return CraftMaterialsResultPayload.UNAVAILABLE;
+        if (revision() != expectedRevision || !ItemStack.areEqual(equipment(), expectedGear)) return CraftMaterialsResultPayload.INVENTORY_CHANGED;
+        if (!confirmed) return CONFIRM_REQUIRED;
+        if (!altar.selectOption(option)) return CraftMaterialsResultPayload.UNAVAILABLE;
+        sendContentUpdates(); return 1;
     }
-
-    public boolean isFor(ArtificialEnhancementAltarBlockEntity altar) {
-        return this.blockEntity == altar;
-    }
-
-    @Override
-    public ItemStack quickMove(PlayerEntity player, int slot) {
-        ItemStack newStack = ItemStack.EMPTY;
-        Slot clickedSlot = this.slots.get(slot);
-
-        if (clickedSlot.hasStack()) {
-            ItemStack clickedStack = clickedSlot.getStack();
-            newStack = clickedStack.copy();
-
-            if (slot == ArtificialEnhancementAltarBlockEntity.EQUIPMENT_SLOT) {
-                if (!tryReturnToSourceSlot(slot, clickedStack)) {
-                    if (!this.insertItem(clickedStack, PLAYER_INV_START, PLAYER_INV_END, true)) {
-                        return ItemStack.EMPTY;
-                    }
-                }
-                sourceSlots.remove(slot);
-            } else if (slot >= PLAYER_INV_START) {
-                if (EquipmentType.getTypeForItem(clickedStack).isPresent()) {
-                    if (!tryInsertAndTrack(clickedStack, ArtificialEnhancementAltarBlockEntity.EQUIPMENT_SLOT, slot)) {
-                        return ItemStack.EMPTY;
-                    }
-                } else {
-                    return ItemStack.EMPTY;
-                }
-            }
-
-            if (clickedStack.isEmpty()) {
-                clickedSlot.setStack(ItemStack.EMPTY);
-            } else {
-                clickedSlot.markDirty();
-            }
-
-            if (clickedStack.getCount() == newStack.getCount()) {
-                return ItemStack.EMPTY;
-            }
-
-            clickedSlot.onTakeItem(player, clickedStack);
-        }
-
-        return newStack;
-    }
-
-    private boolean tryInsertAndTrack(ItemStack stack, int altarSlot, int sourceSlot) {
-        if (!this.insertItem(stack, altarSlot, altarSlot + 1, false)) {
-            return false;
-        }
-        sourceSlots.put(altarSlot, sourceSlot);
-        return true;
-    }
-
-    private boolean tryReturnToSourceSlot(int altarSlot, ItemStack stack) {
-        Integer sourceSlot = sourceSlots.get(altarSlot);
-        if (sourceSlot == null) return false;
-        if (sourceSlot < PLAYER_INV_START || sourceSlot >= PLAYER_INV_END) return false;
-
-        Slot target = this.slots.get(sourceSlot);
-        if (target.hasStack()) {
-            return false;
-        }
-
-        if (!target.canInsert(stack)) {
-            return false;
-        }
-
-        target.setStack(stack.copy());
-        stack.setCount(0);
-        return true;
-    }
-
-    @Override
-    public void onClosed(PlayerEntity player) {
-        super.onClosed(player);
-        this.inventory.onClose(player);
-        sourceSlots.clear();
-    }
-
-    private void returnToPlayerInventory(PlayerEntity player, ItemStack stack, int altarSlot) {
-        Integer sourceSlot = sourceSlots.get(altarSlot);
-        if (sourceSlot != null && sourceSlot >= PLAYER_INV_START && sourceSlot < PLAYER_INV_END) {
-            Slot target = this.slots.get(sourceSlot);
-            if (!target.hasStack()) {
-                target.setStack(stack.copy());
-                stack.setCount(0);
-                return;
-            }
-        }
-
-        if (!player.getInventory().insertStack(stack)) {
-            player.dropItem(stack, false);
-        }
-    }
-
-    @Override
-    public boolean onButtonClick(PlayerEntity player, int id) {
-        if (id >= 0 && id <= 2 && blockEntity != null) {
-            return blockEntity.selectOption(id);
-        }
-        return false;
-    }
-
-    // === Client-side sync methods ===
-
-    public void setClientStatOptions(String[] statIds, int[] tiers) {
-        this.clientStatIds = statIds;
-        this.clientTiers = tiers;
-        this.clientOptionsReceived = !statIds[0].isEmpty() || !statIds[1].isEmpty() || !statIds[2].isEmpty();
-    }
-
-    public boolean hasClientOptions() {
-        return clientOptionsReceived;
-    }
-
-    public void clearClientOptions() {
-        clientStatIds = new String[]{"", "", ""};
-        clientTiers = new int[]{0, 0, 0};
-        clientOptionsReceived = false;
-    }
-
-    public String getClientStatId(int index) {
-        if (index < 0 || index >= 3) return "";
-        return clientStatIds[index];
-    }
-
-    public int getClientTier(int index) {
-        if (index < 0 || index >= 3) return 0;
-        return clientTiers[index];
-    }
-
-    public boolean areOptionsGenerated() {
-        return propertyDelegate.get(0) == 1;
-    }
-
-    public int getTierOption(int index) {
-        if (index < 0 || index >= 3) return 0;
-        return propertyDelegate.get(index + 1);
+    @Override public ItemStack quickMove(PlayerEntity player, int index) {
+        if (index < 5 || index > EQUIPMENT) return ItemStack.EMPTY;
+        var slot = getSlot(index); if (!slot.hasStack() || !slot.canTakeItems(player)) return ItemStack.EMPTY;
+        var stack = slot.getStack(); var original = stack.copy();
+        if (index == EQUIPMENT) { PlayerLoadout.of(player.getInventory()).insert(stack); if (stack.getCount() == original.getCount()) return ItemStack.EMPTY; }
+        else if (EquipmentType.getTypeForItem(stack).isPresent()) { if (!insertItem(stack, EQUIPMENT, EQUIPMENT + 1, false)) return ItemStack.EMPTY; }
+        else return super.quickMove(player, index);
+        if (stack.isEmpty()) slot.setStack(ItemStack.EMPTY); else slot.markDirty();
+        slot.onTakeItem(player, stack); return original;
     }
 }

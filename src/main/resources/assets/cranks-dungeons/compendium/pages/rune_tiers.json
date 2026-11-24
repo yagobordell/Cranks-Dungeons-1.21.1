@@ -1,16 +1,81 @@
 {
-  "title": "Rune Tiers, Levels & Weights",
+  "title": "Rune Tiers and Roll Chances",
   "content": [
-    { "type": "heading", "value": "Tier Direction" },
-    { "type": "text", "value": "T1 is the strongest tier and T10 is the weakest. A value is rolled uniformly between that tier's displayed minimum and maximum. Flat values are rounded to a whole number; percentages retain three decimal places internally." },
-    { "type": "heading", "value": "Material Tier Floor" },
-    { "type": "list", "value": "Wood, stone, and leather bases: random T10 only.\nIron, chainmail, gold, shields, and any item name containing bow: random T9–T10. This means bows and crossbows match the bow rule regardless of material name.\nDiamond: random T8–T10.\nNetherite: random T7–T10.\nOther supported bases: random T1–T10." },
-    { "type": "note", "style": "important", "value": "A targeted tome directly adds its specified tier and bypasses the material's normal random tier floor. This is how a guaranteed T4 or T1–T3 rune can appear on a base whose random rolls are limited to worse tiers." },
-    { "type": "heading", "value": "Rune Level" },
-    { "type": "text", "value": "Rune level is an affix-pool gate, not the player's level and not the material tier. Ordinary tomes accept definitions marked level 1 or higher. Greater random tomes restrict selection to definitions marked level 30 or higher; Perfect random tomes restrict it to level 60 or higher." },
-    { "type": "heading", "value": "Selection Weight" },
-    { "type": "text", "value": "Base weight controls how often one rune family is considered relative to another. Each allowed tier then multiplies that weight by the tier curve below. The altar selects from all compatible stat-and-tier combinations." },
-    { "type": "list", "value": "T10: 40% of base weight. T9: 65%. T8: 85%. T7: 100%. T6: 85%.\nT5: 65%. T4: 45%. T3: 25%. T2: 10%. T1: 2%." },
-    { "type": "text", "value": "Because the curve peaks at T7, the best eligible tier is not automatically the most common. T1 is intentionally extremely rare when it is allowed. Definitions with base weight 0 are reserved for targeted or fixed behavior and are excluded from ordinary random selection and from the random-rune catalogs. The Artificial Altar also excludes weight-0 definitions." }
+    {
+      "type": "heading",
+      "value": "Reading tiers"
+    },
+    {
+      "type": "text",
+      "value": "T1 is strongest; T10 is weakest. A material cap is the strongest rune that base can obtain. Random crafting, specialized tomes, artificial choices and dropped equipment all respect that cap."
+    },
+    {
+      "type": "heading",
+      "value": "Current equipment caps"
+    },
+    {
+      "type": "text",
+      "value": "T10: Wood, [[item/minecraft:stone|Stone]], [[item/minecraft:leather|Leather]], [[item/minecraft:shield|Shields]] and [[item/minecraft:bow|Bows]]. T9: Iron, Chainmail, Gold and [[item/minecraft:crossbow|Crossbows]]. T8: [[item/minecraft:diamond|Diamond]]. T7: Netherite."
+    },
+    {
+      "type": "text",
+      "value": "A [[item/minecraft:diamond|Diamond]] base can obtain T8, T9 or T10. It cannot obtain T1–T7. A [[item/minecraft:bow|Bow]] or [[item/minecraft:shield|Shield]] remains T10 even with an expensive tome. Choose the base before investing in its runes."
+    },
+    {
+      "type": "heading",
+      "value": "Ordinary, Greater and Perfect random tomes"
+    },
+    {
+      "type": "text",
+      "value": "Ordinary tomes allow every tier from the base cap down to T10. Greater variants remove T10 when possible. Perfect variants remove T9 and T10 when possible. The stronger variants improve the available tier selection; they do not add more affix slots or bypass the material cap."
+    },
+    {
+      "type": "heading",
+      "value": "Diamond example"
+    },
+    {
+      "type": "text",
+      "value": "With an ordinary random tome: about 44.7% T8, 34.2% T9 and 21.1% T10 after a compatible family has been selected."
+    },
+    {
+      "type": "text",
+      "value": "With a Greater random tome: about 56.7% T8 and 43.3% T9. With a Perfect random tome: T8 is the only eligible tier."
+    },
+    {
+      "type": "text",
+      "value": "These are tier chances, not the chance to obtain a particular rune family. Existing runes, equipment compatibility and the tome operation still affect which families can be selected."
+    },
+    {
+      "type": "heading",
+      "value": "Specialized and artificial results"
+    },
+    {
+      "type": "text",
+      "value": "A specialized tome guarantees its named family at the equipment's material tier. Artificial choices use the best three eligible tiers, or fewer if the base supports fewer. Neither route bypasses the equipment cap."
+    },
+    {
+      "type": "heading",
+      "value": "A good tier is not always a good roll"
+    },
+    {
+      "type": "text",
+      "value": "Values vary inside a tier. Hold Show Details to compare the rolled number with that tier's range. A Divine Tome can improve the selected rune's values without changing its family. It spends the attempt even if the paid comparison leads you to keep the old result."
+    },
+    {
+      "type": "heading",
+      "value": "Choosing what to spend"
+    },
+    {
+      "type": "text",
+      "value": "On a T10-only base, a stronger random tome cannot improve the tier. On a [[item/minecraft:diamond|Diamond]] base, a Perfect variant guarantees the best tier that base allows, but still does not guarantee the family you want. Specialized tomes solve family uncertainty; Divine solves value uncertainty."
+    },
+    {
+      "type": "heading",
+      "value": "Related articles"
+    },
+    {
+      "type": "text",
+      "value": "[[article/equipment|Equipment Bases]] | [[article/targeted_tomes|Specialized Tomes]] | [[article/tomes|Runic Tomes]]"
+    }
   ]
 }

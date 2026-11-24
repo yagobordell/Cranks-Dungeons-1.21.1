@@ -33,7 +33,7 @@ public class BreakingRangeMixin {
         }
 
         if (rangeBonus != 0.0) {
-            cir.setReturnValue(baseRange + rangeBonus);
+            cir.setReturnValue(baseRange + com.cranks.dungeons.gathering.GatheringRules.bounded(rangeBonus,2));
         }
     }
 }

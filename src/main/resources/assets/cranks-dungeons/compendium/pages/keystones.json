@@ -1,8 +1,73 @@
 {
-  "title": "Keystones",
+  "title": "Keystones and Build Trade-offs",
   "content": [
-    { "type": "text", "value": "Keystones are build-changing passive flags. Their configured node tooltip should always be read before allocation. The combat engine currently recognizes the following effects." },
-    { "type": "list", "value": "Void Inoculation: incoming void damage is set to zero.\nAvatar of Fire: converts half of final physical, cold, and lightning damage into fire, then removes non-fire outgoing damage, including void.\nResolute Technique: attacks bypass the target's evasion and raised-shield block; the wielder's exact configured trade-off is shown on its node.\nElemental Overload: a critical activates its timed elemental effect for 8 seconds.\nCrimson Pact: disables maximum and current Energy Shield.\nIron Reflexes: adds evasion rating to armour for physical mitigation and prevents evading.\nZealot's Oath: life regeneration restores Energy Shield instead of health.\nGhost Reaver: disables normal Energy Shield recharge; use the node tooltip for its leech interaction.\nVaal Pact: disables life regeneration; use the node tooltip for its leech interaction.\nPoint Blank: modifies projectile damage according to travel distance." },
-    { "type": "note", "style": "warning", "value": "A keystone's drawback can disable an entire defensive or recovery layer. Confirm the node tooltip and your alternate recovery plan before applying it." }
+    {
+      "type": "text",
+      "value": "Keystones exchange ordinary rules for stronger specialisation. Read both the benefit and the drawback before spending a point. A keystone can make a previously valuable resource or recovery source stop helping."
+    },
+    {
+      "type": "heading",
+      "value": "Void Inoculation"
+    },
+    {
+      "type": "text",
+      "value": "[[stat/cranks-dungeons:keystone_void_inoculation|Void Inoculation]] sets maximum Health to 1 and prevents Void damage. It takes precedence over other maximum-Health bonuses. Build around Energy [[stat/cranks-dungeons:energy_shield|Shield]] and remember which remaining damage can bypass it."
+    },
+    {
+      "type": "heading",
+      "value": "Crimson Pact"
+    },
+    {
+      "type": "text",
+      "value": "[[stat/cranks-dungeons:keystone_crimson_pact|Crimson Pact]] turns Energy [[stat/cranks-dungeons:energy_shield|Shield]] into additional maximum Health at twice its value, but disables [[stat/cranks-dungeons:energy_shield|Shield]] absorption and [[stat/cranks-dungeons:energy_shield|Shield]] recovery. It is incompatible with Void Inoculation; that keystone takes precedence."
+    },
+    {
+      "type": "heading",
+      "value": "Iron Reflexes"
+    },
+    {
+      "type": "text",
+      "value": "[[stat/cranks-dungeons:keystone_iron_reflexes|Iron Reflexes]] converts Evasion Rating into Armour and prevents evading. It can support a reliable physical-mitigation plan, but gives up the chance to avoid a connected hit entirely."
+    },
+    {
+      "type": "heading",
+      "value": "Recovery conversions"
+    },
+    {
+      "type": "text",
+      "value": "[[stat/cranks-dungeons:keystone_zealots_oath|Zealot's Oath]] sends Health regeneration to Energy [[stat/cranks-dungeons:energy_shield|Shield]] instead of Health."
+    },
+    {
+      "type": "text",
+      "value": "[[stat/cranks-dungeons:keystone_ghost_reaver|Ghost Reaver]] sends life leech to Energy [[stat/cranks-dungeons:energy_shield|Shield]] and disables ordinary [[stat/cranks-dungeons:energy_shield|Shield]] recharge."
+    },
+    {
+      "type": "text",
+      "value": "[[stat/cranks-dungeons:keystone_vaal_pact|Vaal Pact]] makes life leech immediate within its replenishing budget, disables Health regeneration and halves on-kill recovery. Keep a recovery answer for periods when you cannot deal damage."
+    },
+    {
+      "type": "heading",
+      "value": "Accuracy and critical trade-offs"
+    },
+    {
+      "type": "text",
+      "value": "[[stat/cranks-dungeons:keystone_resolute_technique|Resolute Technique]] prevents eligible attacks from being evaded but prevents your critical strikes. [[stat/cranks-dungeons:keystone_elemental_overload|Elemental Overload]] rewards recent critical hits with its elemental effect while removing extra critical-hit damage. Do not invest in Critical Multiplier for hits that cannot use it."
+    },
+    {
+      "type": "heading",
+      "value": "Damage specialisation"
+    },
+    {
+      "type": "text",
+      "value": "[[stat/cranks-dungeons:keystone_avatar_of_fire|Avatar of Fire]] converts part of outgoing Physical, Cold and Lightning damage to Fire and removes remaining non-Fire output. [[stat/cranks-dungeons:keystone_point_blank|Point Blank]] rewards close projectile hits and penalises distant ones. Your damage type and fighting distance must match the chosen keystone."
+    },
+    {
+      "type": "heading",
+      "value": "Related articles"
+    },
+    {
+      "type": "text",
+      "value": "[[article/damage|Damage & Criticals]] | [[article/defences|Defences]] | [[article/recovery|Recovery & Mana]]"
+    }
   ]
 }

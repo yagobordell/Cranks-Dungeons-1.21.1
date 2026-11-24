@@ -1,13 +1,39 @@
 {
   "title": "Introduction",
   "content": [
-    { "type": "text", "value": "Cranks Dungeons rebuilds Minecraft around action-RPG character progression. Your level, class, passive routes, equipment bases, rune affixes, enchantment slots, elemental damage, ailments, recovery, parties, gathering progression, and horse bloodlines all matter." },
-    { "type": "heading", "value": "The Two Progression Trees" },
-    { "type": "list", "value": "Passive Skill Tree: powered by combat levels. It defines your combat build and grants primary attributes, damage, defences, recovery, and build-changing keystones.\nWorld Tree: powered by gathering XP and non-combat vanilla XP. It is a separate network intended for gathering and world utility." },
-    { "type": "heading", "value": "The Equipment Loop" },
-    { "type": "list", "style": "numbered", "value": "Find or craft a useful equipment base.\nMeet its Strength, Dexterity, and Intelligence requirements.\nFor eligible non-Unique equipment, use runic tomes at a Runic Altar to change rarity and add, replace, remove, or reroll affixes.\nUse targeted tomes when you need a guaranteed family of stats.\nRaise base quality and add enchantment slots at the Quality Station.\nCompare the final character totals in the inventory stats panel." },
-    { "type": "note", "style": "important", "value": "Runes, enchantments, quality, rarity, and material tier are different systems. A high-rarity item can still have poor rune tiers, and a low material base can restrict the best random tier it can roll." },
-    { "type": "heading", "value": "Configurable Content" },
-    { "type": "text", "value": "Classes and both tree layouts are supplied by the server. A modpack or server owner can change node names, routes, bonuses, icons, and class starting values. This guide explains the rules enforced by the mod and identifies the built-in class setup currently shipped with it." }
+    {
+      "type": "text",
+      "value": "Cranks Dungeons rebuilds Minecraft around action-RPG character progression. Your level, class, passive routes, equipment bases, rune affixes, enchantment slots, elemental damage, ailments, recovery, parties, gathering progression, and horse bloodlines all matter."
+    },
+    {
+      "type": "heading",
+      "value": "The Two Progression Trees"
+    },
+    {
+      "type": "list",
+      "value": "Passive Skill Tree: powered by combat levels. It defines your combat build and grants primary attributes, damage, defences, recovery, and build-changing keystones.\nWorld Tree: powered by personal discoveries and exploration. It is a separate network intended for gathering and world utility."
+    },
+    {
+      "type": "heading",
+      "value": "The Equipment Loop"
+    },
+    {
+      "type": "list",
+      "style": "numbered",
+      "value": "Find or craft a useful equipment base.\nMeet its [[stat/cranks-dungeons:strength|Strength]], [[stat/cranks-dungeons:dexterity|Dexterity]], and [[stat/cranks-dungeons:intelligence|Intelligence]] requirements.\nFor eligible non-Unique equipment, use runic tomes at a [[article/runic_altar|Runic Altar]] to change rarity and add, replace, remove, or reroll affixes.\nUse targeted tomes when you need a guaranteed family of stats.\nRaise base quality and add enchantment slots at the [[article/quality|Upgrade Bench]].\nCompare the final character totals in the inventory stats panel."
+    },
+    {
+      "type": "note",
+      "style": "important",
+      "value": "Runes, enchantments, quality, rarity, and material tier are different systems. A high-rarity item can still have poor rune tiers, and a low material base can restrict the best random tier it can roll."
+    },
+    {
+      "type": "heading",
+      "value": "Related articles"
+    },
+    {
+      "type": "text",
+      "value": "[[article/first_steps|First Steps]] | [[article/equipment|Equipment Bases]] | [[article/stats|Reading Your Stats]]"
+    }
   ]
 }

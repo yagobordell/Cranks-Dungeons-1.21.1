@@ -15,7 +15,8 @@ public record DamageNumberPayload(
         boolean forceDisplay,
         UUID attackerUuid,
         int victimEntityId,
-        UUID victimUuid
+        UUID victimUuid,
+        com.cranks.dungeons.damage.CombatNumberKind kind
 ) implements CustomPayload {
 
     private static final int MAX_ENTRIES = 16;
@@ -33,6 +34,7 @@ public record DamageNumberPayload(
         buf.writeDouble(y);
         buf.writeDouble(z);
         buf.writeBoolean(forceDisplay);
+        buf.writeEnumConstant(kind);
         
         buf.writeBoolean(attackerUuid != null);
         if (attackerUuid != null) buf.writeUuid(attackerUuid);
@@ -59,6 +61,7 @@ public record DamageNumberPayload(
         double y = buf.readDouble();
         double z = buf.readDouble();
         boolean forceDisplay = buf.readBoolean();
+        var kind = buf.readEnumConstant(com.cranks.dungeons.damage.CombatNumberKind.class);
         
         UUID attackerUuid = buf.readBoolean() ? buf.readUuid() : null;
         int victimEntityId = buf.readVarInt();
@@ -72,7 +75,7 @@ public record DamageNumberPayload(
         for (int i = 0; i < count; i++) {
             entries.add(new DamageEntry(buf.readDouble(), buf.readInt(), buf.readBoolean(), buf.readByte(), buf.readBoolean()));
         }
-        return new DamageNumberPayload(x, y, z, entries, forceDisplay, attackerUuid, victimEntityId, victimUuid);
+        return new DamageNumberPayload(x, y, z, entries, forceDisplay, attackerUuid, victimEntityId, victimUuid, kind);
     }
 
     @Override

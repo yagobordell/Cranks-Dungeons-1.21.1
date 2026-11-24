@@ -62,15 +62,15 @@ public class ModNetworking {
 
     private static String validateNodeChoice(com.cranks.dungeons.stat.passive.PassiveNode node,
                                              String rawChoice, boolean worldTree) {
-        String choice = rawChoice == null ? "" : rawChoice.trim().toLowerCase(java.util.Locale.ROOT);
-        int namespaceSeparator = choice.indexOf(':');
-        if (namespaceSeparator >= 0) choice = choice.substring(namespaceSeparator + 1);
+        String choice = com.cranks.dungeons.stat.passive.TreeAttributeRules.normalizeChoice(rawChoice);
+        if (choice == null) return null;
         if (choice.isEmpty()) return "";
         if (!node.isAttributeSelection()) return null;
         final String normalizedChoice = choice;
 
         if (!worldTree) {
-            return com.cranks.dungeons.stat.passive.PassiveStatHelper.WHITELISTED_PASSIVE_ATTRIBUTES.contains(normalizedChoice)
+            return Double.isFinite(node.attributeSelectionAmount())
+                    && com.cranks.dungeons.stat.passive.PassiveStatHelper.WHITELISTED_PASSIVE_ATTRIBUTES.contains(normalizedChoice)
                     && java.util.Set.of("strength", "dexterity", "intelligence").contains(normalizedChoice)
                     ? normalizedChoice : null;
         }
@@ -79,10 +79,12 @@ public class ModNetworking {
                 || node.modifiers() == null) {
             return null;
         }
-        boolean offeredByNode = node.modifiers().keySet().stream()
-                .anyMatch(attribute -> attribute.getKey()
-                        .map(key -> key.getValue().getPath().equals(normalizedChoice))
-                        .orElse(false));
+        boolean offeredByNode = node.modifiers().entrySet().stream()
+                .anyMatch(entry -> entry.getValue() != null && Double.isFinite(entry.getValue())
+                        && entry.getKey().getKey().map(key ->
+                            com.cranks.dungeons.stat.passive.TreeAttributeRules.supported(key.getValue().getNamespace(),
+                                key.getValue().getPath(),com.cranks.dungeons.stat.passive.PassiveStatHelper.WHITELISTED_WORLD_ATTRIBUTES)
+                            && key.getValue().getPath().equals(normalizedChoice)).orElse(false));
         return offeredByNode ? normalizedChoice : null;
     }
 
@@ -97,29 +99,34 @@ public class ModNetworking {
     }
 
     private static java.util.Set<String> getNodeNeighbors(String nodeId, boolean worldTree) {
-        java.util.Map<String, com.cranks.dungeons.stat.passive.PassiveNode> nodes = worldTree
-                ? com.cranks.dungeons.stat.passive.WorldNodeRegistry.getNodes()
-                : com.cranks.dungeons.stat.passive.PassiveNodeRegistry.getNodes();
-        var node = nodes.get(nodeId);
-        if (node == null) return java.util.Set.of();
-
-        java.util.Set<String> neighbors = new java.util.HashSet<>();
-        for (String connection : node.connections()) {
-            if (connection != null) {
-                String id = connection.trim();
-                if (nodes.containsKey(id)) neighbors.add(id);
-            }
-        }
-        for (var entry : nodes.entrySet()) {
-            if (entry.getValue().connections().stream()
-                    .anyMatch(connection -> connection != null && connection.trim().equals(nodeId))) {
-                neighbors.add(entry.getKey());
-            }
-        }
-        return neighbors;
+        return worldTree ? com.cranks.dungeons.stat.passive.WorldNodeRegistry.getNeighbors(nodeId)
+                : com.cranks.dungeons.stat.passive.PassiveNodeRegistry.getNeighbors(nodeId);
     }
 
+    private static net.minecraft.entity.LivingEntity activeMount(net.minecraft.server.network.ServerPlayerEntity player) {
+        if (!player.currentScreenHandler.canUse(player)) return null;
+        if (player.currentScreenHandler instanceof com.cranks.dungeons.screen.MountCargoScreenHandler cargo) return cargo.mount();
+        if (player.currentScreenHandler instanceof com.cranks.dungeons.mount.HorseScreenHandlerMountAccess horse) return horse.cranks$getMountEntity();
+        return null;
+    }
     public static void registerPayloads() {
+        PayloadTypeRegistry.playC2S().register(RangedFirePayload.ID, RangedFirePayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(TradeActionPayload.ID,TradeActionPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(TradeStatePayload.ID,TradeStatePayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(CoinGainPayload.ID,CoinGainPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(CreativeHotbarPayload.ID,CreativeHotbarPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(CreativeCatalogPayload.ID,CreativeCatalogPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(ProgramCrafterPayload.ID,ProgramCrafterPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(StorageSortPayload.ID,StorageSortPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(ArtificialAltarPayload.ID, ArtificialAltarPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(RunicAltarPayload.ID, RunicAltarPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(AlchemyPayload.ID, AlchemyPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(CraftMaterialsPayload.ID, CraftMaterialsPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(SalvageGearPayload.ID, SalvageGearPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(RepairGearPayload.ID, RepairGearPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(EnchantGearPayload.ID, EnchantGearPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(UpgradeStationPayload.ID, UpgradeStationPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(CraftMaterialsResultPayload.ID, CraftMaterialsResultPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(
                 ToggleEnchantmentDisablePayload.ID,
                 ToggleEnchantmentDisablePayload.CODEC
@@ -134,6 +141,8 @@ public class ModNetworking {
         PayloadTypeRegistry.playS2C().register(DamageNumberPayload.ID, DamageNumberPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(ShockArcPayload.ID, ShockArcPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(AilmentSyncPayload.ID, AilmentSyncPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(AilmentResistedPayload.ID, AilmentResistedPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(BleedVisualPayload.ID, BleedVisualPayload.CODEC);
         
         // Party packets
         PayloadTypeRegistry.playS2C().register(PartySyncPacket.ID, PartySyncPacket.CODEC);
@@ -151,6 +160,10 @@ public class ModNetworking {
         PayloadTypeRegistry.playC2S().register(SetMountSpecializationPayload.ID, SetMountSpecializationPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(SetMountAccessPayload.ID, SetMountAccessPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(ReleaseMountPayload.ID, ReleaseMountPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(MountTransferPayload.ID,MountTransferPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(MountWhistlePayload.ID,MountWhistlePayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(MountWhistleListPayload.ID,MountWhistleListPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(MountTransferOfferPayload.ID,MountTransferOfferPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(OpenNameTagScreenPayload.ID, OpenNameTagScreenPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(ApplyNameTagPayload.ID, ApplyNameTagPayload.CODEC);
         
@@ -161,67 +174,38 @@ public class ModNetworking {
     }
 
     private static boolean isNodeUnlockable(com.cranks.dungeons.component.PassiveDataComponent data, String nodeId) {
-        if (nodeId == null) return false;
-        String id = nodeId.trim();
-        var node = com.cranks.dungeons.stat.passive.PassiveNodeRegistry.getNode(id);
-        if (node == null) return false;
-
-        // 1. Check if ANY node I connect to is already unlocked
-        for (String connId : node.connections()) {
-            // Verify node existence before checking status
-            if (com.cranks.dungeons.stat.passive.PassiveNodeRegistry.getNodes().containsKey(connId)) {
-                if (data.hasNode(connId)) return true;
-            }
-        }
-
-        // 2. Check if ANY already unlocked node connects TO me
-        for (var entry : com.cranks.dungeons.stat.passive.PassiveNodeRegistry.getNodes().entrySet()) {
-            if (data.hasNode(entry.getKey())) {
-                boolean linksToMe = false;
-                for (String c : entry.getValue().connections()) {
-                    if (c != null && c.trim().equals(id)) {
-                        linksToMe = true;
-                        break;
-                    }
-                }
-                if (linksToMe) return true;
-            }
-        }
-
-        return false;
+        return getNodeNeighbors(nodeId, false).stream().anyMatch(data::hasNode);
     }
 
     private static boolean isWorldNodeUnlockable(com.cranks.dungeons.component.WorldTreeDataComponent data, String nodeId) {
-        if (nodeId == null) return false;
-        String id = nodeId.trim();
-        var node = com.cranks.dungeons.stat.passive.WorldNodeRegistry.getNode(id);
-        if (node == null) return false;
-        
-        // A fresh tree must always begin at the canonical root.
-        if (data.getUnlockedNodes().isEmpty()) return "world_start".equals(id);
-
-        for (String connId : node.connections()) {
-            if (com.cranks.dungeons.stat.passive.WorldNodeRegistry.getNodes().containsKey(connId)) {
-                if (data.hasNode(connId)) return true;
-            }
-        }
-
-        for (var entry : com.cranks.dungeons.stat.passive.WorldNodeRegistry.getNodes().entrySet()) {
-            if (data.hasNode(entry.getKey())) {
-                boolean linksToMe = false;
-                for (String c : entry.getValue().connections()) {
-                    if (c != null && c.trim().equals(id)) {
-                        linksToMe = true;
-                        break;
-                    }
-                }
-                if (linksToMe) return true;
-            }
-        }
-        return false;
+        if (data.getUnlockedNodes().isEmpty()) return "world_start".equals(nodeId);
+        return getNodeNeighbors(nodeId, true).stream().anyMatch(data::hasNode);
     }
 
     public static void registerServerReceivers() {
+        ServerPlayNetworking.registerGlobalReceiver(RangedFirePayload.ID, (payload, context) -> context.server().execute(() -> payload.handle(context.player())));
+        ServerPlayNetworking.registerGlobalReceiver(TradeActionPayload.ID,(payload,context)->context.server().execute(()->payload.handle(context.player())));
+        ServerPlayNetworking.registerGlobalReceiver(CreativeHotbarPayload.ID,(payload,context)->context.server().execute(()->payload.handle(context.player())));
+        ServerPlayNetworking.registerGlobalReceiver(CreativeCatalogPayload.ID,(payload,context)->context.server().execute(()->payload.handle(context.player())));
+        com.cranks.dungeons.mount.MountWhistleNetworking.register();
+        ServerPlayNetworking.registerGlobalReceiver(StorageSortPayload.ID,(payload,context)->context.server().execute(()->payload.handle(context.player())));
+        ServerPlayNetworking.registerGlobalReceiver(ProgramCrafterPayload.ID,(payload,context)->context.server().execute(()->payload.handle(context.player())));
+        ServerPlayNetworking.registerGlobalReceiver(ArtificialAltarPayload.ID, (payload, context) ->
+                context.server().execute(() -> payload.handle(context.player())));
+        ServerPlayNetworking.registerGlobalReceiver(RunicAltarPayload.ID, (payload, context) ->
+                context.server().execute(() -> payload.handle(context.player())));
+        ServerPlayNetworking.registerGlobalReceiver(AlchemyPayload.ID, (payload, context) ->
+                context.server().execute(() -> payload.handle(context.player())));
+        ServerPlayNetworking.registerGlobalReceiver(CraftMaterialsPayload.ID, (payload, context) ->
+                context.server().execute(() -> payload.handle(context.player())));
+        ServerPlayNetworking.registerGlobalReceiver(SalvageGearPayload.ID, (payload, context) ->
+                context.server().execute(() -> payload.handle(context.player())));
+        ServerPlayNetworking.registerGlobalReceiver(RepairGearPayload.ID, (payload, context) ->
+                context.server().execute(() -> payload.handle(context.player())));
+        ServerPlayNetworking.registerGlobalReceiver(EnchantGearPayload.ID, (payload, context) ->
+                context.server().execute(() -> payload.handle(context.player())));
+        ServerPlayNetworking.registerGlobalReceiver(UpgradeStationPayload.ID, (payload, context) ->
+                context.server().execute(() -> payload.handle(context.player())));
         ServerPlayNetworking.registerGlobalReceiver(ApplyNameTagPayload.ID, (payload, context) ->
                 context.server().execute(() ->
                         com.cranks.dungeons.name.NameTagManager.applyName(context.player(), payload)));
@@ -253,7 +237,8 @@ public class ModNetworking {
         ServerPlayNetworking.registerGlobalReceiver(SetHorseBreedingFocusPayload.ID, (payload, context) ->
                 context.server().execute(() -> {
                     var player = context.player();
-                    if (!(player.currentScreenHandler instanceof net.minecraft.screen.HorseScreenHandler)) return;
+                    var selectedMount = activeMount(player);
+                    if (selectedMount == null || selectedMount.getId() != payload.entityId()) return;
                     net.minecraft.entity.Entity entity = player.getEntityWorld().getEntityById(payload.entityId());
                     if (entity instanceof net.minecraft.entity.passive.HorseEntity horse) {
                         com.cranks.dungeons.horse.HorseBreedingManager.setBreedingFocus(
@@ -265,7 +250,8 @@ public class ModNetworking {
         ServerPlayNetworking.registerGlobalReceiver(SetMountSpecializationPayload.ID, (payload, context) ->
                 context.server().execute(() -> {
                     var player = context.player();
-                    if (!(player.currentScreenHandler instanceof net.minecraft.screen.HorseScreenHandler)) return;
+                    var selectedMount = activeMount(player);
+                    if (selectedMount == null || selectedMount.getId() != payload.entityId()) return;
                     net.minecraft.entity.Entity entity = player.getEntityWorld().getEntityById(payload.entityId());
                     if (entity instanceof net.minecraft.entity.mob.SkeletonHorseEntity skeleton) {
                         com.cranks.dungeons.mount.MountManager.chooseSkeletonSpecialization(
@@ -289,8 +275,10 @@ public class ModNetworking {
                             || !com.cranks.dungeons.mount.MountManager.canManageAccess(player, mount)) {
                         return;
                     }
-                    com.cranks.dungeons.mount.MountManager.setAccessMode(player, mount,
+                    if(payload.breeding())com.cranks.dungeons.mount.MountManager.setBreedingAccess(player,mount,
                             com.cranks.dungeons.mount.MountAccessMode.fromId(payload.accessMode()));
+                    else com.cranks.dungeons.mount.MountManager.setAccessMode(player, mount,
+                            com.cranks.dungeons.mount.MountAccessMode.fromId(payload.accessMode()), payload.storage());
                 }));
 
         ServerPlayNetworking.registerGlobalReceiver(ReleaseMountPayload.ID, (payload, context) ->
@@ -313,6 +301,15 @@ public class ModNetworking {
                                 + mount.getName().getString() + "."), true);
                     }
                 }));
+
+        ServerPlayNetworking.registerGlobalReceiver(MountTransferPayload.ID,(payload,context)->context.server().execute(()->{
+            var player=context.player();
+            if(payload.action()==MountTransferPayload.OFFER){
+                var mount=activeMount(player);var target=context.server().getPlayerManager().getPlayer(payload.target());
+                if(mount!=null&&mount.getId()==payload.entityId()&&player.canInteractWithEntity(mount,4))
+                    com.cranks.dungeons.mount.MountTransfers.offer(player,mount,target);
+            }else com.cranks.dungeons.mount.MountTransfers.reply(player,payload);
+        }));
 
         ServerPlayNetworking.registerGlobalReceiver(
                 ToggleEnchantmentDisablePayload.ID,

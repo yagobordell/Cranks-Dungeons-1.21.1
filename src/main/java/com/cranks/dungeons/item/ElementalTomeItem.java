@@ -99,7 +99,7 @@ public class ElementalTomeItem extends AbstractTomeItem {
                 if (element == Element.PHYSICAL) {
                     return typeStr + "_armor";
                 }
-                return typeStr + "_" + elementStr + "_resistance";
+                return null;
             }
             return null;
         } else {
@@ -123,36 +123,10 @@ public class ElementalTomeItem extends AbstractTomeItem {
     }
 
     @Override
-    protected void addTomeDescription(Consumer<net.minecraft.text.Text> textConsumer) {
-        if (element == Element.VOID && tier == Tier.GREATER) {
-            textConsumer.accept(net.minecraft.text.Text.literal("Upgrades a magic item to a rare item,").formatted(net.minecraft.util.Formatting.GRAY));
-            textConsumer.accept(net.minecraft.text.Text.literal("adding a guaranteed Void rune to armor").formatted(net.minecraft.util.Formatting.GRAY));
-        } else {
-            super.addTomeDescription(textConsumer);
-        }
-    }
-
-    @Override
     public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
-
         addTomeDescription(tooltip::add);
-
-        if (tier != Tier.NORMAL) {
-            // Greater/Perfect tomes show weapon stats (if applicable)
-            addStatRange(tooltip::add, EquipmentType.SWORD, "1H Weapons");
-            addStatRange(tooltip::add, EquipmentType.SPEAR, "2H Weapons");
-            // Only Void Greater/Perfect tomes show armor stats
-            if (element == Element.VOID) {
-                addStatRange(tooltip::add, EquipmentType.CHESTPLATE, "Armor");
-            }
-        } else {
-            addStatRange(tooltip::add, EquipmentType.SWORD, "1H Weapons");
-            addStatRange(tooltip::add, EquipmentType.SPEAR, "2H Weapons");
-            if (element != Element.PHYSICAL) {
-                addStatRange(tooltip::add, EquipmentType.CHESTPLATE, "Armor");
-            }
-        }
-
+        for(var summary:summaries())tooltip.add(Text.literal(summary.label()+": ").formatted(Formatting.GRAY)
+                .append(Text.literal(summary.stat().getDisplayName()).formatted(Formatting.WHITE)));
         super.appendTooltip(stack, context, tooltip, type);
     }
 }

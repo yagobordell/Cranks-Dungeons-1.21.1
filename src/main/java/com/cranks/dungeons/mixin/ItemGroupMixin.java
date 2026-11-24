@@ -11,9 +11,18 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.Collection;
 import java.util.Set;
+import com.cranks.dungeons.inventory.SupportedContent;
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 
 @Mixin(ItemGroup.class)
 public class ItemGroupMixin {
+    @WrapMethod(method = "updateEntries")
+    private void buildEntriesBeforeFiltering(ItemGroup.DisplayContext context, Operation<Void> original) {
+        SupportedContent.beginCreativeEntries();
+        try { original.call(context); }
+        finally { SupportedContent.endCreativeEntries(); }
+    }
 
     @Shadow private Collection<ItemStack> displayStacks;
     @Shadow private Set<ItemStack> searchTabStacks;
@@ -21,10 +30,10 @@ public class ItemGroupMixin {
     @Inject(method = "updateEntries", at = @At("RETURN"))
     private void filterCreativeEntries(ItemGroup.DisplayContext displayContext, CallbackInfo ci) {
         if (this.displayStacks != null) {
-            this.displayStacks.removeIf(CranksDungeons::shouldRemoveFromCreative);
+            this.displayStacks.removeIf(stack -> !SupportedContent.isSupported(stack) || CranksDungeons.shouldRemoveFromCreative(stack));
         }
         if (this.searchTabStacks != null) {
-            this.searchTabStacks.removeIf(CranksDungeons::shouldRemoveFromCreative);
+            this.searchTabStacks.removeIf(stack -> !SupportedContent.isSupported(stack) || CranksDungeons.shouldRemoveFromCreative(stack));
         }
     }
 }

@@ -1,0 +1,41 @@
+{
+  "title": "Coins and Your Wallet",
+  "content": [
+    {
+      "type": "text",
+      "value": "Coins are kept in your wallet rather than occupying item slots. The wallet panel beside your equipped bags shows the balance, and coins remain with you on death."
+    },
+    {
+      "type": "heading",
+      "value": "Earning coins"
+    },
+    {
+      "type": "text",
+      "value": "Fight eligible hostile creatures through active player combat. Coin eligibility follows combat XP rules: ordinary passive animals, unattended kills and spawner creatures are not a repeatable coin source. Generated treasure can also award coins when opened; player-placed storage does not create fresh treasure rewards."
+    },
+    {
+      "type": "heading",
+      "value": "Party rewards"
+    },
+    {
+      "type": "text",
+      "value": "Eligible participants share a fixed coin reward total. A larger party does not multiply the amount of money dropped by one creature, even though combat XP has its own party bonus."
+    },
+    {
+      "type": "heading",
+      "value": "Trading"
+    },
+    {
+      "type": "text",
+      "value": "Click the wallet to find a nearby player to trade with. Both players must be close, visible to one another and in the same dimension. The [[article/trading|trade interface]] exchanges items and coins without dropping them on the ground."
+    },
+    {
+      "type": "heading",
+      "value": "Related articles"
+    },
+    {
+      "type": "text",
+      "value": "[[article/trading|Player Trading]] | [[article/parties|Parties]] | [[article/loot|Hunting and Treasure]]"
+    }
+  ]
+}

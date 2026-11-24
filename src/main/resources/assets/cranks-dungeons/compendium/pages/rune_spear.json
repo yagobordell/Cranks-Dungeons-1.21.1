@@ -1,4 +1,0 @@
-{ "title": "Spear Runes", "content": [
-  { "type": "text", "value": "Spears count as two-handed weapons. The catalog below lists only affixes available from ordinary random Runic Tomes; targeted-only Extra Damage modifiers are explained under Targeted Tomes." },
-  { "type": "stat_catalog", "value": "SPEAR" }
-] }

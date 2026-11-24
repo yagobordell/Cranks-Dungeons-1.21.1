@@ -4,10 +4,14 @@ import com.cranks.dungeons.item.ModItems;
 import net.fabricmc.fabric.api.loot.v3.LootTableEvents;
 import net.minecraft.entity.EntityType;
 import net.minecraft.item.Item;
-import net.minecraft.item.Items;
 import net.minecraft.loot.LootPool;
 import net.minecraft.loot.LootTable;
 import net.minecraft.loot.entry.ItemEntry;
+import net.minecraft.loot.entry.EmptyEntry;
+import net.minecraft.loot.condition.DamageSourcePropertiesLootCondition;
+import net.minecraft.loot.condition.LootCondition;
+import net.minecraft.predicate.entity.DamageSourcePredicate;
+import net.minecraft.predicate.entity.EntityPredicate;
 import net.minecraft.loot.function.SetCountLootFunction;
 import net.minecraft.loot.provider.number.ConstantLootNumberProvider;
 import net.minecraft.loot.provider.number.UniformLootNumberProvider;
@@ -101,22 +105,24 @@ public class RunicTomeLootHandler {
                 if (entityType == null) return;
 
                 Integer mobTier = MOB_TIERS.get(entityType);
-                if (mobTier == null) mobTier = 1;
-
-                // 1. Primary Runic Tome Pool
-                addTomeDrops(tableBuilder, mobTier);
+                if (mobTier != null) {
+                    addTomeDrops(tableBuilder, mobTier);
+                    addThematicTomeDrops(tableBuilder, entityType);
+                }
+                int materialTier = entityType == EntityType.IRON_GOLEM ? 3 : mobTier != null ? mobTier : 1;
 
                 // 2. Quality Materials Pool (Scraps & Whetstones)
-                addQualityMaterialDrops(tableBuilder, mobTier, entityType);
+                addQualityMaterialDrops(tableBuilder, materialTier, entityType);
 
                 // 3. Deepslate Sigil Pool
-                addDeepslateSigilDrops(tableBuilder, mobTier, entityType);
-
-                // 4. Thematic Elemental & Utility Tomes Pool (Super Rare)
-                addThematicTomeDrops(tableBuilder, entityType);
+                addDeepslateSigilDrops(tableBuilder, materialTier, entityType);
             }
             // Handle chest loot tables
             else if (path.startsWith("chests/")) {
+                if (lootId.equals(Identifier.ofVanilla("chests/abandoned_mineshaft"))) {
+                    tableBuilder.pool(LootPool.builder().rolls(ConstantLootNumberProvider.create(1))
+                            .with(ItemEntry.builder(ModItems.TOME_OF_TRANSMUTATION)));
+                }
                 if (TIER_3_CHESTS.contains(lootId)) {
                     addChestTomeDrops(tableBuilder, 3);
                 } else if (TIER_2_CHESTS.contains(lootId)) {
@@ -158,7 +164,6 @@ public class RunicTomeLootHandler {
         registerTier2(EntityType.GUARDIAN);
         registerTier2(EntityType.PHANTOM);
         registerTier2(EntityType.ZOMBIFIED_PIGLIN);
-        registerTier2(EntityType.POLAR_BEAR);
 
         // TIER 3 MOBS (Elite leaders, mini-bosses & apex threats)
         registerTier3(EntityType.RAVAGER);
@@ -168,7 +173,6 @@ public class RunicTomeLootHandler {
         registerTier3(EntityType.SHULKER);
         registerTier3(EntityType.WARDEN);
         registerTier3(EntityType.ELDER_GUARDIAN);
-        registerTier3(EntityType.IRON_GOLEM);
     }
 
     private static void registerTier1(EntityType<?> entityType) {
@@ -186,9 +190,15 @@ public class RunicTomeLootHandler {
     /**
      * PRIMARY RUNIC TOME POOL
      */
+    private static LootCondition.Builder playerCombatKill() {
+        return DamageSourcePropertiesLootCondition.builder(DamageSourcePredicate.Builder.create()
+                .sourceEntity(EntityPredicate.Builder.create().type(EntityType.PLAYER)));
+    }
+
     private static void addTomeDrops(LootTable.Builder tableBuilder, int mobTier) {
         LootPool.Builder poolBuilder = LootPool.builder()
-                .rolls(ConstantLootNumberProvider.create(1));
+                .rolls(ConstantLootNumberProvider.create(1))
+                .conditionally(playerCombatKill());
 
         switch (mobTier) {
             case 1 -> addTier1TomeDrops(poolBuilder);
@@ -224,7 +234,7 @@ public class RunicTomeLootHandler {
                 // 9. Artificial (Mythic)
                 .with(ItemEntry.builder(ModItems.ARTIFICIAL_TOME).weight(10).quality(8))
                 // No Drop (Remaining ~87.5%)
-                .with(ItemEntry.builder(Items.AIR).weight(79300).quality(0));
+                .with(EmptyEntry.builder().weight(79300).quality(0));
     }
 
     /**
@@ -245,7 +255,7 @@ public class RunicTomeLootHandler {
                 .with(ItemEntry.builder(ModItems.GREATER_TOME_OF_TRANSMUTATION).weight(200).quality(3))
                 .with(ItemEntry.builder(ModItems.GREATER_TOME_OF_AUGMENTATION).weight(150).quality(4))
                 // No Drop (80%)
-                .with(ItemEntry.builder(Items.AIR).weight(46500).quality(0));
+                .with(EmptyEntry.builder().weight(46500).quality(0));
     }
 
     /**
@@ -266,7 +276,7 @@ public class RunicTomeLootHandler {
                 .with(ItemEntry.builder(ModItems.GREATER_EXALTED_TOME).weight(500).quality(5))
                 .with(ItemEntry.builder(ModItems.GREATER_TOME_OF_CHAOS).weight(400).quality(5))
                 // No Drop (65%)
-                .with(ItemEntry.builder(Items.AIR).weight(23900).quality(0));
+                .with(EmptyEntry.builder().weight(23900).quality(0));
     }
 
     /**
@@ -307,7 +317,7 @@ public class RunicTomeLootHandler {
         poolBuilder
                 .with(ItemEntry.builder(ModItems.ARMOURERS_SCRAP).weight(scrapWeight).quality(2))
                 .with(ItemEntry.builder(ModItems.BLACKSMITHS_WHETSTONE).weight(whetstoneWeight).quality(2))
-                .with(ItemEntry.builder(Items.AIR).weight(Math.max(1000, airWeight)).quality(0));
+                .with(EmptyEntry.builder().weight(Math.max(1000, airWeight)).quality(0));
 
         tableBuilder.pool(poolBuilder);
     }
@@ -333,7 +343,7 @@ public class RunicTomeLootHandler {
 
         poolBuilder
                 .with(ItemEntry.builder(ModItems.DEEPSLATE_SIGIL).weight(sigilWeight).quality(3))
-                .with(ItemEntry.builder(Items.AIR).weight(airWeight).quality(0));
+                .with(EmptyEntry.builder().weight(airWeight).quality(0));
 
         tableBuilder.pool(poolBuilder);
     }
@@ -342,7 +352,9 @@ public class RunicTomeLootHandler {
      * THEMATIC ELEMENTAL & UTILITY TOMES POOL (SUPER RARE - ~0.8% base, ~0.1% greater)
      * These grant high-tier rune properties so they are strictly gatekept.
      */
-    private static void addThematicTomeDrops(LootTable.Builder tableBuilder, EntityType<?> entityType) {
+    public record ThematicTomes(Item regular, Item greater) {}
+    public static int guideMobTier(EntityType<?> type) { return MOB_TIERS.getOrDefault(type,0); }
+    public static ThematicTomes thematicTomes(EntityType<?> entityType) {
         Item specificTome = null;
         Item greaterTome = null;
 
@@ -384,19 +396,24 @@ public class RunicTomeLootHandler {
             specificTome = ModItems.TOME_OF_HEALTH_BONUS;
         }
 
-        if (specificTome == null) return;
+        return new ThematicTomes(specificTome,greaterTome);
+    }
 
+    private static void addThematicTomeDrops(LootTable.Builder tableBuilder, EntityType<?> entityType) {
+        var theme=thematicTomes(entityType);Item specificTome=theme.regular(),greaterTome=theme.greater();
+        if (specificTome == null) return;
         LootPool.Builder poolBuilder = LootPool.builder()
-                .rolls(ConstantLootNumberProvider.create(1));
+                .rolls(ConstantLootNumberProvider.create(1))
+                .conditionally(playerCombatKill());
 
         // 80 weight = 0.8% drop chance (Super Rare)
         poolBuilder.with(ItemEntry.builder(specificTome).weight(80).quality(5));
         if (greaterTome != null) {
             // 10 weight = 0.1% drop chance (Ultra Rare)
             poolBuilder.with(ItemEntry.builder(greaterTome).weight(10).quality(7));
-            poolBuilder.with(ItemEntry.builder(Items.AIR).weight(9910).quality(0));
+            poolBuilder.with(EmptyEntry.builder().weight(9910).quality(0));
         } else {
-            poolBuilder.with(ItemEntry.builder(Items.AIR).weight(9920).quality(0));
+            poolBuilder.with(EmptyEntry.builder().weight(9920).quality(0));
         }
 
         tableBuilder.pool(poolBuilder);
@@ -430,7 +447,7 @@ public class RunicTomeLootHandler {
                 .with(ItemEntry.builder(ModItems.ARMOURERS_SCRAP).weight(500).quality(1).apply(SetCountLootFunction.builder(UniformLootNumberProvider.create(1, 3))))
                 .with(ItemEntry.builder(ModItems.BLACKSMITHS_WHETSTONE).weight(500).quality(1).apply(SetCountLootFunction.builder(UniformLootNumberProvider.create(1, 3))))
                 .with(ItemEntry.builder(ModItems.DEEPSLATE_SIGIL).weight(100).quality(3))
-                .with(ItemEntry.builder(Items.AIR).weight(6200).quality(0));
+                .with(EmptyEntry.builder().weight(6200).quality(0));
     }
 
     /**
@@ -448,7 +465,7 @@ public class RunicTomeLootHandler {
                 .with(ItemEntry.builder(ModItems.ARMOURERS_SCRAP).weight(800).quality(2).apply(SetCountLootFunction.builder(UniformLootNumberProvider.create(2, 4))))
                 .with(ItemEntry.builder(ModItems.BLACKSMITHS_WHETSTONE).weight(800).quality(2).apply(SetCountLootFunction.builder(UniformLootNumberProvider.create(2, 4))))
                 .with(ItemEntry.builder(ModItems.DEEPSLATE_SIGIL).weight(300).quality(3))
-                .with(ItemEntry.builder(Items.AIR).weight(4350).quality(0));
+                .with(EmptyEntry.builder().weight(4350).quality(0));
     }
 
     /**
@@ -466,7 +483,7 @@ public class RunicTomeLootHandler {
                 .with(ItemEntry.builder(ModItems.ARMOURERS_SCRAP).weight(1000).quality(3).apply(SetCountLootFunction.builder(UniformLootNumberProvider.create(3, 6))))
                 .with(ItemEntry.builder(ModItems.BLACKSMITHS_WHETSTONE).weight(1000).quality(3).apply(SetCountLootFunction.builder(UniformLootNumberProvider.create(3, 6))))
                 .with(ItemEntry.builder(ModItems.DEEPSLATE_SIGIL).weight(600).quality(4).apply(SetCountLootFunction.builder(UniformLootNumberProvider.create(1, 2))))
-                .with(ItemEntry.builder(Items.AIR).weight(2150).quality(0));
+                .with(EmptyEntry.builder().weight(2150).quality(0));
     }
 
     private static EntityType<?> getEntityTypeFromLootTable(RegistryKey<LootTable> key) {
@@ -477,9 +494,9 @@ public class RunicTomeLootHandler {
         }
 
         String entityName = path.substring("entities/".length());
-        Identifier entityId = Identifier.of("minecraft", entityName);
+        Identifier entityId = Identifier.of(key.getValue().getNamespace(), entityName);
 
-        return net.minecraft.registry.Registries.ENTITY_TYPE.get(entityId);
+        return net.minecraft.registry.Registries.ENTITY_TYPE.getOrEmpty(entityId).orElse(null);
     }
 
     public static void registerCustomMob(EntityType<?> entityType, int tier) {

@@ -1,14 +1,50 @@
 {
   "title": "Recovery & Mana",
   "content": [
-    { "type": "subheading", "value": "Life Regeneration" },
-    { "type": "text", "value": "Life regeneration is calculated per second as flat regeneration + maximum health x percent regeneration. It is applied continuously in twentieths each tick. Regeneration Rate While Moving multiplies it while horizontal movement is detected. Natural hunger regeneration is disabled." },
-    { "type": "subheading", "value": "Life Leech" },
-    { "type": "text", "value": "Physical Damage Leeched as Life takes a portion of final physical hit damage and scales it by increased life leech. A single hit cannot create more than 10% of maximum health as leech. Leech is then recovered over time by the leech manager." },
-    { "type": "subheading", "value": "Mana" },
-    { "type": "text", "value": "Intelligence grants +2 maximum mana per point and each character level grants +4. Mana regeneration restores maximum mana x Mana Regeneration Percent per second, multiplied by Mana Regeneration Rate, Mana Recovery Rate, and movement recovery where applicable." },
-    { "type": "subheading", "value": "Mana Leech and On Kill" },
-    { "type": "text", "value": "Physical Damage Leeched as Mana is immediate, scales with increased mana leech and Mana Recovery Rate, and is capped to 10% of maximum mana per hit. Health on Kill, percent health on kill, and Mana on Kill trigger when the build receives kill credit." },
-    { "type": "note", "style": "warning", "value": "Vaal Pact disables life regeneration. Zealot's Oath sends life regeneration to Energy Shield. Ghost Reaver disables normal Energy Shield recharge. These keystones require a deliberate alternate recovery plan." }
+    {
+      "type": "subheading",
+      "value": "Life Regeneration"
+    },
+    {
+      "type": "text",
+      "value": "Health recovered per second = (flat regeneration + maximum Health × percentage regeneration) × (1 + Regeneration While Moving ÷ 100), with the movement multiplier active only while moving. Percentage regeneration contributes at most 5% of maximum Health per second; total regeneration is capped at 10%. Hunger does not directly regenerate Health."
+    },
+    {
+      "type": "subheading",
+      "value": "Life Leech"
+    },
+    {
+      "type": "text",
+      "value": "Physical Damage Leeched as Life recovers a portion of Physical damage actually dealt over time. Increased Life Leech raises the amount. Each hit contributes at most 10% of maximum Health, the waiting pool holds at most 20%, and recovery is limited to 10% per second. More leech amount does not raise those limits."
+    },
+    {
+      "type": "subheading",
+      "value": "Mana"
+    },
+    {
+      "type": "text",
+      "value": "[[stat/cranks-dungeons:intelligence|Intelligence]] grants +2 maximum Mana per point. Mana recovered per second = (flat regeneration + maximum Mana × percentage regeneration) × (1 + Regeneration Rate ÷ 100) × (1 + Recovery Rate ÷ 100). Regeneration Rate improves regeneration; Recovery Rate also improves eligible leech and on-kill gains."
+    },
+    {
+      "type": "subheading",
+      "value": "Mana Leech and On Kill"
+    },
+    {
+      "type": "text",
+      "value": "Physical Damage Leeched as Mana recovers Mana over time, not instantly. Increased Mana Leech and Mana Recovery Rate improve its amount; normal leech pool and recovery limits still apply. Health on Kill and Mana on Kill grant immediate recovery when you receive kill credit. Animals count for these on-kill effects."
+    },
+    {
+      "type": "note",
+      "style": "warning",
+      "value": "Vaal Pact disables life regeneration. Zealot's Oath sends life regeneration to [[stat/cranks-dungeons:energy_shield|Energy Shield]]. Ghost Reaver disables normal [[stat/cranks-dungeons:energy_shield|Energy Shield]] recharge. These keystones require a deliberate alternate recovery plan."
+    },
+    {
+      "type": "heading",
+      "value": "Related articles"
+    },
+    {
+      "type": "text",
+      "value": "[[article/defences|Defences]] | [[article/food_effects|Food, Potions and Active Effects]] | [[article/keystones|Keystones and Build Trade-offs]]"
+    }
   ]
 }

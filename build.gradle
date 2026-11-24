@@ -55,7 +55,7 @@ dependencies {
 	modImplementation "org.ladysnake.cardinal-components-api:cardinal-components-base:${project.cardinal_components_version}"
 	modImplementation "org.ladysnake.cardinal-components-api:cardinal-components-entity:${project.cardinal_components_version}"
 	
-	modCompileOnly files("libs/punchy.jar")
+	modCompileOnly files("libs/punchy-3.2b.jar")
 }
 
 processResources {

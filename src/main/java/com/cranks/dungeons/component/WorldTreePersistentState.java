@@ -120,6 +120,10 @@ public class WorldTreePersistentState extends PersistentState {
                 data.unspentPoints = Math.max(0, entry.getInt("unspentPoints"));
                 data.gatheringXp = Math.max(0, entry.getInt("gatheringXp"));
                 data.gatheringLevel = Math.max(1, entry.getInt("gatheringLevel"));
+                if(!entry.contains("progressionVersion")) {
+                    double oldRequired=200+75.0*data.gatheringLevel+.5*data.gatheringLevel*data.gatheringLevel;
+                    data.gatheringXp=(int)(Math.clamp(data.gatheringXp/oldRequired,0,1)*com.cranks.dungeons.config.ProgressionConfig.RULES.required(false,data.gatheringLevel));
+                }
 
                 NbtList nodes = entry.getList("unlockedNodes", NbtElement.STRING_TYPE);
                 for (int i = 0; i < nodes.size(); i++) {
@@ -151,6 +155,7 @@ public class WorldTreePersistentState extends PersistentState {
             entry.putInt("unspentPoints", Math.max(0, data.unspentPoints));
             entry.putInt("gatheringXp", Math.max(0, data.gatheringXp));
             entry.putInt("gatheringLevel", Math.max(1, data.gatheringLevel));
+            entry.putInt("progressionVersion",1);
 
             NbtList nodes = new NbtList();
             data.unlockedNodes.forEach(node -> nodes.add(NbtString.of(node)));

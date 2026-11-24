@@ -370,8 +370,8 @@ public class StatRegistry {
 
                 registerForTypes("physical_taken_as_void", "Physical Damage from Hits taken as Void Damage",
                                 ModAttributes.PHYSICAL_TAKEN_AS_VOID,
-                                r(0.10, 0.10, 0.10, 0.10, 0.10, 0.10, 0.10, 0.10, 0.10, 0.10),
-                                r(0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15),
+                                r(0.02, 0.025, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.10),
+                                r(0.03, 0.035, 0.045, 0.06, 0.075, 0.09, 0.105, 0.12, 0.135, 0.15),
                                 true, Formatting.DARK_PURPLE, CustomStat.AffixType.PREFIX, 85, 0, ALL_ARMOR);
 
                 registerForTypes("cold_resistance", "Cold Resistance",
@@ -423,7 +423,7 @@ public class StatRegistry {
                                 r(0.14, 0.17, 0.20, 0.23, 0.27, 0.31, 0.35, 0.39, 0.43, 0.47),
                                 r(0.16, 0.19, 0.22, 0.26, 0.30, 0.34, 0.38, 0.42, 0.46, 0.50),
                                 true, true, Formatting.DARK_AQUA, CustomStat.AffixType.SUFFIX,
-                                35, 1000,
+                                80, 200,
                                 EquipmentType.HELMET, EquipmentType.CHESTPLATE, EquipmentType.LEGGINGS, EquipmentType.BOOTS, EquipmentType.SHIELD)
                         .forEach(s -> s.setArmorBaseType(com.cranks.dungeons.equipment.ArmorBaseType.STR));
 
@@ -784,60 +784,60 @@ public class StatRegistry {
                 // --- Proportional Extra Damage (Runes) ---
                 registerForTypes("attack_extra_damage", "Damage as Extra Physical Damage",
                                 ModAttributes.PHYSICAL_EXTRA_PERCENT,
-                                r(0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15),
-                                r(0.20, 0.20, 0.20, 0.20, 0.20, 0.20, 0.20, 0.20, 0.20, 0.20),
+                                r(0.02, 0.03, 0.04, 0.05, 0.06, 0.08, 0.10, 0.12, 0.14, 0.15),
+                                r(0.03, 0.04, 0.05, 0.07, 0.09, 0.11, 0.13, 0.16, 0.18, 0.20),
                                 true, true, Formatting.WHITE, CustomStat.AffixType.PREFIX,
                                 75, 0,
                                 ONE_HANDED_WEAPONS);
                 registerForTypes("attack_extra_damage", "Damage as Extra Physical Damage",
                                 ModAttributes.PHYSICAL_EXTRA_PERCENT,
-                                r(0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25),
-                                r(0.33, 0.33, 0.33, 0.33, 0.33, 0.33, 0.33, 0.33, 0.33, 0.33),
+                                r(0.03, 0.05, 0.06, 0.08, 0.10, 0.13, 0.16, 0.19, 0.22, 0.25),
+                                r(0.05, 0.06, 0.08, 0.11, 0.14, 0.18, 0.21, 0.25, 0.29, 0.33),
                                 true, true, Formatting.WHITE, CustomStat.AffixType.PREFIX,
                                 75, 0,
                                 TWO_HANDED_WEAPONS);
 
                 registerForTypes("fire_extra_damage", "Damage as Extra Fire Damage",
                                 ModAttributes.FIRE_EXTRA_PERCENT,
-                                r(0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15),
-                                r(0.20, 0.20, 0.20, 0.20, 0.20, 0.20, 0.20, 0.20, 0.20, 0.20),
+                                r(0.02, 0.03, 0.04, 0.05, 0.06, 0.08, 0.10, 0.12, 0.14, 0.15),
+                                r(0.03, 0.04, 0.05, 0.07, 0.09, 0.11, 0.13, 0.16, 0.18, 0.20),
                                 true, true, Formatting.RED, CustomStat.AffixType.PREFIX,
                                 80, 0,
                                 ONE_HANDED_WEAPONS);
                 registerForTypes("fire_extra_damage", "Damage as Extra Fire Damage",
                                 ModAttributes.FIRE_EXTRA_PERCENT,
-                                r(0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25),
-                                r(0.33, 0.33, 0.33, 0.33, 0.33, 0.33, 0.33, 0.33, 0.33, 0.33),
+                                r(0.03, 0.05, 0.06, 0.08, 0.10, 0.13, 0.16, 0.19, 0.22, 0.25),
+                                r(0.05, 0.06, 0.08, 0.11, 0.14, 0.18, 0.21, 0.25, 0.29, 0.33),
                                 true, true, Formatting.RED, CustomStat.AffixType.PREFIX,
                                 80, 0,
                                 TWO_HANDED_WEAPONS);
 
                 registerForTypes("cold_extra_damage", "Damage as Extra Cold Damage",
                                 ModAttributes.COLD_EXTRA_PERCENT,
-                                r(0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15),
-                                r(0.20, 0.20, 0.20, 0.20, 0.20, 0.20, 0.20, 0.20, 0.20, 0.20),
+                                r(0.02, 0.03, 0.04, 0.05, 0.06, 0.08, 0.10, 0.12, 0.14, 0.15),
+                                r(0.03, 0.04, 0.05, 0.07, 0.09, 0.11, 0.13, 0.16, 0.18, 0.20),
                                 true, true, Formatting.AQUA, CustomStat.AffixType.PREFIX,
                                 80, 0,
                                 ONE_HANDED_WEAPONS);
                 registerForTypes("cold_extra_damage", "Damage as Extra Cold Damage",
                                 ModAttributes.COLD_EXTRA_PERCENT,
-                                r(0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25),
-                                r(0.33, 0.33, 0.33, 0.33, 0.33, 0.33, 0.33, 0.33, 0.33, 0.33),
+                                r(0.03, 0.05, 0.06, 0.08, 0.10, 0.13, 0.16, 0.19, 0.22, 0.25),
+                                r(0.05, 0.06, 0.08, 0.11, 0.14, 0.18, 0.21, 0.25, 0.29, 0.33),
                                 true, true, Formatting.AQUA, CustomStat.AffixType.PREFIX,
                                 80, 0,
                                 TWO_HANDED_WEAPONS);
 
                 registerForTypes("lightning_extra_damage", "Damage as Extra Lightning Damage",
                                 ModAttributes.LIGHTNING_EXTRA_PERCENT,
-                                r(0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15),
-                                r(0.20, 0.20, 0.20, 0.20, 0.20, 0.20, 0.20, 0.20, 0.20, 0.20),
+                                r(0.02, 0.03, 0.04, 0.05, 0.06, 0.08, 0.10, 0.12, 0.14, 0.15),
+                                r(0.03, 0.04, 0.05, 0.07, 0.09, 0.11, 0.13, 0.16, 0.18, 0.20),
                                 true, true, Formatting.DARK_BLUE, CustomStat.AffixType.PREFIX,
                                 80, 0,
                                 ONE_HANDED_WEAPONS);
                 registerForTypes("lightning_extra_damage", "Damage as Extra Lightning Damage",
                                 ModAttributes.LIGHTNING_EXTRA_PERCENT,
-                                r(0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25),
-                                r(0.33, 0.33, 0.33, 0.33, 0.33, 0.33, 0.33, 0.33, 0.33, 0.33),
+                                r(0.03, 0.05, 0.06, 0.08, 0.10, 0.13, 0.16, 0.19, 0.22, 0.25),
+                                r(0.05, 0.06, 0.08, 0.11, 0.14, 0.18, 0.21, 0.25, 0.29, 0.33),
                                 true, true, Formatting.DARK_BLUE, CustomStat.AffixType.PREFIX,
                                 80, 0,
                                 TWO_HANDED_WEAPONS);
@@ -1266,33 +1266,26 @@ public class StatRegistry {
         }
 
         private static StatAndTier getRandomWeightedStatAndTier(List<CustomStat> stats, int bestAllowedTier) {
-                if (stats.isEmpty())
-                        return null;
+                return rollFamilyAndTier(stats,java.util.stream.IntStream.rangeClosed(Math.clamp(bestAllowedTier,1,10),10).boxed().toList());
+        }
 
-                int totalWeight = 0;
-                for (CustomStat stat : stats) {
-                        for (int t = bestAllowedTier; t <= 10; t++) {
-                                totalWeight += stat.getTierWeight(t);
-                        }
-                }
-
-                if (totalWeight <= 0) {
-                        CustomStat randomStat = stats.get(RandomUtil.nextInt(stats.size()));
-                        int randomTier = RandomUtil.nextInt(10 - bestAllowedTier + 1) + bestAllowedTier;
-                        return new StatAndTier(randomStat, randomTier);
-                }
-
-                int roll = RandomUtil.nextInt(totalWeight);
-                int currentWeight = 0;
-                for (CustomStat stat : stats) {
-                        for (int t = bestAllowedTier; t <= 10; t++) {
-                                currentWeight += stat.getTierWeight(t);
-                                if (roll < currentWeight) {
-                                        return new StatAndTier(stat, t);
-                                }
-                        }
-                }
-                return null;
+        /** Family rarity is independent of the number of definitions or tiers in that family. */
+        public static StatAndTier rollFamilyAndTier(List<CustomStat> candidates,List<Integer> tiers) {
+                if(tiers.isEmpty())return null;
+                Map<String,List<CustomStat>> families=new LinkedHashMap<>();
+                candidates.stream().filter(StatRegistry::isRandomlyRollable).sorted(Comparator.comparing(CustomStat::getId))
+                        .forEach(stat->families.computeIfAbsent(stat.getGroupId(),ignored->new ArrayList<>()).add(stat));
+                var family=weighted(new ArrayList<>(families.values()),list->list.stream().mapToInt(CustomStat::getWeight).max().orElse(0));
+                if(family==null)return null;
+                var stat=weighted(family,s->s.getWeight());
+                var tier=weighted(tiers,com.cranks.dungeons.equipment.RuneRollRules::weight);
+                return tier==null?null:new StatAndTier(stat,tier);
+        }
+        private static <T> T weighted(List<T> values,java.util.function.ToDoubleFunction<T> weight){
+                double total=values.stream().mapToDouble(weight).sum();if(total<=0)return null;
+                double roll=RandomUtil.getRandom().nextDouble()*total;
+                for(T value:values){roll-=weight.applyAsDouble(value);if(roll<0)return value;}
+                return values.isEmpty()?null:values.getLast();
         }
 
         public static Collection<String> getAllStatIds() {

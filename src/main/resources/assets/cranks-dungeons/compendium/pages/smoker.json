@@ -1,0 +1,37 @@
+{
+  "title": "Smoker",
+  "content": [
+    {
+      "type": "item_image",
+      "value": "minecraft:smoker"
+    },
+    {
+      "type": "heading",
+      "value": "Reliable food preparation"
+    },
+    {
+      "type": "text",
+      "value": "The [[article/smoker|Smoker]] is the dedicated fuel-driven cooking station. It cooks the foods available at a [[article/campfire|Campfire]] and any additional assigned food recipes, with faster, more efficient processing."
+    },
+    {
+      "type": "text",
+      "value": "Select a discovered food recipe and use quantity to load a batch. Cooking continues over time, rather than completing the entire requested quantity instantly."
+    },
+    {
+      "type": "text",
+      "value": "Raw meats, cod, salmon and potatoes belong in the cooking system. They are not ordinary [[article/kiln|Kiln]] material recipes."
+    },
+    {
+      "type": "text",
+      "value": "Category tabs, Craftable and material search work like the other recipe-list stations."
+    },
+    {
+      "type": "heading",
+      "value": "Related articles"
+    },
+    {
+      "type": "text",
+      "value": "[[article/campfire|Campfire]] | [[article/food_effects|Food, Potions and Active Effects]] | [[article/gathering|World Discoveries]]"
+    }
+  ]
+}

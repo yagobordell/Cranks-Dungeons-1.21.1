@@ -1,7 +1,6 @@
 package com.cranks.dungeons.item;
 
 import com.cranks.dungeons.equipment.EquipmentType;
-import com.cranks.dungeons.equipment.ItemStatManager;
 import com.cranks.dungeons.stat.CustomStat;
 import com.cranks.dungeons.stat.StatRegistry;
 import net.minecraft.item.Item;
@@ -44,93 +43,39 @@ public abstract class AbstractTomeItem extends Item {
      * and prevents duplicate stats/attributes.
      */
     public boolean canApplyTo(ItemStack equipment) {
-        if (ItemStatManager.isUnique(equipment)) return false;
-
-        var equipTypeOpt = EquipmentType.getTypeForItem(equipment);
-        if (equipTypeOpt.isEmpty()) return false;
-
-        EquipmentType equipType = equipTypeOpt.get();
-        String statId = getStatIdForEquipment(equipType);
-        if (statId == null) return false;
-
-        // Verify the stat exists in the registry
-        var newStat = StatRegistry.getStat(statId);
-        if (newStat == null) return false;
-
-        if (!ItemStatManager.canAddStat(equipment, newStat.getAffixType())) return false;
-
-        // Check for duplicates (same stat ID or same underlying attribute)
-        var existingStats = ItemStatManager.getStats(equipment);
-        for (var stat : existingStats) {
-            if (stat.statId.equals(statId)) return false;
-
-            var existingStat = StatRegistry.getStat(stat.statId);
-            if (existingStat != null && existingStat.getGroupId().equals(newStat.getGroupId())) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * Calculate the tier based on current stat count.
-     * 0 stats -> tier 5, 1 stat -> tier 4, ..., 4 stats -> tier 1
-     */
-    public static int getTierForStatCount(int statCount) {
-        return Math.max(1, 5 - statCount);
-    }
-
-    /**
-     * Returns the Formatting color for a given tier.
-     * Shared across all tome items and stat display code.
-     */
-    public static Formatting getTierColor(int tier) {
-        return switch (tier) {
-            case 1, 2 -> Formatting.GOLD;
-            case 3, 4 -> Formatting.AQUA;
-            case 5, 6 -> Formatting.GREEN;
-            case 7, 8 -> Formatting.GRAY;
-            case 9, 10 -> Formatting.DARK_GRAY;
-            default   -> Formatting.WHITE;
-        };
+        return com.cranks.dungeons.inventory.RunicAltarRules.reason(equipment,getDefaultStack(),ItemStack.EMPTY)==null;
     }
 
     /**
      * Helper to add a standardized description to specialized tomes.
      */
+    public java.util.List<String> description(){
+        return java.util.List.of("Adds or replaces a guaranteed rune.","Upgrades Magic gear to Rare; also works on Rare gear.");
+    }
     protected void addTomeDescription(Consumer<Text> textConsumer) {
-        textConsumer.accept(Text.literal("Upgrades a magic item to a rare item,").formatted(Formatting.GRAY));
-        textConsumer.accept(Text.literal("adding a guaranteed rune").formatted(Formatting.GRAY));
+        description().forEach(line->textConsumer.accept(Text.literal(line).formatted(Formatting.GRAY)));
     }
 
-    protected void addStatRange(Consumer<Text> textConsumer, EquipmentType type, String label) {
-        String statId = getStatIdForEquipment(type);
-        if (statId != null) {
-            CustomStat stat = StatRegistry.getStat(statId);
-            if (stat != null) {
-                int tierValue = 3;
-                int maxTier = 1;
-                if (this instanceof ElementalTomeItem et) {
-                    switch (et.getTier()) {
-                        case NORMAL -> {
-                            tierValue = 4;
-                            maxTier = 4;
-                        }
-                        case GREATER -> tierValue = 3;
-                        case PERFECT -> tierValue = 1;
-                    }
-                } else if (this instanceof HealthBonusTomeItem || this instanceof SwiftnessTomeItem) {
-                    tierValue = 4;
-                    maxTier = 4;
-                }
-                String range = stat.getComponents().get(0).getFormattedRange(tierValue, maxTier, stat.getEquipmentType());
-                textConsumer.accept(Text.literal(label + ": ").formatted(Formatting.GRAY)
-                        .append(Text.literal(range).formatted(Formatting.WHITE)));
-            }
+    public record Summary(String label,CustomStat stat) {}
+    public java.util.List<Summary> summaries(){
+        var rows=new java.util.ArrayList<Summary>();
+        var armour=new java.util.LinkedHashMap<String,java.util.List<EquipmentType>>();
+        var armourStats=new java.util.LinkedHashMap<String,CustomStat>();
+        for(var type:java.util.List.of(EquipmentType.CHESTPLATE,EquipmentType.HELMET,EquipmentType.LEGGINGS,EquipmentType.BOOTS)){
+            String id=getStatIdForEquipment(type);CustomStat stat=id==null?null:StatRegistry.getStat(id);if(stat==null)continue;
+            armour.computeIfAbsent(stat.getGroupId(),unused->new java.util.ArrayList<>()).add(type);armourStats.putIfAbsent(stat.getGroupId(),stat);
         }
+        armour.forEach((family,types)->{
+            String label=types.size()==4?"Armour":types.stream().map(type->switch(type){case HELMET->"Helmets";case CHESTPLATE->"Chestplates";case LEGGINGS->"Leggings";case BOOTS->"Boots";default->throw new IllegalArgumentException();}).collect(java.util.stream.Collectors.joining(", "));
+            rows.add(new Summary(label,armourStats.get(family)));
+        });
+        for(var group:java.util.List.of(java.util.List.of(EquipmentType.SWORD),java.util.List.of(EquipmentType.SPEAR,EquipmentType.BOW,EquipmentType.CROSSBOW,EquipmentType.MACE,EquipmentType.TRIDENT))){
+            String label=group.getFirst()==EquipmentType.SWORD?"1H Martial Weapons":"2H Martial Weapons";
+            group.stream().map(this::getStatIdForEquipment).filter(java.util.Objects::nonNull).map(StatRegistry::getStat)
+                    .filter(java.util.Objects::nonNull).findFirst().ifPresent(stat->rows.add(new Summary(label,stat)));
+        }
+        return java.util.List.copyOf(rows);
     }
-
     /**
      * Check if the equipment type is a weapon.
      */

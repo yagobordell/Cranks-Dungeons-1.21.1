@@ -43,6 +43,10 @@ public class CustomStat {
         public List<RegistryEntry<EntityAttribute>> getAttributes() { return attributes; }
         public boolean isPercentage() { return isPercentage; }
         public String getDisplayName() { return displayName; }
+        public String getDisplayLabel() {
+            return displayName.replace("# of ", "").replace("#%", "").replace("#", "")
+                    .replaceFirst("^%\\s*", "").replaceAll("\\s+", " ").strip();
+        }
 
         public double rollValue(int tier) {
             if (tier < 1 || tier > 10) throw new IllegalArgumentException("Tier must be between 1 and 10");
@@ -107,10 +111,13 @@ public class CustomStat {
                 return displayName;
             }
             DecimalFormat df = new DecimalFormat("#.##");
-            int minIndex = 10 - minTier;
-            int maxIndex = 10 - maxTier;
-            double minVal = normalRanges[minIndex];
-            double maxVal = uncommonRanges[maxIndex];
+            double minVal = Double.POSITIVE_INFINITY, maxVal = Double.NEGATIVE_INFINITY;
+            for (int tier = Math.min(minTier, maxTier); tier <= Math.max(minTier, maxTier); tier++) {
+                if (tier < 1 || tier > 10) throw new IllegalArgumentException("Tier must be between 1 and 10");
+                int index = Math.min(10 - tier, normalRanges.length - 1);
+                minVal = Math.min(minVal, Math.min(normalRanges[index], uncommonRanges[index]));
+                maxVal = Math.max(maxVal, Math.max(normalRanges[index], uncommonRanges[index]));
+            }
 
             if (displayAsPercentage || isPercentage) {
                 String minStr = df.format(minVal * 100);
@@ -123,8 +130,7 @@ public class CustomStat {
                 } else {
                     range = "(" + minStr + " - " + maxStr + ")%";
                 }
-                if (displayName.contains("Extra")) return "Gain " + range + " of " + displayName;
-                return range + " " + displayName;
+                return formatDescription(range, eqType);
             } else {
                 long minRounded = Math.round(minVal);
                 long maxRounded = Math.round(maxVal);
@@ -136,14 +142,12 @@ public class CustomStat {
                 } else {
                     range = "(" + minRounded + " - " + maxRounded + ")";
                 }
-                if (displayName.endsWith("Damage") && !displayName.contains("Thorns")) {
-                    if (isWeapon(eqType)) {
-                        return "Adds " + range + " to " + displayName;
-                    }
-                    return "Adds " + range + " " + displayName + " to Attacks";
-                }
-                return "+" + range + " to " + displayName;
+                return formatDescription(range, eqType);
             }
+        }
+
+        public String formatTierRange(int tier, EquipmentType eqType) {
+            return formatDescription(getFormattedMinMax(tier), eqType);
         }
 
         public String formatValue(double value, EquipmentType eqType) {
@@ -158,13 +162,16 @@ public class CustomStat {
                 formattedValue = String.valueOf(Math.round(value));
             }
 
-            if (displayName.contains("#")) {
-                return displayName.replace("#", formattedValue);
-            }
+            return formatDescription(formattedValue, eqType);
+        }
+
+        private String formatDescription(String formattedValue, EquipmentType eqType) {
+            if (isBooleanStat()) return displayName;
+            if (displayName.contains("#")) return displayName.replaceAll("#\\s*%", "#").replace("#", formattedValue);
 
             if (displayAsPercentage || isPercentage) {
                 if (displayName.contains("Extra")) return "Gain " + formattedValue + " of " + displayName;
-                return formattedValue + " " + displayName;
+                return formattedValue + " " + displayName.replaceFirst("^%\\s*", "");
             } else {
                 if (displayName.endsWith("Damage") && !displayName.contains("Thorns")) {
                     if (isWeapon(eqType)) {
@@ -271,7 +278,7 @@ public class CustomStat {
     public List<StatComponent> getComponents() { return components; }
 
     // Backward compatibility for methods accessing the primary (0th) component
-    public String getDisplayName() { return components.get(0).getDisplayName(); }
+    public String getDisplayName() { return components.get(0).getDisplayLabel(); }
     public List<RegistryEntry<EntityAttribute>> getAttributes() { return components.get(0).getAttributes(); }
     
     public double[] rollValues(int tier) {

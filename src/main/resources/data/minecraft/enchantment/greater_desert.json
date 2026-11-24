@@ -27,13 +27,21 @@
       {
         "id": "minecraft:enchantment.greater_desert.fire_damage",
         "attribute": "cranks-dungeons:fire_damage",
-        "amount": 30.0,
+        "amount": {
+          "type": "minecraft:linear",
+          "base": 30.0,
+          "per_level_above_first": 30.0
+        },
         "operation": "add_value"
       },
       {
         "id": "minecraft:enchantment.greater_desert_armor.fire_resistance",
         "attribute": "cranks-dungeons:fire_resistance",
-        "amount": 0.18,
+        "amount": {
+          "type": "minecraft:linear",
+          "base": 0.18,
+          "per_level_above_first": 0.18
+        },
         "operation": "add_value"
       }
     ]

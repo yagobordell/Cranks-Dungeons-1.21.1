@@ -1,15 +1,54 @@
 {
   "title": "Primary Attributes",
   "content": [
-    { "type": "subheading", "value": "Strength" },
-    { "type": "text", "value": "Every 1 Strength grants +2 maximum health. Strength is used for heavy equipment requirements and Strength-aligned armour runes." },
-    { "type": "subheading", "value": "Dexterity" },
-    { "type": "text", "value": "Every 1 Dexterity grants +2 evasion rating. Dexterity supports leather/evasion bases, bow requirements, speed, projectile play, and Dexterity-aligned armour runes." },
-    { "type": "subheading", "value": "Intelligence" },
-    { "type": "text", "value": "Every 1 Intelligence grants +2 maximum mana. Intelligence supports Energy Shield, elemental/ailment routes, and Intelligence-aligned armour runes." },
-    { "type": "heading", "value": "Equipment Requirements" },
-    { "type": "text", "value": "Requirements depend on material and equipment type. Wood and stone need none. Leather needs 15 Dexterity. Copper armour needs roughly 7 Strength and 7 Intelligence. Chainmail uses split Strength/Dexterity. Gold armour uses split Strength/Intelligence. Iron uses 20 Strength, diamond 45 Strength, and netherite 65 Strength. Bows and crossbows use Dexterity; swords and spears split Strength/Dexterity; maces and shields use Strength. Tridents require 20 Strength plus roughly 32 Dexterity. Elytra split a 90-point scale between Dexterity and Intelligence." },
-    { "type": "text", "value": "Reduced Requirements runes multiply each nonzero requirement down and round it to the nearest whole point. Failing any required attribute reduces item-derived stats by 50%." },
-    { "type": "note", "style": "info", "value": "Tools—axes, pickaxes, shovels, and hoes—have no primary-attribute requirements and cannot receive rune affixes. Their progression uses compatible enchantments and Deepslate Sigil slots instead." }
+    {
+      "type": "subheading",
+      "value": "Strength"
+    },
+    {
+      "type": "text",
+      "value": "Every 1 [[stat/cranks-dungeons:strength|Strength]] grants +2 maximum health. [[stat/cranks-dungeons:strength|Strength]] is used for heavy equipment requirements and [[stat/cranks-dungeons:strength|Strength]]-aligned armour runes."
+    },
+    {
+      "type": "subheading",
+      "value": "Dexterity"
+    },
+    {
+      "type": "text",
+      "value": "Every 1 [[stat/cranks-dungeons:dexterity|Dexterity]] grants +2 [[stat/cranks-dungeons:evasion_rating|evasion rating]]. [[stat/cranks-dungeons:dexterity|Dexterity]] supports leather/evasion bases, bow requirements, speed, projectile play, and [[stat/cranks-dungeons:dexterity|Dexterity]]-aligned armour runes."
+    },
+    {
+      "type": "subheading",
+      "value": "Intelligence"
+    },
+    {
+      "type": "text",
+      "value": "Every 1 [[stat/cranks-dungeons:intelligence|Intelligence]] grants +2 maximum mana. [[stat/cranks-dungeons:intelligence|Intelligence]] supports [[stat/cranks-dungeons:energy_shield|Energy Shield]], elemental/ailment routes, and [[stat/cranks-dungeons:intelligence|Intelligence]]-aligned armour runes."
+    },
+    {
+      "type": "heading",
+      "value": "Equipment Requirements"
+    },
+    {
+      "type": "text",
+      "value": "Each equipment tooltip lists its exact Strength, Dexterity and Intelligence requirements. Check these before changing gear, especially when replacing an item that supplies attributes needed by another piece. Materials and equipment types can require different attribute combinations. See [[article/rarity_requirements|Item Requirements]] for penalties and reduction effects."
+    },
+    {
+      "type": "text",
+      "value": "Reduced Requirements runes multiply each nonzero requirement down and round it to the nearest whole point. Failing any required attribute reduces item-derived stats by 50%."
+    },
+    {
+      "type": "note",
+      "style": "info",
+      "value": "Tools—axes, pickaxes, shovels, and hoes—have no primary-attribute requirements and cannot receive rune affixes. Their progression uses compatible enchantments and [[item/cranks-dungeons:deepslate_sigil|Deepslate Sigil]] slots instead."
+    },
+    {
+      "type": "heading",
+      "value": "Related articles"
+    },
+    {
+      "type": "text",
+      "value": "[[article/rarity_requirements|Item Requirements]] | [[article/passive_tree|Passive Skill Tree]] | [[article/recovery|Recovery & Mana]]"
+    }
   ]
 }

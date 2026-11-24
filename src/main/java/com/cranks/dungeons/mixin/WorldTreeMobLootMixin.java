@@ -1,102 +1,21 @@
 package com.cranks.dungeons.mixin;
 
-import com.cranks.dungeons.registry.ModAttributes;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.mob.Monster;
-import net.minecraft.entity.passive.AnimalEntity;
-import net.minecraft.entity.player.PlayerEntity;
+import com.cranks.dungeons.gathering.GatheringLoot;
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import net.minecraft.item.ItemStack;
 import net.minecraft.loot.LootTable;
-import net.minecraft.loot.context.LootContextParameterSet;
-import net.minecraft.loot.context.LootContextParameters;
-import net.minecraft.world.World;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import net.minecraft.registry.RegistryWrapper;
-import java.util.ArrayList;
-import java.util.List;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import net.minecraft.loot.context.LootContext;
+import org.spongepowered.asm.mixin.*;
+import java.util.function.Consumer;
 
 @Mixin(LootTable.class)
-public class WorldTreeMobLootMixin {
-
-    @Inject(method = "generateLoot(Lnet/minecraft/loot/context/LootContextParameterSet;)Lit/unimi/dsi/fastutil/objects/ObjectArrayList;", at = @At("RETURN"), cancellable = true)
-    private void modifyMobLoot(LootContextParameterSet context, CallbackInfoReturnable<ObjectArrayList<ItemStack>> cir) {
-        if (!context.contains(LootContextParameters.ATTACKING_ENTITY) || !context.contains(LootContextParameters.THIS_ENTITY)) return;
-        
-        Entity killerEntity = context.get(LootContextParameters.ATTACKING_ENTITY);
-        Entity thisEntity = context.get(LootContextParameters.THIS_ENTITY);
-
-        if (!(killerEntity instanceof PlayerEntity player) || !(thisEntity instanceof LivingEntity victim)) return;
-
-        List<ItemStack> originalLoot = cir.getReturnValue();
-        if (originalLoot == null || originalLoot.isEmpty()) return;
-
-        ObjectArrayList<ItemStack> modifiedLoot = new ObjectArrayList<>();
-        boolean isNether = player.getEntityWorld().getRegistryKey() == World.NETHER;
-
-        for (ItemStack stack : originalLoot) {
-            ItemStack newStack = stack.copy();
-
-            double yield = 0;
-
-            // 1. Monster Drops & Rare Drops
-            if (victim instanceof Monster) {
-                yield += getAttr(player, ModAttributes.MONSTER_DROP_YIELD);
-                double rareChance = getAttr(player, ModAttributes.RARE_MOB_DROP_CHANCE);
-                if (isNether) {
-                    rareChance += getAttr(player, ModAttributes.RARE_MOB_DROP_CHANCE_IN_NETHER);
-                }
-                yield += rareChance;
-            }
-            
-            // 2. Animal Drops
-            if (victim instanceof AnimalEntity) {
-                yield += getAttr(player, ModAttributes.ANIMAL_DROP_YIELD);
-            }
-            
-            // 3. Meat Yield
-            if (newStack.getItem().getComponents().contains(net.minecraft.component.DataComponentTypes.FOOD)) {
-                if (newStack.getItem().toString().toLowerCase().contains("beef") || 
-                    newStack.getItem().toString().toLowerCase().contains("pork") || 
-                    newStack.getItem().toString().toLowerCase().contains("chicken") || 
-                    newStack.getItem().toString().toLowerCase().contains("mutton") || 
-                    newStack.getItem().toString().toLowerCase().contains("rabbit")) {
-                    yield += getAttr(player, ModAttributes.MEAT_YIELD);
-                }
-            }
-
-            // Apply yield
-            applyYield(newStack, yield, player.getRandom());
-            
-            modifiedLoot.add(newStack);
-        }
-
-        cir.setReturnValue(modifiedLoot);
-    }
-
-    private static double getAttr(PlayerEntity player, net.minecraft.registry.entry.RegistryEntry<net.minecraft.entity.attribute.EntityAttribute> attr) {
-        var instance = player.getAttributeInstance(attr);
-        return instance != null ? instance.getValue() : 0.0;
-    }
-
-    private static void applyYield(ItemStack stack, double yieldAmount, net.minecraft.util.math.random.Random random) {
-        if (yieldAmount <= 0) return;
-        
-        int extraItems = (int) yieldAmount;
-        double fractional = yieldAmount - extraItems;
-        
-        if (random.nextDouble() < fractional) {
-            extraItems++;
-        }
-        
-        if (extraItems > 0) {
-            int max = stack.getMaxCount();
-            int newCount = Math.min(max, stack.getCount() + (stack.getCount() * extraItems));
-            stack.setCount(newCount);
-        }
+public abstract class WorldTreeMobLootMixin {
+    @Unique private static final ThreadLocal<Integer> cranks$yieldDepth=ThreadLocal.withInitial(()->0);
+    @WrapMethod(method="generateUnprocessedLoot(Lnet/minecraft/loot/context/LootContext;Ljava/util/function/Consumer;)V")
+    private void yield(LootContext context,Consumer<ItemStack> output,Operation<Void> original){
+        int depth=cranks$yieldDepth.get();cranks$yieldDepth.set(depth+1);
+        try{original.call(context,depth==0?GatheringLoot.output(context,output):output);}
+        finally{if(depth==0)cranks$yieldDepth.remove();else cranks$yieldDepth.set(depth);}
     }
 }

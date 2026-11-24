@@ -1,19 +1,81 @@
 {
   "title": "Understanding Runes",
   "content": [
-    { "type": "text", "value": "Runes are equipment modifiers created through the Runic Altar or generated on mob equipment. A rune has a prefix or suffix position, a tier, a rolled value, a rune-level requirement for random crafting, a selection weight, and a compatibility group." },
-    { "type": "heading", "value": "Three Ways to Obtain a Rune" },
-    { "type": "list", "value": "Random rune: ordinary Runic Tomes choose from the item's compatible random pool. The weapon and armour catalog pages list only these genuinely random-rollable affixes.\nTargeted rune: Elemental, Haste, and Body tomes guarantee one named family instead of selecting randomly. Some targeted results also exist in the random pool, while special Extra Damage and Physical Taken as Void modifiers are targeted-only.\nArtificial rune: an Artificial Tome reserves one prefix or suffix on a Rare item, then the Artificial Altar lets you choose from up to three compatible options." },
-    { "type": "heading", "value": "Prefixes and Suffixes" },
-    { "type": "text", "value": "Prefix and suffix capacity is separate. Magic equipment can hold one prefix and one suffix; Rare equipment can hold three of each. A random tome tries a random side first and then the other side if the first cannot accept a legal result. A rune consumes one slot even when it grants several component values." },
-    { "type": "heading", "value": "Duplicate Groups" },
-    { "type": "text", "value": "Related versions of a stat share a group ID. An item cannot hold two runes from the same group even when their internal IDs differ. Hybrid runes roll several components together but consume only their own single affix position." },
-    { "type": "heading", "value": "Local Runes" },
-    { "type": "text", "value": "Local flat physical damage, armour, evasion, and Energy Shield are merged with the item's base. Local percentage then scales base + flat. These values are baked into the item's attribute component so they are not added a second time as global stats." },
-    { "type": "heading", "value": "Global and Conditional Runes" },
-    { "type": "text", "value": "Global runes contribute to the character or attack calculation. Strength, Dexterity, and Intelligence runes appear on compatible armour; other global runes can grant life, mana, resistance, global critical chance, elemental damage, ailment chance/magnitude, leech, projectile behaviour, regeneration, and similar bonuses. Conditional wording only applies while its named condition is true." },
-    { "type": "heading", "value": "What Cannot Be Runed" },
-    { "type": "text", "value": "The mace, trident, turtle helmet, and Elytra are Unique and reject every Runic Altar operation. Horse armour, wolf armour, axes, pickaxes, shovels, and hoes also cannot receive affixes. Unique-only internal modifiers are intentionally omitted from the rune catalogs." },
-    { "type": "note", "style": "info", "value": "Read Using the Runic Altar before spending a tome. Item rarity, open prefix/suffix capacity, duplicate groups, equipment compatibility, and the tome's own input-rarity rule must all allow the operation." }
+    {
+      "type": "text",
+      "value": "Runes add bonuses to eligible equipment. A rune has an affix side, a tier and rolled values. Its family describes the kind of improvement; its tier and roll determine how strong that improvement is."
+    },
+    {
+      "type": "heading",
+      "value": "Ways to obtain a rune"
+    },
+    {
+      "type": "text",
+      "value": "Find compatible equipment with runes already on it, or roll a random family with a suitable tome at the [[article/runic_altar|Runic Altar]]."
+    },
+    {
+      "type": "text",
+      "value": "Use a [[article/targeted_tomes|specialized tome]] when you want a known family. Click its listed rune to inspect its effect, tier values, compatible bases and the tier that tome can give."
+    },
+    {
+      "type": "text",
+      "value": "Use an [[article/artificial_tome|Artificial Tome]] to reveal a choice between compatible results. It requires the Runic Altar first and the Artificial Runic Altar to reveal the choice."
+    },
+    {
+      "type": "heading",
+      "value": "Prefix and suffix space"
+    },
+    {
+      "type": "text",
+      "value": "Magic equipment holds one prefix and one suffix. Rare equipment holds three of each. A hybrid rune may grant several stats but still occupies one slot. Bonuses joined by a bracket in the equipment tooltip belong to that same rune."
+    },
+    {
+      "type": "heading",
+      "value": "Avoiding duplicate families"
+    },
+    {
+      "type": "text",
+      "value": "An item cannot keep two runes of the same family. Different values or different tiers do not make a second copy legal. A hybrid is its own family, so read its article when comparing it with a single-stat rune."
+    },
+    {
+      "type": "heading",
+      "value": "Local bonuses and character bonuses"
+    },
+    {
+      "type": "text",
+      "value": "Flat item bonuses add to the matching equipment property. Local increases then improve that item before your character-wide bonuses are evaluated."
+    },
+    {
+      "type": "text",
+      "value": "For example, an item with 10 base Physical Damage and +5 flat Physical Damage reaches 18 item damage with 20% local increased Physical Damage: (10 + 5) × 1.2 = 18. Quality improves the original base before the flat rune is added."
+    },
+    {
+      "type": "text",
+      "value": "The equipment tooltip already shows its local improvements. Do not add the rune to that final displayed value again. Tree bonuses can then improve the applicable character or attack total."
+    },
+    {
+      "type": "heading",
+      "value": "Choosing a base"
+    },
+    {
+      "type": "text",
+      "value": "A stronger material allows stronger tiers. Adding rarity or spending a stronger tome cannot bypass that cap. The [[item/minecraft:mace|Mace]], [[item/minecraft:trident|Trident]], [[item/minecraft:turtle_helmet|Turtle Helmet]] and [[item/minecraft:elytra|Elytra]] have fixed Unique properties; tools and animal armour also do not accept ordinary rune affixes."
+    },
+    {
+      "type": "heading",
+      "value": "Planning an upgrade"
+    },
+    {
+      "type": "text",
+      "value": "Decide which problem you need to solve before spending a tome: damage type, survival, recovery or a missing requirement. A new rune is useful only if the rest of the build can use it. Inspect the proposed result before replacing a valuable rune."
+    },
+    {
+      "type": "heading",
+      "value": "Related articles"
+    },
+    {
+      "type": "text",
+      "value": "[[article/runic_altar|Using the Runic Altar]] | [[article/targeted_tomes|Specialized Tomes]] | [[article/rune_tiers|Rune Tiers and Roll Chances]]"
+    }
   ]
 }

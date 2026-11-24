@@ -1,0 +1,41 @@
+{
+  "title": "Player Trading",
+  "content": [
+    {
+      "type": "text",
+      "value": "Use the wallet panel in your inventory to start a nearby, face-to-face trade. The other player must accept the invitation. Close station menus and put down cursor-held items before beginning."
+    },
+    {
+      "type": "heading",
+      "value": "Building an offer"
+    },
+    {
+      "type": "text",
+      "value": "Offer the items and coin amount you want to give. Inspect the other player's offered items, including their rune values and requirements. Check the whole offer before marking yourself ready."
+    },
+    {
+      "type": "heading",
+      "value": "Ready, review, confirm"
+    },
+    {
+      "type": "text",
+      "value": "Both players must be ready before final confirmation. Changing an offer clears the approvals so both players can review the changed deal. The exchange completes only after both players confirm and the receiving inventories have enough room."
+    },
+    {
+      "type": "heading",
+      "value": "Cancelling safely"
+    },
+    {
+      "type": "text",
+      "value": "Cancelling a trade does not hand your offered items to the other player. Moving too far apart or losing the required conditions cancels the session. If there is not enough receiving space, make room and review the offers again."
+    },
+    {
+      "type": "heading",
+      "value": "Related articles"
+    },
+    {
+      "type": "text",
+      "value": "[[article/currency|Coins and Wallet]] | [[article/equipment|Comparing Equipment]] | [[article/runes|Understanding Runes]]"
+    }
+  ]
+}

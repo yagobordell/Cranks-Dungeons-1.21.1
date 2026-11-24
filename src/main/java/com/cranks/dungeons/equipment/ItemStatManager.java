@@ -230,7 +230,9 @@ public class ItemStatManager {
                 int tier = statNbt.contains("tier") ? statNbt.getInt("tier") : 1;
 
                 CustomStat stat = StatRegistry.getStat(id);
-                if (stat != null) {
+                if (stat != null && !statNbt.getBoolean("protected")) {
+                    if(!isUnique(stack))tier=RuneTiers.clamp(stack,tier);
+                    statNbt.putInt("tier",tier);
                     double[] newValues = stat.rollValues(tier);
                     NbtList nbtValues = new NbtList();
                     for (double v : newValues) {
@@ -250,12 +252,7 @@ public class ItemStatManager {
     }
 
     public static int getBestAllowedTier(ItemStack stack) {
-        String itemName = net.minecraft.registry.Registries.ITEM.getId(stack.getItem()).toString().toLowerCase();
-        if (itemName.contains("wood") || itemName.contains("stone") || itemName.contains("leather")) return 10;
-        if (itemName.contains("iron") || itemName.contains("chainmail") || itemName.contains("golden") || itemName.contains("shield") || itemName.contains("bow")) return 9;
-        if (itemName.contains("diamond")) return 8;
-        if (itemName.contains("netherite")) return 7;
-        return 1;
+        return RuneTiers.best(stack);
     }
 
     public static boolean addRandomStat(ItemStack stack, CustomStat.AffixType type) {
@@ -263,64 +260,24 @@ public class ItemStatManager {
     }
 
     public static boolean addRandomStat(ItemStack stack, CustomStat.AffixType type, int minLevel, int maxLevel) {
-        if (isUnique(stack)) return false;
-        if (!canAddStat(stack, type)) return false;
-
-        Optional<EquipmentType> equipType = EquipmentType.getTypeForItem(stack);
-        if (equipType.isEmpty()) return false;
-
-        com.cranks.dungeons.equipment.ArmorBaseType armorBase = com.cranks.dungeons.equipment.ArmorBaseType.getFromItem(stack);
-        int bestAllowedTier = getBestAllowedTier(stack);
-        StatRegistry.StatAndTier statAndTier = StatRegistry.getRandomStatForEquipmentType(equipType.get(), armorBase, type, minLevel, maxLevel, bestAllowedTier);
-        if (statAndTier == null || statAndTier.stat == null) return false;
-        
-        CustomStat stat = statAndTier.stat;
-        int tier = statAndTier.tier;
-
-        // Check for duplicate attributes
-        List<ItemStat> existingStats = getStats(stack);
-        boolean alreadyHasStat = existingStats.stream()
-                .anyMatch(s -> {
-                    CustomStat existingStat = StatRegistry.getStat(s.statId);
-                    if (existingStat == null) return false;
-                    return existingStat.getGroupId().equals(stat.getGroupId());
-                });
-
-        if (alreadyHasStat) return false;
-
-        return addSpecificStat(stack, stat.getId(), tier);
+        if(isUnique(stack)||!canAddStat(stack,type))return false;
+        var candidates=com.cranks.dungeons.inventory.RuneCrafting.candidates(stack,type).stream()
+                .filter(stat->stat.getLevel()>=minLevel&&stat.getLevel()<=maxLevel).toList();
+        var roll=StatRegistry.rollFamilyAndTier(candidates,RuneTiers.random(stack,0));
+        return roll!=null&&addSpecificStat(stack,roll.stat.getId(),roll.tier);
     }
 
     public static boolean addRandomStatWithFixedTier(ItemStack stack, int tier, CustomStat.AffixType type) {
-        if (isUnique(stack)) return false;
-        if (!canAddStat(stack, type)) return false;
-
-        Optional<EquipmentType> equipType = EquipmentType.getTypeForItem(stack);
-        if (equipType.isEmpty()) return false;
-
-        com.cranks.dungeons.equipment.ArmorBaseType armorBase = com.cranks.dungeons.equipment.ArmorBaseType.getFromItem(stack);
-        int bestAllowedTier = getBestAllowedTier(stack);
-        StatRegistry.StatAndTier statAndTier = StatRegistry.getRandomStatForEquipmentType(equipType.get(), armorBase, type, 1, 100, bestAllowedTier);
-        if (statAndTier == null || statAndTier.stat == null) return false;
-
-        CustomStat stat = statAndTier.stat;
-
-        List<ItemStat> existingStats = getStats(stack);
-        boolean alreadyHasStat = existingStats.stream()
-                .anyMatch(s -> {
-                    CustomStat existingStat = StatRegistry.getStat(s.statId);
-                    if (existingStat == null) return false;
-                    return existingStat.getGroupId().equals(stat.getGroupId());
-                });
-
-        if (alreadyHasStat) return false;
-
-        return addSpecificStat(stack, stat.getId(), tier);
+        if(isUnique(stack)||!canAddStat(stack,type))return false;
+        var roll=StatRegistry.rollFamilyAndTier(com.cranks.dungeons.inventory.RuneCrafting.candidates(stack,type),List.of(RuneTiers.clamp(stack,tier)));
+        return roll!=null&&addSpecificStat(stack,roll.stat.getId(),roll.tier);
     }
 
     public static boolean addSpecificStat(ItemStack stack, String statId, int tier) {
         CustomStat stat = StatRegistry.getStat(statId);
         if (stat == null) return false;
+
+        if(!isUnique(stack))tier=RuneTiers.clamp(stack,tier);
 
         if (!canAddStat(stack, stat.getAffixType())) return false;
 
@@ -421,6 +378,9 @@ public class ItemStatManager {
 
         CustomStat stat = StatRegistry.getStat(statId);
         if (stat == null) return false;
+
+        int capped=RuneTiers.clamp(stack,tier);
+        if(capped!=tier){tier=capped;values=null;}
 
         NbtCompound nbt = stack.getOrDefault(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,
                 net.minecraft.component.type.NbtComponent.DEFAULT).copyNbt();

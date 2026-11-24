@@ -22,5 +22,11 @@ public final class ModBlockTags {
             RegistryKeys.BLOCK, Identifier.of(MOD_ID, "ore_fortune_ores")
     );
 
+    public static boolean isOreFamily(TagKey<Block> tag) {
+        Identifier id = tag.id();
+        return (id.getNamespace().equals("minecraft") && id.getPath().endsWith("_ores"))
+                || (id.getNamespace().equals("c") && id.getPath().startsWith("ores/"));
+    }
+
     private ModBlockTags() {}
 }

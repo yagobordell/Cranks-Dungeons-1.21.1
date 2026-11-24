@@ -3,7 +3,7 @@ package com.cranks.dungeons.mixin;
 import com.cranks.dungeons.ailment.AilmentManager;
 import com.cranks.dungeons.ailment.AilmentType;
 import com.cranks.dungeons.damage.DamageElement;
-import com.cranks.dungeons.util.DamageBreakdownProvider;
+import com.cranks.dungeons.util.DamageHit;
 import com.cranks.dungeons.util.DamageConversionHelper;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
@@ -27,7 +27,7 @@ public abstract class DamageReductionMixin {
             argsOnly = true
     )
     private float cranks$applyElementalResistances(float amount, DamageSource source) {
-        if (cranks$processingResistance.get()) {
+        if (amount <= 0 || DamageHit.current() == null || cranks$processingResistance.get()) {
             return amount;
         }
 
@@ -36,6 +36,17 @@ public abstract class DamageReductionMixin {
             LivingEntity entity = (LivingEntity) (Object) this;
             net.minecraft.world.World world = entity.getWorld();
 
+            var secondary = AilmentManager.secondaryHit(entity);
+            if (secondary != null) {
+                var resolved = new DamageConversionHelper.DamageBreakdown();
+                resolved.set(secondary.element(), amount);
+                if (!secondary.ailment()) {
+                    resolved.applyResistancesInPlace(entity, source.getAttacker());
+                    resolved.scale(1 + AilmentManager.getShockMagnitude(entity));
+                }
+                DamageHit.forTarget(entity).setBreakdown(resolved);
+                return resolved.getTotal();
+            }
             // All fire damage is unified under AilmentType.BURN.
             // When environmental fire hits (lava, fire, campfire, on_fire),
             // apply or refresh the Burn ailment and suppress vanilla duplicate damage.
@@ -58,14 +69,22 @@ public abstract class DamageReductionMixin {
                 amount = 3.0f;
             }
 
+            if (source.isOf(DamageTypes.DROWN) && entity instanceof net.minecraft.entity.player.PlayerEntity) {
+                amount = Math.max(entity.getMaxHealth() * 0.12f, 2.0f);
+            }
+
             DamageConversionHelper.DamageBreakdown breakdown = DamageConversionHelper.getBreakdown(source, amount, entity);
+            if (source.getSource() instanceof com.cranks.dungeons.ranged.RangedProjectile projectile && projectile.cranks$rangedDamage() > 0) {
+                breakdown.scale(projectile.cranks$rangedPower());
+            }
             if (entity.getAttributeValue(com.cranks.dungeons.registry.ModAttributes.KEYSTONE_VOID_INOCULATION) > 0) {
                 breakdown.set(DamageElement.VOID, 0f);
             }
-            breakdown.applyResistancesInPlace(entity, source.getAttacker());
-            if (entity instanceof DamageBreakdownProvider provider) {
-                provider.cranks$setLastDamageBreakdown(breakdown);
-            }
+            DamageHit.forTarget(entity).beforeMitigation(breakdown);
+            breakdown.applyResistancesInPlace(entity, com.cranks.dungeons.effect.PotionRules.isPotionDamage(source)
+                    ? null : source.getAttacker());
+            DamageHit hit = DamageHit.forTarget(entity);
+            if (hit != null) hit.setBreakdown(breakdown);
 
             float totalDamage = breakdown.getTotal();
             float shockMagnitude = AilmentManager.getShockMagnitude(entity);

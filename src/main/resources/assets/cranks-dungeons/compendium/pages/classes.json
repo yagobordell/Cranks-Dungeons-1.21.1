@@ -1,20 +1,70 @@
 {
   "title": "Choosing a Class",
   "content": [
-    { "type": "text", "value": "The first time you open the Passive Tree, you must select a class. Selection grants the class's base attributes and unlocks its configured starting node without spending a point. It also fixes where your connected route begins." },
-    { "type": "subheading", "value": "Warrior" },
-    { "type": "text", "value": "15 Strength, 7 Dexterity, 7 Intelligence. Starts at the Armour route. Best fit for heavy armour, maximum health, and close-range physical weapons." },
-    { "type": "subheading", "value": "Ranger" },
-    { "type": "text", "value": "7 Strength, 15 Dexterity, 7 Intelligence. Starts at Evasion Rating. Best fit for bows, fast attacks, critical strikes, and avoiding entity-sourced hits." },
-    { "type": "subheading", "value": "Mercenary" },
-    { "type": "text", "value": "11 Strength, 11 Dexterity, 7 Intelligence. Starts at Armour and Evasion Rating. A physical hybrid suited to swords, spears, crossbows, and mixed defensive bases." },
-    { "type": "subheading", "value": "Monk" },
-    { "type": "text", "value": "7 Strength, 11 Dexterity, 11 Intelligence. Starts at Energy Shield and Evasion Rating. A mobile hybrid that combines avoidance with a rechargeable buffer." },
-    { "type": "subheading", "value": "Witch" },
-    { "type": "text", "value": "7 Strength, 7 Dexterity, 15 Intelligence. Starts at Energy Shield. Best fit for mana, elemental damage, ailments, and Intelligence-aligned defence." },
-    { "type": "subheading", "value": "Death Knight" },
-    { "type": "text", "value": "11 Strength, 7 Dexterity, 11 Intelligence. Starts at Armour and Energy Shield. A durable hybrid for physical pressure, recovery, and layered mitigation." },
-    { "type": "note", "style": "important", "value": "Class choice is permanent for that character. The six entries above are the shipped server configuration; a server can edit the class file, so the selection screen is the final authority for that world." },
-    { "type": "note", "style": "tip", "value": "A class is a starting position, not a locked job. Connected routes can eventually travel toward other archetypes if you invest enough points." }
+    {
+      "type": "text",
+      "value": "The first time you open the Passive Tree, you must select a class. Selection grants the class's base attributes and unlocks its starting node without spending a point. It also fixes where your connected route begins."
+    },
+    {
+      "type": "subheading",
+      "value": "Warrior"
+    },
+    {
+      "type": "text",
+      "value": "15 [[stat/cranks-dungeons:strength|Strength]], 7 [[stat/cranks-dungeons:dexterity|Dexterity]], 7 [[stat/cranks-dungeons:intelligence|Intelligence]]. Starts at the Armour route. Best fit for heavy armour, maximum health, and close-range physical weapons."
+    },
+    {
+      "type": "subheading",
+      "value": "Ranger"
+    },
+    {
+      "type": "text",
+      "value": "7 [[stat/cranks-dungeons:strength|Strength]], 15 [[stat/cranks-dungeons:dexterity|Dexterity]], 7 [[stat/cranks-dungeons:intelligence|Intelligence]]. Starts at [[stat/cranks-dungeons:evasion_rating|Evasion Rating]]. Best fit for bows, fast attacks, critical strikes, and avoiding entity-sourced hits."
+    },
+    {
+      "type": "subheading",
+      "value": "Mercenary"
+    },
+    {
+      "type": "text",
+      "value": "11 [[stat/cranks-dungeons:strength|Strength]], 11 [[stat/cranks-dungeons:dexterity|Dexterity]], 7 [[stat/cranks-dungeons:intelligence|Intelligence]]. Starts at Armour and [[stat/cranks-dungeons:evasion_rating|Evasion Rating]]. A physical hybrid suited to swords, spears, crossbows, and mixed defensive bases."
+    },
+    {
+      "type": "subheading",
+      "value": "Monk"
+    },
+    {
+      "type": "text",
+      "value": "7 [[stat/cranks-dungeons:strength|Strength]], 11 [[stat/cranks-dungeons:dexterity|Dexterity]], 11 [[stat/cranks-dungeons:intelligence|Intelligence]]. Starts at [[stat/cranks-dungeons:energy_shield|Energy Shield]] and [[stat/cranks-dungeons:evasion_rating|Evasion Rating]]. A mobile hybrid that combines avoidance with a rechargeable buffer."
+    },
+    {
+      "type": "subheading",
+      "value": "Witch"
+    },
+    {
+      "type": "text",
+      "value": "7 [[stat/cranks-dungeons:strength|Strength]], 7 [[stat/cranks-dungeons:dexterity|Dexterity]], 15 [[stat/cranks-dungeons:intelligence|Intelligence]]. Starts at [[stat/cranks-dungeons:energy_shield|Energy Shield]]. Best fit for mana, elemental damage, ailments, and [[stat/cranks-dungeons:intelligence|Intelligence]]-aligned defence."
+    },
+    {
+      "type": "subheading",
+      "value": "Death Knight"
+    },
+    {
+      "type": "text",
+      "value": "11 [[stat/cranks-dungeons:strength|Strength]], 7 [[stat/cranks-dungeons:dexterity|Dexterity]], 11 [[stat/cranks-dungeons:intelligence|Intelligence]]. Starts at Armour and [[stat/cranks-dungeons:energy_shield|Energy Shield]]. A durable hybrid for physical pressure, recovery, and layered mitigation."
+    },
+    {
+      "type": "note",
+      "style": "tip",
+      "value": "A class is a starting position, not a locked job. Connected routes can eventually travel toward other archetypes if you invest enough points."
+    },
+    {
+      "type": "heading",
+      "value": "Related articles"
+    },
+    {
+      "type": "text",
+      "value": "[[article/passive_tree|Passive Skill Tree]] | [[article/primary_attributes|Primary Attributes]] | [[article/equipment|Equipment Bases]]"
+    }
   ]
 }

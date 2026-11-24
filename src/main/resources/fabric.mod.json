@@ -40,7 +40,11 @@
 	"custom": {
 		"cardinal-components": [
 			"cranks-dungeons:passive_data",
-			"cranks-dungeons:world_tree_data"
+			"cranks-dungeons:world_tree_data",
+			"cranks-dungeons:item_discoveries",
+			"cranks-dungeons:alchemy_knowledge",
+            "cranks-dungeons:progression",
+            "cranks-dungeons:wallet"
 		]
 	},
 	"depends": {

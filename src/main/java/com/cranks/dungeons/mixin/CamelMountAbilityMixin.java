@@ -12,6 +12,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(CamelEntity.class)
 public abstract class CamelMountAbilityMixin {
+    @Inject(method="jump",at=@At("HEAD"))
+    private void cranks$markDeliberateDash(float strength,Vec3d movementInput,CallbackInfo ci){
+        com.cranks.dungeons.mount.MountLocomotion.beginJump((CamelEntity)(Object)this);
+    }
     @ModifyVariable(method = "jump", at = @At("HEAD"), argsOnly = true, ordinal = 0)
     private float cranks$applyDashPowerGene(float strength) {
         MountData data = ((MountDataProvider) this).cranksdungeons$getMountData();

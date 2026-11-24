@@ -165,9 +165,14 @@ public class EquipmentStatApplier {
      * <p>Called by ItemStatManager whenever stats are added, removed, or rerolled on an item.</p>
      */
     public static void updateItemAttributes(ItemStack stack) {
+        if (EquipmentType.getTypeForItem(stack).isEmpty()) return;
+        stack.set(DataComponentTypes.ATTRIBUTE_MODIFIERS, calculateItemAttributes(stack));
+    }
+
+    public static AttributeModifiersComponent calculateItemAttributes(ItemStack stack) {
         Optional<EquipmentType> equipType = EquipmentType.getTypeForItem(stack);
         if (equipType.isEmpty()) {
-            return;
+            return stack.getOrDefault(DataComponentTypes.ATTRIBUTE_MODIFIERS, AttributeModifiersComponent.DEFAULT);
         }
 
         EquipmentType type = equipType.get();
@@ -182,10 +187,7 @@ public class EquipmentStatApplier {
         int quality = com.cranks.dungeons.block.entity.QualityStationBlockEntity.getQuality(stack);
 
         if (stats.isEmpty() && quality == 0) {
-            if (!originalDefaults.modifiers().isEmpty()) {
-                stack.set(DataComponentTypes.ATTRIBUTE_MODIFIERS, originalDefaults);
-            }
-            return;
+            return originalDefaults;
         }
 
         AttributeModifierSlot slot = getSlotForEquipmentType(type);
@@ -246,8 +248,6 @@ public class EquipmentStatApplier {
                                     id, val, op
                             );
                             builder.add(attribute, modifier, slot);
-                            CranksDungeons.LOGGER.info("[StatBake] Baked percentage stat '{}' attr='{}' val={} op={} slot={}", 
-                                stat.getId(), attribute.value().getTranslationKey(), val, op, slot);
                         } else {
                             flatRuneValues.merge(attribute, val, Double::sum);
                             attributeToStatMap.put(attribute, stat);
@@ -389,7 +389,7 @@ public class EquipmentStatApplier {
             }
         }
 
-        stack.set(DataComponentTypes.ATTRIBUTE_MODIFIERS, builder.build());
+        return builder.build();
     }
 
     private static AttributeModifierSlot getSlotForEquipmentType(EquipmentType type) {

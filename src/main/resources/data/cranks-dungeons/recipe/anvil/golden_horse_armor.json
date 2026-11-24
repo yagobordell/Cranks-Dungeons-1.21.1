@@ -1,0 +1,24 @@
+{
+  "type": "cranks-dungeons:anvil_assembly",
+  "recipe": {
+    "type": "minecraft:crafting_shaped",
+    "category": "equipment",
+    "pattern": [
+      "M M",
+      "MLM",
+      "M M"
+    ],
+    "key": {
+      "M": {
+        "item": "minecraft:gold_ingot"
+      },
+      "L": {
+        "item": "minecraft:leather"
+      }
+    },
+    "result": {
+      "id": "minecraft:golden_horse_armor",
+      "count": 1
+    }
+  }
+}

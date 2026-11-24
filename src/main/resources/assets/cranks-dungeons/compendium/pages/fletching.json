@@ -1,0 +1,33 @@
+{
+  "title": "Fletching Table",
+  "content": [
+    {
+      "type": "item_image",
+      "value": "minecraft:fletching_table"
+    },
+    {
+      "type": "heading",
+      "value": "Ranged equipment and ammunition"
+    },
+    {
+      "type": "text",
+      "value": "The [[article/fletching|Fletching Table]] handles its assigned ranged equipment and supported ammunition recipes. It shares material search, category tabs, Craftable and batch quantities with the other assembly stations."
+    },
+    {
+      "type": "text",
+      "value": "Only supported arrow types are part of the mod system. Ammunition recipes use their assigned components; discovering all required ingredients reveals an ordinary recipe."
+    },
+    {
+      "type": "text",
+      "value": "Read [[article/ranged_weapons|Bows and Crossbows]] for the draw, reload, aim and firing controls. The actual recipe list reflects the crafts you have discovered."
+    },
+    {
+      "type": "heading",
+      "value": "Related articles"
+    },
+    {
+      "type": "text",
+      "value": "[[article/ranged_weapons|Bows and Crossbows]] | [[article/alchemy|Alchemy]] | [[article/damage|Damage & Criticals]]"
+    }
+  ]
+}

@@ -4,9 +4,12 @@ import com.cranks.dungeons.CranksDungeons;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.tag.TagKey;
 import net.minecraft.util.Identifier;
 
 public class ModEnchantments {
+    public static final TagKey<Enchantment> STACKABLE = TagKey.of(
+            RegistryKeys.ENCHANTMENT, Identifier.of(CranksDungeons.MOD_ID, "stackable"));
 
     public static final RegistryKey<Enchantment> VEIN_MINING = RegistryKey.of(
             RegistryKeys.ENCHANTMENT,

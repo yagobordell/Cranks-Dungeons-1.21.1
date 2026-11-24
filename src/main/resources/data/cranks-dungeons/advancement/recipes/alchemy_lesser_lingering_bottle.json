@@ -1,0 +1,57 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_cranks_dungeons_lesser_bottle": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "cranks-dungeons:lesser_bottle"
+            ]
+          }
+        ]
+      }
+    },
+    "has_minecraft_slime_ball": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "minecraft:slime_ball"
+            ]
+          }
+        ]
+      }
+    },
+    "has_cranks_dungeons_amethyst_dust": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "cranks-dungeons:amethyst_dust"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_cranks_dungeons_lesser_bottle"
+    ],
+    [
+      "has_minecraft_slime_ball"
+    ],
+    [
+      "has_cranks_dungeons_amethyst_dust"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "cranks-dungeons:lesser_lingering_bottle"
+    ]
+  }
+}

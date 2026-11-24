@@ -35,9 +35,19 @@ public class ManaRegenMixin {
 
     @Inject(method = "tick", at = @At("HEAD"))
     private void initializeMana(CallbackInfo ci) {
-        if (manaInitialized) return;
-
         PlayerEntity self = (PlayerEntity) (Object) this;
+        if(!self.getWorld().isClient()) {
+            var maximum=self.getAttributeInstance(ModAttributes.MAX_MANA);
+            var id=net.minecraft.util.Identifier.of("cranks-dungeons","legacy_max_mana_bonus");
+            double bonus=self.getAttributeValue(ModAttributes.MAX_MANA_BONUS);
+            var modifier=maximum.getModifier(id);
+            if(modifier==null&&bonus>0||modifier!=null&&modifier.value()!=bonus) {
+                maximum.removeModifier(id);
+                if(bonus>0)maximum.addTemporaryModifier(new net.minecraft.entity.attribute.EntityAttributeModifier(id,bonus,
+                        net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_VALUE));
+            }
+        }
+        if (manaInitialized) return;
         ManaProvider provider = (ManaProvider) self;
         double maxMana = self.getAttributeValue(ModAttributes.MAX_MANA);
 
@@ -80,21 +90,12 @@ public class ManaRegenMixin {
 
         if (currentMana < maxMana) {
             double regenPercent = self.getAttributeValue(ModAttributes.MANA_REGENERATION_PERCENT);
-            float regenPerTick = (float) (maxMana * regenPercent / 20.0f);
             
             double regenRate = self.getAttributeValue(ModAttributes.MANA_REGENERATION_RATE);
             double recoveryRate = self.getAttributeValue(ModAttributes.MANA_RECOVERY_RATE);
             
-            regenPerTick *= (float) (1.0 + regenRate);
-            regenPerTick *= (float) (1.0 + recoveryRate);
-
-            double movingRegen = self.getAttributeValue(ModAttributes.REGENERATION_RATE_WHILE_MOVING_PERCENT);
-            if (movingRegen > 0) {
-                boolean isMoving = Math.abs(self.getX() - self.prevX) > 0.001 || Math.abs(self.getZ() - self.prevZ) > 0.001 || self.getVelocity().horizontalLengthSquared() > 0.0001;
-                if (isMoving) {
-                    regenPerTick *= (float) (1.0 + movingRegen);
-                }
-            }
+            float regenPerTick = (float)(com.cranks.dungeons.stat.CombatStatRules.manaRegeneration(maxMana,
+                    self.getAttributeValue(ModAttributes.MANA_REGENERATION),regenPercent,regenRate,recoveryRate)/20);
             
             float newMana = Math.min(currentMana + regenPerTick, (float) maxMana);
             provider.cranksdungeons$setCurrentMana(newMana);

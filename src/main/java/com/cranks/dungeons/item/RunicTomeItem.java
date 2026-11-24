@@ -28,7 +28,7 @@ public class RunicTomeItem extends Item {
         PERFECT_REGAL("Perfect Regal Tome", Formatting.LIGHT_PURPLE,
                 "Upgrades a Magic item", "to a Rare item, adding 1 rune", 60),
 
-        ALCHEMY("Tome of Alchemy", Formatting.YELLOW, "Upgrades a Normal or Magic item", "to a Rare item with 4 runes", 1),
+        ALCHEMY("Tome of Alchemy", Formatting.YELLOW, "Upgrades a Normal or Magic item", "to a Rare item with up to 4 new runes", 1),
 
         EXALTED("Exalted Tome", Formatting.YELLOW, "Augments a Rare item", "with a new random rune", 1),
         GREATER_EXALTED("Greater Exalted Tome", Formatting.GOLD, "Augments a Rare item", "with a new random rune", 30),
@@ -65,11 +65,14 @@ public class RunicTomeItem extends Item {
         }
 
         public String getDesc1() {
-            return desc1;
+            return switch(this){case CHAOS,GREATER_CHAOS,PERFECT_CHAOS->"Replaces a chosen rune on Rare gear";
+                case ANNULMENT->"Removes a chosen editable rune";case DIVINE->"Rerolls a chosen rune's values";
+                case ALCHEMY->"Reforges editable runes on equipment";default->desc1;};
         }
 
         public String getDesc2() {
-            return desc2;
+            return switch(this){case CHAOS,GREATER_CHAOS,PERFECT_CHAOS,ANNULMENT,DIVINE->"Pay once, compare, then choose a result";
+                case ALCHEMY->"Works on Normal, Magic and Rare gear";default->desc2;};
         }
 
         public int getMinLevel() {
@@ -98,6 +101,8 @@ public class RunicTomeItem extends Item {
     public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
         tooltip.add(Text.literal(tomeType.getDesc1()).formatted(Formatting.GRAY));
         tooltip.add(Text.literal(tomeType.getDesc2()).formatted(Formatting.GRAY));
+        if(tomeType.getMinLevel()>=30)tooltip.add(Text.literal(tomeType.getMinLevel()>=60?"Excludes the two weakest tiers when possible.":"Excludes the weakest tier when possible.").formatted(Formatting.GRAY));
+        tooltip.add(Text.literal("Equipment rune tier caps always apply.").formatted(Formatting.DARK_GRAY));
         super.appendTooltip(stack, context, tooltip, type);
     }
 }

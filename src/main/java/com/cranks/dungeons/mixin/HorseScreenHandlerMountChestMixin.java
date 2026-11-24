@@ -44,7 +44,7 @@ public abstract class HorseScreenHandlerMountChestMixin extends ScreenHandler
     private void cranks$checkMountInventoryAccess(PlayerEntity player,
             CallbackInfoReturnable<Boolean> cir) {
         if (entity instanceof MountDataProvider
-                && !MountManager.canAccessMount(player, entity)) {
+                && !MountManager.canAccessStorage(player, entity)) {
             cir.setReturnValue(false);
         }
     }
@@ -55,7 +55,7 @@ public abstract class HorseScreenHandlerMountChestMixin extends ScreenHandler
                                                Inventory inventory, AbstractHorseEntity entity,
                                                int columns, CallbackInfo ci) {
         if (entity instanceof MountDataProvider && MountKind.of(entity) != MountKind.UNSUPPORTED) {
-            addSlot(new MountChestSlot(entity, 8, 54));
+            addSlot(new com.cranks.dungeons.mount.MountEquipmentSlot(new MountChestSlot(entity, 8, 54), entity, playerInventory.player));
             if (playerInventory.player instanceof ServerPlayerEntity serverPlayer) {
                 MountManager.syncToPlayer(serverPlayer, entity);
                 if (entity instanceof net.minecraft.entity.passive.HorseEntity horse) {
@@ -86,6 +86,7 @@ public abstract class HorseScreenHandlerMountChestMixin extends ScreenHandler
         int chestSlotIndex = slots.size() - 1;
         Slot source = slots.get(index);
         if (!source.hasStack()) return;
+        if (!source.canTakeItems(player)) {cir.setReturnValue(ItemStack.EMPTY);return;}
         ItemStack moving = source.getStack();
         int playerStart = Integer.MAX_VALUE;
         int playerEnd = -1;

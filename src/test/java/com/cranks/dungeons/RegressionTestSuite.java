@@ -1,7 +1,9 @@
 package com.cranks.dungeons;
 
 import com.cranks.dungeons.party.Party;
-import com.cranks.dungeons.util.CombatXpContext;
+import com.cranks.dungeons.client.StatsScrollbarRegression;
+import com.cranks.dungeons.client.compendium.TreeNodeSearchRegression;
+import com.cranks.dungeons.progression.ProgressionRegression;
 import com.cranks.dungeons.util.TreeUnlockPlanner;
 import com.cranks.dungeons.horse.HorseBreedingFocus;
 import com.cranks.dungeons.horse.HorseBreedingManager;
@@ -21,12 +23,32 @@ public final class RegressionTestSuite {
     private RegressionTestSuite() {}
 
     public static void main(String[] args) {
-        combatXpContextRestoresNestedState();
-        combatXpContextRestoresStateAfterFailure();
+        com.cranks.dungeons.client.guide.GuideTargetRegression.run();
+        com.cranks.dungeons.client.guide.GuideWritingRegression.run();
+        com.cranks.dungeons.client.RangedRulesRegression.run();
+        com.cranks.dungeons.client.CombatNumberRegression.run();
+        com.cranks.dungeons.stat.CombatStatRegression.run();
+        com.cranks.dungeons.stat.AilmentRulesRegression.run();
+        com.cranks.dungeons.client.AilmentPresentationRegression.run();
+        com.cranks.dungeons.client.AilmentVfxRegression.run();
+        com.cranks.dungeons.mount.MountMotionRegression.run();
+        com.cranks.dungeons.mount.MountLineageRegression.run();
+        com.cranks.dungeons.mount.MountOrderRegression.run();
+        com.cranks.dungeons.client.MountWhistleWheelRegression.run();
+        com.cranks.dungeons.alchemy.AlchemyRulesRegression.run();
+        ProgressionRegression.run();
+        com.cranks.dungeons.gathering.GatheringRulesRegression.run();
+        com.cranks.dungeons.mount.RidingRulesRegression.run();
+        com.cranks.dungeons.stat.passive.TreeAttributeRulesRegression.run();
+        com.cranks.dungeons.stat.passive.NodeBonusFormatRegression.run();
+        com.cranks.dungeons.equipment.RuneRollRulesRegression.run();
         partyLeadershipTransferKeepsMembershipConsistent();
         partyRejectsInvalidMembers();
         treeDraftPlansSelectionNodesAcrossNewConnections();
         treeDraftRejectsDisconnectedOrUnaffordableChanges();
+        TreeNodeSearchRegression.run();
+        StatsScrollbarRegression.run();
+        com.cranks.dungeons.client.PartyHudLayoutRegression.run();
         horseTrainingMilestonesChangeMobilityCosts();
         hardyTraitImprovesStaminaWithoutChangingOtherCosts();
         horseBreedingFocusParsingIsSafe();
@@ -34,29 +56,6 @@ public final class RegressionTestSuite {
         horseTrainingCurveAndActivityRewardsAreBalanced();
         mountGeneGradesReflectIndividualPotential();
         horsePersonalMutationRecordPersists();
-    }
-
-    private static void combatXpContextRestoresNestedState() {
-        CombatXpContext.setCombatXp(false);
-        CombatXpContext.runAsCombatXp(() -> {
-            require(CombatXpContext.isCombatXp(), "combat XP context was not enabled");
-            CombatXpContext.runAsCombatXp(() ->
-                    require(CombatXpContext.isCombatXp(), "nested combat XP context was not enabled"));
-            require(CombatXpContext.isCombatXp(), "nested context did not restore its parent state");
-        });
-        require(!CombatXpContext.isCombatXp(), "combat XP context leaked after completion");
-    }
-
-    private static void combatXpContextRestoresStateAfterFailure() {
-        CombatXpContext.setCombatXp(false);
-        try {
-            CombatXpContext.runAsCombatXp(() -> {
-                throw new ExpectedFailure();
-            });
-            throw new AssertionError("combat XP action did not propagate its failure");
-        } catch (ExpectedFailure ignored) {
-            require(!CombatXpContext.isCombatXp(), "combat XP context leaked after a failure");
-        }
     }
 
     private static void partyLeadershipTransferKeepsMembershipConsistent() {

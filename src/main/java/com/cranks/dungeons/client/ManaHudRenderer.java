@@ -1,5 +1,6 @@
 package com.cranks.dungeons.client;
 
+import com.cranks.dungeons.client.render.HotbarHudRenderer;
 import com.cranks.dungeons.CranksDungeons;
 import com.cranks.dungeons.CranksDungeonsClient;
 import com.cranks.dungeons.ManaProvider;
@@ -29,6 +30,7 @@ public class ManaHudRenderer implements HudRenderCallback {
     @Override
     public void onHudRender(DrawContext drawContext, RenderTickCounter tickCounter) {
         MinecraftClient client = MinecraftClient.getInstance();
+        if (client.currentScreen instanceof com.cranks.dungeons.client.screen.HudLayoutEditScreen) return;
         if (client.player == null) return;
         if (client.options.hudHidden || !client.player.isAlive() || CranksDungeonsClient.isCinematicRespawnActive()) return;
         if (CranksDungeons.CONFIG.useStatBars()) return;
@@ -69,7 +71,7 @@ public class ManaHudRenderer implements HudRenderCallback {
         LivingEntity vehicle = player.getVehicle() instanceof LivingEntity living ? living : null;
         int vehicleRows = HorseMountHudLayout.visibleHeartRows(vehicle);
 
-        int hungerBaseY = screenHeight - 39;
+        int hungerBaseY = screenHeight - 39 - HotbarHudRenderer.DEFAULT_LIFT;
         int manaBaseY = vehicleRows > 0 ? (hungerBaseY - (vehicleRows - 1) * 10 - 10) : (hungerBaseY - 10);
         int right = screenWidth / 2 + 91;
 

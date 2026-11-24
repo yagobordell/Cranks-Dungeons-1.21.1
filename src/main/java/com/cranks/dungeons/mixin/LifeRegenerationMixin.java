@@ -26,41 +26,22 @@ public class LifeRegenerationMixin {
         double flatLifeRegen = entity.getAttributeValue(ModAttributes.LIFE_REGENERATION);
         double percentLifeRegen = entity.getAttributeValue(ModAttributes.MAX_HEALTH_REGENERATION_PERCENT);
         
-        double lifeRegen = flatLifeRegen + (entity.getMaxHealth() * percentLifeRegen);
 
         double movingRegenBonus = entity.getAttributeValue(ModAttributes.REGENERATION_RATE_WHILE_MOVING_PERCENT);
-        if (movingRegenBonus > 0) {
-            boolean isMoving = Math.abs(entity.getX() - entity.prevX) > 0.001 || Math.abs(entity.getZ() - entity.prevZ) > 0.001 || entity.getVelocity().horizontalLengthSquared() > 0.0001;
-            if (isMoving) {
-                lifeRegen *= (1.0 + movingRegenBonus);
-            }
-        }
+        boolean moving = entity.getVelocity().horizontalLengthSquared() > 0.0001
+                || Math.abs(entity.getX() - entity.prevX) > 0.001 || Math.abs(entity.getZ() - entity.prevZ) > 0.001;
+        double lifeRegen = com.cranks.dungeons.stat.CombatStatRules.healthRegeneration(entity.getMaxHealth(),
+                flatLifeRegen, percentLifeRegen, moving ? movingRegenBonus : 0);
         
         if (lifeRegen > 0) {
             float healAmount = (float) (lifeRegen / 20.0);
 
             // Zealot's Oath applies Life Regeneration to Energy Shield instead
             if (entity.getAttributeValue(ModAttributes.KEYSTONE_ZEALOTS_OATH) > 0) {
-                if (entity instanceof com.cranks.dungeons.EnergyShieldProvider provider) {
-                    float currentES = provider.cranksdungeons$getCurrentEnergyShield();
-                    float maxES = (float) entity.getAttributeValue(ModAttributes.ENERGY_SHIELD);
-                    if (currentES < maxES) {
-                        float newES = Math.min(maxES, currentES + healAmount);
-                        provider.cranksdungeons$setCurrentEnergyShield(newES);
-                        if (entity instanceof net.minecraft.server.network.ServerPlayerEntity player && player.networkHandler != null) {
-                            net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(player,
-                                    new com.cranks.dungeons.network.EnergyShieldSyncPacket(newES, maxES));
-                        }
-                    }
-                }
+                com.cranks.dungeons.util.LeechManager.addShield(entity, healAmount);
             } else {
                 if (entity.getHealth() < entity.getMaxHealth()) {
-                    entity.heal(healAmount);
-                    if (entity.age % 20 == 0) {
-                        if (entity.getWorld() instanceof net.minecraft.server.world.ServerWorld serverWorld) {
-                            com.cranks.dungeons.network.DamageNumberSender.broadcastHeal(serverWorld, entity, lifeRegen);
-                        }
-                    }
+                    com.cranks.dungeons.damage.HealingNumberContext.gradual(() -> entity.heal(healAmount));
                 }
             }
         }

@@ -37,11 +37,14 @@ public final class HorseGeneticsData {
     public HorseTrait trait = HorseTrait.NONE;
     public HorseBreedingFocus breedingFocus = HorseBreedingFocus.NONE;
     public MountAccessMode accessMode = MountAccessMode.OWNER_ONLY;
+    public MountAccessMode storageAccessMode = MountAccessMode.OWNER_ONLY;
     public UUID sireId;
     public UUID damId;
     public String sireName = "Wild";
     public String damName = "Wild";
     public final Set<UUID> ancestry = new LinkedHashSet<>();
+    public final java.util.Map<UUID,Integer> ancestryDepths=new java.util.LinkedHashMap<>();
+    public MountAccessMode breedingAccessMode=MountAccessMode.OWNER_ONLY;
     public UUID imprintOwnerId;
     public String imprintOwnerName = "None";
     public float imprintProgress;
@@ -62,11 +65,15 @@ public final class HorseGeneticsData {
     public boolean exhausted;
     public boolean gallopRequested;
     public boolean galloping;
+    public UUID abilityRider;
     public boolean onRoad;
     public int staminaRegenDelay;
     public UUID activeImprintRider;
     public boolean trackingLongJump;
     public double longJumpDistance;
+    public int jumpIntentUntil=-1;
+    public UUID jumpRider;
+    public boolean lastObservedLove;
 
     public NbtCompound toNbt() {
         NbtCompound nbt = new NbtCompound();
@@ -99,6 +106,9 @@ public final class HorseGeneticsData {
         nbt.putString("Trait", trait.name());
         nbt.putString("BreedingFocus", breedingFocus.name());
         nbt.putString("MountAccess", accessMode.name());
+        nbt.putString("StorageAccess", storageAccessMode.name());
+        nbt.putString("BreedingAccess",breedingAccessMode.name());
+        com.cranks.dungeons.mount.MountLineage.write(nbt,ancestryDepths);
         putUuid(nbt, "SireId", sireId);
         putUuid(nbt, "DamId", damId);
         nbt.putString("SireName", sireName);
@@ -145,6 +155,9 @@ public final class HorseGeneticsData {
         trait = HorseTrait.fromId(nbt.getString("Trait"));
         breedingFocus = HorseBreedingFocus.fromId(nbt.getString("BreedingFocus"));
         accessMode = MountAccessMode.fromId(nbt.getString("MountAccess"));
+        storageAccessMode = MountAccessMode.fromId(nbt.getString("StorageAccess"));
+        breedingAccessMode=MountAccessMode.fromId(nbt.getString("BreedingAccess"));
+        com.cranks.dungeons.mount.MountLineage.read(nbt,ancestryDepths);
         sireId = getUuid(nbt, "SireId");
         damId = getUuid(nbt, "DamId");
         sireName = getStringOr(nbt, "SireName", "Wild");

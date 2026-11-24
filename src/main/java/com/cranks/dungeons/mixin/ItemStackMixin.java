@@ -3,7 +3,6 @@ package com.cranks.dungeons.mixin;
 import com.cranks.dungeons.item.CustomRarity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.text.MutableText;
-import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import org.spongepowered.asm.mixin.Mixin;
@@ -14,14 +13,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(ItemStack.class)
 public class ItemStackMixin {
-
-    @Inject(
-            method = "getName",
-            at = @At("HEAD")
-    )
-    private void dungeons$globalEnchantmentFilter(CallbackInfoReturnable<Text> cir) {
-        com.cranks.dungeons.util.EnchantmentFilterUtil.filterStack((ItemStack) (Object) this);
-    }
 
     @Inject(
             method = "getName",
@@ -38,8 +29,7 @@ public class ItemStackMixin {
 
         Text original = cir.getReturnValue();
 
-        MutableText coloredName = Text.literal(original.getString())
-                .setStyle(Style.EMPTY.withColor(rarity.getColor()));
+        MutableText coloredName = original.copy().formatted(rarity.getColor());
 
         cir.setReturnValue(coloredName);
     }

@@ -54,7 +54,7 @@ public class ModAttributes {
 
     // Percentual damage (stored as item stats, not used as attributes directly)
     public static final RegistryEntry<EntityAttribute> PHYSICAL_DAMAGE_PERCENT = register("physical_damage_percent", 0.0,
-            0.0, 10.0);
+            -1.0, 10.0);
     public static final RegistryEntry<EntityAttribute> FIRE_DAMAGE_PERCENT = register("fire_damage_percent", 0.0, 0.0,
             10.0);
     public static final RegistryEntry<EntityAttribute> COLD_DAMAGE_PERCENT = register("cold_damage_percent", 0.0, 0.0,
@@ -239,7 +239,7 @@ public class ModAttributes {
             0.0, 10.0);
 
     public static final RegistryEntry<EntityAttribute> FLYING_SPEED = register("flying_speed", 0.0, 0.0, 10.0);
-    public static final RegistryEntry<EntityAttribute> ITEM_RARITY_PERCENT = register("item_rarity_percent", 0.0, 0.0, 1000.0);
+    public static final RegistryEntry<EntityAttribute> ITEM_RARITY_PERCENT = register("item_rarity_percent", 0.0, -1.0, 3.0);
     public static final RegistryEntry<EntityAttribute> CROP_FORTUNE = register("crop_fortune", 0.0, 0.0, 1.0);
     public static final RegistryEntry<EntityAttribute> LOG_FORTUNE = register("log_fortune", 0.0, 0.0, 1.0);
     public static final RegistryEntry<EntityAttribute> DIG_FORTUNE = register("dig_fortune", 0.0, 0.0, 1.0);
@@ -251,28 +251,43 @@ public class ModAttributes {
     public static final RegistryEntry<EntityAttribute> MANA_REGENERATION_RATE = register("mana_regeneration_rate", 0.0, 0.0, 10.0);
     public static final RegistryEntry<EntityAttribute> MANA_RECOVERY_RATE = register("mana_recovery_rate", 0.0, 0.0, 10.0);
 
+    public static final RegistryEntry<EntityAttribute> DIGGING_SPEED_PERCENT = register("digging_speed_percent",0,0,3);
+    public static final RegistryEntry<EntityAttribute> DIG_YIELD = register("dig_yield",0,0,3);
+    public static final RegistryEntry<EntityAttribute> CROP_REPLANT_CHANCE = register("crop_replant_chance",0,0,1);
+    public static final RegistryEntry<EntityAttribute> WORLD_DISCOVERY_EXPERIENCE = register("world_discovery_experience",0,0,.5);
+    public static final RegistryEntry<EntityAttribute> SWIMMING_SPEED_PERCENT = register("swimming_speed_percent",0,0,.5);
+    public static final RegistryEntry<EntityAttribute> BREATH_EFFICIENCY = register("breath_efficiency",0,0,.75);
+    public static final RegistryEntry<EntityAttribute> TRAVEL_EFFICIENCY = register("travel_efficiency",0,0,.5);
+
+    // Rider bonuses are tunable by tree authors; only physical limits (zero speed/cost) apply.
+    public static final RegistryEntry<EntityAttribute> RIDING_SPEED = register("riding_speed",0,-1,Double.MAX_VALUE);
+    public static final RegistryEntry<EntityAttribute> MOUNT_ENDURANCE = register("mount_endurance",0,-Double.MAX_VALUE,1);
+    public static final RegistryEntry<EntityAttribute> MOUNT_RECOVERY = register("mount_recovery",0,-1,Double.MAX_VALUE);
+    public static final RegistryEntry<EntityAttribute> RIDING_AGILITY = register("riding_agility",0,-1,Double.MAX_VALUE);
+    public static final RegistryEntry<EntityAttribute> SURE_FOOTING = register("sure_footing",0,-Double.MAX_VALUE,1);
+
     // World Tree / Gathering stats
     // Woodcutting
-    public static final RegistryEntry<EntityAttribute> LOG_YIELD = register("log_yield", 0.0, 0.0, 1000.0);
-    public static final RegistryEntry<EntityAttribute> SAPLING_YIELD = register("sapling_yield", 0.0, 0.0, 1000.0);
-    public static final RegistryEntry<EntityAttribute> WOODCUTTING_SPEED_PERCENT = register("woodcutting_speed_percent", 0.0, 0.0, 1000.0);
+    public static final RegistryEntry<EntityAttribute> LOG_YIELD = register("log_yield", 0.0, 0.0, 3.0);
+    public static final RegistryEntry<EntityAttribute> SAPLING_YIELD = register("sapling_yield", 0.0, 0.0, 3.0);
+    public static final RegistryEntry<EntityAttribute> WOODCUTTING_SPEED_PERCENT = register("woodcutting_speed_percent", 0.0, 0.0, 3.0);
 
     // Mining
-    public static final RegistryEntry<EntityAttribute> ORE_YIELD = register("ore_yield", 0.0, 0.0, 1000.0);
-    public static final RegistryEntry<EntityAttribute> GEM_YIELD = register("gem_yield", 0.0, 0.0, 1000.0);
-    public static final RegistryEntry<EntityAttribute> MINING_SPEED_PERCENT = register("mining_speed_percent", 0.0, 0.0, 1000.0);
-    public static final RegistryEntry<EntityAttribute> FLINT_YIELD = register("flint_yield", 0.0, 0.0, 1000.0);
+    public static final RegistryEntry<EntityAttribute> ORE_YIELD = register("ore_yield", 0.0, 0.0, 3.0);
+    public static final RegistryEntry<EntityAttribute> GEM_YIELD = register("gem_yield", 0.0, 0.0, 3.0);
+    public static final RegistryEntry<EntityAttribute> MINING_SPEED_PERCENT = register("mining_speed_percent", 0.0, 0.0, 3.0);
+    public static final RegistryEntry<EntityAttribute> FLINT_YIELD = register("flint_yield", 0.0, 0.0, 3.0);
 
     // Farming
-    public static final RegistryEntry<EntityAttribute> CROP_YIELD = register("crop_yield", 0.0, 0.0, 1000.0);
-    public static final RegistryEntry<EntityAttribute> SEED_YIELD = register("seed_yield", 0.0, 0.0, 1000.0);
-    public static final RegistryEntry<EntityAttribute> FARMING_SPEED_PERCENT = register("farming_speed_percent", 0.0, 0.0, 1000.0);
+    public static final RegistryEntry<EntityAttribute> CROP_YIELD = register("crop_yield", 0.0, 0.0, 3.0);
+    public static final RegistryEntry<EntityAttribute> SEED_YIELD = register("seed_yield", 0.0, 0.0, 3.0);
+    public static final RegistryEntry<EntityAttribute> FARMING_SPEED_PERCENT = register("farming_speed_percent", 0.0, 0.0, 3.0);
 
     // Mob Drops
-    public static final RegistryEntry<EntityAttribute> MONSTER_DROP_YIELD = register("monster_drop_yield", 0.0, 0.0, 1000.0);
-    public static final RegistryEntry<EntityAttribute> ANIMAL_DROP_YIELD = register("animal_drop_yield", 0.0, 0.0, 1000.0);
-    public static final RegistryEntry<EntityAttribute> MEAT_YIELD = register("meat_yield", 0.0, 0.0, 1000.0);
-    public static final RegistryEntry<EntityAttribute> RARE_MOB_DROP_CHANCE = register("rare_mob_drop_chance", 0.0, 0.0, 1000.0);
+    public static final RegistryEntry<EntityAttribute> MONSTER_DROP_YIELD = register("monster_drop_yield", 0.0, 0.0, 3.0);
+    public static final RegistryEntry<EntityAttribute> ANIMAL_DROP_YIELD = register("animal_drop_yield", 0.0, 0.0, 3.0);
+    public static final RegistryEntry<EntityAttribute> MEAT_YIELD = register("meat_yield", 0.0, 0.0, 3.0);
+    public static final RegistryEntry<EntityAttribute> RARE_MOB_DROP_CHANCE = register("rare_mob_drop_chance", 0.0, 0.0, 3.0);
 
     // Experience
     public static final RegistryEntry<EntityAttribute> MINING_EXPERIENCE = register("mining_experience", 0.0, 0.0, 1000.0);
@@ -281,12 +296,12 @@ public class ModAttributes {
     public static final RegistryEntry<EntityAttribute> FISHING_EXPERIENCE = register("fishing_experience", 0.0, 0.0, 1000.0);
 
     // Dimensions
-    public static final RegistryEntry<EntityAttribute> ORE_YIELD_IN_NETHER = register("ore_yield_in_nether", 0.0, 0.0, 1000.0);
-    public static final RegistryEntry<EntityAttribute> RARE_MOB_DROP_CHANCE_IN_NETHER = register("rare_mob_drop_chance_in_nether", 0.0, 0.0, 1000.0);
-    public static final RegistryEntry<EntityAttribute> ORE_YIELD_IN_OVERWORLD = register("ore_yield_in_overworld", 0.0, 0.0, 1000.0);
-    public static final RegistryEntry<EntityAttribute> ITEM_RARITY_IN_OVERWORLD = register("item_rarity_in_overworld", 0.0, 0.0, 1000.0);
-    public static final RegistryEntry<EntityAttribute> ITEM_RARITY_IN_NETHER = register("item_rarity_in_nether", 0.0, 0.0, 1000.0);
-    public static final RegistryEntry<EntityAttribute> ITEM_RARITY_IN_END = register("item_rarity_in_end", 0.0, 0.0, 1000.0);
+    public static final RegistryEntry<EntityAttribute> ORE_YIELD_IN_NETHER = register("ore_yield_in_nether", 0.0, 0.0, 3.0);
+    public static final RegistryEntry<EntityAttribute> RARE_MOB_DROP_CHANCE_IN_NETHER = register("rare_mob_drop_chance_in_nether", 0.0, 0.0, 3.0);
+    public static final RegistryEntry<EntityAttribute> ORE_YIELD_IN_OVERWORLD = register("ore_yield_in_overworld", 0.0, 0.0, 3.0);
+    public static final RegistryEntry<EntityAttribute> ITEM_RARITY_IN_OVERWORLD = register("item_rarity_in_overworld", 0.0, 0.0, 3.0);
+    public static final RegistryEntry<EntityAttribute> ITEM_RARITY_IN_NETHER = register("item_rarity_in_nether", 0.0, 0.0, 3.0);
+    public static final RegistryEntry<EntityAttribute> ITEM_RARITY_IN_END = register("item_rarity_in_end", 0.0, 0.0, 3.0);
     public static final RegistryEntry<EntityAttribute> FEATHER_FALLING = register("feather_falling", 0.0, 0.0, 0.75);
 
     public static void registerAttributes() {

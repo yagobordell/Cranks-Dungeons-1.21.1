@@ -1,6 +1,8 @@
 # gradle
 
 .gradle/
+.gradle-user/
+.cleanup-backups/
 build/
 out/
 classes/
@@ -31,6 +33,11 @@ bin/
 # fabric
 
 run/
+/logs/
+/src/main/generated/.cache/
+
+# local texture inspection previews
+/.vanilla-stats-preview*/
 
 # java
 

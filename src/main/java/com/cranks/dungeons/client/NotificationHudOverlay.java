@@ -1,5 +1,6 @@
 package com.cranks.dungeons.client;
 
+import com.cranks.dungeons.client.render.HudStyle;
 import com.cranks.dungeons.component.ModComponents;
 import com.cranks.dungeons.component.PassiveDataComponent;
 import com.cranks.dungeons.component.WorldTreeDataComponent;
@@ -30,6 +31,21 @@ public class NotificationHudOverlay implements HudRenderCallback {
     }
 
     private static final List<TimedNotification> notifications = new ArrayList<>();
+    private static TimedNotification coinNotification;
+    private static long coinTotal;
+
+    public static void addCoinGain(long coins) {
+        if (coins <= 0) return;
+        coinTotal += Math.min(coins, Long.MAX_VALUE - coinTotal);
+        Text message = Text.literal("+" + String.format(java.util.Locale.ROOT, "%,d", coinTotal) + " coins");
+        if (coinNotification == null) {
+            coinNotification = new TimedNotification(message, 50);
+            notifications.add(coinNotification);
+        } else {
+            coinNotification.message = message;
+            coinNotification.ticksRemaining = 50;
+        }
+    }
 
     public static void addNotification(Text message, int durationTicks) {
         for (TimedNotification n : notifications) {
@@ -43,6 +59,8 @@ public class NotificationHudOverlay implements HudRenderCallback {
 
     public static void clearNotifications() {
         notifications.clear();
+        coinNotification = null;
+        coinTotal = 0;
     }
 
     public static void tick() {
@@ -52,6 +70,10 @@ public class NotificationHudOverlay implements HudRenderCallback {
             n.ticksRemaining--;
             if (n.ticksRemaining <= 0) {
                 iterator.remove();
+                if (n == coinNotification) {
+                    coinNotification = null;
+                    coinTotal = 0;
+                }
             }
         }
     }
@@ -63,6 +85,7 @@ public class NotificationHudOverlay implements HudRenderCallback {
     @Override
     public void onHudRender(DrawContext drawContext, RenderTickCounter tickCounter) {
         MinecraftClient client = MinecraftClient.getInstance();
+        if(client.currentScreen instanceof com.cranks.dungeons.client.screen.HudLayoutEditScreen)return;
         PlayerEntity player = client.player;
         if (player == null || client.options.hudHidden || !player.isAlive() || com.cranks.dungeons.CranksDungeonsClient.isCinematicRespawnActive()) return;
 
@@ -93,15 +116,15 @@ public class NotificationHudOverlay implements HudRenderCallback {
         float pulse = (float) ((Math.sin(Util.getMeasuringTimeMs() / 250.0) + 1.0) / 2.0);
         int alpha = (int) (120 + (pulse * 135));
         int alphaMask = alpha << 24;
+        int plateHeight = textRenderer.fontHeight + 6;
 
         for (int i = linesToDraw.size() - 1; i >= 0; i--) {
             Text line = linesToDraw.get(i);
             int textWidth = textRenderer.getWidth(line);
             int x = (screenWidth - textWidth) / 2;
-            
+            HudStyle.plate(drawContext, x - 4, yOffset - 4, textWidth + 8, plateHeight, false);
             drawContext.drawTextWithShadow(textRenderer, line, x, yOffset, 0xFFFFFF | alphaMask);
-            
-            yOffset -= 12;
+            yOffset -= plateHeight + 1;
         }
     }
 }

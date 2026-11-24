@@ -1,0 +1,53 @@
+{
+  "title": "Crafting Table",
+  "content": [
+    {
+      "type": "item_image",
+      "value": "minecraft:crafting_table"
+    },
+    {
+      "type": "heading",
+      "value": "Material-based crafting"
+    },
+    {
+      "type": "text",
+      "value": "The table offers supported crafting recipes up to the vanilla 3 x 3 size, including [[article/hand_crafting|Hand Crafting]] recipes. Select a recipe instead of arranging ingredients in a shaped grid."
+    },
+    {
+      "type": "text",
+      "value": "Materials are drawn from the hotbar, regular inventory and unlocked bag storage. Type a batch quantity and check the total output before crafting."
+    },
+    {
+      "type": "heading",
+      "value": "Recipe visibility"
+    },
+    {
+      "type": "text",
+      "value": "Every required ingredient must have a discovered alternative before the recipe appears. Craftable checks what you have now; discovery remembers what you have obtained before. Recipe discovery is individual to each player."
+    },
+    {
+      "type": "heading",
+      "value": "Specialized stations"
+    },
+    {
+      "type": "text",
+      "value": "Building parts are made at the [[article/cutting_bench|Cutting Bench]]. Advanced equipment belongs to the [[article/anvil|Anvil]], ranged equipment and arrows to the [[article/fletching|Fletching Table]], and textile work to the [[article/tailoring|Tailoring Bench]]. The table keeps ordinary assembly and its supported recycling operations."
+    },
+    {
+      "type": "heading",
+      "value": "Recycling"
+    },
+    {
+      "type": "text",
+      "value": "Non-meltable equipment can be recycled through its supported table operation. Metal salvage belongs to the [[article/foundry|Foundry]]. Destructive operations show their result and any confirmation required by the current station."
+    },
+    {
+      "type": "heading",
+      "value": "Related articles"
+    },
+    {
+      "type": "text",
+      "value": "[[article/cutting_bench|Cutting Bench]] | [[article/anvil|Anvil]] | [[article/tailoring|Tailoring Bench]]"
+    }
+  ]
+}

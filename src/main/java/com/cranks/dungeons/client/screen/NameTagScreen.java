@@ -1,256 +1,117 @@
 package com.cranks.dungeons.client.screen;
 
-import com.cranks.dungeons.client.GuiTextureResolver;
+import com.cranks.dungeons.client.InventoryStyle;
+import com.cranks.dungeons.client.compendium.CompendiumButtonWidget;
+import com.cranks.dungeons.client.compendium.CompendiumStyle;
 import com.cranks.dungeons.name.NameTagManager;
 import com.cranks.dungeons.network.ApplyNameTagPayload;
+import com.cranks.dungeons.network.OpenNameTagScreenPayload;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.widget.ClickableWidget;
-import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
 import org.lwjgl.glfw.GLFW;
+import java.util.UUID;
 
-/** Vanilla-style name entry screen opened before a name tag is consumed. */
+/** Shared journal-style naming surface, with a server-issued one-use tame invitation. */
 public final class NameTagScreen extends Screen {
-    private static final String NAME_PLACEHOLDER = "Enter a name";
-    private static final int PANEL_WIDTH = 240;
-    private static final int PANEL_HEIGHT = 108;
-    private static final int FIELD_WIDTH = 200;
-    private static final int FIELD_HEIGHT = 20;
-    private static final int BUTTON_WIDTH = 90;
-    private static final int BUTTON_HEIGHT = 20;
-
+    private static final int PANEL_WIDTH=300, PANEL_HEIGHT=168;
     private final int entityId;
     private final String initialName;
     private final boolean offHand;
+    private final UUID token;
+    private final long deadline=System.nanoTime()+300_000_000_000L;
+    // Declare the base widget type so InvMove recognizes focused text entry.
+    private TextFieldWidget nameField;
+    private CompendiumButtonWidget confirmButton;
+    private boolean replied;
 
-    private NameTagTextField nameField;
-    private NameTagButton confirmButton;
-    private Identifier panelTexture;
-    private Identifier fieldTexture;
-    private Identifier fieldHighlightedTexture;
-    private Identifier buttonTexture;
-    private Identifier buttonHighlightedTexture;
-    private Identifier buttonDisabledTexture;
-
-    public NameTagScreen(int entityId, String initialName, boolean offHand) {
-        super(Text.literal("Name Tag"));
-        this.entityId = entityId;
-        this.initialName = initialName == null ? "" : initialName;
-        this.offHand = offHand;
+    public NameTagScreen(int entityId,String initialName,boolean offHand){
+        this(entityId,initialName,offHand,OpenNameTagScreenPayload.PAID);
     }
-
-    @Override
-    public void renderBackground(DrawContext context, int mouseX, int mouseY, float delta) {
-        // render() draws the blurred world once before the panel. Screen.render()
-        // calls this hook again while rendering widgets, so keep that second pass empty.
+    public NameTagScreen(int entityId,String initialName,boolean offHand,UUID token){
+        super(Text.literal(OpenNameTagScreenPayload.PAID.equals(token)?"Name Tag":"Name your companion"));
+        this.entityId=entityId;this.initialName=initialName==null?"":initialName;this.offHand=offHand;this.token=token;
     }
-
-    @Override
-    protected void init() {
-        super.init();
-
-        panelTexture = GuiTextureResolver.customOrVanilla(
-                "name_tag/background", Identifier.ofVanilla("popup/background"));
-        fieldTexture = GuiTextureResolver.customOrVanilla(
-                "name_tag/text_field", Identifier.ofVanilla("widget/text_field"));
-        fieldHighlightedTexture = GuiTextureResolver.customOrVanilla(
-                "name_tag/text_field_highlighted", Identifier.ofVanilla("widget/text_field_highlighted"));
-        buttonTexture = GuiTextureResolver.customOrVanilla(
-                "name_tag/button", Identifier.ofVanilla("widget/button"));
-        buttonHighlightedTexture = GuiTextureResolver.customOrVanilla(
-                "name_tag/button_highlighted", Identifier.ofVanilla("widget/button_highlighted"));
-        buttonDisabledTexture = GuiTextureResolver.customOrVanilla(
-                "name_tag/button_disabled", Identifier.ofVanilla("widget/button_disabled"));
-
-        int panelX = (width - PANEL_WIDTH) / 2;
-        int panelY = (height - PANEL_HEIGHT) / 2;
-        int fieldX = panelX + (PANEL_WIDTH - FIELD_WIDTH) / 2;
-
-        nameField = new NameTagTextField(textRenderer, fieldX, panelY + 34,
-                FIELD_WIDTH, FIELD_HEIGHT, Text.literal("Name"),
-                fieldTexture, fieldHighlightedTexture);
+    private boolean free(){return !OpenNameTagScreenPayload.PAID.equals(token);}
+    @Override public boolean shouldPause(){return false;}
+    @Override public void renderBackground(DrawContext context,int mx,int my,float delta){}
+    @Override protected void init(){
+        int left=(width-PANEL_WIDTH)/2,top=(height-PANEL_HEIGHT)/2;
+        String value=nameField==null?initialName:nameField.getText();
+        nameField=new NamingField(textRenderer,left+16,top+70,PANEL_WIDTH-32,22);
         nameField.setMaxLength(NameTagManager.MAX_NAME_LENGTH);
-        nameField.setPlaceholder(Text.literal(NAME_PLACEHOLDER));
-        nameField.setTextPredicate(value -> value != null
-                && (value.isEmpty() || isAllowedText(value)));
-        nameField.setChangedListener(ignored -> updateConfirmState());
-        nameField.setText(initialName);
+        nameField.setPlaceholder(Text.literal("Enter a name"));
+        nameField.setTextPredicate(text->text!=null&&text.codePoints().noneMatch(Character::isISOControl));
+        nameField.setChangedListener(ignored->updateConfirmState());
+        nameField.setText(value);
         addDrawableChild(nameField);
-
-        int buttonY = panelY + 76;
-        int cancelX = panelX + 24;
-        int confirmX = panelX + PANEL_WIDTH - 24 - BUTTON_WIDTH;
-        addDrawableChild(new NameTagButton(cancelX, buttonY, BUTTON_WIDTH, BUTTON_HEIGHT,
-                Text.literal("Cancel"), this::close,
-                buttonTexture, buttonHighlightedTexture, buttonDisabledTexture));
-        confirmButton = addDrawableChild(new NameTagButton(confirmX, buttonY,
-                BUTTON_WIDTH, BUTTON_HEIGHT, Text.literal("Confirm"), this::confirm,
-                buttonTexture, buttonHighlightedTexture, buttonDisabledTexture));
-        updateConfirmState();
-
-        nameField.setCursorToEnd(false);
+        addDrawableChild(new CompendiumButtonWidget(left+16,top+130,128,22,
+                Text.literal(free()?"Skip":"Cancel"),button->close()));
+        confirmButton=addDrawableChild(new CompendiumButtonWidget(left+156,top+130,128,22,
+                Text.literal("Confirm"),button->confirm()));
+        updateConfirmState();nameField.setCursorToEnd(false);
     }
-
-    @Override
-    protected void setInitialFocus() {
-        if (nameField != null) {
-            // Screen calls this after init() returns. Set the parent and widget
-            // focus together so keyboard input reaches the field immediately.
-            setFocused(nameField);
-        } else {
-            super.setInitialFocus();
+    @Override protected void setInitialFocus(){if(nameField!=null)setFocused(nameField);else super.setInitialFocus();}
+    @Override public void tick(){
+        if(client.player==null||!client.player.isAlive()){close();return;}
+        if(free()){
+            var animal=client.world==null?null:client.world.getEntityById(entityId);
+            if(System.nanoTime()>deadline||animal==null||!animal.isAlive()||client.player.squaredDistanceTo(animal)>256)close();
         }
     }
-
-    @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        super.renderBackground(context, mouseX, mouseY, delta);
-
-        int panelX = (width - PANEL_WIDTH) / 2;
-        int panelY = (height - PANEL_HEIGHT) / 2;
-        context.drawGuiTexture(panelTexture, panelX, panelY, PANEL_WIDTH, PANEL_HEIGHT);
-        context.drawCenteredTextWithShadow(textRenderer, title,
-                width / 2, panelY + 10, 0xFFFFFFFF);
-        context.drawTextWithShadow(textRenderer, Text.literal("Enter a name"),
-                panelX + 20, panelY + 24, 0xFF404040);
-
-        super.render(context, mouseX, mouseY, delta);
+    @Override public void render(DrawContext context,int mx,int my,float delta){
+        int left=(width-PANEL_WIDTH)/2,top=(height-PANEL_HEIGHT)/2;
+        context.fill(0,0,width,height,0x99000000);
+        CompendiumStyle.drawPanel(context,left,top,PANEL_WIDTH,PANEL_HEIGHT);
+        context.drawCenteredTextWithShadow(textRenderer,title,width/2,top+14,CompendiumStyle.TEXT);
+        InventoryStyle.drawDivider(context,left+16,left+PANEL_WIDTH-16,top+31);
+        var animal=client.world==null?null:client.world.getEntityById(entityId);
+        if(animal!=null)context.drawCenteredTextWithShadow(textRenderer,
+                textRenderer.trimToWidth(animal.getType().getName().getString(),PANEL_WIDTH-32),width/2,top+43,CompendiumStyle.TEXT_MUTED);
+        context.drawText(textRenderer,"Name",left+16,top+58,CompendiumStyle.TEXT,false);
+        String count=nameField.getText().length()+" / "+NameTagManager.MAX_NAME_LENGTH;
+        context.drawText(textRenderer,count,left+PANEL_WIDTH-16-textRenderer.getWidth(count),top+58,CompendiumStyle.TEXT_MUTED,false);
+        String hint=free()?"First name · no name tag needed":client.player!=null&&client.player.isCreative()?"Creative naming":"Uses one name tag when confirmed";
+        context.drawCenteredTextWithShadow(textRenderer,Text.literal(hint),width/2,top+104,CompendiumStyle.TEXT_MUTED);
+        if(free())context.drawCenteredTextWithShadow(textRenderer,Text.literal("Naming later will need a name tag"),width/2,top+116,CompendiumStyle.TEXT_DISABLED);
+        super.render(context,mx,my,delta);
     }
-
-    @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if ((keyCode == GLFW.GLFW_KEY_ENTER || keyCode == GLFW.GLFW_KEY_KP_ENTER)
-                && confirmButton != null && confirmButton.active) {
-            confirm();
-            return true;
-        }
-        return super.keyPressed(keyCode, scanCode, modifiers);
+    @Override public boolean keyPressed(int key,int scan,int modifiers){
+        if((key==GLFW.GLFW_KEY_ENTER||key==GLFW.GLFW_KEY_KP_ENTER)&&confirmButton!=null&&confirmButton.active){confirm();return true;}
+        return super.keyPressed(key,scan,modifiers);
     }
-
-    private void updateConfirmState() {
-        if (confirmButton != null) confirmButton.active = isAllowedText(nameField.getText());
-    }
-
-    private void confirm() {
-        if (nameField == null || !isAllowedText(nameField.getText())) return;
-        if (ClientPlayNetworking.canSend(ApplyNameTagPayload.ID)) {
-            ClientPlayNetworking.send(new ApplyNameTagPayload(
-                    entityId, nameField.getText().strip(), offHand));
+    private void updateConfirmState(){if(confirmButton!=null)confirmButton.active=!nameField.getText().strip().isEmpty();}
+    private void confirm(){
+        if(replied||nameField==null||nameField.getText().strip().isEmpty())return;
+        if(ClientPlayNetworking.canSend(ApplyNameTagPayload.ID)){
+            replied=true;ClientPlayNetworking.send(new ApplyNameTagPayload(entityId,nameField.getText().strip(),offHand,token));
         }
         close();
     }
-
-    private static boolean isAllowedText(String value) {
-        if (value == null) return false;
-        String trimmed = value.strip();
-        return !trimmed.isEmpty()
-                && trimmed.length() <= NameTagManager.MAX_NAME_LENGTH
-                && trimmed.codePoints().noneMatch(Character::isISOControl);
-    }
-
-    private static final class NameTagTextField extends TextFieldWidget {
-        private final TextRenderer fieldTextRenderer;
-        private final Identifier normalTexture;
-        private final Identifier highlightedTexture;
-
-        private NameTagTextField(TextRenderer textRenderer, int x, int y, int width, int height,
-                                 Text message, Identifier normalTexture, Identifier highlightedTexture) {
-            super(textRenderer, x, y, width, height, message);
-            this.fieldTextRenderer = textRenderer;
-            this.normalTexture = normalTexture;
-            this.highlightedTexture = highlightedTexture;
-            setDrawsBackground(false);
-        }
-
-        @Override
-        public void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
-            Identifier texture = isFocused() ? highlightedTexture : normalTexture;
-            context.drawGuiTexture(texture, getX(), getY(), getWidth(), getHeight());
-
-            String visibleContent = getText();
-            if (visibleContent.isEmpty() && !isFocused()) visibleContent = NAME_PLACEHOLDER;
-            int contentWidth = Math.min(textContentWidth(), fieldTextRenderer.getWidth(visibleContent));
-            float horizontalOffset = 4.0F + (textContentWidth() - contentWidth) / 2.0F;
-            // With the built-in background disabled, TextFieldWidget also omits
-            // its normal 4px horizontal and 6px vertical text inset.
-            float verticalOffset = (getHeight() - 8) / 2.0F;
-
-            context.getMatrices().push();
-            context.getMatrices().translate(horizontalOffset, verticalOffset, 0.0);
-            super.renderWidget(context, mouseX, mouseY, delta);
-            context.getMatrices().pop();
-        }
-
-        @Override
-        public boolean mouseClicked(double mouseX, double mouseY, int button) {
-            boolean insideField = mouseX >= getX() && mouseX < getX() + getWidth()
-                    && mouseY >= getY() && mouseY < getY() + getHeight();
-            if (insideField) {
-                mouseX -= centeredTextOffset();
-            }
-            return super.mouseClicked(mouseX, mouseY, button);
-        }
-
-        private double centeredTextOffset() {
-            String visibleContent = getText();
-            if (visibleContent.isEmpty() && !isFocused()) visibleContent = NAME_PLACEHOLDER;
-            int contentWidth = Math.min(textContentWidth(), fieldTextRenderer.getWidth(visibleContent));
-            return 4.0 + (textContentWidth() - contentWidth) / 2.0;
-        }
-
-        private int textContentWidth() {
-            return Math.max(0, getWidth() - 8);
+    private void cancelFreeName(){
+        if(free()&&!replied&&ClientPlayNetworking.canSend(ApplyNameTagPayload.ID)){
+            replied=true;ClientPlayNetworking.send(new ApplyNameTagPayload(entityId,"",offHand,token));
         }
     }
+    @Override public void close(){cancelFreeName();super.close();}
+    @Override public void removed(){cancelFreeName();super.removed();}
 
-    private static final class NameTagButton extends ClickableWidget {
-        private final Runnable onPress;
-        private final Identifier normalTexture;
-        private final Identifier highlightedTexture;
-        private final Identifier disabledTexture;
-
-        private NameTagButton(int x, int y, int width, int height, Text message,
-                              Runnable onPress, Identifier normalTexture,
-                              Identifier highlightedTexture, Identifier disabledTexture) {
-            super(x, y, width, height, message);
-            this.onPress = onPress;
-            this.normalTexture = normalTexture;
-            this.highlightedTexture = highlightedTexture;
-            this.disabledTexture = disabledTexture;
+    private static final class NamingField extends TextFieldWidget {
+        NamingField(TextRenderer renderer,int x,int y,int width,int height){
+            super(renderer,x,y,width,height,Text.literal("Name"));setDrawsBackground(false);setEditableColor(CompendiumStyle.TEXT);
         }
-
-        @Override
-        protected void appendClickableNarrations(
-                net.minecraft.client.gui.screen.narration.NarrationMessageBuilder builder) {
-            appendDefaultNarrations(builder);
+        @Override public int getInnerWidth(){return getWidth()-12;}
+        @Override public void renderWidget(DrawContext context,int mx,int my,float delta){
+            CompendiumStyle.drawTextFieldFrame(context,getX(),getY(),getWidth(),getHeight(),isFocused());
+            context.getMatrices().push();context.getMatrices().translate(6,(getHeight()-8)/2f,0);
+            super.renderWidget(context,mx,my,delta);context.getMatrices().pop();
         }
-
-        @Override
-        public boolean mouseClicked(double mouseX, double mouseY, int button) {
-            if (!active || !visible || button != 0
-                    || mouseX < getX() || mouseX >= getX() + getWidth()
-                    || mouseY < getY() || mouseY >= getY() + getHeight()) {
-                return false;
-            }
-            playDownSound(MinecraftClient.getInstance().getSoundManager());
-            onPress.run();
-            return true;
-        }
-
-        @Override
-        protected void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
-            Identifier texture = !active ? disabledTexture
-                    : isHovered() ? highlightedTexture : normalTexture;
-            context.drawGuiTexture(texture, getX(), getY(), getWidth(), getHeight());
-            int color = active ? 0xFFFFFFFF : 0xFF777777;
-            context.drawCenteredTextWithShadow(MinecraftClient.getInstance().textRenderer,
-                    getMessage(), getX() + getWidth() / 2,
-                    getY() + (getHeight() - 8) / 2, color);
+        @Override public boolean mouseClicked(double mx,double my,int button){
+            if(mx<getX()||mx>=getX()+getWidth()||my<getY()||my>=getY()+getHeight())return false;
+            return super.mouseClicked(Math.clamp(mx-6,getX(),getX()+getWidth()-1),Math.clamp(my-(getHeight()-8)/2.0,getY(),getY()+getHeight()-1),button);
         }
     }
 }

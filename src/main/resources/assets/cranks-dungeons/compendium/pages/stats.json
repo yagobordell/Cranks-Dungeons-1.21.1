@@ -1,14 +1,42 @@
 {
   "title": "Reading Your Stats",
   "content": [
-    { "type": "text", "value": "Open the stats panel from the inventory to see calculated character values. It includes passive, equipment, enchantment, status-effect, requirement-penalty, and conditional contributions that are active at that moment." },
-    { "type": "heading", "value": "Flat, Increased, and Extra" },
-    { "type": "list", "value": "Flat values add units, such as +40 armour, +8 fire damage, or +20 maximum health.\nIncreased values are percentages added to the relevant multiplier, such as 15% increased fire damage.\nExtra damage creates another damage component from a source amount; it is not the same as conversion.\nConversion moves a share of physical damage into another element.\nPenetration reduces the target's effective defence for the matching hit; it is not a permanent debuff." },
-    { "type": "heading", "value": "Local vs Global" },
-    { "type": "text", "value": "A local rune changes the item it is printed on. Local increased physical damage scales that weapon's base damage plus its flat physical rune damage. Local armour, evasion, and Energy Shield percentages scale that armour piece's matching base plus flat rune value. Quality is applied to the base before flat runes and local percentages." },
-    { "type": "text", "value": "A global stat is granted to the wearer or wielder and modifies the character total or combat calculation. Resistances, maximum health, global critical chance, elemental damage, leech, regeneration, and ailment stats are common global examples." },
-    { "type": "note", "style": "tip", "value": "The wording matters. 'Increased Armour' on an armour-piece local rune changes that one base. A global armour modifier from the passive tree scales the entity's overall armour attribute." },
-    { "type": "heading", "value": "Percent Display" },
-    { "type": "text", "value": "Internally, 0.15 means 15%. The guide catalog and item tooltips display the converted percentage. Flat entries are rounded to whole values when rolled; percentage rolls retain three decimal places internally." }
+    {
+      "type": "text",
+      "value": "Open the stats panel from the inventory to see calculated character values. It includes passive, equipment, enchantment, status-effect, requirement-penalty, and conditional contributions that are active at that moment."
+    },
+    {
+      "type": "heading",
+      "value": "Flat, Increased, and Extra"
+    },
+    {
+      "type": "list",
+      "value": "Flat values add units, such as +40 armour, +8 fire damage, or +20 maximum health.\nIncreased values are percentages added to the relevant multiplier, such as 15% increased fire damage.\nExtra damage creates another damage component from a source amount; it is not the same as conversion.\nConversion moves a share of physical damage into another element.\nPenetration reduces the target's effective defence for the matching hit; it is not a permanent debuff."
+    },
+    {
+      "type": "heading",
+      "value": "Local vs Global"
+    },
+    {
+      "type": "text",
+      "value": "A local rune changes the item it is printed on. Local increased physical damage scales that weapon's base damage plus its flat physical rune damage. Local armour, evasion, and [[stat/cranks-dungeons:energy_shield|Energy Shield]] percentages scale that armour piece's matching base plus flat rune value. Quality is applied to the base before flat runes and local percentages."
+    },
+    {
+      "type": "text",
+      "value": "A global stat is granted to the wearer or wielder and modifies the character total or combat calculation. Resistances, maximum health, global critical chance, elemental damage, leech, regeneration, and ailment stats are common global examples."
+    },
+    {
+      "type": "note",
+      "style": "tip",
+      "value": "The wording matters. 'Increased Armour' on an armour-piece local rune changes that one base. A global armour modifier from the passive tree scales the entity's overall armour attribute."
+    },
+    {
+      "type": "heading",
+      "value": "Related articles"
+    },
+    {
+      "type": "text",
+      "value": "[[article/primary_attributes|Primary Attributes]] | [[article/equipment|Equipment Bases]] | [[article/damage|Damage & Criticals]]"
+    }
   ]
 }

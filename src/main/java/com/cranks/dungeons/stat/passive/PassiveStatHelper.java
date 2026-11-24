@@ -27,7 +27,7 @@ public class PassiveStatHelper {
             "damage_against_afflicted_percent", "damage_while_afflicted_percent",
 
             // Percentage Defense Scaling
-            "max_health_percent", "armor_percent", "evasion_rating_percent",
+            "max_health_bonus", "max_health_percent", "armor_percent", "evasion_rating_percent",
             "energy_shield_percent", "leggings_armor_percent", "armor_crit_mitigation",
             "bonus_armor", "evasion_rating", "energy_shield",
 
@@ -37,7 +37,7 @@ public class PassiveStatHelper {
             "elemental_penetration_percent", "armor_penetration_percent", "flat_armor_penetration",
 
             // Critical Strikes
-            "global_crit_chance_percent", "crit_multiplier", "crit_chance_against_afflicted",
+            "crit_chance", "global_crit_chance_percent", "crit_multiplier", "crit_chance_against_afflicted",
 
             // Ailment Magnitudes & Durations
             "chance_to_shock", "shock_magnitude_percent",
@@ -56,7 +56,7 @@ public class PassiveStatHelper {
             "fire_extra_percent", "cold_extra_percent", "lightning_extra_percent", "void_extra_percent",
 
             // Combat Utility
-            "movement_speed", "attack_speed", "projectile_speed",
+            "movement_speed", "attack_speed", "projectile_speed", "experience_bonus",
             "physical_damage_leeched_as_life", "physical_damage_leeched_as_mana", 
             "health_on_kill", "health_on_kill_percent", "faster_start_of_energy_shield_recharge",
             "max_mana",
@@ -109,8 +109,16 @@ public class PassiveStatHelper {
             "item_rarity_in_overworld", "item_rarity_in_nether", "item_rarity_in_end",
             
             // Existing ones from ModAttributes that apply to the world
-            "item_rarity_percent", "crop_fortune", "log_fortune", "dig_fortune", "crop_experience"
+            "mining_efficiency", "fortune", "item_rarity_percent", "crop_fortune", "log_fortune", "dig_fortune", "crop_experience",
+            "digging_speed_percent", "dig_yield", "crop_replant_chance", "world_discovery_experience",
+            "swimming_speed_percent", "breath_efficiency", "travel_efficiency", "breaking_range", "precision_mining",
+            "riding_speed", "mount_endurance", "mount_recovery", "riding_agility", "sure_footing"
     );
+
+    /** Old IDs remain loadable; new editing uses useful current stats only. */
+    public static final Set<String> WORLD_EDITOR_ATTRIBUTES=WHITELISTED_WORLD_ATTRIBUTES.stream()
+            .filter(id->!com.cranks.dungeons.gathering.GatheringStats.LEGACY.contains(id))
+            .collect(java.util.stream.Collectors.toUnmodifiableSet());
 
     /**
      * Aggregates all modifiers from unlocked nodes in the passive tree for a given
@@ -179,7 +187,7 @@ public class PassiveStatHelper {
                         String idStr = entry.getKey().getIdAsString();
                         if (!idStr.startsWith("cranks-dungeons:")) continue;
                         
-                        String id = idStr.substring(16);
+                        String id = idStr.substring("cranks-dungeons:".length());
                         Set<String> whitelist = isWorldTree ? WHITELISTED_WORLD_ATTRIBUTES : WHITELISTED_PASSIVE_ATTRIBUTES;
                         if (!whitelist.contains(id)) continue;
                         
@@ -188,6 +196,18 @@ public class PassiveStatHelper {
                 }
             }
         }
+    }
+
+    public static Map<String, Double> getDraftBonuses(PlayerEntity player, Map<String, String> draft, boolean world) {
+        if (draft.isEmpty()) return Map.of();
+        Set<String> candidates = new java.util.HashSet<>(draft.keySet());
+        candidates.removeAll(world ? ModComponents.WORLD_TREE_DATA.get(player).getUnlockedNodes()
+                : ModComponents.PASSIVE_DATA.get(player).getUnlockedNodes());
+        Map<RegistryEntry<EntityAttribute>, Double> modifiers = new HashMap<>();
+        mergeTreeStats(modifiers, candidates, draft::get, world);
+        Map<String, Double> bonuses = new HashMap<>();
+        modifiers.forEach((attribute, amount) -> bonuses.merge(attribute.getIdAsString(), amount, Double::sum));
+        return bonuses;
     }
 
     /**
@@ -230,7 +250,7 @@ public class PassiveStatHelper {
                             String idStr = entry.getKey().getIdAsString();
                             if (!idStr.startsWith("cranks-dungeons:")) continue;
                             
-                            String id = idStr.substring(16);
+                            String id = idStr.substring("cranks-dungeons:".length());
                             if (!WHITELISTED_PASSIVE_ATTRIBUTES.contains(id) && !WHITELISTED_WORLD_ATTRIBUTES.contains(id)) continue;
                             
                             raw.merge(entry.getKey(), entry.getValue(), Double::sum);

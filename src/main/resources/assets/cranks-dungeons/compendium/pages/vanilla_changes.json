@@ -1,15 +1,73 @@
 {
   "title": "Changed Vanilla Rules",
   "content": [
-    { "type": "text", "value": "Crank's Dungeons replaces several vanilla progression shortcuts so they cooperate with runes, quality, and enchantment slots. This page collects the changes that are easy to mistake for vanilla behavior." },
-    { "type": "heading", "value": "Stations and Recipes" },
-    { "type": "list", "value": "The Smithing Table is the Quality Station. All smithing recipes, smithing-template copying recipes, and armor-trim recipes are removed. Netherite upgrading and armor trims therefore do not use the vanilla smithing workflow.\nAnvil operations have zero level cost and their output can be taken without the vanilla level requirement. Enchantment filtering and slot limits still apply; an invalid over-cap result is blocked. Combining matching items inherits the higher available slot count up to that item's cap.\nEnchanted books are always limited to one stored enchantment." },
-    { "type": "heading", "value": "Enchanting Economy" },
-    { "type": "text", "value": "Only enchantments approved by the mod's enchanting-table or random-loot tags survive filtering. Vanilla enchanted-equipment trades are removed from equipment villagers, and vanilla Librarian enchanted-book offers are replaced with mod-tier book offers. Librarians add Standard books at novice and apprentice, Greater books at journeyman and expert, and Perfect books at master." },
-    { "type": "heading", "value": "Combat and Survival" },
-    { "type": "list", "value": "The vanilla armor bar is hidden because Armor uses the custom rating formula. Armor Toughness is not part of this mod's defense model.\nVanilla saturation and natural food healing are removed. Hunger instead controls Well Fed and Starving, as explained in Food & Effects.\nVanilla fire, poison, wither, regeneration, resistance, absorption, instant health, and instant damage behavior is intercepted or translated into the custom damage, ailment, and recovery systems.\nVanilla falling critical attacks are disabled; use the custom Critical Strike Chance and Multiplier.\nA raised shield uses the custom directional fixed-block calculation." },
-    { "type": "heading", "value": "Tools and Disenchanting" },
-    { "type": "list", "value": "A grindstone refuses damageable equipment that already has more than half of its durability missing. A successful grind then adds damage equal to half of maximum durability, stopping one point before destruction.\nPress G to toggle supported enchantments such as Silk Touch and Vein Mining. Sneaking while breaking also suppresses their drop-changing behavior for that break.\nVein Mining can break up to 31 additional connected matching ores. Precision Mining and Repair Chance can prevent a durability-loss event." },
-    { "type": "note", "style": "warning", "value": "Do not assume a vanilla guide applies to smithing, enchanting, hunger healing, armor, critical hits, shields, or potion effects in this mod. Use the matching Compendium page for the authoritative custom rule." }
+    {
+      "type": "text",
+      "value": "Familiar Minecraft items and blocks serve different roles here. These are the changes most useful to know before planning equipment, gathering or crafting."
+    },
+    {
+      "type": "heading",
+      "value": "Crafting and discovery"
+    },
+    {
+      "type": "text",
+      "value": "Use recipe lists rather than shaped patterns. Ordinary recipes appear after you obtain a valid material for every ingredient. This knowledge is personal. The [[article/cutting_bench|Cutting Bench]] makes assigned building parts; the [[article/anvil|Anvil]] makes advanced equipment, while [[article/fletching|Fletching]] and [[article/tailoring|Tailoring]] handle their specialist crafts."
+    },
+    {
+      "type": "heading",
+      "value": "Equipment upgrades"
+    },
+    {
+      "type": "text",
+      "value": "The Smithing Table is the [[article/quality|Upgrade Bench]] for quality and enchantment slots. The Grindstone is the [[article/repairing|Repair Bench]] and restores durability without removing enchantments. The [[article/enchantments|Enchanting Table]] applies compatible enchantments for Lapis, and can remove or replace individual copies. The Anvil does not rename items or combine enchantments."
+    },
+    {
+      "type": "heading",
+      "value": "Netherite and material processing"
+    },
+    {
+      "type": "text",
+      "value": "Breaking [[item/minecraft:ancient_debris|Ancient Debris]] without Silk Touch gives [[item/minecraft:netherite_scrap|Netherite Scrap]] directly. Silk Touch keeps the block; break it normally later for Scrap. Netherite gear is forged from Scrap at the Anvil. Use the [[article/kiln|Kiln]] for its material-processing recipes, the [[article/foundry|Foundry]] for supported metal salvage, and the [[article/smoker|Smoker]] or [[article/campfire|Campfire]] for food."
+    },
+    {
+      "type": "heading",
+      "value": "Combat and recovery"
+    },
+    {
+      "type": "text",
+      "value": "Armour uses a rating formula and protects Physical hits; Armour Toughness is not part of this defence model. Critical chance comes from your RPG statistics rather than falling attacks. Raised Shields subtract Block Value from eligible frontal hits. Hunger controls Well Fed and Starving instead of natural Health regeneration. Read [[article/defences|Defences]], [[article/damage|Damage and Criticals]] and [[article/recovery|Recovery]] when planning survival."
+    },
+    {
+      "type": "heading",
+      "value": "Potions and enchantments"
+    },
+    {
+      "type": "text",
+      "value": "Potions use supported RPG effects and Lesser or regular tiers. Successful experiments at the [[article/alchemy|Alchemy Stand]] teach personal formulas. Enchantments also use Lesser and unprefixed regular names. Utility enchantments such as Silk Touch and Vein Mining remain single-copy; compatible stat enchantments may occupy several slots."
+    },
+    {
+      "type": "heading",
+      "value": "Inventory and death"
+    },
+    {
+      "type": "text",
+      "value": "Bundles are bags that unlock storage slots, rather than containers inside an item. Hotbar, normal inventory, equipment, bags and wallet are retained on death; bag-storage contents are the section you lose when the world does not keep inventory. Hover a bag to identify its slots, and empty those slots before removing it."
+    },
+    {
+      "type": "heading",
+      "value": "Gathering utilities"
+    },
+    {
+      "type": "text",
+      "value": "Toggle supported Silk Touch and Vein Mining with the configured enchantment-toggle key. Sneaking while breaking suppresses their special harvesting behaviour for that break. Vein Mining breaks up to 31 additional connected matching ores, using suitable-tool and durability rules. Durability Preservation prevents wear; it does not repair damage already lost."
+    },
+    {
+      "type": "heading",
+      "value": "Related articles"
+    },
+    {
+      "type": "text",
+      "value": "[[article/first_steps|First Steps]] | [[article/crafting_table|Crafting Table]] | [[article/equipment|Equipment Bases]] | [[article/food_effects|Food and Effects]]"
+    }
   ]
 }

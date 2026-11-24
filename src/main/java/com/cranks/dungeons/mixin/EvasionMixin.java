@@ -19,21 +19,15 @@ public abstract class EvasionMixin {
 
     @Unique
     private float evasionEntropy = -1.0f; // -1 indicates unseeded / out-of-combat
+    @Unique private long cranks$lastEvasionAttempt = Long.MIN_VALUE;
     @Unique
     private double cranks$lastGlobalEvasionPercentBonus = Double.NaN;
 
     @Inject(method = "tick", at = @At("HEAD"))
     private void resetEvasionEntropy(org.spongepowered.asm.mixin.injection.callback.CallbackInfo ci) {
         LivingEntity entity = (LivingEntity) (Object) this;
-        if (entity instanceof com.cranks.dungeons.EnergyShieldProvider provider) {
-            long currentTime = entity.getEntityWorld().getTime();
-            long timeSinceLastHit = currentTime - provider.cranksdungeons$getLastDamageTime();
-
-            // If it's been 6 seconds (120 ticks) since last hit, reset entropy to unseeded state
-            if (timeSinceLastHit > 120L && evasionEntropy >= 0.0f) {
-                evasionEntropy = -1.0f;
-            }
-        }
+        if (cranks$lastEvasionAttempt != Long.MIN_VALUE
+                && entity.getWorld().getTime() - cranks$lastEvasionAttempt > 120) evasionEntropy = -1;
 
         // Apply Global Evasion Percent
         var evasionAttr = entity.getAttributeInstance(ModAttributes.EVASION_RATING);
@@ -60,6 +54,9 @@ public abstract class EvasionMixin {
         LivingEntity entity = (LivingEntity) (Object) this;
         net.minecraft.world.World world = entity.getWorld();
 
+        if (world.isClient() || amount <= 0) return;
+
+        if (com.cranks.dungeons.ailment.AilmentManager.isSecondaryDamage(entity)) return;
         // Evasion ONLY applies to hits originating from an entity (melee, projectile, mob/player attack)
         if (source.getAttacker() == null && source.getSource() == null) {
             return;
@@ -92,10 +89,9 @@ public abstract class EvasionMixin {
             return;
 
         // Path of Exile 2 inspired Evasion scaling based on incoming damage (hit threat/accuracy)
-        // Dodge Chance = Evasion / (Evasion + 8 * Damage), capped at 95%
-        double effectiveAccuracy = Math.max(1.0, 8.0 * amount);
-        double dodgeChance = rating / (rating + effectiveAccuracy);
-        dodgeChance = Math.min(0.95, Math.max(0.0, dodgeChance));
+        // Dodge Chance = Evasion / (Evasion + 8 * Damage), capped at 75%
+        double dodgeChance = com.cranks.dungeons.stat.CombatStatRules.evasionChance(rating, amount);
+        cranks$lastEvasionAttempt = world.getTime();
 
         // Roll a random starting entropy seed on combat start
         if (evasionEntropy < 0.0f) {
@@ -109,19 +105,20 @@ public abstract class EvasionMixin {
 
             world.playSound(null, entity.getBlockPos(),
                     net.minecraft.sound.SoundEvents.ENTITY_PLAYER_ATTACK_SWEEP,
-                    entity instanceof PlayerEntity ? net.minecraft.sound.SoundCategory.PLAYERS : net.minecraft.sound.SoundCategory.HOSTILE, 1.0f, 1.5f);
+                    entity instanceof PlayerEntity ? net.minecraft.sound.SoundCategory.PLAYERS : net.minecraft.sound.SoundCategory.HOSTILE, 0.3f, 1.8f);
 
             if (world instanceof ServerWorld serverWorld) {
                 serverWorld.spawnParticles(
                         net.minecraft.particle.ParticleTypes.POOF,
                         entity.getX(), entity.getY() + entity.getHeight() / 2, entity.getZ(),
-                        10, 0.2, 0.3, 0.2, 0.05);
+                        3, 0.15, 0.2, 0.15, 0.02);
+            }
+            if (entity instanceof net.minecraft.server.network.ServerPlayerEntity player) {
+                net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(player,
+                        new com.cranks.dungeons.network.ShowNotificationPayload(Text.literal("Evaded").formatted(Formatting.GRAY), 12));
             }
 
             cir.setReturnValue(false);
-        } else {
-            if (evasionEntropy < 0.1f)
-                evasionEntropy += 0.05f;
         }
     }
 }

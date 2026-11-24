@@ -31,11 +31,11 @@ public class ItemStackAttributeMixin {
         return (attr, modifier) -> {
             boolean isMiningEfficiency = attr.value() == com.cranks.dungeons.registry.ModAttributes.MINING_EFFICIENCY.value();
             
-            boolean isWeaponAttr = EnchantmentFilterUtil.isWeaponAttribute(attr);
-            boolean isArmorAttr = EnchantmentFilterUtil.isArmorAttribute(attr);
-            
             boolean isWeapon = EnchantmentFilterUtil.isWeapon(stack);
             boolean isArmor = EnchantmentFilterUtil.isArmor(stack);
+            boolean isEnchantment = modifier.id().getPath().contains("enchantment");
+            boolean isWeaponAttr = EnchantmentFilterUtil.isWeaponAttribute(attr, isArmor && isEnchantment);
+            boolean isArmorAttr = EnchantmentFilterUtil.isArmorAttribute(attr, isWeapon && isEnchantment);
 
             // Armor item modifiers, including enchantment effects, belong to the slot
             // that equips that item. Do not grant them while the piece is held in hand.
@@ -48,8 +48,6 @@ public class ItemStackAttributeMixin {
             // Runes have namespace "cranks-dungeons"
             // Enchantments have namespace "minecraft" and path starts with "enchantment."
             
-            boolean isEnchantment = modifier.id().getPath().contains("enchantment");
-
             // Only get effectiveness if we are dealing with an enchantment to save performance
             double effectiveness = 0.0;
             if (isEnchantment) {

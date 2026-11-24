@@ -1,19 +1,90 @@
 {
   "title": "Ailments",
   "content": [
-    { "type": "text", "value": "Ailment strength is measured against an effective threshold based on the target's maximum health, with optional bonuses from Energy Shield, Dexterity, boots, and passive modifiers. Freeze, Electrocute, and Flammability show buildup and begin at 100%. Buildup starts decaying after 2 seconds without a contributing hit." },
-    { "type": "subheading", "value": "Burn / Flammability" },
-    { "type": "text", "value": "Fire damage adds Flammability equal to fire damage divided by threshold, multiplied by 20% and Flammability magnitude. At 100%, Burn deals 50% of the triggering fire damage as its base damage over a base 4 seconds, ticking every 0.5 seconds. Only the strongest Burn remains; an equal Burn can refresh it. Burn can spread up to five generations. Water, rain, and powder snow halve its tick damage and make duration expire twice as fast." },
-    { "type": "subheading", "value": "Poison" },
-    { "type": "text", "value": "Physical or void damage can Poison when Chance to Poison succeeds; a critical guarantees that chance check. Each stack uses 20% of the triggering physical + void damage, modified by Poison magnitude, for a base 2 seconds. Poison ticks every 0.5 seconds, scales linearly with stack count, uses void resistance, and bypasses Energy Shield. The base cap is 20 stacks plus Poison Maximum Stacks." },
-    { "type": "subheading", "value": "Bleed" },
-    { "type": "text", "value": "Physical damage can Bleed when Chance to Bleed succeeds; a critical guarantees the check. Its base magnitude starts from 100% of the physical hit and its base duration is 5 seconds. While Bleeding, 40% of subsequent damage taken is accumulated. Bleed does not tick normally: the stored amount bursts when the ailment expires, and it bypasses Energy Shield." },
-    { "type": "subheading", "value": "Freeze" },
-    { "type": "text", "value": "Cold damage adds buildup equal to twice cold damage divided by threshold, multiplied by Freeze Buildup. Partial buildup slows movement by that fraction, capped at 90% and scaled by magnitude. At 100% the target is frozen for a base 2 seconds and cannot act." },
-    { "type": "subheading", "value": "Shock" },
-    { "type": "text", "value": "Lightning hits have base Shock chance equal to lightning damage divided by threshold times 25%; chance bonuses and global ailment chance increase it, while criticals guarantee the check. Magnitude begins at damage divided by threshold times 30%, requires at least 5%, and is normally capped at 50%. Shock increases all damage taken. Hitting an already shocked target with lightning arcs the full lightning amount to valid living entities within 10 blocks and applies a baseline Shock." },
-    { "type": "subheading", "value": "Electrocute" },
-    { "type": "text", "value": "Lightning also builds Electrocute at four times lightning damage divided by threshold, modified by Electrocute Buildup. At 100%, Electrocute stuns the target for a base 0.5 seconds, preventing movement and attacks." },
-    { "type": "note", "style": "tip", "value": "Reduced Ailment Duration on You modifies the final duration. Elemental resistance reduces the hit that generates an ailment, indirectly lowering its chance, buildup, or base damage." }
+    {
+      "type": "text",
+      "value": "Ailment strength is measured against an effective threshold based on the target's maximum health, with optional bonuses from [[stat/cranks-dungeons:energy_shield|Energy Shield]], [[stat/cranks-dungeons:dexterity|Dexterity]], boots, and passive modifiers. [[article/ailments#freeze|Freeze]], [[article/ailments#electrocute|Electrocute]], and Flammability show buildup and begin at 100%. Buildup starts decaying after 2 seconds without a contributing hit."
+    },
+    {
+      "type": "subheading",
+      "value": "Burn / Flammability"
+    },
+    {
+      "type": "text",
+      "value": "Fire damage adds Flammability based on the resolved Fire hit and target threshold. Without modifiers, Fire hit damage equal to 25% of the target's ailment threshold reaches 100% buildup. At 100%, [[article/ailments#burn|Burn]] begins: base damage per second is 50% of the offensive Fire hit, for 4 seconds, ticking every 0.5 seconds. [[article/ailments#burn|Burn]] Magnitude increases damage, not duration. [[stat/cranks-dungeons:fire_resistance|Fire Resistance]] applies once per tick. Only the strongest [[article/ailments#burn|Burn]] remains; equal damage can refresh it. Combat [[article/ailments#burn|Burn]] spreads to visible enemies within 3 blocks, up to five generations. Water, rain and powder snow halve damage and double expiry speed."
+    },
+    {
+      "type": "subheading",
+      "value": "Poison"
+    },
+    {
+      "type": "text",
+      "value": "Physical or Void hits can [[article/ailments#poison|Poison]] with Chance to [[article/ailments#poison|Poison]]; any positive chance guarantees application on critical hits. Each stack deals a base 20% of offensive Physical + Void damage per second for 2 seconds. [[article/ailments#poison|Poison]] Magnitude increases damage, not duration. Each stack keeps its own source and timer. The cap is 20 plus [[article/ailments#poison|Poison]] Maximum Stacks; stronger new stacks can replace the weakest. Uses [[stat/cranks-dungeons:void_resistance|Void Resistance]] and bypasses [[stat/cranks-dungeons:energy_shield|Energy Shield]]."
+    },
+    {
+      "type": "subheading",
+      "value": "Bleed"
+    },
+    {
+      "type": "text",
+      "value": "Physical hits can [[article/ailments#bleed|Bleed]] with Chance to [[article/ailments#bleed|Bleed]]; any positive chance guarantees application on critical hits. [[article/ailments#bleed|Bleed]] stores 40% of later resolved hit damage and bursts when its 5-second base fuse ends. [[article/ailments#bleed|Bleed]] Magnitude increases the stored fraction, capped at 100%, not the duration. Further applications do not postpone the burst. It bypasses [[stat/cranks-dungeons:energy_shield|Energy Shield]] and cannot store its own damage or ailment ticks."
+    },
+    {
+      "type": "subheading",
+      "value": "Freeze"
+    },
+    {
+      "type": "text",
+      "value": "Cold damage adds buildup equal to twice cold damage divided by threshold, multiplied by [[article/ailments#freeze|Freeze]] Buildup. Partial buildup slows movement by that fraction, capped at 90% and scaled by magnitude. At 100% the target is frozen for a base 2 seconds and cannot act."
+    },
+    {
+      "type": "subheading",
+      "value": "Shock"
+    },
+    {
+      "type": "text",
+      "value": "Lightning hits can [[article/ailments#shock|Shock]] based on hit damage and the target threshold; critical hits guarantee the chance check. [[article/ailments#shock|Shock]] increases damage taken by 5% to 50%, for a base 10 seconds. Magnitude increases amplification, not duration. Lightning hits on an already Shocked target arc to all visible valid enemies within 10 blocks. Arcs use each target's [[stat/cranks-dungeons:lightning_resistance|Lightning Resistance]], respect allies and pets, and cannot recursively chain."
+    },
+    {
+      "type": "subheading",
+      "value": "Electrocute"
+    },
+    {
+      "type": "text",
+      "value": "Lightning builds [[article/ailments#electrocute|Electrocute]] at four times resolved Lightning damage divided by threshold, modified by [[article/ailments#electrocute|Electrocute]] Buildup. At 100%, the target cannot move or act for a base 0.5 seconds. [[article/ailments#freeze|Freeze]] and [[article/ailments#electrocute|Electrocute]] cannot overlap, and share 1 second of control recovery after either ends. Effects and normal timers continue while stunned."
+    },
+    {
+      "type": "note",
+      "style": "tip",
+      "value": "Successful hits against life or [[stat/cranks-dungeons:energy_shield|Energy Shield]] can apply ailments. Avoided or rejected hits cannot. Reduced Ailment Duration on You shortens applications. Damage-over-time uses offensive damage and applies its resistance once, rather than inheriting a hit already reduced by resistance."
+    },
+    {
+      "type": "subheading",
+      "value": "Reading nameplate icons"
+    },
+    {
+      "type": "text",
+      "value": "Muted icons with a percentage show buildup. Bright icons show active ailments. Timers show remaining duration; [[article/ailments#poison|Poison]] shows the next stack expiry alongside its stack count. Infinite effects have no timer. Resisted briefly appears when a hit cannot build [[article/ailments#freeze|Freeze]] or [[article/ailments#electrocute|Electrocute]] during the shared recovery window."
+    },
+    {
+      "type": "subheading",
+      "value": "Managing ailments"
+    },
+    {
+      "type": "text",
+      "value": "[[stat/cranks-dungeons:fire_resistance|Fire Resistance]] reduces [[article/ailments#burn|Burn]]; water, rain and powder snow halve [[article/ailments#burn|Burn]] damage and double its expiry speed. [[stat/cranks-dungeons:void_resistance|Void Resistance]] reduces [[article/ailments#poison|Poison]] even though it bypasses [[stat/cranks-dungeons:energy_shield|Energy Shield]]. Reduced ailment duration shortens applications; reduced [[article/ailments#bleed|Bleed]] duration limits its damage-storage window. Armour reduces physical hits that can feed [[article/ailments#bleed|Bleed]], while the stored burst itself is not mitigated again."
+    },
+    {
+      "type": "text",
+      "value": "Cold and [[stat/cranks-dungeons:lightning_resistance|Lightning Resistance]] reduce the hits that build [[article/ailments#freeze|Freeze]] and [[article/ailments#electrocute|Electrocute]]. Reduced [[article/ailments#freeze|Freeze]] and [[article/ailments#shock|Shock]] duration shorten their control effects. The existing resistance potions provide preparation, not blanket immunity. Milk removes active ailments, stored [[article/ailments#bleed|Bleed]] and buildup, together with beneficial status effects. You cannot use milk or other items while stunned, so control defenses should be prepared before the hit."
+    },
+    {
+      "type": "heading",
+      "value": "Related articles"
+    },
+    {
+      "type": "text",
+      "value": "[[article/damage|Damage & Criticals]] | [[article/defences|Defences]] | [[article/recovery|Recovery & Mana]]"
+    }
   ]
 }

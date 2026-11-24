@@ -5,91 +5,74 @@ import net.minecraft.entity.EntityType;
 import net.minecraft.entity.data.DataTracker;
 import net.minecraft.entity.data.TrackedData;
 import net.minecraft.entity.data.TrackedDataHandlerRegistry;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.network.listener.ClientPlayPacketListener;
-import net.minecraft.network.packet.Packet;
-import net.minecraft.server.network.EntityTrackerEntry;
 import net.minecraft.world.World;
 
+/** A short-lived, owner-bound anchor for the client's level-up motes. */
 public class LevelUpVfxEntity extends Entity {
-    // True for World Tree (Green), False for Passive Tree (Gold)
+    public static final int DURATION_TICKS = 22;
+    public static final float SOUND_VOLUME = .65f;
     private static final TrackedData<Boolean> IS_WORLD_TREE = DataTracker.registerData(LevelUpVfxEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
+    private static final TrackedData<Integer> OWNER_ID = DataTracker.registerData(LevelUpVfxEntity.class, TrackedDataHandlerRegistry.INTEGER);
 
     public LevelUpVfxEntity(EntityType<?> type, World world) {
         super(type, world);
         this.noClip = true;
     }
 
+    public static boolean spawn(PlayerEntity player, boolean worldTree) {
+        if (player.getWorld().isClient()) return false;
+        // A batch of levels is one celebration; overlapping discoveries do not stack visual layers.
+        for (var existing : player.getWorld().getEntitiesByClass(LevelUpVfxEntity.class,
+                player.getBoundingBox().expand(2), vfx -> vfx.getOwnerId() == player.getId() && vfx.isWorldTree() == worldTree)) {
+            return false;
+        }
+        var effect = new LevelUpVfxEntity(com.cranks.dungeons.registry.ModEntities.LEVEL_UP_VFX, player.getWorld());
+        effect.setOwner(player);
+        effect.setWorldTree(worldTree);
+        return player.getWorld().spawnEntity(effect);
+    }
+
+    public static void celebrate(PlayerEntity player, boolean worldTree) {
+        if (!spawn(player, worldTree)) return;
+        player.getWorld().playSound(null, player.getX(), player.getY(), player.getZ(),
+                worldTree ? com.cranks.dungeons.registry.ModSounds.WORLD_LEVEL_UP
+                        : com.cranks.dungeons.registry.ModSounds.PASSIVE_LEVEL_UP,
+                net.minecraft.sound.SoundCategory.PLAYERS, SOUND_VOLUME, 1);
+    }
+
     @Override
     protected void initDataTracker(DataTracker.Builder builder) {
         builder.add(IS_WORLD_TREE, false);
+        builder.add(OWNER_ID, -1);
     }
 
-    public void setWorldTree(boolean isWorldTree) {
-        this.dataTracker.set(IS_WORLD_TREE, isWorldTree);
+    public void setOwner(PlayerEntity player) {
+        dataTracker.set(OWNER_ID, player.getId());
+        setPosition(player.getPos());
     }
 
-    public boolean isWorldTree() {
-        return this.dataTracker.get(IS_WORLD_TREE);
-    }
+    public int getOwnerId() { return dataTracker.get(OWNER_ID); }
+    public void setWorldTree(boolean worldTree) { dataTracker.set(IS_WORLD_TREE, worldTree); }
+    public boolean isWorldTree() { return dataTracker.get(IS_WORLD_TREE); }
 
     @Override
     public void tick() {
         super.tick();
-        
-        // Follow nearest player
-        net.minecraft.entity.player.PlayerEntity player = this.getEntityWorld().getClosestPlayer(this, 2.0);
-        if (player != null) {
-            this.setPosition(player.getX(), player.getY(), player.getZ());
+        var owner = getWorld().getEntityById(getOwnerId());
+        if (owner instanceof PlayerEntity player && player.isAlive()) {
+            setPosition(player.getPos());
+        } else if (!getWorld().isClient()) {
+            discard();
+            return;
         }
-
-        if (this.getEntityWorld().isClient()) {
-            // Ascending spiral particles
-            float radius = 1.5f;
-            for (int i = 0; i < 3; i++) {
-                double angle = (this.age * 15 + i * 120) * Math.PI / 180.0;
-                double x = this.getX() + Math.cos(angle) * radius;
-                double z = this.getZ() + Math.sin(angle) * radius;
-                double y = this.getY() + (this.age * 0.6) % 10.0;
-                
-                this.getEntityWorld().addParticle(
-                    net.minecraft.particle.ParticleTypes.END_ROD, 
-                    x, y, z, 
-                    0.0, 0.15, 0.0
-                );
-            }
-            
-            // Central explosion particles
-            if (this.age < 5) {
-                for (int i = 0; i < 15; i++) {
-                    this.getEntityWorld().addParticle(
-                        net.minecraft.particle.ParticleTypes.FIREWORK, 
-                        this.getX() + (this.random.nextDouble() - 0.5) * 2.0, 
-                        this.getY() + this.random.nextDouble() * 2.0, 
-                        this.getZ() + (this.random.nextDouble() - 0.5) * 2.0, 
-                        (this.random.nextDouble() - 0.5) * 0.5, 
-                        this.random.nextDouble() * 0.5, 
-                        (this.random.nextDouble() - 0.5) * 0.5
-                    );
-                }
-            }
-        } else {
-            if (this.age > 30) {
-                this.discard();
-            }
-        }
+        if (age >= DURATION_TICKS) discard();
     }
 
-    @Override
-    public boolean damage(net.minecraft.entity.damage.DamageSource source, float amount) {
-        return false;
-    }
-
-    @Override
-    protected void readCustomDataFromNbt(NbtCompound nbt) {
-    }
-
-    @Override
-    protected void writeCustomDataToNbt(NbtCompound nbt) {
-    }
+    @Override public net.minecraft.util.math.Box getVisibilityBoundingBox() { return getBoundingBox().expand(.15, .3, .15); }
+    @Override public boolean shouldSave() { return false; }
+    @Override public boolean damage(net.minecraft.entity.damage.DamageSource source, float amount) { return false; }
+    @Override protected void readCustomDataFromNbt(NbtCompound nbt) {}
+    @Override protected void writeCustomDataToNbt(NbtCompound nbt) {}
 }

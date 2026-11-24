@@ -1,15 +1,41 @@
 {
   "title": "Artificial Tome & Altar",
   "content": [
-    { "type": "text", "value": "Artificial crafting is a two-station process that trades one Artificial Tome for a choice between compatible high-tier affixes. It works only on Rare, non-Unique equipment and the item may have only one unrevealed or revealed Artificial rune at a time." },
-    { "type": "subheading", "value": "Crafting the Artificial Altar" },
-    { "type": "text", "value": "Its shaped recipe is Amethyst Shard, Ender Eye, Amethyst Shard across the top; three End Stone across the middle; and three Obsidian across the bottom." },
-    { "type": "heading", "value": "Stage One - Reserve an Affix" },
-    { "type": "list", "style": "numbered", "value": "Put the Rare item and an Artificial Tome into the Runic Altar.\nPress the altar button. If both prefix and suffix space are available, the altar chooses a side randomly. If only one side has space, it uses that side.\nIf all three prefixes and all three suffixes are occupied, the altar randomly chooses a side and removes one random rune from that side.\nThe result receives an unrevealed Artificial marker reserving the chosen affix side. Take this item to an Artificial Altar." },
-    { "type": "heading", "value": "Stage Two - Choose the Rune" },
-    { "type": "list", "style": "numbered", "value": "Place the marked item into the Artificial Altar. No second tome or material is required.\nThe altar builds up to three options of the reserved prefix or suffix type. Options must match the equipment and armour affinity, have positive selection weight, and not duplicate a group already on the item or another displayed option.\nEach option independently receives a random T1, T2, or T3 tier and its numeric value is rolled immediately.\nSelect one displayed option. That exact stored tier and value are revealed on the item as an Artificial rune." },
-    { "type": "heading", "value": "Persistence and Later Crafting" },
-    { "type": "text", "value": "The three choices, tiers, and values are stored on the item, so removing and reinserting it does not reroll them. After selection, the Artificial rune occupies a normal affix slot and can be affected by later Divine, Chaos, or Annulment crafting. If it is removed, the item no longer counts as having a revealed Artificial rune." },
-    { "type": "note", "style": "important", "value": "Applying the Artificial Tome to a completely full Rare item always sacrifices one existing rune before you see the three choices. If fewer than three legal nonduplicate groups exist, the altar can show fewer than three usable options." }
+    {
+      "type": "text",
+      "value": "Artificial crafting uses one Artificial Tome at the [[article/runic_altar|Runic Altar]], followed by a saved choice at the [[article/artificial_tome|Artificial Runic Altar]]. It works on Rare, non-Unique equipment."
+    },
+    {
+      "type": "heading",
+      "value": "Reserve a Rune"
+    },
+    {
+      "type": "list",
+      "value": "Choose Add to free slot, or select an editable rune to replace. A full item requires a selected replacement; no existing rune is removed randomly.\nA replacement spends the tome and presents a comparison. Choose Use new to accept the artificial marker, or Keep current to retain your equipment. Resolve this comparison before using the [[article/artificial_tome|Artificial Runic Altar]].\nThe marker reserves an eligible prefix or suffix slot. Only one artificial marker or revealed artificial rune may remain on an item."
+    },
+    {
+      "type": "heading",
+      "value": "Choose an Artificial Rune"
+    },
+    {
+      "type": "list",
+      "value": "Insert the marked item into the [[article/artificial_tome|Artificial Runic Altar]]. No second tome is needed.\nThe altar saves up to three compatible, nonduplicate rune families with exact tiers and numeric values. Families use the same weight rules as random crafting.\nOptions use the equipment's best three eligible tiers, or fewer when only one or two tiers are allowed. A shield or bow always receives T10. A diamond base can offer T8-T10; never T1-T7.\nSelect a card, inspect its preview, and confirm Reveal rune. The other saved choices disappear."
+    },
+    {
+      "type": "heading",
+      "value": "Persistence"
+    },
+    {
+      "type": "text",
+      "value": "Options are stored on the equipment. Removing it, closing the screen or restarting does not reroll them. Protected rune properties remain untouched. Revealed artificial runes can later be selected for ordinary Divine, Chaos or Annulment crafting."
+    },
+    {
+      "type": "heading",
+      "value": "Related articles"
+    },
+    {
+      "type": "text",
+      "value": "[[article/runic_altar|Using the Runic Altar]] | [[article/rune_tiers|Rune Tiers and Roll Chances]] | [[article/runes|Understanding Runes]]"
+    }
   ]
 }

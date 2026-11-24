@@ -2,18 +2,13 @@ package com.cranks.dungeons.mixin.client;
 
 import com.cranks.dungeons.CranksDungeons;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.text.OrderedText;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(value = DrawContext.class, priority = 1)
 public abstract class DrawContextMixin {
@@ -44,37 +39,6 @@ public abstract class DrawContextMixin {
         return path.contains("heart") || path.contains("food") || path.contains("hunger")
                 || path.contains("hud/armor") || path.startsWith("hud/air") || path.contains("/air_")
                 || path.contains("bubble") || path.contains("icons.png") || path.contains("tiny_numbers");
-    }
-
-    @Unique
-    private static boolean isMultiplierBadge(String text) {
-        if (text == null || text.isEmpty()) return false;
-        if (!CranksDungeons.CONFIG.useStatBars()) return false;
-
-        MinecraftClient client = MinecraftClient.getInstance();
-        if (client == null || client.player == null) return false;
-
-        String clean = Formatting.strip(text).replace("\u00a0", " ").trim().toLowerCase();
-        if (clean.isEmpty()) return false;
-
-        if (clean.length() <= 6) {
-            if (clean.contains("x") || clean.contains("×") || clean.contains("#")) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    @Unique
-    private static String getOrderedTextString(OrderedText orderedText) {
-        if (orderedText == null) return "";
-        StringBuilder sb = new StringBuilder();
-        orderedText.accept((index, style, codePoint) -> {
-            sb.appendCodePoint(codePoint);
-            return true;
-        });
-        return sb.toString();
     }
 
     // ── 4 overloads of drawGuiTexture ───────────────────────────────────────
@@ -134,50 +98,6 @@ public abstract class DrawContextMixin {
     private void suppressTexture10(Identifier texture, int x, int y, int width, int height, float u, float v, int regionWidth, int regionHeight, int textureWidth, int textureHeight, CallbackInfo ci) {
         if (shouldSuppressTexture(texture)) {
             ci.cancel();
-        }
-    }
-
-    // ── Text suppression via DrawContext ─────────────────────────────────────
-
-    @Inject(method = "drawText(Lnet/minecraft/client/font/TextRenderer;Ljava/lang/String;IIIZ)I", at = @At("HEAD"), cancellable = true)
-    private void suppressTextString(TextRenderer textRenderer, String text, int x, int y, int color, boolean shadow, CallbackInfoReturnable<Integer> cir) {
-        if (isMultiplierBadge(text)) {
-            cir.setReturnValue(0);
-        }
-    }
-
-    @Inject(method = "drawTextWithShadow(Lnet/minecraft/client/font/TextRenderer;Ljava/lang/String;III)I", at = @At("HEAD"), cancellable = true)
-    private void suppressTextStringShadow(TextRenderer textRenderer, String text, int x, int y, int color, CallbackInfoReturnable<Integer> cir) {
-        if (isMultiplierBadge(text)) {
-            cir.setReturnValue(0);
-        }
-    }
-
-    @Inject(method = "drawText(Lnet/minecraft/client/font/TextRenderer;Lnet/minecraft/text/Text;IIIZ)I", at = @At("HEAD"), cancellable = true)
-    private void suppressTextComponent(TextRenderer textRenderer, Text text, int x, int y, int color, boolean shadow, CallbackInfoReturnable<Integer> cir) {
-        if (text != null && isMultiplierBadge(text.getString())) {
-            cir.setReturnValue(0);
-        }
-    }
-
-    @Inject(method = "drawTextWithShadow(Lnet/minecraft/client/font/TextRenderer;Lnet/minecraft/text/Text;III)I", at = @At("HEAD"), cancellable = true)
-    private void suppressTextComponentShadow(TextRenderer textRenderer, Text text, int x, int y, int color, CallbackInfoReturnable<Integer> cir) {
-        if (text != null && isMultiplierBadge(text.getString())) {
-            cir.setReturnValue(0);
-        }
-    }
-
-    @Inject(method = "drawText(Lnet/minecraft/client/font/TextRenderer;Lnet/minecraft/text/OrderedText;IIIZ)I", at = @At("HEAD"), cancellable = true)
-    private void suppressOrderedText(TextRenderer textRenderer, OrderedText text, int x, int y, int color, boolean shadow, CallbackInfoReturnable<Integer> cir) {
-        if (isMultiplierBadge(getOrderedTextString(text))) {
-            cir.setReturnValue(0);
-        }
-    }
-
-    @Inject(method = "drawTextWithShadow(Lnet/minecraft/client/font/TextRenderer;Lnet/minecraft/text/OrderedText;III)I", at = @At("HEAD"), cancellable = true)
-    private void suppressOrderedTextShadow(TextRenderer textRenderer, OrderedText text, int x, int y, int color, CallbackInfoReturnable<Integer> cir) {
-        if (isMultiplierBadge(getOrderedTextString(text))) {
-            cir.setReturnValue(0);
         }
     }
 }

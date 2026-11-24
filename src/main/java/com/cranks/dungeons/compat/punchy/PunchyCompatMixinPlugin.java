@@ -17,7 +17,13 @@ public class PunchyCompatMixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
-        return FabricLoader.getInstance().isModLoaded("punchy");
+        var punchy = FabricLoader.getInstance().getModContainer("punchy");
+        if (punchy.isEmpty()) return false;
+        if (mixinClassName.endsWith("PunchyRangedPoseMixin") || mixinClassName.endsWith("PunchyCrossbowStateMachineMixin")) {
+            // These hooks use Punchy 3.2's playback API; older installations keep the core weapon mechanics.
+            return punchy.get().getMetadata().getVersion().getFriendlyString().startsWith("3.2");
+        }
+        return true;
     }
 
     @Override

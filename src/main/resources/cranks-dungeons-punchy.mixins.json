@@ -4,7 +4,7 @@
   "compatibilityLevel": "JAVA_21",
   "plugin": "com.cranks.dungeons.compat.punchy.PunchyCompatMixinPlugin",
   "client": [
-    "PunchyAnimationManagerMixin",
+    "PunchyRangedPoseMixin",
     "PunchyCrossbowStateMachineMixin",
     "PunchyAttackStateMachineMixin"
   ],

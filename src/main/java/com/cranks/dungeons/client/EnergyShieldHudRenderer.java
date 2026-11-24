@@ -1,5 +1,6 @@
 package com.cranks.dungeons.client;
 
+import com.cranks.dungeons.client.render.HotbarHudRenderer;
 import com.cranks.dungeons.CranksDungeons;
 import com.cranks.dungeons.EnergyShieldProvider;
 import com.cranks.dungeons.registry.ModAttributes;
@@ -26,6 +27,7 @@ public class EnergyShieldHudRenderer implements HudRenderCallback {
     @Override
     public void onHudRender(DrawContext drawContext, RenderTickCounter tickCounter) {
         MinecraftClient client = MinecraftClient.getInstance();
+        if (client.currentScreen instanceof com.cranks.dungeons.client.screen.HudLayoutEditScreen) return;
         if (client.player == null) return;
         if (client.options.hudHidden || !client.player.isAlive() || com.cranks.dungeons.CranksDungeonsClient.isCinematicRespawnActive()) return;
         if (com.cranks.dungeons.CranksDungeons.CONFIG.useStatBars()) return;
@@ -49,7 +51,7 @@ public class EnergyShieldHudRenderer implements HudRenderCallback {
         
         // Calculate health bar position (vanilla places it at screenWidth/2 - 91, screenHeight - 39)
         int healthBarX = screenWidth / 2 - 91;
-        int healthBarY = screenHeight - 39;
+        int healthBarY = screenHeight - 39 - HotbarHudRenderer.DEFAULT_LIFT;
         
         // Calculate shield info
         // Apply a small epsilon to avoid lingering half-hearts when effectively full.
@@ -78,7 +80,7 @@ public class EnergyShieldHudRenderer implements HudRenderCallback {
         int shieldRows = (int) Math.ceil(totalShieldHearts / 10.0);
         
         // Position shields directly above the health hearts.
-        // With our 5-HP-per-heart scaling, the health bar always sits at healthBarY (screenHeight - 39).
+        // Anchor the shield above the scaled health rows.
         int scaledMaxHealthHearts = (int) Math.ceil((player.getMaxHealth() / 2.5f) / 2.0f);
         int scaledAbsorptionHearts = (int) Math.ceil((player.getAbsorptionAmount() / 2.5f) / 2.0f);
         int scaledHealthRows = overflowingBars ? 1 : Math.max(1, (int) Math.ceil((scaledMaxHealthHearts + scaledAbsorptionHearts) / 10.0));

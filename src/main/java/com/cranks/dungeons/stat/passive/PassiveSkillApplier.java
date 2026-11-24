@@ -48,7 +48,8 @@ public class PassiveSkillApplier {
         EntityAttributeModifier modifier = new EntityAttributeModifier(
                 modifierId,
                 value,
-                EntityAttributeModifier.Operation.ADD_VALUE
+                com.cranks.dungeons.util.CombatUtility.attributesMatch(attribute,com.cranks.dungeons.registry.ModAttributes.MINING_EFFICIENCY)
+                        ?EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE:EntityAttributeModifier.Operation.ADD_VALUE
         );
 
         var attributeInstance = player.getAttributeInstance(attribute);

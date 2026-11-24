@@ -15,15 +15,15 @@ public class VanillaPoisonConversionMixin {
 
     @Inject(method = "addStatusEffect(Lnet/minecraft/entity/effect/StatusEffectInstance;)Z", at = @At("HEAD"), cancellable = true)
     private void convertVanillaPoison(StatusEffectInstance effect, CallbackInfoReturnable<Boolean> cir) {
-        handlePoisonConversion(effect, cir);
+        handlePoisonConversion(effect, null, cir);
     }
 
     @Inject(method = "addStatusEffect(Lnet/minecraft/entity/effect/StatusEffectInstance;Lnet/minecraft/entity/Entity;)Z", at = @At("HEAD"), cancellable = true)
     private void convertVanillaPoisonWithSource(StatusEffectInstance effect, net.minecraft.entity.Entity source, CallbackInfoReturnable<Boolean> cir) {
-        handlePoisonConversion(effect, cir);
+        handlePoisonConversion(effect, source, cir);
     }
 
-    private void handlePoisonConversion(StatusEffectInstance effect, CallbackInfoReturnable<Boolean> cir) {
+    private void handlePoisonConversion(StatusEffectInstance effect, net.minecraft.entity.Entity source, CallbackInfoReturnable<Boolean> cir) {
         // Check if this is vanilla poison
         if (effect.getEffectType() == StatusEffects.POISON) {
             LivingEntity entity = (LivingEntity) (Object) this;
@@ -32,11 +32,12 @@ public class VanillaPoisonConversionMixin {
             if (entity.getEntityWorld().isClient()) {
                 return;
             }
+            source = com.cranks.dungeons.effect.PotionRules.effectOwner(source);
 
             // Calculate damage based on vanilla poison amplifier
             // Vanilla poison: level I = 0 amplifier, level II = 1 amplifier
             int amplifier = effect.getAmplifier();
-            int stacksToAdd = Math.max(1, amplifier + 1);
+            int stacksToAdd = com.cranks.dungeons.effect.StatusEffectRules.poisonStacks(amplifier);
 
             // Use default base damage of 1.0
             float baseDamage = 1.0f;
@@ -44,8 +45,7 @@ public class VanillaPoisonConversionMixin {
             // Convert duration from vanilla (ticks) to seconds
             // Vanilla poison duration is in ticks (20 ticks = 1 second)
             double durationSeconds = effect.getDuration() / 20.0;
-            // Use mod's base duration of 2 seconds
-            durationSeconds = 2.0;
+            if (effect.isInfinite()) durationSeconds = Double.POSITIVE_INFINITY;
 
             // Apply stacks to the mod's poison system
             for (int i = 0; i < stacksToAdd; i++) {
@@ -54,12 +54,12 @@ public class VanillaPoisonConversionMixin {
                     AilmentType.POISON,
                     baseDamage,
                     durationSeconds,
-                    null
+                    source
                 );
             }
 
             // Cancel the vanilla poison effect - don't apply it
-            cir.setReturnValue(false);
+            cir.setReturnValue(entity.hasStatusEffect(com.cranks.dungeons.effect.ModEffects.POISON));
             cir.cancel();
         }
     }

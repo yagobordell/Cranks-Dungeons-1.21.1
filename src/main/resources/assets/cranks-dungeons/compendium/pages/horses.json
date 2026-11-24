@@ -1,17 +1,63 @@
 {
   "title": "Horse Statistics",
   "content": [
-    { "type": "text", "value": "Horses are a sustained ground-mobility mount: ordinary travel costs no stamina, while Gallop trades stamina for speed. Their genes improve health, armor, speed, jumping, evasion, and stamina." },
-    { "type": "text", "value": "Open a horse inventory to see its current stats, training perks, six inheritable genes, breeding focus, family, and imprint information." },
-    { "type": "heading", "value": "Six Inheritable Genes" },
-    { "type": "list", "value": "Health Bonus: 0–50 above the horse's 100 HP baseline.\nArmor Bonus: 0–72 above the horse's 120 armor baseline.\nSpeed: 0.1125–0.42 genetic movement-speed base.\nJump: 0.4–1.2 genetic jump-strength base.\nEvasion: 0–200 genetic evasion rating.\nEndurance: 50–200 genetic stamina base." },
-    { "type": "heading", "value": "Wild Horses" },
-    { "type": "text", "value": "A wild horse's generated vanilla health quality maps into a 0–25 health bonus. Wild armor genes roll from 0–30. Better bloodlines can improve health bonus to 50 and armor bonus to 72. Horses start from 100 HP and gain 10 maximum HP per level; their 120 armor baseline matches the mod-scaled armor of a full iron set before genes, traits, or horse armor. Its generated speed and jump are preserved within their gene limits. It receives random 0–200 evasion, random 70–110 endurance, an even male/female roll, three breeding attempts, and a 40% chance to begin with one random trait." },
-    { "type": "heading", "value": "Grades & Potential" },
-    { "type": "text", "value": "The Genetics panel grades each gene and the overall line from D- to S+. Grades compare genes with what is normally reachable at that generation; progress bars show distance from the gene's breeding cap." },
-    { "type": "note", "style": "info", "value": "Grades measure inheritable genes, not current performance. Training, traits, equipment, roads, Gallop, and the active rider's imprint bonus change effective stats without changing gene grades." },
-    { "type": "heading", "value": "Horse-Only Statistics" },
-    { "type": "text", "value": "Genetics, traits, training, Gallop, road bonuses, and horse armour modify the horse entity. They do not add movement, armour, evasion, health, regeneration, or other attributes to the rider or to a player holding horse armour." },
-    { "type": "note", "style": "info", "value": "Mounted horse hearts use the same scale as player hearts in this mod: one full heart represents 5 health. This changes only the HUD representation, not the horse's real maximum health or damage taken." }
+    {
+      "type": "text",
+      "value": "[[mob/minecraft:horse|Horses]] are a sustained ground-mobility mount: ordinary travel costs no stamina, while Gallop trades stamina for speed. Their genes improve health, armor, speed, jumping, evasion, and stamina."
+    },
+    {
+      "type": "text",
+      "value": "Open a horse inventory to see its current stats, training perks, six inheritable genes, breeding focus, family, and imprint information."
+    },
+    {
+      "type": "heading",
+      "value": "Six Inheritable Genes"
+    },
+    {
+      "type": "list",
+      "value": "Health Bonus: 0–50 above the horse's 100 HP baseline.\nArmor Bonus: 0–72 above the horse's 120 armor baseline.\nSpeed: 0.1125–0.42 genetic movement-speed base.\nJump: 0.4–1.2 genetic jump-strength base.\nEvasion: 0–200 genetic [[stat/cranks-dungeons:evasion_rating|evasion rating]].\nEndurance: 50–200 genetic stamina base."
+    },
+    {
+      "type": "heading",
+      "value": "Wild Horses"
+    },
+    {
+      "type": "text",
+      "value": "A wild horse's generated vanilla health quality maps into a 0–25 health bonus. Wild armor genes roll from 0–30. Better bloodlines can improve health bonus to 50 and armor bonus to 72. [[mob/minecraft:horse|Horses]] start from 100 HP and gain 10 maximum HP per level; their 120 armor baseline matches the mod-scaled armor of a full iron set before genes, traits, or horse armor. Its generated speed and jump are preserved within their gene limits. It receives random 0–200 evasion, random 70–110 endurance, an even male/female roll, three breeding attempts, and a 40% chance to begin with one random trait."
+    },
+    {
+      "type": "heading",
+      "value": "Grades & Potential"
+    },
+    {
+      "type": "text",
+      "value": "The Genetics panel grades each gene and the overall line from D- to S+. Grades compare genes with what is normally reachable at that generation; progress bars show distance from the gene's breeding cap."
+    },
+    {
+      "type": "note",
+      "style": "info",
+      "value": "Grades measure inheritable genes, not current performance. Training, traits, equipment, roads, Gallop, and the active rider's imprint bonus change effective stats without changing gene grades."
+    },
+    {
+      "type": "heading",
+      "value": "Horse-Only Statistics"
+    },
+    {
+      "type": "text",
+      "value": "Genetics, traits, training, Gallop, road bonuses, and horse armour modify the horse entity. They do not add movement, armour, evasion, health, regeneration, or other attributes to the rider or to a player holding horse armour."
+    },
+    {
+      "type": "note",
+      "style": "info",
+      "value": "Mounted horse hearts use the same scale as player hearts in this mod: one full heart represents 5 health. This changes only the HUD representation, not the horse's real maximum health or damage taken."
+    },
+    {
+      "type": "heading",
+      "value": "Related articles"
+    },
+    {
+      "type": "text",
+      "value": "[[article/breeding|Mount Breeding & Genetics]] | [[article/horse_traits|Horse Traits & Mutations]] | [[article/animal_armor|Animal Armour]]"
+    }
   ]
 }

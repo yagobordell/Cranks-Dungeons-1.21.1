@@ -27,13 +27,21 @@
       {
         "id": "minecraft:enchantment.greater_stone.knockback",
         "attribute": "cranks-dungeons:knockback",
-        "amount": 0.20,
+        "amount": {
+          "type": "minecraft:linear",
+          "base": 0.20,
+          "per_level_above_first": 0.20
+        },
         "operation": "add_value"
       },
       {
         "id": "minecraft:enchantment.greater_stone_armor.knockback_resistance",
         "attribute": "cranks-dungeons:knockback_resistance",
-        "amount": 0.15,
+        "amount": {
+          "type": "minecraft:linear",
+          "base": 0.15,
+          "per_level_above_first": 0.15
+        },
         "operation": "add_value"
       }
     ]

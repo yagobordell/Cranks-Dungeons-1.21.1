@@ -1,0 +1,57 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_minecraft_copper_ingot": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "minecraft:copper_ingot"
+            ]
+          }
+        ]
+      }
+    },
+    "has_minecraft_iron_ingot": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "minecraft:iron_ingot"
+            ]
+          }
+        ]
+      }
+    },
+    "has_minecraft_cobblestone": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "minecraft:cobblestone"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_minecraft_copper_ingot"
+    ],
+    [
+      "has_minecraft_iron_ingot"
+    ],
+    [
+      "has_minecraft_cobblestone"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "minecraft:brewing_stand"
+    ]
+  }
+}

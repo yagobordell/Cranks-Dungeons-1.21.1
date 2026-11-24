@@ -1,4 +1,16 @@
 {
+  "mount_whistle_come": {
+    "subtitle": "subtitles.cranks-dungeons.mount_whistle_come",
+    "sounds": [{ "name": "cranks-dungeons:mount_whistle_come", "attenuation_distance": 48 }]
+  },
+  "mount_whistle_follow": {
+    "subtitle": "subtitles.cranks-dungeons.mount_whistle_follow",
+    "sounds": [{ "name": "cranks-dungeons:mount_whistle_follow", "attenuation_distance": 48 }]
+  },
+  "mount_whistle_stay": {
+    "subtitle": "subtitles.cranks-dungeons.mount_whistle_stay",
+    "sounds": [{ "name": "cranks-dungeons:mount_whistle_stay", "attenuation_distance": 48 }]
+  },
   "quality_station_1": {
     "sounds": [
       { "name": "cranks-dungeons:quality_station_1", "volume": 0.4, "pitch": 1.0, "attenuation_distance": 12 }

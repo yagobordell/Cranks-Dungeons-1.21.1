@@ -1,0 +1,41 @@
+{
+  "title": "Repair Bench",
+  "content": [
+    {
+      "type": "item_image",
+      "value": "minecraft:grindstone"
+    },
+    {
+      "type": "heading",
+      "value": "Repair damaged equipment"
+    },
+    {
+      "type": "text",
+      "value": "The vanilla [[item/minecraft:grindstone|Grindstone]] is the [[article/repairing|Repair Bench]]. Choose damaged equipment and inspect the materials required to repair it. The cost grows with the durability that needs restoring."
+    },
+    {
+      "type": "text",
+      "value": "Repair preserves the equipment and its supported runes, quality and enchantments. This station is not the vanilla disenchanting operation."
+    },
+    {
+      "type": "text",
+      "value": "The [[article/quality|Upgrade Bench]] handles quality and enchantment-slot upgrades; the [[article/enchantments|Enchanting Table]] manages enchantment application, removal and replacement."
+    },
+    {
+      "type": "heading",
+      "value": "Durability"
+    },
+    {
+      "type": "text",
+      "value": "Equipment tooltips show remaining and maximum durability. Replacing or upgrading gear and avoiding durability loss are different from restoring durability already lost."
+    },
+    {
+      "type": "heading",
+      "value": "Related articles"
+    },
+    {
+      "type": "text",
+      "value": "[[article/equipment|Equipment Bases]] | [[article/quality|Upgrade Bench]] | [[article/foundry|Foundry]]"
+    }
+  ]
+}

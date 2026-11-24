@@ -20,7 +20,7 @@ public class PartyPvPMixin {
             return;
         }
         
-        if (PartyManager.areInSameParty(victim.getUuid(), attacker.getUuid())) {
+        if (victim != attacker && PartyManager.areInSameParty(victim.getUuid(), attacker.getUuid())) {
             cir.setReturnValue(false);
         }
     }

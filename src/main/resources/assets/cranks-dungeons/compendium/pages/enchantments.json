@@ -1,12 +1,58 @@
 {
   "title": "Enchantments",
   "content": [
-    { "type": "heading", "value": "Enchanting Table Rules" },
-    { "type": "text", "value": "Non-book equipment needs an open enchantment slot before the table offers anything. A book behaves as if it has one slot. The table offers independent level-1 enchantments: 1 option below 11 bookshelves, 2 options at 11–21, and 3 options at 22 or more. Options require character levels 10, 20, or 30 respectively, cost 1, 2, or 3 levels, and always consume 32 lapis." },
-    { "type": "heading", "value": "Mod Enchantment Families" },
-    { "type": "list", "value": "Adept / Greater / Perfect: +9 / +12 / +15 Dexterity.\nBody: weapons leech 1% / 2% / 3% physical as life; armour gains +45 / +60 / +75 maximum health.\nDesert: +20 / +30 / +40 fire damage on weapons or 14% / 18% / 22% fire resistance on armour.\nGlacial: +7 / +15 / +20 cold damage or 14% / 18% / 22% cold resistance.\nStorm: +13 / +20 / +30 lightning damage or 14% / 18% / 22% lightning resistance.\nInspiration: +10 / +20 / +30 mana on kill or 15% / 18% / 21% mana regeneration.\nIron: 16% / 18% / 20% physical damage or matching increased armour, evasion, and Energy Shield.\nStone: 15% / 20% / 30% knockback or 10% / 15% / 20% knockback resistance.\nVision: +90 / +120 / +150 flat armour penetration on martial weapons.\nVein Mining: breaks matching connected ores from one mined block." },
-    { "type": "heading", "value": "Control and Removal" },
-    { "type": "text", "value": "Press G while holding a tool with registered toggleable enchantments to cycle none disabled, each one disabled, and all disabled when several are present. This is useful for Silk Touch and Vein Mining behaviour. A grindstone refuses a damageable item below half durability; a successful grind adds damage equal to half maximum durability." },
-    { "type": "note", "style": "info", "value": "Enchantment Effectiveness scales modifiers created by enchantments only. It does not scale rune or native item modifiers." }
+    {
+      "type": "item_image",
+      "value": "minecraft:enchanting_table"
+    },
+    {
+      "type": "heading",
+      "value": "Enchanting Table Rules"
+    },
+    {
+      "type": "text",
+      "value": "Open the [[article/enchantments|Enchanting Table]], select your gear, and choose a compatible enchantment. Each enchantment takes one open slot. The [[article/quality|Upgrade Bench]] can add slots with [[item/cranks-dungeons:deepslate_sigil|Deepslate Sigils]] up to the gear's limit."
+    },
+    {
+      "type": "text",
+      "value": "The table draws lapis from your regular inventory, bags, and hotbar. Lesser enchantments, Silk Touch, and Vein Mining cost 16 lapis. Unprefixed enchantments cost 32 lapis. Anyone can use the table."
+    },
+    {
+      "type": "text",
+      "value": "Stat enchantments can occupy multiple slots on the same item. Each copy costs the listed amount of lapis and adds the listed stats again. Two copies of Lesser Adept give +18 [[stat/cranks-dungeons:dexterity|Dexterity]]. Gear tooltips show the number of copies, and Silk Touch and Vein Mining each take one slot and can be applied once per tool."
+    },
+    {
+      "type": "text",
+      "value": "Select Edit enchants to manage existing copies. On full gear, the table opens this view directly. Remove frees one slot for free. Replace accepts a compatible enchantment and costs its usual lapis price. Both actions show the gear's bonuses before and after and take effect when confirmed."
+    },
+    {
+      "type": "heading",
+      "value": "Mod Enchantment Families"
+    },
+    {
+      "type": "list",
+      "value": "Lesser / unprefixed values:\nAdept: +9 / +12 [[stat/cranks-dungeons:dexterity|Dexterity]].\nBody: weapons leech 1% / 2% physical as life; armour gains +45 / +60 maximum health.\nDesert: +20 / +30 fire damage or 14% / 18% [[stat/cranks-dungeons:fire_resistance|fire resistance]].\nGlacial: +7 / +15 cold damage or 14% / 18% [[stat/cranks-dungeons:cold_resistance|cold resistance]].\nStorm: +13 / +20 lightning damage or 14% / 18% [[stat/cranks-dungeons:lightning_resistance|lightning resistance]].\nInspiration: +10 / +20 mana on kill or 15% / 18% mana regeneration.\nIron: 16% / 18% physical damage or matching increased armour, evasion, and [[stat/cranks-dungeons:energy_shield|Energy Shield]].\n[[item/minecraft:stone|Stone]]: 15% / 20% knockback or 10% / 15% knockback resistance.\nVision: +90 / +120 flat armour penetration on martial weapons.\nVein Mining: breaks matching connected ores from one mined block."
+    },
+    {
+      "type": "heading",
+      "value": "Toggling Enchantments"
+    },
+    {
+      "type": "text",
+      "value": "Press G while holding a tool with toggleable enchantments to cycle none disabled, each one disabled, and all disabled when several are present. This is useful for Silk Touch and Vein Mining behaviour."
+    },
+    {
+      "type": "note",
+      "style": "info",
+      "value": "Enchantment Effectiveness scales modifiers created by enchantments only. It does not scale rune or native item modifiers."
+    },
+    {
+      "type": "heading",
+      "value": "Related articles"
+    },
+    {
+      "type": "text",
+      "value": "[[article/quality|Upgrade Bench]] | [[article/equipment|Equipment Bases]] | [[article/rarity_requirements|Item Requirements]]"
+    }
   ]
 }

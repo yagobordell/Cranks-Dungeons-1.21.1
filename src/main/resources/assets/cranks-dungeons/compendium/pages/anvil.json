@@ -1,0 +1,41 @@
+{
+  "title": "Anvil",
+  "content": [
+    {
+      "type": "item_image",
+      "value": "minecraft:anvil"
+    },
+    {
+      "type": "heading",
+      "value": "Equipment forging"
+    },
+    {
+      "type": "text",
+      "value": "The [[item/minecraft:anvil|Anvil]] assembles its assigned advanced equipment, including iron, gold, chainmail, diamond and Netherite equipment and tools. Weapon, tool and armour categories keep these groups separate."
+    },
+    {
+      "type": "text",
+      "value": "Netherite equipment uses [[item/minecraft:netherite_scrap|Netherite Scrap]] directly in its recipes. A helmet uses five scraps and boots use four, following the material counts of the corresponding equipment shapes."
+    },
+    {
+      "type": "text",
+      "value": "It does not provide vanilla renaming or enchantment combining. Use the [[article/enchantments|Enchanting Table]] for enchantments and the [[article/repairing|Repair Bench]] for repairs."
+    },
+    {
+      "type": "heading",
+      "value": "Building an Anvil"
+    },
+    {
+      "type": "text",
+      "value": "The current anvil recipe uses one [[item/minecraft:iron_block|Iron Block]] and four [[item/minecraft:iron_ingot|Iron Ingots]]."
+    },
+    {
+      "type": "heading",
+      "value": "Related articles"
+    },
+    {
+      "type": "text",
+      "value": "[[article/equipment|Equipment Bases]] | [[article/repairing|Repair Bench]] | [[article/foundry|Foundry]]"
+    }
+  ]
+}

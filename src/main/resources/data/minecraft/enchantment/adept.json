@@ -27,7 +27,11 @@
       {
         "id": "minecraft:enchantment.adept.dexterity",
         "attribute": "cranks-dungeons:dexterity",
-        "amount": 9.0,
+        "amount": {
+          "type": "minecraft:linear",
+          "base": 9.0,
+          "per_level_above_first": 9.0
+        },
         "operation": "add_value"
       }
     ]

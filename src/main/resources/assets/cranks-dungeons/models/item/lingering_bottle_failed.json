@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "cranks-dungeons:item/alchemy/lingering_bottle_failed_overlay",
+    "layer1": "cranks-dungeons:item/alchemy/lingering_bottle"
+  }
+}

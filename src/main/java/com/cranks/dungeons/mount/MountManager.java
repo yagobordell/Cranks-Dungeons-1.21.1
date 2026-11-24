@@ -71,6 +71,14 @@ public final class MountManager {
     }
 
     public static void register() {
+        MountBreedingAccess.register();
+        MountTransfers.register();
+        net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents.ENTITY_LOAD.register((entity, world)->{
+            if(entity instanceof LlamaEntity)LlamaPackManager.invalidate();
+        });
+        net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents.ENTITY_UNLOAD.register((entity, world)->{
+            if(entity instanceof LlamaEntity)LlamaPackManager.invalidate();
+        });
         // Camels do not expose vanilla inventory/drop hooks, so their attached
         // chest and cargo are released from the common death event instead.
         ServerLivingEntityEvents.AFTER_DEATH.register((entity, source) -> {
@@ -173,7 +181,10 @@ public final class MountManager {
         if (data.ownerUuid != null) return;
         data.ownerUuid = player.getUuid();
         data.ownerName = player.getName().getString();
+        if(player instanceof net.minecraft.server.network.ServerPlayerEntity serverPlayer)
+            com.cranks.dungeons.progression.WorldDiscovery.firstAnimal(serverPlayer,mount,"tame");
         data.accessMode = MountAccessMode.OWNER_ONLY;
+        data.storageAccessMode = MountAccessMode.OWNER_ONLY;
         sync(mount);
     }
 
@@ -375,6 +386,7 @@ public final class MountManager {
         if (kind == MountKind.HORSE || kind == MountKind.UNSUPPORTED) return;
         MountData data = ensureInitialized(mount);
         boolean tamed = mount instanceof AbstractHorseEntity horse && horse.isTame();
+        enforceRidingAccess(mount);
         UUID ownerUuid = tamed ? ((AbstractHorseEntity) mount).getOwnerUuid() : null;
         if (usesCustomOwnership(mount)) {
             ownerUuid = data.ownerUuid;
@@ -398,8 +410,13 @@ public final class MountManager {
         data.lastX = mount.getX();
         data.lastZ = mount.getZ();
         boolean controlled = mount.getControllingPassenger() instanceof PlayerEntity;
-        boolean progressingCaravan = kind == MountKind.LLAMA && tamed;
-        if ((controlled || progressingCaravan) && moved > 0.001 && moved < 4.0) {
+        UUID riderId = controlled ? mount.getControllingPassenger().getUuid() : null;
+        if (!java.util.Objects.equals(data.abilityRider, riderId)) {
+            data.abilityRequested = false;
+            data.abilityActive = false;
+            data.abilityRider = riderId;
+        }
+        if (MountTraining.activeTravel(mount,moved)) {
             data.distanceAccumulator += moved;
             while (data.distanceAccumulator >= 10.0) {
                 data.distanceAccumulator -= 10.0;
@@ -426,7 +443,7 @@ public final class MountManager {
                 case STRIDER -> "Heatkeeper".equals(data.trait) ? 3.2 : 4.0;
                 default -> 0.0;
             };
-            data.currentResource = Math.max(0.0, data.currentResource - drain / 20.0);
+            data.currentResource = Math.max(0.0, data.currentResource - RidingStats.sprintCost(mount, drain) / 20.0);
             data.resourceRegenDelay = 40;
         } else {
             if (data.resourceRegenDelay > 0) {
@@ -437,7 +454,7 @@ public final class MountManager {
                     regen = mount.isInLava() ? 6.0 : (mount instanceof StriderEntity strider && strider.isCold()
                             ? -1.0 * (1.0 - data.endurance * 0.006) : 0.5);
                 }
-                data.currentResource = MathHelper.clamp(data.currentResource + regen / 20.0, 0.0, maximum);
+                data.currentResource = MathHelper.clamp(data.currentResource + RidingStats.recovery(mount, regen) / 20.0, 0.0, maximum);
             }
         }
 
@@ -460,6 +477,7 @@ public final class MountManager {
         if (kind != MountKind.DONKEY && kind != MountKind.MULE
                 && kind != MountKind.CAMEL && kind != MountKind.STRIDER) return;
         MountData data = ensureInitialized(mount);
+        data.abilityRider = player.getUuid();
         data.abilityRequested = active;
         if (!active) data.abilityActive = false;
     }
@@ -683,6 +701,7 @@ public final class MountManager {
 
     /** Slot count reserved by a screen while mount equipment can change. */
     public static int cargoScreenCapacity(LivingEntity mount) {
+        if(mount instanceof AbstractHorseEntity horse && !usesCustomCargoScreen(mount))return maxHorseCargoCapacity(horse);
         return mount instanceof LlamaEntity llama
                 ? LlamaPackManager.screenCapacity(llama) : cargoCapacity(mount);
     }
@@ -718,31 +737,17 @@ public final class MountManager {
     }
 
     public static boolean cargoIsEmpty(LivingEntity mount) {
-        if (mount instanceof LlamaEntity llama) {
-            var inventory = AbstractHorseInventoryAccess.of(llama).cranksdungeons$getHorseItems();
-            int cargoSlots = ((MountDataProvider) llama).cranksdungeons$hasMountChest()
-                    ? Math.min(inventory.size() - 2, llama.getStrength() * 3) : 0;
-            for (int slot = 2; slot < 2 + cargoSlots; slot++) {
-                if (!inventory.getStack(slot).isEmpty()) return false;
-            }
-            return true;
-        }
         if (mount instanceof CamelEntity || mount instanceof PigEntity || mount instanceof StriderEntity) {
             return data(mount).cargo.isEmpty();
         }
-        int capacity = cargoCapacity(mount);
         if (mount instanceof AbstractHorseEntity horse) {
             var inventory = AbstractHorseInventoryAccess.of(horse).cranksdungeons$getHorseItems();
-            for (int slot = 1; slot < Math.min(inventory.size(), capacity + 1); slot++) {
+            for (int slot = 1; slot < inventory.size(); slot++) {
                 if (!inventory.getStack(slot).isEmpty()) return false;
             }
             return true;
         }
-        MountData data = data(mount);
-        for (int slot = 0; slot < capacity; slot++) {
-            if (!data.cargo.getStack(slot).isEmpty()) return false;
-        }
-        return true;
+        return data(mount).cargo.isEmpty();
     }
 
     public static boolean canManage(PlayerEntity player, LivingEntity mount) {
@@ -788,6 +793,8 @@ public final class MountManager {
             data.ownerUuid = null;
             data.ownerName = "";
             data.accessMode = MountAccessMode.OWNER_ONLY;
+            data.storageAccessMode = MountAccessMode.OWNER_ONLY;
+            data.breedingAccessMode=MountAccessMode.OWNER_ONLY;
             data.ownershipSyncInitialized = true;
             data.lastSyncedTamed = false;
             data.lastSyncedOwnerUuid = null;
@@ -805,6 +812,8 @@ public final class MountManager {
         if (horse instanceof HorseEntity normalHorse) {
             HorseGeneticsData data = HorseBreedingManager.ensureInitialized(normalHorse);
             data.accessMode = MountAccessMode.OWNER_ONLY;
+            data.storageAccessMode = MountAccessMode.OWNER_ONLY;
+            data.breedingAccessMode=MountAccessMode.OWNER_ONLY;
             data.ownershipSyncInitialized = true;
             data.lastSyncedTamed = false;
             data.lastSyncedOwnerUuid = null;
@@ -813,6 +822,8 @@ public final class MountManager {
         } else {
             MountData data = ensureInitialized(horse);
             data.accessMode = MountAccessMode.OWNER_ONLY;
+            data.storageAccessMode = MountAccessMode.OWNER_ONLY;
+            data.breedingAccessMode=MountAccessMode.OWNER_ONLY;
             data.ownershipSyncInitialized = true;
             data.lastSyncedTamed = false;
             data.lastSyncedOwnerUuid = null;
@@ -840,13 +851,34 @@ public final class MountManager {
                 && horse.getOwnerUuid().equals(player.getUuid()));
     }
 
-    /** Permission to ride and access inventories on owned horse-family or named custom mounts. */
+    /** Permission to ride an owned mount; storage is checked independently. */
     public static boolean canAccessMount(PlayerEntity player, LivingEntity mount) {
+        return canAccess(player, mount, accessMode(mount));
+    }
+
+    public static MountAccessMode storageAccessMode(LivingEntity mount) {
+        return mount instanceof HorseEntity horse ? HorseBreedingManager.ensureInitialized(horse).storageAccessMode
+                : ensureInitialized(mount).storageAccessMode;
+    }
+
+    public static boolean canAccessStorage(PlayerEntity player, LivingEntity mount) {
+        return canAccess(player, mount, storageAccessMode(mount));
+    }
+
+    public static void enforceRidingAccess(LivingEntity mount) {
+        for (var passenger:java.util.List.copyOf(mount.getPassengerList())) {
+            if(passenger instanceof PlayerEntity player&&!canAccessMount(player,mount)){
+                player.stopRiding();denyMountAccess(player);
+            }
+        }
+    }
+
+    public static boolean canAccess(PlayerEntity player, LivingEntity mount, MountAccessMode mode) {
         if (usesCustomOwnership(mount)) {
             MountData data = ensureInitialized(mount);
             if (data.ownerUuid == null) return true;
             if (player.isCreative() || data.ownerUuid.equals(player.getUuid())) return true;
-            return switch (data.accessMode) {
+            return switch (mode) {
                 case OWNER_ONLY -> false;
                 case PARTY -> com.cranks.dungeons.party.PartyManager.areInSameParty(
                         player.getUuid(), data.ownerUuid);
@@ -857,7 +889,7 @@ public final class MountManager {
         if (player.isCreative()) return true;
         UUID owner = horse.getOwnerUuid();
         if (owner != null && owner.equals(player.getUuid())) return true;
-        return switch (accessMode(mount)) {
+        return switch (mode) {
             case OWNER_ONLY -> false;
             case PARTY -> owner != null
                     && com.cranks.dungeons.party.PartyManager.areInSameParty(player.getUuid(), owner);
@@ -866,16 +898,29 @@ public final class MountManager {
     }
 
     public static boolean setAccessMode(PlayerEntity player, LivingEntity mount, MountAccessMode mode) {
+        return setAccessMode(player, mount, mode, false);
+    }
+
+    public static boolean setAccessMode(PlayerEntity player, LivingEntity mount, MountAccessMode mode, boolean storage) {
         if (mode == null || !canManageAccess(player, mount)) return false;
         if (mount instanceof net.minecraft.entity.passive.HorseEntity horse) {
-            HorseBreedingManager.ensureInitialized(horse).accessMode = mode;
+            if (storage) HorseBreedingManager.ensureInitialized(horse).storageAccessMode = mode;
+            else HorseBreedingManager.ensureInitialized(horse).accessMode = mode;
             HorseBreedingManager.sync(horse);
         } else if (mount instanceof MountDataProvider) {
-            ensureInitialized(mount).accessMode = mode;
+            if (storage) ensureInitialized(mount).storageAccessMode = mode;
+            else ensureInitialized(mount).accessMode = mode;
             sync(mount);
         } else {
             return false;
         }
+        return true;
+    }
+
+    public static boolean setBreedingAccess(PlayerEntity player,LivingEntity mount,MountAccessMode mode){
+        if(mode==null||!canManageAccess(player,mount))return false;
+        if(mount instanceof HorseEntity horse){HorseBreedingManager.ensureInitialized(horse).breedingAccessMode=mode;HorseBreedingManager.sync(horse);}
+        else{ensureInitialized(mount).breedingAccessMode=mode;sync(mount);}
         return true;
     }
 
@@ -887,7 +932,10 @@ public final class MountManager {
         MountDataProvider provider = (MountDataProvider) mount;
         if (!canManage(player, mount) || (equipped && mount.isBaby())) return false;
         if (provider.cranksdungeons$hasMountChest() == equipped) return true;
-        if (!equipped) ejectCargo(mount, player);
+        if (!equipped && !cargoIsEmpty(mount)) {
+            player.sendMessage(Text.translatable("mount.inventory.cranks-dungeons.empty_attachment"), true);
+            return false;
+        }
         provider.cranksdungeons$setMountChest(equipped);
         provider.cranksdungeons$setSyncedCargoCapacity(cargoCapacityUntracked(mount));
         if (mount instanceof AbstractHorseEntity horse) {
@@ -924,7 +972,7 @@ public final class MountManager {
         }
         if (mount instanceof AbstractHorseEntity horse) {
             var inventory = AbstractHorseInventoryAccess.of(horse).cranksdungeons$getHorseItems();
-            int cargoStart = mount instanceof LlamaEntity ? 2 : 1;
+            int cargoStart = mount instanceof LlamaEntity ? LlamaPackManager.CARGO_START : 1;
             for (int slot = cargoStart; slot < inventory.size(); slot++) {
                 moveCargoStack(mount, player, inventory.removeStack(slot));
             }
@@ -965,7 +1013,8 @@ public final class MountManager {
     }
 
     public static void openCargo(ServerPlayerEntity player, LivingEntity mount) {
-        if (!canAccessMount(player, mount)
+        if(mount instanceof LlamaEntity llama)LlamaPackManager.freshMembers(llama);
+        if (!canAccessStorage(player, mount)
                 || (mount instanceof LlamaEntity llama
                 && !LlamaPackManager.canPlayerAccessPack(player, llama))) {
             denyMountAccess(player);
@@ -980,7 +1029,7 @@ public final class MountManager {
                 int packSize = mount instanceof LlamaEntity llama
                         ? LlamaPackManager.members(llama).size() : 0;
                 return new MountCargoScreenHandler.OpeningData(mount.getId(),
-                        cargoScreenCapacity(mount), packSize, cargoCapacity(mount));
+                        cargoScreenCapacity(mount), packSize, cargoCapacity(mount),MountCargoScreenHandler.nativeHorseLayout(mount),mount instanceof LlamaEntity);
             }
 
             @Override
@@ -1249,16 +1298,13 @@ public final class MountManager {
         inherited.damId = dam.getUuid();
         inherited.sireName = displayName(sire);
         inherited.damName = displayName(dam);
-        inherited.ancestry.add(first.getUuid());
-        inherited.ancestry.add(second.getUuid());
-        inherited.ancestry.addAll(familyIds(first));
-        inherited.ancestry.addAll(familyIds(second));
-        while (inherited.ancestry.size() > 16) {
-            UUID last = null;
-            for (UUID id : inherited.ancestry) last = id;
-            if (last == null) break;
-            inherited.ancestry.remove(last);
-        }
+        inherited.ancestryDepths.putAll(MountLineage.inherit(first.getUuid(),lineage(first),second.getUuid(),lineage(second)));
+        inherited.ancestry.addAll(inherited.ancestryDepths.keySet());
+    }
+
+    public static java.util.LinkedHashMap<UUID,Integer> lineage(LivingEntity mount){
+        if(mount instanceof HorseEntity horse){var d=HorseBreedingManager.ensureInitialized(horse);return MountLineage.known(d.sireId,d.damId,d.ancestry,d.ancestryDepths);}
+        var d=ensureInitialized(mount);return MountLineage.known(d.sireId,d.damId,d.ancestry,d.ancestryDepths);
     }
 
     private static String displayName(LivingEntity entity) {

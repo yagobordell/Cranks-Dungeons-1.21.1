@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "cranks-dungeons:lesser_bottle"
+    },
+    {
+      "item": "cranks-dungeons:lesser_bottle"
+    },
+    {
+      "item": "cranks-dungeons:lesser_bottle"
+    },
+    {
+      "item": "minecraft:gunpowder"
+    }
+  ],
+  "result": {
+    "id": "cranks-dungeons:lesser_splash_bottle",
+    "count": 3
+  }
+}

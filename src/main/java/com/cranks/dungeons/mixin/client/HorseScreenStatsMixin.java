@@ -1,4 +1,5 @@
 package com.cranks.dungeons.mixin.client;
+import static com.cranks.dungeons.client.HorseInformation.*;
 
 import com.cranks.dungeons.client.GuiTextureResolver;
 import com.cranks.dungeons.client.HorseInlineSelectorWidget;
@@ -147,7 +148,7 @@ public abstract class HorseScreenStatsMixin {
         HorseGeneticsSyncPacket data = HorseGeneticsClientData.get(horse.getId());
         cranks$syncSelectedFocus(data);
 
-        List<StatLine> stats = cranks$buildStats(horse, data);
+        List<StatLine> stats = buildStats(horse, data);
         boolean canEditAccess = data != null && data.tamed()
                 && (MinecraftClient.getInstance().player != null
                 && (MinecraftClient.getInstance().player.isCreative()
@@ -161,15 +162,15 @@ public abstract class HorseScreenStatsMixin {
             stats.add(new StatLine("Mount Access", accessText, cranks$accessColor(accessMode)));
             cranks$accessRowVisible = true;
         }
-        List<StatLine> genes = cranks$buildGenes(data, cranks$selectedFocus);
-        List<StatLine> family = cranks$buildFamily(horse, data);
-        cranks$nearbyMates = cranks$findNearbyMates(horse, data);
+        List<StatLine> genes = buildGenes(data, cranks$selectedFocus);
+        List<StatLine> family = buildFamily(horse, data);
+        cranks$nearbyMates = findNearbyMates(horse, data);
         HorseEntity mate = cranks$selectCurrentMate();
         HorseGeneticsSyncPacket mateData = mate == null ? null : HorseGeneticsClientData.get(mate.getId());
         int mateIndex = mate == null ? -1 : cranks$nearbyMates.indexOf(mate);
         String mateSelectorText = mate == null ? "" : cranks$selectorText(
                 renderer, mate.getName().getString());
-        List<StatLine> pairing = mate == null ? List.of() : cranks$buildPairingPreview(
+        List<StatLine> pairing = mate == null ? List.of() : buildPairingPreview(
                 horse, data, mate, mateData, mateSelectorText, mateIndex, cranks$nearbyMates.size());
 
         int baseX = accessor.getX();
@@ -220,7 +221,7 @@ public abstract class HorseScreenStatsMixin {
 
         cranks$focusRowVisible = data != null;
         if (cranks$focusSelector != null) {
-            String selectorText = cranks$focusDisplayText(cranks$selectedFocus);
+            String selectorText = focusDisplayText(cranks$selectedFocus);
             cranks$positionSelector(cranks$focusSelector, renderer, rightX, rightY,
                     genes, genes.size() - 1, selectorText);
             cranks$focusSelector.visible = cranks$focusRowVisible;
@@ -274,9 +275,9 @@ public abstract class HorseScreenStatsMixin {
         List<StatLine> genes = new ArrayList<>();
         List<StatLine> breeding = new ArrayList<>();
         if (data == null) {
-            stats.addAll(cranks$syncingLines());
+            stats.addAll(syncingLines());
             if (kind.hasGenetics() || kind == MountKind.SKELETON_HORSE) {
-                genes.addAll(cranks$syncingLines());
+                genes.addAll(syncingLines());
             }
         } else {
             String xp = data.experienceRequired() <= 0 ? "MAX"
@@ -284,9 +285,9 @@ public abstract class HorseScreenStatsMixin {
             stats.add(new StatLine("Level", data.level() + " " + xp, 0xFFFFD966));
             stats.add(new StatLine("Health", format(entity.getHealth()) + "/" + format(entity.getMaxHealth()), 0xFFB8B8B8));
             stats.add(new StatLine("Movement Speed", String.format(Locale.US, "%.1f blocks/s",
-                    cranks$getLivingAttribute(entity, EntityAttributes.GENERIC_MOVEMENT_SPEED)
+                    getLivingAttribute(entity, EntityAttributes.GENERIC_MOVEMENT_SPEED)
                             * SPEED_TO_BLOCKS_PER_SECOND), 0xFFB8B8B8));
-            cranks$addIfNonZero(stats, "Armor", cranks$getLivingAttribute(entity, EntityAttributes.GENERIC_ARMOR), "");
+            addIfNonZero(stats, "Armor", getLivingAttribute(entity, EntityAttributes.GENERIC_ARMOR), "");
             stats.add(new StatLine("Cargo", data.cargoCapacity() + " slots", 0xFFA3D5FF));
             if (data.maximumResource() > 0.0) stats.add(new StatLine(cranks$resourceName(kind),
                     format(data.resource()) + "/" + format(data.maximumResource()),
@@ -325,7 +326,7 @@ public abstract class HorseScreenStatsMixin {
                             : format(values[i]);
                     String grade = MountGeneticRatings.grade(kind, i, values[i], data.generation());
                     genes.add(new StatLine(labels[i], statValue + " [" + grade + "]", gradeColor(grade),
-                            cranks$geneProgress(kind, i, values[i])));
+                            geneProgress(kind, i, values[i])));
                 }
             } else {
                 if (kind == MountKind.SKELETON_HORSE) {
@@ -622,7 +623,7 @@ public abstract class HorseScreenStatsMixin {
     @Unique
     private static String cranks$selectorText(TextRenderer renderer, String value) {
         int decorationWidth = renderer.getWidth("<  >");
-        String trimmed = cranks$trimToWidth(renderer, value, Math.max(1, 100 - decorationWidth));
+        String trimmed = trimToWidth(renderer, value, Math.max(1, 100 - decorationWidth));
         return "< " + trimmed + " >";
     }
 
@@ -648,9 +649,9 @@ public abstract class HorseScreenStatsMixin {
             context.getMatrices().translate(x + 10, lineY, 0.0f);
             context.getMatrices().scale(TEXT_SCALE, TEXT_SCALE, 1.0f);
 
-            String value = cranks$trimToWidth(renderer, line.value, 100);
+            String value = trimToWidth(renderer, line.value, 100);
             int valueX = (int) logicalWidth - renderer.getWidth(value);
-            String name = cranks$trimToWidth(renderer, line.name, Math.max(1, valueX - 5));
+            String name = trimToWidth(renderer, line.name, Math.max(1, valueX - 5));
             int nameColor = line.color == 0xFFB8B8B8 ? 0xFFFFFFFF : line.color;
             context.drawText(renderer, Text.literal(name), 0, 0, nameColor, false);
             context.drawText(renderer, Text.literal(value), valueX, 0,
@@ -671,434 +672,6 @@ public abstract class HorseScreenStatsMixin {
             }
             lineY += cranks$lineStep(line);
         }
-    }
-
-    @Unique
-    private static List<StatLine> cranks$buildStats(HorseEntity horse, HorseGeneticsSyncPacket data) {
-        List<StatLine> lines = new ArrayList<>();
-        if (data == null) return cranks$syncingLines();
-
-        String xp = data.experienceRequired() <= 0 ? "MAX"
-                : data.experience() + "/" + data.experienceRequired();
-        lines.add(new StatLine("Level", data.level() + " " + xp, 0xFFFFD966));
-        lines.add(new StatLine("Health", format(horse.getHealth()) + "/" + format(horse.getMaxHealth()), 0xFFB8B8B8));
-        lines.add(new StatLine("Movement Speed", String.format(Locale.US, "%.1f blocks/s",
-                cranks$getAttribute(horse, EntityAttributes.GENERIC_MOVEMENT_SPEED)
-                        * SPEED_TO_BLOCKS_PER_SECOND), 0xFFB8B8B8));
-        lines.add(new StatLine("Jump Strength", format(cranks$getAttribute(horse,
-                EntityAttributes.GENERIC_JUMP_STRENGTH)), 0xFFB8B8B8));
-        lines.add(new StatLine("Stamina", format(data.stamina()) + "/" + format(data.maxStamina()), 0xFFB8B8B8));
-        lines.add(new StatLine("Mounted Recovery", format(data.mountedStaminaRegen()) + "/s", 0xFFB8B8B8));
-        lines.add(new StatLine("Gallop", "+" + Math.round(data.gallopSpeedBonus() * 100.0) + "%", 0xFFB8B8B8));
-        lines.add(new StatLine("Gallop Cost", format(data.gallopDrain()) + "/s", 0xFFB8B8B8));
-        lines.add(new StatLine("Jump Cost", format(data.jumpStaminaCost()), 0xFFB8B8B8));
-        cranks$addIfNonZero(lines, "Armor", cranks$getAttribute(horse, EntityAttributes.GENERIC_ARMOR), "");
-        cranks$addIfNonZero(lines, "Evasion", cranks$getAttribute(horse, ModAttributes.EVASION_RATING), "");
-        cranks$addIfNonZero(lines, "Energy Shield", cranks$getAttribute(horse, ModAttributes.ENERGY_SHIELD), "");
-        cranks$addIfNonZero(lines, "Life Regeneration", cranks$getAttribute(horse, ModAttributes.LIFE_REGENERATION), "/s");
-        cranks$addIfNonZero(lines, "Knockback Resistance",
-                cranks$getAttribute(horse, ModAttributes.KNOCKBACK_RESISTANCE) * 100.0, "%");
-        cranks$addTrainingMilestones(lines, data.level());
-        return lines;
-    }
-
-    @Unique
-    private static List<StatLine> cranks$buildGenes(HorseGeneticsSyncPacket data,
-                                                     HorseBreedingFocus selectedFocus) {
-        if (data == null) return cranks$syncingLines();
-        List<StatLine> lines = new ArrayList<>();
-        lines.add(new StatLine("Overall Grade", data.grade(), gradeColor(data.grade())));
-        lines.add(new StatLine("Sex", data.male() ? "Male" : "Female", 0xFFB8B8B8));
-        lines.add(cranks$geneLine("Health Bonus Gene", "+" + format(data.geneticHealth()), MountKind.HORSE,
-                0, data.geneticHealth(), data.generation()));
-        lines.add(cranks$geneLine("Speed Gene", String.format(Locale.US, "%.1f blocks/s",
-                data.geneticSpeed() * SPEED_TO_BLOCKS_PER_SECOND), MountKind.HORSE,
-                1, data.geneticSpeed(), data.generation()));
-        lines.add(cranks$geneLine("Jump Gene", format(data.geneticJump()), MountKind.HORSE,
-                2, data.geneticJump(), data.generation()));
-        lines.add(cranks$geneLine("Evasion Gene", format(data.geneticEvasion()), MountKind.HORSE,
-                3, data.geneticEvasion(), data.generation()));
-        lines.add(cranks$geneLine("Endurance Gene", format(data.geneticEndurance()), MountKind.HORSE,
-                4, data.geneticEndurance(), data.generation()));
-        lines.add(cranks$geneLine("Armor Bonus Gene", "+" + format(data.geneticArmor()), MountKind.HORSE,
-                5, data.geneticArmor(), data.generation()));
-        lines.add(new StatLine("Trait", data.trait(), 0xFFA8E6A3));
-        cranks$addTraitBonusLines(lines, data.trait());
-        lines.add(new StatLine("Breeding Focus", cranks$focusDisplayText(selectedFocus),
-                0xFFA3D5FF));
-        return lines;
-    }
-
-    @Unique
-    private static StatLine cranks$geneLine(String name, String value, MountKind kind,
-                                             int geneIndex, double geneValue, int generation) {
-        String grade = MountGeneticRatings.grade(kind, geneIndex, geneValue, generation);
-        return new StatLine(name, value + " [" + grade + "]", gradeColor(grade),
-                cranks$geneProgress(kind, geneIndex, geneValue));
-    }
-
-    @Unique
-    private static double cranks$geneProgress(MountKind kind, int geneIndex, double value) {
-        double minimum = MountGeneticRatings.breedingMinimum(kind, geneIndex);
-        double maximum = MountGeneticRatings.breedingMaximum(kind, geneIndex);
-        if (maximum <= minimum) return value >= maximum ? 1.0 : 0.0;
-        return Math.max(0.0, Math.min(1.0, (value - minimum) / (maximum - minimum)));
-    }
-
-    @Unique
-    private static String cranks$focusDisplayText(HorseBreedingFocus focus) {
-        return "< " + focus.displayName() + " >";
-    }
-
-    @Unique
-    private static void cranks$addTraitBonusLines(List<StatLine> lines, String trait) {
-        switch (trait) {
-            case "Swift" -> {
-                lines.add(new StatLine("Movement Speed", "+5%", 0xFFA8E6A3));
-                lines.add(new StatLine("Gallop Speed", "+5%", 0xFFA8E6A3));
-                lines.add(new StatLine("Terrain Efficiency", "+10%", 0xFFA8E6A3));
-            }
-            case "Hardy" -> {
-                lines.add(new StatLine("Maximum Health", "+10%", 0xFFA8E6A3));
-                lines.add(new StatLine("Maximum Stamina", "+15%", 0xFFA8E6A3));
-                lines.add(new StatLine("Stamina Recovery", "+25%", 0xFFA8E6A3));
-            }
-            case "Sure-Footed" -> {
-                lines.add(new StatLine("Jump Strength", "+8%", 0xFFA8E6A3));
-                lines.add(new StatLine("Knockback Resistance", "+15%", 0xFFA8E6A3));
-                lines.add(new StatLine("Step Height", "+0.15", 0xFFA8E6A3));
-                lines.add(new StatLine("Safe Fall Distance", "+2", 0xFFA8E6A3));
-                lines.add(new StatLine("Jump Stamina Cost", "-2", 0xFFA8E6A3));
-            }
-            case "Warhorse" -> {
-                lines.add(new StatLine("Armor", "+30% of base", 0xFFA8E6A3));
-                lines.add(new StatLine("Evasion", "+20", 0xFFA8E6A3));
-                lines.add(new StatLine("Knockback Resistance", "+20%", 0xFFA8E6A3));
-            }
-            default -> {
-            }
-        }
-    }
-
-    @Unique
-    private static List<StatLine> cranks$buildFamily(HorseEntity horse, HorseGeneticsSyncPacket data) {
-        if (data == null) return cranks$syncingLines();
-        List<StatLine> lines = new ArrayList<>();
-        lines.add(new StatLine("Generation", Integer.toString(data.generation()), 0xFFB8B8B8));
-        lines.add(new StatLine("Breeding Attempts", data.breedsRemaining() + "/3", 0xFFB8B8B8));
-        lines.add(new StatLine("Breeding Cooldown", formatTime(data.breedingCooldownTicks()), 0xFFB8B8B8));
-        if (data.imprintProgress() > 0.0 || !"None".equals(data.imprintOwnerName())) {
-            lines.add(new StatLine("Imprint", Math.round(data.imprintProgress() * 100)
-                    + "% - " + data.imprintOwnerName(), 0xFFA3D5FF));
-        }
-        if (horse.isBaby()) {
-            lines.add(new StatLine("Next Care", formatTime(data.careCooldownTicks())
-                    + " (Sugar)", 0xFFA3D5FF));
-        }
-        return lines;
-    }
-
-    @Unique
-    private static List<HorseEntity> cranks$findNearbyMates(HorseEntity horse,
-                                                            HorseGeneticsSyncPacket data) {
-        List<HorseEntity> candidates = horse.getEntityWorld().getEntitiesByClass(
-                HorseEntity.class, horse.getBoundingBox().expand(8.0),
-                candidate -> candidate != horse && candidate.isTame() && !candidate.isBaby());
-        candidates.sort((first, second) -> {
-            int firstPriority = cranks$matePriority(horse, data, first);
-            int secondPriority = cranks$matePriority(horse, data, second);
-            if (firstPriority != secondPriority) return Integer.compare(firstPriority, secondPriority);
-            return Double.compare(horse.squaredDistanceTo(first), horse.squaredDistanceTo(second));
-        });
-        return List.copyOf(candidates);
-    }
-
-    @Unique
-    private static int cranks$matePriority(HorseEntity horse, HorseGeneticsSyncPacket data,
-                                            HorseEntity candidate) {
-        HorseGeneticsSyncPacket candidateData = HorseGeneticsClientData.get(candidate.getId());
-        if (data == null || candidateData == null) return 3;
-        if (cranks$pairingBlockReason(horse, data, candidate, candidateData) == null) return 0;
-        return data.male() != candidateData.male() ? 1 : 2;
-    }
-
-    @Unique
-    private static List<StatLine> cranks$buildPairingPreview(
-            HorseEntity horse, HorseGeneticsSyncPacket data,
-            HorseEntity mate, HorseGeneticsSyncPacket mateData, String selectorText,
-            int selectedIndex, int candidateCount) {
-        List<StatLine> lines = new ArrayList<>();
-        String mateLabel = candidateCount > 1
-                ? "Mate " + (selectedIndex + 1) + "/" + candidateCount : "Mate";
-        lines.add(new StatLine(mateLabel,
-                candidateCount > 1 ? selectorText : mate.getName().getString(), 0xFFA3D5FF));
-        if (data == null || mateData == null) {
-            lines.addAll(cranks$syncingLines());
-            return lines;
-        }
-
-        String blocked = cranks$pairingBlockReason(horse, data, mate, mateData);
-        lines.add(new StatLine("Compatibility", blocked == null ? "Ready" : blocked,
-                blocked == null ? 0xFFA8E6A3 : 0xFFFF8A80));
-        HorseBreedingFocus firstFocus = HorseBreedingFocus.fromId(data.breedingFocus());
-        HorseBreedingFocus secondFocus = HorseBreedingFocus.fromId(mateData.breedingFocus());
-        cranks$addPairGene(lines, "Health", data.geneticHealth(), mateData.geneticHealth(),
-                cranks$isFocused(firstFocus, secondFocus, 0), false);
-        cranks$addPairGene(lines, "Speed", data.geneticSpeed(), mateData.geneticSpeed(),
-                cranks$isFocused(firstFocus, secondFocus, 1), true);
-        cranks$addPairGene(lines, "Jump", data.geneticJump(), mateData.geneticJump(),
-                cranks$isFocused(firstFocus, secondFocus, 2), false);
-        cranks$addPairGene(lines, "Evasion", data.geneticEvasion(), mateData.geneticEvasion(),
-                cranks$isFocused(firstFocus, secondFocus, 3), false);
-        cranks$addPairGene(lines, "Endurance", data.geneticEndurance(), mateData.geneticEndurance(),
-                cranks$isFocused(firstFocus, secondFocus, 4), false);
-        cranks$addPairGene(lines, "Armor Bonus", data.geneticArmor(), mateData.geneticArmor(),
-                cranks$isFocused(firstFocus, secondFocus, 5), false);
-        if (firstFocus != HorseBreedingFocus.NONE || secondFocus != HorseBreedingFocus.NONE) {
-            lines.add(new StatLine("* Focus", "Guaranteed better", 0xFFA8E6A3));
-        }
-        cranks$addLineagePreview(lines, data, mateData, firstFocus, secondFocus);
-        cranks$addTraitPreview(lines, data.trait(), mateData.trait());
-        return lines;
-    }
-
-    @Unique
-    private static String cranks$pairingBlockReason(
-            HorseEntity horse, HorseGeneticsSyncPacket data,
-            HorseEntity mate, HorseGeneticsSyncPacket mateData) {
-        if (horse.isBaby()) return "Current is a foal";
-        if (!horse.isTame()) return "Current is untamed";
-        if (data.male() == mateData.male()) return "Same sex";
-        if (data.breedsRemaining() <= 0) return "No attempts left";
-        if (mateData.breedsRemaining() <= 0) return "Mate has no attempts";
-        if (data.breedingCooldownTicks() > 0) return "Current cooldown";
-        if (mateData.breedingCooldownTicks() > 0) return "Mate cooldown";
-        if (cranks$areRelated(horse.getUuid(), data.ancestry(), mate.getUuid(), mateData.ancestry())) {
-            return "Related bloodlines";
-        }
-        return null;
-    }
-
-    @Unique
-    private static boolean cranks$areRelated(UUID firstId, List<UUID> firstAncestry,
-                                              UUID secondId, List<UUID> secondAncestry) {
-        if (firstId.equals(secondId)) return true;
-        if (firstAncestry.contains(secondId) || secondAncestry.contains(firstId)) return true;
-        for (UUID ancestor : firstAncestry) if (secondAncestry.contains(ancestor)) return true;
-        return false;
-    }
-
-    @Unique
-    private static void cranks$addPairGene(List<StatLine> lines, String name,
-                                           double first, double second,
-                                           boolean guaranteed, boolean precise) {
-        double lower = Math.min(first, second);
-        double upper = Math.max(first, second);
-        String firstValue = precise
-                ? String.format(Locale.US, "%.1f", lower * SPEED_TO_BLOCKS_PER_SECOND)
-                : format(lower);
-        String secondValue = precise
-                ? String.format(Locale.US, "%.1f", upper * SPEED_TO_BLOCKS_PER_SECOND)
-                : format(upper);
-        String values = Math.abs(first - second) <= ZERO_THRESHOLD
-                ? firstValue : firstValue + " - " + secondValue;
-        lines.add(new StatLine(name + (guaranteed ? " *" : ""), values,
-                guaranteed ? 0xFFA8E6A3 : 0xFFB8B8B8));
-    }
-
-    @Unique
-    private static boolean cranks$isFocused(HorseBreedingFocus first,
-                                             HorseBreedingFocus second, int gene) {
-        return cranks$focusIndex(first) == gene || cranks$focusIndex(second) == gene;
-    }
-
-    @Unique
-    private static void cranks$addLineagePreview(List<StatLine> lines,
-                                                  HorseGeneticsSyncPacket firstData,
-                                                  HorseGeneticsSyncPacket secondData,
-                                                  HorseBreedingFocus firstFocus,
-                                                  HorseBreedingFocus secondFocus) {
-        int firstIndex = cranks$focusIndex(firstFocus);
-        int secondIndex = cranks$focusIndex(secondFocus);
-        if (firstIndex < 0 && secondIndex < 0) {
-            lines.add(new StatLine("Lineage Gain", "Random +0.5-1.5%", 0xFFFFD966));
-            return;
-        }
-        if (firstIndex >= 0 && secondIndex >= 0 && firstIndex != secondIndex) {
-            lines.add(new StatLine("Lineage Option", cranks$lineageText(
-                    firstIndex, firstData, secondData, firstFocus, secondFocus), 0xFFFFD966));
-            lines.add(new StatLine("Or", cranks$lineageText(
-                    secondIndex, firstData, secondData, firstFocus, secondFocus), 0xFFFFD966));
-            return;
-        }
-        int target = firstIndex >= 0 ? firstIndex : secondIndex;
-        lines.add(new StatLine("Lineage Gain", cranks$lineageText(
-                target, firstData, secondData, firstFocus, secondFocus), 0xFFFFD966));
-    }
-
-    @Unique
-    private static String cranks$lineageText(int gene, HorseGeneticsSyncPacket first,
-                                             HorseGeneticsSyncPacket second,
-                                             HorseBreedingFocus firstFocus,
-                                             HorseBreedingFocus secondFocus) {
-        double better = Math.max(cranks$gene(first, gene), cranks$gene(second, gene));
-        double quality = (better - cranks$geneMin(gene))
-                / (cranks$geneMax(gene) - cranks$geneMin(gene));
-        double rate = HorseBreedingRules.lineageImprovement(firstFocus, secondFocus, quality);
-        return cranks$geneName(gene) + " +" + formatPercent(rate * 100.0) + "%";
-    }
-
-    @Unique
-    private static void cranks$addTraitPreview(List<StatLine> lines, String first, String second) {
-        if (first.equals(second)) {
-            lines.add(new StatLine("Trait",
-                    "No Trait".equals(first) ? "No Trait" : first + " 100%", 0xFFA8E6A3));
-        } else if ("No Trait".equals(first) || "No Trait".equals(second)) {
-            String positive = "No Trait".equals(first) ? second : first;
-            lines.add(new StatLine("Trait", positive + " 70%", 0xFFA8E6A3));
-            lines.add(new StatLine("No Trait", "30%", 0xFFB8B8B8));
-        } else {
-            lines.add(new StatLine(first, "45%", 0xFFA8E6A3));
-            lines.add(new StatLine(second, "45%", 0xFFA8E6A3));
-            lines.add(new StatLine("No Trait", "10%", 0xFFB8B8B8));
-        }
-        lines.add(new StatLine("Trait Mutation", "3% random", 0xFFA3D5FF));
-    }
-
-    @Unique
-    private static int cranks$focusIndex(HorseBreedingFocus focus) {
-        return switch (focus) {
-            case HEALTH -> 0;
-            case SPEED -> 1;
-            case JUMP -> 2;
-            case EVASION -> 3;
-            case ENDURANCE -> 4;
-            case ARMOR -> 5;
-            case NONE -> -1;
-        };
-    }
-
-    @Unique
-    private static double cranks$gene(HorseGeneticsSyncPacket data, int gene) {
-        return switch (gene) {
-            case 0 -> data.geneticHealth();
-            case 1 -> data.geneticSpeed();
-            case 2 -> data.geneticJump();
-            case 3 -> data.geneticEvasion();
-            case 4 -> data.geneticEndurance();
-            default -> data.geneticArmor();
-        };
-    }
-
-    @Unique
-    private static double cranks$geneMin(int gene) {
-        return switch (gene) {
-            case 0 -> HorseBreedingRules.MIN_HEALTH;
-            case 1 -> HorseBreedingRules.MIN_SPEED;
-            case 2 -> HorseBreedingRules.MIN_JUMP;
-            case 3 -> HorseBreedingRules.MIN_EVASION;
-            case 4 -> HorseBreedingRules.MIN_ENDURANCE;
-            default -> HorseBreedingRules.MIN_ARMOR;
-        };
-    }
-
-    @Unique
-    private static double cranks$geneMax(int gene) {
-        return switch (gene) {
-            case 0 -> HorseBreedingRules.MAX_HEALTH;
-            case 1 -> HorseBreedingRules.MAX_SPEED;
-            case 2 -> HorseBreedingRules.MAX_JUMP;
-            case 3 -> HorseBreedingRules.MAX_EVASION;
-            case 4 -> HorseBreedingRules.MAX_ENDURANCE;
-            default -> HorseBreedingRules.MAX_ARMOR;
-        };
-    }
-
-    @Unique
-    private static String cranks$geneName(int gene) {
-        return switch (gene) {
-            case 0 -> "Health";
-            case 1 -> "Speed";
-            case 2 -> "Jump";
-            case 3 -> "Evasion";
-            case 4 -> "Endurance";
-            default -> "Armor";
-        };
-    }
-
-    @Unique
-    private static String formatPercent(double value) {
-        return Math.abs(value - Math.rint(value)) < ZERO_THRESHOLD
-                ? Integer.toString((int) Math.rint(value))
-                : String.format(Locale.US, "%.2f", value).replaceAll("0+$", "").replaceAll("\\.$", "");
-    }
-
-    @Unique
-    private static List<StatLine> cranks$syncingLines() {
-        return List.of(new StatLine("Status", "Syncing...", 0xFFB8B8B8));
-    }
-
-    @Unique
-    private static void cranks$addTrainingMilestones(List<StatLine> lines, int level) {
-        if (level >= 5) lines.add(new StatLine("Lv. 5 Perk", "Trail Training", 0xFFA3D5FF));
-        if (level >= 10) lines.add(new StatLine("Lv. 10 Perk", "Second Wind", 0xFFA3D5FF));
-        if (level >= 15) lines.add(new StatLine("Lv. 15 Perk", "Efficient Jumper", 0xFFA3D5FF));
-        if (level >= 20) lines.add(new StatLine("Lv. 20 Perk", "Sure Stride", 0xFFA3D5FF));
-        if (level >= 25) lines.add(new StatLine("Lv. 25 Perk", "Endurance Training", 0xFFA3D5FF));
-        if (level >= 30) lines.add(new StatLine("Lv. 30 Perk", "Mastered Gallop", 0xFFA3D5FF));
-    }
-
-    @Unique
-    private static double cranks$getAttribute(HorseEntity horse, RegistryEntry<EntityAttribute> attribute) {
-        var instance = horse.getAttributeInstance(attribute);
-        return instance == null ? 0.0 : instance.getValue();
-    }
-
-    @Unique
-    private static double cranks$getLivingAttribute(net.minecraft.entity.LivingEntity entity,
-                                                     RegistryEntry<EntityAttribute> attribute) {
-        var instance = entity.getAttributeInstance(attribute);
-        return instance == null ? 0.0 : instance.getValue();
-    }
-
-    @Unique
-    private static void cranks$addIfNonZero(List<StatLine> lines, String name, double value, String suffix) {
-        if (Math.abs(value) > ZERO_THRESHOLD) {
-            lines.add(new StatLine(name, format(value) + suffix, 0xFFB8B8B8));
-        }
-    }
-
-    @Unique
-    private static String format(double value) {
-        if (Math.abs(value - Math.rint(value)) < ZERO_THRESHOLD) return Integer.toString((int) Math.rint(value));
-        if (Math.abs(value) < 10.0) return String.format(Locale.US, "%.2f", value);
-        return String.format(Locale.US, "%.1f", value);
-    }
-
-    @Unique
-    private static String formatTime(long ticks) {
-        if (ticks <= 0) return "Ready";
-        long seconds = ticks / 20;
-        return String.format(Locale.US, "%d:%02d", seconds / 60, seconds % 60);
-    }
-
-    @Unique
-    private static int gradeColor(String grade) {
-        if (grade == null || grade.isEmpty()) return 0xFFFFFFFF;
-        return switch (grade.charAt(0)) {
-            case 'S' -> 0xFFFF70FF;
-            case 'A' -> 0xFFFFD966;
-            case 'B' -> 0xFF70D6FF;
-            case 'C' -> 0xFF9BE28F;
-            case 'D' -> 0xFFFF8A80;
-            default -> 0xFFFFFFFF;
-        };
-    }
-
-    @Unique
-    private static String cranks$trimToWidth(TextRenderer renderer, String value, int maxWidth) {
-        if (renderer.getWidth(value) <= maxWidth) return value;
-        return renderer.trimToWidth(value, Math.max(1, maxWidth - renderer.getWidth("..."))) + "...";
     }
 
 }

@@ -1,0 +1,15 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "cranks-dungeons:item/alchemy/bottle_overlay",
+    "layer1": "cranks-dungeons:item/alchemy/bottle"
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "custom_model_data": 1
+      },
+      "model": "cranks-dungeons:item/bottle_failed"
+    }
+  ]
+}

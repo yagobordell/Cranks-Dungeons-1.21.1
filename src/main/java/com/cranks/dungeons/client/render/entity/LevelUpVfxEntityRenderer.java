@@ -10,191 +10,70 @@ import net.minecraft.client.render.entity.EntityRendererFactory;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.RotationAxis;
 import org.joml.Matrix4f;
 
+/** Vanilla pixel sprites, with no enclosing mesh, beams, shockwaves or lingering particle bursts. */
 public class LevelUpVfxEntityRenderer extends EntityRenderer<LevelUpVfxEntity> {
-    private static final Identifier BEAM_TEXTURE = Identifier.tryParse("cranks-dungeons:textures/entity/beam.png");
-
-    @Override
-    public Identifier getTexture(LevelUpVfxEntity entity) {
-        return BEAM_TEXTURE;
-    }
+    private static final Identifier MOTE = Identifier.ofVanilla("textures/particle/glow.png");
+    private static final int MOTE_COUNT = 12;
 
     public LevelUpVfxEntityRenderer(EntityRendererFactory.Context context) {
         super(context);
+        shadowRadius = 0;
     }
 
+    @Override public Identifier getTexture(LevelUpVfxEntity entity) { return MOTE; }
+
     @Override
-    public void render(LevelUpVfxEntity entity, float yaw, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light) {
+    public void render(LevelUpVfxEntity entity, float yaw, float tickDelta, MatrixStack matrices,
+                       VertexConsumerProvider vertices, int light) {
         float age = entity.age + tickDelta;
-        float maxAge = 30.0f;
-        float progress = age / maxAge;
-        if (progress > 1.0f) progress = 1.0f;
-
-        float alpha = 1.0f;
-        if (progress < 0.1f) {
-            alpha = progress / 0.1f;
-        } else if (progress > 0.6f) {
-            alpha = 1.0f - ((progress - 0.6f) / 0.4f);
-        }
-
-        float r, g, b;
-        if (entity.isWorldTree()) {
-            r = 0.2f; g = 1.0f; b = 0.3f;
-        } else {
-            r = 1.0f; g = 0.8f; b = 0.1f;
-        }
-
-        matrices.push();
-        float vOffset = -(age * 0.05f);
-
-        final float finalAlpha = alpha;
-        final float finalR = r, finalG = g, finalB = b;
-
-        VertexConsumer consumer = vertexConsumers.getBuffer(RenderLayer.getEntityTranslucentEmissive(BEAM_TEXTURE));
-        MatrixStack.Entry matrixEntry = matrices.peek();
-        Matrix4f posMatrix = matrixEntry.getPositionMatrix();
-
-        float height = 5.0f;
-
-        // 1. Draw glowing hemisphere at the base (smaller)
-        float sphereRadius = 0.8f + MathHelper.sin(age * 0.2f) * 0.1f;
-        MatrixStack localMatrices = new MatrixStack();
-        localMatrices.multiplyPositionMatrix(posMatrix);
-        localMatrices.translate(0, 0.1f, 0);
-        drawHemisphere(consumer, localMatrices.peek().getPositionMatrix(), sphereRadius, finalR, finalG, finalB, finalAlpha * 0.6f, 16);
-
-        // 2. Draw expanding rings (shockwaves)
-        float ringProgress1 = (age % 20.0f) / 20.0f;
-        float ringRadius1 = ringProgress1 * 2.5f;
-        float ringAlpha1 = finalAlpha * (1.0f - ringProgress1) * 0.8f;
-        localMatrices = new MatrixStack();
-        localMatrices.multiplyPositionMatrix(posMatrix);
-        localMatrices.translate(0, 0.05f, 0);
-        drawRing(consumer, localMatrices.peek().getPositionMatrix(), ringRadius1 - 0.15f, ringRadius1, finalR, finalG, finalB, ringAlpha1, 32);
-
-        float ringProgress2 = ((age + 10.0f) % 20.0f) / 20.0f;
-        float ringRadius2 = ringProgress2 * 2.5f;
-        float ringAlpha2 = finalAlpha * (1.0f - ringProgress2) * 0.8f;
-        drawRing(consumer, localMatrices.peek().getPositionMatrix(), ringRadius2 - 0.15f, ringRadius2, finalR, finalG, finalB, ringAlpha2, 32);
-
-        // 3. Draw smooth multi-sided inner cylinder (thinner, more transparent, growing)
-        float innerHeight = Math.min(height, progress * 25.0f);
-        float innerAlphaBase = finalAlpha * 0.3f;
-        localMatrices = new MatrixStack();
-        localMatrices.multiplyPositionMatrix(posMatrix);
-        localMatrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(-age * 4.0f));
-        drawCylinder(consumer, localMatrices.peek().getPositionMatrix(), 0.15f, innerHeight, finalR, finalG, finalB, innerAlphaBase, 0.0f, 0, vOffset, 16);
-
-        // 4. Draw smooth multi-sided outer cylinder (pulsing, thin, very transparent)
-        float outerHeight = Math.min(height + 1.0f, progress * 25.0f);
-        float outerRadius = 0.3f + MathHelper.sin(age * 0.3f) * 0.05f;
-        float outerAlphaBase = finalAlpha * 0.1f;
-        float outerVOffset = -(age * 0.03f);
-        localMatrices = new MatrixStack();
-        localMatrices.multiplyPositionMatrix(posMatrix);
-        localMatrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(age * 2.5f));
-        drawCylinder(consumer, localMatrices.peek().getPositionMatrix(), outerRadius, outerHeight, finalR, finalG, finalB, outerAlphaBase, 0.0f, 0, outerVOffset, 16);
-
-        matrices.pop();
-    }
-
-    @Override
-    public boolean shouldRender(LevelUpVfxEntity entity, net.minecraft.client.render.Frustum frustum, double x, double y, double z) {
-        return true;
-    }
-
-    private void drawCylinder(VertexConsumer consumer, Matrix4f posMatrix, float radius, float height, float r, float g, float b, float alphaBase, float alphaTop, float uOffset, float vOffset, int segments) {
-        float angleStep = (float) (Math.PI * 2.0 / segments);
-        for (int i = 0; i < segments; i++) {
-            float angle1 = i * angleStep;
-            float angle2 = (i + 1) * angleStep;
-
-            float x1 = MathHelper.cos(angle1) * radius;
-            float z1 = MathHelper.sin(angle1) * radius;
-            float x2 = MathHelper.cos(angle2) * radius;
-            float z2 = MathHelper.sin(angle2) * radius;
-
-            float u1 = (float) i / segments + uOffset;
-            float u2 = (float) (i + 1) / segments + uOffset;
-
-            drawVertex(consumer, posMatrix, x2, 0, z2, u2, 1 + vOffset, r, g, b, alphaBase);
-            drawVertex(consumer, posMatrix, x1, 0, z1, u1, 1 + vOffset, r, g, b, alphaBase);
-            drawVertex(consumer, posMatrix, x1, height, z1, u1, 0 + vOffset, r, g, b, alphaTop);
-            drawVertex(consumer, posMatrix, x2, height, z2, u2, 0 + vOffset, r, g, b, alphaTop);
-
-            drawVertex(consumer, posMatrix, x1, 0, z1, u1, 1 + vOffset, r, g, b, alphaBase);
-            drawVertex(consumer, posMatrix, x2, 0, z2, u2, 1 + vOffset, r, g, b, alphaBase);
-            drawVertex(consumer, posMatrix, x2, height, z2, u2, 0 + vOffset, r, g, b, alphaTop);
-            drawVertex(consumer, posMatrix, x1, height, z1, u1, 0 + vOffset, r, g, b, alphaTop);
+        if (age >= LevelUpVfxEntity.DURATION_TICKS) return;
+        float r = entity.isWorldTree() ? .66f : .86f;
+        float g = entity.isWorldTree() ? .79f : .73f;
+        float b = entity.isWorldTree() ? .86f : .46f;
+        var consumer = vertices.getBuffer(RenderLayer.getEntityTranslucentEmissive(MOTE));
+        for (int i = 0; i < MOTE_COUNT; i++) {
+            float delay = sample(i, 0) * 5;
+            float duration = 15 + sample(i, 1) * 2;
+            float t = (age - delay) / duration;
+            if (t <= 0 || t >= 1) continue;
+            float fade = MathHelper.sin(t * (float)Math.PI);
+            float angle = sample(i, 2) * MathHelper.TAU + entity.getId() * .37f;
+            float radius = .28f + sample(i, 3) * .19f;
+            float x = MathHelper.cos(angle) * radius;
+            float z = MathHelper.sin(angle) * radius;
+            float y = .08f + sample(i, 4) * .15f + t * (.65f + sample(i, 5) * .3f);
+            float size = (.035f + sample(i, 6) * .02f) * (.8f + fade * .2f);
+            matrices.push();
+            matrices.translate(x, y, z);
+            matrices.multiply(dispatcher.getRotation());
+            var matrix = matrices.peek().getPositionMatrix();
+            // Faint outer light and a small readable pixel core, both depth-tested against the player.
+            quad(consumer, matrix, size * 1.8f, r, g, b, fade * .10f);
+            quad(consumer, matrix, size, r, g, b, fade * .65f);
+            matrices.pop();
         }
     }
 
-    private void drawRing(VertexConsumer consumer, Matrix4f posMatrix, float innerRadius, float outerRadius, float r, float g, float b, float alpha, int segments) {
-        if (innerRadius < 0) innerRadius = 0;
-        float angleStep = (float) (Math.PI * 2.0 / segments);
-        for (int i = 0; i < segments; i++) {
-            float angle1 = i * angleStep;
-            float angle2 = (i + 1) * angleStep;
-
-            float ix1 = MathHelper.cos(angle1) * innerRadius, iz1 = MathHelper.sin(angle1) * innerRadius;
-            float ox1 = MathHelper.cos(angle1) * outerRadius, oz1 = MathHelper.sin(angle1) * outerRadius;
-
-            float ix2 = MathHelper.cos(angle2) * innerRadius, iz2 = MathHelper.sin(angle2) * innerRadius;
-            float ox2 = MathHelper.cos(angle2) * outerRadius, oz2 = MathHelper.sin(angle2) * outerRadius;
-
-            drawVertex(consumer, posMatrix, ox1, 0, oz1, 0, 0, r, g, b, alpha);
-            drawVertex(consumer, posMatrix, ix1, 0, iz1, 0, 1, r, g, b, alpha);
-            drawVertex(consumer, posMatrix, ix2, 0, iz2, 1, 1, r, g, b, alpha);
-            drawVertex(consumer, posMatrix, ox2, 0, oz2, 1, 0, r, g, b, alpha);
-
-            drawVertex(consumer, posMatrix, ix1, 0, iz1, 0, 1, r, g, b, alpha);
-            drawVertex(consumer, posMatrix, ox1, 0, oz1, 0, 0, r, g, b, alpha);
-            drawVertex(consumer, posMatrix, ox2, 0, oz2, 1, 0, r, g, b, alpha);
-            drawVertex(consumer, posMatrix, ix2, 0, iz2, 1, 1, r, g, b, alpha);
-        }
+    private static float sample(int index, int channel) {
+        int hash = (index + 1) * 0x45d9f3b + channel * 0x119de1f3;
+        hash = (hash ^ (hash >>> 16)) * 0x45d9f3b;
+        hash ^= hash >>> 16;
+        return (hash & 0xffff) / 65535f;
     }
 
-    private void drawHemisphere(VertexConsumer consumer, Matrix4f posMatrix, float radius, float r, float g, float b, float alpha, int segments) {
-        int vSegments = segments / 2;
-        for (int i = 0; i < segments; i++) {
-            float theta1 = (float) (i * Math.PI * 2.0 / segments);
-            float theta2 = (float) ((i + 1) * Math.PI * 2.0 / segments);
-            for (int j = 0; j < vSegments / 2; j++) {
-                float phi1 = (float) (j * Math.PI / vSegments);
-                float phi2 = (float) ((j + 1) * Math.PI / vSegments);
-
-                float x1 = radius * MathHelper.sin(phi1) * MathHelper.cos(theta1);
-                float y1 = radius * MathHelper.cos(phi1);
-                float z1 = radius * MathHelper.sin(phi1) * MathHelper.sin(theta1);
-
-                float x2 = radius * MathHelper.sin(phi1) * MathHelper.cos(theta2);
-                float y2 = y1;
-                float z2 = radius * MathHelper.sin(phi1) * MathHelper.sin(theta2);
-
-                float x3 = radius * MathHelper.sin(phi2) * MathHelper.cos(theta2);
-                float y3 = radius * MathHelper.cos(phi2);
-                float z3 = radius * MathHelper.sin(phi2) * MathHelper.sin(theta2);
-
-                float x4 = radius * MathHelper.sin(phi2) * MathHelper.cos(theta1);
-                float y4 = y3;
-                float z4 = radius * MathHelper.sin(phi2) * MathHelper.sin(theta1);
-
-                drawVertex(consumer, posMatrix, x1, y1, z1, 0, 0, r, g, b, alpha);
-                drawVertex(consumer, posMatrix, x4, y4, z4, 0, 1, r, g, b, alpha);
-                drawVertex(consumer, posMatrix, x3, y3, z3, 1, 1, r, g, b, alpha);
-                drawVertex(consumer, posMatrix, x2, y2, z2, 1, 0, r, g, b, alpha);
-            }
-        }
+    private static void quad(VertexConsumer consumer, Matrix4f matrix, float size,
+                             float r, float g, float b, float alpha) {
+        vertex(consumer, matrix, -size, -size, 0, 1, r, g, b, alpha);
+        vertex(consumer, matrix, size, -size, 1, 1, r, g, b, alpha);
+        vertex(consumer, matrix, size, size, 1, 0, r, g, b, alpha);
+        vertex(consumer, matrix, -size, size, 0, 0, r, g, b, alpha);
     }
 
-    private void drawVertex(VertexConsumer consumer, Matrix4f posMatrix, float x, float y, float z, float u, float v, float r, float g, float b, float a) {
-        consumer.vertex(posMatrix, x, y, z)
-                .color(r, g, b, a)
-                .texture(u, v)
-                .overlay(OverlayTexture.DEFAULT_UV)
-                .light(15728880)
-                .normal(0, 1, 0);
+    private static void vertex(VertexConsumer consumer, Matrix4f matrix, float x, float y, float u, float v,
+                               float r, float g, float b, float alpha) {
+        consumer.vertex(matrix, x, y, 0).color(r, g, b, alpha).texture(u, v)
+                .overlay(OverlayTexture.DEFAULT_UV).light(15728880).normal(0, 0, 1);
     }
 }

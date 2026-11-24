@@ -2,211 +2,96 @@ package com.cranks.dungeons.screen;
 
 import com.cranks.dungeons.block.entity.RunicEnhancementAltarBlockEntity;
 import com.cranks.dungeons.equipment.EquipmentType;
-import com.cranks.dungeons.item.AbstractTomeItem;
-import com.cranks.dungeons.item.ArtificialTomeItem;
-import com.cranks.dungeons.item.RunicTomeItem;
+import com.cranks.dungeons.inventory.MaterialCrafting;
+import com.cranks.dungeons.inventory.PlayerLoadout;
+import com.cranks.dungeons.inventory.RunicAltarRules;
+import com.cranks.dungeons.network.CraftMaterialsResultPayload;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.screen.ScreenHandler;
+import net.minecraft.screen.ArrayPropertyDelegate;
+import net.minecraft.screen.PropertyDelegate;
 import net.minecraft.screen.slot.Slot;
 
-import java.util.HashMap;
-import java.util.Map;
+/** Full loadout plus equipment and recoverable legacy tome/result slots. */
+public final class RunicEnhancementAltarScreenHandler extends LoadoutStationHandler {
+    public static final int EQUIPMENT = PLAYER_SLOT_END, STORED_TOME = EQUIPMENT + 1, OLD_RESULT = EQUIPMENT + 2;
+    public static final int CONFIRM_REQUIRED = -3, NO_OUTCOME = -4;
+    private final Inventory station;
+    private final PropertyDelegate revision;
 
-public class RunicEnhancementAltarScreenHandler extends ScreenHandler {
-    private final Inventory inventory;
-    private final RunicEnhancementAltarBlockEntity blockEntity;
-
-    private final Map<Integer, Integer> sourceSlots = new HashMap<>();
-
-    private static final int PLAYER_INV_START = 3;
-    private static final int PLAYER_INV_END = 39;
-
-    // Client constructor
-    public RunicEnhancementAltarScreenHandler(int syncId, PlayerInventory playerInventory) {
-        this(syncId, playerInventory, new SimpleInventory(3));
+    public RunicEnhancementAltarScreenHandler(int id, PlayerInventory inventory) { this(id, inventory, new SimpleInventory(3)); }
+    public RunicEnhancementAltarScreenHandler(int id, PlayerInventory inventory, Inventory station) {
+        super(ModScreenHandlers.RUNIC_ENHANCEMENT_ALTAR, id, inventory);
+        checkSize(station, 3);
+        this.station = station;
+        station.onOpen(inventory.player);
+        for (int index = 0; index < 3; index++) {
+            final int kind = index;
+            addSlot(new Slot(station, index, 0, 0) {
+                @Override public boolean canInsert(ItemStack stack) { return kind == 0 && EquipmentType.getTypeForItem(stack).isPresent(); }
+                @Override public int getMaxItemCount() { return kind == 0 ? 1 : super.getMaxItemCount(); }
+                @Override public boolean isEnabled() { return kind == 0 || !getStack().isEmpty(); }
+            });
+        }
+        revision = station instanceof RunicEnhancementAltarBlockEntity altar ? new PropertyDelegate() {
+            @Override public int get(int index) { return index == 0 ? altar.revision() & 0xffff : altar.revision() >>> 16; }
+            @Override public void set(int index, int value) {}
+            @Override public int size() { return 2; }
+        } : new ArrayPropertyDelegate(2);
+        addProperties(revision);
     }
+    public int revision() { return revision.get(0) & 0xffff | (revision.get(1) & 0xffff) << 16; }
+    public ItemStack equipment() { return station.getStack(0); }
+    public ItemStack storedTome() { return station.getStack(1); }
+    public ItemStack oldResult() { return station.getStack(2); }
+    @Override public boolean canUse(PlayerEntity player) { return station.canPlayerUse(player); }
+    @Override public void onClosed(PlayerEntity player) { super.onClosed(player); station.onClose(player); }
 
-    // Server constructor
-    public RunicEnhancementAltarScreenHandler(int syncId, PlayerInventory playerInventory, Inventory inventory) {
-        super(ModScreenHandlers.RUNIC_ENHANCEMENT_ALTAR, syncId);
-        this.inventory = inventory;
-        this.blockEntity = inventory instanceof RunicEnhancementAltarBlockEntity ? (RunicEnhancementAltarBlockEntity) inventory : null;
-
-        checkSize(inventory, 3);
-        inventory.onOpen(playerInventory.player);
-
-        // Equipment slot
-        this.addSlot(new Slot(inventory, RunicEnhancementAltarBlockEntity.EQUIPMENT_SLOT, 31, 23) {
-            @Override
-            public boolean canInsert(ItemStack stack) {
-                return EquipmentType.getTypeForItem(stack).isPresent();
-            }
-        });
-
-        // Tome slot
-        this.addSlot(new Slot(inventory, RunicEnhancementAltarBlockEntity.TOME_SLOT, 31, 51) {
-            @Override
-            public boolean canInsert(ItemStack stack) {
-                return stack.getItem() instanceof RunicTomeItem
-                        || stack.getItem() instanceof ArtificialTomeItem
-                        || stack.getItem() instanceof AbstractTomeItem;
-            }
-        });
-
-        // Result slot
-        this.addSlot(new Slot(inventory, RunicEnhancementAltarBlockEntity.RESULT_SLOT, 127, 35) {
-            @Override
-            public boolean canInsert(ItemStack stack) {
-                return false;
-            }
-        });
-
-        // Player inventory
-        int inventoryX = 8;
-        for (int i = 0; i < 3; ++i) {
-            for (int j = 0; j < 9; ++j) {
-                this.addSlot(new Slot(playerInventory, j + i * 9 + 9, inventoryX + j * 18, 88 + i * 18));
+    public int apply(PlayerEntity player, int expectedRevision, ItemStack expectedGear, ItemStack expectedTome, boolean confirmed) {
+        return apply(player,expectedRevision,expectedGear,expectedTome,confirmed,-1,0);
+    }
+    public int apply(PlayerEntity player,int expectedRevision,ItemStack expectedGear,ItemStack expectedTome,boolean confirmed,int target,int action) {
+        if (!(station instanceof RunicEnhancementAltarBlockEntity altar) || !player.isAlive() || player.isSpectator()
+                || player.currentScreenHandler != this || !canUse(player)) return CraftMaterialsResultPayload.UNAVAILABLE;
+        if (revision() != expectedRevision || !ItemStack.areEqual(equipment(), expectedGear)) return CraftMaterialsResultPayload.INVENTORY_CHANGED;
+        if(action==1||action==2){
+            if(!com.cranks.dungeons.inventory.RuneCrafting.resolve(equipment(),action==2))return CraftMaterialsResultPayload.UNAVAILABLE;
+            altar.markDirty();sendContentUpdates();return 1;
+        }
+        if(action!=0||!RunicAltarRules.isTome(expectedTome))return CraftMaterialsResultPayload.UNAVAILABLE;
+        ItemStack tome = ItemStack.EMPTY;
+        if (ItemStack.areItemsAndComponentsEqual(storedTome(), expectedTome)) tome = storedTome();
+        else {
+            var storage = new MaterialCrafting.Storage(player.getInventory());
+            for (int i = 0; i < storage.size(); i++) {
+                var candidate = player.getInventory().getStack(storage.slot(i));
+                if (!candidate.isEmpty() && ItemStack.areItemsAndComponentsEqual(candidate, expectedTome)) { tome = candidate; break; }
             }
         }
-
-        // Player hotbar
-        for (int i = 0; i < 9; ++i) {
-            this.addSlot(new Slot(playerInventory, i, inventoryX + i * 18, 146));
-        }
+        if (tome.isEmpty() || RunicAltarRules.reason(equipment(), tome, oldResult(),target) != null) return CraftMaterialsResultPayload.UNAVAILABLE;
+        if (RunicAltarRules.destructive(equipment(), tome,target) && !confirmed) return CONFIRM_REQUIRED;
+        if (!altar.tryEnhance(tome,target)) return NO_OUTCOME;
+        player.getInventory().markDirty();
+        sendContentUpdates();
+        return 1;
     }
-
-    @Override
-    public boolean canUse(PlayerEntity player) {
-        return this.inventory.canPlayerUse(player);
-    }
-
-    @Override
-    public ItemStack quickMove(PlayerEntity player, int slot) {
-        ItemStack newStack = ItemStack.EMPTY;
-        Slot clickedSlot = this.slots.get(slot);
-
-        if (clickedSlot.hasStack()) {
-            ItemStack clickedStack = clickedSlot.getStack();
-            newStack = clickedStack.copy();
-
-            if (slot == RunicEnhancementAltarBlockEntity.RESULT_SLOT) {
-                // Result is the enhanced equipment, return to equipment's original slot
-                if (!tryReturnToSourceSlot(RunicEnhancementAltarBlockEntity.EQUIPMENT_SLOT, clickedStack)) {
-                    if (!this.insertItem(clickedStack, PLAYER_INV_START, PLAYER_INV_END, true)) {
-                        return ItemStack.EMPTY;
-                    }
-                }
-                sourceSlots.remove(RunicEnhancementAltarBlockEntity.EQUIPMENT_SLOT);
-                sourceSlots.remove(RunicEnhancementAltarBlockEntity.TOME_SLOT);
-                clickedSlot.onQuickTransfer(clickedStack, newStack);
-            } else if (slot == RunicEnhancementAltarBlockEntity.EQUIPMENT_SLOT
-                    || slot == RunicEnhancementAltarBlockEntity.TOME_SLOT) {
-                if (!tryReturnToSourceSlot(slot, clickedStack)) {
-                    if (!this.insertItem(clickedStack, PLAYER_INV_START, PLAYER_INV_END, true)) {
-                        return ItemStack.EMPTY;
-                    }
-                }
-                sourceSlots.remove(slot);
-            } else if (slot >= PLAYER_INV_START) {
-                if (clickedStack.getItem() instanceof RunicTomeItem
-                        || clickedStack.getItem() instanceof ArtificialTomeItem
-                        || clickedStack.getItem() instanceof AbstractTomeItem) {
-                    if (!tryInsertAndTrack(clickedStack, RunicEnhancementAltarBlockEntity.TOME_SLOT, slot)) {
-                        return ItemStack.EMPTY;
-                    }
-                } else if (EquipmentType.getTypeForItem(clickedStack).isPresent()) {
-                    if (!tryInsertAndTrack(clickedStack, RunicEnhancementAltarBlockEntity.EQUIPMENT_SLOT, slot)) {
-                        return ItemStack.EMPTY;
-                    }
-                } else {
-                    return ItemStack.EMPTY;
-                }
-            }
-
-            if (clickedStack.isEmpty()) {
-                clickedSlot.setStack(ItemStack.EMPTY);
-            } else {
-                clickedSlot.markDirty();
-            }
-
-            if (clickedStack.getCount() == newStack.getCount()) {
-                return ItemStack.EMPTY;
-            }
-
-            clickedSlot.onTakeItem(player, clickedStack);
-        }
-
-        return newStack;
-    }
-
-    private boolean tryInsertAndTrack(ItemStack stack, int altarSlot, int sourceSlot) {
-        if (!this.insertItem(stack, altarSlot, altarSlot + 1, false)) {
-            return false;
-        }
-        sourceSlots.put(altarSlot, sourceSlot);
-        return true;
-    }
-
-    private boolean tryReturnToSourceSlot(int altarSlot, ItemStack stack) {
-        Integer sourceSlot = sourceSlots.get(altarSlot);
-        if (sourceSlot == null) return false;
-        if (sourceSlot < PLAYER_INV_START || sourceSlot >= PLAYER_INV_END) return false;
-
-        Slot target = this.slots.get(sourceSlot);
-        if (target.hasStack()) {
-            return false;
-        }
-
-        if (!target.canInsert(stack)) {
-            return false;
-        }
-
-        target.setStack(stack.copy());
-        stack.setCount(0);
-        return true;
-    }
-
-    @Override
-    public void onClosed(PlayerEntity player) {
-        super.onClosed(player);
-        this.inventory.onClose(player);
-        sourceSlots.clear();
-    }
-
-    private void returnToPlayerInventory(PlayerEntity player, ItemStack stack, int altarSlot) {
-        // Try original slot first
-        Integer sourceSlot = sourceSlots.get(altarSlot);
-        if (sourceSlot != null && sourceSlot >= PLAYER_INV_START && sourceSlot < PLAYER_INV_END) {
-            Slot target = this.slots.get(sourceSlot);
-            if (!target.hasStack()) {
-                target.setStack(stack.copy());
-                stack.setCount(0);
-                return;
-            }
-        }
-
-        // Fall back to any available slot
-        if (!player.getInventory().insertStack(stack)) {
-            player.dropItem(stack, false);
-        }
-    }
-
-    public boolean tryEnhance() {
-        if (blockEntity != null) {
-            return blockEntity.tryEnhance();
-        }
-        return false;
-    }
-
-    @Override
-    public boolean onButtonClick(PlayerEntity player, int id) {
-        if (id == 0) {
-            return tryEnhance();
-        }
-        return false;
+    @Override public ItemStack quickMove(PlayerEntity player, int index) {
+        if (index < 5 || index > OLD_RESULT) return ItemStack.EMPTY;
+        var slot = getSlot(index);
+        if (!slot.hasStack() || !slot.canTakeItems(player)) return ItemStack.EMPTY;
+        var stack = slot.getStack();
+        var original = stack.copy();
+        if (index >= EQUIPMENT) {
+            PlayerLoadout.of(player.getInventory()).insert(stack);
+            if (stack.getCount() == original.getCount()) return ItemStack.EMPTY;
+        } else if (EquipmentType.getTypeForItem(stack).isPresent()) {
+            if (!insertItem(stack, EQUIPMENT, EQUIPMENT + 1, false)) return ItemStack.EMPTY;
+        } else return super.quickMove(player, index);
+        if (stack.isEmpty()) slot.setStack(ItemStack.EMPTY); else slot.markDirty();
+        slot.onTakeItem(player, stack);
+        return original;
     }
 }

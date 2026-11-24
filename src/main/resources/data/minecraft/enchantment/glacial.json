@@ -27,13 +27,21 @@
       {
         "id": "minecraft:enchantment.glacial.cold_damage",
         "attribute": "cranks-dungeons:cold_damage",
-        "amount": 7.0,
+        "amount": {
+          "type": "minecraft:linear",
+          "base": 7.0,
+          "per_level_above_first": 7.0
+        },
         "operation": "add_value"
       },
       {
         "id": "minecraft:enchantment.glacial_armor.cold_resistance",
         "attribute": "cranks-dungeons:cold_resistance",
-        "amount": 0.14,
+        "amount": {
+          "type": "minecraft:linear",
+          "base": 0.14,
+          "per_level_above_first": 0.14
+        },
         "operation": "add_value"
       }
     ]

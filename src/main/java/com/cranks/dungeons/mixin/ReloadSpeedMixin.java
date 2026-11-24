@@ -1,10 +1,12 @@
 package com.cranks.dungeons.mixin;
 
-import com.cranks.dungeons.registry.ModAttributes;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.attribute.EntityAttributeInstance;
 import net.minecraft.item.BowItem;
+import net.minecraft.item.CrossbowItem;
 import net.minecraft.item.ItemStack;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.util.Hand;
+import com.cranks.dungeons.ranged.RangedUse;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -13,7 +15,26 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.Unique;
 
 @Mixin(LivingEntity.class)
-public abstract class ReloadSpeedMixin {
+public abstract class ReloadSpeedMixin implements RangedUse {
+
+    @Unique private ItemStack cranks$chargeWeapon = ItemStack.EMPTY;
+    @Unique private Hand cranks$chargeHand;
+    @Unique private int cranks$chargeSlot = -1;
+
+    @Inject(method = "setCurrentHand", at = @At("HEAD"))
+    private void cranks$rememberWeapon(Hand hand, CallbackInfo ci) {
+        LivingEntity self = (LivingEntity) (Object) this;
+        if (self instanceof ServerPlayerEntity player && !self.isUsingItem()) {
+            cranks$chargeWeapon = self.getStackInHand(hand);
+            cranks$chargeHand = hand;
+            cranks$chargeSlot = player.getInventory().selectedSlot;
+        }
+    }
+
+    @Override
+    public boolean cranks$matchesRangedUse(ItemStack weapon, Hand hand, int selectedSlot) {
+        return weapon == cranks$chargeWeapon && hand == cranks$chargeHand && selectedSlot == cranks$chargeSlot;
+    }
 
     @Unique
     private double cranks$reloadFractionalAccumulator = 0.0;
@@ -21,38 +42,24 @@ public abstract class ReloadSpeedMixin {
     @Shadow
     private int itemUseTimeLeft;
 
-    /**
-     * Runs at the start of every active-item tick.
-     * Decreases itemUseTimeLeft by extra ticks so bows/crossbows
-     * reach full charge faster.
-     *
-     * Bow:      onStoppedUsing reads  i = maxUseTime - remaining  →  higher i = more pull progress
-     * Crossbow: usageTick reads       (maxUseTime - remaining) / pullTime  →  same effect
-     */
-    @Inject(method = "tickActiveItemStack", at = @At("HEAD"))
+    /** Shared virtual charge ticks keep gameplay, model pull and the HUD in sync for both weapons. */
+    @Inject(method = "tickActiveItemStack", at = @At("HEAD"), cancellable = true)
     private void cranks$applyReloadSpeed(CallbackInfo ci) {
         LivingEntity self = (LivingEntity) (Object) this;
         ItemStack activeStack = self.getActiveItem();
 
         if (activeStack.isEmpty()) return;
-        if (!(activeStack.getItem() instanceof BowItem)) return;
+        if (!(activeStack.getItem() instanceof BowItem) && !(activeStack.getItem() instanceof CrossbowItem)) return;
+        if (self instanceof ServerPlayerEntity player && !cranks$matchesRangedUse(
+                self.getStackInHand(self.getActiveHand()), self.getActiveHand(), player.getInventory().selectedSlot)) {
+            self.stopUsingItem();
+            ci.cancel();
+            return;
+        }
+        if (activeStack.getItem() instanceof CrossbowItem && CrossbowItem.isCharged(activeStack)) return;
 
-        double genericAttackSpeedMultiplier = 1.0;
-        if (self.getAttributes().hasAttribute(net.minecraft.entity.attribute.EntityAttributes.GENERIC_ATTACK_SPEED)) {
-            genericAttackSpeedMultiplier = self.getAttributeValue(net.minecraft.entity.attribute.EntityAttributes.GENERIC_ATTACK_SPEED) / 4.0;
-        }
-        
-        double customAttackSpeedBonus = 0.0;
-        if (self.getAttributes().hasAttribute(ModAttributes.ATTACK_SPEED)) {
-            customAttackSpeedBonus = self.getAttributeValue(ModAttributes.ATTACK_SPEED);
-        }
-        
-        double speed = genericAttackSpeedMultiplier * (1.0 + customAttackSpeedBonus);
-        
-        // Add rune value from the item itself if in offhand (allows offhand to work without double-dipping)
-        if (self.getActiveHand() == net.minecraft.util.Hand.OFF_HAND) {
-            speed += com.cranks.dungeons.equipment.ItemStatManager.getTotalStatValue(activeStack, "attack_speed");
-        }
+        if (self.getItemUseTime() == 0) cranks$reloadFractionalAccumulator = 0;
+        double speed = com.cranks.dungeons.ranged.RangedTiming.speed(self, activeStack);
 
         if (speed == 1.0) return;
 

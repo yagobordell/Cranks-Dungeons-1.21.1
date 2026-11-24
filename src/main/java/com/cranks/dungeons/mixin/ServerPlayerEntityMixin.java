@@ -27,7 +27,7 @@ public class ServerPlayerEntityMixin {
         if (MountManager.usesCustomCargoScreen(mount)) {
             MountManager.openCargo(player, mount);
             ci.cancel();
-        } else if (!MountManager.canAccessMount(player, mount)) {
+        } else if (!MountManager.canAccessStorage(player, mount)) {
             MountManager.denyMountAccess(player);
             ci.cancel();
         }

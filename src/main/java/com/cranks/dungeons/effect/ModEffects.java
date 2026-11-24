@@ -17,8 +17,17 @@ public class ModEffects {
     public static RegistryEntry<StatusEffect> ELECTROCUTE;
     public static RegistryEntry<StatusEffect> WELL_FED;
     public static RegistryEntry<StatusEffect> STARVING;
+    public static RegistryEntry<StatusEffect> COLD_RESISTANCE;
+    public static RegistryEntry<StatusEffect> LIGHTNING_RESISTANCE;
+    public static RegistryEntry<StatusEffect> VOID_RESISTANCE;
 
     public static void registerEffects() {
+        COLD_RESISTANCE = Registry.registerReference(Registries.STATUS_EFFECT, Identifier.of(CranksDungeons.MOD_ID, "cold_resistance"),
+                new ElementalResistanceEffect(0x9BCBE9, com.cranks.dungeons.registry.ModAttributes.COLD_RESISTANCE, "cold_resistance"));
+        LIGHTNING_RESISTANCE = Registry.registerReference(Registries.STATUS_EFFECT, Identifier.of(CranksDungeons.MOD_ID, "lightning_resistance"),
+                new ElementalResistanceEffect(0xE8C45C, com.cranks.dungeons.registry.ModAttributes.LIGHTNING_RESISTANCE, "lightning_resistance"));
+        VOID_RESISTANCE = Registry.registerReference(Registries.STATUS_EFFECT, Identifier.of(CranksDungeons.MOD_ID, "void_resistance"),
+                new ElementalResistanceEffect(0xA264CC, com.cranks.dungeons.registry.ModAttributes.VOID_RESISTANCE, "void_resistance"));
         Identifier burnId = Identifier.of(CranksDungeons.MOD_ID, "burn");
         Registry.register(Registries.STATUS_EFFECT, burnId, new BurnStatusEffect());
         BURN = Registries.STATUS_EFFECT.getEntry(burnId).orElseThrow();

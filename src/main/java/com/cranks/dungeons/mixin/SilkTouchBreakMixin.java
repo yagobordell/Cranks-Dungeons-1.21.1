@@ -1,71 +1,55 @@
 package com.cranks.dungeons.mixin;
 
 import com.cranks.dungeons.enchantment.EnchantmentDisableManager;
+import com.cranks.dungeons.registry.ModBlockTags;
+import com.cranks.dungeons.util.PlacedBlockTracker;
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.ItemEnchantmentsComponent;
-import net.minecraft.enchantment.Enchantment;
-import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.enchantment.Enchantments;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.network.ServerPlayerInteractionManager;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(ServerPlayerInteractionManager.class)
 public class SilkTouchBreakMixin {
+    @Shadow @org.spongepowered.asm.mixin.Final protected ServerPlayerEntity player;
 
-    @Shadow
-    public ServerPlayerEntity player;
-
-    @Unique
-    private ItemEnchantmentsComponent cranks$savedEnchants;
-
-    @Inject(method = "tryBreakBlock", at = @At("HEAD"))
-    private void cranks$beforeBreak(BlockPos pos, CallbackInfoReturnable<Boolean> cir) {
-        cranks$savedEnchants = null;
-
-        Identifier silkTouchId = Identifier.of("minecraft", "silk_touch");
-        if (!EnchantmentDisableManager.isDisabled(player.getUuid(), silkTouchId)) return;
-
-        ItemStack tool = player.getMainHandStack();
-        if (tool.isEmpty()) return;
-
-        ItemEnchantmentsComponent enchants = tool.getOrDefault(
-                DataComponentTypes.ENCHANTMENTS, ItemEnchantmentsComponent.DEFAULT);
-
-        RegistryEntry<Enchantment> silkTouchEntry = player.getRegistryManager()
-                .get(RegistryKeys.ENCHANTMENT)
-                .getEntry(Enchantments.SILK_TOUCH).get();
-
-        if (EnchantmentHelper.getLevel(silkTouchEntry, tool) <= 0) return;
-
-        // Save original enchantments
-        cranks$savedEnchants = enchants;
-
-        // Rebuild enchantments without Silk Touch
-        ItemEnchantmentsComponent.Builder builder = new ItemEnchantmentsComponent.Builder(enchants);
-        builder.set(silkTouchEntry, 0); // setting to 0 removes it
-        tool.set(DataComponentTypes.ENCHANTMENTS, builder.build());
+    @WrapMethod(method = "tryBreakBlock")
+    private boolean cranks$useSilkTouchSetting(BlockPos pos, Operation<Boolean> original) {
+        var world = player.getServerWorld();
+        var state = world.getBlockState(pos);
+        var harvestTool=player.getMainHandStack().copy();
+        try(var context=com.cranks.dungeons.gathering.GatheringBreakContext.begin(world,pos)) {
+            boolean broken=cranks$breakWithSelectedEnchantments(pos,original);
+            if(broken)com.cranks.dungeons.gathering.GatheringDrops.replant(player,world,pos,state,harvestTool);
+            return broken;
+        }
     }
 
-    @Inject(method = "tryBreakBlock", at = @At("RETURN"))
-    private void cranks$afterBreak(BlockPos pos, CallbackInfoReturnable<Boolean> cir) {
-        if (cranks$savedEnchants != null) {
-            ItemStack tool = player.getMainHandStack();
-            // Only restore if tool still exists (didn't break during mining)
-            if (!tool.isEmpty()) {
-                tool.set(DataComponentTypes.ENCHANTMENTS, cranks$savedEnchants);
-            }
-            cranks$savedEnchants = null;
+    @org.spongepowered.asm.mixin.Unique
+    private boolean cranks$breakWithSelectedEnchantments(BlockPos pos, Operation<Boolean> original) {
+        ItemStack tool = player.getMainHandStack();
+        var enchantments = tool.get(DataComponentTypes.ENCHANTMENTS);
+        if (enchantments == null || !EnchantmentDisableManager.isDisabled(player.getUuid(), Enchantments.SILK_TOUCH.getValue())) {
+            return original.call(pos);
+        }
+
+        var silkTouch = player.getRegistryManager().get(RegistryKeys.ENCHANTMENT).getEntry(Enchantments.SILK_TOUCH);
+        if (silkTouch.isEmpty() || enchantments.getLevel(silkTouch.get()) == 0) return original.call(pos);
+
+        var builder = new ItemEnchantmentsComponent.Builder(enchantments);
+        builder.set(silkTouch.get(), 0);
+        tool.set(DataComponentTypes.ENCHANTMENTS, builder.build());
+        try {
+            return original.call(pos);
+        } finally {
+            if (!tool.isEmpty()) tool.set(DataComponentTypes.ENCHANTMENTS, enchantments);
         }
     }
 }

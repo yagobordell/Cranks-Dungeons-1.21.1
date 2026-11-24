@@ -30,19 +30,10 @@ public class SwiftnessTomeItem extends AbstractTomeItem {
     }
 
     @Override
-    protected void addTomeDescription(Consumer<Text> textConsumer) {
-        textConsumer.accept(Text.literal("Upgrades a magic item to a rare item,").formatted(Formatting.GRAY));
-        textConsumer.accept(Text.literal("adding a guaranteed Haste rune").formatted(Formatting.GRAY));
-    }
-
-    @Override
     public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
-
         addTomeDescription(tooltip::add);
-
-        addStatRange(tooltip::add, EquipmentType.SWORD, "Martial Weapons");
-        addStatRange(tooltip::add, EquipmentType.BOOTS, "Boots");
-
+        for(var summary:summaries())tooltip.add(Text.literal(summary.label()+": ").formatted(Formatting.GRAY)
+                .append(Text.literal(summary.stat().getDisplayName()).formatted(Formatting.WHITE)));
         super.appendTooltip(stack, context, tooltip, type);
     }
 }

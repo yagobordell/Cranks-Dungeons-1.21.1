@@ -373,7 +373,7 @@ public class ItemComponentModifier {
                 itemName.contains("axe") || itemName.contains("dagger") ||
                 itemName.contains("longsword") || itemName.contains("_pike") || itemName.equals("pike") ||
                 itemName.contains("halberd") || itemName.contains("glaive") ||
-                itemName.contains("bow") || itemName.contains("crossbow") ||
+                itemName.endsWith("bow") || itemName.endsWith("crossbow") ||
                 itemName.contains("pickaxe") || itemName.contains("shovel") ||
                 itemName.contains("hoe")) {
             return true;
@@ -612,7 +612,7 @@ public class ItemComponentModifier {
                     net.minecraft.component.type.AttributeModifierSlot.MAINHAND);
         }
 
-        if (itemName.contains("bow") || itemName.contains("crossbow")) {
+        if (itemName.endsWith("bow") || itemName.endsWith("crossbow")) {
             double baseDamage = getDamageBonus(itemName);
             builder.add(
                     EntityAttributes.GENERIC_ATTACK_DAMAGE,
@@ -622,7 +622,7 @@ public class ItemComponentModifier {
                             EntityAttributeModifier.Operation.ADD_VALUE),
                     net.minecraft.component.type.AttributeModifierSlot.MAINHAND);
             
-            double baseReload = itemName.contains("crossbow") ? 0.4 : 0.7;
+            double baseReload = itemName.endsWith("crossbow") ? 0.4 : 0.7;
             builder.add(
                     EntityAttributes.GENERIC_ATTACK_SPEED,
                     new EntityAttributeModifier(
@@ -756,11 +756,11 @@ public class ItemComponentModifier {
             return 4.0;
         }
 
-        if (itemName.contains("crossbow")) {
+        if (itemName.endsWith("crossbow")) {
             return 7.0;
         }
 
-        if (itemName.contains("bow")) {
+        if (itemName.endsWith("bow")) {
             return 5.0;
         }
 

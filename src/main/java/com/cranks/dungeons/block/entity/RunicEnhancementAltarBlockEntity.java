@@ -5,10 +5,7 @@ import com.cranks.dungeons.equipment.ItemStatManager;
 import com.cranks.dungeons.item.AbstractTomeItem;
 import com.cranks.dungeons.item.ArtificialTomeItem;
 import com.cranks.dungeons.item.CustomRarity;
-import com.cranks.dungeons.item.ElementalTomeItem;
-import com.cranks.dungeons.item.HealthBonusTomeItem;
 import com.cranks.dungeons.item.RunicTomeItem;
-import com.cranks.dungeons.item.SwiftnessTomeItem;
 import com.cranks.dungeons.registry.ModSounds;
 import com.cranks.dungeons.screen.RunicEnhancementAltarScreenHandler;
 import com.cranks.dungeons.stat.CustomStat;
@@ -37,6 +34,10 @@ import java.util.Optional;
 public class RunicEnhancementAltarBlockEntity extends BlockEntity implements NamedScreenHandlerFactory, SidedInventory {
     private final DefaultedList<ItemStack> inventory = DefaultedList.ofSize(3, ItemStack.EMPTY);
 
+    private int revision;
+    public int revision() { return revision; }
+    @Override public void markDirty() { revision++; super.markDirty(); }
+
     public static final int EQUIPMENT_SLOT = 0;
     public static final int TOME_SLOT = 1;
     public static final int RESULT_SLOT = 2;
@@ -47,7 +48,7 @@ public class RunicEnhancementAltarBlockEntity extends BlockEntity implements Nam
 
     @Override
     public Text getDisplayName() {
-        return Text.literal("Runic Altar");
+        return Text.translatable("block.cranks-dungeons.runic_enhancement_altar");
     }
 
     @Nullable
@@ -82,7 +83,9 @@ public class RunicEnhancementAltarBlockEntity extends BlockEntity implements Nam
 
     @Override
     public ItemStack removeStack(int slot) {
-        return Inventories.removeStack(inventory, slot);
+        var removed = Inventories.removeStack(inventory, slot);
+        if (!removed.isEmpty()) markDirty();
+        return removed;
     }
 
     @Override
@@ -97,24 +100,27 @@ public class RunicEnhancementAltarBlockEntity extends BlockEntity implements Nam
     @Override
     public boolean canPlayerUse(PlayerEntity player) {
         return world != null && world.getBlockEntity(pos) == this
-                && player.getBlockPos().isWithinDistance(this.pos, 8.0);
+                && player.canInteractWithBlockAt(pos, 4.0);
     }
 
     @Override
     public void clear() {
         inventory.clear();
+        markDirty();
     }
 
     @Override
     public void writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
         super.writeNbt(nbt, registryLookup);
         Inventories.writeNbt(nbt, inventory, registryLookup);
+        nbt.putInt("RunicRevision", revision);
     }
 
     @Override
     public void readNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
         super.readNbt(nbt, registryLookup);
         Inventories.readNbt(nbt, inventory, registryLookup);
+        revision = nbt.getInt("RunicRevision");
     }
 
     @Override
@@ -142,224 +148,22 @@ public class RunicEnhancementAltarBlockEntity extends BlockEntity implements Nam
         return slot == RESULT_SLOT;
     }
 
-    public boolean tryEnhance() {
-        ItemStack equipment = getStack(EQUIPMENT_SLOT);
-        ItemStack tome = getStack(TOME_SLOT);
-
-        if (equipment.isEmpty() || tome.isEmpty())
-            return false;
-
-        if (!getStack(RESULT_SLOT).isEmpty())
-            return false;
-
-        // TODO: Remove this check when adding tomes that modify uniques
-        if (com.cranks.dungeons.item.CustomRarity.getRarity(equipment) == com.cranks.dungeons.item.CustomRarity.UNIQUE) {
-            return false;
-        }
-
-        // Handle Artificial Tomes
-        if (tome.getItem() instanceof ArtificialTomeItem) {
-            return tryArtificialEnhance(equipment, tome);
-        }
-
-        // Handle Abstract Tomes (Specific stats)
-        if (tome.getItem() instanceof AbstractTomeItem abstractTome) {
-            return trySpecificTomeEnhance(equipment, tome, abstractTome);
-        }
-
-        // Handle Regular Runic Tomes (Currency)
-        if (tome.getItem() instanceof RunicTomeItem runicTome) {
-            return tryRunicEnhance(equipment, tome, runicTome);
-        }
-
-        return false;
+    public static String unavailableReason(ItemStack equipment, ItemStack tome, ItemStack output) {
+        return com.cranks.dungeons.inventory.RunicAltarRules.reason(equipment,tome,output);
     }
-
-    private boolean trySpecificTomeEnhance(ItemStack equipment, ItemStack tome, AbstractTomeItem abstractTome) {
-        EquipmentType equipType = EquipmentType.getTypeForItem(equipment).orElse(null);
-        if (equipType == null)
-            return false;
-            
-        String statId = abstractTome.getStatIdForEquipment(equipType);
-        if (statId == null)
-            return false;
-
-        CustomStat stat = StatRegistry.getStat(statId);
-        if (stat == null)
-            return false;
-
-        // Specialized tomes upgrade Magic to Rare
-        if (CustomRarity.getRarity(equipment) != CustomRarity.MAGIC)
-            return false;
-
-        ItemStack result = equipment.copy();
-        ItemStatManager.setRarity(result, CustomRarity.RARE);
-
-        // Add guaranteed stat (decent tier T1-T3)
-        int tier = RandomUtil.nextInt(3) + 1;
-        if (abstractTome instanceof ElementalTomeItem et && et.getTier() == ElementalTomeItem.Tier.NORMAL) {
-            tier = 4;
-        } else if (abstractTome instanceof HealthBonusTomeItem || abstractTome instanceof SwiftnessTomeItem) {
-            tier = 4;
-        }
-        boolean success = ItemStatManager.addSpecificStat(result, statId, tier);
-
-        if (success) {
-            setStack(RESULT_SLOT, result);
-            equipment.decrement(1);
-            tome.decrement(1);
-            markDirty();
-            playEnhanceSound();
-            return true;
-        }
-        return false;
-    }
-
-    private boolean tryArtificialEnhance(ItemStack equipment, ItemStack tome) {
-        // Artificial tomes can only be used on a rare item
-        if (CustomRarity.getRarity(equipment) != CustomRarity.RARE)
-            return false;
-
-        if (ItemStatManager.hasArtificialStat(equipment))
-            return false;
-        if (ItemStatManager.hasCrypticStat(equipment))
-            return false;
-
-        ItemStack result = equipment.copy();
-
-        boolean canAddPrefix = ItemStatManager.canAddStat(result, CustomStat.AffixType.PREFIX);
-        boolean canAddSuffix = ItemStatManager.canAddStat(result, CustomStat.AffixType.SUFFIX);
-        
-        CustomStat.AffixType type;
-        
-        if (canAddPrefix && canAddSuffix) {
-            type = RandomUtil.nextBoolean() ? CustomStat.AffixType.PREFIX : CustomStat.AffixType.SUFFIX;
-        } else if (canAddPrefix) {
-            type = CustomStat.AffixType.PREFIX;
-        } else if (canAddSuffix) {
-            type = CustomStat.AffixType.SUFFIX;
-        } else {
-            // Item is full (e.g. 3 prefixes, 3 suffixes). Replace one randomly.
-            type = RandomUtil.nextBoolean() ? CustomStat.AffixType.PREFIX : CustomStat.AffixType.SUFFIX;
-            ItemStatManager.removeRandomAffixOfType(result, type);
-        }
-
-        boolean success = ItemStatManager.addCrypticStat(result, type);
-
-        if (success) {
-            setStack(RESULT_SLOT, result);
-            equipment.decrement(1);
-            tome.decrement(1);
-            markDirty();
-            playEnhanceSound();
-            return true;
-        }
-        return false;
-    }
-
-    private boolean tryRunicEnhance(ItemStack equipment, ItemStack tome, RunicTomeItem runicTome) {
-        CustomRarity rarity = CustomRarity.getRarity(equipment);
-        ItemStack result = equipment.copy();
-        boolean success = false;
-        int minLevel = runicTome.getMinStatLevel();
-
-        switch (runicTome.getTomeType()) {
-            case TRANSMUTATION, GREATER_TRANSMUTATION, PERFECT_TRANSMUTATION:
-                if (rarity == CustomRarity.NORMAL) {
-                    ItemStatManager.setRarity(result, CustomRarity.MAGIC);
-                    success = addRandomAffix(result, minLevel);
-                }
-                break;
-            case AUGMENTATION, GREATER_AUGMENTATION, PERFECT_AUGMENTATION:
-                if (rarity == CustomRarity.MAGIC) {
-                    success = addRandomAffix(result, minLevel);
-                }
-                break;
-            case REGAL, GREATER_REGAL, PERFECT_REGAL:
-                if (rarity == CustomRarity.MAGIC) {
-                    ItemStatManager.setRarity(result, CustomRarity.RARE);
-                    success = addRandomAffix(result, minLevel);
-                }
-                break;
-            case ALCHEMY:
-                if (rarity == CustomRarity.NORMAL || rarity == CustomRarity.MAGIC) {
-                    ItemStatManager.clearStats(result);
-                    ItemStatManager.setRarity(result, CustomRarity.RARE);
-                    // Add 4 mods: 2 prefix, 2 suffix
-                    boolean s1 = addAffixOfType(result, CustomStat.AffixType.PREFIX, minLevel);
-                    boolean s2 = addAffixOfType(result, CustomStat.AffixType.PREFIX, minLevel);
-                    boolean s3 = addAffixOfType(result, CustomStat.AffixType.SUFFIX, minLevel);
-                    boolean s4 = addAffixOfType(result, CustomStat.AffixType.SUFFIX, minLevel);
-                    success = s1 || s2 || s3 || s4;
-                }
-                break;
-            case EXALTED, GREATER_EXALTED, PERFECT_EXALTED:
-                if (rarity == CustomRarity.RARE) {
-                    success = addRandomAffix(result, minLevel);
-                }
-                break;
-            case DIVINE:
-                if (!ItemStatManager.getStats(equipment).isEmpty()) {
-                    success = ItemStatManager.rerollAllStatValues(result);
-                }
-                break;
-            case CHAOS, GREATER_CHAOS, PERFECT_CHAOS:
-                if (rarity == CustomRarity.RARE && !ItemStatManager.getStats(equipment).isEmpty()) {
-                    boolean removed = ItemStatManager.removeRandomStat(result);
-                    if (removed) {
-                        success = addRandomAffix(result, minLevel);
-                    }
-                }
-                break;
-            case ANNULMENT:
-                if (!ItemStatManager.getStats(equipment).isEmpty()) {
-                    success = ItemStatManager.removeRandomStat(result);
-                }
-                break;
-        }
-
-        if (success) {
-            setStack(RESULT_SLOT, result);
-            equipment.decrement(1);
-            tome.decrement(1);
-            markDirty();
-            playEnhanceSound();
-            return true;
-        }
-        return false;
-    }
-
-    private boolean addRandomAffix(ItemStack stack, int minLevel) {
-        CustomStat.AffixType type = RandomUtil.nextBoolean() ? CustomStat.AffixType.PREFIX : CustomStat.AffixType.SUFFIX;
-        boolean success = addAffixOfType(stack, type, minLevel);
-        
-        // If first choice failed (maybe slot full or all stats taken), try the other type
-        if (!success) {
-            type = (type == CustomStat.AffixType.PREFIX) ? CustomStat.AffixType.SUFFIX : CustomStat.AffixType.PREFIX;
-            success = addAffixOfType(stack, type, minLevel);
-        }
-        return success;
-    }
-
-    private boolean addAffixOfType(ItemStack stack, CustomStat.AffixType type, int minLevel) {
-        for (int i = 0; i < 50; i++) { // Try up to 50 times to find a unique stat
-            if (ItemStatManager.addRandomStat(stack, type, minLevel, 100)) return true;
-        }
-        return false;
-    }
-
-    public void takeResult(PlayerEntity player) {
-        ItemStack result = getStack(RESULT_SLOT);
-        if (!result.isEmpty()) {
-            player.getInventory().offerOrDrop(result);
-            setStack(RESULT_SLOT, ItemStack.EMPTY);
-            markDirty();
-        }
-    }
-
-    private void playEnhanceSound() {
-        if (this.world != null && !this.world.isClient()) {
-            this.world.playSound(null, this.pos, ModSounds.RUNIC_ALTAR_CLICK, SoundCategory.BLOCKS, 0.6F, 1.0F);
-        }
+    public boolean tryEnhance() { return tryEnhance(getStack(TOME_SLOT)); }
+    public boolean tryEnhance(ItemStack tome) { return tryEnhance(tome,-1); }
+    public boolean tryEnhance(ItemStack tome,int target) {
+        if(world==null||world.isClient())return false;
+        var gear=getStack(EQUIPMENT_SLOT);
+        if(com.cranks.dungeons.inventory.RunicAltarRules.reason(gear,tome,getStack(RESULT_SLOT),target)!=null)return false;
+        var candidate=com.cranks.dungeons.inventory.RuneCrafting.roll(gear,tome,target);
+        if(candidate.isEmpty())return false;
+        if(com.cranks.dungeons.inventory.RuneCrafting.comparison(gear,tome,target)){
+            com.cranks.dungeons.inventory.RuneCrafting.stage(gear,candidate);markDirty();
+        }else setStack(EQUIPMENT_SLOT,candidate);
+        tome.decrement(1);markDirty();
+        world.playSound(null,pos,ModSounds.RUNIC_ALTAR_CLICK,SoundCategory.BLOCKS,.6F,1);
+        return true;
     }
 }

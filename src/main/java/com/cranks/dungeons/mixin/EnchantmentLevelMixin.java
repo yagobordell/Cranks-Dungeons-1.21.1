@@ -1,5 +1,6 @@
 package com.cranks.dungeons.mixin;
 
+import com.cranks.dungeons.equipment.EnchantmentSlotHelper;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.registry.tag.EnchantmentTags;
@@ -16,7 +17,7 @@ public class EnchantmentLevelMixin {
 
     @Inject(method = "getName", at = @At("RETURN"), cancellable = true)
     private static void hideLevelNumeral(RegistryEntry<Enchantment> enchantment, int level, CallbackInfoReturnable<Text> cir) {
-        MutableText text = enchantment.value().description().copy();
+        MutableText text = EnchantmentSlotHelper.displayName(enchantment, EnchantmentSlotHelper.copyCount(enchantment, level));
         if (enchantment.isIn(EnchantmentTags.CURSE)) {
             text.formatted(Formatting.RED);
         } else {

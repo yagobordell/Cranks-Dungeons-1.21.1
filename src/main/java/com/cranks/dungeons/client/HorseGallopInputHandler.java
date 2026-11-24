@@ -8,6 +8,7 @@ import com.cranks.dungeons.mount.MountKind;
 
 public final class HorseGallopInputHandler {
     private static boolean lastSent;
+    private static int lastMount=-1;
 
     private HorseGallopInputHandler() {
     }
@@ -23,15 +24,18 @@ public final class HorseGallopInputHandler {
                     }
                     && client.options.sprintKey.isPressed()
                     && client.options.forwardKey.isPressed();
-            if (active != lastSent && ClientPlayNetworking.canSend(HorseGallopPayload.ID)) {
+            int mountId=client.player!=null&&client.player.getVehicle()!=null?client.player.getVehicle().getId():-1;
+            if ((active != lastSent || active && mountId!=lastMount) && ClientPlayNetworking.canSend(HorseGallopPayload.ID)) {
                 ClientPlayNetworking.send(new HorseGallopPayload(active));
                 lastSent = active;
             }
+            lastMount=mountId;
             if (client.player == null) lastSent = false;
         });
     }
 
     public static void reset() {
         lastSent = false;
+        lastMount = -1;
     }
 }

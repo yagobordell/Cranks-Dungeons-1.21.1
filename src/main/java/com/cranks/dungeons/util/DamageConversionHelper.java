@@ -45,6 +45,17 @@ public class DamageConversionHelper {
             }
         }
 
+        public DamageBreakdown scaledTo(float amount) {
+            DamageBreakdown result = new DamageBreakdown();
+            float total = getTotal();
+            if (total > 0.0f) {
+                for (var entry : damages.entrySet()) {
+                    result.set(entry.getKey(), entry.getValue() * amount / total);
+                }
+            }
+            return result;
+        }
+
         public float getTotal() {
             float total = 0;
             for (float f : damages.values()) total += f;
@@ -72,13 +83,14 @@ public class DamageConversionHelper {
                     };
 
                     double armorAppliesPercent = getAttributeValueSafe(target, ModAttributes.ARMOR_APPLIES_TO_ELEMENTAL, 0.0);
-                    if (armorAppliesPercent > 0) {
+                    if (armorAppliesPercent > 0 && element != DamageElement.VOID) {
                         amount = calculateArmorReduction(target, amount, 0.0, armorAppliesPercent);
                     }
 
                     double penetration = 0;
                     if (attacker instanceof LivingEntity le) {
-                        penetration = getAttributeValueSafe(le, ModAttributes.ELEMENTAL_PENETRATION_PERCENT, 0.0);
+                        penetration = element == DamageElement.VOID ? 0
+                                : getAttributeValueSafe(le, ModAttributes.ELEMENTAL_PENETRATION_PERCENT, 0.0);
                         penetration += switch (element) {
                             case FIRE -> getAttributeValueSafe(le, ModAttributes.FIRE_PENETRATION_PERCENT, 0.0);
                             case COLD -> getAttributeValueSafe(le, ModAttributes.COLD_PENETRATION_PERCENT, 0.0);
@@ -88,8 +100,7 @@ public class DamageConversionHelper {
                         };
                     }
 
-                    double finalRes = res >= 0 ? res * (1.0 - penetration) : res - penetration;
-                    finalRes = Math.max(-1.0, Math.min(0.75, finalRes));
+                    double finalRes = com.cranks.dungeons.ailment.AilmentRules.penetratedResistance(res, penetration);
                     damages.put(element, (float) (amount * (1.0 - finalRes)));
                 }
             }
@@ -101,9 +112,10 @@ public class DamageConversionHelper {
         Entity attacker = source.getAttacker();
         Entity directSource = source.getSource();
 
-        // Specific handling for quiet 'generic' damage from AilmentManager
-        if (source.isOf(DamageTypes.GENERIC) && com.cranks.dungeons.ailment.AilmentManager.hasAilment(target, com.cranks.dungeons.ailment.AilmentType.BURN)) {
-            breakdown.add(DamageElement.FIRE, amount);
+        if (com.cranks.dungeons.effect.PotionRules.isPotionDamage(source)) {
+            float multiplier = attacker instanceof net.minecraft.entity.player.PlayerEntity
+                    && target instanceof net.minecraft.entity.player.PlayerEntity && attacker != target ? 0.25f : 1.0f;
+            breakdown.add(DamageElement.VOID, amount * multiplier);
             return breakdown;
         }
 
@@ -168,6 +180,10 @@ public class DamageConversionHelper {
             breakdown.add(DamageElement.PHYSICAL, amount);
         }
 
+        if (!(attacker instanceof LivingEntity) && com.cranks.dungeons.inventory.FletchingArrows.isVoid(directSource)) {
+            float converted = (float) (breakdown.get(DamageElement.PHYSICAL) * com.cranks.dungeons.inventory.FletchingArrows.VOID_CONVERSION);
+            breakdown.add(DamageElement.PHYSICAL, -converted); breakdown.add(DamageElement.VOID, converted);
+        }
         float currentPhysical = breakdown.get(DamageElement.PHYSICAL);
         if (currentPhysical > 0) {
             double takenAsVoid = target.getAttributeValue(com.cranks.dungeons.registry.ModAttributes.PHYSICAL_TAKEN_AS_VOID);
@@ -182,44 +198,9 @@ public class DamageConversionHelper {
     }
 
     public static float applyResistances(LivingEntity target, DamageBreakdown breakdown, Entity attacker) {
-        float finalTotal = 0;
-        for (Map.Entry<DamageElement, Float> entry : breakdown.getDamages().entrySet()) {
-            float amount = entry.getValue();
-            double res = 0;
-            DamageElement element = entry.getKey();
-            switch (element) {
-                case FIRE -> res = target.getAttributeValue(ModAttributes.FIRE_RESISTANCE);
-                case COLD -> res = target.getAttributeValue(ModAttributes.COLD_RESISTANCE);
-                case LIGHTNING -> res = target.getAttributeValue(ModAttributes.LIGHTNING_RESISTANCE);
-                case VOID -> res = target.getAttributeValue(ModAttributes.VOID_RESISTANCE);
-                case PHYSICAL -> {
-                    finalTotal += calculatePhysicalReduction(target, amount, attacker);
-                    continue;
-                }
-            }
-
-            double armorAppliesPercent = getAttributeValueSafe(target, ModAttributes.ARMOR_APPLIES_TO_ELEMENTAL, 0.0);
-            if (armorAppliesPercent > 0) {
-                amount = calculateArmorReduction(target, amount, 0.0, armorAppliesPercent);
-            }
-
-            double penetration = 0;
-            if (attacker instanceof LivingEntity le) {
-                penetration = le.getAttributeValue(ModAttributes.ELEMENTAL_PENETRATION_PERCENT);
-                penetration += switch (element) {
-                    case FIRE -> le.getAttributeValue(ModAttributes.FIRE_PENETRATION_PERCENT);
-                    case COLD -> le.getAttributeValue(ModAttributes.COLD_PENETRATION_PERCENT);
-                    case LIGHTNING -> le.getAttributeValue(ModAttributes.LIGHTNING_PENETRATION_PERCENT);
-                    case VOID -> le.getAttributeValue(ModAttributes.VOID_PENETRATION_PERCENT);
-                    default -> 0;
-                };
-            }
-
-            double finalRes = res >= 0 ? res * (1.0 - penetration) : res - penetration;
-            finalRes = Math.max(-1.0, Math.min(0.75, finalRes));
-            finalTotal += (float) (amount * (1.0 - finalRes));
-        }
-        return finalTotal;
+        DamageBreakdown copy=breakdown.scaledTo(breakdown.getTotal());
+        copy.applyResistancesInPlace(target,attacker);
+        return copy.getTotal();
     }
 
     public static float calculateArmorReduction(LivingEntity target, float amount, double penetration, double armorMultiplier) {
@@ -235,12 +216,8 @@ public class DamageConversionHelper {
 
         if (ar > 0 && amount > 0) {
             // Path of Exile 2 Physical Damage Reduction formula:
-            // PDR = Armor / (Armor + 12 * Damage), capped at 90%
-            double x = 12.0 * amount;
-            double pdr = ar / (ar + x);
-            
-            // Cap PDR at 90% (0.90)
-            pdr = Math.min(0.90, pdr);
+            // PDR = Armor / (Armor + 10 * Damage), capped at 90%
+            double pdr = com.cranks.dungeons.stat.CombatStatRules.armourReduction(ar, amount);
             
             return (float) (amount * (1.0 - pdr));
         }
@@ -276,8 +253,9 @@ public class DamageConversionHelper {
         }
 
         double pvpMultiplier = isPvP ? 0.25 : 1.0;
-        boolean isCrit = com.cranks.dungeons.util.CriticalHitState.isCriticalHit();
-        float critMultiplier = isCrit ? com.cranks.dungeons.util.CriticalHitState.getCritMultiplier() : 1.0f;
+        DamageHit hit = DamageHit.forTarget(target);
+        boolean isCrit = hit != null && hit.critical();
+        float critMultiplier = isCrit ? hit.critMultiplier() : 1.0f;
 
         // Un-scale incoming physical damage by critMultiplier so that conversions,
         // extra damages, and flat elemental damages operate on the un-crit base values.
@@ -306,6 +284,7 @@ public class DamageConversionHelper {
         double toCold = getAttributeValueSafe(attacker, com.cranks.dungeons.registry.ModAttributes.PHYSICAL_TO_COLD_CONVERSION_PERCENT, 0.0);
         double toLightning = getAttributeValueSafe(attacker, com.cranks.dungeons.registry.ModAttributes.PHYSICAL_TO_LIGHTNING_CONVERSION_PERCENT, 0.0);
         double toVoid = getAttributeValueSafe(attacker, com.cranks.dungeons.registry.ModAttributes.PHYSICAL_TO_VOID_CONVERSION_PERCENT, 0.0);
+        if (com.cranks.dungeons.inventory.FletchingArrows.isVoid(source.getSource())) toVoid += com.cranks.dungeons.inventory.FletchingArrows.VOID_CONVERSION;
         
         double totalConversion = toFire + toCold + toLightning + toVoid;
         if (totalConversion > 1.0) {

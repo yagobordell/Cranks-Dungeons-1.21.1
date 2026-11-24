@@ -6,11 +6,14 @@ import io.wispforest.owo.config.annotation.*;
 @Modmenu(modId = "cranks-dungeons")
 public class ModConfigModel {
 
+    @SectionHeader("mounts")
+    public boolean smoothMountCamera = true;
+
     @SectionHeader("development")
     public boolean enableTreeDesigner = false;
 
     @SectionHeader("hud")
-    public boolean useStatBars = false;
+    public boolean useStatBars = true;
     public boolean showEntityHealthBars = true;
     public boolean showPlayerInfoAboveHead = true;
     
@@ -37,10 +40,10 @@ public class ModConfigModel {
     @SectionHeader("combat")
     public boolean showMyDealtDamage = true;
     public boolean showMyReceivedDamage = true;
-    public boolean showOtherPlayerDamage = true;
+    public boolean showOtherPlayerDamage = false;
     
     public boolean showMyReceivedHealing = true;
-    public boolean showOtherPlayerHealing = true;
+    public boolean showOtherPlayerHealing = false;
     
     @SectionHeader("party_hud")
     public boolean partyHudEnabled = true;
@@ -50,7 +53,7 @@ public class ModConfigModel {
     @ExcludeFromScreen
     public int partyHudX = -1;
     
-    @RangeConstraint(min = 0, max = 2000)
+    @RangeConstraint(min = -1, max = 2000)
     @ExcludeFromScreen
     public int partyHudY = 190;
     
@@ -142,7 +145,15 @@ public class ModConfigModel {
     @ExcludeFromScreen
     public int experienceBarY = -1;
 
-    // Viewport size used when saving the stat bar positions above.
+    @RangeConstraint(min = -1, max = 3000)
+    @ExcludeFromScreen
+    public int hotbarX = -1;
+
+    @RangeConstraint(min = -1, max = 3000)
+    @ExcludeFromScreen
+    public int hotbarY = -1;
+
+    // Viewport size used when saving the HUD bar positions above.
     @ExcludeFromScreen
     public int statBarLayoutReferenceWidth = -1;
 

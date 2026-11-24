@@ -19,7 +19,7 @@ public class PlayerAttackSpeedMixin {
         double speedMultiplier = 1.0 + player.getAttributeValue(ModAttributes.ATTACK_SPEED);
         
         if (speedMultiplier != 1.0) {
-            cir.setReturnValue((float) (cir.getReturnValue() * speedMultiplier));
+            cir.setReturnValue((float) (cir.getReturnValue() / Math.max(0.05, speedMultiplier)));
         }
     }
 }

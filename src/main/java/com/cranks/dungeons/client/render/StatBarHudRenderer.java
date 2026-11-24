@@ -2,39 +2,19 @@ package com.cranks.dungeons.client.render;
 
 import com.cranks.dungeons.CranksDungeons;
 import com.cranks.dungeons.EnergyShieldProvider;
+import com.cranks.dungeons.ailment.AilmentManager;
+import com.cranks.dungeons.ailment.AilmentType;
+import com.cranks.dungeons.client.render.HudStyle.Ink;
+import com.cranks.dungeons.effect.ModEffects;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.Identifier;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.util.math.MathHelper;
 
 public class StatBarHudRenderer implements HudRenderCallback {
-
-    public static final Identifier EMPTY_BAR = Identifier.of(CranksDungeons.MOD_ID, "hud/stat_bar/empty");
-    public static final Identifier EMPTY_SHIELD_BAR = Identifier.of(CranksDungeons.MOD_ID, "hud/stat_bar/empty_energy_shield");
-    public static final Identifier HEALTH_FILL = Identifier.of(CranksDungeons.MOD_ID, "hud/stat_bar/health");
-    public static final Identifier HEALTH_TRAIL = Identifier.of(CranksDungeons.MOD_ID, "hud/stat_bar/health_trail");
-    public static final Identifier HEALTH_BURN_FILL = Identifier.of(CranksDungeons.MOD_ID, "hud/stat_bar/health_burn");
-    public static final Identifier HEALTH_BURN_TRAIL = Identifier.of(CranksDungeons.MOD_ID, "hud/stat_bar/health_trail_burn");
-    public static final Identifier HEALTH_POISON_FILL = Identifier.of(CranksDungeons.MOD_ID, "hud/stat_bar/health_poison");
-    public static final Identifier HEALTH_POISON_TRAIL = Identifier.of(CranksDungeons.MOD_ID, "hud/stat_bar/health_trail_poison");
-    public static final Identifier HEALTH_BLEED_FILL = Identifier.of(CranksDungeons.MOD_ID, "hud/stat_bar/health_bleed");
-    public static final Identifier HEALTH_BLEED_TRAIL = Identifier.of(CranksDungeons.MOD_ID, "hud/stat_bar/health_trail_bleed");
-    public static final Identifier SHIELD_FILL = Identifier.of(CranksDungeons.MOD_ID, "hud/stat_bar/energy_shield");
-    public static final Identifier SHIELD_TRAIL = Identifier.of(CranksDungeons.MOD_ID, "hud/stat_bar/energy_shield_trail");
-    public static final Identifier ABSORPTION_FILL = Identifier.of(CranksDungeons.MOD_ID, "hud/stat_bar/absorption");
-    public static final Identifier ABSORPTION_TRAIL = Identifier.of(CranksDungeons.MOD_ID, "hud/stat_bar/absorption_trail");
-    public static final Identifier HUNGER_FILL = Identifier.of(CranksDungeons.MOD_ID, "hud/stat_bar/hunger");
-    public static final Identifier HUNGER_HIGH_FILL = Identifier.of(CranksDungeons.MOD_ID, "hud/stat_bar/hunger_high");
-    public static final Identifier HUNGER_LOW_FILL = Identifier.of(CranksDungeons.MOD_ID, "hud/stat_bar/hunger_low");
-    public static final Identifier OXYGEN_FILL = Identifier.of(CranksDungeons.MOD_ID, "hud/stat_bar/oxygen");
-    public static final Identifier MANA_FILL = Identifier.of(CranksDungeons.MOD_ID, "hud/stat_bar/mana");
-    public static final Identifier MANA_TRAIL = Identifier.of(CranksDungeons.MOD_ID, "hud/stat_bar/mana_trail");
-    public static final Identifier EMPTY_EXPERIENCE_BAR = Identifier.of(CranksDungeons.MOD_ID, "hud/stat_bar/empty_experience");
-    public static final Identifier EXPERIENCE_FILL = Identifier.of(CranksDungeons.MOD_ID, "hud/stat_bar/experience");
 
     // Default dimensions for the bar (scaled to match a vanilla heart row: 81x9)
     public static final int BAR_WIDTH = 81;
@@ -42,12 +22,6 @@ public class StatBarHudRenderer implements HudRenderCallback {
     public static final int EXPERIENCE_BAR_WIDTH = 182;
     public static final int EXPERIENCE_BAR_HEIGHT = 5;
     public static final int SHIELD_HEIGHT = 6;
-    public static final int FILL_OFFSET_X = 0;
-    public static final int FILL_OFFSET_Y = 0;
-    public static final int MAX_FILL_WIDTH = 81;
-    public static final int FILL_HEIGHT = 9;
-    // The vanilla font is 9px tall; scale bar labels to approximately 8px.
-    private static final float BAR_TEXT_SCALE = 0.9f;
 
     private float displayedHealth = -1;
     private long lastHealthChangeTime = 0;
@@ -55,9 +29,6 @@ public class StatBarHudRenderer implements HudRenderCallback {
     private float displayedShield = -1;
     private long lastShieldChangeTime = 0;
 
-    private float displayedAbsorption = -1;
-    private long lastAbsorptionChangeTime = 0;
-    
     private float displayedMana = -1;
     private long lastManaChangeTime = 0;
     
@@ -72,6 +43,7 @@ public class StatBarHudRenderer implements HudRenderCallback {
             return;
 
         MinecraftClient client = MinecraftClient.getInstance();
+        if (client.currentScreen instanceof com.cranks.dungeons.client.screen.HudLayoutEditScreen) return;
         if (client.player == null || client.options.hudHidden || !client.player.isAlive() || com.cranks.dungeons.CranksDungeonsClient.isCinematicRespawnActive())
             return;
         if (client.player.isCreative() || client.player.isSpectator())
@@ -86,9 +58,9 @@ public class StatBarHudRenderer implements HudRenderCallback {
         int referenceWidth = config.statBarLayoutReferenceWidth();
         int referenceHeight = config.statBarLayoutReferenceHeight();
         int defaultHealthX = screenWidth / 2 - 91;
-        int defaultHealthY = screenHeight - 39;
+        int defaultHealthY = screenHeight - 39 - HotbarHudRenderer.DEFAULT_LIFT;
         int referenceHealthX = referenceWidth / 2 - 91;
-        int referenceHealthY = referenceHeight - 39;
+        int referenceHealthY = referenceHeight - 39 - HotbarHudRenderer.DEFAULT_LIFT;
         int healthX = config.healthBarX() >= 0
                 ? resolveConfiguredX(config.healthBarX(), screenWidth, BAR_WIDTH, referenceHealthX, defaultHealthX)
                 : defaultHealthX;
@@ -108,9 +80,9 @@ public class StatBarHudRenderer implements HudRenderCallback {
                 : defaultShieldY;
 
         int defaultHungerX = screenWidth / 2 + 10;
-        int defaultHungerY = screenHeight - 39;
+        int defaultHungerY = screenHeight - 39 - HotbarHudRenderer.DEFAULT_LIFT;
         int referenceHungerX = referenceWidth / 2 + 10;
-        int referenceHungerY = referenceHeight - 39;
+        int referenceHungerY = referenceHeight - 39 - HotbarHudRenderer.DEFAULT_LIFT;
         int hungerX = config.hungerBarX() >= 0
                 ? resolveConfiguredX(config.hungerBarX(), screenWidth, BAR_WIDTH, referenceHungerX, defaultHungerX)
                 : defaultHungerX;
@@ -130,9 +102,9 @@ public class StatBarHudRenderer implements HudRenderCallback {
                 : defaultManaY;
 
         int defaultExperienceX = screenWidth / 2 - EXPERIENCE_BAR_WIDTH / 2;
-        int defaultExperienceY = screenHeight - 29;
+        int defaultExperienceY = screenHeight - 29 - HotbarHudRenderer.DEFAULT_LIFT;
         int referenceExperienceX = referenceWidth / 2 - EXPERIENCE_BAR_WIDTH / 2;
-        int referenceExperienceY = referenceHeight - 29;
+        int referenceExperienceY = referenceHeight - 29 - HotbarHudRenderer.DEFAULT_LIFT;
         int experienceX = config.experienceBarX() >= 0
                 ? resolveConfiguredX(config.experienceBarX(), screenWidth, EXPERIENCE_BAR_WIDTH, referenceExperienceX, defaultExperienceX)
                 : defaultExperienceX;
@@ -158,7 +130,7 @@ public class StatBarHudRenderer implements HudRenderCallback {
             maxMana = (float) player.getAttributeValue(com.cranks.dungeons.registry.ModAttributes.MAX_MANA);
         }
 
-        updateTrails(health, shield, absorption, mana);
+        updateTrails(health, shield, mana);
 
         if (maxShield > 0) {
             renderShieldBarDirect(context, client, shieldX, shieldY, shield, maxShield, displayedShield);
@@ -179,167 +151,67 @@ public class StatBarHudRenderer implements HudRenderCallback {
                 currentExperience, nextLevelExperience, player.experienceProgress);
     }
 
-    public static void renderHealthBarDirect(DrawContext context, MinecraftClient client, PlayerEntity player, int x, int y, float health, float maxHealth, float absorption, float displayedHealth) {
-        // Draw Background Frame
-        context.drawGuiTexture(EMPTY_BAR, x, y, BAR_WIDTH, BAR_HEIGHT);
-
-        float hpPercent = MathHelper.clamp(health / maxHealth, 0, 1);
-        int hpWidth = (int) (hpPercent * MAX_FILL_WIDTH);
-        
-        Identifier healthFillTexture = getHealthFillTexture(player);
-        Identifier healthTrailTexture = getHealthTrailTexture(player);
-
-        // Draw Health Trail
-        if (displayedHealth > health) {
-            int trailWidth = (int) (MathHelper.clamp(displayedHealth / maxHealth, 0, 1) * MAX_FILL_WIDTH);
-            if (trailWidth > hpWidth) {
-                context.drawGuiTexture(healthTrailTexture, MAX_FILL_WIDTH, FILL_HEIGHT, hpWidth, 0,
-                        x + FILL_OFFSET_X + hpWidth, y + FILL_OFFSET_Y, trailWidth - hpWidth, FILL_HEIGHT);
-            }
+    public static void renderHealthBarDirect(DrawContext context, MinecraftClient client, PlayerEntity player,
+                                             int x, int y, float health, float maxHealth,
+                                             float absorption, float displayedHealth) {
+        drawHealthMeter(context, x, y, BAR_WIDTH, BAR_HEIGHT, player, health, maxHealth, absorption, displayedHealth);
+        if (player != null && (player.getAir() < player.getMaxAir()
+                || player.isSubmergedIn(net.minecraft.registry.tag.FluidTags.WATER))) {
+            HudStyle.overlayMeter(context, x, y, BAR_WIDTH, BAR_HEIGHT, Ink.AIR,
+                    ratio(player.getAir(), player.getMaxAir()));
         }
+        drawHealthLabel(context, client, x, y, health, maxHealth, absorption);
+    }
 
-        // Draw HP Fill (Red / Ailment color)
-        if (hpWidth > 0) {
-            context.drawGuiTexture(healthFillTexture, MAX_FILL_WIDTH, FILL_HEIGHT, 0, 0,
-                    x + FILL_OFFSET_X, y + FILL_OFFSET_Y, hpWidth, FILL_HEIGHT);
-        }
-
-        float absPercent = MathHelper.clamp(absorption / maxHealth, 0, 1);
-        int absWidth = (int) (absPercent * MAX_FILL_WIDTH);
-        
-        // Draw Absorption Overlay (Yellow)
-        if (absWidth > 0) {
-            context.drawGuiTexture(ABSORPTION_FILL, MAX_FILL_WIDTH, FILL_HEIGHT, 0, 0,
-                    x + FILL_OFFSET_X, y + FILL_OFFSET_Y, absWidth, FILL_HEIGHT);
-        }
-
-        // --- Render Oxygen Overlay ---
-        if (player != null) {
-            int air = player.getAir();
-            int maxAir = player.getMaxAir();
-            if (air < maxAir || player.isSubmergedIn(net.minecraft.registry.tag.FluidTags.WATER)) {
-                float airPercent = MathHelper.clamp((float) air / maxAir, 0f, 1f);
-                int airWidth = (int) (airPercent * MAX_FILL_WIDTH);
-                if (airWidth > 0) {
-                    com.mojang.blaze3d.systems.RenderSystem.enableBlend();
-                    com.mojang.blaze3d.systems.RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 0.7F);
-                    context.drawGuiTexture(OXYGEN_FILL, MAX_FILL_WIDTH, FILL_HEIGHT, 0, 0,
-                            x + FILL_OFFSET_X, y + FILL_OFFSET_Y, airWidth, FILL_HEIGHT);
-                    com.mojang.blaze3d.systems.RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-                }
-            }
-        }
-
-        // Health Text
-        TextRenderer textRenderer = client.textRenderer;
-        String hText = (int) health + " / " + (int) maxHealth;
-        int hColor = 0xFFFFFFFF;
+    public static void drawHealthMeter(DrawContext context, int x, int y, int width, int height, LivingEntity entity,
+                                       float health, float maxHealth, float absorption, float displayedHealth) {
+        HudStyle.meter(context, x, y, width, height, healthInk(entity),
+                ratio(health, maxHealth), ratio(displayedHealth, maxHealth));
         if (absorption > 0) {
-            hText += " (+" + (int) absorption + ")";
-            hColor = 0xFFFFAA00;
+            HudStyle.overlayMeter(context, x, y, width, height, Ink.ABSORPTION, ratio(absorption, maxHealth));
         }
-
-        drawCenteredBarText(context, textRenderer, hText, x, y, BAR_WIDTH, BAR_HEIGHT, hColor);
     }
 
-    public static void renderShieldBarDirect(DrawContext context, MinecraftClient client, int x, int y, float shield, float maxShield, float displayedShield) {
-        context.drawGuiTexture(EMPTY_SHIELD_BAR, x, y, BAR_WIDTH, SHIELD_HEIGHT);
-
-        float shieldPercent = MathHelper.clamp(shield / maxShield, 0, 1);
-        int shieldWidth = (int) (shieldPercent * MAX_FILL_WIDTH);
-        
-        if (displayedShield > shield) {
-            int trailWidth = (int) (MathHelper.clamp(displayedShield / maxShield, 0, 1) * MAX_FILL_WIDTH);
-            if (trailWidth > shieldWidth) {
-                context.drawGuiTexture(SHIELD_TRAIL, MAX_FILL_WIDTH, SHIELD_HEIGHT, shieldWidth, 0,
-                        x + FILL_OFFSET_X + shieldWidth, y + FILL_OFFSET_Y, trailWidth - shieldWidth, SHIELD_HEIGHT);
-            }
-        }
-
-        if (shieldWidth > 0) {
-            context.drawGuiTexture(SHIELD_FILL, MAX_FILL_WIDTH, SHIELD_HEIGHT, 0, 0,
-                    x + FILL_OFFSET_X, y + FILL_OFFSET_Y, shieldWidth, SHIELD_HEIGHT);
-        }
-
-        String sText = (int) shield + " / " + (int) maxShield;
-        TextRenderer tr = client.textRenderer;
-        drawCenteredBarText(context, tr, sText, x, y, BAR_WIDTH, SHIELD_HEIGHT, 0xFFFFFFFF);
+    public static void drawHealthLabel(DrawContext context, MinecraftClient client, int x, int y,
+                                       float health, float maxHealth, float absorption) {
+        String label = (int) health + " / " + (int) maxHealth;
+        if (absorption > 0) label += " (+" + (int) absorption + ")";
+        HudStyle.meterLabel(context, client.textRenderer, label, x, y, BAR_WIDTH, BAR_HEIGHT,
+                absorption > 0 ? 0xFFFFDB9A : 0xFFFFFFFF);
     }
 
-    public static void renderManaBarDirect(DrawContext context, MinecraftClient client, int x, int y, float mana, float maxMana, float displayedMana) {
-        int MANA_HEIGHT = 9;
-        context.drawGuiTexture(EMPTY_BAR, x, y, BAR_WIDTH, MANA_HEIGHT);
+    public static void renderShieldBarDirect(DrawContext context, MinecraftClient client, int x, int y,
+                                             float shield, float maxShield, float displayedShield) {
+        HudStyle.meter(context, x, y, BAR_WIDTH, SHIELD_HEIGHT, Ink.SHIELD,
+                ratio(shield, maxShield), ratio(displayedShield, maxShield));
+        HudStyle.meterLabel(context, client.textRenderer, (int) shield + " / " + (int) maxShield,
+                x, y, BAR_WIDTH, SHIELD_HEIGHT, 0xFFFFFFFF);
+    }
 
-        float manaPercent = MathHelper.clamp(mana / maxMana, 0, 1);
-        int manaWidth = (int) (manaPercent * MAX_FILL_WIDTH);
-        
-        if (displayedMana > mana) {
-            int trailWidth = (int) (MathHelper.clamp(displayedMana / maxMana, 0, 1) * MAX_FILL_WIDTH);
-            if (trailWidth > manaWidth) {
-                context.drawGuiTexture(MANA_TRAIL, MAX_FILL_WIDTH, MANA_HEIGHT, manaWidth, 0,
-                        x + FILL_OFFSET_X + manaWidth, y + FILL_OFFSET_Y, trailWidth - manaWidth, MANA_HEIGHT);
-            }
-        }
-
-        if (manaWidth > 0) {
-            context.drawGuiTexture(MANA_FILL, MAX_FILL_WIDTH, MANA_HEIGHT, 0, 0,
-                    x + FILL_OFFSET_X, y + FILL_OFFSET_Y, manaWidth, MANA_HEIGHT);
-        }
-
-        String mText = (int) mana + " / " + (int) maxMana;
-        TextRenderer tr = client.textRenderer;
-        drawCenteredBarText(context, tr, mText, x, y, BAR_WIDTH, MANA_HEIGHT, 0xFFFFFFFF);
+    public static void renderManaBarDirect(DrawContext context, MinecraftClient client, int x, int y,
+                                           float mana, float maxMana, float displayedMana) {
+        HudStyle.meter(context, x, y, BAR_WIDTH, BAR_HEIGHT, Ink.MANA, ratio(mana, maxMana), ratio(displayedMana, maxMana));
+        HudStyle.meterLabel(context, client.textRenderer, (int) mana + " / " + (int) maxMana,
+                x, y, BAR_WIDTH, BAR_HEIGHT, 0xFFFFFFFF);
     }
 
     public static void renderHungerBarDirect(DrawContext context, MinecraftClient client, int x, int y, int hunger) {
-        context.drawGuiTexture(EMPTY_BAR, x, y, BAR_WIDTH, BAR_HEIGHT);
-
-        float hungerPercent = MathHelper.clamp(hunger / 20f, 0, 1);
-        int hungerWidth = (int) (hungerPercent * MAX_FILL_WIDTH);
-        if (hungerWidth > 0) {
-            Identifier hungerTexture = HUNGER_FILL;
-            if (hunger >= 16) {
-                hungerTexture = HUNGER_HIGH_FILL;
-            } else if (hunger <= 6) {
-                hungerTexture = HUNGER_LOW_FILL;
-            }
-            context.drawGuiTexture(hungerTexture, MAX_FILL_WIDTH, FILL_HEIGHT, 0, 0,
-                    x + FILL_OFFSET_X, y + FILL_OFFSET_Y, hungerWidth, FILL_HEIGHT);
-        }
-
-        TextRenderer textRenderer = client.textRenderer;
-        String text = hunger + " / 20";
-        drawCenteredBarText(context, textRenderer, text, x, y, BAR_WIDTH, BAR_HEIGHT, 0xFFFFFFFF);
+        Ink ink = hunger >= 16 ? Ink.FOOD_HIGH : hunger <= 6 ? Ink.FOOD_LOW : Ink.FOOD;
+        HudStyle.meter(context, x, y, BAR_WIDTH, BAR_HEIGHT, ink, hunger / 20f);
+        HudStyle.meterLabel(context, client.textRenderer, hunger + " / 20", x, y, BAR_WIDTH, BAR_HEIGHT, 0xFFFFFFFF);
     }
 
-    public static void renderExperienceBarDirect(DrawContext context, MinecraftClient client,
-                                                  int x, int y, int currentExperience,
-                                                  int nextLevelExperience, float progress) {
-        context.drawGuiTexture(EMPTY_EXPERIENCE_BAR, x, y,
-                EXPERIENCE_BAR_WIDTH, EXPERIENCE_BAR_HEIGHT);
-
-        float experienceProgress = MathHelper.clamp(progress, 0.0f, 1.0f);
-        int experienceWidth = (int) (experienceProgress * EXPERIENCE_BAR_WIDTH);
-        if (experienceWidth > 0) {
-            context.drawGuiTexture(EXPERIENCE_FILL, EXPERIENCE_BAR_WIDTH, EXPERIENCE_BAR_HEIGHT,
-                    0, 0, x, y, experienceWidth, EXPERIENCE_BAR_HEIGHT);
-        }
-
-        String text = MathHelper.clamp(currentExperience, 0, Math.max(1, nextLevelExperience))
+    public static void renderExperienceBarDirect(DrawContext context, MinecraftClient client, int x, int y,
+                                                  int currentExperience, int nextLevelExperience, float progress) {
+        HudStyle.meter(context, x, y, EXPERIENCE_BAR_WIDTH, EXPERIENCE_BAR_HEIGHT, Ink.XP, progress);
+        String text = client.player!=null && com.cranks.dungeons.component.ModComponents.PROGRESSION.get(client.player).required()==0 ? "Max level" : MathHelper.clamp(currentExperience, 0, Math.max(1, nextLevelExperience))
                 + "/" + Math.max(1, nextLevelExperience);
-        drawCenteredBarText(context, client.textRenderer, text, x, y,
-                EXPERIENCE_BAR_WIDTH, EXPERIENCE_BAR_HEIGHT, 0xFFFFFFFF);
+        HudStyle.badge(context, client.textRenderer, text, x + EXPERIENCE_BAR_WIDTH / 2f,
+                y + EXPERIENCE_BAR_HEIGHT / 2f, 0.65f, 0xFFE0E7D6);
     }
 
-    private static void drawCenteredBarText(DrawContext context, TextRenderer textRenderer, String text,
-                                            int x, int y, int width, int height, int color) {
-        int textWidth = textRenderer.getWidth(text);
-
-        context.getMatrices().push();
-        context.getMatrices().translate(x + width / 2.0f, y + height / 2.0f, 0.0f);
-        context.getMatrices().scale(BAR_TEXT_SCALE, BAR_TEXT_SCALE, 1.0f);
-        context.drawTextWithShadow(textRenderer, text, -(textWidth / 2), -(textRenderer.fontHeight / 2), color);
-        context.getMatrices().pop();
+    public static float ratio(float value, float maximum) {
+        return maximum > 0 ? value / maximum : 0;
     }
 
     /** Initialize the coordinate baseline for configs created before responsive positions. */
@@ -373,7 +245,7 @@ public class StatBarHudRenderer implements HudRenderCallback {
         return MathHelper.clamp(resolved, 0, maxPosition);
     }
 
-    private void updateTrails(float health, float shield, float absorption, float mana) {
+    private void updateTrails(float health, float shield, float mana) {
         long currentTime = net.minecraft.util.Util.getMeasuringTimeMs();
         
         if (lastRenderTime == 0) lastRenderTime = currentTime;
@@ -405,17 +277,6 @@ public class StatBarHudRenderer implements HudRenderCallback {
             }
         }
 
-        // Absorption trail
-        if (displayedAbsorption < 0 || absorption >= displayedAbsorption) {
-            displayedAbsorption = absorption;
-            lastAbsorptionChangeTime = currentTime;
-        } else if (absorption < displayedAbsorption) {
-            if (currentTime - lastAbsorptionChangeTime > TRAIL_DELAY_MS) {
-                displayedAbsorption -= TRAIL_SHRINK_SPEED * deltaSeconds;
-                if (displayedAbsorption < absorption) displayedAbsorption = absorption;
-            }
-        }
-
         // Mana trail
         if (displayedMana < 0 || mana >= displayedMana) {
             displayedMana = mana;
@@ -428,34 +289,19 @@ public class StatBarHudRenderer implements HudRenderCallback {
         }
     }
 
-    public static Identifier getHealthFillTexture(net.minecraft.entity.LivingEntity entity) {
-        if (entity != null) {
-            if (entity.hasStatusEffect(com.cranks.dungeons.effect.ModEffects.BLEED) || com.cranks.dungeons.ailment.AilmentManager.hasAilment(entity, com.cranks.dungeons.ailment.AilmentType.BLEED)) {
-                return HEALTH_BLEED_FILL;
-            }
-            if (entity.hasStatusEffect(com.cranks.dungeons.effect.ModEffects.POISON) || entity.hasStatusEffect(net.minecraft.entity.effect.StatusEffects.POISON) || com.cranks.dungeons.ailment.AilmentManager.hasAilment(entity, com.cranks.dungeons.ailment.AilmentType.POISON)) {
-                return HEALTH_POISON_FILL;
-            }
-            if (entity.hasStatusEffect(com.cranks.dungeons.effect.ModEffects.BURN) || entity.isOnFire() || com.cranks.dungeons.ailment.AilmentManager.hasAilment(entity, com.cranks.dungeons.ailment.AilmentType.BURN)) {
-                return HEALTH_BURN_FILL;
-            }
+    private static Ink healthInk(LivingEntity entity) {
+        if (entity == null) return Ink.HEALTH;
+        if (entity.hasStatusEffect(ModEffects.BLEED) || AilmentManager.hasAilment(entity, AilmentType.BLEED)) {
+            return Ink.BLEED;
         }
-        return HEALTH_FILL;
-    }
-
-    public static Identifier getHealthTrailTexture(net.minecraft.entity.LivingEntity entity) {
-        if (entity != null) {
-            if (entity.hasStatusEffect(com.cranks.dungeons.effect.ModEffects.BLEED) || com.cranks.dungeons.ailment.AilmentManager.hasAilment(entity, com.cranks.dungeons.ailment.AilmentType.BLEED)) {
-                return HEALTH_BLEED_TRAIL;
-            }
-            if (entity.hasStatusEffect(com.cranks.dungeons.effect.ModEffects.POISON) || entity.hasStatusEffect(net.minecraft.entity.effect.StatusEffects.POISON) || com.cranks.dungeons.ailment.AilmentManager.hasAilment(entity, com.cranks.dungeons.ailment.AilmentType.POISON)) {
-                return HEALTH_POISON_TRAIL;
-            }
-            if (entity.hasStatusEffect(com.cranks.dungeons.effect.ModEffects.BURN) || entity.isOnFire() || com.cranks.dungeons.ailment.AilmentManager.hasAilment(entity, com.cranks.dungeons.ailment.AilmentType.BURN)) {
-                return HEALTH_BURN_TRAIL;
-            }
+        if (entity.hasStatusEffect(ModEffects.POISON) || entity.hasStatusEffect(net.minecraft.entity.effect.StatusEffects.POISON)
+                || AilmentManager.hasAilment(entity, AilmentType.POISON)) {
+            return Ink.POISON;
         }
-        return HEALTH_TRAIL;
+        if (entity.hasStatusEffect(ModEffects.BURN) || entity.isOnFire() || AilmentManager.hasAilment(entity, AilmentType.BURN)) {
+            return Ink.BURN;
+        }
+        return Ink.HEALTH;
     }
 
     public static void register() {

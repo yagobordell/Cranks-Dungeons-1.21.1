@@ -4,10 +4,14 @@ import com.cranks.dungeons.EnergyShieldProvider;
 import com.cranks.dungeons.network.EnergyShieldSyncPacket;
 import com.cranks.dungeons.registry.ModAttributes;
 import com.cranks.dungeons.registry.ModSounds;
-import com.cranks.dungeons.util.DamageConversionHelper;
+import com.cranks.dungeons.util.DamageHit;
+import com.cranks.dungeons.util.DamageContributionHelper;
+import com.cranks.dungeons.network.EntityShieldSyncPacket;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import com.cranks.dungeons.damage.DamageElement;
 import com.cranks.dungeons.ailment.AilmentManager;
-import com.cranks.dungeons.network.DamageNumberSender;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
@@ -22,212 +26,91 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(value = LivingEntity.class, priority = 900)
 public class EnergyShieldDamageMixin {
 
+    @WrapOperation(method = "damage", at = @At(value = "INVOKE",
+            target = "Lnet/minecraft/entity/LivingEntity;applyDamage(Lnet/minecraft/entity/damage/DamageSource;F)V"))
+    private void cranks$applyResolvedHit(LivingEntity target, DamageSource source, float amount,
+                                        Operation<Void> original) {
+        DamageHit hit = DamageHit.forTarget(target);
+        if (hit == null || !(target.getWorld() instanceof ServerWorld world)) {
+            original.call(target, source, amount);
+            return;
+        }
+
+        hit.finishBlock();
+        float remaining = absorbShield(world, target, source, amount, hit);
+        if (remaining > 0) {
+            float healthBefore = target.getHealth();
+            float absorptionBefore = target.getAbsorptionAmount();
+            original.call(target, source, remaining);
+            float applied = Math.max(0, healthBefore - target.getHealth())
+                    + Math.max(0, absorptionBefore - target.getAbsorptionAmount());
+            hit.recordDamageToLife(applied);
+            DamageContributionHelper.record(target, source, applied);
+        }
+        if (!AilmentManager.isSecondaryDamage(target)
+                && (hit.damageToLife() > 0 || hit.damageToShield() > 0)) reflectThorns(target, source);
+    }
+
     @Unique
-    private static final ThreadLocal<Boolean> cranks$processingThorns = ThreadLocal.withInitial(() -> false);
+    private float absorbShield(ServerWorld world, LivingEntity target, DamageSource source, float amount, DamageHit hit) {
+        if (amount <= 0 || AilmentManager.bypassesShield(target) || source.isIn(DamageTypeTags.BYPASSES_INVULNERABILITY)
+                || source.isOf(DamageTypes.DROWN) || source.isOf(DamageTypes.STARVE)
+                || AilmentManager.isPoisonDamageInProgress(target.getUuid())
+                || AilmentManager.isBleedDamageInProgress(target.getUuid())
+                || target.getAttributeValue(ModAttributes.KEYSTONE_CRIMSON_PACT) > 0) return amount;
 
-    /**
-     * Overhaul: We use ModifyVariable to subtract damage from the shield and return 
-     * the remaining damage that should deal to health.
-     * 
-     * THORNS: This is also where we apply thorns damage, because this ModifyVariable
-     * is the very first code that runs in the damage method. If we put thorns in a
-     * separate @Inject at HEAD, it may be skipped when the cancelShieldedDamage
-     * method cancels the entire damage call after ES fully absorbs the hit.
-     */
-    @ModifyVariable(method = "damage", at = @At("HEAD"), argsOnly = true)
-    private float applyEnergyShieldMitigation(float amount, DamageSource source) {
-        LivingEntity self = (LivingEntity) (Object) this;
-        net.minecraft.world.World worldRaw = self.getEntityWorld();
-        if (worldRaw.isClient()) return amount;
-        if (!(worldRaw instanceof net.minecraft.server.world.ServerWorld world)) return amount;
-        if (amount <= 0) return 0.0f;
+        EnergyShieldProvider provider = (EnergyShieldProvider) target;
+        provider.cranksdungeons$setLastDamageTime(world.getTime());
+        float current = provider.cranksdungeons$getCurrentEnergyShield();
+        float max = (float) target.getAttributeValue(ModAttributes.ENERGY_SHIELD);
+        if (current <= 0 || max <= 0) return amount;
 
-        // === THORNS DAMAGE (melee only) ===
-        // Thorns only triggers on melee hits: source.getSource() must be a LivingEntity
-        // (not a projectile like Arrow). We read thorns from item stats directly.
-        if (!cranks$processingThorns.get() && !source.isOf(DamageTypes.THORNS)) {
-            net.minecraft.entity.Entity sourceEntity = source.getSource();
-            // Only melee: sourceEntity is the attacker itself (not a projectile)
-            if (sourceEntity instanceof LivingEntity livingAttacker && sourceEntity != self) {
-                double thorns = cranks$getTotalThorns(self);
-                if (thorns > 0) {
-                    int oldTimeUntilRegen = livingAttacker.timeUntilRegen;
-                    try {
-                        cranks$processingThorns.set(true);
-                        livingAttacker.timeUntilRegen = 0;
-                        livingAttacker.damage(self.getDamageSources().thorns(self), (float) thorns);
-                    } finally {
-                        livingAttacker.timeUntilRegen = oldTimeUntilRegen;
-                        cranks$processingThorns.set(false);
-                    }
-                }
-            }
+        var breakdown = hit.breakdown();
+        float total = breakdown == null ? 0 : breakdown.getTotal();
+        float voidFraction = total > 0 ? breakdown.get(DamageElement.VOID) / total : 0;
+        float cost = amount * (1.0f + voidFraction);
+        float spent = Math.min(current, cost);
+        float absorbed = amount * (spent / cost);
+        float left = current - spent;
+        provider.cranksdungeons$setCurrentEnergyShield(left);
+
+        hit.recordDamageToShield(absorbed);
+        DamageContributionHelper.record(target, source, spent);
+        triggerShieldVisuals(world, target, current, left);
+        if (target instanceof ServerPlayerEntity player) {
+            ServerPlayNetworking.send(player, new EnergyShieldSyncPacket(left, max));
         }
+        var packet = new EntityShieldSyncPacket(target.getId(), left, max);
+        PlayerLookup.tracking(target).forEach(player -> ServerPlayNetworking.send(player, packet));
+        return Math.max(0, amount - absorbed);
+    }
 
-        // Bypass shield if entity is invulnerable
-        if (self.isInvulnerableTo(source)) return 0.0f;
-
-        // Party friendly fire check (only if target is player)
-        if (self instanceof PlayerEntity player && source.getAttacker() instanceof PlayerEntity attacker) {
-            if (com.cranks.dungeons.party.PartyManager.areInSameParty(player.getUuid(), attacker.getUuid())) {
-                return 0.0f;
-            }
-        }
-
-        // Specific bypasses
-        if (source.isIn(DamageTypeTags.BYPASSES_INVULNERABILITY) || source.isOf(DamageTypes.DROWN) || source.isOf(DamageTypes.STARVE)) {
-            return amount;
-        }
-
-
-        EnergyShieldProvider provider = (EnergyShieldProvider) self;
-        float currentShield = provider.cranksdungeons$getCurrentEnergyShield();
-        double maxShield = self.getAttributeValue(ModAttributes.ENERGY_SHIELD);
-        if (self.getAttributeValue(ModAttributes.KEYSTONE_CRIMSON_PACT) > 0) {
-            maxShield = 0;
-            currentShield = 0;
-        }
-
-        // No shield at all
-        if (currentShield <= 0 || maxShield <= 0) {
-            provider.cranksdungeons$setLastDamageTime(world.getTime());
-            return amount;
-        }
-
-        // Every hit must be accounted for. lastDamageTime controls recharge delay;
-        // it must not turn into a period of complete damage immunity.
-        long currentTime = world.getTime();
-
-        // Ailment Bypass check (Poison/Bleed ignore ES in PoE 2)
-        if (AilmentManager.isPoisonDamageInProgress(self.getUuid()) || AilmentManager.isBleedDamageInProgress(self.getUuid())) {
-            return amount;
-        }
-
-        // Calculate weighted shield damage (Void deals 2x)
-        DamageConversionHelper.DamageBreakdown breakdown = null;
-        if (self instanceof com.cranks.dungeons.util.DamageBreakdownProvider breakdownProvider) {
-            breakdown = breakdownProvider.cranks$getLastDamageBreakdown();
-        }
-        if (breakdown == null) {
-            breakdown = DamageConversionHelper.getBreakdown(source, amount, self);
-        }
-        float voidDmg = breakdown.get(DamageElement.VOID);
-        float otherDmg = amount - voidDmg;
-        float weightedShieldDmg = otherDmg + (voidDmg * 2.0f);
-        
-        if (weightedShieldDmg <= 0) return amount;
-
-        if (currentShield >= weightedShieldDmg) {
-            // Full absorption
-            float newShield = currentShield - weightedShieldDmg;
-            provider.cranksdungeons$setCurrentEnergyShield(newShield);
-            provider.cranksdungeons$setLastDamageTime(currentTime);
-            com.cranks.dungeons.util.DamageContributionHelper.record(
-                    self, source, currentShield - newShield);
-            
-            triggerShieldVisuals(world, self, currentShield, newShield);
-            triggerDamageNumbers(world, self, source, amount);
-            
-            // Sync to owner player if applicable
-            float finalShield = newShield;
-            if (self instanceof ServerPlayerEntity serverPlayer) {
-                ServerPlayNetworking.send(serverPlayer, new EnergyShieldSyncPacket(finalShield, (float) maxShield));
-            }
-            com.cranks.dungeons.network.EntityShieldSyncPacket packet = new com.cranks.dungeons.network.EntityShieldSyncPacket(self.getId(), finalShield, (float) maxShield);
-            net.fabricmc.fabric.api.networking.v1.PlayerLookup.tracking(self).forEach(p -> ServerPlayNetworking.send(p, packet));
-
-            // Manual Knockback for fully absorbed hits
-            if (!source.isIn(net.minecraft.registry.tag.DamageTypeTags.NO_KNOCKBACK)) {
-                if (source.getAttacker() instanceof net.minecraft.entity.LivingEntity livingAttacker) {
-                    self.setAttacker(livingAttacker);
-                    
-                    double diffX = livingAttacker.getX() - self.getX();
-                    double diffZ = livingAttacker.getZ() - self.getZ();
-                    
-                    if (diffX * diffX + diffZ * diffZ < 1.0E-4D) {
-                        diffX = -Math.sin(livingAttacker.getYaw() * 0.017453292F);
-                        diffZ = Math.cos(livingAttacker.getYaw() * 0.017453292F);
-                    }
-                    
-                    // Reverted to simple base knockback (let Mixins handle scaling)
-                    self.takeKnockback(0.5, diffX, diffZ);
-                } else if (source.getPosition() != null) {
-                    self.takeKnockback(0.5, source.getPosition().x - self.getX(), source.getPosition().z - self.getZ());
-                }
-                
-                // SYNC: Send velocity update packet to all tracking players
-                net.minecraft.network.packet.s2c.play.EntityVelocityUpdateS2CPacket velocityPacket = new net.minecraft.network.packet.s2c.play.EntityVelocityUpdateS2CPacket(self);
-                if (self instanceof ServerPlayerEntity serverPlayer) {
-                    serverPlayer.networkHandler.sendPacket(velocityPacket);
-                }
-                net.fabricmc.fabric.api.networking.v1.PlayerLookup.tracking(self).forEach(p -> p.networkHandler.sendPacket(velocityPacket));
-            }
-            
-            return 0.0f; 
-        } else {
-            // Overflow logic
-            float absorptionRatio = currentShield / weightedShieldDmg;
-            float absorbedAmount = amount * absorptionRatio;
-            float remainingAmount = amount - absorbedAmount;
-
-            provider.cranksdungeons$setCurrentEnergyShield(0.0f);
-            provider.cranksdungeons$setLastDamageTime(currentTime);
-            com.cranks.dungeons.util.DamageContributionHelper.record(self, source, currentShield);
-            
-            triggerShieldVisuals(world, self, currentShield, 0.0f);
-            
-            if (self instanceof ServerPlayerEntity serverPlayer) {
-                ServerPlayNetworking.send(serverPlayer, new EnergyShieldSyncPacket(0.0f, (float) maxShield));
-            }
-            com.cranks.dungeons.network.EntityShieldSyncPacket packet = new com.cranks.dungeons.network.EntityShieldSyncPacket(self.getId(), 0.0f, (float) maxShield);
-            net.fabricmc.fabric.api.networking.v1.PlayerLookup.tracking(self).forEach(p -> ServerPlayNetworking.send(p, packet));
-
-            // Force velocity sync on shield break
-            if (!source.isIn(net.minecraft.registry.tag.DamageTypeTags.NO_KNOCKBACK)) {
-                if (self instanceof ServerPlayerEntity serverPlayer) {
-                    serverPlayer.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.EntityVelocityUpdateS2CPacket(self));
-                    net.minecraft.network.packet.s2c.play.EntityVelocityUpdateS2CPacket velocityPacket = new net.minecraft.network.packet.s2c.play.EntityVelocityUpdateS2CPacket(self);
-                    net.fabricmc.fabric.api.networking.v1.PlayerLookup.tracking(self).forEach(p -> p.networkHandler.sendPacket(velocityPacket));
-                }
-            }
-
-            return remainingAmount;
+    @Unique
+    private void reflectThorns(LivingEntity target, DamageSource source) {
+        if (source.isOf(DamageTypes.THORNS) || !(source.getSource() instanceof LivingEntity attacker)
+                || attacker == target) return;
+        double thorns = cranks$getTotalThorns(target);
+        if (thorns <= 0) return;
+        int timeUntilRegen = attacker.timeUntilRegen;
+        try {
+            attacker.timeUntilRegen = 0;
+            attacker.damage(target.getDamageSources().thorns(target), (float) thorns);
+        } finally {
+            attacker.timeUntilRegen = timeUntilRegen;
         }
     }
 
-    /**
-     * Because ModifyVariable changed amount to 0 when absorbed, we cancel the damage method here.
-     */
     @Inject(method = "damage", at = @At("HEAD"), cancellable = true)
-    private void cancelShieldedDamage(DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
-        if (amount <= 0.0f) {
-            cir.setReturnValue(false);
-        }
-    }
-
-    @Unique
-    private void triggerDamageNumbers(ServerWorld world, LivingEntity self, DamageSource source, float actualAbsorbedAmount) {
-        if (actualAbsorbedAmount <= 0.01f) return;
-        
-        DamageConversionHelper.DamageBreakdown breakdown = DamageConversionHelper.getBreakdown(source, actualAbsorbedAmount, self);
-        
-        DamageNumberSender.broadcast(
-            world, 
-            self, 
-            breakdown.get(DamageElement.PHYSICAL),
-            breakdown.get(DamageElement.FIRE),
-            breakdown.get(DamageElement.COLD),
-            breakdown.get(DamageElement.LIGHTNING),
-            breakdown.get(DamageElement.VOID),
-            source.getAttacker() != null ? source.getAttacker().getUuid() : null,
-            false // ES hits don't show as crits for now to keep it clean
-        );
+    private void cranks$stopZeroDamage(DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
+        if (amount > 0) return;
+        DamageHit hit = DamageHit.forTarget((LivingEntity) (Object) this);
+        if (hit != null) hit.finishBlock();
+        cir.setReturnValue(false);
     }
 
     @Unique
@@ -241,34 +124,8 @@ public class EnergyShieldDamageMixin {
         }
     }
 
-    /**
-     * Reads total thorns damage from all equipped armor pieces by checking their item stats directly.
-     * Applies a 50% penalty for each armor piece where the player doesn't meet requirements.
-     */
     @Unique
     private static double cranks$getTotalThorns(LivingEntity entity) {
-        double totalThorns = 0;
-        net.minecraft.entity.EquipmentSlot[] armorSlots = net.minecraft.entity.EquipmentSlot.values();
-        for (net.minecraft.entity.EquipmentSlot slot : armorSlots) {
-            net.minecraft.item.ItemStack stack = entity.getEquippedStack(slot);
-            if (!stack.isEmpty()) {
-                // Check if player meets requirements for this armor piece
-                boolean meetsReqs = true;
-                if (entity instanceof net.minecraft.entity.player.PlayerEntity player) {
-                    meetsReqs = com.cranks.dungeons.equipment.ItemRequirementManager.meetsRequirements(player, stack);
-                }
-                
-                java.util.List<com.cranks.dungeons.equipment.ItemStatManager.ItemStat> stats =
-                    com.cranks.dungeons.equipment.ItemStatManager.getStats(stack);
-                for (var stat : stats) {
-                    com.cranks.dungeons.stat.CustomStat customStat = com.cranks.dungeons.stat.StatRegistry.getStat(stat.statId);
-                    if (customStat != null && customStat.getAttributes().contains(ModAttributes.THORNS_DAMAGE)) {
-                        double value = meetsReqs ? stat.getValue(0) : stat.getValue(0) * 0.5;
-                        totalThorns += value;
-                    }
-                }
-            }
-        }
-        return totalThorns;
+        return entity.getAttributeValue(ModAttributes.THORNS_DAMAGE);
     }
 }

@@ -1,0 +1,41 @@
+{
+  "title": "Cutting Bench",
+  "content": [
+    {
+      "type": "item_image",
+      "value": "minecraft:stonecutter"
+    },
+    {
+      "type": "heading",
+      "value": "Building parts by material"
+    },
+    {
+      "type": "text",
+      "value": "The vanilla [[item/minecraft:stonecutter|Stonecutter]] serves as the [[article/cutting_bench|Cutting Bench]]. It produces assigned building blocks and parts from wood, stone, cobblestone, quartz, metals and other supported building materials."
+    },
+    {
+      "type": "text",
+      "value": "Material tabs group the list by wood, stone, quartz, metal and other materials. Search or material search can narrow it further; Craftable checks available player materials."
+    },
+    {
+      "type": "text",
+      "value": "Stairs, slabs and other assigned construction pieces are exclusive to this station instead of being duplicated in ordinary table crafting."
+    },
+    {
+      "type": "heading",
+      "value": "Output quantities"
+    },
+    {
+      "type": "text",
+      "value": "The quantity field counts recipe operations. The nearby total output accounts for recipes that produce several blocks per operation. You can craft batches larger than one stack when storage and materials permit."
+    },
+    {
+      "type": "heading",
+      "value": "Related articles"
+    },
+    {
+      "type": "text",
+      "value": "[[article/crafting_table|Crafting Table]] | [[article/gathering|World Discoveries]] | [[article/automation|Crafter]]"
+    }
+  ]
+}

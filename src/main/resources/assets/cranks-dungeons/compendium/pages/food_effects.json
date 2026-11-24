@@ -1,12 +1,85 @@
 {
-  "title": "Food & Status Effects",
+  "title": "Food, Potions and Active Effects",
   "content": [
-    { "type": "heading", "value": "Hunger" },
-    { "type": "list", "value": "Saturation is always cleared and vanilla natural regeneration is disabled.\nAt 16 hunger or more, Well Fed grants 10% increased movement and attack speed.\nAt 6 hunger or less, Starving applies 10% reduced movement and attack speed.\nStarvation damage equals 5% of maximum health per damage event.\nFood tooltips show exactly how many hunger points they restore." },
-    { "type": "heading", "value": "Reworked Vanilla Effects" },
-    { "type": "list", "value": "Fire Resistance: +15% fire resistance per normal tier.\nResistance: +150 armour per tier.\nRegeneration: +3 health per second per tier.\nStrength / Weakness: +20% / -20% physical damage per tier.\nSpeed / Slowness: +15% / -15% movement speed per tier.\nHaste: +20% mining speed per tier; Mining Fatigue: -30%.\nAbsorption: +20 absorption health per tier, added and removed with the effect.\nLuck / Unluck: +15% / -15% rarity of items found per tier.\nInstant Health: 25 flat healing per tier and damages undead. Instant Damage: 15 void damage per tier and heals undead." },
-    { "type": "heading", "value": "Environmental Damage" },
-    { "type": "text", "value": "Player drowning deals the larger of 12% maximum health or 2 damage per drowning tick and bypasses Energy Shield. Lava and ordinary fire are converted into the Burn ailment; magma blocks deal 3 direct fire damage." },
-    { "type": "note", "style": "info", "value": "Effect tooltips are rewritten to show their actual stat-driven meaning rather than vanilla descriptions." }
+    {
+      "type": "heading",
+      "value": "Hunger and survival"
+    },
+    {
+      "type": "text",
+      "value": "Food restores the Hunger shown in its tooltip. Natural hunger-based Health regeneration is disabled, and Saturation does not provide a hidden recovery reserve."
+    },
+    {
+      "type": "text",
+      "value": "At 16 Hunger or more, Well Fed grants 10% increased Movement and Attack Speed. At 6 Hunger or less, Starving reduces those speeds by 10%. Starvation damage scales with maximum Health, so a larger Health pool is not a substitute for food."
+    },
+    {
+      "type": "heading",
+      "value": "A recovery plan"
+    },
+    {
+      "type": "text",
+      "value": "Carry a recovery source you can use when no enemies are dying: a healing potion, regeneration or another build-supported recovery effect. On-kill recovery is useful during groups but may not help during a boss phase without additional enemies."
+    },
+    {
+      "type": "heading",
+      "value": "Reading an effect"
+    },
+    {
+      "type": "text",
+      "value": "Hover an active effect above the inventory to read its actual bonus and duration. Hold Show Details and click its linked name for the effect article. The displayed values reflect the active effect rather than an old vanilla assumption."
+    },
+    {
+      "type": "heading",
+      "value": "Potion tiers and bottles"
+    },
+    {
+      "type": "text",
+      "value": "[[item/minecraft:potion|Potions]] have Lesser and regular versions. Thin bottles hold Lesser potions; regular bottles hold regular potions. Effects that have no stronger numerical form use shorter duration for Lesser."
+    },
+    {
+      "type": "text",
+      "value": "Drinking, throwable and lingering forms have their own bottles. Matching potions stack to 16. Drinking returns the matching empty bottle; thrown bottles break."
+    },
+    {
+      "type": "text",
+      "value": "Regular brewing also uses a Glowing Catalyst. Successful experiments teach the formula to that player; obtaining ingredients alone does not teach an alchemy formula."
+    },
+    {
+      "type": "heading",
+      "value": "Applying a potion"
+    },
+    {
+      "type": "text",
+      "value": "A drinking potion affects its user. A splash potion can affect targets near the impact, with potency affected by impact distance. A lingering potion leaves a temporary cloud; plan where enemies or allies will stand rather than treating it as a direct hit."
+    },
+    {
+      "type": "heading",
+      "value": "What common effects mean"
+    },
+    {
+      "type": "text",
+      "value": "Resistance improves Armour; it is not blanket immunity to every damage type. Fire Resistance adds Fire Resistance rather than unconditional fire immunity. Health Boost increases maximum Health; Absorption provides a temporary protective Health reserve."
+    },
+    {
+      "type": "text",
+      "value": "Strength and Weakness change Physical Damage. Speed and Slowness change movement. Haste and Mining Fatigue change gathering speed. Use the linked effect tooltip for the exact value and tier."
+    },
+    {
+      "type": "heading",
+      "value": "Environmental threats"
+    },
+    {
+      "type": "text",
+      "value": "Drowning bypasses Energy [[stat/cranks-dungeons:energy_shield|Shield]], so underwater work needs breathing or a reliable return to air. Fire and lava interact with Burn; equipment and recovery that handle one hazard may not solve another."
+    },
+    {
+      "type": "heading",
+      "value": "Related articles"
+    },
+    {
+      "type": "text",
+      "value": "[[article/alchemy|Alchemy]] | [[article/recovery|Recovery & Mana]] | [[article/ailments|Ailments]]"
+    }
   ]
 }

@@ -1,11 +1,38 @@
 {
   "title": "Unique Equipment",
   "content": [
-    { "type": "text", "value": "The vanilla mace, trident, turtle helmet, and Elytra are always classified as Unique. This classification comes from the item itself and overrides any stored rarity value." },
-    { "type": "heading", "value": "How Uniques Differ" },
-    { "type": "list", "value": "Their special statistics are a preset part of the item rather than a player-selected random affix pool.\nThe Runic Altar rejects all operations on them, including random, targeted, Artificial, Divine, Chaos, and Annulment tomes.\nThey cannot be converted to Magic or Rare and do not use the normal prefix/suffix crafting limits.\nTheir actual bonuses are shown directly on the item tooltip and are applied when the item is equipped in its proper slot." },
-    { "type": "heading", "value": "Other Upgrades" },
-    { "type": "text", "value": "Unique does not block the separate quality and enchantment-slot systems. A compatible Unique can still be improved at the Quality Station, receive Deepslate Sigil slots up to its item-type cap, and use approved enchantments within those slots." },
-    { "type": "note", "style": "important", "value": "Unique items do not appear in the rune-pool reference because those pages describe affixes that a player can actually roll through ordinary rune crafting." }
+    {
+      "type": "text",
+      "value": "The vanilla mace, trident, turtle helmet, and [[item/minecraft:elytra|Elytra]] are always classified as Unique. This classification comes from the item itself and is part of that equipment base."
+    },
+    {
+      "type": "heading",
+      "value": "How Uniques Differ"
+    },
+    {
+      "type": "list",
+      "value": "Their special statistics are a preset part of the item rather than a player-selected random affix pool.\nThe [[article/runic_altar|Runic Altar]] rejects all operations on them, including random, targeted, Artificial, Divine, Chaos, and Annulment tomes.\nThey cannot be converted to Magic or Rare and do not use the normal prefix/suffix crafting limits.\nTheir actual bonuses are shown directly on the item tooltip and are applied when the item is equipped in its proper slot."
+    },
+    {
+      "type": "heading",
+      "value": "Other Upgrades"
+    },
+    {
+      "type": "text",
+      "value": "A compatible Unique can be improved at the [[article/quality|Upgrade Bench]], receive [[item/cranks-dungeons:deepslate_sigil|Deepslate Sigil]] slots up to its item-type cap, and use approved enchantments within those slots."
+    },
+    {
+      "type": "note",
+      "style": "important",
+      "value": "Open the Unique item's article to inspect its fixed rune properties. These properties have their own references and values, separate from the ordinary random-tome catalogues."
+    },
+    {
+      "type": "heading",
+      "value": "Related articles"
+    },
+    {
+      "type": "text",
+      "value": "[[article/equipment|Equipment Bases]] | [[article/enchantments|Enchantments]] | [[article/repairing|Repair Bench]]"
+    }
   ]
 }

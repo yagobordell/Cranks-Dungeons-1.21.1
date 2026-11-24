@@ -1,6 +1,7 @@
 package com.cranks.dungeons.mixin;
 
 import com.cranks.dungeons.equipment.EquipmentStatApplier;
+import com.cranks.dungeons.equipment.EnchantmentSlotHelper;
 import com.cranks.dungeons.equipment.EquipmentType;
 import com.cranks.dungeons.equipment.ItemStatManager;
 import com.cranks.dungeons.equipment.AnimalArmorHelper;
@@ -9,6 +10,7 @@ import com.cranks.dungeons.registry.ModAttributes;
 import com.cranks.dungeons.stat.CustomStat;
 import com.cranks.dungeons.stat.StatRegistry;
 import com.cranks.dungeons.util.ArmorSetType;
+import com.cranks.dungeons.client.tooltip.TooltipLines;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.AttributeModifiersComponent;
 import net.minecraft.entity.attribute.EntityAttribute;
@@ -25,8 +27,6 @@ import net.minecraft.enchantment.effect.AttributeEnchantmentEffect;
 import net.minecraft.enchantment.Enchantment;
 
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.util.InputUtil;
-import org.lwjgl.glfw.GLFW;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -64,13 +64,7 @@ public abstract class ItemStackTooltipMixin {
         // 1. Build the new "Item Card"
         List<Text> newTooltip = new ArrayList<>();
 
-        boolean showDetails = false;
-        try {
-            var window = MinecraftClient.getInstance().getWindow().getHandle();
-            showDetails = InputUtil.isKeyPressed(window, GLFW.GLFW_KEY_LEFT_SHIFT) ||
-                    InputUtil.isKeyPressed(window, GLFW.GLFW_KEY_RIGHT_SHIFT);
-        } catch (Exception ignored) {
-        }
+        boolean showDetails = com.cranks.dungeons.client.tooltip.TooltipDetails.isHeld();
 
         // Item Name (Centered-ish title)
         newTooltip.add(modifyItemNameWithRarity(stack, tooltip.get(0)));
@@ -130,20 +124,12 @@ public abstract class ItemStackTooltipMixin {
             addBaseStatsSection(stack, newTooltip, equipType.get());
         }
 
-        // 3. Enchantment Section
-        addEnchantmentsSection(stack, newTooltip, showDetails);
-
-        // 4. Magical Runes Section
+        // 3. Prefixes and suffixes, followed by enchantments.
         addRunesSection(stack, newTooltip, showDetails);
+        addEnchantmentsSection(stack, newTooltip, showDetails);
 
         var enchantmentComponent = stack.getEnchantments();
         boolean hasEnchants = !enchantmentComponent.isEmpty();
-
-        if (!showDetails && (hasEnchants || !customStats.isEmpty() || ItemStatManager.hasCrypticStat(stack))) {
-            newTooltip.add(Text.literal("Hold ").formatted(Formatting.GRAY)
-                    .append(Text.literal("SHIFT").formatted(Formatting.YELLOW))
-                    .append(Text.literal(" for details").formatted(Formatting.GRAY)));
-        }
 
         // 5. Technical Info (Durability, etc.)
         for (int i = 1; i < tooltip.size(); i++) {
@@ -159,6 +145,17 @@ public abstract class ItemStackTooltipMixin {
             }
         }
 
+        if(stack.isDamageable() && newTooltip.stream().noneMatch(line->line.getString().toLowerCase(java.util.Locale.ROOT).startsWith("durability:"))) {
+            newTooltip.add(Text.literal("Durability: ").formatted(Formatting.GRAY)
+                    .append(Text.literal(Math.max(0,stack.getMaxDamage()-stack.getDamage())+" / "+stack.getMaxDamage()).formatted(Formatting.GRAY)));
+        }
+
+        if (!showDetails && (hasEnchants || !customStats.isEmpty() || ItemStatManager.hasCrypticStat(stack))) {
+            newTooltip.add(Text.literal("Hold ").formatted(Formatting.GRAY)
+                    .append(com.cranks.dungeons.client.tooltip.TooltipDetails.keyName().copy().formatted(Formatting.YELLOW))
+                    .append(Text.literal(" for details").formatted(Formatting.GRAY)));
+        }
+        TooltipLines.decorate(stack,newTooltip);
         cir.setReturnValue(newTooltip);
 
     }
@@ -166,7 +163,7 @@ public abstract class ItemStackTooltipMixin {
     @Unique
     private void addDivider(List<Text> tooltip) {
         // Dark gray horizontal line
-        tooltip.add(Text.literal("————————————————————").formatted(Formatting.DARK_GRAY));
+        tooltip.add(TooltipLines.mark(Text.literal("\u2014".repeat(20)).formatted(Formatting.DARK_GRAY),"separator"));
     }
 
     @Unique
@@ -372,6 +369,12 @@ public abstract class ItemStackTooltipMixin {
                     double speedMultiplier = finalSpeed / 4.0;
                     double originalTimeTicks = (type == EquipmentType.CROSSBOW) ? 25.0 : 20.0;
                     double actualTicks = originalTimeTicks / speedMultiplier;
+                    var rangedPlayer = net.minecraft.client.MinecraftClient.getInstance().player;
+                    if (rangedPlayer != null) actualTicks = type == EquipmentType.CROSSBOW
+                            ? com.cranks.dungeons.ranged.RangedTiming.crossbowReloadTicks(rangedPlayer, stack)
+                            : com.cranks.dungeons.ranged.RangedTiming.bowDrawTicks(rangedPlayer, stack);
+                    tooltip.add(Text.literal(type == EquipmentType.CROSSBOW ? "Reload Time: " : "Draw Time: ")
+                            .formatted(Formatting.GRAY).append(Text.literal(pctFmt.format(actualTicks / 20.0) + "s").formatted(Formatting.WHITE)));
                     double attacksPerSecond = 20.0 / actualTicks; // 20 ticks in a second
 
                     tooltip.add(Text.literal("Attacks Per Second: ").formatted(Formatting.GRAY)
@@ -433,100 +436,34 @@ public abstract class ItemStackTooltipMixin {
         }
     }
 
-    /**
-     * Calculates the total attribute values for an item, combining base stats, rune stats,
-     * and enchantment stats into a single map keyed by translation key.
-     *
-     * <h3>Important: Double-Counting Prevention</h3>
-     * <p>When {@code includeModifications} is true, the item's AttributeModifiersComponent
-     * (read at step 1) ALREADY contains flat rune values and local percentage scaling,
-     * because {@link com.cranks.dungeons.equipment.EquipmentStatApplier#updateItemAttributes}
-     * bakes them in. Therefore, when reading rune stats at step 2, we MUST skip stats whose
-     * attributes are already handled by the component (armor, evasion, energy shield,
-     * attack damage, and their percentage variants). Failing to do so causes the tooltip
-     * to show inflated values (e.g., 116 armor instead of 82).</p>
-     *
-     * @param stack The item to calculate stats for
-     * @param equipType The equipment type of the item
-     * @param includeModifications If true, includes rune and enchantment modifications.
-     *                            If false, returns only the base item's default stats.
-     * @return Map of translation key -> total attribute value
-     */
     @Unique
     private Map<String, Double> calculateItemAttributeTotals(ItemStack stack,
             EquipmentType equipType, boolean includeModifications) {
         Map<String, Double> totals = new HashMap<>();
-
-        AttributeModifiersComponent attributes;
-        if (includeModifications) {
-            attributes = stack.getOrDefault(DataComponentTypes.ATTRIBUTE_MODIFIERS, AttributeModifiersComponent.DEFAULT);
-            if (attributes.modifiers().isEmpty()) {
-                ItemStack defaultStack = new ItemStack(stack.getItem());
-                attributes = defaultStack.getOrDefault(DataComponentTypes.ATTRIBUTE_MODIFIERS, AttributeModifiersComponent.DEFAULT);
-            }
-        } else {
-            ItemStack defaultStack = new ItemStack(stack.getItem());
-            attributes = defaultStack.getOrDefault(DataComponentTypes.ATTRIBUTE_MODIFIERS, AttributeModifiersComponent.DEFAULT);
+        Map<String, Double> baseMultipliers = new HashMap<>();
+        Map<String, Double> totalMultipliers = new HashMap<>();
+        ItemStack base = new ItemStack(stack.getItem());
+        var attributes = includeModifications
+                ? com.cranks.dungeons.equipment.EquipmentStatApplier.calculateItemAttributes(stack)
+                : base.getOrDefault(DataComponentTypes.ATTRIBUTE_MODIFIERS, AttributeModifiersComponent.DEFAULT);
+        if (includeModifications && com.cranks.dungeons.equipment.ItemStatManager.getStats(stack).isEmpty()
+                && com.cranks.dungeons.block.entity.QualityStationBlockEntity.getQuality(stack) == 0) {
+            attributes = stack.getOrDefault(DataComponentTypes.ATTRIBUTE_MODIFIERS, attributes);
         }
-
-        int quality = com.cranks.dungeons.block.entity.QualityStationBlockEntity.getQuality(stack);
-        double qBonus = quality > 0 ? quality / 100.0 : 0.0;
 
         for (var entry : attributes.modifiers()) {
-            if (entry.modifier().operation() == net.minecraft.entity.attribute.EntityAttributeModifier.Operation.ADD_VALUE) {
-                String key = entry.attribute().value().getTranslationKey();
-                double baseVal = entry.modifier().value();
-                
-                if (!includeModifications && qBonus > 0) {
-                    if (attributesMatch(entry.attribute(), EntityAttributes.GENERIC_ATTACK_DAMAGE) ||
-                        attributesMatch(entry.attribute(), EntityAttributes.GENERIC_ARMOR) ||
-                        attributesMatch(entry.attribute(), ModAttributes.EVASION_RATING) ||
-                        attributesMatch(entry.attribute(), ModAttributes.ENERGY_SHIELD)) {
-                        baseVal = baseVal * (1.0 + qBonus);
-                    }
-                }
-                
-                totals.merge(key, baseVal, Double::sum);
+            String key = entry.attribute().value().getTranslationKey();
+            double value = entry.modifier().value();
+            switch (entry.modifier().operation()) {
+                case ADD_VALUE -> totals.merge(key, value, Double::sum);
+                case ADD_MULTIPLIED_BASE -> baseMultipliers.merge(key, value, Double::sum);
+                case ADD_MULTIPLIED_TOTAL -> totalMultipliers.merge(key, 1.0 + value, (first, second) -> first * second);
             }
         }
+        baseMultipliers.forEach((key, value) -> totals.computeIfPresent(key, (ignored, baseValue) -> baseValue * (1.0 + value)));
+        totalMultipliers.forEach((key, value) -> totals.computeIfPresent(key, (ignored, baseValue) -> baseValue * value));
 
         if (includeModifications) {
-            // 2. Gather attribute modifiers from Runes
-            // NOTE: Flat rune values for core stats (armor, evasion, ES, attack damage) are already
-            // baked into the ATTRIBUTE_MODIFIERS component by EquipmentStatApplier.updateItemAttributes().
-            // Local percent stats (ARMOR_PERCENT, EVASION_RATING_PERCENT, etc.) also scale the base
-            // values there. We must NOT add them again here or they'll be double-counted.
-            List<com.cranks.dungeons.equipment.ItemStatManager.ItemStat> runeStats = com.cranks.dungeons.equipment.ItemStatManager.getStats(stack);
-            for (com.cranks.dungeons.equipment.ItemStatManager.ItemStat is : runeStats) {
-                com.cranks.dungeons.stat.CustomStat stat = com.cranks.dungeons.stat.StatRegistry.getStat(is.statId);
-                if (stat != null) {
-                    for (int i = 0; i < stat.getComponents().size(); i++) {
-                        com.cranks.dungeons.stat.CustomStat.StatComponent comp = stat.getComponents().get(i);
-                        if (!comp.getAttributes().isEmpty()) {
-                            RegistryEntry<net.minecraft.entity.attribute.EntityAttribute> runeAttr = comp.getAttributes().get(0);
-                            // Skip stats already baked into the item's attribute component
-                            if (attributesMatch(runeAttr, EntityAttributes.GENERIC_ARMOR) ||
-                                attributesMatch(runeAttr, EntityAttributes.GENERIC_ATTACK_DAMAGE) ||
-                                attributesMatch(runeAttr, ModAttributes.EVASION_RATING) ||
-                                attributesMatch(runeAttr, ModAttributes.ENERGY_SHIELD) ||
-                                attributesMatch(runeAttr, ModAttributes.ARMOR_PERCENT) ||
-                                attributesMatch(runeAttr, ModAttributes.EVASION_RATING_PERCENT) ||
-                                attributesMatch(runeAttr, ModAttributes.ENERGY_SHIELD_PERCENT) ||
-                                attributesMatch(runeAttr, ModAttributes.PHYSICAL_DAMAGE_PERCENT) ||
-                                attributesMatch(runeAttr, ModAttributes.FIRE_DAMAGE) ||
-                                attributesMatch(runeAttr, ModAttributes.COLD_DAMAGE) ||
-                                attributesMatch(runeAttr, ModAttributes.LIGHTNING_DAMAGE) ||
-                                attributesMatch(runeAttr, ModAttributes.VOID_DAMAGE) ||
-                                attributesMatch(runeAttr, ModAttributes.BLOCK_VALUE)) {
-                                continue;
-                            }
-                            String key = runeAttr.value().getTranslationKey();
-                            totals.merge(key, is.getValue(i), Double::sum);
-                        }
-                    }
-                }
-            }
-
             // 3. Gather attribute modifiers from Enchantments
             var enchantments = stack.getEnchantments();
             Map<String, Double> multTotal = new HashMap<>();
@@ -541,10 +478,10 @@ public abstract class ItemStackTooltipMixin {
                         RegistryEntry<EntityAttribute> attr = effect.attribute();
                         
                         // Apply the same filtering as EnchantmentHelperMixin
-                        boolean isWeaponAttr = com.cranks.dungeons.util.EnchantmentFilterUtil.isWeaponAttribute(attr);
-                        boolean isArmorAttr = com.cranks.dungeons.util.EnchantmentFilterUtil.isArmorAttribute(attr);
                         boolean isWeapon = com.cranks.dungeons.util.EnchantmentFilterUtil.isWeapon(stack);
                         boolean isArmor = com.cranks.dungeons.util.EnchantmentFilterUtil.isArmor(stack);
+                        boolean isWeaponAttr = com.cranks.dungeons.util.EnchantmentFilterUtil.isWeaponAttribute(attr, isArmor);
+                        boolean isArmorAttr = com.cranks.dungeons.util.EnchantmentFilterUtil.isArmorAttribute(attr, isWeapon);
 
                         if (isWeaponAttr && !isWeapon) continue;
                         if (isArmorAttr && !isArmor) continue;
@@ -614,9 +551,8 @@ public abstract class ItemStackTooltipMixin {
         CustomStat.AffixType crypticType = hasCryptic ? ItemStatManager.getCrypticAffixType(stack) : null;
 
         if (!prefixes.isEmpty() || (hasCryptic && crypticType == CustomStat.AffixType.PREFIX)) {
-            if (showDetails && !isUnique) {
-                tooltip.add(Text.literal("Prefixes:").formatted(Formatting.DARK_GRAY, Formatting.ITALIC));
-            }
+            int used=prefixes.size()+(hasCryptic&&crypticType==CustomStat.AffixType.PREFIX?1:0);
+            tooltip.add(TooltipLines.section("Prefixes",used,CustomRarity.getRarity(stack).getMaxPrefixes()));
             for (ItemStatManager.ItemStat p : prefixes) {
                 CustomStat stat = StatRegistry.getStat(p.statId);
                 if (stat != null) {
@@ -631,9 +567,8 @@ public abstract class ItemStackTooltipMixin {
         }
 
         if (!suffixes.isEmpty() || (hasCryptic && crypticType == CustomStat.AffixType.SUFFIX)) {
-            if (showDetails && !isUnique) {
-                tooltip.add(Text.literal("Suffixes:").formatted(Formatting.DARK_GRAY, Formatting.ITALIC));
-            }
+            int used=suffixes.size()+(hasCryptic&&crypticType==CustomStat.AffixType.SUFFIX?1:0);
+            tooltip.add(TooltipLines.section("Suffixes",used,CustomRarity.getRarity(stack).getMaxSuffixes()));
             for (ItemStatManager.ItemStat s : suffixes) {
                 CustomStat stat = StatRegistry.getStat(s.statId);
                 if (stat != null) {
@@ -656,14 +591,18 @@ public abstract class ItemStackTooltipMixin {
             return;
         }
 
-        int slots = com.cranks.dungeons.equipment.EnchantmentSlotHelper.getEnchantmentSlots(stack);
+        int slots = EnchantmentSlotHelper.getEnchantmentSlots(stack);
         var enchantmentComponent = stack.getEnchantments();
-        int enchantsCount = 0;
+        int used = EnchantmentSlotHelper.usedSlots(stack);
+
+        if(slots>0||used>0)tooltip.add(TooltipLines.section("Enchantments",used,slots));
 
         for (var entry : enchantmentComponent.getEnchantmentEntries()) {
-            Text enchantName = entry.getKey().value().description();
-            tooltip.add(Text.literal("✦ ").formatted(Formatting.DARK_AQUA)
-                    .append(Text.literal(enchantName.getString()).formatted(Formatting.AQUA)));
+            int copies = EnchantmentSlotHelper.copyCount(entry.getKey(), entry.getIntValue());
+            tooltip.add(Text.literal("\u2726 ").formatted(Formatting.DARK_AQUA)
+                    .append(com.cranks.dungeons.client.guide.GuideText.link(EnchantmentSlotHelper.displayName(entry.getKey(), copies),
+                            new com.cranks.dungeons.client.guide.GuideTarget(com.cranks.dungeons.client.guide.GuideTarget.Kind.ENCHANTMENT,
+                                    entry.getKey().getKey().orElseThrow().getValue().toString())).formatted(Formatting.AQUA)));
 
             if (showDetails) {
                 String id = com.cranks.dungeons.CranksDungeons.getEnchantmentId(entry.getKey());
@@ -675,6 +614,7 @@ public abstract class ItemStackTooltipMixin {
 
                 MutableText desc1 = Text.translatable(descKey1);
                 if (!desc1.getString().equals(descKey1)) {
+                    if (copies > 1) tooltip.add(Text.translatable("enchantment.cranks-dungeons.per_copy").formatted(Formatting.GRAY));
                     tooltip.add(desc1.formatted(Formatting.GRAY, Formatting.ITALIC));
                 }
 
@@ -683,16 +623,14 @@ public abstract class ItemStackTooltipMixin {
                     tooltip.add(desc2.formatted(Formatting.GRAY, Formatting.ITALIC));
                 }
             }
-
-            enchantsCount++;
         }
 
-        for (int i = enchantsCount; i < slots; i++) {
-            tooltip.add(Text.literal("✧ ").formatted(Formatting.DARK_GRAY)
+        for (int i = used; i < slots; i++) {
+            tooltip.add(Text.literal("\u2727 ").formatted(Formatting.DARK_GRAY)
                     .append(Text.literal("Empty Enchantment Slot").formatted(Formatting.DARK_GRAY)));
         }
 
-        if (slots > 0 || enchantsCount > 0) {
+        if (slots > 0 || used > 0) {
             addDivider(tooltip);
         }
     }
@@ -705,16 +643,15 @@ public abstract class ItemStackTooltipMixin {
             double value = (values != null && i < values.length) ? values[i] : 0;
             String displayText = comp.formatValue(value, stat.getEquipmentType());
             MutableText line = Text.literal(displayText).formatted(isArtificial ? Formatting.DARK_GREEN : Formatting.BLUE);
-            if (showDetails && i == stat.getComponents().size() - 1) {
-                if (isUnique && !comp.isBooleanStat()) {
-                    line.append(Text.literal(" " + comp.getFormattedMinMax(tier)).formatted(getTierColor(tier)));
-                } else if (isUnique) {
-                    line.append(Text.literal(" [TX]").formatted(getTierColor(tier)));
-                } else {
-                    line.append(Text.literal(" [T" + tier + "]").formatted(getTierColor(tier)));
-                }
+            Text detail=Text.empty();
+            if(showDetails){
+                int validTier=Math.clamp(tier,1,10);
+                String tierLabel=i==0?" ["+(isUnique?"TX":"T"+validTier)+"]":"";
+                String range=comp.isBooleanStat()?"":" "+comp.getFormattedMinMax(validTier);
+                detail=Text.literal(tierLabel+range).formatted(getTierColor(validTier));
             }
-            lines.add(line);
+            lines.add(TooltipLines.rune(com.cranks.dungeons.client.guide.GuideText.link(line,
+                    com.cranks.dungeons.client.guide.GuideTarget.rune(stat.getId())),detail,i,stat.getComponents().size()));
         }
         return lines;
     }

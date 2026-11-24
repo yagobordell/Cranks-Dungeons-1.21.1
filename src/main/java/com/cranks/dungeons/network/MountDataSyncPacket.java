@@ -23,7 +23,12 @@ public record MountDataSyncPacket(
         boolean tamed,
         UUID ownerUuid,
         String ownerName,
-        String accessMode
+        String accessMode,
+        String storageAccessMode,
+        java.util.List<UUID> ancestry,
+        String breedingAccessMode,
+        boolean inLove,
+        int vanillaBreedingCooldown
 ) implements CustomPayload {
     public static final Id<MountDataSyncPacket> ID = new Id<>(
             Identifier.of(CranksDungeons.MOD_ID, "mount_data_sync"));
@@ -42,7 +47,8 @@ public record MountDataSyncPacket(
                 data.trait, data.specialization, data.sireName, data.damName, data.soulBond,
                 MountManager.cargoCapacity(mount), data.currentResource,
                 MountManager.maximumResource(kind, data), data.abilityActive,
-                ownership.tamed(), ownership.ownerUuid(), ownership.ownerName(), data.accessMode.name());
+                ownership.tamed(), ownership.ownerUuid(), ownership.ownerName(), data.accessMode.name(), data.storageAccessMode.name(), java.util.List.copyOf(MountManager.lineage(mount).keySet()),data.breedingAccessMode.name(),
+                mount instanceof net.minecraft.entity.passive.AnimalEntity animal&&animal.isInLove(),mount instanceof net.minecraft.entity.passive.AnimalEntity animal?Math.max(0,animal.getBreedingAge()):0);
     }
 
     private void write(RegistryByteBuf buf) {
@@ -76,6 +82,11 @@ public record MountDataSyncPacket(
         if (ownerUuid != null) buf.writeUuid(ownerUuid);
         buf.writeString(ownerName, 64);
         buf.writeString(accessMode, 16);
+        buf.writeString(storageAccessMode, 16);
+        buf.writeVarInt(Math.min(16, ancestry.size()));
+        for (int i=0;i<Math.min(16,ancestry.size());i++) buf.writeUuid(ancestry.get(i));
+        buf.writeString(breedingAccessMode,16);
+        buf.writeBoolean(inLove);buf.writeVarInt(vanillaBreedingCooldown);
     }
 
     private static MountDataSyncPacket read(RegistryByteBuf buf) {
@@ -86,7 +97,15 @@ public record MountDataSyncPacket(
                 buf.readVarInt(), buf.readLong(), buf.readString(32), buf.readString(32),
                 buf.readString(64), buf.readString(64), buf.readVarInt(), buf.readVarInt(),
                 buf.readDouble(), buf.readDouble(), buf.readBoolean(), buf.readBoolean(),
-                buf.readBoolean() ? buf.readUuid() : null, buf.readString(64), buf.readString(16));
+                buf.readBoolean() ? buf.readUuid() : null, buf.readString(64), buf.readString(16), buf.readString(16), readAncestry(buf),buf.readString(16),buf.readBoolean(),buf.readVarInt());
+    }
+
+    private static java.util.List<UUID> readAncestry(RegistryByteBuf buf) {
+        int count=buf.readVarInt();
+        if(count<0||count>16) throw new IllegalArgumentException("Invalid mount ancestry count");
+        var result=new java.util.ArrayList<UUID>(count);
+        for(int i=0;i<count;i++)result.add(buf.readUuid());
+        return java.util.List.copyOf(result);
     }
 
     @Override public Id<? extends CustomPayload> getId() { return ID; }

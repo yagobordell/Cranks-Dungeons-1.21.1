@@ -27,13 +27,21 @@
       {
         "id": "minecraft:enchantment.greater_storm.lightning_damage",
         "attribute": "cranks-dungeons:lightning_damage",
-        "amount": 20.0,
+        "amount": {
+          "type": "minecraft:linear",
+          "base": 20.0,
+          "per_level_above_first": 20.0
+        },
         "operation": "add_value"
       },
       {
         "id": "minecraft:enchantment.greater_storm_armor.lightning_resistance",
         "attribute": "cranks-dungeons:lightning_resistance",
-        "amount": 0.18,
+        "amount": {
+          "type": "minecraft:linear",
+          "base": 0.18,
+          "per_level_above_first": 0.18
+        },
         "operation": "add_value"
       }
     ]

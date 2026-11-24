@@ -27,13 +27,21 @@
       {
         "id": "minecraft:enchantment.greater_inspiration.mana_on_kill",
         "attribute": "cranks-dungeons:mana_on_kill",
-        "amount": 20.0,
+        "amount": {
+          "type": "minecraft:linear",
+          "base": 20.0,
+          "per_level_above_first": 20.0
+        },
         "operation": "add_value"
       },
       {
         "id": "minecraft:enchantment.greater_inspiration_armor.mana_regeneration_percent",
         "attribute": "cranks-dungeons:mana_regeneration_percent",
-        "amount": 0.18,
+        "amount": {
+          "type": "minecraft:linear",
+          "base": 0.18,
+          "per_level_above_first": 0.18
+        },
         "operation": "add_value"
       }
     ]

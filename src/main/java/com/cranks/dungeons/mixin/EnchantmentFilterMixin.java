@@ -28,6 +28,11 @@ public class EnchantmentFilterMixin {
         for (int i = 0; i < inventory.size(); i++) {
             ItemStack stack = inventory.getStack(i);
             if (stack.isEmpty()) continue;
+            ItemStack potion = com.cranks.dungeons.alchemy.AlchemyPotions.canonicalize(stack);
+            if (potion != stack) {
+                inventory.setStack(i, potion);
+                stack = potion;
+            }
 
             com.cranks.dungeons.util.EnchantmentFilterUtil.filterStack(stack);
 

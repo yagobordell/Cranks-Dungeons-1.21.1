@@ -16304,7 +16304,7 @@
       "id": "node_204",
       "name": "Cruel Fate",
       "description": [
-        "20% increased Critical Damage Bonus",
+        "+0.2x Critical Multiplier",
         "20% increased Magnitude of Non-Damaging Ailments you inflict with Critical Hits"
       ],
       "gridX": -6.23,
@@ -37175,7 +37175,7 @@
       "name": "Ricochet",
       "description": [
         "15% increased Projectile Damage",
-        "Projectiles have a 10% chance to Chain an additional time from terrain"
+        "Arrows and thrown tridents have a 10% chance to redirect from terrain toward a visible enemy within 12 blocks"
       ],
       "gridX": 1.345,
       "gridY": 7.041,
@@ -49882,7 +49882,7 @@
     {
       "id": "node_428",
       "name": "Ailment Chance",
-      "description": "10% increased chance to inflict Ailments",
+      "description": "10% increased chance to inflict Poison, Bleed and Shock",
       "gridX": 5.291,
       "gridY": 2.611,
       "shape": "square",
@@ -49930,7 +49930,7 @@
       "id": "node_430",
       "name": "Clean Shot",
       "description": [
-        "15% chance to Pierce an Enemy",
+        "Arrows have a 15% chance to pierce 1 additional enemy",
         "15% increased Projectile Damage"
       ],
       "gridX": 5.958,
@@ -49965,7 +49965,7 @@
     {
       "id": "node_432",
       "name": "Ailment Chance",
-      "description": "10% increased chance to inflict Ailments",
+      "description": "10% increased chance to inflict Poison, Bleed and Shock",
       "gridX": 6.373,
       "gridY": 3.173,
       "shape": "square",

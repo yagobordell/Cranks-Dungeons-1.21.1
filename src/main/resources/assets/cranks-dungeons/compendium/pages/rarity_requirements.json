@@ -1,10 +1,42 @@
 {
   "title": "Item Requirements",
   "content": [
-    { "type": "heading", "value": "Requirements by Material" },
-    { "type": "list", "value": "Wood and stone have no requirement. Axes, pickaxes, shovels, and hoes also always have no requirement.\nLeather: scale 15, applied to Dexterity.\nCopper armour: scale 15 split between Strength and Intelligence.\nChainmail and gold: scale 22; chainmail splits Strength/Dexterity and gold armour splits Strength/Intelligence.\nIron: scale 20. Diamond: 45. Netherite: 65.\nMace and trident bases use scale 65; elytra uses 90.\nUnknown supported materials use scale 10." },
-    { "type": "text", "value": "Armour, weapon type, and material decide which attributes receive that scale. Maces and shields use Strength; swords and spears split Strength/Dexterity; bows and crossbows use Dexterity. A trident requires 20 Strength and 32 Dexterity, while an Elytra requires 45 Dexterity and 45 Intelligence. Armour follows its base affinity. Reduced Requirements scales each nonzero requirement and rounds the result to the nearest whole point." },
-    { "type": "text", "value": "When one or more requirements are not met, item-derived modifiers are halved, including final attack/reload speed handling. The tooltip marks unmet requirements in red." },
-    { "type": "note", "style": "warning", "value": "Equipping an item without meeting every listed requirement does not disable it, but all item-derived modifiers are reduced by half until the requirements are met." }
+    {
+      "type": "heading",
+      "value": "Using equipment"
+    },
+    {
+      "type": "text",
+      "value": "Some equipment requires [[stat/cranks-dungeons:strength|Strength]], [[stat/cranks-dungeons:dexterity|Dexterity]] or [[stat/cranks-dungeons:intelligence|Intelligence]]. Check the requirements on the item itself: its tooltip shows the values for that specific piece, including any requirement reductions."
+    },
+    {
+      "type": "heading",
+      "value": "Meeting the requirements"
+    },
+    {
+      "type": "text",
+      "value": "Your character attributes are compared with each requirement. Unmet requirements appear in red. Increasing the relevant attribute or using Reduced Requirements can help you meet them."
+    },
+    {
+      "type": "text",
+      "value": "Reduced Requirements scales each nonzero requirement and rounds the result to the nearest whole point. Check the updated item tooltip to see the resulting requirements."
+    },
+    {
+      "type": "note",
+      "style": "warning",
+      "value": "Equipment can still be used when its requirements are not met, but its item-derived modifiers are reduced by half, including final attack and reload speed handling. The penalty ends when every listed requirement is met."
+    },
+    {
+      "type": "text",
+      "value": "See [[article/stats|Reading Your Stats]] for your current attributes and [[article/equipment|Equipment]] for the equipment systems."
+    },
+    {
+      "type": "heading",
+      "value": "Related articles"
+    },
+    {
+      "type": "text",
+      "value": "[[article/primary_attributes|Primary Attributes]] | [[article/equipment|Equipment Bases]] | [[article/stats|Reading Your Stats]]"
+    }
   ]
 }

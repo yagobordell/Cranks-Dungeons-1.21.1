@@ -35,13 +35,13 @@ public enum EquipmentType {
     public static Optional<EquipmentType> getTypeForItem(ItemStack stack) {
         if (stack.isEmpty()) return Optional.empty();
         Item item = stack.getItem();
-        String itemName = net.minecraft.registry.Registries.ITEM.getId(item).toString().toLowerCase();
+        String itemName = net.minecraft.registry.Registries.ITEM.getId(item).getPath().toLowerCase(java.util.Locale.ROOT);
 
         // 1. Check for specific Classes/Items FIRST (Most Accurate)
         if (stack.isOf(Items.ELYTRA)) return Optional.of(ELYTRA);
         if (item instanceof ShieldItem) return Optional.of(SHIELD);
-        if (item instanceof CrossbowItem || itemName.contains("crossbow")) return Optional.of(CROSSBOW);
-        if (item instanceof BowItem || itemName.contains("bow")) return Optional.of(BOW);
+        if (item instanceof CrossbowItem || itemName.endsWith("crossbow")) return Optional.of(CROSSBOW);
+        if (item instanceof BowItem || itemName.endsWith("bow")) return Optional.of(BOW);
         if (item instanceof TridentItem || itemName.contains("trident")) return Optional.of(TRIDENT);
         if (item instanceof MaceItem || itemName.contains("mace")) return Optional.of(MACE);
 

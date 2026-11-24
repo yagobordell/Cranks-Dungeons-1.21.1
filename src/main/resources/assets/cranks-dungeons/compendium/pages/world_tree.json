@@ -1,13 +1,49 @@
 {
   "title": "World Tree",
   "content": [
-    { "type": "text", "value": "The World Tree is independent from combat levels and the Passive Tree. It has its own level, XP bar, point pool, unlocked nodes, and node choices. Its maximum level is the number of nodes supplied by the server configuration." },
-    { "type": "heading", "value": "Progression Formula" },
-    { "type": "text", "value": "You begin at World level 1. XP needed for the next level is 200 + 75 x current World level + 0.5 x current World level squared, rounded down. Each World level gained awards one point. At the configured maximum level, remaining World XP is set to zero." },
-    { "type": "heading", "value": "Allocation" },
-    { "type": "text", "value": "World nodes use the same connected-route and draft/apply workflow as Passive nodes. The server validates that each new node exists, is connected to the already unlocked or newly drafted route, has a legal choice where needed, and fits your point budget." },
-    { "type": "heading", "value": "Opening the Tree" },
-    { "type": "text", "value": "Press O or select the World Tree tab in the Compendium. Drag to pan, scroll to zoom, hover to inspect modifiers, and apply drafted changes when satisfied." },
-    { "type": "note", "style": "important", "value": "World Tree nodes are fully server-configurable. The current bundled world_tree.json contains a large layout whose non-start nodes have no names or modifiers; on that configuration, those blank nodes provide no bonus until the server author fills them in." }
+    {
+      "type": "text",
+      "value": "The World Tree is independent from combat levels and the Passive Tree. It has its own level, XP bar, point pool, unlocked nodes, and node choices. Its level cap is configured independently of the number of tree nodes."
+    },
+    {
+      "type": "heading",
+      "value": "Progression Formula"
+    },
+    {
+      "type": "text",
+      "value": "You begin at World level 1. XP needed for the next level is 75 + 6 x current World level + 0.02 x current World level squared (by default), rounded down. Each World level gained awards one point. At the configured maximum level, remaining World XP is set to zero."
+    },
+    {
+      "type": "heading",
+      "value": "Allocation"
+    },
+    {
+      "type": "text",
+      "value": "World nodes use the same connected-route and draft/apply workflow as Passive nodes. New allocations must stay connected to your unlocked route or its drafted extension and fit your point budget. Choice nodes grant only the selected bonus."
+    },
+    {
+      "type": "heading",
+      "value": "Opening the Tree"
+    },
+    {
+      "type": "text",
+      "value": "Press O or select the World Tree tab in the Compendium. Drag to pan, scroll to zoom, hover to inspect modifiers, and apply drafted changes when satisfied."
+    },
+    {
+      "type": "heading",
+      "value": "Reading node bonuses"
+    },
+    {
+      "type": "text",
+      "value": "Node bonus descriptions are generated from the stats the node actually grants, including their values and units. Choice nodes list alternatives: choose one bonus, rather than gaining every listed option. Hold Show Details (Shift by default) to enter the tooltip and click a bonus for its explanation in the Compendium."
+    },
+    {
+      "type": "heading",
+      "value": "Related articles"
+    },
+    {
+      "type": "text",
+      "value": "[[article/gathering_stats|Gathering, Discovery & Survival]] | [[article/xp_progression|Levels and Experience]] | [[article/mounts|Mounts & Cargo]]"
+    }
   ]
 }

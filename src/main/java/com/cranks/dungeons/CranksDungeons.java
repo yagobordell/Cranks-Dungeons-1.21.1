@@ -11,11 +11,11 @@ import com.cranks.dungeons.command.RuneCommand;
 import com.cranks.dungeons.effect.ModEffects;
 import com.cranks.dungeons.enchantment.EnchantmentDisableManager;
 import com.cranks.dungeons.event.*;
+import com.cranks.dungeons.inventory.StationAssemblyRecipe;
 import com.cranks.dungeons.item.ModItems;
 import com.cranks.dungeons.loot.RunicTomeLootHandler;
 import com.cranks.dungeons.network.EnergyShieldSyncPacket;
 import com.cranks.dungeons.network.ModNetworking;
-import com.cranks.dungeons.network.StatOptionsSyncPacket;
 import com.cranks.dungeons.particle.ModParticles;
 import com.cranks.dungeons.registry.ModAttributes;
 import com.cranks.dungeons.registry.ModSounds;
@@ -64,6 +64,9 @@ public class CranksDungeons implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		ModBlocks.register();
+		StationAssemblyRecipe.register();
+        com.cranks.dungeons.inventory.TailoringPatternRecipe.register();
+        com.cranks.dungeons.inventory.CartographyRecipe.register();
 		ModNetworking.registerPayloads();
 		ModNetworking.registerServerReceivers();
 		EnchantmentDisableTickHandler.register();
@@ -71,14 +74,22 @@ public class CranksDungeons implements ModInitializer {
 		com.cranks.dungeons.util.TwoHandedWeaponHandler.register();
 		ModBlockEntities.register();
 		ModItems.registerModItems();
+		net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents.modifyEntriesEvent(net.minecraft.item.ItemGroups.TOOLS)
+				.register(entries -> {
+					if (!entries.getDisplayStacks().stream().anyMatch(stack -> stack.isOf(net.minecraft.item.Items.BUNDLE))) {
+						entries.add(net.minecraft.item.Items.BUNDLE);
+					}
+				});
 		ModScreenHandlers.register();
 		ModAttributes.registerAttributes();
 		com.cranks.dungeons.registry.ModEntities.register();
 		ModSounds.registerSounds();
 		ModEffects.registerEffects();
+		com.cranks.dungeons.alchemy.AlchemyItems.register();
+		com.cranks.dungeons.alchemy.AlchemyPotions.register();
+        com.cranks.dungeons.inventory.FletchingArrows.register();
 		ModParticles.register();
 		com.cranks.dungeons.item.ItemComponentModifier.register();
-		PayloadTypeRegistry.playS2C().register(StatOptionsSyncPacket.ID, StatOptionsSyncPacket.CODEC);
 		PayloadTypeRegistry.playS2C().register(EnergyShieldSyncPacket.ID, EnergyShieldSyncPacket.CODEC);
 		StatRegistry.registerStats();
 		com.cranks.dungeons.entity.MobStatRegistry.registerMobStats();
@@ -95,11 +106,11 @@ public class CranksDungeons implements ModInitializer {
 		com.cranks.dungeons.horse.HorseBreedingManager.register();
 		com.cranks.dungeons.name.NameTagManager.register();
 		com.cranks.dungeons.mount.MountManager.register();
-		FortuneEventHandler.register();
-		LogFortuneHandler.register();
-		DigFortuneHandler.register();
-		CropXpEventHandler.register();
-		GatheringXpHandler.register();
+		com.cranks.dungeons.config.ProgressionConfig.load();
+		com.cranks.dungeons.progression.CombatExperience.register();
+        com.cranks.dungeons.economy.EconomyManager.register();
+
+
 		RunicTomeLootHandler.register();
 		PassiveTreeConfig.load();
 		PassiveNodeRegistry.loadFromConfig();
@@ -108,23 +119,28 @@ public class CranksDungeons implements ModInitializer {
 
 		net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents.ENTITY_UNLOAD.register((entity, world) -> {
 			if (entity instanceof net.minecraft.entity.LivingEntity living) {
-				com.cranks.dungeons.ailment.AilmentManager.clearAllAilments(living);
+				com.cranks.dungeons.ailment.AilmentManager.onEntityDespawn(living);
 				com.cranks.dungeons.util.LeechManager.clearEntity(living.getUuid());
+                com.cranks.dungeons.util.CombatUtility.clearCombatHistory(living.getUuid());
 				com.cranks.dungeons.util.WitherResistanceTracker.clearEntity(living.getUuid());
 			}
 		});
 
 		net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
-			com.cranks.dungeons.util.LeechManager.clearAll();
+			com.cranks.dungeons.ailment.AilmentManager.clearAll();
+			com.cranks.dungeons.progression.WorldDiscovery.clear();
+            com.cranks.dungeons.util.LeechManager.clearAll();
+            com.cranks.dungeons.util.CombatUtility.clearCombatHistory();
 			com.cranks.dungeons.util.WitherResistanceTracker.clearAll();
 			com.cranks.dungeons.network.ModNetworking.clearAllState();
 		});
+		net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents.END_SERVER_TICK.register(
+				com.cranks.dungeons.ailment.AilmentManager::cleanupPlayers);
 
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             net.minecraft.server.network.ServerPlayerEntity player = handler.player;
             PassiveDataComponent data = ModComponents.PASSIVE_DATA.get(player);
 
-            com.cranks.dungeons.network.ModNetworking.syncPassiveTreeToPlayer(player);
             com.cranks.dungeons.network.ModNetworking.syncWorldTreeToPlayer(player);
             
 			// MaxHealthMixin restores saved health after the player's modifiers settle.
@@ -152,6 +168,7 @@ public class CranksDungeons implements ModInitializer {
 			}
 
 			data.checkRetroactivePoints(handler.player.experienceLevel);
+            ModComponents.PROGRESSION.get(player).initialize();
 
 			// Sync energy shield to client slightly delayed on join to ensure attributes
 			// and client are fully loaded
@@ -170,8 +187,19 @@ public class CranksDungeons implements ModInitializer {
 				miningInst.setBaseValue(1.0);
 		});
 
+		ServerPlayerEvents.COPY_FROM.register((oldPlayer, newPlayer, alive) -> {
+			// Vanilla already copies the inventory for live transfers, spectators and keepInventory.
+			if (!alive && !oldPlayer.isSpectator() && !newPlayer.getServerWorld().getGameRules()
+					.getBoolean(net.minecraft.world.GameRules.KEEP_INVENTORY)) {
+				newPlayer.getInventory().clone(oldPlayer.getInventory());
+			}
+		});
+
 		ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
-			PassiveSkillApplier.updatePlayerPassives(newPlayer);
+			var progression=ModComponents.PROGRESSION.get(newPlayer);
+            if (!alive && !oldPlayer.getServerWorld().getGameRules().getBoolean(net.minecraft.world.GameRules.KEEP_INVENTORY)) progression.deathPenalty();
+            progression.mirror();
+            PassiveSkillApplier.updatePlayerPassives(newPlayer);
 		});
 		
 		net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
@@ -242,7 +270,6 @@ public class CranksDungeons implements ModInitializer {
 						.add(ModAttributes.PHYSICAL_DAMAGE_LEECHED_AS_MANA, 0.0)
 						.add(ModAttributes.HEALTH_ON_KILL, 0.0)
 						.add(ModAttributes.MANA_ON_KILL, 0.0)
-						.add(ModAttributes.BONUS_ATTACK_DAMAGE, 0.0)
 						.add(ModAttributes.ATTACK_SPEED, 0.0)
 						// Ailments
 						.add(ModAttributes.FLAMMABILITY_MAGNITUDE_PERCENT, 0.0)
@@ -341,6 +368,7 @@ public class CranksDungeons implements ModInitializer {
 							}));
 				});
 
+        com.cranks.dungeons.inventory.SupportedContent.enable();
 		LOGGER.info("Cranks Dungeons initialized!");
 	}
 
@@ -433,47 +461,30 @@ public class CranksDungeons implements ModInitializer {
 			// Adept
 			"minecraft:adept",
 			"minecraft:greater_adept",
-			"minecraft:perfect_adept",
-
 			// Body
 			"minecraft:body",
 			"minecraft:greater_body",
-			"minecraft:perfect_body",
-
 			// Desert
 			"minecraft:desert",
 			"minecraft:greater_desert",
-			"minecraft:perfect_desert",
-
 			// Glacial
 			"minecraft:glacial",
 			"minecraft:greater_glacial",
-			"minecraft:perfect_glacial",
-
 			// Inspiration
 			"minecraft:inspiration",
 			"minecraft:greater_inspiration",
-			"minecraft:perfect_inspiration",
-
 			// Iron
 			"minecraft:iron",
 			"minecraft:greater_iron",
-			"minecraft:perfect_iron",
-
 			// Stone
 			"minecraft:stone",
 			"minecraft:greater_stone",
-			"minecraft:perfect_stone",
-
 			// Storm
 			"minecraft:storm",
 			"minecraft:greater_storm",
-			"minecraft:perfect_storm",
-
 			// Vision
 			"minecraft:vision",
-			"minecraft:greater_vision",
-			"minecraft:perfect_vision"
+			"minecraft:greater_vision"
 	);
 
 	public static String getEnchantmentId(RegistryEntry<Enchantment> entry) {
@@ -496,7 +507,13 @@ public class CranksDungeons implements ModInitializer {
 		return "";
 	}
 
+    public static boolean isSupportedEnchantment(RegistryEntry<Enchantment> entry) {
+        return entry != null && entry.getKey().map(key -> ALLOWED_ENCHANTMENT_IDS.contains(key.getValue().toString())).orElse(false);
+    }
+
 	public static boolean shouldRemoveFromCreative(ItemStack stack) {
+        if (!com.cranks.dungeons.inventory.SupportedContent.isSupported(stack)) return true;
+		if (stack.isOf(Items.POTION) || stack.isOf(Items.SPLASH_POTION) || stack.isOf(Items.LINGERING_POTION)) return true;
 		if (stack.isEmpty()) {
 			return false;
 		}

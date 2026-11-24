@@ -1,17 +1,20 @@
 package com.cranks.dungeons.client.render;
 
 import com.cranks.dungeons.CranksDungeons;
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.render.Camera;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityAttachmentType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
+import org.joml.Matrix4f;
+import org.joml.Vector4f;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -124,33 +127,24 @@ public class EntityStatBarRenderer {
         });
     }
 
-    private static final Identifier EMPTY_BAR = Identifier.of(CranksDungeons.MOD_ID, "textures/gui/sprites/hud/stat_bar/empty.png");
-    private static final Identifier EMPTY_SHIELD_BAR = Identifier.of(CranksDungeons.MOD_ID, "textures/gui/sprites/hud/stat_bar/empty_energy_shield.png");
-    private static final Identifier HEALTH_FILL = Identifier.of(CranksDungeons.MOD_ID, "textures/gui/sprites/hud/stat_bar/health.png");
-    private static final Identifier HEALTH_BURN_FILL = Identifier.of(CranksDungeons.MOD_ID, "textures/gui/sprites/hud/stat_bar/health_burn.png");
-    private static final Identifier HEALTH_POISON_FILL = Identifier.of(CranksDungeons.MOD_ID, "textures/gui/sprites/hud/stat_bar/health_poison.png");
-    private static final Identifier HEALTH_BLEED_FILL = Identifier.of(CranksDungeons.MOD_ID, "textures/gui/sprites/hud/stat_bar/health_bleed.png");
-    private static final Identifier SHIELD_FILL = Identifier.of(CranksDungeons.MOD_ID, "textures/gui/sprites/hud/stat_bar/energy_shield.png");
-    private static final Identifier ABSORPTION_FILL = Identifier.of(CranksDungeons.MOD_ID, "textures/gui/sprites/hud/stat_bar/absorption.png");
+    private static final double MAX_RENDER_DISTANCE_SQ = 32.0 * 32.0;
+    private static final int HEAD_CLEARANCE = 4;
+    private static final int SCREEN_MARGIN = 64;
 
-    public static Identifier getEntityHealthFillTexture(LivingEntity entity) {
-        if (entity != null) {
-            if (entity.hasStatusEffect(com.cranks.dungeons.effect.ModEffects.BLEED) || com.cranks.dungeons.ailment.AilmentManager.hasAilment(entity, com.cranks.dungeons.ailment.AilmentType.BLEED)) {
-                return HEALTH_BLEED_FILL;
-            }
-            if (entity.hasStatusEffect(com.cranks.dungeons.effect.ModEffects.POISON) || entity.hasStatusEffect(net.minecraft.entity.effect.StatusEffects.POISON) || com.cranks.dungeons.ailment.AilmentManager.hasAilment(entity, com.cranks.dungeons.ailment.AilmentType.POISON)) {
-                return HEALTH_POISON_FILL;
-            }
-            if (entity.hasStatusEffect(com.cranks.dungeons.effect.ModEffects.BURN) || entity.isOnFire() || com.cranks.dungeons.ailment.AilmentManager.hasAilment(entity, com.cranks.dungeons.ailment.AilmentType.BURN)) {
-                return HEALTH_BURN_FILL;
-            }
-        }
-        return HEALTH_FILL;
+    private static final Matrix4f WORLD_TO_CLIP = new Matrix4f();
+    private static final Vector4f CLIP_POSITION = new Vector4f();
+    private static ClientWorld renderedWorld;
+    private static Vec3d cameraPosition = Vec3d.ZERO;
+
+    public static void captureProjection(WorldRenderContext context) {
+        renderedWorld = context.world();
+        cameraPosition = context.camera().getPos();
+        WORLD_TO_CLIP.set(context.projectionMatrix()).mul(context.positionMatrix());
     }
 
-    private static final double MAX_RENDER_DISTANCE_SQ = 32.0 * 32.0;
-    private static final float WORLD_UI_SCALE = 0.025f;
-    private static final int SCREEN_MARGIN = 64;
+    public static void clearProjection() {
+        renderedWorld = null;
+    }
 
     /**
      * Draws projected entity plates in the GUI pass. Keeping the actual draw calls
@@ -159,10 +153,9 @@ public class EntityStatBarRenderer {
      */
     public static void renderHud(DrawContext context) {
         MinecraftClient client = MinecraftClient.getInstance();
-        if (client.world == null || client.player == null) return;
+        if (client.world == null || client.world != renderedWorld || client.player == null || client.options.hudHidden) return;
 
         float tickDelta = client.getRenderTickCounter().getTickDelta(true);
-        Camera camera = client.gameRenderer.getCamera();
 
         // Cleanup caches
         if (client.world.getTime() % 100 == 0) {
@@ -199,11 +192,13 @@ public class EntityStatBarRenderer {
                 // Only show nameplate if the entity itself is visible
                 if (!canSeeEntity(client.player, living)) continue;
 
-                // Position above head
-                double worldX = MathHelper.lerp(tickDelta, living.lastRenderX, living.getX());
-                double worldY = MathHelper.lerp(tickDelta, living.lastRenderY, living.getY()) + living.getHeight() + 0.1;
-                double worldZ = MathHelper.lerp(tickDelta, living.lastRenderZ, living.getZ());
-                ScreenPosition screenPosition = projectToScreen(client, camera, worldX, worldY, worldZ);
+                Vec3d labelAnchor = living.getAttachments().getPointNullable(
+                        EntityAttachmentType.NAME_TAG, 0, living.getYaw(tickDelta));
+                if (labelAnchor == null) labelAnchor = new Vec3d(0, living.getHeight(), 0);
+                double worldX = MathHelper.lerp(tickDelta, living.lastRenderX, living.getX()) + labelAnchor.x;
+                double worldY = MathHelper.lerp(tickDelta, living.lastRenderY, living.getY()) + labelAnchor.y + 0.28;
+                double worldZ = MathHelper.lerp(tickDelta, living.lastRenderZ, living.getZ()) + labelAnchor.z;
+                ScreenPosition screenPosition = projectToScreen(client, worldX, worldY, worldZ);
                 if (screenPosition != null) {
                     projectedEntities.add(new ProjectedEntity(living, screenPosition));
                 }
@@ -215,57 +210,34 @@ public class EntityStatBarRenderer {
         for (ProjectedEntity projected : projectedEntities) {
             MatrixStack matrices = context.getMatrices();
             matrices.push();
-            matrices.translate(projected.position.x, projected.position.y, 0.0f);
-            matrices.scale(projected.position.scale, projected.position.scale, 1.0f);
+            matrices.translate(projected.position.x, projected.position.y - HEAD_CLEARANCE, 0.0f);
             renderEntityStats(context, projected.entity, client);
             matrices.pop();
         }
     }
 
-    private static ScreenPosition projectToScreen(MinecraftClient client, Camera camera,
-                                                   double worldX, double worldY, double worldZ) {
+    public static ScreenPosition projectToScreen(MinecraftClient client, double worldX, double worldY, double worldZ) {
+        if (client.world != renderedWorld) return null;
         int screenWidth = client.getWindow().getScaledWidth();
         int screenHeight = client.getWindow().getScaledHeight();
         if (screenWidth <= 0 || screenHeight <= 0) return null;
 
-        Vec3d cameraPos = camera.getPos();
-        double dx = worldX - cameraPos.x;
-        double dy = worldY - cameraPos.y;
-        double dz = worldZ - cameraPos.z;
+        WORLD_TO_CLIP.transform((float) (worldX - cameraPosition.x), (float) (worldY - cameraPosition.y),
+                (float) (worldZ - cameraPosition.z), 1, CLIP_POSITION);
+        float depth = CLIP_POSITION.w;
+        if (depth <= 0.05f) return null;
 
-        double yaw = Math.toRadians(camera.getYaw() + 180.0f);
-        double pitch = Math.toRadians(camera.getPitch());
-        double cosYaw = Math.cos(yaw);
-        double sinYaw = Math.sin(yaw);
-        double rotatedX = dx * cosYaw + dz * sinYaw;
-        double rotatedZ = -dx * sinYaw + dz * cosYaw;
-
-        double cosPitch = Math.cos(pitch);
-        double sinPitch = Math.sin(pitch);
-        double viewY = dy * cosPitch - rotatedZ * sinPitch;
-        double viewZ = dy * sinPitch + rotatedZ * cosPitch;
-        if (viewZ >= -0.05) return null;
-
-        double depth = -viewZ;
-        double projectedDepth = Math.max(depth, 0.5);
-        double halfHeight = Math.tan(Math.toRadians(client.options.getFov().getValue()) / 2.0);
-        double halfWidth = halfHeight * ((double) screenWidth / screenHeight);
-        if (halfHeight <= 0.0 || halfWidth <= 0.0) return null;
-
-        double normalizedX = rotatedX / (halfWidth * projectedDepth);
-        double normalizedY = viewY / (halfHeight * projectedDepth);
-        float screenX = (float) ((normalizedX + 1.0) * 0.5 * screenWidth);
-        float screenY = (float) ((1.0 - normalizedY) * 0.5 * screenHeight);
+        float screenX = (CLIP_POSITION.x / depth + 1) * screenWidth / 2;
+        float screenY = (1 - CLIP_POSITION.y / depth) * screenHeight / 2;
         if (screenX < -SCREEN_MARGIN || screenX > screenWidth + SCREEN_MARGIN
                 || screenY < -SCREEN_MARGIN || screenY > screenHeight + SCREEN_MARGIN) {
             return null;
         }
 
-        float scale = (float) (WORLD_UI_SCALE * screenHeight / (2.0 * halfHeight * projectedDepth));
-        return new ScreenPosition(screenX, screenY, scale, depth);
+        return new ScreenPosition(screenX, screenY, depth);
     }
 
-    private record ScreenPosition(float x, float y, float scale, double depth) {}
+    public record ScreenPosition(float x, float y, float depth) {}
 
     private record ProjectedEntity(LivingEntity entity, ScreenPosition position) {}
 
@@ -400,146 +372,141 @@ public class EntityStatBarRenderer {
         List<com.cranks.dungeons.network.AilmentSyncPayload.AilmentEntry> activeAilments = AilmentIconRenderer.getAilments(entity.getId());
         boolean hasAilments = activeAilments != null && !activeAilments.isEmpty();
 
-        // Dynamic yOffset: calculate total height based on which elements are active
-        float totalHeight = 0;
-        if (hasAilments) totalHeight += 9.5f;
-        if (showName) totalHeight += 10.0f;
-        if (isPlayer && info != null) {
-            if (showLevel) totalHeight += 10.0f;
-            if (showParty && !info.partyLeaderName.isEmpty()) totalHeight += 10.0f;
+        ShieldInfo shield = showBars ? getShieldInfo(entity, client) : null;
+        boolean showShield = shield != null && shield.max > 0;
+        String name = showName ? entity.getName().getString() : null;
+        String level = null;
+        if (showLevel && info != null) {
+            level = "Lv." + info.level + " " + (info.className.isEmpty() ? "Novice" : capitalize(info.className));
         } else if (mobInfo != null) {
-            totalHeight += 10.0f;
+            level = "Lv." + mobInfo.level;
+        }
+        String party = showParty && info != null && !info.partyLeaderName.isEmpty() ? info.partyLeaderName + "'s Party" : null;
+        String defense = !isPlayer && showBars && getMobCategory(entity) == MobCategory.HOSTILE
+                ? defenseLabel(entity) : null;
+
+        TextRenderer font = client.textRenderer;
+        List<PlateLine> lines = new ArrayList<>(4);
+        addPlateLine(lines, font, name, 1, 0xFFF2F2F2);
+        addPlateLine(lines, font, level, 0.82f, 0xFFC9C9C9);
+        addPlateLine(lines, font, party, 0.82f, 0xFF99C0BF);
+        addPlateLine(lines, font, defense, 0.82f, 0xFFE1C697);
+
+        int textHeight = 0;
+        int width = showBars ? 52 : 0;
+        for (PlateLine line : lines) {
+            width = Math.max(width, MathHelper.ceil(font.getWidth(line.text()) * line.scale()) + 10);
+            textHeight += line.height();
+        }
+        int separatorGap = showBars && textHeight > 0 ? 2 : 0;
+        int height = 6 + textHeight + separatorGap + (showBars ? 6 : 0) + (showShield ? 5 : 0);
+        int y = -height;
+
+        int ailmentHeight=hasAilments?ailmentRowHeight(activeAilments):0;
+        if (hasAilments) drawAilments(context, font, activeAilments, entity.getId(), y, ailmentHeight);
+        if (AilmentIconRenderer.resistedTicks(entity)>0) {
+            String feedback=net.minecraft.text.Text.translatable("hud.cranks-dungeons.ailment.resisted").getString();
+            int feedbackWidth=MathHelper.ceil(font.getWidth(feedback)*.7f)+8;
+            float feedbackX=-feedbackWidth/2f;
+            int feedbackY=y-(hasAilments?ailmentHeight+3:0)-14;
+            HudStyle.plate(context,MathHelper.floor(feedbackX),feedbackY,feedbackWidth,11,true);
+            HudStyle.drawLabel(context,font,feedback,0,feedbackY+5.5f,.7f,0xFFD8D8D8);
+        }
+        if (width == 0) return;
+
+        var matrices = context.getMatrices();
+        matrices.push();
+        matrices.translate(-width / 2f, y, 0);
+        HudStyle.plate(context, 0, 0, width, height, false);
+        int rowY = 3;
+        for (PlateLine line : lines) {
+            HudStyle.drawLabel(context, font, line.text(), width / 2f, rowY + line.height() / 2f,
+                    line.scale(), line.color());
+            rowY += line.height();
+        }
+        if (separatorGap > 0) {
+            HudStyle.divider(context, 4, width - 4, rowY);
+            rowY += separatorGap;
         }
 
-        if (showBars) {
-            ShieldInfo sInfo = getShieldInfo(entity, client);
-            if (sInfo != null && sInfo.max > 0) {
-                totalHeight += 3.5f;
-            }
-            totalHeight += 5.0f; // Health bar height + spacing
-        }
-
-        float yOffset = -totalHeight;
-        TextRenderer textRenderer = client.textRenderer;
-
-        // --- 1. Ailment Icons (Top of stack) ---
-        if (hasAilments) {
-            int count = activeAilments.size();
-            float iconSize = 7.0f;
-            float spacing = 8.5f;
-            float rowWidth = (count - 1) * spacing + iconSize;
-            float startX = -rowWidth / 2f;
-
-            for (int i = 0; i < count; i++) {
-                com.cranks.dungeons.network.AilmentSyncPayload.AilmentEntry entry = activeAilments.get(i);
-                float iconX = startX + i * spacing;
-
-                drawTexture(context, entry.texture(), iconX, yOffset, iconSize, iconSize, 18, 18, 1.0f);
-
-                if (entry.texture().getPath().contains("buildup")) {
-                    drawSmallText(context, textRenderer, entry.stacks() + "%", iconX + iconSize / 2f, yOffset + iconSize - 2.5f, 0xFFFFFFFF);
-                } else if (entry.stacks() > 1) {
-                    drawSmallText(context, textRenderer, "x" + entry.stacks(), iconX + iconSize / 2f, yOffset + iconSize - 2.5f, 0xFFFFFFFF);
-                }
-            }
-            yOffset += 9.5f;
-        }
-
-        // --- 2. Entity Name ---
-        if (showName) {
-            String name = entity.getName().getString();
-            int nameWidth = textRenderer.getWidth(name);
-            drawText(context, textRenderer, name, -nameWidth / 2f, yOffset, 0xFFFFFFFF);
-            yOffset += 10.0f;
-        }
-
-        // --- 3. Level & Class / Party ---
-        if (isPlayer && info != null) {
-            if (showLevel) {
-                String topText = "Lv." + info.level + " " + (info.className.isEmpty() ? "Novice" : capitalize(info.className));
-                int textWidth = textRenderer.getWidth(topText);
-                drawText(context, textRenderer, topText, -textWidth / 2f, yOffset, 0xFFCCCCCC);
-                yOffset += 10.0f;
-            }
-
-            if (showParty && !info.partyLeaderName.isEmpty()) {
-                String partyText = info.partyLeaderName + "'s Party";
-                int pWidth = textRenderer.getWidth(partyText);
-                drawText(context, textRenderer, partyText, -pWidth / 2f, yOffset, 0xFF55FFFF);
-                yOffset += 10.0f;
-            }
-        } else if (showLevel && mobInfo != null) {
-            String topText = "Lv." + mobInfo.level;
-            int textWidth = textRenderer.getWidth(topText);
-            drawText(context, textRenderer, topText, -textWidth / 2f, yOffset, 0xFFCCCCCC);
-            yOffset += 10.0f;
-        }
-
-        if (!showBars) return;
-
-        float barWidth = 40;
-        float xStart = -barWidth / 2f;
-
-        // --- 4. Shield Bar ---
-        ShieldInfo sInfo = getShieldInfo(entity, client);
-        if (sInfo != null && sInfo.max > 0) {
-            // Client-side interpolation for smooth recharge/damage
-            float delta = (System.currentTimeMillis() - sInfo.lastUpdateTime) / 1000f;
-            sInfo.lastUpdateTime = System.currentTimeMillis();
-            
-            if (Math.abs(sInfo.displayed - sInfo.current) > 0.01f) {
-                if (sInfo.displayed < sInfo.current) {
-                    sInfo.displayed = Math.min(sInfo.current, sInfo.displayed + (sInfo.max * 0.4f) * delta);
-                } else {
-                    sInfo.displayed = sInfo.current;
-                }
+        if (showShield) {
+            long now = System.currentTimeMillis();
+            float delta = (now - shield.lastUpdateTime) / 1000f;
+            shield.lastUpdateTime = now;
+            if (shield.displayed + 0.01f < shield.current) {
+                shield.displayed = Math.min(shield.current, shield.displayed + shield.max * 0.4f * delta);
             } else {
-                sInfo.displayed = sInfo.current;
+                shield.displayed = shield.current;
             }
-
-            float shieldPercent = MathHelper.clamp(sInfo.displayed / sInfo.max, 0, 1);
-            float sHeight = 2.66f;
-            drawTexture(context, EMPTY_SHIELD_BAR, xStart, yOffset, barWidth, sHeight, 81, 6, 1.0f);
-            if (shieldPercent > 0) {
-                float fillWidth = barWidth * shieldPercent;
-                drawTexture(context, SHIELD_FILL, xStart, yOffset, fillWidth, sHeight, 81, 6, shieldPercent);
-            }
-            yOffset += 3.5f;
+            HudStyle.meter(context, 4, rowY, width - 8, 4, HudStyle.Ink.SHIELD,
+                    StatBarHudRenderer.ratio(shield.displayed, shield.max));
+            rowY += 5;
         }
-
-        // --- 5. Health Bar (Bottom of stack) ---
-        float maxHealth = entity.getMaxHealth();
-        float health = entity.getHealth();
-        float absorption = entity.getAbsorptionAmount();
-        float hpPercent = MathHelper.clamp(health / maxHealth, 0, 1);
-        float barHeight = 4.0f;
-
-        // Background
-        drawTexture(context, EMPTY_BAR, xStart, yOffset, barWidth, barHeight, 81, 9, 1.0f);
-        
-        // HP Fill - Left-Aligned
-        if (hpPercent > 0) {
-            float fillWidth = barWidth * hpPercent;
-            Identifier entityHealthTexture = getEntityHealthFillTexture(entity);
-            drawTexture(context, entityHealthTexture, xStart, yOffset, fillWidth, barHeight, 81, 9, hpPercent);
+        if (showBars) {
+            StatBarHudRenderer.drawHealthMeter(context, 4, rowY, width - 8, 5, entity,
+                    entity.getHealth(), entity.getMaxHealth(), entity.getAbsorptionAmount(), entity.getHealth());
         }
-
-        // Absorption overlay is drawn last so it remains on top of the health fill.
-        if (absorption > 0) {
-            float absPercent = MathHelper.clamp(absorption / maxHealth, 0, 1);
-            float absWidth = barWidth * absPercent;
-            drawTexture(context, ABSORPTION_FILL, xStart, yOffset, absWidth, barHeight, 81, 9, absPercent);
-        }
+        matrices.pop();
     }
 
-    private static void drawSmallText(DrawContext context, TextRenderer textRenderer, String text, float centerX, float y, int color) {
-        MatrixStack matrices = context.getMatrices();
+    private static void addPlateLine(List<PlateLine> lines, TextRenderer font, String text, float scale, int color) {
+        if (text == null || text.isEmpty()) return;
+        int maxWidth = MathHelper.floor(100 / scale);
+        if (font.getWidth(text) > maxWidth) {
+            text = font.trimToWidth(text, maxWidth - font.getWidth("â€¦")) + "â€¦";
+        }
+        lines.add(new PlateLine(text, scale, color, MathHelper.ceil(font.fontHeight * scale)));
+    }
+
+    private record PlateLine(String text, float scale, int color, int height) {}
+
+    private static int ailmentRowHeight(List<com.cranks.dungeons.network.AilmentSyncPayload.AilmentEntry> ailments) {
+        return ailments.stream().mapToInt(a -> AilmentPresentation.tileHeight(a.buildup(),a.stacks(),a.remainingSeconds()))
+                .max().orElse(0);
+    }
+
+    private static void drawAilments(DrawContext context, TextRenderer font,
+                                    List<com.cranks.dungeons.network.AilmentSyncPayload.AilmentEntry> ailments,
+                                    int entityId, int y, int rowHeight) {
+        int tileSize = AilmentPresentation.ICON_SIZE;
+        int spacing = tileSize + 2;
+        var matrices = context.getMatrices();
         matrices.push();
-        matrices.translate(centerX, y, 0.0f);
-        matrices.scale(0.5f, 0.5f, 1.0f);
-        int textWidth = textRenderer.getWidth(text);
-        context.drawText(textRenderer, text, -textWidth / 2, 0, color, false);
+        matrices.translate(-((ailments.size() - 1) * spacing + tileSize) / 2f, y - rowHeight - 3, 0);
+        for (int i = 0; i < ailments.size(); i++) {
+            var entry = ailments.get(i);
+            int x = i * spacing;
+            boolean counter = entry.buildup() || entry.stacks() > 1;
+            HudStyle.plate(context, x, 0, tileSize,
+                    AilmentPresentation.tileHeight(entry.buildup(),entry.stacks(),entry.remainingSeconds()), true);
+            if(entry.buildup())context.setShaderColor(.48f,.48f,.48f,1);
+            try {
+                context.drawTexture(entry.texture(), x + 2, 2, 12, 12, 0.0f, 0.0f, 18, 18, 18, 18);
+            } finally {
+                if(entry.buildup())context.setShaderColor(1,1,1,1);
+            }
+            int footerY=tileSize+4;
+            if (counter) {
+                String label = entry.buildup() ? entry.stacks() + "%" : "x" + entry.stacks();
+                float scale = Math.min(0.6f, (tileSize - 4f) / font.getWidth(label));
+                HudStyle.drawLabel(context, font, label, x + tileSize / 2f, footerY, scale,
+                        entry.buildup()?0xFFC2C2C2:0xFFFFFFFF);
+                footerY+=AilmentPresentation.FOOTER_HEIGHT;
+            }
+            if (AilmentPresentation.hasTimer(entry.buildup(),entry.remainingSeconds())) {
+                String timer=AilmentPresentation.timer(AilmentIconRenderer.remainingSeconds(entityId,entry));
+                float scale=Math.min(.6f,(tileSize-4f)/font.getWidth(timer));
+                HudStyle.drawLabel(context,font,timer,x+tileSize/2f,footerY,scale,0xFFC9C9C9);
+            }
+        }
         matrices.pop();
+    }
+
+    private static String defenseLabel(LivingEntity entity) {
+        if (entity.getAttributeValue(com.cranks.dungeons.registry.ModAttributes.ENERGY_SHIELD) > 0) return "Shielded";
+        if (entity.getArmor() >= 75) return "Armored";
+        if (entity.getAttributeValue(com.cranks.dungeons.registry.ModAttributes.EVASION_RATING) >= 30) return "Evasive";
+        return null;
     }
 
     private static ShieldInfo getShieldInfo(LivingEntity entity, MinecraftClient client) {
@@ -560,20 +527,6 @@ public class EntityStatBarRenderer {
         }
 
         return cached;
-    }
-
-    private static void drawTexture(DrawContext context, Identifier texture, float x, float y,
-                                    float width, float height, int textureWidth, int textureHeight,
-                                    float visibleFraction) {
-        int drawWidth = Math.max(1, Math.round(width));
-        int drawHeight = Math.max(1, Math.round(height));
-        int sourceWidth = Math.max(1, Math.round(textureWidth * visibleFraction));
-        context.drawTexture(texture, Math.round(x), Math.round(y), drawWidth, drawHeight,
-                0.0f, 0.0f, sourceWidth, textureHeight, textureWidth, textureHeight);
-    }
-
-    private static void drawText(DrawContext context, TextRenderer textRenderer, String text, float x, float y, int color) {
-        context.drawText(textRenderer, text, Math.round(x), Math.round(y), color, false);
     }
 
     private static String capitalize(String s) {

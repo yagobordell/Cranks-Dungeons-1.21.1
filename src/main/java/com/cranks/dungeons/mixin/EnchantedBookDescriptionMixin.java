@@ -75,31 +75,14 @@ public class EnchantedBookDescriptionMixin {
         return name.equals("silk_touch") ||
                 name.equals("vein_mining") ||
                 name.equals("adept") ||
-                name.equals("greater_adept") ||
-                name.equals("perfect_adept") ||
-                name.equals("body") ||
-                name.equals("greater_body") ||
-                name.equals("perfect_body") ||
-                name.equals("desert") ||
-                name.equals("greater_desert") ||
-                name.equals("perfect_desert") ||
-                name.equals("glacial") ||
-                name.equals("greater_glacial") ||
-                name.equals("perfect_glacial") ||
-                name.equals("inspiration") ||
-                name.equals("greater_inspiration") ||
-                name.equals("perfect_inspiration") ||
-                name.equals("iron") ||
-                name.equals("greater_iron") ||
-                name.equals("perfect_iron") ||
-                name.equals("stone") ||
-                name.equals("greater_stone") ||
-                name.equals("perfect_stone") ||
-                name.equals("storm") ||
-                name.equals("greater_storm") ||
-                name.equals("perfect_storm") ||
-                name.equals("vision") ||
-                name.equals("greater_vision") ||
-                name.equals("perfect_vision");
+                name.equals("greater_adept") ||                name.equals("body") ||
+                name.equals("greater_body") ||                name.equals("desert") ||
+                name.equals("greater_desert") ||                name.equals("glacial") ||
+                name.equals("greater_glacial") ||                name.equals("inspiration") ||
+                name.equals("greater_inspiration") ||                name.equals("iron") ||
+                name.equals("greater_iron") ||                name.equals("stone") ||
+                name.equals("greater_stone") ||                name.equals("storm") ||
+                name.equals("greater_storm") ||                name.equals("vision") ||
+                name.equals("greater_vision");
     }
 }

@@ -13,6 +13,8 @@ import java.util.UUID;
 public final class LlamaPackInventory extends SimpleInventory {
     private final LlamaEntity anchor;
     private final List<UUID> memberUuids;
+    private List<CargoSource> sources=List.of();
+    private List<SlotRef> cachedSlots=List.of();
 
     private LlamaPackInventory(LlamaEntity anchor, List<LlamaEntity> members, int capacity) {
         super(Math.max(0, capacity));
@@ -27,7 +29,7 @@ public final class LlamaPackInventory extends SimpleInventory {
     }
 
     public static LlamaPackInventory forPack(LlamaEntity anchor, int screenCapacity) {
-        return new LlamaPackInventory(anchor, LlamaPackManager.members(anchor), screenCapacity);
+        return new LlamaPackInventory(anchor, LlamaPackManager.freshMembers(anchor), screenCapacity);
     }
 
     public static LlamaPackInventory clientView(int capacity) {
@@ -108,18 +110,37 @@ public final class LlamaPackInventory extends SimpleInventory {
 
     private List<SlotRef> activeCargoSlots() {
         if (anchor == null) return List.of();
-        return LlamaPackManager.members(anchor).stream()
-                .filter(llama -> ((MountDataProvider) llama).cranksdungeons$hasMountChest())
-                .flatMap(llama -> {
-                    SimpleInventory inventory = AbstractHorseInventoryAccess.of(llama)
-                            .cranksdungeons$getHorseItems();
-                    int cargoCapacity = Math.max(0,
-                            Math.min(inventory.size() - 2, llama.getStrength() * 3));
-                    return java.util.stream.IntStream.range(0, cargoCapacity)
-                            .mapToObj(index -> new SlotRef(inventory, index + 2));
-                })
-                .toList();
+        var members=LlamaPackManager.members(anchor);
+        // Never reinterpret an old handler's slot indices as a different pack.
+        if(members.size()!=memberUuids.size())return List.of();
+        for(int i=0;i<members.size();i++)if(!members.get(i).getUuid().equals(memberUuids.get(i)))return List.of();
+        boolean changed=sources.size()!=members.size();
+        for(int i=0;!changed&&i<members.size();i++){
+            var llama=members.get(i);var source=sources.get(i);
+            changed=source.llama!=llama||source.inventory!=AbstractHorseInventoryAccess.of(llama).cranksdungeons$getHorseItems()
+                    ||source.capacity!=LlamaPackManager.memberCapacity(llama)
+                    ||source.chest!=((MountDataProvider)llama).cranksdungeons$hasMountChest();
+        }
+        if(changed){
+            var next=new java.util.ArrayList<CargoSource>();var slots=new java.util.ArrayList<SlotRef>();
+            for(var llama:members){
+                var inventory=AbstractHorseInventoryAccess.of(llama).cranksdungeons$getHorseItems();
+                int count=LlamaPackManager.memberCapacity(llama);boolean chest=((MountDataProvider)llama).cranksdungeons$hasMountChest();
+                next.add(new CargoSource(llama,inventory,count,chest));
+                if(chest)for(int i=0;i<count;i++)slots.add(new SlotRef(inventory,i+LlamaPackManager.CARGO_START));
+            }
+            sources=List.copyOf(next);cachedSlots=List.copyOf(slots);
+        }
+        return cachedSlots;
     }
+
+    /** Whether a displayed slot belongs to the selected llama's attachment. */
+    public boolean belongsToAnchor(int slot) {
+        var ref=slotRef(slot);
+        return anchor!=null&&ref!=null&&ref.inventory==AbstractHorseInventoryAccess.of(anchor).cranksdungeons$getHorseItems();
+    }
+
+    private record CargoSource(LlamaEntity llama, SimpleInventory inventory, int capacity, boolean chest) {}
 
     private record SlotRef(SimpleInventory inventory, int slot) {
     }

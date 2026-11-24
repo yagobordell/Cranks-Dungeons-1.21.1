@@ -1,58 +1,53 @@
 package com.cranks.dungeons.damage;
 
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.util.Util;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 
-public class DamageNumberManager {
-    private static final List<DamageNumber> activeNumbers = new ArrayList<>();
-
-    private record VictimKey(UUID uuid, int entityId) {}
-
+public final class DamageNumberManager {
+    public static final int MAX_GROUPS = 128, MAX_PER_TARGET = 8;
+    private static final List<DamageNumber> ACTIVE = new ArrayList<>();
+    private static final List<DamageNumber> VIEW = Collections.unmodifiableList(ACTIVE);
+    private static Object world;
+    private static long clock, previousRealTime = Util.getMeasuringTimeMs();
+    private DamageNumberManager() {}
+    public static long now() {
+        var client = MinecraftClient.getInstance();
+        long real = Util.getMeasuringTimeMs();
+        if (client.world != world) { clear(); world = client.world; }
+        if (!client.isPaused()) clock += Math.max(0, real - previousRealTime);
+        previousRealTime = real;
+        return clock;
+    }
     public static void addDamageNumber(DamageNumber number) {
-        // Suppress 'crazy values' (e.g. from revival mod death triggers)
-        if (number.damage > 999999 && !number.isHeal) {
-            return;
+        long time = now();
+        ACTIVE.removeIf(n -> n.expired(time));
+        int targetCount = 0;
+        DamageNumber compatible = null;
+        for (var existing : ACTIVE) {
+            if (existing.sameVictim(number)) targetCount++;
+            if (existing.compatible(number) && existing.age(time) < (number.kind.periodic() ? 400 : 240)) compatible = existing;
         }
-
-        activeNumbers.add(number);
-        assignStackRows();
-    }
-
-    public static List<DamageNumber> getActiveNumbers() {
-        return activeNumbers;
-    }
-
-    public static void tick() {
-        activeNumbers.removeIf(DamageNumber::isExpired);
-        assignStackRows();
-    }
-
-    public static void clear() {
-        activeNumbers.clear();
-    }
-
-    private static void assignStackRows() {
-        Map<VictimKey, Integer> nextRows = new HashMap<>();
-        for (DamageNumber number : activeNumbers) {
-            VictimKey key = getVictimKey(number);
-            if (key == null) {
-                number.setRowIndex(0);
-                continue;
+        // Accumulate periodic ticks; direct hits only combine during actual overflow.
+        if (compatible != null && (number.kind.periodic() || targetCount >= MAX_PER_TARGET || ACTIVE.size() >= MAX_GROUPS)) {
+            compatible.merge(number); return;
+        }
+        if (targetCount >= MAX_PER_TARGET) {
+            for (var iterator = ACTIVE.iterator(); iterator.hasNext();) {
+                if (iterator.next().sameVictim(number)) { iterator.remove(); break; }
             }
-
-            int row = nextRows.getOrDefault(key, 0);
-            number.setRowIndex(row);
-            nextRows.put(key, row + 1);
         }
-    }
-
-    private static VictimKey getVictimKey(DamageNumber number) {
-        if (number.victimUuid != null) {
-            return new VictimKey(number.victimUuid, -1);
+        if (ACTIVE.size() >= MAX_GROUPS) {
+            int discard = 0;
+            for (int i = 0; i < ACTIVE.size(); i++) if (!ACTIVE.get(i).important) { discard = i; break; }
+            if (!number.important && ACTIVE.stream().allMatch(n -> n.important)) return;
+            ACTIVE.remove(discard);
         }
-        return number.victimEntityId >= 0 ? new VictimKey(null, number.victimEntityId) : null;
+        ACTIVE.add(number);
     }
+    public static List<DamageNumber> getActiveNumbers() { return VIEW; }
+    public static void tick() { long time = now(); ACTIVE.removeIf(n -> n.expired(time)); }
+    public static void clear() { ACTIVE.clear(); }
 }

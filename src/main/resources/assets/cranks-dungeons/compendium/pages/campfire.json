@@ -1,0 +1,33 @@
+{
+  "title": "Campfire",
+  "content": [
+    {
+      "type": "item_image",
+      "value": "minecraft:campfire"
+    },
+    {
+      "type": "heading",
+      "value": "Early survival cooking"
+    },
+    {
+      "type": "text",
+      "value": "A [[article/campfire|Campfire]] provides early cooking without committing to a full fuel-driven kitchen. It can cook the assigned raw meats, cod, salmon, potatoes and other supported [[article/campfire|campfire]] foods."
+    },
+    {
+      "type": "text",
+      "value": "Use its cooking interaction and available station interface to place suitable food. [[article/campfire|Campfire]] cooking is the slower early option; the [[article/smoker|Smoker]] processes food faster and supports more advanced assigned foods."
+    },
+    {
+      "type": "text",
+      "value": "The [[article/campfire|campfire]] remains a world block with its normal environmental fire behavior. Standing in its flames is not safe."
+    },
+    {
+      "type": "heading",
+      "value": "Related articles"
+    },
+    {
+      "type": "text",
+      "value": "[[article/smoker|Smoker]] | [[article/food_effects|Food, Potions and Active Effects]] | [[article/first_steps|First Steps]]"
+    }
+  ]
+}

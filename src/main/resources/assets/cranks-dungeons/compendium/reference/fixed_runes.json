@@ -1,0 +1,155 @@
+{
+  "minecraft:elytra": [
+    {
+      "rune": "elytra_energy_shield_recharge_rate_percent",
+      "tiers": [
+        3,
+        4
+      ]
+    },
+    {
+      "rune": "elytra_flying_speed",
+      "tiers": [
+        1
+      ]
+    },
+    {
+      "rune": "elytra_energy_shield",
+      "tiers": [
+        1
+      ]
+    },
+    {
+      "rune": "elytra_local_energy_shield_percent",
+      "tiers": [
+        1
+      ]
+    },
+    {
+      "rune": "elytra_durability_bonus",
+      "tiers": [
+        1
+      ]
+    },
+    {
+      "rune": "elytra_experience_bonus",
+      "tiers": [
+        1
+      ]
+    }
+  ],
+  "minecraft:trident": [
+    {
+      "rune": "trident_return",
+      "tiers": [
+        5
+      ]
+    },
+    {
+      "rune": "trident_attack_damage",
+      "tiers": [
+        5
+      ]
+    },
+    {
+      "rune": "trident_attack_speed",
+      "tiers": [
+        5
+      ]
+    },
+    {
+      "rune": "trident_local_lightning_damage",
+      "tiers": [
+        5
+      ]
+    },
+    {
+      "rune": "trident_chance_to_shock",
+      "tiers": [
+        5
+      ]
+    },
+    {
+      "rune": "trident_shock_magnitude_percent",
+      "tiers": [
+        5
+      ]
+    }
+  ],
+  "minecraft:mace": [
+    {
+      "rune": "mace_falling_damage",
+      "tiers": [
+        5
+      ]
+    },
+    {
+      "rune": "mace_wind_bounce",
+      "tiers": [
+        5
+      ]
+    },
+    {
+      "rune": "mace_attack_damage",
+      "tiers": [
+        5
+      ]
+    },
+    {
+      "rune": "mace_attack_speed",
+      "tiers": [
+        5
+      ]
+    },
+    {
+      "rune": "mace_local_attack_damage_percent",
+      "tiers": [
+        5
+      ]
+    },
+    {
+      "rune": "mace_armor_penetration",
+      "tiers": [
+        5
+      ]
+    }
+  ],
+  "minecraft:turtle_helmet": [
+    {
+      "rune": "turtle_helmet_respiration",
+      "tiers": [
+        5
+      ]
+    },
+    {
+      "rune": "turtle_helmet_aqua_affinity",
+      "tiers": [
+        5
+      ]
+    },
+    {
+      "rune": "turtle_helmet_cold_resistance",
+      "tiers": [
+        5
+      ]
+    },
+    {
+      "rune": "turtle_helmet_movement_speed",
+      "tiers": [
+        5
+      ]
+    },
+    {
+      "rune": "turtle_helmet_armor",
+      "tiers": [
+        5
+      ]
+    },
+    {
+      "rune": "turtle_helmet_local_armor_percent",
+      "tiers": [
+        5
+      ]
+    }
+  ]
+}

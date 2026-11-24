@@ -15,11 +15,17 @@ public final class MountChestSlot extends Slot {
     }
 
     @Override public boolean canInsert(ItemStack stack) {
-        return stack.isOf(Items.CHEST) && !((MountDataProvider) mount).cranksdungeons$hasMountChest();
+        return !mount.isBaby() && stack.isOf(Items.CHEST) && !((MountDataProvider) mount).cranksdungeons$hasMountChest();
     }
     @Override public int getMaxItemCount() { return 1; }
     @Override public boolean canTakeItems(PlayerEntity player) {
-        return MountManager.canManage(player, mount);
+        if (!MountManager.canManage(player, mount)) return false;
+        if (!MountManager.cargoIsEmpty(mount)) {
+            if (!player.getWorld().isClient()) player.sendMessage(
+                    net.minecraft.text.Text.translatable("mount.inventory.cranks-dungeons.empty_attachment"), true);
+            return false;
+        }
+        return true;
     }
 
     @Override

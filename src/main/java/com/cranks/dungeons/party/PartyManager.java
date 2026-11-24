@@ -96,6 +96,7 @@ public class PartyManager {
     }
 
     private void persist() {
+        com.cranks.dungeons.mount.LlamaPackManager.invalidate();
         if (server == null) return;
         Set<Party> uniqueParties = Collections.newSetFromMap(new IdentityHashMap<>());
         uniqueParties.addAll(playerParties.values());

@@ -21,6 +21,8 @@ public class WorldTreeDataComponentImpl implements WorldTreeDataComponent, AutoS
     private final Map<String, String> nodeChoices = new HashMap<>();
     private int gatheringXp = 0;
     private int gatheringLevel = 1;
+    private int highestRewardedLevel = 1;
+    private int clientRequired = 81;
     private int batchDepth = 0;
     private boolean syncPending = false;
 
@@ -37,6 +39,7 @@ public class WorldTreeDataComponentImpl implements WorldTreeDataComponent, AutoS
         this.nodeChoices.putAll(other.getAllNodeChoices());
         this.gatheringXp = other.getGatheringXp();
         this.gatheringLevel = other.getGatheringLevel();
+        this.highestRewardedLevel = other instanceof WorldTreeDataComponentImpl impl ? impl.highestRewardedLevel : this.gatheringLevel;
         System.out.println("[CranksDungeons] Copied World Tree Data for " + player.getName().getString() + " from old instance.");
     }
 
@@ -96,54 +99,47 @@ public class WorldTreeDataComponentImpl implements WorldTreeDataComponent, AutoS
 
     @Override
     public void setGatheringXp(int xp, int level) {
-        this.gatheringXp = xp;
-        this.gatheringLevel = level;
+        this.gatheringXp = Math.max(0,xp);
+        this.gatheringLevel = Math.max(1,level);
+        this.highestRewardedLevel = Math.max(this.highestRewardedLevel,this.gatheringLevel);
         requestSync();
     }
 
     @Override
     public int getNextLevelXp() {
-        int maxLevel = Math.max(1, com.cranks.dungeons.stat.passive.WorldNodeRegistry.getNodes().size());
-        if (this.gatheringLevel >= maxLevel) return 0;
-        return (int) (200 + 75.0 * this.gatheringLevel + 0.5 * Math.pow(this.gatheringLevel, 2));
+        return player.getWorld().isClient() ? clientRequired : com.cranks.dungeons.config.ProgressionConfig.RULES.required(false,gatheringLevel);
     }
 
     @Override
     public void addGatheringXp(int xp) {
-        if (xp <= 0) return;
-        int maxLevel = Math.max(1, com.cranks.dungeons.stat.passive.WorldNodeRegistry.getNodes().size());
+        if (xp <= 0 || player.getWorld().isClient()) return;
+        int maxLevel = com.cranks.dungeons.config.ProgressionConfig.RULES.worldCap;
         if (this.gatheringLevel >= maxLevel) {
             this.gatheringXp = 0;
             return;
         }
 
-        this.gatheringXp += xp;
+        this.gatheringXp = (int)Math.min(Integer.MAX_VALUE,(long)this.gatheringXp+xp);
         
         boolean leveledUp = false;
-        int nextLevelXp = (int) (200 + 75.0 * this.gatheringLevel + 0.5 * Math.pow(this.gatheringLevel, 2));
+        int nextLevelXp = getNextLevelXp();
         
         while (this.gatheringXp >= nextLevelXp && this.gatheringLevel < maxLevel) {
             this.gatheringXp -= nextLevelXp;
             this.gatheringLevel++;
             leveledUp = true;
-            this.unspentPoints++; // Grant a point
+            if(this.gatheringLevel > highestRewardedLevel) { this.unspentPoints++; highestRewardedLevel=this.gatheringLevel; }
             
             if (this.gatheringLevel >= maxLevel) {
                 this.gatheringXp = 0;
                 break;
             }
-            nextLevelXp = (int) (200 + 75.0 * this.gatheringLevel + 0.5 * Math.pow(this.gatheringLevel, 2));
+            nextLevelXp = getNextLevelXp();
         }
         
         if (leveledUp) {
             if (!this.player.getEntityWorld().isClient()) {
-                this.player.getEntityWorld().playSound(null, this.player.getX(), this.player.getY(), this.player.getZ(), 
-                    com.cranks.dungeons.registry.ModSounds.WORLD_LEVEL_UP, net.minecraft.sound.SoundCategory.PLAYERS, 1.0f, 1.0f);
-                
-                com.cranks.dungeons.entity.LevelUpVfxEntity vfx = new com.cranks.dungeons.entity.LevelUpVfxEntity(com.cranks.dungeons.registry.ModEntities.LEVEL_UP_VFX, this.player.getEntityWorld());
-                vfx.setPosition(this.player.getX(), this.player.getY(), this.player.getZ());
-                vfx.setWorldTree(true);
-                this.player.getEntityWorld().spawnEntity(vfx);
+                com.cranks.dungeons.entity.LevelUpVfxEntity.celebrate(player,true);
             }
         }
         requestSync();
@@ -211,6 +207,11 @@ public class WorldTreeDataComponentImpl implements WorldTreeDataComponent, AutoS
         this.gatheringXp = tag.getInt("gatheringXp");
         this.gatheringLevel = tag.getInt("gatheringLevel");
         if (this.gatheringLevel < 1) this.gatheringLevel = 1;
+        highestRewardedLevel=Math.max(gatheringLevel,tag.getInt("highestRewardedLevel"));
+        if(!tag.contains("progressionVersion")) {
+            double oldRequired=200+75.0*gatheringLevel+.5*gatheringLevel*gatheringLevel;
+            gatheringXp=(int)(Math.clamp(gatheringXp/oldRequired,0,1)*com.cranks.dungeons.config.ProgressionConfig.RULES.required(false,gatheringLevel));
+        }
         
         this.unlockedNodes.clear();
         NbtList list = tag.getList("unlockedNodes", 8);
@@ -235,6 +236,8 @@ public class WorldTreeDataComponentImpl implements WorldTreeDataComponent, AutoS
         tag.putInt("unspentPoints", this.unspentPoints);
         tag.putInt("gatheringXp", this.gatheringXp);
         tag.putInt("gatheringLevel", this.gatheringLevel);
+        tag.putInt("highestRewardedLevel",highestRewardedLevel);
+        tag.putInt("progressionVersion",1);
 
         NbtList list = new NbtList();
         for (String node : this.unlockedNodes) {
@@ -256,6 +259,7 @@ public class WorldTreeDataComponentImpl implements WorldTreeDataComponent, AutoS
         buf.writeInt(unspentPoints);
         buf.writeInt(gatheringXp);
         buf.writeInt(gatheringLevel);
+        buf.writeInt(getNextLevelXp());
         buf.writeInt(unlockedNodes.size());
         for (String nodeId : unlockedNodes) {
             String choice = nodeChoices.get(nodeId);
@@ -272,6 +276,7 @@ public class WorldTreeDataComponentImpl implements WorldTreeDataComponent, AutoS
         this.unspentPoints = buf.readInt();
         this.gatheringXp = buf.readInt();
         this.gatheringLevel = buf.readInt();
+        this.clientRequired = buf.readInt();
         int size = buf.readInt();
         this.unlockedNodes.clear();
         this.nodeChoices.clear();

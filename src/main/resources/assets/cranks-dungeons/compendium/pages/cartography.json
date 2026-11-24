@@ -1,0 +1,33 @@
+{
+  "title": "Cartography Table",
+  "content": [
+    {
+      "type": "item_image",
+      "value": "minecraft:cartography_table"
+    },
+    {
+      "type": "heading",
+      "value": "Decorative maps"
+    },
+    {
+      "type": "text",
+      "value": "The [[item/minecraft:cartography_table|Cartography Table]] uses the shared station interface for supported map creation, copying, expansion and locking. [[item/minecraft:filled_map|Maps]] currently serve their vanilla display and decorative role; this does not introduce an expedition or treasure-chart system."
+    },
+    {
+      "type": "text",
+      "value": "Select the appropriate operation and eligible map. Each operation retains its own material requirements and resulting map data."
+    },
+    {
+      "type": "text",
+      "value": "Quantity and total output are shown where the operation supports a batch. Inputs are validated by the station before it changes a map."
+    },
+    {
+      "type": "heading",
+      "value": "Related articles"
+    },
+    {
+      "type": "text",
+      "value": "[[article/gathering|World Discoveries]] | [[article/world_tree|World Tree]]"
+    }
+  ]
+}

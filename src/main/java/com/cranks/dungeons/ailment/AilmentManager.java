@@ -1,1120 +1,677 @@
 package com.cranks.dungeons.ailment;
-
+import com.cranks.dungeons.EnergyShieldProvider;
+import com.cranks.dungeons.damage.DamageElement;
 import com.cranks.dungeons.effect.ModEffects;
+import com.cranks.dungeons.mount.MountDataProvider;
+import com.cranks.dungeons.network.AilmentSyncPayload;
 import com.cranks.dungeons.network.DamageNumberSender;
-import com.cranks.dungeons.particle.ModParticles;
+import com.cranks.dungeons.network.ShockArcPayload;
+import com.cranks.dungeons.party.PartyManager;
 import com.cranks.dungeons.registry.ModAttributes;
 import com.cranks.dungeons.registry.ModSounds;
 import com.cranks.dungeons.util.AilmentHistoryProvider;
-import com.cranks.dungeons.util.StatusEffectHelper;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.text.Text;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.Vec3d;
-import com.cranks.dungeons.network.ShockArcPayload;
-import com.cranks.dungeons.network.AilmentSyncPayload;
-import net.minecraft.util.Identifier;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.entity.attribute.EntityAttributeInstance;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;
+import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.entity.damage.DamageTypes;
 import net.minecraft.entity.effect.StatusEffect;
-
-import java.util.Optional;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.Set;
+import net.minecraft.entity.effect.StatusEffectInstance;
+import net.minecraft.entity.mob.HostileEntity;
+import net.minecraft.entity.mob.MobEntity;
+import net.minecraft.entity.mob.SlimeEntity;
+import net.minecraft.entity.passive.AbstractHorseEntity;
+import net.minecraft.entity.passive.TameableEntity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.nbt.*;
+import net.minecraft.particle.ParticleTypes;
+import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.hit.HitResult;
+import net.minecraft.world.RaycastContext;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.HashSet;
-import java.util.UUID;
-
-public class AilmentManager {
-
-    private static final Identifier FREEZE_SLOW_MODIFIER_ID = Identifier.of("cranks-dungeons", "freeze_slow");
-    private static final Map<java.util.UUID, List<Ailment>> ENTITY_AILMENTS = new ConcurrentHashMap<>();
-    private static final Map<java.util.UUID, Float> FREEZE_BUILDUP = new ConcurrentHashMap<>();
-    private static final Map<java.util.UUID, Float> FREEZE_BUILDUP_MAGNITUDE = new ConcurrentHashMap<>();
-    private static final Map<java.util.UUID, Float> ELECTROCUTE_BUILDUP = new ConcurrentHashMap<>();
-    private static final Map<java.util.UUID, Float> FLAMMABILITY_BUILDUP = new ConcurrentHashMap<>();
-    private static final Map<java.util.UUID, Long> FREEZE_BUILDUP_LAST_HIT = new ConcurrentHashMap<>();
-    private static final Map<java.util.UUID, Long> ELECTROCUTE_BUILDUP_LAST_HIT = new ConcurrentHashMap<>();
-    private static final Map<java.util.UUID, Long> FLAMMABILITY_LAST_HIT = new ConcurrentHashMap<>();
-    private static final int POISON_STACK_CAP = 20;
-    
-    // Track entities currently being processed by shock chain to prevent recursion
-    private static final Set<UUID> PROCESSING_SHOCK_CHAIN = new HashSet<>();
-    
-    // Global flag to prevent ANY shock chain from triggering while one is in progress
-    // This stops cross-entity ping-pong (A chains to B, B chains back to A)
-    private static boolean GLOBAL_SHOCK_CHAIN_LOCK = false;
-    
-    // Track when the lock was acquired for timeout purposes
-    private static long LOCK_ACQUIRE_TIME = 0;
-    
-    // Lock timeout in milliseconds (prevent stuck locks)
-    private static final long LOCK_TIMEOUT = 100; // 100ms should be plenty for a single chain
-    
-    // Track which entity triggered the current chain to prevent self-chaining
-    private static UUID CURRENT_CHAIN_SOURCE = null;
-    
-    // Track entities currently being damaged by ailments (to prevent void damage numbers from showing on death)
-    private static final Set<UUID> POISON_DAMAGE_IN_PROGRESS = new HashSet<>();
-    private static final Set<UUID> BLEED_DAMAGE_IN_PROGRESS = new HashSet<>();
-    
-    public static boolean isPoisonDamageInProgress(UUID entityUuid) {
-        return POISON_DAMAGE_IN_PROGRESS.contains(entityUuid);
-    }
-    
-    public static void setPoisonDamageInProgress(UUID entityUuid, boolean inProgress) {
-        if (inProgress) {
-            POISON_DAMAGE_IN_PROGRESS.add(entityUuid);
-        } else {
-            POISON_DAMAGE_IN_PROGRESS.remove(entityUuid);
+/** Server-owned applications. Vanilla effects and network packets are views of this state. */
+public final class AilmentManager {
+    private static final Identifier CHILL_SLOW=Identifier.of("cranks-dungeons","freeze_slow");
+    private static final Map<UUID,State> STATES=new ConcurrentHashMap<>();
+    private static final ThreadLocal<SecondaryHit> SECONDARY=new ThreadLocal<>();
+    private static final Set<UUID> UPDATING_MIRRORS=new HashSet<>();
+    private static boolean shockChain;
+    private static final double STEP=.05;
+    private static final String SAVE_KEY="CranksAilments";
+    private static final class State {
+        final LivingEntity owner;
+        final List<Ailment> ailments=new ArrayList<>();
+        float freeze,electrocute,flammability,freezeMagnitude=1;
+        long freezeHit,electrocuteHit,flammabilityHit;
+        double controlRecovery;
+        boolean recoveryFeedbackSent;
+        List<AilmentSyncPayload.AilmentEntry> lastSent;
+        State(LivingEntity owner) {
+            this.owner=owner;
+        }
+        boolean empty() {
+            return ailments.isEmpty()&&freeze<=0&&electrocute<=0&&flammability<=0&&controlRecovery<=0;
         }
     }
-
-    public static boolean isBleedDamageInProgress(UUID entityUuid) {
-        return BLEED_DAMAGE_IN_PROGRESS.contains(entityUuid);
+    public record SecondaryHit(UUID target,DamageElement element,boolean bypassShield,boolean ailment) {
     }
-    
-    public static void setBleedDamageInProgress(UUID entityUuid, boolean inProgress) {
-        if (inProgress) {
-            BLEED_DAMAGE_IN_PROGRESS.add(entityUuid);
-        } else {
-            BLEED_DAMAGE_IN_PROGRESS.remove(entityUuid);
+    private record PoisonOwner(UUID id,boolean player) {
+    }
+    private static State find(LivingEntity entity) {
+        State s=STATES.get(entity.getUuid());
+        return s!=null&&s.owner==entity?s:null;
+    }
+    private static State state(LivingEntity entity) {
+        State s=find(entity);
+        if(s==null) {
+            s=new State(entity);
+            STATES.put(entity.getUuid(),s);
         }
+        return s;
     }
-
-    public static float getFreezeBuildup(UUID entityUuid) {
-        return FREEZE_BUILDUP.getOrDefault(entityUuid, 0.0f);
+    public static List<Ailment> getAilments(LivingEntity entity) {
+        State s=find(entity);
+        return s==null?List.of():List.copyOf(s.ailments);
     }
-
-    public static float getElectrocuteBuildup(UUID entityUuid) {
-        return ELECTROCUTE_BUILDUP.getOrDefault(entityUuid, 0.0f);
+    public static boolean hasAilment(LivingEntity entity,AilmentType type) {
+        State s=find(entity);
+        return s!=null&&s.ailments.stream().anyMatch(a->a.getType()==type&&!a.isExpired());
     }
-
-    public static float getFlammabilityBuildup(UUID entityUuid) {
-        return FLAMMABILITY_BUILDUP.getOrDefault(entityUuid, 0.0f);
+    public static boolean isAfflicted(LivingEntity entity) {
+        return entity!=null&&(!getAilments(entity).isEmpty()||getFreezeBuildup(entity.getUuid())>0||entity.isOnFire());
     }
-
-    public static void addFlammability(LivingEntity target, float amount, double duration, Entity source, float baseDamage) {
-        Ailment existingBurn = null;
-        List<Ailment> ailments = ENTITY_AILMENTS.get(target.getUuid());
-        if (ailments != null) {
-            for (Ailment a : ailments) {
-                if (a.getType() == AilmentType.BURN) {
-                    existingBurn = a;
-                    break;
-                }
-            }
-        }
-
-        // If target already has an equal or stronger burn, skip flammability
-        if (existingBurn != null && existingBurn.getBaseDamage() >= baseDamage) {
-            return;
-        }
-
-        float current = getFlammabilityBuildup(target.getUuid());
-        float newBuildup = current + amount;
-        
-        if (newBuildup >= 1.0f) {
-            FLAMMABILITY_BUILDUP.remove(target.getUuid());
-            FLAMMABILITY_LAST_HIT.remove(target.getUuid());
-            applyAilment(target, AilmentType.BURN, baseDamage, duration, source, null, null, 0, baseDamage);
-        } else {
-            FLAMMABILITY_BUILDUP.put(target.getUuid(), newBuildup);
-            FLAMMABILITY_LAST_HIT.put(target.getUuid(), target.getEntityWorld().getTime());
-        }
-        syncAilments(target);
+    public static boolean isStunned(LivingEntity entity) {
+        return hasAilment(entity,AilmentType.FREEZE)||hasAilment(entity,AilmentType.ELECTROCUTE);
     }
-
-    public static void updateFreezeSlowModifier(LivingEntity entity, float buildup, float magnitudeMultiplier) {
-        if (entity == null) return;
-        EntityAttributeInstance speedAttr = entity.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED);
-        if (speedAttr == null) return;
-
-        speedAttr.removeModifier(FREEZE_SLOW_MODIFIER_ID);
-        if (buildup > 0.001f) {
-            double slowFraction = Math.min(0.90, buildup * Math.max(1.0f, magnitudeMultiplier));
-            EntityAttributeModifier modifier = new EntityAttributeModifier(
-                    FREEZE_SLOW_MODIFIER_ID,
-                    -slowFraction,
-                    EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
-            );
-            speedAttr.addTemporaryModifier(modifier);
-        }
+    public static float getFreezeBuildup(UUID id) {
+        State s=STATES.get(id);
+        return s==null?0:s.freeze;
     }
-
-    public static void addFreezeBuildup(LivingEntity target, float amount, double duration, Entity source) {
-        addFreezeBuildup(target, amount, duration, source, 1.0f);
+    public static float getElectrocuteBuildup(UUID id) {
+        State s=STATES.get(id);
+        return s==null?0:s.electrocute;
     }
-
-    public static void addFreezeBuildup(LivingEntity target, float amount, double duration, Entity source, float magnitudeMultiplier) {
-        if (hasAilment(target, AilmentType.FREEZE)) {
-            return;
-        }
-        float current = getFreezeBuildup(target.getUuid());
-        float newBuildup = current + amount;
-        
-        if (newBuildup >= 1.0f) {
-            FREEZE_BUILDUP.remove(target.getUuid());
-            FREEZE_BUILDUP_LAST_HIT.remove(target.getUuid());
-            FREEZE_BUILDUP_MAGNITUDE.remove(target.getUuid());
-            updateFreezeSlowModifier(target, 0.0f, 1.0f);
-            target.removeStatusEffect(net.minecraft.entity.effect.StatusEffects.SLOWNESS);
-            applyAilment(target, AilmentType.FREEZE, 0.0f, duration, source);
-        } else {
-            FREEZE_BUILDUP.put(target.getUuid(), newBuildup);
-            FREEZE_BUILDUP_LAST_HIT.put(target.getUuid(), target.getEntityWorld().getTime());
-            FREEZE_BUILDUP_MAGNITUDE.put(target.getUuid(), Math.max(1.0f, magnitudeMultiplier));
-            updateFreezeSlowModifier(target, newBuildup, magnitudeMultiplier);
-        }
-        syncAilments(target);
+    public static float getFlammabilityBuildup(UUID id) {
+        State s=STATES.get(id);
+        return s==null?0:s.flammability;
     }
-
-    public static void addElectrocuteBuildup(LivingEntity target, float amount, double duration, Entity source) {
-        if (hasAilment(target, AilmentType.ELECTROCUTE)) return;
-        float current = getElectrocuteBuildup(target.getUuid());
-        float newBuildup = current + amount;
-        
-        if (newBuildup >= 1.0f) {
-            ELECTROCUTE_BUILDUP.remove(target.getUuid());
-            ELECTROCUTE_BUILDUP_LAST_HIT.remove(target.getUuid());
-            applyAilment(target, AilmentType.ELECTROCUTE, 0.0f, duration, source);
-        } else {
-            ELECTROCUTE_BUILDUP.put(target.getUuid(), newBuildup);
-            ELECTROCUTE_BUILDUP_LAST_HIT.put(target.getUuid(), target.getEntityWorld().getTime());
-        }
-        syncAilments(target);
-    }
-
-    public static void applyAilment(LivingEntity target, AilmentType type, float baseDamage, double duration, Entity source) {
-        applyAilment(target, type, baseDamage, duration, source, null, null, 0);
-    }
-
     public static float getShockMagnitude(LivingEntity entity) {
-        if (entity == null) return 0.0f;
-        for (Ailment a : getAilments(entity)) {
-            if (a.getType() == AilmentType.SHOCK && !a.isExpired()) {
-                return a.getMagnitude();
-            }
-        }
-        return 0.0f;
+        return getAilments(entity).stream().filter(a->a.getType()==AilmentType.SHOCK).map(Ailment::getMagnitude).max(Float::compare).orElse(0f);
     }
-
-    public static void applyAilment(LivingEntity target, AilmentType type, float baseDamage, double duration, Entity source, Entity parent, UUID chainUuid, int generation) {
-        float defaultMagnitude = (type == AilmentType.SHOCK) ? 0.15f : 1.0f;
-        applyAilment(target, type, baseDamage, duration, source, parent, chainUuid, generation, defaultMagnitude);
+    public static double getAilmentDuration(LivingEntity entity,AilmentType type) {
+        return getAilments(entity).stream().filter(a->a.getType()==type).mapToDouble(Ailment::getRemainingDuration).min().orElse(0);
     }
-
-    public static void applyAilment(LivingEntity target, AilmentType type, float baseDamage, double duration, Entity source, Entity parent, UUID chainUuid, int generation, float magnitude) {
-        if (target == null) return;
-
-        if (type == AilmentType.BLEED) {
-            double reduction = target.getAttributeValue(ModAttributes.REDUCED_BLEED_DURATION_ON_YOU);
-            duration = duration * (1.0 - Math.min(reduction, 1.0));
-        } else if (type == AilmentType.BURN) {
-            double reduction = target.getAttributeValue(ModAttributes.REDUCED_BURN_DURATION_ON_YOU);
-            duration = duration * (1.0 - Math.min(reduction, 1.0));
-        } else if (type == AilmentType.POISON) {
-            double reduction = target.getAttributeValue(ModAttributes.REDUCED_POISON_DURATION_ON_YOU);
-            duration = duration * (1.0 - Math.min(reduction, 1.0));
-        } else if (type == AilmentType.FREEZE) {
-            double reduction = target.getAttributeValue(ModAttributes.REDUCED_FREEZE_DURATION_ON_YOU);
-            duration = duration * (1.0 - Math.min(reduction, 1.0));
-        } else if (type == AilmentType.SHOCK || type == AilmentType.ELECTROCUTE) {
-            double reduction = target.getAttributeValue(ModAttributes.REDUCED_SHOCK_DURATION_ON_YOU);
-            duration = duration * (1.0 - Math.min(reduction, 1.0));
+    public static SecondaryHit secondaryHit(LivingEntity target) {
+        var h=SECONDARY.get();
+        return h!=null&&h.target().equals(target.getUuid())?h:null;
+    }
+    public static boolean isSecondaryDamage(LivingEntity target) {
+        return secondaryHit(target)!=null;
+    }
+    public static boolean isResolvingAilment(LivingEntity target) {
+        var h=secondaryHit(target);
+        return h!=null&&h.ailment();
+    }
+    public static boolean bypassesShield(LivingEntity target) {
+        var h=secondaryHit(target);
+        return h!=null&&h.bypassShield();
+    }
+    public static boolean isPoisonDamageInProgress(UUID id) {
+        var h=SECONDARY.get();
+        return h!=null&&h.target().equals(id)&&h.element()==DamageElement.VOID&&h.ailment();
+    }
+    public static boolean isBleedDamageInProgress(UUID id) {
+        var h=SECONDARY.get();
+        return h!=null&&h.target().equals(id)&&h.element()==DamageElement.PHYSICAL&&h.ailment();
+    }
+    private static boolean canApply(LivingEntity target,Entity source) {
+        if(target==null||target.getWorld().isClient()||!target.isAlive()||target.isSpectator())return false;
+        if(target instanceof PlayerEntity p&&p.getAbilities().invulnerable)return false;
+        if(target.isInvulnerableTo(target.getDamageSources().magic()))return false;
+        if(source!=null&&source!=target) {
+            if(target.isTeammate(source))return false;
+            if(source instanceof PlayerEntity attacker&&target instanceof PlayerEntity victim &&(!target.getServer().isPvpEnabled()||!attacker.shouldDamagePlayer(victim) ||PartyManager.areInSameParty(attacker.getUuid(),victim.getUuid())))return false;
         }
-
-        List<Ailment> ailments = getAilments(target);
-
-        // POISON: Single ailment with stack counter (1-20 base, plus modifiers)
-        if (type == AilmentType.POISON) {
-            int maxStacks = POISON_STACK_CAP;
-            if (source instanceof LivingEntity living) {
-                maxStacks += (int) living.getAttributeValue(ModAttributes.POISON_MAX_STACKS);
-            }
-
-            Ailment existingPoison = ailments.stream()
-                    .filter(a -> a.getType() == AilmentType.POISON)
-                    .findFirst()
-                    .orElse(null);
-            
-            if (existingPoison != null) {
-                // Add stack to existing poison (up to cap)
-                if (existingPoison.getStacks() < maxStacks) {
-                    existingPoison.addStack(duration, baseDamage);
-                    ENTITY_AILMENTS.put(target.getUuid(), ailments);
-                    applyStatusEffect(target, type, existingPoison.getRemainingDuration(), existingPoison.getStacks());
-                }
-                return;
-            }
-            // No existing poison, create new one with 1 stack
-        } else if (type == AilmentType.BURN) {
-            Ailment existingBurn = ailments.stream()
-                    .filter(a -> a.getType() == AilmentType.BURN)
-                    .findFirst()
-                    .orElse(null);
-
-            if (existingBurn != null) {
-                // If new burn deals HIGHER damage, upgrade base damage, duration, sourceUuid, and magnitude
-                if (baseDamage > existingBurn.getBaseDamage()) {
-                    existingBurn.setBaseDamage(baseDamage);
-                    existingBurn.setRemainingDuration(duration);
-                    existingBurn.setMaxDuration(duration);
-                    if (source != null) {
-                        existingBurn.setSourceUuid(source.getUuid());
-                    }
-                    existingBurn.setMagnitude(magnitude);
-                } else if (baseDamage == existingBurn.getBaseDamage()) {
-                    // Equal damage: refresh remaining duration
-                    if (duration > existingBurn.getRemainingDuration()) {
-                        existingBurn.setRemainingDuration(duration);
-                    }
-                    existingBurn.setMaxDuration(Math.max(existingBurn.getMaxDuration(), duration));
-                }
-                // If baseDamage < existingBurn.getBaseDamage(), ignore (do NOT overwrite or refresh stronger combat burn)
-
-                ENTITY_AILMENTS.put(target.getUuid(), ailments);
-                applyStatusEffect(target, type, existingBurn.getRemainingDuration());
-                syncAilments(target);
-                return;
+        return true;
+    }
+    private static double duration(LivingEntity target,AilmentType type,double seconds) {
+        var attr=switch(type) {
+            case BURN->ModAttributes.REDUCED_BURN_DURATION_ON_YOU;
+            case POISON->ModAttributes.REDUCED_POISON_DURATION_ON_YOU;
+            case BLEED->ModAttributes.REDUCED_BLEED_DURATION_ON_YOU;
+            case FREEZE->ModAttributes.REDUCED_FREEZE_DURATION_ON_YOU;
+            case SHOCK,ELECTROCUTE->ModAttributes.REDUCED_SHOCK_DURATION_ON_YOU;
+        };
+        double reduction=AilmentRules.bounded(target.getAttributeValue(attr),0,1);
+        if(reduction>=1||Double.isNaN(seconds)||seconds<=0)return 0;
+        return seconds==Double.POSITIVE_INFINITY?seconds:Math.min(seconds,3600)*(1-reduction);
+    }
+    public static void addFlammability(LivingEntity target,float amount,double seconds,Entity source,float dps) {
+        if(!canApply(target,source)||target.isFireImmune()||!(amount>0)||!Float.isFinite(amount))return;
+        State s=state(target);
+        var burn=s.ailments.stream().filter(a->a.getType()==AilmentType.BURN).findFirst().orElse(null);
+        if(burn!=null&&burn.getBaseDamage()>dps)return;
+        s.flammability=Math.min(1,s.flammability+amount);
+        s.flammabilityHit=target.getWorld().getTime();
+        if(s.flammability>=1) {
+            s.flammability=0;
+            applyAilment(target,AilmentType.BURN,dps,seconds,source);
+        }
+        syncAilments(target);
+    }
+    public static void updateFreezeSlowModifier(LivingEntity entity,float buildup,float magnitude) {
+        var attr=entity.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED);
+        if(attr==null)return;
+        double slow=AilmentRules.chillSlow(buildup,magnitude);
+        var old=attr.getModifier(CHILL_SLOW);
+        if(old!=null&&Math.abs(old.value()+slow)<.000001)return;
+        attr.removeModifier(CHILL_SLOW);
+        if(slow>0)attr.addTemporaryModifier(new EntityAttributeModifier(CHILL_SLOW,-slow,EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
+    }
+    public static void addFreezeBuildup(LivingEntity target,float amount,double seconds,Entity source) {
+        addFreezeBuildup(target,amount,seconds,source,1);
+    }
+    public static void addFreezeBuildup(LivingEntity target,float amount,double seconds,Entity source,float magnitude) {
+        if(!canApply(target,source)||!(amount>0)||!Float.isFinite(amount))return;
+        State s=state(target);
+        if(controlBlocked(target,s))return;
+        s.freeze=Math.min(1,s.freeze+amount);
+        s.freezeHit=target.getWorld().getTime();
+        s.freezeMagnitude=(float)AilmentRules.bounded(magnitude,1,11);
+        if(s.freeze>=1) {
+            s.freeze=0;
+            applyAilment(target,AilmentType.FREEZE,0,seconds,source);
+        }
+        updateFreezeSlowModifier(target,s.freeze,s.freezeMagnitude);
+        syncAilments(target);
+    }
+    public static void addElectrocuteBuildup(LivingEntity target,float amount,double seconds,Entity source) {
+        if(!canApply(target,source)||!(amount>0)||!Float.isFinite(amount))return;
+        State s=state(target);
+        if(controlBlocked(target,s))return;
+        s.electrocute=Math.min(1,s.electrocute+amount);
+        s.electrocuteHit=target.getWorld().getTime();
+        if(s.electrocute>=1) {
+            s.electrocute=0;
+            applyAilment(target,AilmentType.ELECTROCUTE,0,seconds,source);
+        }
+        syncAilments(target);
+    }
+    public static void applyAilment(LivingEntity target,AilmentType type,float dps,double seconds,Entity source) {
+        applyAilment(target,type,dps,seconds,source,null,null,0);
+    }
+    public static void applyAilment(LivingEntity target,AilmentType type,float dps,double seconds,Entity source,Entity parent,UUID chain,int generation) {
+        applyAilment(target,type,dps,seconds,source,parent,chain,generation,type==AilmentType.SHOCK?.15f:type==AilmentType.BLEED?.4f:1);
+    }
+    public static void applyAilment(LivingEntity target,AilmentType type,float dps,double seconds,Entity source,Entity parent,UUID chain,int generation,float magnitude) {
+        if(!canApply(target,source)||!Float.isFinite(dps)||dps<0||!Float.isFinite(magnitude))return;
+        if(type==AilmentType.BURN&&target.isFireImmune())return;
+        seconds=duration(target,type,seconds);
+        if(!(seconds>0))return;
+        State s=state(target);
+        if(type==AilmentType.BURN&&chain!=null&&target instanceof AilmentHistoryProvider history&&history.cranks$wasHitByChain(chain))return;
+        boolean control=type==AilmentType.FREEZE||type==AilmentType.ELECTROCUTE;
+        if(control&&controlBlocked(target,s))return;
+        if(type==AilmentType.SHOCK)magnitude=(float)AilmentRules.bounded(magnitude,0,.5);
+        if(type==AilmentType.BLEED)magnitude=(float)AilmentRules.bounded(magnitude,0,1);
+        Ailment next=new Ailment(type,seconds,dps,source==null?null:source.getUuid(),parent==null?null:parent.getUuid(),chain==null?UUID.randomUUID():chain,Math.clamp(generation,0,5),magnitude);
+        next.setPlayerSource(source instanceof PlayerEntity);
+        if(type==AilmentType.POISON) {
+            int bonus=source instanceof LivingEntity living?(int)living.getAttributeValue(ModAttributes.POISON_MAX_STACKS):0;
+            int cap=Math.clamp(AilmentRules.BASE_POISON_CAP+bonus,1,AilmentRules.MAX_POISON_CAP);
+            var poison=s.ailments.stream().filter(a->a.getType()==type).toList();
+            if(poison.size()>=cap) {
+                var weakest=poison.stream().min(Comparator.comparingDouble(Ailment::getBaseDamage).thenComparingDouble(Ailment::getRemainingDuration)).orElseThrow();
+                if(dps<weakest.getBaseDamage())return;
+                s.ailments.remove(weakest);
             }
         } else {
-            // other ailments: don't re-apply if already present
-            if (hasAilment(target, type)) {
-                return;
+            var current=s.ailments.stream().filter(a->a.getType()==type).findFirst().orElse(null);
+            if(current!=null) {
+                if(type==AilmentType.BURN) {
+                    if(dps<current.getBaseDamage())return;
+                    if(dps==current.getBaseDamage()) {
+                        current.setRemainingDuration(Math.max(seconds,current.getRemainingDuration()));
+                        syncAilments(target);
+                        return;
+                    }
+                } else if(type==AilmentType.SHOCK) {
+                    if(magnitude<current.getMagnitude())return;
+                } else if(type==AilmentType.BLEED) {
+                    // Preserve the burst and expiry. Stronger applications improve future storage.
+                    if(magnitude>current.getMagnitude())current.setMagnitude(magnitude);
+                    syncAilments(target);
+                    return;
+                } else return;
+                s.ailments.remove(current);
             }
         }
-
-        // Rule: Don't re-ignite with the same chain if we've already been hit by it
-        if (type == AilmentType.BURN && chainUuid != null && target instanceof AilmentHistoryProvider history) {
-            if (history.cranks$wasHitByChain(chainUuid)) {
-                return;
-            }
+        if(type==AilmentType.BURN&&target instanceof AilmentHistoryProvider history)history.cranks$recordBurnChain(next.getChainUuid());
+        s.ailments.add(next);
+        if(control) {
+            s.freeze=0;
+            s.electrocute=0;
+            updateFreezeSlowModifier(target,0,1);
+            controlFeedback(target,type,false);
         }
-
-        UUID sourceUuid = (source != null) ? source.getUuid() : null;
-        UUID parentUuid = (parent != null) ? parent.getUuid() : null;
-        UUID actualChainUuid = (chainUuid != null) ? chainUuid : UUID.randomUUID();
-        
-        // Record this chain in the history
-        if (type == AilmentType.BURN && target instanceof AilmentHistoryProvider history) {
-            history.cranks$recordBurnChain(actualChainUuid);
-        }
-
-        Ailment ailment = new Ailment(type, duration, baseDamage, sourceUuid, parentUuid, actualChainUuid, generation, magnitude);
-        ailments.add(ailment);
-        ENTITY_AILMENTS.put(target.getUuid(), ailments);
-
-        // Play apply sound and particles
-        if (type == AilmentType.FREEZE) {
-            // Play sound multiple times to artificially boost the peak volume
-            target.getEntityWorld().playSound(null, target.getBlockPos(), com.cranks.dungeons.registry.ModSounds.FREEZE_APPLY, net.minecraft.sound.SoundCategory.HOSTILE, 1.0f, 1.0f);
-            target.getEntityWorld().playSound(null, target.getBlockPos(), com.cranks.dungeons.registry.ModSounds.FREEZE_APPLY, net.minecraft.sound.SoundCategory.HOSTILE, 1.0f, 0.9f);
-            target.getEntityWorld().playSound(null, target.getBlockPos(), com.cranks.dungeons.registry.ModSounds.FREEZE_APPLY, net.minecraft.sound.SoundCategory.HOSTILE, 1.0f, 1.1f);
-            if (target.getEntityWorld() instanceof net.minecraft.server.world.ServerWorld serverWorld) {
-                serverWorld.spawnParticles(net.minecraft.particle.ParticleTypes.SNOWFLAKE, target.getX(), target.getBodyY(0.5), target.getZ(), 30, target.getWidth() / 2.0, target.getHeight() / 2.0, target.getWidth() / 2.0, 0.05);
-            }
-        } else if (type == AilmentType.ELECTROCUTE) {
-            target.getEntityWorld().playSound(null, target.getBlockPos(), com.cranks.dungeons.registry.ModSounds.ELECTROCUTED_APPLY, net.minecraft.sound.SoundCategory.HOSTILE, 1.0f, 1.0f);
-            if (target.getEntityWorld() instanceof net.minecraft.server.world.ServerWorld serverWorld) {
-                serverWorld.spawnParticles(net.minecraft.particle.ParticleTypes.ELECTRIC_SPARK, target.getX(), target.getBodyY(0.5), target.getZ(), 20, target.getWidth() / 2.0, target.getHeight() / 2.0, target.getWidth() / 2.0, 0.1);
-            }
-        }
-
-        // Apply status effect - pass stack count for poison (1-20), or 0 for burn
-        int displayValue = (type == AilmentType.POISON) ? ailment.getStacks() : 0;
-        applyStatusEffect(target, type, duration, displayValue);
+        syncAilments(target);
     }
-
-    private static void applyStatusEffect(LivingEntity target, AilmentType type, double duration) {
-        applyStatusEffect(target, type, duration, 0);
-    }
-
-    private static void applyStatusEffect(LivingEntity target, AilmentType type, double duration, int stackCount) {
-        int ticks = (int)(duration * 20);
-        switch (type) {
-            case BURN -> {
-                StatusEffectInstance instance = new StatusEffectInstance(
-                        ModEffects.BURN, ticks, 0, false, false, true);
-                if (instance != null) {
-                    target.addStatusEffect(instance);
-                }
-            }
-            case POISON -> {
-                // Remove existing poison effect first to force update
-                target.removeStatusEffect(ModEffects.POISON);
-                // For poison, use stack count as amplifier
-                // amplifier 0 = +1, 1 = +2, etc. (from potion.potency translations)
-                int amplifier = Math.max(0, stackCount - 1);
-                StatusEffectInstance instance = new StatusEffectInstance(
-                        ModEffects.POISON, ticks, amplifier, false, false, true);
-                if (instance != null) {
-                    target.addStatusEffect(instance);
-                }
-            }
-            case FREEZE -> {
-                StatusEffectInstance instance = new StatusEffectInstance(
-                        ModEffects.FREEZE, ticks, 0, false, false, true);
-                if (instance != null) {
-                    target.addStatusEffect(instance);
-                }
-            }
-            case BLEED -> {
-                StatusEffectInstance instance = new StatusEffectInstance(
-                        ModEffects.BLEED, ticks, 0, false, false, true);
-                if (instance != null) {
-                    target.addStatusEffect(instance);
-                }
-            }
-            case SHOCK -> {
-                StatusEffectInstance instance = new StatusEffectInstance(
-                        ModEffects.SHOCK, ticks, 0, false, false, true);
-                if (instance != null) {
-                    target.addStatusEffect(instance);
-                }
-            }
-            case ELECTROCUTE -> {
-                StatusEffectInstance instance = new StatusEffectInstance(
-                        ModEffects.ELECTROCUTE, ticks, 0, false, false, true);
-                if (instance != null) {
-                    target.addStatusEffect(instance);
-                }
-            }
-            default -> {}
+    public static void accumulateBleedDamage(LivingEntity entity,float damage) {
+        if(entity.getWorld().isClient()||!(damage>0)||!Float.isFinite(damage))return;
+        State s=find(entity);
+        if(s==null)return;
+        boolean bleeding=false;
+        for(var a:s.ailments)if(a.getType()==AilmentType.BLEED&&!a.isExpired()) {
+            a.addStoredDamage(damage*a.getMagnitude());
+            bleeding=true;
         }
+        if(bleeding)bleedFeedback(entity,false);
     }
-
-    public static void syncAilments(LivingEntity entity) {
-        if (entity.getEntityWorld().isClient() || !(entity.getEntityWorld() instanceof net.minecraft.server.world.ServerWorld serverWorld)) return;
-
-        List<AilmentSyncPayload.AilmentEntry> entries = new java.util.ArrayList<>();
-        
-        checkAndAddSyncEntry(entity, ModEffects.BURN, Identifier.of(com.cranks.dungeons.CranksDungeons.MOD_ID, "textures/mob_effect/burn.png"), entries);
-        checkAndAddSyncEntry(entity, ModEffects.POISON, Identifier.of(com.cranks.dungeons.CranksDungeons.MOD_ID, "textures/mob_effect/poison.png"), entries);
-        checkAndAddSyncEntry(entity, ModEffects.FREEZE, Identifier.of(com.cranks.dungeons.CranksDungeons.MOD_ID, "textures/mob_effect/freeze.png"), entries);
-        checkAndAddSyncEntry(entity, ModEffects.SHOCK, Identifier.of(com.cranks.dungeons.CranksDungeons.MOD_ID, "textures/mob_effect/shock.png"), entries);
-        checkAndAddSyncEntry(entity, ModEffects.BLEED, Identifier.of(com.cranks.dungeons.CranksDungeons.MOD_ID, "textures/mob_effect/bleed.png"), entries);
-        checkAndAddSyncEntry(entity, ModEffects.ELECTROCUTE, Identifier.of(com.cranks.dungeons.CranksDungeons.MOD_ID, "textures/mob_effect/electrocute.png"), entries);
-
-        float freezeBuildup = getFreezeBuildup(entity.getUuid());
-        if (freezeBuildup > 0 && !entity.hasStatusEffect(ModEffects.FREEZE)) {
-            int displayPercent = (int)(freezeBuildup * 100);
-            entries.add(new AilmentSyncPayload.AilmentEntry(Identifier.of(com.cranks.dungeons.CranksDungeons.MOD_ID, "textures/mob_effect/freeze_buildup.png"), displayPercent));
-        }
-
-        float electrocuteBuildup = getElectrocuteBuildup(entity.getUuid());
-        if (electrocuteBuildup > 0 && !entity.hasStatusEffect(ModEffects.ELECTROCUTE)) {
-            entries.add(new AilmentSyncPayload.AilmentEntry(Identifier.of(com.cranks.dungeons.CranksDungeons.MOD_ID, "textures/mob_effect/electrocute_buildup.png"), (int)(electrocuteBuildup * 100)));
-        }
-
-        AilmentSyncPayload payload = new AilmentSyncPayload(entity.getId(), entries);
-        
-        // Send to all players tracking this entity
-        net.fabricmc.fabric.api.networking.v1.PlayerLookup.tracking(entity).forEach(player -> {
-            ServerPlayNetworking.send(player, payload);
-        });
-        
-        // Also send to the entity themselves if it's a player
-        if (entity instanceof net.minecraft.server.network.ServerPlayerEntity player) {
-            ServerPlayNetworking.send(player, payload);
-        }
+    public static void refreshAilmentDuration(LivingEntity target,AilmentType type) {
+        if(type==AilmentType.POISON)return;
+        for(var a:getAilments(target))if(a.getType()==type)a.setRemainingDuration(a.getMaxDuration());
+        syncAilments(target);
     }
-
-    private static void checkAndAddSyncEntry(LivingEntity entity, net.minecraft.registry.entry.RegistryEntry<StatusEffect> effect, Identifier texture, List<AilmentSyncPayload.AilmentEntry> entries) {
-        StatusEffectInstance instance = entity.getStatusEffect(effect);
-        if (instance != null) {
-            entries.add(new AilmentSyncPayload.AilmentEntry(texture, instance.getAmplifier() + 1));
-        }
-    }
-
-    public static boolean hasAilment(LivingEntity target, AilmentType type) {
-        List<Ailment> ailments = getAilments(target);
-        for (Ailment ailment : ailments) {
-            if (ailment.getType() == type) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private static void playFreezeEndEffect(LivingEntity target) {
-        target.getEntityWorld().playSound(null, target.getBlockPos(), com.cranks.dungeons.registry.ModSounds.FREEZE_END, net.minecraft.sound.SoundCategory.HOSTILE, 3.0f, 1.0f);
-        if (target.getEntityWorld() instanceof net.minecraft.server.world.ServerWorld serverWorld) {
-            serverWorld.spawnParticles(net.minecraft.particle.ParticleTypes.SNOWFLAKE, target.getX(), target.getBodyY(0.5), target.getZ(), 20, target.getWidth() / 2.0, target.getHeight() / 2.0, target.getWidth() / 2.0, 0.05);
-        }
-    }
-
-    public static boolean isAfflicted(LivingEntity target) {
-        if (target == null) return false;
-        // Check custom ailment list
-        if (!getAilments(target).isEmpty()) return true;
-        // Also check if they are on fire (vanilla or mod burn)
-        return target.isOnFire();
-    }
-
-    public static List<Ailment> getAilments(LivingEntity target) {
-        return ENTITY_AILMENTS.getOrDefault(target.getUuid(), new java.util.concurrent.CopyOnWriteArrayList<>());
-    }
-
-    public static void refreshAilmentDuration(LivingEntity target, AilmentType type) {
-        List<Ailment> ailments = getAilments(target);
-        for (Ailment ailment : ailments) {
-            if (ailment.getType() == type) {
-                ailment.setRemainingDuration(ailment.getMaxDuration());
-                // Also refresh the status effect visually
-                applyStatusEffect(target, type, ailment.getMaxDuration(), type == AilmentType.POISON ? ailment.getStacks() : 0);
-            }
-        }
-    }
-
     public static void tickAilments(LivingEntity entity) {
-        if (entity.getEntityWorld().isClient()) return;
-        
-        if (!entity.isAlive() || entity.getHealth() <= 0) {
+        if(entity.getWorld().isClient())return;
+        State s=find(entity);
+        if(s==null)return;
+        if(!entity.isAlive()) {
             clearAllAilments(entity);
             return;
         }
-
-        // Decay buildups
-        boolean buildupChanged = false;
-        long currentTime = entity.getEntityWorld().getTime();
-        
-        if (FREEZE_BUILDUP.containsKey(entity.getUuid())) {
-            long lastHit = FREEZE_BUILDUP_LAST_HIT.getOrDefault(entity.getUuid(), 0L);
-            if (currentTime - lastHit > 40) { // 2 seconds grace period
-                float current = FREEZE_BUILDUP.get(entity.getUuid());
-                float decayRate = 0.0025f; // base decay 5% per second
-                decayRate /= Math.max(0.01f, 1.0f - (float)entity.getAttributeValue(ModAttributes.REDUCED_CHILL_DURATION_ON_YOU));
-                float newBuildup = current - decayRate;
-                if (newBuildup <= 0) {
-                    FREEZE_BUILDUP.remove(entity.getUuid());
-                    FREEZE_BUILDUP_LAST_HIT.remove(entity.getUuid());
-                    FREEZE_BUILDUP_MAGNITUDE.remove(entity.getUuid());
-                    updateFreezeSlowModifier(entity, 0.0f, 1.0f);
-                    entity.removeStatusEffect(net.minecraft.entity.effect.StatusEffects.SLOWNESS);
+        s.controlRecovery=Math.max(0,s.controlRecovery-STEP);
+        if(s.controlRecovery<.000001)s.controlRecovery=0;
+        long now=entity.getWorld().getTime();
+        if(now-s.freezeHit>40&&s.freeze>0) {
+            s.freeze=Math.max(0,s.freeze-(float)(.0025/Math.max(.01,1-entity.getAttributeValue(ModAttributes.REDUCED_CHILL_DURATION_ON_YOU))));
+            updateFreezeSlowModifier(entity,s.freeze,s.freezeMagnitude);
+        }
+        if(now-s.electrocuteHit>40)s.electrocute=Math.max(0,s.electrocute-(float)(.01/Math.max(.01,1-entity.getAttributeValue(ModAttributes.REDUCED_SHOCK_DURATION_ON_YOU))));
+        if(now-s.flammabilityHit>40)s.flammability=Math.max(0,s.flammability-.005f);
+        boolean changed=false;
+        Map<PoisonOwner,Float> poisonTicks=new LinkedHashMap<>();
+        for(var a:List.copyOf(s.ailments)) {
+            if(!entity.isAlive())break;
+            float damage=a.advance(STEP,entity.isTouchingWaterOrRain()||entity.inPowderSnow);
+            if(damage>0) {
+                if(a.getType()==AilmentType.POISON) {
+                    poisonTicks.merge(new PoisonOwner(a.getSourceUuid(),a.isPlayerSource()),damage,Float::sum);
                 } else {
-                    FREEZE_BUILDUP.put(entity.getUuid(), newBuildup);
-                    float mag = FREEZE_BUILDUP_MAGNITUDE.getOrDefault(entity.getUuid(), 1.0f);
-                    updateFreezeSlowModifier(entity, newBuildup, mag);
+                    var element=a.getType()==AilmentType.BURN?DamageElement.FIRE:DamageElement.VOID;
+                    float actual=dealSecondary(entity,damage,a.getSourceUuid(),a.isPlayerSource(),element,a.getType()==AilmentType.POISON,true,a.getType());
+                    if(actual>0&&a.getType()==AilmentType.BURN&&a.getGeneration()<5)spreadBurn(entity,a);
                 }
-                buildupChanged = true;
             }
-        }
-        
-        if (ELECTROCUTE_BUILDUP.containsKey(entity.getUuid())) {
-            long lastHit = ELECTROCUTE_BUILDUP_LAST_HIT.getOrDefault(entity.getUuid(), 0L);
-            if (currentTime - lastHit > 40) { // 2 seconds grace period
-                float current = ELECTROCUTE_BUILDUP.get(entity.getUuid());
-                float decayRate = 0.01f; // base decay 20% per second
-                decayRate /= Math.max(0.01f, 1.0f - (float)entity.getAttributeValue(ModAttributes.REDUCED_SHOCK_DURATION_ON_YOU));
-                float newBuildup = current - decayRate;
-                if (newBuildup <= 0) {
-                    ELECTROCUTE_BUILDUP.remove(entity.getUuid());
-                    ELECTROCUTE_BUILDUP_LAST_HIT.remove(entity.getUuid());
-                } else {
-                    ELECTROCUTE_BUILDUP.put(entity.getUuid(), newBuildup);
-                }
-                buildupChanged = true;
-            }
-        }
-
-        if (FLAMMABILITY_BUILDUP.containsKey(entity.getUuid())) {
-            long lastHit = FLAMMABILITY_LAST_HIT.getOrDefault(entity.getUuid(), 0L);
-            if (currentTime - lastHit > 40) { // 2 seconds grace period
-                float current = FLAMMABILITY_BUILDUP.get(entity.getUuid());
-                float decayRate = 0.005f; // base decay 10% per second
-                float newBuildup = current - decayRate;
-                if (newBuildup <= 0) {
-                    FLAMMABILITY_BUILDUP.remove(entity.getUuid());
-                    FLAMMABILITY_LAST_HIT.remove(entity.getUuid());
-                } else {
-                    FLAMMABILITY_BUILDUP.put(entity.getUuid(), newBuildup);
-                }
-                buildupChanged = true;
-            }
-        }
-
-        // Periodic sync for duration progress and reaction cooldowns
-        if (entity.getEntityWorld().getTime() % 10 == 0 || buildupChanged) {
-            syncAilments(entity);
-        }
-
-        List<Ailment> ailments = getAilments(entity);
-        if (ailments.isEmpty()) return;
-
-        List<Ailment> toRemove = new ArrayList<>();
-        float tickDamagePercent = getDamagePercent(entity);
-
-        for (Ailment ailment : ailments) {
-            double durationDecay = 0.05;
-            boolean isWet = entity.isTouchingWaterOrRain() || entity.inPowderSnow;
-            if (ailment.getType() == AilmentType.BURN && isWet) {
-                durationDecay = 0.10; // 2x faster duration decay in water/rain/powder snow
-            }
-
-            ailment.addTimeSinceLastTick(0.05);
-            ailment.setRemainingDuration(ailment.getRemainingDuration() - durationDecay);
-
-            if (ailment.isReadyToTick()) {
-                float damage = ailment.getDamagePerTick(tickDamagePercent);
-                if (damage > 0) {
-                    if (ailment.getType() == AilmentType.BURN) {
-                        if (isWet) {
-                            damage *= 0.5f; // Half damage while in water/rain/powder snow
-                        }
-                        double res = entity.getAttributeValue(ModAttributes.FIRE_RESISTANCE);
-                        damage *= (float) (1.0 - res);
-                        
-                        if (ailment.getGeneration() < 5) {
-                            handleBurnSpread(entity, ailment);
-                        }
-
-                        if (damage > 0) {
-                            applySingleAilmentDamage(entity, damage, ailment);
-                        }
-                    } else if (ailment.getType() == AilmentType.POISON) {
-                        // Handle POISON damage (single ailment with stacks)
-                        applyPoisonDamage(entity, ailment, damage);
-                    } else if (ailment.getType() == AilmentType.BLEED) {
-                        // BLEED doesn't deal tick damage - only burst damage on expiration
-                        // Skip damage application
-                    } else {
-                        // Handle other ailments
-                        applySingleAilmentDamage(entity, damage, ailment);
-                    }
-                }
-                ailment.resetTimeSinceLastTick();
-            }
-
-            if (ailment.isExpired()) {
-                if (ailment.getType() == AilmentType.POISON) {
-                    // For poison: remove one stack and reset timer
-                    ailment.removeStack();
-                    if (ailment.getStacks() <= 0) {
-                        // Only remove when all stacks are gone
-                        toRemove.add(ailment);
-                        entity.removeStatusEffect(ModEffects.POISON);
-                    } else {
-                        // Update status effect with new stack count
-                        applyStatusEffect(entity, AilmentType.POISON, ailment.getRemainingDuration(), ailment.getStacks());
-                        syncAilments(entity);
-                    }
-                } else if (ailment.getType() == AilmentType.BLEED) {
-                    // For bleed: deal stored damage when it expires
-                    float storedDamage = ailment.getStoredDamage();
-                    if (storedDamage > 0) {
-                        applyBleedBurstDamage(entity, storedDamage, ailment);
-                    }
-                    toRemove.add(ailment);
-                    entity.removeStatusEffect(ModEffects.BLEED);
-                } else {
-                    toRemove.add(ailment);
-                    if (ailment.getType() == AilmentType.BURN) {
-                        entity.removeStatusEffect(ModEffects.BURN);
-                    } else if (ailment.getType() == AilmentType.FREEZE) {
-                        entity.removeStatusEffect(ModEffects.FREEZE);
-                        playFreezeEndEffect(entity);
-                    } else if (ailment.getType() == AilmentType.SHOCK) {
-                        entity.removeStatusEffect(ModEffects.SHOCK);
-                    } else if (ailment.getType() == AilmentType.ELECTROCUTE) {
-                        entity.removeStatusEffect(ModEffects.ELECTROCUTE);
-                    }
+            if(a.isExpired()) {
+                s.ailments.remove(a);
+                changed=true;
+                if(a.getType()==AilmentType.BLEED&&a.getStoredDamage()>0) dealSecondary(entity,a.getStoredDamage(),a.getSourceUuid(),a.isPlayerSource(),DamageElement.PHYSICAL,true,true,AilmentType.BLEED);
+                if(a.getType()==AilmentType.FREEZE||a.getType()==AilmentType.ELECTROCUTE) {
+                    s.controlRecovery=AilmentRules.CONTROL_RECOVERY_SECONDS;
+                    s.recoveryFeedbackSent=false;
+                    controlFeedback(entity,a.getType(),true);
                 }
             }
         }
-
-        ailments.removeAll(toRemove);
-        
-        if (entity.isAlive() && entity.getHealth() > 0) {
-            ENTITY_AILMENTS.put(entity.getUuid(), ailments);
-        } else {
-            clearAllAilments(entity);
-        }
+        for(var entry:poisonTicks.entrySet())if(entity.isAlive())dealSecondary(entity,entry.getValue(),entry.getKey().id(),entry.getKey().player(),DamageElement.VOID,true,true,AilmentType.POISON);
+        if(entity.isAlive()&&(changed||now%5==0))syncAilments(entity);
+        if(!entity.isAlive())clearAllAilments(entity);
+        else if(s.empty())STATES.remove(entity.getUuid(),s);
     }
-
-    private static void applySingleAilmentDamage(LivingEntity entity, float damage, Ailment ailment) {
-        float damageToApply = damage;
-
-        // Energy Shield Mitigation for players (Burn/Shock/Cold/Lightning/Void etc. ailments)
-        // Poison bypasses Energy Shield based on PoE 2 rules
-        if (entity instanceof PlayerEntity player && entity instanceof com.cranks.dungeons.EnergyShieldProvider esProvider) {
-            if (ailment.getType() != AilmentType.POISON) {
-                float currentShield = esProvider.cranksdungeons$getCurrentEnergyShield();
-                if (currentShield > 0) {
-                    float weightedDamage = (ailment.getType() == AilmentType.BURN || ailment.getType() == AilmentType.SHOCK || ailment.getType() == AilmentType.FREEZE) ? damageToApply : damageToApply;
-                    // Note: Void ailment doesn't exist yet but if it did, weighted *= 2.0f
-                    
-                    if (currentShield >= weightedDamage) {
-                        float newShield = currentShield - weightedDamage;
-                        esProvider.cranksdungeons$setCurrentEnergyShield(newShield);
-                        esProvider.cranksdungeons$setLastDamageTime(entity.getEntityWorld().getTime());
-                        if (entity instanceof net.minecraft.server.network.ServerPlayerEntity serverPlayer) {
-                            float maxShield = (float) entity.getAttributeValue(com.cranks.dungeons.registry.ModAttributes.ENERGY_SHIELD);
-                            net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(
-                                serverPlayer,
-                                new com.cranks.dungeons.network.EnergyShieldSyncPacket(newShield, maxShield)
-                            );
-                        }
-                        damageToApply = 0; // Fully absorbed
-                    } else {
-                        float absorptionRatio = currentShield / weightedDamage;
-                        damageToApply -= damageToApply * absorptionRatio;
-                        esProvider.cranksdungeons$setCurrentEnergyShield(0.0f);
-                        esProvider.cranksdungeons$setLastDamageTime(entity.getEntityWorld().getTime());
-                        if (entity instanceof net.minecraft.server.network.ServerPlayerEntity serverPlayer) {
-                            float maxShield = (float) entity.getAttributeValue(com.cranks.dungeons.registry.ModAttributes.ENERGY_SHIELD);
-                            net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(
-                                serverPlayer,
-                                new com.cranks.dungeons.network.EnergyShieldSyncPacket(0.0f, maxShield)
-                            );
-                        }
-                    }
-                }
-            }
+    /** Native damage handles permissions, absorption, attribution, and death prevention for every tick. */
+    private static float dealSecondary(LivingEntity target,float raw,UUID owner,boolean playerSource,DamageElement element,boolean bypassShield,boolean ailment,AilmentType type) {
+        if(!(target.getWorld() instanceof ServerWorld world)||!target.isAlive()||!(raw>0))return 0;
+        Entity attacker=owner==null?null:world.getEntity(owner);
+        if(attacker==null&&owner!=null)attacker=world.getServer().getPlayerManager().getPlayer(owner);
+        if(!canApply(target,attacker))return 0;
+        if(playerSource&&target instanceof PlayerEntity victim&&owner!=null&&!owner.equals(victim.getUuid()) &&(!world.getServer().isPvpEnabled()||PartyManager.areInSameParty(owner,victim.getUuid())))return 0;
+        if(element==DamageElement.FIRE&&target.isFireImmune())return 0;
+        float damage=raw;
+        // Bleed stores resolved damage; resistance and Shock have already affected that damage.
+        if(ailment&&type!=AilmentType.BLEED) {
+            double resistance=switch(element) {
+                case FIRE->target.getAttributeValue(ModAttributes.FIRE_RESISTANCE);
+                case LIGHTNING->target.getAttributeValue(ModAttributes.LIGHTNING_RESISTANCE);
+                case VOID->target.getAttributeValue(ModAttributes.VOID_RESISTANCE);
+                default->0;
+            };
+            if(element==DamageElement.VOID&&target.getAttributeValue(ModAttributes.KEYSTONE_VOID_INOCULATION)>0)return 0;
+            damage*=(float)(1-AilmentRules.penetratedResistance(resistance,0));
+            damage*=1+getShockMagnitude(target);
         }
-
-        if (damageToApply <= 0 && damage > 0) {
-            // Damage was fully absorbed by ES. Still broadcast damage numbers.
-            if (entity.getEntityWorld() instanceof ServerWorld serverWorld) {
-                double fire = (ailment.getType() == AilmentType.BURN) ? damage : 0.0;
-                double physical = (ailment.getType() == AilmentType.BLEED) ? (double)damage : 0.0;
-                com.cranks.dungeons.network.DamageNumberSender.broadcast(serverWorld, entity, physical, fire, 0.0, 0.0, 0.0, ailment.getSourceUuid(), false);
-            }
-            return;
-        }
-
-        float currentHealth = entity.getHealth();
-        float newHealth = Math.max(0, currentHealth - damageToApply);
-
-        if (entity.getEntityWorld() instanceof ServerWorld serverWorld) {
-            double fire = (ailment.getType() == AilmentType.BURN) ? damage : 0.0;
-            double physical = (ailment.getType() == AilmentType.BLEED) ? (double)damage : 0.0;
-
-            // Apply lethal damage via the damage system so death-prevention mods can catch it
-            if (currentHealth - damageToApply <= 0) {
-                DamageNumberSender.broadcast(serverWorld, entity, physical, fire, 0.0, 0.0, 0.0, ailment.getSourceUuid(), false);
-                
-                net.minecraft.entity.damage.DamageSource source;
-                if (ailment.getType() == AilmentType.BURN) {
-                    // Use generic source so it's quiet (no vanilla fire sounds),
-                    // but it's mapped to Fire Elemental in DamageConversionHelper if target has BURN.
-                    source = serverWorld.getDamageSources().generic();
-                } else {
-                    source = serverWorld.getDamageSources().magic();
-                }
-                entity.damage(source, damageToApply);
-            } else {
-                // Apply non-lethal damage directly for cleaner numbers
-                entity.setHealth(newHealth);
-                if (entity instanceof com.cranks.dungeons.EnergyShieldProvider es) {
-                    es.cranksdungeons$setLastDamageTime(entity.getEntityWorld().getTime());
-                }
-                DamageNumberSender.broadcast(serverWorld, entity, physical, fire, 0.0, 0.0, 0.0, ailment.getSourceUuid(), false);
-            }
-        }
-
-        if (ailment.getType() == AilmentType.BURN) {
-            ServerWorld world = (ServerWorld) entity.getEntityWorld();
-            
-            // Always play the custom burn tick
-            world.playSound(null, entity.getX(), entity.getY(), entity.getZ(),
-                    ModSounds.BURN_TICK, SoundCategory.HOSTILE, 1.0f, 1.0f + world.getRandom().nextFloat() * 0.2f);
-
-            // Always play standard hurt sound
-            world.playSound(null, entity.getX(), entity.getY(), entity.getZ(),
-                    SoundEvents.ENTITY_PLAYER_HURT, SoundCategory.HOSTILE, 1.0f, 1.0f);
-        }
-    }
-
-    private static void applyBleedBurstDamage(LivingEntity entity, float storedDamage, Ailment ailment) {
-        if (entity.getEntityWorld().isClient()) return;
-        
-        ServerWorld world = (ServerWorld) entity.getEntityWorld();
-        
-        float damageToApply = storedDamage;
-
-        // Energy Shield Mitigation for players
-        if (entity instanceof PlayerEntity player && entity instanceof com.cranks.dungeons.EnergyShieldProvider esProvider) {
-            float currentShield = esProvider.cranksdungeons$getCurrentEnergyShield();
-            if (currentShield > 0) {
-                if (currentShield >= damageToApply) {
-                    float newShield = currentShield - damageToApply;
-                    esProvider.cranksdungeons$setCurrentEnergyShield(newShield);
-                    esProvider.cranksdungeons$setLastDamageTime(entity.getEntityWorld().getTime());
-                    if (entity instanceof net.minecraft.server.network.ServerPlayerEntity serverPlayer) {
-                        float maxShield = (float) entity.getAttributeValue(com.cranks.dungeons.registry.ModAttributes.ENERGY_SHIELD);
-                        net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(
-                            serverPlayer,
-                            new com.cranks.dungeons.network.EnergyShieldSyncPacket(newShield, maxShield)
-                        );
-                    }
-                    damageToApply = 0; // Fully absorbed
-                } else {
-                    float absorptionRatio = currentShield / damageToApply;
-                    damageToApply -= damageToApply * absorptionRatio;
-                    esProvider.cranksdungeons$setCurrentEnergyShield(0.0f);
-                    esProvider.cranksdungeons$setLastDamageTime(entity.getEntityWorld().getTime());
-                    if (entity instanceof net.minecraft.server.network.ServerPlayerEntity serverPlayer) {
-                        float maxShield = (float) entity.getAttributeValue(com.cranks.dungeons.registry.ModAttributes.ENERGY_SHIELD);
-                        net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(
-                            serverPlayer,
-                            new com.cranks.dungeons.network.EnergyShieldSyncPacket(0.0f, maxShield)
-                        );
-                    }
-                }
-            }
-        }
-
-        // Broadcast damage numbers as physical (dark red), using the original storedDamage amount
-        // even if it was absorbed, so players see how much the burst did.
-        DamageNumberSender.broadcastBleed(world, entity, storedDamage, ailment.getSourceUuid());
-        
-        if (damageToApply <= 0 && storedDamage > 0) {
-            // Damage was fully absorbed by ES. Sound still plays.
-            world.playSound(null, entity.getX(), entity.getY(), entity.getZ(),
-                    ModSounds.BLEED_BURST, SoundCategory.HOSTILE,
-                    0.8f, 0.8f + world.getRandom().nextFloat() * 0.3f);
-            return;
-        }
-
-        float currentHealth = entity.getHealth();
-        
-        // Mark bleed damage as in progress to prevent void numbers from showing on kill
-        setBleedDamageInProgress(entity.getUuid(), true);
+        if(!(damage>0)||!Float.isFinite(damage))return 0;
+        var magic=world.getRegistryManager().get(RegistryKeys.DAMAGE_TYPE).entryOf(DamageTypes.MAGIC);
+        DamageSource source=new DamageSource(magic,attacker,attacker);
+        float before=target.getHealth()+target.getAbsorptionAmount();
+        float shieldBefore=((EnergyShieldProvider)target).cranksdungeons$getCurrentEnergyShield();
+        int immunity=target.timeUntilRegen;
+        SecondaryHit previous=SECONDARY.get();
+        boolean accepted;
         try {
-            if (currentHealth - damageToApply <= 0) {
-                // Entity will die - use proper damage source to ensure loot drops
-                net.minecraft.entity.damage.DamageSource damageSource = world.getDamageSources().magic();
-                entity.damage(damageSource, damageToApply);
-            } else {
-                // Entity won't die - apply damage directly
-                entity.setHealth(currentHealth - damageToApply);
-                if (entity instanceof com.cranks.dungeons.EnergyShieldProvider es) {
-                    es.cranksdungeons$setLastDamageTime(entity.getEntityWorld().getTime());
+            SECONDARY.set(new SecondaryHit(target.getUuid(),element,bypassShield,ailment));
+            target.timeUntilRegen=0;
+            accepted=target.damage(source,damage);
+        } finally {
+            target.timeUntilRegen=immunity;
+            if(previous==null)SECONDARY.remove();
+            else SECONDARY.set(previous);
+        }
+        float life=Math.max(0,before-target.getHealth()-target.getAbsorptionAmount());
+        float shield=Math.max(0,shieldBefore-((EnergyShieldProvider)target).cranksdungeons$getCurrentEnergyShield());
+        float actual=life+shield;
+        if(!accepted||actual<=0)return 0;
+        if(type==AilmentType.POISON)DamageNumberSender.broadcastPoison(world,target,actual,owner);
+        else if(type==AilmentType.BLEED)DamageNumberSender.broadcastBleed(world,target,actual,owner);
+        else DamageNumberSender.broadcastPeriodic(world,target,actual,element,owner);
+        if(type==AilmentType.BLEED) {
+            world.playSound(null,target.getBlockPos(),ModSounds.BLEED_BURST,SoundCategory.HOSTILE,.6f,1);
+            bleedFeedback(target,true);
+        }
+        return actual;
+    }
+    private static void bleedFeedback(LivingEntity entity,boolean burst) {
+        var packet=new com.cranks.dungeons.network.BleedVisualPayload(entity.getId(),entity.getUuid(),burst);
+        for(var player:PlayerLookup.tracking(entity))ServerPlayNetworking.send(player,packet);
+        if(entity instanceof ServerPlayerEntity player)ServerPlayNetworking.send(player,packet);
+    }
+    private static boolean visible(LivingEntity from,LivingEntity to) {
+        return from.getWorld().raycast(new RaycastContext(from.getBoundingBox().getCenter(),to.getBoundingBox().getCenter(),RaycastContext.ShapeType.COLLIDER,RaycastContext.FluidHandling.NONE,from)).getType()==HitResult.Type.MISS;
+    }
+    private static boolean validSpreadTarget(LivingEntity target,Entity source) {
+        if(target==source||!canApply(target,source)||!target.isAttackable())return false;
+        if(target instanceof TameableEntity pet&&pet.isTamed())return false;
+        if(target instanceof AbstractHorseEntity horse&&horse.isTame())return false;
+        if(target instanceof MountDataProvider mount&&mount.cranksdungeons$getMountData().ownerUuid!=null)return false;
+        if(target instanceof PlayerEntity player) {
+            if(source instanceof PlayerEntity)return true;
+            return source instanceof MobEntity mob&&mob.getTarget()==player||source instanceof LivingEntity living&&living.getAttacker()==player;
+        }
+        return target instanceof HostileEntity||target instanceof SlimeEntity ||source instanceof LivingEntity living&&(living.getAttacker()==target||target.getAttacker()==living) ||target instanceof MobEntity mob&&mob.getTarget()==source;
+    }
+    private static void spreadBurn(LivingEntity entity,Ailment burn) {
+        if(burn.getSourceUuid()==null||!(entity.getWorld() instanceof ServerWorld world))return;
+        Entity source=world.getEntity(burn.getSourceUuid());
+        if(source==null)return;
+        for(var target:world.getEntitiesByClass(LivingEntity.class,entity.getBoundingBox().expand(3),e->e!=entity&&e.squaredDistanceTo(entity)<=9&&validSpreadTarget(e,source)&&visible(entity,e))) {
+            if(target instanceof AilmentHistoryProvider history&&history.cranks$wasHitByChain(burn.getChainUuid()))continue;
+            float damage=burn.getBaseDamage()*.5f;
+            if(damage<.2f)continue;
+            applyAilment(target,AilmentType.BURN,damage,Math.max(.05,burn.getRemainingDuration()*.5),source,entity,burn.getChainUuid(),burn.getGeneration()+1);
+        }
+    }
+    public static void handleShockChain(LivingEntity entity,float lightning,Entity source) {
+        if(hasAilment(entity,AilmentType.SHOCK))executeShockChain(entity,lightning,source);
+    }
+    public static void executeShockChain(LivingEntity entity,float lightning,Entity source) {
+        if(!(entity.getWorld() instanceof ServerWorld world)||!(lightning>0)||!Float.isFinite(lightning))return;
+        for(var target:world.getEntitiesByClass(LivingEntity.class,entity.getBoundingBox().expand(10),e->e!=entity&&e.squaredDistanceTo(entity)<=100&&validSpreadTarget(e,source)&&visible(entity,e))) {
+            float damage=lightning*(source instanceof PlayerEntity&&target instanceof PlayerEntity?.25f:1);
+            float actual=dealSecondary(target,damage,source==null?null:source.getUuid(),source instanceof PlayerEntity,DamageElement.LIGHTNING,false,false,null);
+            if(actual<=0)continue;
+            float threshold=com.cranks.dungeons.util.CombatUtility.getEffectiveAilmentThreshold(target,AilmentType.SHOCK);
+            applyAilment(target,AilmentType.SHOCK,0,AilmentType.SHOCK.getBaseDuration(),source,null,null,0,Math.clamp(actual/threshold*.3f,.05f,.3f));
+            world.playSound(null,target.getBlockPos(),ModSounds.SHOCK_CHAIN,SoundCategory.HOSTILE,.6f,1);
+            world.spawnParticles(ParticleTypes.ELECTRIC_SPARK,target.getX(),target.getBodyY(.5),target.getZ(),4,.2,.2,.2,.02);
+            var packet=new ShockArcPayload(entity.getBoundingBox().getCenter(),target.getBoundingBox().getCenter(),0xFFFFFF);
+            for(var player:world.getPlayers())if(player.squaredDistanceTo(entity)<64*64)ServerPlayNetworking.send(player,packet);
+        }
+    }
+    public static boolean isShockChainInProgress() {
+        return shockChain;
+    }
+    public static boolean acquireShockChainLock() {
+        if(shockChain)return false;
+        shockChain=true;
+        return true;
+    }
+    private static boolean controlBlocked(LivingEntity target,State state) {
+        if(isStunned(target))return true;
+        if(state.controlRecovery<=0)return false;
+        if(!state.recoveryFeedbackSent) {
+            state.recoveryFeedbackSent=true;
+            var packet=new com.cranks.dungeons.network.AilmentResistedPayload(target.getId(),target.getUuid());
+            for(var player:PlayerLookup.tracking(target))ServerPlayNetworking.send(player,packet);
+            if(target instanceof ServerPlayerEntity player)ServerPlayNetworking.send(player,packet);
+        }
+        return true;
+    }
+    public static void releaseShockChainLock() {
+        shockChain=false;
+    }
+    private static void controlFeedback(LivingEntity entity,AilmentType type,boolean end) {
+        if(!(entity.getWorld() instanceof ServerWorld world)||type==AilmentType.ELECTROCUTE&&end)return;
+        world.playSound(null,entity.getBlockPos(),end?ModSounds.FREEZE_END:type==AilmentType.FREEZE?ModSounds.FREEZE_APPLY:ModSounds.ELECTROCUTED_APPLY,SoundCategory.HOSTILE,.8f,1);
+        // The client owns bounded formation/break particles; don't duplicate them through vanilla packets.
+    }
+    public static AilmentType effectType(RegistryEntry<StatusEffect> effect) {
+        for(var type:AilmentType.values())if(effect.equals(effect(type)))return type;
+        return null;
+    }
+    private static RegistryEntry<StatusEffect> effect(AilmentType type) {
+        return switch(type) {
+            case BURN->ModEffects.BURN;
+            case POISON->ModEffects.POISON;
+            case BLEED->ModEffects.BLEED;
+            case FREEZE->ModEffects.FREEZE;
+            case SHOCK->ModEffects.SHOCK;
+            case ELECTROCUTE->ModEffects.ELECTROCUTE;
+        };
+    }
+    private static Identifier texture(AilmentType type) {
+        return Identifier.of("cranks-dungeons","textures/mob_effect/"+type.name().toLowerCase(Locale.ROOT)+".png");
+    }
+    public static void onEffectRemoved(LivingEntity entity,RegistryEntry<StatusEffect> effect) {
+        if(entity.getWorld().isClient()||UPDATING_MIRRORS.contains(entity.getUuid()))return;
+        var type=effectType(effect);
+        if(type!=null)clearAilment(entity,type);
+    }
+    private static void mirror(LivingEntity entity,AilmentType type,List<Ailment> active) {
+        var effect=effect(type);
+        var old=entity.getStatusEffect(effect);
+        if(active.isEmpty()) {
+            if(old!=null)entity.removeStatusEffect(effect);
+            return;
+        }
+        double seconds=active.stream().mapToDouble(Ailment::getRemainingDuration).min().orElse(0);
+        int ticks=seconds==Double.POSITIVE_INFINITY?StatusEffectInstance.INFINITE:Math.max(1,(int)Math.ceil(seconds*20-.000001));
+        int amplifier=type==AilmentType.POISON?active.size()-1:type==AilmentType.SHOCK?Math.round(active.get(0).getMagnitude()*100):0;
+        if(old!=null&&old.getAmplifier()==amplifier&&Math.abs(old.getDuration()-ticks)<=1)return;
+        if(old!=null)entity.removeStatusEffect(effect);
+        entity.addStatusEffect(new StatusEffectInstance(effect,ticks,amplifier,false,false,true));
+    }
+    private static List<AilmentSyncPayload.AilmentEntry> snapshot(LivingEntity entity) {
+        State s=find(entity);
+        if(s==null)return List.of();
+        var entries=new ArrayList<AilmentSyncPayload.AilmentEntry>();
+        UPDATING_MIRRORS.add(entity.getUuid());
+        try {
+            for(var type:AilmentType.values()) {
+                var active=s.ailments.stream().filter(a->a.getType()==type&&!a.isExpired()).toList();
+                mirror(entity,type,active);
+                if(active.isEmpty())continue;
+                double seconds=active.stream().mapToDouble(Ailment::getRemainingDuration).min().orElse(0);
+                float magnitude=active.stream().map(Ailment::getMagnitude).max(Float::compare).orElse(0f);
+                float dps=0,stored=0;
+                for(var a:active) {
+                    dps+=a.getBaseDamage();
+                    stored+=a.getStoredDamage();
                 }
+                if(type!=AilmentType.BURN&&type!=AilmentType.POISON)dps=0;
+                entries.add(new AilmentSyncPayload.AilmentEntry(texture(type),active.size(),false,magnitude,dps,stored,seconds==Double.POSITIVE_INFINITY?-1:(float)seconds));
             }
         } finally {
-            setBleedDamageInProgress(entity.getUuid(), false);
+            UPDATING_MIRRORS.remove(entity.getUuid());
         }
-        
-        // Bleed burst sound effect
-        world.playSound(null, entity.getX(), entity.getY(), entity.getZ(),
-                ModSounds.BLEED_BURST, SoundCategory.HOSTILE,
-                0.8f, 0.8f + world.getRandom().nextFloat() * 0.3f);
+        if(s.flammability>0&&!hasAilment(entity,AilmentType.BURN))entries.add(new AilmentSyncPayload.AilmentEntry(texture(AilmentType.BURN),Math.max(1,(int)(s.flammability*100)),true,0,0,0,0));
+        if(s.freeze>0&&!hasAilment(entity,AilmentType.FREEZE))entries.add(new AilmentSyncPayload.AilmentEntry(Identifier.of("cranks-dungeons","textures/mob_effect/freeze_buildup.png"),Math.max(1,(int)(s.freeze*100)),true,(float)AilmentRules.chillSlow(s.freeze,s.freezeMagnitude),0,0,0));
+        if(s.electrocute>0&&!hasAilment(entity,AilmentType.ELECTROCUTE))entries.add(new AilmentSyncPayload.AilmentEntry(Identifier.of("cranks-dungeons","textures/mob_effect/electrocute_buildup.png"),Math.max(1,(int)(s.electrocute*100)),true,0,0,0,0));
+        return List.copyOf(entries);
     }
-
-    public static void accumulateBleedDamage(LivingEntity entity, float damageReceived) {
-        if (entity.getEntityWorld().isClient()) return;
-        if (!hasAilment(entity, AilmentType.BLEED)) return;
-        
-        List<Ailment> ailments = getAilments(entity);
-        for (Ailment ailment : ailments) {
-            if (ailment.getType() == AilmentType.BLEED) {
-                // Store 40% of damage received (Buffed from 10%)
-                float damageToStore = damageReceived * 0.40f;
-                ailment.addStoredDamage(damageToStore);
-                
-                // Play bleed hit sound when entity gets hit while bleeding
-                ServerWorld world = (ServerWorld) entity.getEntityWorld();
-                world.playSound(null, entity.getX(), entity.getY(), entity.getZ(),
-                        ModSounds.BLEED_HIT, SoundCategory.HOSTILE,
-                        0.8f, 0.9f + world.getRandom().nextFloat() * 0.2f);
-                break;
+    public static void syncAilments(LivingEntity entity) {
+        if(entity.getWorld().isClient())return;
+        State s=find(entity);
+        if(s==null)return;
+        var entries=snapshot(entity);
+        if(entries.equals(s.lastSent))return;
+        s.lastSent=entries;
+        var packet=new AilmentSyncPayload(entity.getId(),entries);
+        for(var player:PlayerLookup.tracking(entity))ServerPlayNetworking.send(player,packet);
+        if(entity instanceof ServerPlayerEntity player)ServerPlayNetworking.send(player,packet);
+    }
+    public static void syncTo(LivingEntity entity,ServerPlayerEntity player) {
+        ServerPlayNetworking.send(player,new AilmentSyncPayload(entity.getId(),snapshot(entity)));
+    }
+    public static void clearAilment(LivingEntity entity,AilmentType type) {
+        State s=find(entity);
+        if(s!=null) {
+            boolean control=hasAilment(entity,type)&&(type==AilmentType.FREEZE||type==AilmentType.ELECTROCUTE);
+            s.ailments.removeIf(a->a.getType()==type);
+            if(control) {
+                s.controlRecovery=AilmentRules.CONTROL_RECOVERY_SECONDS;
+                s.recoveryFeedbackSent=false;
             }
         }
+        UPDATING_MIRRORS.add(entity.getUuid());
+        try {
+            entity.removeStatusEffect(effect(type));
+        } finally {
+            UPDATING_MIRRORS.remove(entity.getUuid());
+        }
+        syncAilments(entity);
     }
-
-    private static void handleBurnSpread(LivingEntity entity, Ailment ailment) {
-        if (entity.getEntityWorld().isClient()) return;
-        // Natural / environmental burns (Sunlight, Lava, Fire, Campfire) have no source attacker and must NEVER spread
-        if (ailment.getSourceUuid() == null) return;
-        
-        ServerWorld world = (ServerWorld) entity.getEntityWorld();
-        double radius = 3.0;
-        Box box = entity.getBoundingBox().expand(radius);
-        List<LivingEntity> nearby = world.getEntitiesByClass(LivingEntity.class, box, e -> e != entity && e.isAlive());
-
-        Entity originalSource = world.getEntity(ailment.getSourceUuid());
-        if (originalSource == null) return;
-
-        for (LivingEntity target : nearby) {
-            if (target.getUuid().equals(ailment.getSourceUuid())) {
-                continue;
-            }
-            if (target instanceof AilmentHistoryProvider history && history.cranks$wasHitByChain(ailment.getChainUuid())) {
-                continue;
-            }
-            
-            float newDamage = ailment.getBaseDamage() * 0.5f; 
-            double newDuration = Math.max(1.0, ailment.getRemainingDuration() * 0.5); 
-            
-            if (newDamage < 0.2f) continue;
-
-            applyAilment(target, AilmentType.BURN, newDamage, newDuration, originalSource, entity, ailment.getChainUuid(), ailment.getGeneration() + 1);
+    public static void clearAllAilments(LivingEntity entity) {
+        if(entity==null||entity.getWorld().isClient())return;
+        State s=find(entity);
+        if(s!=null) {
+            s.ailments.clear();
+            s.freeze=s.electrocute=s.flammability=0;
+            s.controlRecovery=0;
+            syncAilments(entity);
+            STATES.remove(entity.getUuid(),s);
+        }
+        updateFreezeSlowModifier(entity,0,1);
+        UPDATING_MIRRORS.add(entity.getUuid());
+        try {
+            for(var type:AilmentType.values())entity.removeStatusEffect(effect(type));
+        } finally {
+            UPDATING_MIRRORS.remove(entity.getUuid());
         }
     }
-
-    private static void applyPoisonDamage(LivingEntity entity, Ailment poisonAilment, float damageFromTick) {
-        if (entity.getEntityWorld().isClient()) return;
-        
-        double res = entity.getAttributeValue(ModAttributes.VOID_RESISTANCE);
-        int stacks = poisonAilment.getStacks();
-        // Escalation: Linear scaling
-        // 1 stack = 1.0, 2 stacks = 2.0, 20 stacks = 20.0
-        double damageMultiplier = stacks;
-        // Damage = damagePerStack × multiplier × (1 - resistance)
-        float finalPoisonDamage = (float) (poisonAilment.getDamagePerStack() * (1.0 - res) * damageMultiplier);
-
-        if (finalPoisonDamage > 0) {
-            ServerWorld world = (ServerWorld) entity.getEntityWorld();
-            
-            // Check if damage will kill the entity
-            float currentHealth = entity.getHealth();
-            if (currentHealth - finalPoisonDamage <= 0) {
-                // Entity will die - use proper damage source to ensure loot drops
-                // Send poison damage number BEFORE applying killing blow so it shows green instead of purple void
-                DamageNumberSender.broadcastPoison(world, entity, finalPoisonDamage, poisonAilment.getSourceUuid());
-                // Mark poison damage as in progress to prevent void numbers from showing
-                setPoisonDamageInProgress(entity.getUuid(), true);
-                try {
-                    net.minecraft.entity.damage.DamageSource damageSource = world.getDamageSources().magic();
-                    entity.damage(damageSource, finalPoisonDamage);
-                } finally {
-                    setPoisonDamageInProgress(entity.getUuid(), false);
-                }
-            } else {
-                // Entity won't die - apply damage directly to avoid vanilla damage numbers
-                entity.setHealth(currentHealth - finalPoisonDamage);
-                if (entity instanceof com.cranks.dungeons.EnergyShieldProvider es) {
-                    es.cranksdungeons$setLastDamageTime(entity.getEntityWorld().getTime());
-                }
-                
-                // Poison sound effect (custom)
-                world.playSound(null, entity.getX(), entity.getY(), entity.getZ(),
-                        ModSounds.POISON_TICK, SoundCategory.HOSTILE,
-                        0.8f, 1.0f);
-                
-                // Player hurt sound
-                world.playSound(null, entity.getX(), entity.getY(), entity.getZ(),
-                        SoundEvents.ENTITY_PLAYER_HURT, SoundCategory.HOSTILE,
-                        0.8f, 1.0f);
-
-                DamageNumberSender.broadcastPoison(world, entity, finalPoisonDamage, poisonAilment.getSourceUuid());
-            }
-            
-            // Update status effect with current stack count
-            applyStatusEffect(entity, AilmentType.POISON, poisonAilment.getRemainingDuration(), stacks);
-        }
+    /** Release memory without curing the applications written to the entity's save. */
+    public static void onEntityDespawn(LivingEntity entity) {
+        // Players keep the same instance during dimension travel. Disconnect cleanup runs after saving.
+        if(entity instanceof ServerPlayerEntity player&&player.getServer().getPlayerManager().getPlayer(player.getUuid())==player)return;
+        State s=find(entity);
+        if(s!=null)STATES.remove(entity.getUuid(),s);
     }
-
-    private static float getDamagePercent(LivingEntity entity) {
-        return 1.0f;
+    public static void cleanupPlayers(net.minecraft.server.MinecraftServer server) {
+        STATES.entrySet().removeIf(entry->entry.getValue().owner instanceof ServerPlayerEntity player &&player.getServer()==server&&server.getPlayerManager().getPlayer(entry.getKey())!=player);
     }
-
-    public static void clearAilment(LivingEntity target, AilmentType type) {
-        List<Ailment> ailments = getAilments(target);
-        ailments.removeIf(a -> a.getType() == type);
-        ENTITY_AILMENTS.put(target.getUuid(), ailments);
-        
-        // Remove status effect
-        if (type == AilmentType.POISON) {
-            target.removeStatusEffect(ModEffects.POISON);
-        } else if (type == AilmentType.BURN) {
-            target.removeStatusEffect(ModEffects.BURN);
-        } else if (type == AilmentType.FREEZE) {
-            if (target.hasStatusEffect(ModEffects.FREEZE)) {
-                playFreezeEndEffect(target);
-            }
-            target.removeStatusEffect(ModEffects.FREEZE);
-        } else if (type == AilmentType.BLEED) {
-            target.removeStatusEffect(ModEffects.BLEED);
-        } else if (type == AilmentType.SHOCK) {
-            target.removeStatusEffect(ModEffects.SHOCK);
-        }
-    }
-
-    public static void clearAllAilments(LivingEntity target) {
-        if (target == null) return;
-        UUID uuid = target.getUuid();
-        ENTITY_AILMENTS.remove(uuid);
-        FREEZE_BUILDUP.remove(uuid);
-        FREEZE_BUILDUP_LAST_HIT.remove(uuid);
-        FREEZE_BUILDUP_MAGNITUDE.remove(uuid);
-        updateFreezeSlowModifier(target, 0.0f, 1.0f);
-        ELECTROCUTE_BUILDUP.remove(uuid);
-        ELECTROCUTE_BUILDUP_LAST_HIT.remove(uuid);
-        FLAMMABILITY_BUILDUP.remove(uuid);
-        FLAMMABILITY_LAST_HIT.remove(uuid);
-        PROCESSING_SHOCK_CHAIN.remove(uuid);
-        POISON_DAMAGE_IN_PROGRESS.remove(uuid);
-        BLEED_DAMAGE_IN_PROGRESS.remove(uuid);
-        target.removeStatusEffect(ModEffects.POISON);
-        target.removeStatusEffect(ModEffects.BURN);
-        if (target.hasStatusEffect(ModEffects.FREEZE)) {
-            playFreezeEndEffect(target);
-        }
-        target.removeStatusEffect(ModEffects.FREEZE);
-        target.removeStatusEffect(ModEffects.BLEED);
-        target.removeStatusEffect(ModEffects.SHOCK);
-        target.removeStatusEffect(ModEffects.ELECTROCUTE);
-    }
-
-    public static double getAilmentDuration(LivingEntity target, AilmentType type) {
-        List<Ailment> ailments = getAilments(target);
-        for (Ailment ailment : ailments) {
-            if (ailment.getType() == type) {
-                return ailment.getRemainingDuration();
-            }
-        }
-        return 0;
-    }
-
     public static void onEntityDeath(LivingEntity entity) {
         clearAllAilments(entity);
     }
-
-    public static void onEntityDespawn(LivingEntity entity) {
-        clearAllAilments(entity);
+    public static void clearAll() {
+        STATES.clear();
+        UPDATING_MIRRORS.clear();
+        SECONDARY.remove();
+        shockChain=false;
     }
-
-    public static void handleShockChain(LivingEntity entity, float lightningDamage, Entity source) {
-        if (entity.getEntityWorld().isClient()) return;
-        if (!hasAilment(entity, AilmentType.SHOCK)) return;
-        if (lightningDamage <= 0) return;
-        
-        // Note: Global lock is managed by the caller (ElementalDamageMixin)
-        // This prevents cross-entity ping-pong (A chains to B, B chains back to A)
-        
-        // NOTE: Removed source type matching to ensure ALL lightning damage chains
-        // This ensures consistent behavior whether shock was applied by player or mob
-        
-        executeShockChain(entity, lightningDamage, source);
+    public static void writeNbt(LivingEntity entity,NbtCompound nbt) {
+        State s=find(entity);
+        if(s==null||s.empty()) {
+            nbt.remove(SAVE_KEY);
+            return;
+        }
+        var root=new NbtCompound();
+        var list=new NbtList();
+        for(var a:s.ailments) {
+            var tag=new NbtCompound();
+            tag.putString("Type",a.getType().name());
+            tag.putDouble("Remaining",a.getRemainingDuration());
+            tag.putDouble("Maximum",a.getMaxDuration());
+            tag.putDouble("Tick",a.getTimeSinceLastTick());
+            tag.putFloat("Dps",a.getBaseDamage());
+            tag.putFloat("Magnitude",a.getMagnitude());
+            tag.putFloat("Stored",a.getStoredDamage());
+            tag.putBoolean("PlayerSource",a.isPlayerSource());
+            tag.putInt("Generation",a.getGeneration());
+            if(a.getSourceUuid()!=null)tag.putUuid("Source",a.getSourceUuid());
+            if(a.getParentUuid()!=null)tag.putUuid("Parent",a.getParentUuid());
+            if(a.getChainUuid()!=null)tag.putUuid("Chain",a.getChainUuid());
+            list.add(tag);
+        }
+        root.put("Applications",list);
+        root.putFloat("Freeze",s.freeze);
+        root.putFloat("Electrocute",s.electrocute);
+        root.putFloat("Flammability",s.flammability);
+        root.putFloat("FreezeMagnitude",s.freezeMagnitude);
+        root.putDouble("ControlRecovery",s.controlRecovery);
+        long now=entity.getWorld().getTime();
+        root.putLong("FreezeAge",Math.clamp(now-s.freezeHit,0,41));
+        root.putLong("ElectrocuteAge",Math.clamp(now-s.electrocuteHit,0,41));
+        root.putLong("FlammabilityAge",Math.clamp(now-s.flammabilityHit,0,41));
+        nbt.put(SAVE_KEY,root);
     }
-    
-    /**
-     * Execute shock chain without checking if entity has shock (for killing hits where ailment was already cleared)
-     */
-    public static void executeShockChain(LivingEntity entity, float lightningDamage, Entity source) {
-        if (entity.getEntityWorld().isClient()) return;
-        if (lightningDamage <= 0) return;
-        
-        ServerWorld world = (ServerWorld) entity.getEntityWorld();
-        double radius = 10.0;
-        Box box = entity.getBoundingBox().expand(radius);
-        List<LivingEntity> nearby = world.getEntitiesByClass(LivingEntity.class, box, e -> {
-            if (!e.isAlive() || e == entity || e == source || (e instanceof net.minecraft.entity.decoration.ArmorStandEntity)) return false;
-            
-            // Check party
-            if (source instanceof net.minecraft.server.network.ServerPlayerEntity sp && e instanceof net.minecraft.server.network.ServerPlayerEntity ep) {
-                var party = com.cranks.dungeons.party.PartyManager.getParty(sp.getUuid()).orElse(null);
-                if (party != null && party.isMember(ep.getUuid())) {
-                    return false;
-                }
+    public static void readNbt(LivingEntity entity,NbtCompound nbt) {
+        if(entity.getWorld().isClient())return;
+        // Migrate the previous overlapping movement modifiers without touching unrelated effects.
+        var speed=entity.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED);
+        if(speed!=null) {
+            speed.removeModifier(CHILL_SLOW);
+            speed.removeModifier(Identifier.of("cranks-dungeons","freeze_movement_slow"));
+        }
+        State old=find(entity);
+        if(old!=null)STATES.remove(entity.getUuid(),old);
+        if(!nbt.contains(SAVE_KEY,NbtElement.COMPOUND_TYPE))return;
+        var root=nbt.getCompound(SAVE_KEY);
+        State s=state(entity);
+        var list=root.getList("Applications",NbtElement.COMPOUND_TYPE);
+        int poisons=0;
+        var seen=EnumSet.noneOf(AilmentType.class);
+        for(int i=0; i<Math.min(list.size(),AilmentRules.MAX_POISON_CAP+5); i++) {
+            var tag=list.getCompound(i);
+            AilmentType type;
+            try {
+                type=AilmentType.valueOf(tag.getString("Type"));
+            } catch(IllegalArgumentException ignored) {
+                continue;
             }
-            return true;
-        });
-        
-        for (LivingEntity target : nearby) {
-            
-            // Apply lightning damage using the elemental damage system
-            // Apply resistance reduction
-            double resistance = target.getAttributeValue(ModAttributes.LIGHTNING_RESISTANCE);
-            double finalDamage = lightningDamage * (1.0 - resistance);
-            
-            if (finalDamage > 0) {
-                // Use magic damage to apply damage with full hit reactions
-                // The global lock is already set, which prevents both recursive chains 
-                // AND double elemental processing (mixin checks isShockChainInProgress)
-                net.minecraft.entity.damage.DamageSource damageSource = world.getDamageSources().magic();
-                target.damage(damageSource, (float) finalDamage);
-                
-                // Play custom shock chain sound
-                world.playSound(null, target.getX(), target.getY(), target.getZ(),
-                        ModSounds.SHOCK_CHAIN, SoundCategory.HOSTILE,
-                        0.7f, 1.0f + world.getRandom().nextFloat() * 0.3f);
-                
-                // Broadcast damage numbers as lightning damage  
-                DamageNumberSender.broadcast(world, target, 0, 0, 0, finalDamage, 0, source != null ? source.getUuid() : null, false);
-                
-                // Guarantee a baseline shock on chained targets (between 5% and 30%)
-                float ailmentThreshold = com.cranks.dungeons.util.CombatUtility.getEffectiveAilmentThreshold(target, AilmentType.SHOCK);
-                float finalMagnitude = ((float) finalDamage / ailmentThreshold) * 0.30f;
-                finalMagnitude = Math.max(0.05f, Math.min(finalMagnitude, 0.30f));
-                applyAilment(target, AilmentType.SHOCK, (float) finalDamage, AilmentType.SHOCK.getBaseDuration(), source, null, null, 0, finalMagnitude);
-                
-                // Spawn shock chain particles at target position
-                spawnShockChainParticles(world, target);
-
-                // Send ShockArc visual to all nearby players
-                Vec3d startPos = entity.getBoundingBox().getCenter();
-                Vec3d endPos = target.getBoundingBox().getCenter();
-                ShockArcPayload payload = new ShockArcPayload(startPos, endPos, 0xFFFFFF); // White lightning
-
-                for (net.minecraft.server.network.ServerPlayerEntity player : world.getPlayers()) {
-                    if (player.squaredDistanceTo(startPos) < 64 * 64) {
-                        net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(player, payload);
-                    }
-                }
-                
-            }
+            if(type==AilmentType.POISON) {
+                if(++poisons>AilmentRules.MAX_POISON_CAP)continue;
+            } else if(!seen.add(type))continue;
+            double remaining=tag.getDouble("Remaining");
+            if(!(remaining>0)||Double.isNaN(remaining))continue;
+            remaining=remaining==Double.POSITIVE_INFINITY?remaining:Math.min(3600,remaining);
+            float dps=(float)AilmentRules.bounded(tag.getFloat("Dps"),0,1_000_000);
+            float magnitude=(float)AilmentRules.bounded(tag.getFloat("Magnitude"),0,type==AilmentType.SHOCK?.5:type==AilmentType.BLEED?1:1_000_000);
+            var a=new Ailment(type,remaining,dps,tag.containsUuid("Source")?tag.getUuid("Source"):null,tag.containsUuid("Parent")?tag.getUuid("Parent"):null,tag.containsUuid("Chain")?tag.getUuid("Chain"):UUID.randomUUID(),Math.clamp(tag.getInt("Generation"),0,5),magnitude);
+            a.setMaxDuration(remaining);
+            a.addTimeSinceLastTick(AilmentRules.bounded(tag.getDouble("Tick"),0,.5));
+            a.setStoredDamage((float)AilmentRules.bounded(tag.getFloat("Stored"),0,1_000_000));
+            a.setPlayerSource(tag.getBoolean("PlayerSource"));
+            s.ailments.add(a);
+            if(type==AilmentType.BURN&&entity instanceof AilmentHistoryProvider history)history.cranks$recordBurnChain(a.getChainUuid());
         }
+        s.freeze=(float)AilmentRules.bounded(root.getFloat("Freeze"),0,.999);
+        s.electrocute=(float)AilmentRules.bounded(root.getFloat("Electrocute"),0,.999);
+        s.flammability=(float)AilmentRules.bounded(root.getFloat("Flammability"),0,.999);
+        s.freezeMagnitude=(float)AilmentRules.bounded(root.getFloat("FreezeMagnitude"),1,11);
+        s.controlRecovery=AilmentRules.bounded(root.getDouble("ControlRecovery"),0,AilmentRules.CONTROL_RECOVERY_SECONDS);
+        long now=entity.getWorld().getTime();
+        s.freezeHit=now-Math.clamp(root.getLong("FreezeAge"),0,41);
+        s.electrocuteHit=now-Math.clamp(root.getLong("ElectrocuteAge"),0,41);
+        s.flammabilityHit=now-Math.clamp(root.getLong("FlammabilityAge"),0,41);
+        updateFreezeSlowModifier(entity,s.freeze,s.freezeMagnitude);
+        // Initial networking happens on tracking, after deserialization has completed.
     }
-
-    public static boolean isShockChainInProgress() {
-        if (GLOBAL_SHOCK_CHAIN_LOCK && System.currentTimeMillis() - LOCK_ACQUIRE_TIME > LOCK_TIMEOUT) {
-            System.err.println("[CranksDungeons] Previous shock chain lock timed out, resetting");
-            releaseShockChainLock();
-        }
-        return GLOBAL_SHOCK_CHAIN_LOCK;
-    }
-    
-    public static boolean acquireShockChainLock() {
-        if (GLOBAL_SHOCK_CHAIN_LOCK && System.currentTimeMillis() - LOCK_ACQUIRE_TIME > LOCK_TIMEOUT) {
-            System.err.println("[CranksDungeons] Previous shock chain lock timed out, resetting");
-            releaseShockChainLock();
-        }
-        if (GLOBAL_SHOCK_CHAIN_LOCK) {
-            return false;
-        }
-        GLOBAL_SHOCK_CHAIN_LOCK = true;
-        LOCK_ACQUIRE_TIME = System.currentTimeMillis();
-        return true;
-    }
-    
-    public static void releaseShockChainLock() {
-        GLOBAL_SHOCK_CHAIN_LOCK = false;
-        LOCK_ACQUIRE_TIME = 0;
-    }
-
-    private static void spawnShockChainParticles(ServerWorld world, LivingEntity target) {
-        double centerX = target.getX();
-        double centerY = target.getY() + target.getStandingEyeHeight() * 0.8;
-        double centerZ = target.getZ();
-
-        // Spawn 4 different shock particles in a small burst (single iteration)
-        double offsetX = (world.getRandom().nextDouble() - 0.5) * 1.0;
-        double offsetY = (world.getRandom().nextDouble() - 0.5) * 1.0;
-        double offsetZ = (world.getRandom().nextDouble() - 0.5) * 1.0;
-
-        // Spawn all 4 shock particle types with slight offsets
-        world.spawnParticles(ModParticles.SHOCK_SPARK_1, centerX + offsetX, centerY + offsetY, centerZ + offsetZ, 1, 0.1, 0.1, 0.1, 0.05);
-        world.spawnParticles(ModParticles.SHOCK_SPARK_2, centerX + offsetX * 0.8, centerY + offsetY * 0.8, centerZ + offsetZ * 0.8, 1, 0.1, 0.1, 0.1, 0.05);
-        world.spawnParticles(ModParticles.SHOCK_SPARK_3, centerX + offsetX * 1.2, centerY + offsetY * 1.2, centerZ + offsetZ * 1.2, 1, 0.1, 0.1, 0.1, 0.05);
-        world.spawnParticles(ModParticles.SHOCK_SPARK_4, centerX + offsetX * 0.6, centerY + offsetY * 0.6, centerZ + offsetZ * 0.6, 1, 0.1, 0.1, 0.1, 0.05);
-    }
-    
-
 }

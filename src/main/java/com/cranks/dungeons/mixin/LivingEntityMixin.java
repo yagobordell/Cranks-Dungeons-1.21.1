@@ -6,8 +6,6 @@ import com.cranks.dungeons.network.DamageNumberSender;
 import com.cranks.dungeons.registry.ModAttributes;
 import com.cranks.dungeons.util.AilmentHistoryProvider;
 import com.cranks.dungeons.util.CritEntropyProvider;
-import com.cranks.dungeons.util.DamageBreakdownProvider;
-import com.cranks.dungeons.util.DamageConversionHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -27,13 +25,11 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.ArrayDeque;
-import java.util.Deque;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.entry.RegistryEntry;
 
 @Mixin(LivingEntity.class)
-public abstract class LivingEntityMixin implements DamageBreakdownProvider, AilmentHistoryProvider, CritEntropyProvider {
+public abstract class LivingEntityMixin implements AilmentHistoryProvider, CritEntropyProvider {
 
     @Inject(method = "getOffHandStack", at = @At("RETURN"), cancellable = true)
     private void hideOffhandWhenTwoHanding(CallbackInfoReturnable<ItemStack> cir) {
@@ -47,9 +43,6 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
     }
 
     @Unique
-    private DamageConversionHelper.DamageBreakdown cranks$lastDamageBreakdown;
-
-    @Unique
     private float cranks$accumulatedHeal = 0;
     @Unique
     private int cranks$healTimer = 0;
@@ -61,17 +54,12 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
     private int cranks$loadHealthGraceTicks = 0;
 
     @Unique
-    private final Set<UUID> cranks$recentBurnChains = new HashSet<>();
+    private final Set<UUID> cranks$recentBurnChains = new java.util.LinkedHashSet<>();
 
     @Unique
     private float cranks$critEntropy = -1.0f; // -1 = unseeded / out-of-combat
     @Unique
     private long cranks$lastCritAttackTime = 0L;
-
-    private record CranksDamageSnapshot(float health, float absorption) {}
-
-    @Unique
-    private final Deque<CranksDamageSnapshot> cranks$damageSnapshots = new ArrayDeque<>();
 
     @Override
     public float cranks$getCritEntropy() {
@@ -124,19 +112,14 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
     }
 
     @Override
-    public DamageConversionHelper.DamageBreakdown cranks$getLastDamageBreakdown() {
-        return cranks$lastDamageBreakdown;
-    }
-
-    @Override
-    public void cranks$setLastDamageBreakdown(DamageConversionHelper.DamageBreakdown breakdown) {
-        this.cranks$lastDamageBreakdown = breakdown;
-    }
-
-    @Override
     public void cranks$recordBurnChain(UUID chainUuid) {
         if (chainUuid != null) {
             cranks$recentBurnChains.add(chainUuid);
+            if (cranks$recentBurnChains.size() > 256) {
+                var oldest = cranks$recentBurnChains.iterator();
+                oldest.next();
+                oldest.remove();
+            }
         }
     }
 
@@ -209,17 +192,16 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
         }
     }
 
-    @Inject(method = "heal", at = @At("HEAD"))
-    private void onHeal(float amount, CallbackInfo ci) {
-        LivingEntity entity = (LivingEntity) (Object) this;
-        if (entity.getEntityWorld().isClient() || amount <= 0)
-            return;
-
-        float actualHeal = Math.min(amount, entity.getMaxHealth() - entity.getHealth());
-        if (actualHeal <= 0)
-            return;
-
-        cranks$accumulatedHeal += actualHeal;
+    @com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod(method = "heal")
+    private void cranks$observeActualHealing(float amount, com.llamalad7.mixinextras.injector.wrapoperation.Operation<Void> original) {
+        LivingEntity entity = (LivingEntity)(Object)this;
+        float before = entity.getHealth();
+        original.call(amount);
+        if (!(entity.getWorld() instanceof ServerWorld world) || !entity.isAlive()) return;
+        float actual = Math.max(0, entity.getHealth() - before);
+        if (!Float.isFinite(actual) || actual <= 0) return;
+        if (com.cranks.dungeons.damage.HealingNumberContext.gradual()) cranks$accumulatedHeal += actual;
+        else DamageNumberSender.broadcastHeal(world, entity, actual);
     }
 
     @Inject(method = "readCustomDataFromNbt", at = @At("TAIL"))
@@ -280,39 +262,6 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
                     }
                 }
             }
-        }
-    }
-
-    @Inject(method = "damage", at = @At("HEAD"))
-    private void snapshotDamageResources(net.minecraft.entity.damage.DamageSource source, float amount,
-                                         CallbackInfoReturnable<Boolean> cir) {
-        LivingEntity entity = (LivingEntity) (Object) this;
-        if (entity.getWorld().isClient()) return;
-        cranks$damageSnapshots.push(new CranksDamageSnapshot(
-                entity.getHealth(), entity.getAbsorptionAmount()));
-    }
-
-    @Inject(method = "damage", at = @At("RETURN"))
-    private void trackDamageContributions(net.minecraft.entity.damage.DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
-        LivingEntity entity = (LivingEntity) (Object) this;
-        if (entity.getWorld().isClient()) return;
-
-        CranksDamageSnapshot before = cranks$damageSnapshots.poll();
-        if (before == null || !((Object) this instanceof com.cranks.dungeons.util.MobDamageTracker tracker)) return;
-
-        float actualDamage = Math.max(0.0f, before.health() - entity.getHealth())
-                + Math.max(0.0f, before.absorption() - entity.getAbsorptionAmount());
-        if (actualDamage <= 0.0f) return;
-
-        net.minecraft.entity.player.PlayerEntity attacker;
-        if (source.getAttacker() instanceof net.minecraft.entity.player.PlayerEntity player) {
-            attacker = player;
-        } else {
-            attacker = ((LivingEntityAccessor) this).cranks$getAttackingPlayer();
-        }
-
-        if (attacker != null) {
-            tracker.cranks$addDamageContribution(attacker.getUuid(), actualDamage);
         }
     }
 
@@ -494,7 +443,7 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
             // Extract operation from the second part
             net.minecraft.entity.attribute.EntityAttributeModifier.Operation op = net.minecraft.entity.attribute.EntityAttributeModifier.Operation.valueOf(parts[1]);
 
-            updateModifier(entity, attr, net.minecraft.util.Identifier.of("cranks-dungeons", "req_penalty_" + parts[0].replace(':', '_') + "_" + parts[1]), -entry.getValue(), op);
+            updateModifier(entity, attr, net.minecraft.util.Identifier.of("cranks-dungeons", "req_penalty_" + parts[0].replace(':', '_') + "_" + op.asString()), -entry.getValue(), op);
         }
 
         // Remove any penalties that are no longer active
@@ -506,7 +455,7 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
                 
                 net.minecraft.entity.attribute.EntityAttributeModifier.Operation op = net.minecraft.entity.attribute.EntityAttributeModifier.Operation.valueOf(parts[1]);
 
-                updateModifier(entity, attr, net.minecraft.util.Identifier.of("cranks-dungeons", "req_penalty_" + parts[0].replace(':', '_') + "_" + parts[1]), 0.0, op);
+                updateModifier(entity, attr, net.minecraft.util.Identifier.of("cranks-dungeons", "req_penalty_" + parts[0].replace(':', '_') + "_" + op.asString()), 0.0, op);
             }
         }
 
@@ -597,10 +546,10 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
         if (cranks$accumulatedHeal > 0) {
             cranks$healTimer++;
             if (cranks$healTimer >= 10) {
-                double healAmount = (double) Math.round(cranks$accumulatedHeal * 10.0) / 10.0;
+                double healAmount = cranks$accumulatedHeal;
                 if (healAmount > 0) {
                     if (entity.getWorld() instanceof net.minecraft.server.world.ServerWorld serverWorld) {
-                        DamageNumberSender.broadcastHeal(serverWorld, entity, healAmount);
+                        DamageNumberSender.broadcastHeal(serverWorld, entity, healAmount, true);
                     }
                 }
                 cranks$accumulatedHeal = 0;
@@ -663,102 +612,16 @@ public abstract class LivingEntityMixin implements DamageBreakdownProvider, Ailm
 
     @Inject(method = "onDeath", at = @At("TAIL"))
     private void awardCombatXp(net.minecraft.entity.damage.DamageSource source, CallbackInfo ci) {
-        if (((LivingEntity) (Object) this).getWorld().isClient()) return;
-        
-        LivingEntity entity = (LivingEntity) (Object) this;
-        if (!(entity instanceof net.minecraft.entity.mob.MobEntity mob)) return;
-        
-        int baseXP = ((MobEntityAccessor) mob).getExperiencePoints();
-        if (baseXP <= 0) return;
-
-        net.minecraft.server.MinecraftServer server = entity.getServer();
-        if (server == null) return;
-
-        // Group damage by Party or Solo UUID
-        java.util.Map<Object, Float> teamDamage = new java.util.HashMap<>();
-        
-        if (entity instanceof com.cranks.dungeons.util.MobDamageTracker tracker) {
-            java.util.Map<java.util.UUID, Float> contributions = tracker.cranks$getDamageContributions();
-            for (java.util.Map.Entry<java.util.UUID, Float> entry : contributions.entrySet()) {
-                java.util.UUID uuid = entry.getKey();
-                float damage = entry.getValue();
-                
-                java.util.Optional<com.cranks.dungeons.party.Party> optParty = com.cranks.dungeons.party.PartyManager.getParty(uuid);
-                Object key = optParty.isPresent() ? optParty.get() : uuid;
-                teamDamage.merge(key, damage, Float::sum);
-            }
-        }
-        
-        Object winner = null;
-        float maxDamage = -1;
-        
-        // Find winner
-        for (java.util.Map.Entry<Object, Float> entry : teamDamage.entrySet()) {
-            if (entry.getValue() > maxDamage) {
-                maxDamage = entry.getValue();
-                winner = entry.getKey();
-            }
-        }
-        
-        // Fallback to old logic if no damage was tracked but there's an attacking player
-        if (winner == null) {
-            net.minecraft.entity.player.PlayerEntity attacker = null;
-            if (source.getAttacker() instanceof net.minecraft.entity.player.PlayerEntity player) {
-                attacker = player;
-            } else {
-                attacker = ((LivingEntityAccessor) this).cranks$getAttackingPlayer();
-            }
-            if (attacker != null) {
-                java.util.Optional<com.cranks.dungeons.party.Party> optParty = com.cranks.dungeons.party.PartyManager.getParty(attacker.getUuid());
-                winner = optParty.isPresent() ? optParty.get() : attacker.getUuid();
-            }
-        }
-
-        if (winner instanceof com.cranks.dungeons.party.Party party) {
-            java.util.List<net.minecraft.server.network.ServerPlayerEntity> eligiblePlayers = new java.util.ArrayList<>();
-            double maxBonus = 0;
-            for (java.util.UUID memberId : party.getMembers()) {
-                net.minecraft.server.network.ServerPlayerEntity member = server.getPlayerManager().getPlayer(memberId);
-                if (member != null && member.getWorld() == entity.getWorld() && member.squaredDistanceTo(entity) <= 10000) {
-                    eligiblePlayers.add(member);
-                    maxBonus = Math.max(maxBonus, member.getAttributeValue(ModAttributes.COMBAT_EXPERIENCE));
-                }
-            }
-            
-            if (maxBonus > 0) {
-                baseXP += (int)(baseXP * maxBonus);
-            }
-
-            int n = eligiblePlayers.size();
-            if (n > 1) {
-                int sharedXp = (int) Math.ceil((baseXP / (double) n) * 1.2);
-                for (net.minecraft.server.network.ServerPlayerEntity member : eligiblePlayers) {
-                    com.cranks.dungeons.util.CombatXpContext.runAsCombatXp(() -> member.addExperience(sharedXp));
-                }
-            } else if (n == 1) {
-                int awardedXp = baseXP;
-                com.cranks.dungeons.util.CombatXpContext.runAsCombatXp(
-                        () -> eligiblePlayers.get(0).addExperience(awardedXp));
-            }
-        } else if (winner instanceof java.util.UUID soloUuid) {
-            net.minecraft.server.network.ServerPlayerEntity player = server.getPlayerManager().getPlayer(soloUuid);
-            if (player != null && player.getWorld() == entity.getWorld() && player.squaredDistanceTo(entity) <= 10000) {
-                double bonus = player.getAttributeValue(ModAttributes.COMBAT_EXPERIENCE);
-                if (bonus > 0) {
-                    baseXP += (int)(baseXP * bonus);
-                }
-                
-                int awardedXp = baseXP;
-                com.cranks.dungeons.util.CombatXpContext.runAsCombatXp(() -> player.addExperience(awardedXp));
-            }
-        }
+        com.cranks.dungeons.progression.CombatExperience.death((LivingEntity)(Object)this);
     }
 
 
     @Unique
     private void updateArmorSpeed(LivingEntity entity) {
 
-        double armor = entity.getArmor();
+        double armor = entity.getAttributeValue(net.minecraft.entity.attribute.EntityAttributes.GENERIC_ARMOR);
+        if(entity.getAttributeValue(ModAttributes.KEYSTONE_IRON_REFLEXES)>0)
+            armor += entity.getAttributeValue(ModAttributes.EVASION_RATING);
         double penaltyReduction = entity.getAttributeValue(ModAttributes.ARMOR_SPEED_PENALTY_REDUCTION);
         double lowArmorBonusAttr = entity.getAttributeValue(ModAttributes.LOW_ARMOR_SPEED_BONUS);
 

@@ -7,10 +7,18 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
-final class ConfigFileUtil {
+public final class ConfigFileUtil {
     private ConfigFileUtil() {}
 
-    static void atomicWrite(Path target, String content) throws IOException {
+    static void installDefault(Path target) throws IOException {
+        String resource = "/data/cranks-dungeons/defaults/" + target.getFileName();
+        try (var stream = ConfigFileUtil.class.getResourceAsStream(resource)) {
+            if (stream == null) throw new IOException("Missing bundled config " + resource);
+            atomicWrite(target, new String(stream.readAllBytes(), StandardCharsets.UTF_8));
+        }
+    }
+
+    public static void atomicWrite(Path target, String content) throws IOException {
         Path parent = target.toAbsolutePath().getParent();
         if (parent == null) throw new IOException("Config path has no parent: " + target);
         Files.createDirectories(parent);

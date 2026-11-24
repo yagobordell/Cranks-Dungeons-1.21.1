@@ -14,7 +14,7 @@ public class StatusEffectUtilMixin {
     @Inject(method = "getDurationText", at = @At("HEAD"), cancellable = true)
     private static void hideInfiniteDurationText(StatusEffectInstance effect, float multiplier, float tickRate, CallbackInfoReturnable<Text> cir) {
         // For infinite or permanent effects (e.g. Well Fed, Starving, Bad Omen), hide duration string so no timer or infinity symbol appears
-        if (effect.isInfinite() || effect.getDuration() <= 0 || effect.getDuration() >= 36000) {
+        if (effect.isInfinite() || effect.getDuration() <= 0) {
             cir.setReturnValue(Text.empty());
         }
     }
